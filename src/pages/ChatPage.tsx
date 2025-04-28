@@ -112,7 +112,11 @@ const ChatPage: React.FC = () => {
 
   return (
     <div className="bg-galileo-background flex flex-col min-h-screen pb-16">
-      <PageHeader title="Assistente Financeiro" showSearch={false} />
+      <PageHeader 
+        title="Assistente Financeiro" 
+        showBack={true}
+        showSearch={false} 
+      />
       
       <div className="flex-1 flex flex-col">
         <ChatMessages 

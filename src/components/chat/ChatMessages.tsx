@@ -29,7 +29,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, transactions }) =
           <div
             className={`max-w-[80%] rounded-2xl p-3 ${
               message.sender === 'user'
-                ? 'bg-galileo-accent text-galileo-text rounded-tr-none'
+                ? 'bg-galileo-accent text-white rounded-tr-none'
                 : 'bg-galileo-card text-galileo-text rounded-tl-none'
             }`}
           >

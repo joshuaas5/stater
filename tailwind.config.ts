@@ -2,7 +2,7 @@
 import type { Config } from "tailwindcss";
 
 export default {
-	darkMode: ["class"],
+	darkMode: 'class',
 	content: [
 		"./pages/**/*.{ts,tsx}",
 		"./components/**/*.{ts,tsx}",
@@ -65,14 +65,14 @@ export default {
 				},
 				// Adicione as cores do Galileo Design
 				galileo: {
-					background: '#131C24',
-					card: '#1D2A36',
-					accent: '#29374C',
-					text: '#F8F9FB',
-					secondaryText: '#8A9DC0',
-					positive: '#3CDD7A',
-					negative: '#FF6B6B',
-					border: '#29374C',
+					background: 'hsl(var(--galileo-background))',
+					card: 'hsl(var(--galileo-card))',
+					accent: 'hsl(var(--galileo-accent))',
+					text: 'hsl(var(--galileo-text))',
+					secondaryText: 'hsl(var(--galileo-secondaryText))',
+					positive: 'hsl(var(--galileo-positive))',
+					negative: 'hsl(var(--galileo-negative))',
+					border: 'hsl(var(--galileo-border))',
 				}
 			},
 			borderRadius: {
@@ -136,7 +136,7 @@ export default {
 				'scale-in': 'scale-in 0.2s ease-out',
 			},
 			fontFamily: {
-				manrope: ['Manrope', 'sans-serif'],
+				'plus-jakarta': ['"Plus Jakarta Sans"', 'sans-serif'],
 				'noto-sans': ['"Noto Sans"', 'sans-serif']
 			}
 		}

@@ -35,12 +35,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSubmit }) => {
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Digite seus gastos ou receitas..."
-        className="input-chat flex-1"
+        className="flex-1 p-3 rounded-full bg-galileo-card border border-galileo-border text-galileo-text focus:outline-none focus:ring-2 focus:ring-galileo-accent"
       />
       <Button 
         type="submit" 
         size="icon"
-        className="bg-galileo-accent hover:bg-galileo-secondaryText text-galileo-text"
+        className="bg-galileo-accent hover:bg-galileo-accent/80 text-white rounded-full"
       >
         <Send size={20} />
       </Button>

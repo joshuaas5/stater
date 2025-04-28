@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart, CreditCard, Home, User } from 'lucide-react';
+import { BarChart, CreditCard, Home, User, MessageSquare } from 'lucide-react';
 
 const NavBar: React.FC = () => {
   const location = useLocation();
@@ -40,6 +40,16 @@ const NavBar: React.FC = () => {
           <Home size={24} />
         </div>
         <span className="text-xs">Início</span>
+      </Link>
+      
+      <Link 
+        to="/chat" 
+        className={`nav-item ${isActive('/chat') ? 'nav-item-active' : 'nav-item-inactive'}`}
+      >
+        <div className="flex h-8 items-center justify-center">
+          <MessageSquare size={24} />
+        </div>
+        <span className="text-xs">Assistente</span>
       </Link>
       
       <Link 

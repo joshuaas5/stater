@@ -1,36 +1,58 @@
 
 import React from 'react';
-import { Search } from 'lucide-react';
+import { Search, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 interface PageHeaderProps {
   title: string;
+  showBack?: boolean;
   showSearch?: boolean;
+  showThemeToggle?: boolean;
   onSearch?: () => void;
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({ 
-  title, 
-  showSearch = true, 
+  title,
+  showBack = false,
+  showSearch = true,
+  showThemeToggle = true,
   onSearch 
 }) => {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   return (
     <div className="flex items-center bg-galileo-background p-4 pb-2 justify-between sticky top-0 z-10">
-      <h2 className="text-galileo-text text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pl-12">
-        {title}
-      </h2>
+      <div className="flex items-center">
+        {showBack && (
+          <button
+            onClick={handleBack}
+            className="flex cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-transparent text-galileo-text mr-3"
+          >
+            <ArrowLeft size={24} />
+          </button>
+        )}
+        <h2 className="text-galileo-text text-lg font-bold leading-tight tracking-[-0.015em]">
+          {title}
+        </h2>
+      </div>
       
-      {showSearch && (
-        <div className="flex w-12 items-center justify-end">
+      <div className="flex items-center gap-2">
+        {showThemeToggle && <ThemeToggle />}
+        
+        {showSearch && (
           <button
             onClick={onSearch}
-            className="flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 bg-transparent text-galileo-text gap-2 text-base min-w-0 p-0"
+            className="flex cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-transparent text-galileo-text"
           >
-            <div className="text-galileo-text">
-              <Search size={24} />
-            </div>
+            <Search size={24} />
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

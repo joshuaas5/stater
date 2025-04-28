@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from './button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -96,13 +96,13 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
             variant="ghost" 
             className={`flex items-center gap-2 px-4 py-2 rounded-full ${monthColors[selectedMonth]} text-galileo-text font-medium hover:bg-galileo-accent/20`}
           >
-            <Calendar size={16} />
+            <CalendarIcon size={16} />
             {months[selectedMonth]} {selectedYear}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="center">
-          <CalendarComponent
-            mode="month"
+          <Calendar
+            mode="single"
             selected={date}
             onSelect={handleCalendarSelect}
             initialFocus

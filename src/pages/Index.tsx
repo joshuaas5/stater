@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isLoggedIn } from '@/utils/localStorage';
-import ChatPage from './ChatPage';
+import Dashboard from './Dashboard';
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
@@ -14,8 +14,8 @@ const Index: React.FC = () => {
     }
   }, [navigate]);
 
-  // Usar a página de Chat como página principal
-  return <ChatPage />;
+  // Usar a página de Dashboard como página principal
+  return <Dashboard />;
 };
 
 export default Index;

@@ -28,7 +28,7 @@ const ChatPage: React.FC = () => {
     if (messages.length === 0) {
       const welcomeMessage: ChatMessage = {
         id: uuidv4(),
-        text: "Olá! Digite suas receitas e despesas no formato 'descrição valor', por exemplo: 'salário 3000' ou 'mercado 300'.",
+        text: "Olá! Sou seu assistente financeiro. Digite suas receitas e despesas no formato 'descrição valor', por exemplo: 'salário 3000', 'aluguel 1500' ou 'fatura do cartão 2000 vencimento 10/05'.",
         sender: 'system',
         timestamp: new Date()
       };
@@ -63,7 +63,9 @@ const ChatPage: React.FC = () => {
         const transactionsSummary = transactions.map(t => ({
           title: t.title,
           amount: t.amount,
-          type: t.type
+          type: t.type,
+          dueDate: t.dueDate,
+          isRecurring: t.isRecurring
         }));
         
         setLastProcessedTransactions(transactionsSummary);
@@ -71,7 +73,7 @@ const ChatPage: React.FC = () => {
         // Adicionar resposta do sistema
         const responseMessage: ChatMessage = {
           id: uuidv4(),
-          text: `${transactions.length} ${transactions.length === 1 ? 'transação' : 'transações'} registrada${transactions.length === 1 ? '' : 's'} com sucesso!`,
+          text: `${transactions.length} ${transactions.length === 1 ? 'transação' : 'transações'} registrada${transactions.length === 1 ? '' : 's'} com sucesso!${transactions.some(t => t.dueDate) ? ' As contas com vencimento foram adicionadas à sua lista de contas a pagar.' : ''}`,
           sender: 'system',
           timestamp: new Date()
         };
@@ -86,7 +88,7 @@ const ChatPage: React.FC = () => {
         // Não foi possível identificar transações
         const errorMessage: ChatMessage = {
           id: uuidv4(),
-          text: "Não consegui identificar nenhuma transação. Por favor, tente novamente usando o formato 'descrição valor', como por exemplo: 'aluguel 1200' ou 'salário 3000'.",
+          text: "Não consegui identificar nenhuma transação. Por favor, tente novamente usando o formato 'descrição valor', como por exemplo: 'aluguel 1200' ou 'salário 3000'. Para contas com vencimento, adicione 'vencimento DD/MM'.",
           sender: 'system',
           timestamp: new Date()
         };
@@ -110,7 +112,7 @@ const ChatPage: React.FC = () => {
 
   return (
     <div className="bg-galileo-background flex flex-col min-h-screen pb-16">
-      <PageHeader title="Chat" showSearch={false} />
+      <PageHeader title="Assistente Financeiro" showSearch={false} />
       
       <div className="flex-1 flex flex-col">
         <ChatMessages 

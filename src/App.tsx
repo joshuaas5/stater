@@ -10,6 +10,9 @@ import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import Profile from "./pages/Profile";
 import ChatPage from "./pages/ChatPage";
+import BillsPage from "./pages/BillsPage";
+import AddBillPage from "./pages/AddBillPage";
+import NotificationsPage from "./pages/NotificationsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +30,9 @@ const App = () => (
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/chat" element={<ChatPage />} />
+          <Route path="/bills" element={<BillsPage />} />
+          <Route path="/add-bill" element={<AddBillPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

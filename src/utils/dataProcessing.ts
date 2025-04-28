@@ -1,4 +1,3 @@
-
 import { Transaction, Bill, CardItem } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 import { saveTransaction, saveBill } from "./localStorage";
@@ -20,7 +19,12 @@ export const processChat = (text: string, userId: string): Transaction[] => {
   const transactions: Transaction[] = [];
 
   lines.forEach(line => {
-    const parsed = parseTransactionText(line.trim());
+    // Process "mil" to "1000" before parsing
+    const processedLine = line.replace(/(\d+)\s*mil/gi, (match, number) => {
+      return `${number}000`;
+    });
+    
+    const parsed = parseTransactionText(processedLine.trim());
     if (parsed) {
       const transaction: Transaction = {
         id: uuidv4(),
@@ -67,6 +71,7 @@ export const processChat = (text: string, userId: string): Transaction[] => {
 // Função auxiliar para analisar o texto e extrair informações da transação
 const parseTransactionText = (text: string): ParsedTransaction | null => {
   // Expressão regular para capturar valores monetários (com ou sem símbolo de moeda)
+  // Updated to handle "2 mil" format already processed to "2000"
   const amountRegex = /\s?([0-9]+[,.][0-9]*|\s?[0-9]+)\s?(reais|real|r\$)?/i;
   
   // Expressão para detectar datas (dia/mês ou dia/mês/ano)

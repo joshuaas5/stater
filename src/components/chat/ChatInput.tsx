@@ -12,6 +12,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSubmit }) => {
   const [message, setMessage] = useState('');
   const { toast } = useToast();
   
+  const processMessage = (msg: string): string => {
+    // Process numeric inputs with "mil" to convert to thousands
+    return msg.replace(/(\d+)\s*mil/gi, (match, number) => {
+      return `${number}000`;
+    });
+  };
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -24,7 +31,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSubmit }) => {
       return;
     }
     
-    onSubmit(message);
+    // Process the message before submitting
+    const processedMessage = processMessage(message);
+    
+    onSubmit(processedMessage);
     setMessage('');
   };
   

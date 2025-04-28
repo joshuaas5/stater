@@ -5,11 +5,30 @@ import { v4 as uuidv4 } from 'uuid';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
 import { Bill } from '@/types';
-import { getBills, isLoggedIn, markBillAsPaid } from '@/utils/localStorage';
+import { getBills, isLoggedIn, markBillAsPaid, saveBill, updateBill } from '@/utils/localStorage';
 import { formatCurrency, getOverdueBills, getBillsDueInNextDays } from '@/utils/dataProcessing';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus } from 'lucide-react';
+import { 
+  CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
+  Bell, BellOff, Edit, MoreVertical, Trash
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const BillsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +36,8 @@ const BillsPage: React.FC = () => {
   const [overdueBills, setOverdueBills] = useState<Bill[]>([]);
   const [upcomingBills, setUpcomingBills] = useState<Bill[]>([]);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'overdue' | 'all'>('upcoming');
+  const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const { toast } = useToast();
   
   useEffect(() => {
@@ -47,6 +68,29 @@ const BillsPage: React.FC = () => {
   
   const handleAddBill = () => {
     navigate('/add-bill');
+  };
+
+  const handleToggleNotifications = (bill: Bill) => {
+    const updatedBill = {
+      ...bill,
+      notificationsEnabled: !bill.notificationsEnabled
+    };
+    
+    updateBill(updatedBill);
+    setSelectedBill(updatedBill);
+    loadBills();
+    
+    toast({
+      title: updatedBill.notificationsEnabled ? "Notificações ativadas" : "Notificações desativadas",
+      description: updatedBill.notificationsEnabled 
+        ? "Você receberá notificações sobre esta conta."
+        : "Você não receberá mais notificações sobre esta conta."
+    });
+  };
+  
+  const handleOpenNotificationSettings = (bill: Bill) => {
+    setSelectedBill(bill);
+    setShowNotificationSettings(true);
   };
   
   const getBillsToDisplay = () => {
@@ -158,9 +202,43 @@ const BillsPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex flex-col items-end">
-                <p className="text-galileo-negative text-base font-normal leading-normal">
-                  {formatCurrency(bill.amount)}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-galileo-negative text-base font-normal leading-normal">
+                    {formatCurrency(bill.amount)}
+                  </p>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreVertical size={16} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleOpenNotificationSettings(bill)}>
+                        <Bell className="mr-2 h-4 w-4" />
+                        <span>Configurar Notificações</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleToggleNotifications(bill)}>
+                        {bill.notificationsEnabled ? (
+                          <>
+                            <BellOff className="mr-2 h-4 w-4" />
+                            <span>Desativar Notificações</span>
+                          </>
+                        ) : (
+                          <>
+                            <Bell className="mr-2 h-4 w-4" />
+                            <span>Ativar Notificações</span>
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                      {!bill.isPaid && (
+                        <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
+                          <CalendarCheck className="mr-2 h-4 w-4" />
+                          <span>Marcar como Paga</span>
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
                 {!bill.isPaid && (
                   <button
                     onClick={() => handleMarkAsPaid(bill.id)}
@@ -178,6 +256,63 @@ const BillsPage: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Notification Settings Dialog */}
+      <Dialog open={showNotificationSettings} onOpenChange={setShowNotificationSettings}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configurações de Notificação</DialogTitle>
+            <DialogDescription>
+              Defina quando deseja receber alertas sobre esta conta
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <h3 className="font-medium text-galileo-text mb-4">
+              {selectedBill?.title} - {formatCurrency(selectedBill?.amount || 0)}
+            </h3>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="notifications-enabled">Notificações Ativadas</Label>
+                <Switch 
+                  id="notifications-enabled" 
+                  checked={selectedBill?.notificationsEnabled || false}
+                  onCheckedChange={() => {
+                    if (selectedBill) handleToggleNotifications(selectedBill);
+                  }}
+                />
+              </div>
+              
+              {selectedBill?.notificationsEnabled && (
+                <>
+                  <div className="text-galileo-text text-sm">
+                    <p className="mb-1 font-medium">Você receberá notificações:</p>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li>5 dias antes do vencimento</li>
+                      <li>1 dia antes do vencimento</li>
+                      <li>No dia do vencimento</li>
+                      <li>Se a conta estiver vencida</li>
+                      {selectedBill.totalInstallments && selectedBill.currentInstallment && (
+                        <li>Quando estiver próximo de terminar as parcelas</li>
+                      )}
+                    </ul>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              onClick={() => setShowNotificationSettings(false)}
+              className="bg-galileo-accent hover:bg-galileo-accent/80"
+            >
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       <NavBar />
     </div>

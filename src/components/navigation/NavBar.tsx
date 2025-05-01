@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, PieChart, PlusCircle, User, FileText, Lightbulb } from 'lucide-react';
+import { Home, PieChart, PlusCircle, FileText, Lightbulb } from 'lucide-react';
 
 const NavBar: React.FC = () => {
   const navigate = useNavigate();
@@ -20,11 +20,7 @@ const NavBar: React.FC = () => {
   ];
   
   const handleNavigation = (path: string) => {
-    if (path === '/add-transaction') {
-      navigate('/dashboard'); // Navigate back to dashboard but open the add transaction dialog
-    } else {
-      navigate(path);
-    }
+    navigate(path);
   };
   
   return (

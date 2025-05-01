@@ -3,17 +3,32 @@ import React from 'react';
 import { Transaction } from '@/types';
 import { formatCurrency } from '@/utils/dataProcessing';
 import { CreditCard, TrendingUp, CalendarRange } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface TransactionItemProps {
   transaction: Transaction;
 }
 
 const TransactionItem: React.FC<TransactionItemProps> = ({ transaction }) => {
+  // Format recurring day display
+  const recurringInfo = transaction.isRecurring && transaction.recurringDay
+    ? `Todo dia ${transaction.recurringDay}`
+    : 'Recorrente';
+
   return (
     <div className="flex items-center gap-4 w-full">
       <div className="text-galileo-text flex items-center justify-center rounded-lg bg-galileo-accent shrink-0 size-12">
         {transaction.isRecurring ? (
-          <CalendarRange size={24} />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <CalendarRange size={24} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{recurringInfo}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         ) : transaction.type === 'income' ? (
           <TrendingUp size={24} />
         ) : (
@@ -37,7 +52,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction }) => {
           </p>
           {transaction.isRecurring && (
             <span className="ml-2 px-1.5 py-0.5 text-xs bg-galileo-accent text-galileo-text rounded-md">
-              Recorrente
+              {transaction.recurringDay ? `Dia ${transaction.recurringDay}` : 'Recorrente'}
             </span>
           )}
         </div>

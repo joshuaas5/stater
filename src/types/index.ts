@@ -15,6 +15,7 @@ export interface Transaction {
   userId: string;
   // Campos adicionais para contas a pagar
   isRecurring?: boolean;
+  recurringDay?: number; // Dia do mês para transações recorrentes
   dueDate?: Date;
   isPaid?: boolean;
   totalInstallments?: number;
@@ -54,12 +55,14 @@ export interface Bill {
   amount: number;
   dueDate: Date;
   isRecurring: boolean;
+  recurringDay?: number; // Dia do mês para contas recorrentes
   category: string;
   userId: string;
   isPaid: boolean;
   totalInstallments?: number;
   currentInstallment?: number;
   notificationsEnabled: boolean;
+  notificationDays?: number[]; // Dias antes para notificar
   isCardBill?: boolean;
   cardItems?: CardItem[];
 }
@@ -75,3 +78,30 @@ export interface Notification {
   date: Date;
   read: boolean;
 }
+
+export const INCOME_CATEGORIES = [
+  'Salário',
+  'Renda de Trabalho Autônomo',
+  'Investimentos',
+  'Dividendos',
+  'Venda de ações',
+  'Hora extra',
+  'Renda de Aluguel',
+  'Presentes',
+  'Outras Receitas'
+];
+
+export const EXPENSE_CATEGORIES = [
+  'Habitação',
+  'Transporte',
+  'Alimentação',
+  'Saúde',
+  'Entretenimento',
+  'Cuidados Pessoais',
+  'Educação',
+  'Pagamentos de Dívidas',
+  'Poupança e Investimentos',
+  'Impostos',
+  'Presentes e Doações',
+  'Outras Saídas'
+];

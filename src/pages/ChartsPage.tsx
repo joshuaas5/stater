@@ -1,35 +1,43 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
-import { MonthSelector } from '@/components/ui/month-selector';
-import { Transaction } from '@/types';
-import { getTransactions, isLoggedIn } from '@/utils/localStorage';
-import { useNavigate } from 'react-router-dom';
+import { isLoggedIn, getTransactions } from '@/utils/localStorage';
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, Transaction } from '@/types';
 import { formatCurrency } from '@/utils/dataProcessing';
-import { 
-  PieChart, 
-  Pie, 
-  Cell, 
-  ResponsiveContainer, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  Legend,
-  LineChart,
-  Line
-} from 'recharts';
+import { MonthSelector } from '@/components/ui/month-selector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1'];
+import {
+  PieChart as PieChartIcon, 
+  BarChart3 as BarChartIcon,
+  LineChart as LineChartIcon, 
+  Filter, ChevronDown, ChevronUp, ArrowUp, ArrowDown
+} from 'lucide-react';
+import {
+  PieChart, Pie, Cell, Legend, ResponsiveContainer, Tooltip as RechartsTooltip,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
+  LineChart, Line, AreaChart, Area
+} from 'recharts';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const ChartsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [activeChart, setActiveChart] = useState<'pie' | 'bar' | 'line'>('pie');
+  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('expense');
+  const [activeWeekTab, setActiveWeekTab] = useState<string>('all');
   
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -37,17 +45,19 @@ const ChartsPage: React.FC = () => {
       return;
     }
     
-    loadTransactions(selectedMonth, selectedYear);
+    loadTransactions();
   }, [navigate, selectedMonth, selectedYear]);
   
-  const loadTransactions = (month: number, year: number) => {
+  const loadTransactions = () => {
     const allTransactions = getTransactions();
-    const filteredTransactions = allTransactions.filter(t => {
+    
+    const filtered = allTransactions.filter(t => {
       const transactionDate = new Date(t.date);
-      return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
+      return transactionDate.getMonth() === selectedMonth && 
+             transactionDate.getFullYear() === selectedYear;
     });
     
-    setTransactions(filteredTransactions);
+    setTransactions(filtered);
   };
   
   const handleMonthChange = (month: number, year: number) => {
@@ -55,210 +65,449 @@ const ChartsPage: React.FC = () => {
     setSelectedYear(year);
   };
   
-  // Prepare pie chart data for expenses by category
-  const prepareExpensesData = () => {
-    const expensesByCategory: { [key: string]: number } = {};
+  const getWeeksInMonth = () => {
+    // Generate array of weeks
+    const firstDay = new Date(selectedYear, selectedMonth, 1);
+    const lastDay = new Date(selectedYear, selectedMonth + 1, 0);
     
-    transactions.forEach(transaction => {
-      if (transaction.type === 'expense') {
-        const category = transaction.category || 'Outros';
-        if (expensesByCategory[category]) {
-          expensesByCategory[category] += transaction.amount;
-        } else {
-          expensesByCategory[category] = transaction.amount;
+    const weeks: { label: string; start: Date; end: Date }[] = [];
+    let currentWeekStart = new Date(firstDay);
+    
+    while (currentWeekStart <= lastDay) {
+      const weekEnd = new Date(currentWeekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      
+      const weekNumber = Math.ceil((currentWeekStart.getDate()) / 7);
+      
+      weeks.push({
+        label: `Semana ${weekNumber}`,
+        start: new Date(currentWeekStart),
+        end: new Date(Math.min(weekEnd.getTime(), lastDay.getTime()))
+      });
+      
+      currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+    }
+    
+    return weeks;
+  };
+  
+  // Preparar dados para gráficos
+  const prepareExpensesByCategory = () => {
+    const expensesByCategory: Record<string, number> = {};
+    
+    transactions
+      .filter(t => t.type === 'expense')
+      .forEach(transaction => {
+        const category = transaction.category || 'Sem categoria';
+        if (!expensesByCategory[category]) {
+          expensesByCategory[category] = 0;
         }
-      }
-    });
+        expensesByCategory[category] += transaction.amount;
+      });
     
-    return Object.keys(expensesByCategory).map(category => ({
-      name: category,
-      value: expensesByCategory[category]
+    return Object.entries(expensesByCategory).map(([name, value]) => ({
+      name,
+      value
     }));
   };
   
-  // Prepare bar chart data for income vs expenses
-  const prepareIncomeVsExpensesData = () => {
-    // Group by week
-    const weeks: { [key: string]: { date: string, income: number, expense: number } } = {};
+  const prepareIncomeByCategory = () => {
+    const incomeByCategory: Record<string, number> = {};
+    
+    transactions
+      .filter(t => t.type === 'income')
+      .forEach(transaction => {
+        const category = transaction.category || 'Sem categoria';
+        if (!incomeByCategory[category]) {
+          incomeByCategory[category] = 0;
+        }
+        incomeByCategory[category] += transaction.amount;
+      });
+    
+    return Object.entries(incomeByCategory).map(([name, value]) => ({
+      name,
+      value
+    }));
+  };
+  
+  const prepareIncomeVsExpenseByDay = () => {
+    const days: Record<number, { day: number, income: number, expense: number }> = {};
+    
+    // Inicializar dias do mês
+    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+    for (let i = 1; i <= daysInMonth; i++) {
+      days[i] = { day: i, income: 0, expense: 0 };
+    }
     
     transactions.forEach(transaction => {
       const date = new Date(transaction.date);
-      const weekNumber = Math.ceil(date.getDate() / 7); // Simple week calculation
-      const weekKey = `Week ${weekNumber}`;
-      
-      if (!weeks[weekKey]) {
-        weeks[weekKey] = { date: weekKey, income: 0, expense: 0 };
-      }
+      const day = date.getDate();
       
       if (transaction.type === 'income') {
-        weeks[weekKey].income += transaction.amount;
+        days[day].income += transaction.amount;
       } else {
-        weeks[weekKey].expense += transaction.amount;
+        days[day].expense += transaction.amount;
       }
     });
     
-    return Object.values(weeks);
+    return Object.values(days);
+  };
+
+  const prepareIncomeVsExpenseByWeek = () => {
+    const weeks = getWeeksInMonth();
+    const weekData = weeks.map(week => {
+      let income = 0;
+      let expense = 0;
+      
+      transactions.forEach(transaction => {
+        const transactionDate = new Date(transaction.date);
+        if (transactionDate >= week.start && transactionDate <= week.end) {
+          if (transaction.type === 'income') {
+            income += transaction.amount;
+          } else {
+            expense += transaction.amount;
+          }
+        }
+      });
+      
+      return {
+        name: week.label,
+        income,
+        expense,
+        balance: income - expense
+      };
+    });
+    
+    return weekData;
+  };
+
+  // Cores para os gráficos
+  const EXPENSE_COLORS = [
+    '#FF6B6B', '#F06595', '#D6336C', '#C2255C', '#A61E4D',
+    '#862E9C', '#6741D9', '#5F3DC4', '#364FC7', '#1864AB',
+    '#0B7285', '#099268', '#2B8A3E', '#5C940D', '#E67700'
+  ];
+  
+  const INCOME_COLORS = [
+    '#37B24D', '#40C057', '#51CF66', '#69DB7C', '#8CE99A',
+    '#63E6BE', '#20C997', '#12B886', '#0CA678', '#099268'
+  ];
+  
+  // Calcular totais
+  const totalExpenses = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+    
+  const totalIncome = transactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  // Filtrar pelo tipo selecionado
+  const getCategoryData = () => {
+    if (filterType === 'expense') {
+      return prepareExpensesByCategory();
+    } else if (filterType === 'income') {
+      return prepareIncomeByCategory();
+    } else {
+      // Combinação (talvez não faça sentido em um gráfico de pizza)
+      return [...prepareExpensesByCategory(), ...prepareIncomeByCategory()];
+    }
   };
   
-  // Prepare line chart data for net worth over time
-  const prepareNetWorthData = () => {
-    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    const netWorthData = [];
-    
-    const allTransactions = getTransactions();
-    const currentYear = selectedYear;
-    
-    let cumulativeNetWorth = 0;
-    
-    for (let i = 0; i < 12; i++) {
-      const monthlyTransactions = allTransactions.filter(t => {
-        const date = new Date(t.date);
-        return date.getMonth() <= i && date.getFullYear() <= currentYear;
-      });
-      
-      const income = monthlyTransactions.filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      const expenses = monthlyTransactions.filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      cumulativeNetWorth = income - expenses;
-      
-      netWorthData.push({
-        name: months[i],
-        netWorth: cumulativeNetWorth
-      });
+  // Filtrar por semana se necessário
+  const getWeekFilteredData = (data: any[]) => {
+    if (activeWeekTab === 'all') {
+      return data;
     }
     
-    return netWorthData;
+    // Pegar semana específica
+    const weeks = getWeeksInMonth();
+    const selectedWeek = weeks[parseInt(activeWeekTab)];
+    
+    if (!selectedWeek) return data;
+    
+    return data.filter(item => {
+      const itemDate = new Date(item.date);
+      return itemDate >= selectedWeek.start && itemDate <= selectedWeek.end;
+    });
   };
-  
-  const CustomTooltip = ({ active, payload, label }: any) => {
+
+  // Formatador personalizado para o tooltip
+  const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
+      const data = payload[0].payload;
       return (
-        <div className="bg-galileo-card p-2 border border-galileo-border rounded">
-          <p className="text-galileo-text font-medium">{`${label}`}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={`item-${index}`} style={{ color: entry.color }}>
-              {`${entry.name}: ${formatCurrency(entry.value)}`}
-            </p>
-          ))}
+        <div className="bg-galileo-card p-2 border border-galileo-border rounded shadow-sm">
+          <p className="font-medium">{data.name}</p>
+          <p className="text-galileo-accent">{formatCurrency(data.value)}</p>
         </div>
       );
     }
     return null;
   };
+
+  // Formatador para os valores do gráfico
+  const formatPieChartValue = (value: number) => {
+    return formatCurrency(value);
+  };
   
-  const expensesData = prepareExpensesData();
-  const incomeVsExpensesData = prepareIncomeVsExpensesData();
-  const netWorthData = prepareNetWorthData();
-  
+  // Renderizar legendas personalizadas
+  const renderCustomPieChartLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    
+    return percent > 0.05 ? (
+      <text 
+        x={x} 
+        y={y} 
+        fill="#fff" 
+        textAnchor="middle" 
+        dominantBaseline="central"
+        fontSize="12"
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    ) : null;
+  };
+
+  // Preparar dados para o gráfico de barras por semana
+  const weeklyData = prepareIncomeVsExpenseByWeek();
+
   return (
     <div className="bg-galileo-background min-h-screen pb-20">
-      <PageHeader title="Análise Financeira" />
+      <PageHeader title="Gráficos" showSearch={false} />
       
       <div className="px-4 mb-4">
         <MonthSelector onMonthChange={handleMonthChange} />
       </div>
       
-      <Tabs defaultValue="expenses" className="px-4">
-        <TabsList className="w-full mb-4">
-          <TabsTrigger value="expenses" className="flex-1">Despesas</TabsTrigger>
-          <TabsTrigger value="comparison" className="flex-1">Comparativo</TabsTrigger>
-          <TabsTrigger value="networth" className="flex-1">Patrimônio</TabsTrigger>
-        </TabsList>
+      <div className="flex justify-between items-center px-4 mb-4">
+        <div className="flex space-x-2">
+          <Button 
+            variant={activeChart === 'pie' ? "default" : "outline"} 
+            size="sm"
+            className={activeChart === 'pie' ? "bg-galileo-accent hover:bg-galileo-accent/80 text-white" : ""} 
+            onClick={() => setActiveChart('pie')}
+          >
+            <PieChartIcon size={16} className="mr-1" /> Pizza
+          </Button>
+          <Button 
+            variant={activeChart === 'bar' ? "default" : "outline"} 
+            size="sm"
+            className={activeChart === 'bar' ? "bg-galileo-accent hover:bg-galileo-accent/80 text-white" : ""} 
+            onClick={() => setActiveChart('bar')}
+          >
+            <BarChartIcon size={16} className="mr-1" /> Barras
+          </Button>
+          <Button 
+            variant={activeChart === 'line' ? "default" : "outline"} 
+            size="sm"
+            className={activeChart === 'line' ? "bg-galileo-accent hover:bg-galileo-accent/80 text-white" : ""} 
+            onClick={() => setActiveChart('line')}
+          >
+            <LineChartIcon size={16} className="mr-1" /> Linha
+          </Button>
+        </div>
         
-        <TabsContent value="expenses" className="mt-2">
-          <div className="bg-galileo-card p-4 rounded-lg shadow">
-            <h2 className="text-lg font-semibold text-galileo-text mb-4">Distribuição de Despesas por Categoria</h2>
-            
-            {expensesData.length > 0 ? (
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={expensesData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {expensesData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+        <Select 
+          value={filterType} 
+          onValueChange={(value: 'all' | 'income' | 'expense') => setFilterType(value)}
+        >
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Filtrar por" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="income">Receitas</SelectItem>
+            <SelectItem value="expense">Despesas</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Resumo financeiro */}
+      <div className="px-4 mb-4 grid grid-cols-2 gap-3">
+        <Card className="bg-galileo-card border-galileo-border">
+          <CardContent className="p-3">
+            <div className="flex flex-col">
+              <span className="text-sm text-galileo-secondaryText">Receitas</span>
+              <div className="flex items-center">
+                <span className="text-lg font-semibold text-galileo-positive">{formatCurrency(totalIncome)}</span>
+                <ArrowUp size={16} className="ml-1 text-galileo-positive" />
               </div>
-            ) : (
-              <p className="text-center text-galileo-secondaryText py-10">
-                Sem despesas registradas neste período
-              </p>
-            )}
-          </div>
-        </TabsContent>
+            </div>
+          </CardContent>
+        </Card>
         
-        <TabsContent value="comparison" className="mt-2">
-          <div className="bg-galileo-card p-4 rounded-lg shadow">
-            <h2 className="text-lg font-semibold text-galileo-text mb-4">Receitas vs Despesas por Semana</h2>
-            
-            {incomeVsExpensesData.length > 0 ? (
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={incomeVsExpensesData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend />
-                    <Bar dataKey="income" name="Receitas" fill="#82ca9d" />
-                    <Bar dataKey="expense" name="Despesas" fill="#ff8042" />
-                  </BarChart>
-                </ResponsiveContainer>
+        <Card className="bg-galileo-card border-galileo-border">
+          <CardContent className="p-3">
+            <div className="flex flex-col">
+              <span className="text-sm text-galileo-secondaryText">Despesas</span>
+              <div className="flex items-center">
+                <span className="text-lg font-semibold text-galileo-negative">{formatCurrency(totalExpenses)}</span>
+                <ArrowDown size={16} className="ml-1 text-galileo-negative" />
               </div>
-            ) : (
-              <p className="text-center text-galileo-secondaryText py-10">
-                Sem transações registradas neste período
-              </p>
-            )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="networth" className="mt-2">
-          <div className="bg-galileo-card p-4 rounded-lg shadow">
-            <h2 className="text-lg font-semibold text-galileo-text mb-4">Evolução do Patrimônio em {selectedYear}</h2>
-            
-            <div className="h-[300px]">
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Gráfico principal */}
+      <Card className="mx-4 bg-galileo-card border-galileo-border mb-6">
+        {activeChart === 'pie' && (
+          <CardContent className="p-4">
+            <h3 className="font-medium mb-4">
+              {filterType === 'expense' ? 'Despesas por Categoria' : 
+               filterType === 'income' ? 'Receitas por Categoria' : 
+               'Transações por Categoria'}
+            </h3>
+            <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={netWorthData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="netWorth" 
-                    name="Patrimônio Líquido"
-                    stroke="#8884d8" 
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 8 }}
-                  />
-                </LineChart>
+                <PieChart>
+                  <Pie
+                    data={getCategoryData()}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={renderCustomPieChartLabel}
+                    outerRadius={80}
+                    dataKey="value"
+                    nameKey="name"
+                  >
+                    {getCategoryData().map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={filterType === 'income' ? 
+                          INCOME_COLORS[index % INCOME_COLORS.length] : 
+                          EXPENSE_COLORS[index % EXPENSE_COLORS.length]} 
+                      />
+                    ))}
+                  </Pie>
+                  <Legend formatter={(value) => <span className="text-xs">{value}</span>} />
+                  <RechartsTooltip formatter={formatPieChartValue} />
+                </PieChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+          </CardContent>
+        )}
+        
+        {activeChart === 'bar' && (
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-medium">Receitas vs Despesas por Semana</h3>
+              <Tabs value={activeWeekTab} onValueChange={setActiveWeekTab} className="w-auto">
+                <TabsList className="bg-galileo-background">
+                  <TabsTrigger value="all" className="text-xs">Todas</TabsTrigger>
+                  {getWeeksInMonth().map((week, index) => (
+                    <TabsTrigger key={index} value={index.toString()} className="text-xs">
+                      {week.label.replace('Semana ', 'S')}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            </div>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={weeklyData}
+                  margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} />
+                  <Tooltip />
+                  <Bar dataKey="income" fill="#37B24D" name="Receitas" />
+                  <Bar dataKey="expense" fill="#FF6B6B" name="Despesas" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        )}
+        
+        {activeChart === 'line' && (
+          <CardContent className="p-4">
+            <h3 className="font-medium mb-4">Evolução de Receitas e Despesas</h3>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={prepareIncomeVsExpenseByDay()}
+                  margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} />
+                  <Tooltip />
+                  <Area 
+                    type="monotone" 
+                    dataKey="income" 
+                    name="Receitas"
+                    stroke="#37B24D" 
+                    fill="#37B24D" 
+                    fillOpacity={0.2} 
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="expense" 
+                    name="Despesas"
+                    stroke="#FF6B6B" 
+                    fill="#FF6B6B" 
+                    fillOpacity={0.2} 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        )}
+      </Card>
+      
+      {/* Lista de maiores gastos/receitas */}
+      <div className="px-4 mb-16">
+        <h3 className="font-medium mb-2">{filterType === 'income' ? 'Maiores Receitas' : 'Maiores Despesas'}</h3>
+        
+        <div className="space-y-2">
+          {transactions
+            .filter(t => filterType === 'all' ? true : t.type === filterType)
+            .sort((a, b) => b.amount - a.amount)
+            .slice(0, 5)
+            .map((transaction, index) => (
+              <Card key={index} className="bg-galileo-card border-galileo-border">
+                <CardContent className="p-3">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-medium">{transaction.title}</p>
+                      <div className="flex items-center mt-1">
+                        <Badge 
+                          variant="outline" 
+                          className="text-xs bg-galileo-background"
+                        >
+                          {transaction.category}
+                        </Badge>
+                        {transaction.isRecurring && (
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs bg-galileo-background ml-1"
+                          >
+                            Recorrente
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <span className={`font-semibold ${transaction.type === 'income' ? 'text-galileo-positive' : 'text-galileo-negative'}`}>
+                      {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            
+          {transactions.filter(t => filterType === 'all' ? true : t.type === filterType).length === 0 && (
+            <div className="text-center py-6 text-galileo-secondaryText">
+              <p>Nenhuma {filterType === 'income' ? 'receita' : 'despesa'} registrada neste mês</p>
+            </div>
+          )}
+        </div>
+      </div>
       
       <NavBar />
     </div>

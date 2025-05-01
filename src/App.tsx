@@ -9,7 +9,6 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Transactions from "./pages/Transactions";
 import Profile from "./pages/Profile";
-import ChatPage from "./pages/ChatPage";
 import BillsPage from "./pages/BillsPage";
 import AddBillPage from "./pages/AddBillPage";
 import NotificationsPage from "./pages/NotificationsPage";
@@ -34,7 +33,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/chat" element={<Navigate to="/financial-advisor" replace />} />
             <Route path="/bills" element={<BillsPage />} />
             <Route path="/add-bill" element={<AddBillPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />

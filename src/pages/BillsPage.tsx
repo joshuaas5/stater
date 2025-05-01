@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
-import { Bill } from '@/types';
+import { Bill, CardItem } from '@/types';
 import { getBills, isLoggedIn, markBillAsPaid, saveBill, updateBill } from '@/utils/localStorage';
 import { formatCurrency, getOverdueBills, getBillsDueInNextDays } from '@/utils/dataProcessing';
 import { useToast } from '@/hooks/use-toast';
 import { 
   CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
-  Bell, BellOff, Edit, MoreVertical, Trash
+  Bell, BellOff, Edit, MoreVertical, Trash, Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,6 +29,11 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const BillsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -92,6 +97,23 @@ const BillsPage: React.FC = () => {
     setSelectedBill(bill);
     setShowNotificationSettings(true);
   };
+
+  const handleUpdateNotificationDays = (days: number[]) => {
+    if (!selectedBill) return;
+
+    const updatedBill = {
+      ...selectedBill,
+      notificationDays: days
+    };
+    
+    updateBill(updatedBill);
+    setSelectedBill(updatedBill);
+    
+    toast({
+      title: "Configurações atualizadas",
+      description: "Suas preferências de notificação foram salvas."
+    });
+  };
   
   const getBillsToDisplay = () => {
     switch (activeTab) {
@@ -114,8 +136,10 @@ const BillsPage: React.FC = () => {
     switch (category.toLowerCase()) {
       case 'moradia':
       case 'aluguel':
+      case 'habitação':
         return <FileText className="text-galileo-text" size={24} />;
       case 'dívidas':
+      case 'pagamentos de dívidas':
         return <FileMinus className="text-galileo-text" size={24} />;
       default:
         return <Clock className="text-galileo-text" size={24} />;
@@ -143,26 +167,64 @@ const BillsPage: React.FC = () => {
     }
   };
 
+  // Notification checkbox handlers
+  const [customDays, setCustomDays] = useState<number[]>([5, 3, 1]);
+  const [newCustomDay, setNewCustomDay] = useState<number>(2);
+  const [showAddCustomDay, setShowAddCustomDay] = useState(false);
+
+  const handleToggleDay = (day: number) => {
+    if (!selectedBill) return;
+    
+    const currentDays = selectedBill.notificationDays || [5, 1];
+    let newDays: number[];
+    
+    if (currentDays.includes(day)) {
+      newDays = currentDays.filter(d => d !== day);
+    } else {
+      newDays = [...currentDays, day].sort((a, b) => b - a);
+    }
+    
+    handleUpdateNotificationDays(newDays);
+  };
+
+  const handleAddCustomDay = () => {
+    if (!selectedBill || newCustomDay < 1) return;
+    
+    const currentDays = selectedBill.notificationDays || [5, 1];
+    if (currentDays.includes(newCustomDay)) {
+      toast({
+        title: "Dia já incluído",
+        description: `Notificação para ${newCustomDay} dia(s) antes já está ativa.`
+      });
+      return;
+    }
+    
+    const newDays = [...currentDays, newCustomDay].sort((a, b) => b - a);
+    handleUpdateNotificationDays(newDays);
+    setNewCustomDay(2);
+    setShowAddCustomDay(false);
+  };
+
   return (
     <div className="bg-galileo-background min-h-screen pb-20">
       <PageHeader title="Contas a Pagar" showSearch={false} />
       
-      <div className="flex justify-between px-4 py-2">
-        <div className="flex space-x-2">
+      <div className="flex justify-between px-4 py-2 bg-galileo-background">
+        <div className="flex bg-galileo-card rounded-lg p-1">
           <button
-            className={`px-3 py-1 rounded-md ${activeTab === 'upcoming' ? 'bg-galileo-accent text-galileo-text' : 'text-galileo-secondaryText'}`}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'upcoming' ? 'bg-galileo-accent text-white' : 'text-galileo-secondaryText'}`}
             onClick={() => setActiveTab('upcoming')}
           >
             A Vencer
           </button>
           <button
-            className={`px-3 py-1 rounded-md ${activeTab === 'overdue' ? 'bg-galileo-accent text-galileo-text' : 'text-galileo-secondaryText'}`}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'overdue' ? 'bg-galileo-negative text-white' : 'text-galileo-secondaryText'}`}
             onClick={() => setActiveTab('overdue')}
           >
             Vencidas
           </button>
           <button
-            className={`px-3 py-1 rounded-md ${activeTab === 'all' ? 'bg-galileo-accent text-galileo-text' : 'text-galileo-secondaryText'}`}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'all' ? 'bg-galileo-accent text-white' : 'text-galileo-secondaryText'}`}
             onClick={() => setActiveTab('all')}
           >
             Todas
@@ -172,87 +234,141 @@ const BillsPage: React.FC = () => {
         <Button 
           size="sm" 
           variant="default" 
-          className="bg-galileo-accent hover:bg-galileo-secondaryText text-galileo-text"
+          className="bg-galileo-accent hover:bg-galileo-accent/80 text-white"
           onClick={handleAddBill}
         >
           <Plus size={16} className="mr-1" /> Nova
         </Button>
       </div>
       
-      <div className="mt-4">
+      <div className="mt-4 pb-16">
         {getBillsToDisplay().length > 0 ? (
           getBillsToDisplay().map((bill) => (
-            <div key={bill.id} className="flex items-center gap-4 bg-galileo-background px-4 min-h-[72px] py-2 justify-between border-b border-galileo-border">
-              <div className="flex items-center gap-4">
-                <div className="text-galileo-text flex items-center justify-center rounded-lg bg-galileo-accent shrink-0 size-12">
-                  {renderBillIcon(bill.category, bill.isCardBill)}
-                </div>
-                <div className="flex flex-col justify-center">
-                  <p className="text-galileo-text text-base font-medium leading-normal line-clamp-1">
-                    {bill.title}
-                  </p>
-                  <p className="text-galileo-secondaryText text-sm font-normal leading-normal">
-                    {formatDueDate(bill.dueDate)}
-                    {bill.totalInstallments && (
-                      <span className="ml-2">
-                        ({bill.currentInstallment}/{bill.totalInstallments})
-                      </span>
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-col items-end">
-                <div className="flex items-center gap-2">
-                  <p className="text-galileo-negative text-base font-normal leading-normal">
-                    {formatCurrency(bill.amount)}
-                  </p>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreVertical size={16} />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleOpenNotificationSettings(bill)}>
-                        <Bell className="mr-2 h-4 w-4" />
-                        <span>Configurar Notificações</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleToggleNotifications(bill)}>
-                        {bill.notificationsEnabled ? (
-                          <>
-                            <BellOff className="mr-2 h-4 w-4" />
-                            <span>Desativar Notificações</span>
-                          </>
-                        ) : (
-                          <>
-                            <Bell className="mr-2 h-4 w-4" />
-                            <span>Ativar Notificações</span>
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                      {!bill.isPaid && (
-                        <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
-                          <CalendarCheck className="mr-2 h-4 w-4" />
-                          <span>Marcar como Paga</span>
-                        </DropdownMenuItem>
+            <Card key={bill.id} className="mx-4 mb-3 overflow-hidden border border-galileo-border">
+              <CardContent className="p-0">
+                <div className="flex items-center gap-4 px-4 py-3">
+                  <div className={`text-white flex items-center justify-center rounded-lg ${bill.isPaid ? 'bg-green-500' : activeTab === 'overdue' ? 'bg-galileo-negative' : 'bg-galileo-accent'} shrink-0 size-12`}>
+                    {renderBillIcon(bill.category, bill.isCardBill)}
+                  </div>
+                  <div className="flex flex-col justify-center flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="text-galileo-text text-base font-medium leading-normal line-clamp-1">
+                        {bill.title}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className={`text-base font-semibold leading-normal ${bill.isPaid ? 'text-green-500' : 'text-galileo-negative'}`}>
+                          {formatCurrency(bill.amount)}
+                        </p>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreVertical size={16} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleOpenNotificationSettings(bill)}>
+                              <Bell className="mr-2 h-4 w-4" />
+                              <span>Configurar Notificações</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleToggleNotifications(bill)}>
+                              {bill.notificationsEnabled ? (
+                                <>
+                                  <BellOff className="mr-2 h-4 w-4" />
+                                  <span>Desativar Notificações</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Bell className="mr-2 h-4 w-4" />
+                                  <span>Ativar Notificações</span>
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            {!bill.isPaid && (
+                              <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
+                                <CalendarCheck className="mr-2 h-4 w-4" />
+                                <span>Marcar como Paga</span>
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                    <div className="flex items-center flex-wrap gap-2 mt-1">
+                      <Badge variant="outline" className="bg-galileo-card text-galileo-text text-xs">
+                        {formatDueDate(bill.dueDate)}
+                      </Badge>
+                      
+                      {bill.category && (
+                        <Badge variant="outline" className="bg-galileo-card/50 text-galileo-secondaryText text-xs">
+                          {bill.category}
+                        </Badge>
                       )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                      
+                      {bill.isRecurring && (
+                        <Badge variant="outline" className="bg-galileo-accent/10 text-galileo-accent text-xs flex items-center gap-1">
+                          <Calendar size={12} />
+                          {bill.recurringDay ? `Dia ${bill.recurringDay}` : 'Recorrente'}
+                        </Badge>
+                      )}
+                      
+                      {bill.totalInstallments && (
+                        <Badge variant="outline" className="bg-galileo-accent/10 text-galileo-accent text-xs">
+                          Parcela {bill.currentInstallment}/{bill.totalInstallments}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                {!bill.isPaid && (
-                  <button
-                    onClick={() => handleMarkAsPaid(bill.id)}
-                    className="text-galileo-positive text-sm flex items-center"
-                  >
-                    <CalendarCheck size={14} className="mr-1" /> Pagar
-                  </button>
+                
+                {bill.cardItems && bill.cardItems.length > 0 && (
+                  <div className="px-4 pt-0 pb-3">
+                    <Separator className="my-2" />
+                    <p className="text-sm font-medium text-galileo-text mb-2">Itens da fatura:</p>
+                    <div className="space-y-2">
+                      {bill.cardItems.map((item, index) => (
+                        <div key={index} className="flex justify-between items-center bg-galileo-card/30 p-2 rounded-md">
+                          <div className="flex-1">
+                            <p className="text-sm text-galileo-text">{item.description}</p>
+                            {item.installments && (
+                              <p className="text-xs text-galileo-secondaryText">
+                                Parcela {item.installments.current}/{item.installments.total}
+                              </p>
+                            )}
+                          </div>
+                          <p className="text-sm font-medium text-galileo-negative">
+                            {formatCurrency(item.amount)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </div>
-            </div>
+                
+                {!bill.isPaid && (
+                  <div className="flex border-t border-galileo-border">
+                    <button
+                      onClick={() => handleMarkAsPaid(bill.id)}
+                      className="flex-1 py-2 text-white bg-green-500 hover:bg-green-600 font-medium flex items-center justify-center"
+                    >
+                      <CalendarCheck size={16} className="mr-1" /> Marcar como Pago
+                    </button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           ))
         ) : (
           <div className="flex flex-col items-center justify-center p-8 text-galileo-secondaryText">
-            <p>Nenhuma conta {activeTab === 'upcoming' ? 'a vencer' : activeTab === 'overdue' ? 'vencida' : ''} encontrada</p>
+            <FileText size={48} className="mb-2 opacity-40" />
+            <p className="text-lg">Nenhuma conta {activeTab === 'upcoming' ? 'a vencer' : activeTab === 'overdue' ? 'vencida' : ''} encontrada</p>
+            <p className="text-sm mt-1">Adicione novas contas para gerenciar seus pagamentos</p>
+            <Button 
+              onClick={handleAddBill}
+              variant="outline" 
+              className="mt-4"
+            >
+              <Plus size={16} className="mr-1" /> Adicionar Conta
+            </Button>
           </div>
         )}
       </div>
@@ -274,7 +390,7 @@ const BillsPage: React.FC = () => {
             
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="notifications-enabled">Notificações Ativadas</Label>
+                <Label htmlFor="notifications-enabled" className="font-medium">Notificações Ativadas</Label>
                 <Switch 
                   id="notifications-enabled" 
                   checked={selectedBill?.notificationsEnabled || false}
@@ -286,17 +402,95 @@ const BillsPage: React.FC = () => {
               
               {selectedBill?.notificationsEnabled && (
                 <>
-                  <div className="text-galileo-text text-sm">
-                    <p className="mb-1 font-medium">Você receberá notificações:</p>
-                    <ul className="list-disc pl-5 space-y-2">
-                      <li>5 dias antes do vencimento</li>
-                      <li>1 dia antes do vencimento</li>
-                      <li>No dia do vencimento</li>
-                      <li>Se a conta estiver vencida</li>
-                      {selectedBill.totalInstallments && selectedBill.currentInstallment && (
-                        <li>Quando estiver próximo de terminar as parcelas</li>
+                  <div className="border rounded-lg p-4 bg-galileo-card/20">
+                    <Label className="font-medium mb-2 block">Receber notificações:</Label>
+                    <div className="space-y-2 mt-3">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="notify-5days" 
+                          checked={(selectedBill?.notificationDays || [5, 1]).includes(5)}
+                          onCheckedChange={() => handleToggleDay(5)}
+                        />
+                        <Label htmlFor="notify-5days">5 dias antes do vencimento</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="notify-3days" 
+                          checked={(selectedBill?.notificationDays || [5, 1]).includes(3)}
+                          onCheckedChange={() => handleToggleDay(3)}
+                        />
+                        <Label htmlFor="notify-3days">3 dias antes do vencimento</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="notify-1day" 
+                          checked={(selectedBill?.notificationDays || [5, 1]).includes(1)}
+                          onCheckedChange={() => handleToggleDay(1)}
+                        />
+                        <Label htmlFor="notify-1day">1 dia antes do vencimento</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="notify-0day" 
+                          checked={(selectedBill?.notificationDays || [5, 1]).includes(0)}
+                          onCheckedChange={() => handleToggleDay(0)}
+                        />
+                        <Label htmlFor="notify-0day">No dia do vencimento</Label>
+                      </div>
+                      
+                      {/* Lista de dias customizados */}
+                      {(selectedBill?.notificationDays || [])
+                        .filter(d => ![0, 1, 3, 5].includes(d))
+                        .map(day => (
+                          <div key={day} className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={`notify-custom-${day}`} 
+                              checked={true}
+                              onCheckedChange={() => handleToggleDay(day)}
+                            />
+                            <Label htmlFor={`notify-custom-${day}`}>{day} dias antes do vencimento</Label>
+                          </div>
+                        ))
+                      }
+                      
+                      {/* Adicionar dia customizado */}
+                      {!showAddCustomDay ? (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2"
+                          onClick={() => setShowAddCustomDay(true)}
+                        >
+                          <Plus size={14} className="mr-1" /> Adicionar outro período
+                        </Button>
+                      ) : (
+                        <div className="flex items-center gap-2 mt-2">
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            max="30"
+                            value={newCustomDay} 
+                            onChange={(e) => setNewCustomDay(parseInt(e.target.value) || 0)}
+                            className="w-20"
+                          />
+                          <span className="text-sm">dias antes</span>
+                          <Button 
+                            size="sm" 
+                            onClick={handleAddCustomDay}
+                            disabled={newCustomDay < 1}
+                          >
+                            Adicionar
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setShowAddCustomDay(false)}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
                       )}
-                    </ul>
+                    </div>
                   </div>
                 </>
               )}

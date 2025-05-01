@@ -44,6 +44,48 @@ export const getTransactions = (): Transaction[] => {
   return transactionsStr ? JSON.parse(transactionsStr) : [];
 };
 
+// Salvar várias transações de uma vez
+export const saveTransactions = (transactions: Transaction[]): void => {
+  const user = getCurrentUser();
+  if (!user) return;
+  
+  const transactionsStr = localStorage.getItem(`transactions_${user.id}`);
+  let existingTransactions: Transaction[] = transactionsStr ? JSON.parse(transactionsStr) : [];
+  
+  existingTransactions = [...existingTransactions, ...transactions];
+  localStorage.setItem(`transactions_${user.id}`, JSON.stringify(existingTransactions));
+};
+
+// Atualizar uma transação específica
+export const updateTransaction = (transaction: Transaction): void => {
+  const user = getCurrentUser();
+  if (!user) return;
+  
+  const transactionsStr = localStorage.getItem(`transactions_${user.id}`);
+  if (!transactionsStr) return;
+  
+  let transactions: Transaction[] = JSON.parse(transactionsStr);
+  const index = transactions.findIndex(t => t.id === transaction.id);
+  
+  if (index !== -1) {
+    transactions[index] = transaction;
+    localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
+  }
+};
+
+// Deletar uma transação específica
+export const deleteTransaction = (transactionId: string): void => {
+  const user = getCurrentUser();
+  if (!user) return;
+  
+  const transactionsStr = localStorage.getItem(`transactions_${user.id}`);
+  if (!transactionsStr) return;
+  
+  let transactions: Transaction[] = JSON.parse(transactionsStr);
+  transactions = transactions.filter(t => t.id !== transactionId);
+  localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
+};
+
 // Verificar se um usuário existe
 export const userExists = (username: string): boolean => {
   const usersStr = localStorage.getItem('users');
@@ -143,6 +185,47 @@ export const markBillAsPaid = (billId: string): void => {
   }
 };
 
+// Processar transações recorrentes para o mês atual
+export const processRecurringTransactions = (selectedMonth: number, selectedYear: number): void => {
+  const user = getCurrentUser();
+  if (!user) return;
+  
+  const transactionsStr = localStorage.getItem(`transactions_${user.id}`);
+  if (!transactionsStr) return;
+  
+  let transactions: Transaction[] = JSON.parse(transactionsStr);
+  const recurringTransactions = transactions.filter(t => t.isRecurring);
+  const newTransactions: Transaction[] = [];
+  
+  // Para cada transação recorrente, verificar se já existe uma para o mês/ano selecionado
+  recurringTransactions.forEach(recTrans => {
+    const recDate = new Date(recTrans.date);
+    const existsForSelectedMonth = transactions.some(t => {
+      const tDate = new Date(t.date);
+      return t.title === recTrans.title && 
+             tDate.getMonth() === selectedMonth && 
+             tDate.getFullYear() === selectedYear &&
+             t.amount === recTrans.amount;
+    });
+    
+    // Se não existe, criar uma nova instância para o mês/ano selecionado
+    if (!existsForSelectedMonth) {
+      const newTransDate = new Date(selectedYear, selectedMonth, recTrans.recurringDay || new Date().getDate());
+      const newTransaction: Transaction = {
+        ...recTrans,
+        id: `transaction_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        date: newTransDate
+      };
+      newTransactions.push(newTransaction);
+    }
+  });
+  
+  // Salvar as novas transações
+  if (newTransactions.length > 0) {
+    saveTransactions(newTransactions);
+  }
+};
+
 // Funções para notificações
 
 // Salvar uma notificação
@@ -202,50 +285,41 @@ export const generateBillNotifications = (): Notification[] => {
     const diffTime = dueDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    // 5 dias antes do vencimento
-    if (diffDays === 5) {
-      const notification: Notification = {
-        id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        billId: bill.id,
-        userId: user.id,
-        type: 'fiveDaysBefore',
-        message: `A conta "${bill.title}" vence em 5 dias (${new Date(bill.dueDate).toLocaleDateString('pt-BR')}).`,
-        date: new Date(),
-        read: false
-      };
-      notifications.push(notification);
-      saveNotification(notification);
-    }
+    const notificationDays = bill.notificationDays || [5, 1, 0];
     
-    // 1 dia antes do vencimento
-    if (diffDays === 1) {
-      const notification: Notification = {
-        id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        billId: bill.id,
-        userId: user.id,
-        type: 'oneDayBefore',
-        message: `A conta "${bill.title}" vence amanhã (${new Date(bill.dueDate).toLocaleDateString('pt-BR')}).`,
-        date: new Date(),
-        read: false
-      };
-      notifications.push(notification);
-      saveNotification(notification);
-    }
-    
-    // No dia do vencimento
-    if (diffDays === 0) {
-      const notification: Notification = {
-        id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        billId: bill.id,
-        userId: user.id,
-        type: 'dueDay',
-        message: `A conta "${bill.title}" vence hoje!`,
-        date: new Date(),
-        read: false
-      };
-      notifications.push(notification);
-      saveNotification(notification);
-    }
+    // Verificar para cada dia de notificação configurado
+    notificationDays.forEach(days => {
+      if (diffDays === days) {
+        let message = '';
+        let type: NotificationType = 'fiveDaysBefore';
+        
+        if (days === 5) {
+          type = 'fiveDaysBefore';
+          message = `A conta "${bill.title}" vence em 5 dias (${new Date(bill.dueDate).toLocaleDateString('pt-BR')}).`;
+        } else if (days === 1) {
+          type = 'oneDayBefore';
+          message = `A conta "${bill.title}" vence amanhã (${new Date(bill.dueDate).toLocaleDateString('pt-BR')}).`;
+        } else if (days === 0) {
+          type = 'dueDay';
+          message = `A conta "${bill.title}" vence hoje!`;
+        } else {
+          type = 'fiveDaysBefore';
+          message = `A conta "${bill.title}" vence em ${days} dias (${new Date(bill.dueDate).toLocaleDateString('pt-BR')}).`;
+        }
+        
+        const notification: Notification = {
+          id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          billId: bill.id,
+          userId: user.id,
+          type,
+          message,
+          date: new Date(),
+          read: false
+        };
+        notifications.push(notification);
+        saveNotification(notification);
+      }
+    });
     
     // Conta vencida
     if (diffDays < 0) {
@@ -282,4 +356,21 @@ export const generateBillNotifications = (): Notification[] => {
   });
   
   return notifications;
+};
+
+// Salvar preferências do usuário
+export const saveUserPreferences = (preferences: Record<string, any>): void => {
+  const user = getCurrentUser();
+  if (!user) return;
+  
+  localStorage.setItem(`preferences_${user.id}`, JSON.stringify(preferences));
+};
+
+// Obter preferências do usuário
+export const getUserPreferences = (): Record<string, any> => {
+  const user = getCurrentUser();
+  if (!user) return {};
+  
+  const preferencesStr = localStorage.getItem(`preferences_${user.id}`);
+  return preferencesStr ? JSON.parse(preferencesStr) : {};
 };

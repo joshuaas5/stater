@@ -1,10 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
 import TransactionItem from '@/components/transactions/TransactionItem';
-import { Transaction } from '@/types';
+import { Transaction, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
 import { getTransactions, isLoggedIn, getCurrentUser } from '@/utils/localStorage';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { Button } from '@/components/ui/button';
@@ -278,11 +277,29 @@ const Transactions: React.FC = () => {
             
             <div className="grid gap-2">
               <Label htmlFor="editCategory">Categoria</Label>
-              <Input 
-                id="editCategory" 
+              <Select 
                 value={editingTransaction?.category || ''} 
-                onChange={(e) => editingTransaction && setEditingTransaction({...editingTransaction, category: e.target.value})}
-              />
+                onValueChange={(value) => editingTransaction && setEditingTransaction({...editingTransaction, category: value})}
+              >
+                <SelectTrigger id="editCategory">
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {editingTransaction?.type === 'income' ? (
+                    INCOME_CATEGORIES.map((category) => (
+                      <SelectItem key={category} value={category.toLowerCase()}>
+                        {category}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    EXPENSE_CATEGORIES.map((category) => (
+                      <SelectItem key={category} value={category.toLowerCase()}>
+                        {category}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="flex items-center space-x-2">

@@ -1,7 +1,6 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { isLoggedIn } from '@/utils/localStorage';
 
 const ChatPage: React.FC = () => {
   const navigate = useNavigate();

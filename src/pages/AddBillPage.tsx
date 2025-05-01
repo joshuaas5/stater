@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,10 +9,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Bill, CardItem } from '@/types';
+import { Bill, CardItem, EXPENSE_CATEGORIES } from '@/types';
 import { getCurrentUser, saveBill } from '@/utils/localStorage';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, CreditCard, Plus, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const formSchema = z.object({
   title: z.string().min(1, "Título é obrigatório"),
@@ -268,20 +268,21 @@ const AddBillPage: React.FC = () => {
                 <FormItem>
                   <FormLabel className="text-galileo-text">Categoria</FormLabel>
                   <FormControl>
-                    <select
-                      {...field}
-                      className="w-full h-10 rounded-md border border-input bg-galileo-accent px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm text-galileo-text"
+                    <Select 
+                      value={field.value}
+                      onValueChange={field.onChange}
                     >
-                      <option value="alimentação">Alimentação</option>
-                      <option value="moradia">Moradia</option>
-                      <option value="transporte">Transporte</option>
-                      <option value="lazer">Lazer</option>
-                      <option value="saúde">Saúde</option>
-                      <option value="educação">Educação</option>
-                      <option value="vestuário">Vestuário</option>
-                      <option value="dívidas">Dívidas</option>
-                      <option value="outros">Outros</option>
-                    </select>
+                      <SelectTrigger className="bg-galileo-accent text-galileo-text">
+                        <SelectValue placeholder="Selecione uma categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {EXPENSE_CATEGORIES.map((category) => (
+                          <SelectItem key={category} value={category.toLowerCase()}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

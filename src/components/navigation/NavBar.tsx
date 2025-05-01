@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, PieChart, PlusCircle, FileText, Lightbulb } from 'lucide-react';
+import { PieChart, FileText, Home, Lightbulb, Settings } from 'lucide-react';
 
 const NavBar: React.FC = () => {
   const navigate = useNavigate();
@@ -12,11 +12,11 @@ const NavBar: React.FC = () => {
   };
   
   const navItems = [
-    { icon: <Home size={24} />, label: 'Início', path: '/dashboard' },
     { icon: <PieChart size={24} />, label: 'Gráficos', path: '/charts' },
-    { icon: <PlusCircle size={32} className="text-galileo-accent" />, label: '', path: '/add-transaction' },
     { icon: <FileText size={24} />, label: 'Contas', path: '/bills' },
+    { icon: <Home size={24} />, label: 'Início', path: '/dashboard' },
     { icon: <Lightbulb size={24} />, label: 'Consultor', path: '/financial-advisor' },
+    { icon: <Settings size={24} />, label: 'Configurações', path: '/preferences' },
   ];
   
   const handleNavigation = (path: string) => {
@@ -37,10 +37,10 @@ const NavBar: React.FC = () => {
                 active 
                   ? 'text-galileo-accent' 
                   : 'text-galileo-secondaryText hover:text-galileo-text'
-              } transition-colors ${index === 2 ? '-mt-4' : ''}`}
+              } transition-colors`}
             >
               {item.icon}
-              <span className={`text-xs mt-1 ${index === 2 ? 'hidden' : ''}`}>{item.label}</span>
+              <span className="text-xs mt-1">{item.label}</span>
               {active && <div className="h-1 w-10 bg-galileo-accent rounded-full mt-1"></div>}
             </button>
           );

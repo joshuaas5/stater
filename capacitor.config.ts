@@ -9,7 +9,20 @@ const config: CapacitorConfig = {
     url: "https://c5c7eb29-8378-43cd-a374-c0aaea44ef12.lovableproject.com?forceHideBadge=true",
     cleartext: true
   },
-  bundledWebRuntime: false
+  bundledWebRuntime: false,
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: "#ffffffff",
+      androidSplashResourceName: "splash",
+      androidScaleType: "CENTER_CROP"
+    }
+  },
+  android: {
+    allowMixedContent: true,
+    captureInput: true,
+    webContentsDebuggingEnabled: true
+  }
 };
 
 export default config;

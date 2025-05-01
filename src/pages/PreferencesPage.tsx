@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
@@ -6,7 +5,7 @@ import NavBar from '@/components/navigation/NavBar';
 import { isLoggedIn, getCurrentUser, saveUserPreferences, getUserPreferences } from '@/utils/localStorage';
 import { 
   Sun, Moon, Bell, Languages, DollarSign, 
-  Calendar, PaintBrush, Save, Check
+  Calendar, Paintbrush, Save, Check
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Label } from '@/components/ui/label';
@@ -80,7 +79,7 @@ const PreferencesPage: React.FC = () => {
         <div className="space-y-6">
           <div>
             <h2 className="text-lg font-medium text-galileo-text mb-2 flex items-center">
-              <PaintBrush size={18} className="mr-2" /> Aparência
+              <Paintbrush size={18} className="mr-2" /> Aparência
             </h2>
             <div className="bg-galileo-card p-4 rounded-lg border border-galileo-border">
               <div className="mb-4">

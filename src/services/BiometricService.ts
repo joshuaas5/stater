@@ -62,6 +62,7 @@ class BiometricServiceClass {
 
   async verifyIdentity(): Promise<boolean> {
     try {
+      // Explicitly specify the return type to avoid TypeScript error
       const result = await NativeBiometric.verifyIdentity({
         reason: "Para acessar sua conta",
         title: "Autenticação Biométrica",
@@ -69,7 +70,8 @@ class BiometricServiceClass {
         description: "Autenticação com biometria para acesso seguro"
       });
       
-      return result.verified || false; // Return boolean value safely
+      // Handle the result properly - the NativeBiometric.verifyIdentity returns an object with a verified property
+      return result && result.verified === true;
     } catch (error) {
       console.error('Error verifying biometric identity:', error);
       return false;

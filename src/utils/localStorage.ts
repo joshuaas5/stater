@@ -1,5 +1,4 @@
-
-import { User, Transaction, Bill, Notification, CardItem } from "@/types";
+import { User, Transaction, Bill, Notification, CardItem, NotificationType } from "@/types";
 
 // Salvar usuário
 export const saveUser = (user: User): void => {

@@ -1,73 +1,101 @@
 
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { Bill, Notification as AppNotification } from '@/types';
+import { getBills, saveNotification } from '@/utils/localStorage';
 
-export class NotificationService {
-  static async requestPermission(): Promise<boolean> {
+class NotificationServiceClass {
+  async requestPermissions(): Promise<boolean> {
     try {
-      const { display } = await LocalNotifications.requestPermissions();
-      return display === 'granted';
+      const result = await LocalNotifications.requestPermissions();
+      return result.display === 'granted';
     } catch (error) {
       console.error('Error requesting notification permissions:', error);
       return false;
     }
   }
-
-  static async scheduleNotification(title: string, body: string, id = Math.floor(Math.random() * 10000), schedule?: { at: Date }): Promise<void> {
+  
+  async checkPermissions(): Promise<boolean> {
     try {
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            title,
-            body,
-            id,
-            schedule: schedule,
-            sound: 'beep.wav',
-            smallIcon: 'ic_stat_icon_config_sample',
-            actionTypeId: '',
-            extra: null
-          }
-        ]
-      });
+      const result = await LocalNotifications.checkPermissions();
+      return result.display === 'granted';
     } catch (error) {
-      console.error('Error scheduling notification:', error);
+      console.error('Error checking notification permissions:', error);
+      return false;
     }
   }
-
-  static async scheduleNearBillNotification(billName: string, dueDate: Date, amount: number, id: number): Promise<void> {
-    // Calculate notification date (3 days before due date)
-    const notifyDate = new Date(dueDate);
-    notifyDate.setDate(notifyDate.getDate() - 3);
-    
-    if (notifyDate > new Date()) {
-      const formattedAmount = new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      }).format(amount);
+  
+  async scheduleBillReminders(bills: Bill[]): Promise<void> {
+    try {
+      const hasPermission = await this.checkPermissions();
+      if (!hasPermission) {
+        const granted = await this.requestPermissions();
+        if (!granted) return;
+      }
       
-      await this.scheduleNotification(
-        `Conta próxima do vencimento: ${billName}`,
-        `Você tem uma conta de ${formattedAmount} com vencimento em ${dueDate.toLocaleDateString()}`,
-        id,
-        { at: notifyDate }
-      );
+      const notifications = [];
+      
+      for (const bill of bills) {
+        if (!bill.notificationsEnabled || bill.isPaid) continue;
+        
+        const dueDate = new Date(bill.dueDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const diffTime = dueDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        const notificationDays = bill.notificationDays || [5, 1, 0];
+        
+        for (const days of notificationDays) {
+          if (diffDays === days) {
+            const scheduleTime = new Date();
+            scheduleTime.setHours(9, 0, 0, 0); // 9:00 AM
+            
+            if (scheduleTime < new Date()) {
+              scheduleTime.setDate(scheduleTime.getDate() + 1);
+            }
+            
+            notifications.push({
+              id: parseInt(`${bill.id.replace(/\D/g, '').substring(0, 8)}${days}`),
+              title: 'Lembrete de Conta',
+              body: `A conta "${bill.title}" vence em ${days === 0 ? 'hoje' : days === 1 ? 'amanhã' : `${days} dias`}!`,
+              schedule: { at: scheduleTime },
+              sound: null
+            });
+          }
+        }
+      }
+      
+      if (notifications.length > 0) {
+        await LocalNotifications.schedule({
+          notifications,
+        });
+      }
+    } catch (error) {
+      console.error('Error scheduling bill reminders:', error);
     }
   }
-
-  static async cancelNotification(id: number): Promise<void> {
+  
+  async clearAllNotifications(): Promise<void> {
     try {
-      await LocalNotifications.cancel({
-        notifications: [{ id }]
-      });
+      const pendingNotifications = await LocalNotifications.getPending();
+      const ids = pendingNotifications.notifications.map(notification => notification.id);
+      
+      if (ids.length > 0) {
+        await LocalNotifications.cancel({ notifications: ids.map(id => ({ id })) });
+      }
     } catch (error) {
-      console.error('Error canceling notification:', error);
+      console.error('Error clearing notifications:', error);
     }
   }
-
-  static async clearAllNotifications(): Promise<void> {
-    try {
-      await LocalNotifications.clearAll();
-    } catch (error) {
-      console.error('Error clearing all notifications:', error);
+  
+  async triggerDailyCheck(): Promise<void> {
+    const bills = getBills();
+    
+    if (bills.length > 0) {
+      await this.scheduleBillReminders(bills);
     }
   }
 }
+
+export const NotificationService = new NotificationServiceClass();

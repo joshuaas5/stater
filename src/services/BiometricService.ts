@@ -1,41 +1,30 @@
 
-import { NativeBiometric, BiometryType } from 'capacitor-native-biometric';
+import { NativeBiometric } from 'capacitor-native-biometric';
+import { useToast } from '@/hooks/use-toast';
+import { getCurrentUser } from '@/utils/localStorage';
 
-export interface BiometricCredentials {
-  username: string;
-  password: string;
-}
-
-export class BiometricService {
-  private static readonly SERVER_KEY = 'sprout.app.biometric';
-
-  static async isBiometricAvailable(): Promise<boolean> {
+class BiometricServiceClass {
+  async isBiometricsAvailable(): Promise<boolean> {
     try {
       const result = await NativeBiometric.isAvailable();
       return result.isAvailable;
     } catch (error) {
-      console.error('Biometric availability check failed:', error);
+      console.error('Error checking biometrics availability:', error);
       return false;
     }
   }
 
-  static async getBiometryType(): Promise<BiometryType | null> {
+  async saveCredentials(email: string, password: string): Promise<boolean> {
     try {
-      const result = await NativeBiometric.isAvailable();
-      return result.biometryType;
-    } catch (error) {
-      console.error('Error getting biometry type:', error);
-      return null;
-    }
-  }
+      const user = getCurrentUser();
+      if (!user) return false;
 
-  static async saveCredentials(username: string, password: string): Promise<boolean> {
-    try {
-      await NativeBiometric.setCredentials({
-        username,
-        password,
-        server: this.SERVER_KEY,
+      const result = await NativeBiometric.setCredentials({
+        username: email,
+        password: password,
+        server: 'https://sprout-finance-app.com',
       });
+      
       return true;
     } catch (error) {
       console.error('Error saving biometric credentials:', error);
@@ -43,26 +32,10 @@ export class BiometricService {
     }
   }
 
-  static async getCredentials(): Promise<BiometricCredentials | null> {
-    try {
-      const result = await NativeBiometric.getCredentials({
-        server: this.SERVER_KEY,
-      });
-      
-      return {
-        username: result.username,
-        password: result.password,
-      };
-    } catch (error) {
-      console.error('Error retrieving biometric credentials:', error);
-      return null;
-    }
-  }
-
-  static async deleteCredentials(): Promise<boolean> {
+  async deleteCredentials(): Promise<boolean> {
     try {
       await NativeBiometric.deleteCredentials({
-        server: this.SERVER_KEY,
+        server: 'https://sprout-finance-app.com',
       });
       return true;
     } catch (error) {
@@ -71,18 +44,37 @@ export class BiometricService {
     }
   }
 
-  static async verifyIdentity(): Promise<boolean> {
+  async getCredentials(): Promise<{ username: string; password: string } | null> {
+    try {
+      const credentials = await NativeBiometric.getCredentials({
+        server: 'https://sprout-finance-app.com',
+      });
+      
+      return {
+        username: credentials.username,
+        password: credentials.password,
+      };
+    } catch (error) {
+      console.error('Error retrieving biometric credentials:', error);
+      return null;
+    }
+  }
+
+  async verifyIdentity(): Promise<boolean> {
     try {
       const result = await NativeBiometric.verifyIdentity({
-        reason: "Para fazer login no Sprout",
+        reason: "Para acessar sua conta",
         title: "Autenticação Biométrica",
         subtitle: "Use sua biometria para acessar o aplicativo",
-        description: "Este aplicativo está usando autenticação biométrica para proteger seus dados",
+        description: "Autenticação com biometria para acesso seguro"
       });
-      return result.verified;
+      
+      return result.verified || false; // Return boolean value safely
     } catch (error) {
-      console.error('Biometric verification failed:', error);
+      console.error('Error verifying biometric identity:', error);
       return false;
     }
   }
 }
+
+export const BiometricService = new BiometricServiceClass();

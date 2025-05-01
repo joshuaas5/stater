@@ -17,9 +17,14 @@ export const isLoggedIn = (): boolean => {
   return !!getCurrentUser();
 };
 
-// Logout
-export const logout = (): void => {
+// Clear user data
+export const clearUserData = (): void => {
   localStorage.removeItem('currentUser');
+};
+
+// Logout - Alias for clearUserData for backwards compatibility
+export const logout = (): void => {
+  clearUserData();
 };
 
 // Salvar uma transação

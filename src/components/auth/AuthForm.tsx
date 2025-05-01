@@ -3,10 +3,13 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { registerUser, loginUser, saveUser } from '@/utils/localStorage';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Label } from '@/components/ui/label';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { useTranslation } from '@/hooks/use-translation';
 
-type AuthMode = 'login' | 'register';
+type AuthMode = 'login' | 'register' | 'reset';
 
 const AuthForm: React.FC = () => {
   const [mode, setMode] = useState<AuthMode>('login');
@@ -14,13 +17,15 @@ const AuthForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signIn, signUp, signInWithGoogle, resetPassword, loading } = useAuth();
+  const { t } = useTranslation();
   
-  const toggleMode = () => {
-    setMode(mode === 'login' ? 'register' : 'login');
+  const toggleMode = (newMode: AuthMode) => {
+    setMode(newMode);
     // Limpar os campos ao alternar entre modos
     setUsername('');
     setEmail('');
@@ -28,16 +33,15 @@ const AuthForm: React.FC = () => {
     setConfirmPassword('');
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     
     try {
       if (mode === 'register') {
         // Validar os campos de registro
         if (!username || !email || !password || !confirmPassword) {
           toast({
-            title: "Todos os campos são obrigatórios",
+            title: t('allFieldsRequired'),
             variant: "destructive"
           });
           return;
@@ -45,127 +49,129 @@ const AuthForm: React.FC = () => {
         
         if (password !== confirmPassword) {
           toast({
-            title: "Senhas não coincidem",
+            title: t('passwordsDontMatch'),
             variant: "destructive"
           });
           return;
         }
         
-        // Registrar o usuário
-        const user = registerUser({ username, email, password });
-        saveUser(user);
+        await signUp(email, password, username);
         
-        toast({
-          title: "Conta criada com sucesso!",
-          description: "Bem-vindo ao Sprout"
-        });
-        
-        navigate('/');
-      } else {
+      } else if (mode === 'login') {
         // Validar campos de login
-        if (!username || !password) {
+        if (!email || !password) {
           toast({
-            title: "Por favor, preencha todos os campos",
+            title: t('pleaseFillAllFields'),
             variant: "destructive"
           });
           return;
         }
         
-        // Login do usuário
-        const user = loginUser(username, password);
-        
-        if (!user) {
-          toast({
-            title: "Falha no login",
-            description: "Nome de usuário ou senha incorretos",
-            variant: "destructive"
-          });
-          return;
-        }
-        
-        saveUser(user);
-        toast({
-          title: "Login bem-sucedido!",
-          description: "Bem-vindo de volta"
-        });
-        
+        await signIn(email, password);
         navigate('/');
+        
+      } else if (mode === 'reset') {
+        if (!email) {
+          toast({
+            title: t('emailRequired'),
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        await resetPassword(email);
+        toggleMode('login');
       }
     } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro. Por favor, tente novamente.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+      // Errors are handled in the auth context
+    }
+  };
+  
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      // Error is handled in the auth context
     }
   };
   
   return (
     <div className="p-6 bg-galileo-card rounded-lg shadow-lg max-w-md w-full mx-auto animate-scale-in">
       <h2 className="text-2xl font-bold mb-6 text-center text-galileo-text">
-        {mode === 'login' ? 'Entrar' : 'Criar Conta'}
+        {mode === 'login' ? t('login') : mode === 'register' ? t('createAccount') : t('resetPassword')}
       </h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="username" className="block text-sm font-medium text-galileo-secondaryText mb-1">
-            Nome de Usuário
-          </label>
-          <Input
-            id="username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="bg-galileo-background text-galileo-text border-galileo-border"
-            placeholder="Seu nome de usuário"
-          />
-        </div>
-        
         {mode === 'register' && (
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-galileo-secondaryText mb-1">
-              Email
-            </label>
+            <Label htmlFor="username" className="block text-sm font-medium text-galileo-secondaryText mb-1">
+              {t('username')}
+            </Label>
             <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="bg-galileo-background text-galileo-text border-galileo-border"
-              placeholder="seu@email.com"
+              placeholder={t('yourUsername')}
             />
           </div>
         )}
         
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-galileo-secondaryText mb-1">
-            Senha
-          </label>
+          <Label htmlFor="email" className="block text-sm font-medium text-galileo-secondaryText mb-1">
+            {t('email')}
+          </Label>
           <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="bg-galileo-background text-galileo-text border-galileo-border"
-            placeholder="********"
+            placeholder={t('emailPlaceholder')}
           />
         </div>
         
+        {mode !== 'reset' && (
+          <div>
+            <Label htmlFor="password" className="block text-sm font-medium text-galileo-secondaryText mb-1">
+              {t('password')}
+            </Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-galileo-background text-galileo-text border-galileo-border pr-10"
+                placeholder="********"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 px-3 flex items-center"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+        )}
+        
         {mode === 'register' && (
           <div>
-            <label htmlFor="confirm-password" className="block text-sm font-medium text-galileo-secondaryText mb-1">
-              Confirmar Senha
-            </label>
-            <Input
-              id="confirm-password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="bg-galileo-background text-galileo-text border-galileo-border"
-              placeholder="********"
-            />
+            <Label htmlFor="confirm-password" className="block text-sm font-medium text-galileo-secondaryText mb-1">
+              {t('confirmPassword')}
+            </Label>
+            <div className="relative">
+              <Input
+                id="confirm-password"
+                type={showPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="bg-galileo-background text-galileo-text border-galileo-border pr-10"
+                placeholder="********"
+              />
+            </div>
           </div>
         )}
         
@@ -174,19 +180,85 @@ const AuthForm: React.FC = () => {
           className="w-full bg-galileo-accent hover:bg-galileo-secondaryText text-galileo-text"
           disabled={loading}
         >
-          {loading ? 'Processando...' : mode === 'login' ? 'Entrar' : 'Registrar'}
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {mode === 'login' ? t('login') : mode === 'register' ? t('register') : t('sendResetLink')}
         </Button>
       </form>
       
-      <div className="mt-4 text-center">
-        <button 
-          onClick={toggleMode}
-          className="text-galileo-secondaryText hover:text-galileo-text text-sm"
-        >
-          {mode === 'login' 
-            ? 'Não tem uma conta? Registre-se' 
-            : 'Já tem uma conta? Faça login'}
-        </button>
+      {mode !== 'reset' && (
+        <div className="mt-4">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-galileo-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-galileo-card px-2 text-galileo-secondaryText">
+                {t('orContinueWith')}
+              </span>
+            </div>
+          </div>
+          
+          <div className="mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border border-galileo-border hover:bg-galileo-accent/20"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+            >
+              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              Google
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      <div className="mt-6 text-center space-y-2">
+        {mode === 'login' && (
+          <>
+            <button 
+              onClick={() => toggleMode('register')}
+              type="button"
+              className="text-galileo-secondaryText hover:text-galileo-text text-sm"
+            >
+              {t('noAccount')}
+            </button>
+            <div>
+              <button 
+                onClick={() => toggleMode('reset')}
+                type="button"
+                className="text-galileo-secondaryText hover:text-galileo-text text-sm"
+              >
+                {t('forgotPassword')}
+              </button>
+            </div>
+          </>
+        )}
+        
+        {mode === 'register' && (
+          <button 
+            onClick={() => toggleMode('login')}
+            type="button"
+            className="text-galileo-secondaryText hover:text-galileo-text text-sm"
+          >
+            {t('alreadyHaveAccount')}
+          </button>
+        )}
+        
+        {mode === 'reset' && (
+          <button 
+            onClick={() => toggleMode('login')}
+            type="button"
+            className="text-galileo-secondaryText hover:text-galileo-text text-sm"
+          >
+            {t('backToLogin')}
+          </button>
+        )}
       </div>
     </div>
   );

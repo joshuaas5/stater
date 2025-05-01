@@ -9,18 +9,11 @@ import { isLoggedIn } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
 import { ChatMessage } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
-
-const suggestions = [
-  "Como posso economizar mais?",
-  "Quais são meus maiores gastos?",
-  "Como criar um orçamento?",
-  "Devo investir ou pagar dívidas?",
-  "Como reduzir gastos com alimentação?",
-  "Quanto devo guardar por mês?"
-];
+import { useTranslation } from '@/hooks/use-translation';
 
 const FinancialAdvisorPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -65,9 +58,18 @@ const FinancialAdvisorPage: React.FC = () => {
     }, 1000);
   };
   
+  const suggestions = [
+    { key: "howToSaveMore", text: t("howToSaveMore") },
+    { key: "biggestExpenses", text: t("biggestExpenses") },
+    { key: "createBudget", text: t("createBudget") },
+    { key: "investOrPayDebt", text: t("investOrPayDebt") },
+    { key: "reduceFoodExpenses", text: t("reduceFoodExpenses") },
+    { key: "howMuchToSave", text: t("howMuchToSave") }
+  ];
+  
   return (
     <div className="bg-galileo-background min-h-screen pb-20">
-      <PageHeader title="Consultor Financeiro" showSearch={false} />
+      <PageHeader title={t('financialAdvisor')} showSearch={false} />
       
       <div className="px-4 pt-2 pb-16">
         <ChatMessages 
@@ -76,16 +78,16 @@ const FinancialAdvisorPage: React.FC = () => {
         
         {showSuggestions && (
           <div className="mb-4">
-            <h3 className="text-galileo-text font-semibold mb-2">Experimente perguntar:</h3>
-            <div className="grid grid-cols-2 gap-2">
+            <h3 className="text-galileo-text font-semibold mb-2">{t('askSomething')}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {suggestions.map((suggestion, index) => (
                 <Button
                   key={index}
                   variant="outline"
-                  className="h-auto py-2 px-3 text-left text-sm whitespace-normal bg-galileo-accent text-galileo-text border-galileo-border"
-                  onClick={() => handleSuggestionClick(suggestion)}
+                  className="h-auto py-2 px-3 text-left text-sm whitespace-normal bg-galileo-accent text-galileo-text border-galileo-border line-clamp-2"
+                  onClick={() => handleSuggestionClick(suggestion.text)}
                 >
-                  {suggestion}
+                  {suggestion.text}
                 </Button>
               ))}
             </div>

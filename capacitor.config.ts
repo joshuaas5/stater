@@ -16,6 +16,14 @@ const config: CapacitorConfig = {
       backgroundColor: "#ffffffff",
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP"
+    },
+    LocalNotifications: {
+      smallIcon: "ic_stat_icon_config_sample",
+      iconColor: "#488AFF",
+      sound: "beep.wav",
+    },
+    BiometricAuth: {
+      allowDeviceCredentials: true
     }
   },
   android: {

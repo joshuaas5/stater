@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
@@ -14,7 +15,7 @@ import {
   getTransactionsFromLastDays 
 } from '@/utils/dataProcessing';
 import { getCurrentUser, getTransactions, isLoggedIn } from '@/utils/localStorage';
-import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing } from 'lucide-react';
+import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -28,7 +29,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -41,12 +43,15 @@ const Dashboard: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showFinancialTips, setShowFinancialTips] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   const [newTransaction, setNewTransaction] = useState({
     title: '',
     amount: '',
     category: '',
     type: 'expense' as 'income' | 'expense',
+    isRecurring: false,
+    recurrenceFrequency: 'monthly' as 'weekly' | 'monthly' | 'yearly'
   });
   
   useEffect(() => {
@@ -97,12 +102,17 @@ const Dashboard: React.FC = () => {
     setSelectedYear(year);
   };
   
-  const handleAddTransaction = () => {
-    navigate('/transactions');
-    toast({
-      title: "Adicionar Transação",
-      description: "Clique no botão + para adicionar uma nova transação."
+  const handleAddTransaction = (type: 'income' | 'expense') => {
+    setNewTransaction({
+      ...newTransaction,
+      type,
+      title: '',
+      amount: '',
+      category: '',
+      isRecurring: false,
+      recurrenceFrequency: 'monthly'
     });
+    setDialogOpen(true);
   };
   
   const handleNewTransactionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,7 +141,21 @@ const Dashboard: React.FC = () => {
     }
   };
   
-  const handleSaveTransaction = (type: 'income' | 'expense') => {
+  const handleRecurrenceChange = (checked: boolean) => {
+    setNewTransaction({
+      ...newTransaction,
+      isRecurring: checked
+    });
+  };
+  
+  const handleRecurrenceFrequencyChange = (value: string) => {
+    setNewTransaction({
+      ...newTransaction,
+      recurrenceFrequency: value as 'weekly' | 'monthly' | 'yearly'
+    });
+  };
+  
+  const handleSaveTransaction = () => {
     const user = getCurrentUser();
     if (!user) {
       navigate('/login');
@@ -157,6 +181,8 @@ const Dashboard: React.FC = () => {
       return;
     }
     
+    const type = newTransaction.type;
+    
     const transaction: Transaction = {
       id: `transaction_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       title: newTransaction.title,
@@ -164,7 +190,9 @@ const Dashboard: React.FC = () => {
       type: type,
       category: newTransaction.category || (type === 'income' ? 'Receita' : 'Outros'),
       date: new Date(),
-      userId: user.id
+      userId: user.id,
+      isRecurring: newTransaction.isRecurring,
+      dueDate: new Date()
     };
     
     const allTransactions = getTransactions();
@@ -179,7 +207,11 @@ const Dashboard: React.FC = () => {
       amount: '',
       category: '',
       type: 'expense',
+      isRecurring: false,
+      recurrenceFrequency: 'monthly'
     });
+    
+    setDialogOpen(false);
     
     toast({
       title: `${type === 'income' ? 'Entrada' : 'Saída'} adicionada`,
@@ -255,118 +287,112 @@ const Dashboard: React.FC = () => {
       </div>
       
       <div className="flex justify-center gap-4 mb-6">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button 
-              className="bg-galileo-positive hover:bg-galileo-positive/80 text-white flex items-center gap-2"
-            >
-              <TrendingUp size={18} />
-              Adicionar Entrada
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Adicionar Nova Entrada</DialogTitle>
-              <DialogDescription>
-                Adicione uma nova receita ou entrada financeira.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="title">Descrição</Label>
-                <Input 
-                  id="title" 
-                  name="title"
-                  value={newTransaction.title} 
-                  onChange={handleNewTransactionChange} 
-                  placeholder="Ex: Salário, Freelance, Venda..." 
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="amount">Valor</Label>
-                <Input 
-                  id="amount" 
-                  name="amount"
-                  value={newTransaction.amount} 
-                  onChange={handleNewTransactionChange} 
-                  placeholder="Ex: 1000 ou 2 mil"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="category">Categoria</Label>
-                <Input 
-                  id="category" 
-                  name="category"
-                  value={newTransaction.category} 
-                  onChange={handleNewTransactionChange} 
-                  placeholder="Ex: Salário, Investimentos..."
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={() => handleSaveTransaction('income')} className="bg-galileo-positive hover:bg-galileo-positive/80">
-                Salvar Entrada
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          onClick={() => handleAddTransaction('income')}
+          className="bg-galileo-positive hover:bg-galileo-positive/80 text-white flex items-center gap-2"
+        >
+          <TrendingUp size={18} />
+          Adicionar Entrada
+        </Button>
         
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button 
-              className="bg-galileo-negative hover:bg-galileo-negative/80 text-white flex items-center gap-2"
-            >
-              <TrendingDown size={18} />
-              Adicionar Saída
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Adicionar Nova Saída</DialogTitle>
-              <DialogDescription>
-                Adicione uma nova despesa ou saída financeira.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="title">Descrição</Label>
-                <Input 
-                  id="title" 
-                  name="title"
-                  value={newTransaction.title} 
-                  onChange={handleNewTransactionChange} 
-                  placeholder="Ex: Aluguel, Supermercado..." 
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="amount">Valor</Label>
-                <Input 
-                  id="amount" 
-                  name="amount"
-                  value={newTransaction.amount} 
-                  onChange={handleNewTransactionChange} 
-                  placeholder="Ex: 1000 ou 2 mil"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="category">Categoria</Label>
-                <Input 
-                  id="category" 
-                  name="category"
-                  value={newTransaction.category} 
-                  onChange={handleNewTransactionChange} 
-                  placeholder="Ex: Moradia, Alimentação..."
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={() => handleSaveTransaction('expense')} className="bg-galileo-negative hover:bg-galileo-negative/80">
-                Salvar Saída
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          onClick={() => handleAddTransaction('expense')}
+          className="bg-galileo-negative hover:bg-galileo-negative/80 text-white flex items-center gap-2"
+        >
+          <TrendingDown size={18} />
+          Adicionar Saída
+        </Button>
       </div>
+      
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {newTransaction.type === 'income' 
+                ? 'Adicionar Nova Entrada' 
+                : 'Adicionar Nova Saída'}
+            </DialogTitle>
+            <DialogDescription>
+              {newTransaction.type === 'income' 
+                ? 'Adicione uma nova receita ou entrada financeira.' 
+                : 'Adicione uma nova despesa ou saída financeira.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Descrição</Label>
+              <Input 
+                id="title" 
+                name="title"
+                value={newTransaction.title} 
+                onChange={handleNewTransactionChange} 
+                placeholder={`Ex: ${newTransaction.type === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="amount">Valor</Label>
+              <Input 
+                id="amount" 
+                name="amount"
+                value={newTransaction.amount} 
+                onChange={handleNewTransactionChange} 
+                placeholder="Ex: 1000 ou 2 mil"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="category">Categoria</Label>
+              <Input 
+                id="category" 
+                name="category"
+                value={newTransaction.category} 
+                onChange={handleNewTransactionChange} 
+                placeholder={`Ex: ${newTransaction.type === 'income' ? 'Salário, Investimentos' : 'Moradia, Alimentação'}`}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="isRecurring" 
+                checked={newTransaction.isRecurring}
+                onCheckedChange={handleRecurrenceChange}
+              />
+              <Label 
+                htmlFor="isRecurring" 
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Transação recorrente
+              </Label>
+            </div>
+            
+            {newTransaction.isRecurring && (
+              <div className="grid gap-2">
+                <Label htmlFor="recurrenceFrequency">Frequência</Label>
+                <Select 
+                  value={newTransaction.recurrenceFrequency} 
+                  onValueChange={handleRecurrenceFrequencyChange}
+                >
+                  <SelectTrigger id="recurrenceFrequency">
+                    <SelectValue placeholder="Selecione a frequência" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weekly">Semanal</SelectItem>
+                    <SelectItem value="monthly">Mensal</SelectItem>
+                    <SelectItem value="yearly">Anual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSaveTransaction} className={
+              newTransaction.type === 'income' 
+                ? "bg-galileo-positive hover:bg-galileo-positive/80" 
+                : "bg-galileo-negative hover:bg-galileo-negative/80"
+            }>
+              Salvar {newTransaction.type === 'income' ? 'Entrada' : 'Saída'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       <Dialog open={showFinancialTips} onOpenChange={setShowFinancialTips}>
         <DialogContent className="max-w-md overflow-y-auto max-h-[80vh]">
@@ -400,14 +426,17 @@ const Dashboard: React.FC = () => {
           <div key={transaction.id} className="flex items-center gap-4 bg-galileo-background px-4 min-h-[72px] py-2 justify-between border-t border-galileo-border">
             <div className="flex items-center gap-4">
               <div className="text-galileo-text flex items-center justify-center rounded-lg bg-galileo-accent shrink-0 size-12">
-                {transaction.type === 'income' ? <TrendingUp size={24} /> : <CreditCard size={24} />}
+                {transaction.isRecurring ? 
+                  <CalendarRange size={24} /> : 
+                  (transaction.type === 'income' ? <TrendingUp size={24} /> : <CreditCard size={24} />)
+                }
               </div>
               <div className="flex flex-col justify-center">
                 <p className="text-galileo-text text-base font-medium leading-normal line-clamp-1">
                   {transaction.title}
                 </p>
                 <p className="text-galileo-secondaryText text-sm font-normal leading-normal line-clamp-2">
-                  {transaction.category}
+                  {transaction.category} {transaction.isRecurring && '(Recorrente)'}
                 </p>
               </div>
             </div>
@@ -423,121 +452,6 @@ const Dashboard: React.FC = () => {
       ) : (
         <div className="flex flex-col items-center justify-center p-8">
           <p className="text-galileo-secondaryText mb-4">Nenhuma transação encontrada para este mês</p>
-          <div className="flex gap-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="outline"
-                  className="border-galileo-accent text-galileo-text"
-                >
-                  <TrendingUp size={16} className="mr-2" />
-                  Adicionar Entrada
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Adicionar Nova Entrada</DialogTitle>
-                  <DialogDescription>
-                    Adicione uma nova receita ou entrada financeira.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="title">Descrição</Label>
-                    <Input 
-                      id="title" 
-                      name="title"
-                      value={newTransaction.title} 
-                      onChange={handleNewTransactionChange} 
-                      placeholder="Ex: Salário, Freelance, Venda..." 
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="amount">Valor</Label>
-                    <Input 
-                      id="amount" 
-                      name="amount"
-                      value={newTransaction.amount} 
-                      onChange={handleNewTransactionChange} 
-                      placeholder="Ex: 1000 ou 2 mil"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="category">Categoria</Label>
-                    <Input 
-                      id="category" 
-                      name="category"
-                      value={newTransaction.category} 
-                      onChange={handleNewTransactionChange} 
-                      placeholder="Ex: Salário, Investimentos..."
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={() => handleSaveTransaction('income')} className="bg-galileo-positive hover:bg-galileo-positive/80">
-                    Salvar Entrada
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="outline"
-                  className="border-galileo-accent text-galileo-text"
-                >
-                  <TrendingDown size={16} className="mr-2" />
-                  Adicionar Saída
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Adicionar Nova Saída</DialogTitle>
-                  <DialogDescription>
-                    Adicione uma nova despesa ou saída financeira.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="title">Descrição</Label>
-                    <Input 
-                      id="title" 
-                      name="title"
-                      value={newTransaction.title} 
-                      onChange={handleNewTransactionChange} 
-                      placeholder="Ex: Aluguel, Supermercado..." 
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="amount">Valor</Label>
-                    <Input 
-                      id="amount" 
-                      name="amount"
-                      value={newTransaction.amount} 
-                      onChange={handleNewTransactionChange} 
-                      placeholder="Ex: 1000 ou 2 mil"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="category">Categoria</Label>
-                    <Input 
-                      id="category" 
-                      name="category"
-                      value={newTransaction.category} 
-                      onChange={handleNewTransactionChange} 
-                      placeholder="Ex: Moradia, Alimentação..."
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={() => handleSaveTransaction('expense')} className="bg-galileo-negative hover:bg-galileo-negative/80">
-                    Salvar Saída
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
         </div>
       )}
       

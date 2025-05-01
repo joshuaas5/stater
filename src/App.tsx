@@ -3,17 +3,20 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
 import Transactions from "./pages/Transactions";
 import Profile from "./pages/Profile";
 import ChatPage from "./pages/ChatPage";
 import BillsPage from "./pages/BillsPage";
 import AddBillPage from "./pages/AddBillPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import PreferencesPage from "./pages/PreferencesPage";
+import SecurityPage from "./pages/SecurityPage";
+import ChartsPage from "./pages/ChartsPage";
+import FinancialAdvisorPage from "./pages/FinancialAdvisorPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,7 +29,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/transactions" element={<Transactions />} />
@@ -35,6 +38,10 @@ const App = () => (
             <Route path="/bills" element={<BillsPage />} />
             <Route path="/add-bill" element={<AddBillPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/preferences" element={<PreferencesPage />} />
+            <Route path="/security" element={<SecurityPage />} />
+            <Route path="/charts" element={<ChartsPage />} />
+            <Route path="/financial-advisor" element={<FinancialAdvisorPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

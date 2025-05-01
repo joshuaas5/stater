@@ -1,66 +1,55 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { BarChart, CreditCard, Home, User, MessageSquare } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Home, PieChart, PlusCircle, User, FileText, Lightbulb } from 'lucide-react';
 
 const NavBar: React.FC = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   
   const isActive = (path: string) => {
     return location.pathname === path;
   };
   
+  const navItems = [
+    { icon: <Home size={24} />, label: 'Início', path: '/dashboard' },
+    { icon: <PieChart size={24} />, label: 'Gráficos', path: '/charts' },
+    { icon: <PlusCircle size={32} className="text-galileo-accent" />, label: '', path: '/add-transaction' },
+    { icon: <FileText size={24} />, label: 'Contas', path: '/bills' },
+    { icon: <Lightbulb size={24} />, label: 'Consultor', path: '/financial-advisor' },
+  ];
+  
+  const handleNavigation = (path: string) => {
+    if (path === '/add-transaction') {
+      navigate('/dashboard'); // Navigate back to dashboard but open the add transaction dialog
+    } else {
+      navigate(path);
+    }
+  };
+  
   return (
-    <div className="flex gap-2 border-t border-galileo-border bg-galileo-card px-4 pb-3 pt-2 fixed bottom-0 left-0 right-0 z-10">
-      <Link 
-        to="/dashboard" 
-        className={`nav-item ${isActive('/dashboard') ? 'nav-item-active' : 'nav-item-inactive'}`}
-      >
-        <div className="flex h-8 items-center justify-center">
-          <BarChart size={24} />
-        </div>
-        <span className="text-xs">Gráficos</span>
-      </Link>
-      
-      <Link 
-        to="/transactions" 
-        className={`nav-item ${isActive('/transactions') ? 'nav-item-active' : 'nav-item-inactive'}`}
-      >
-        <div className="flex h-8 items-center justify-center">
-          <CreditCard size={24} />
-        </div>
-        <span className="text-xs">Transações</span>
-      </Link>
-      
-      <Link 
-        to="/" 
-        className={`nav-item ${isActive('/') ? 'nav-item-active' : 'nav-item-inactive'}`}
-      >
-        <div className="flex h-8 items-center justify-center">
-          <Home size={24} />
-        </div>
-        <span className="text-xs">Início</span>
-      </Link>
-      
-      <Link 
-        to="/chat" 
-        className={`nav-item ${isActive('/chat') ? 'nav-item-active' : 'nav-item-inactive'}`}
-      >
-        <div className="flex h-8 items-center justify-center">
-          <MessageSquare size={24} />
-        </div>
-        <span className="text-xs">Assistente</span>
-      </Link>
-      
-      <Link 
-        to="/profile" 
-        className={`nav-item ${isActive('/profile') ? 'nav-item-active' : 'nav-item-inactive'}`}
-      >
-        <div className="flex h-8 items-center justify-center">
-          <User size={24} />
-        </div>
-        <span className="text-xs">Perfil</span>
-      </Link>
+    <div className="fixed bottom-0 left-0 right-0 bg-galileo-card shadow-lg border-t border-galileo-border z-10">
+      <div className="flex justify-around items-center py-1">
+        {navItems.map((item, index) => {
+          const active = isActive(item.path);
+          
+          return (
+            <button
+              key={index}
+              onClick={() => handleNavigation(item.path)}
+              className={`flex flex-col items-center justify-center px-2 py-1 ${
+                active 
+                  ? 'text-galileo-accent' 
+                  : 'text-galileo-secondaryText hover:text-galileo-text'
+              } transition-colors ${index === 2 ? '-mt-4' : ''}`}
+            >
+              {item.icon}
+              <span className={`text-xs mt-1 ${index === 2 ? 'hidden' : ''}`}>{item.label}</span>
+              {active && <div className="h-1 w-10 bg-galileo-accent rounded-full mt-1"></div>}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 };

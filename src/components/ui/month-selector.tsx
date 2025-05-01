@@ -68,19 +68,52 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
   
   // Generate a background color for each month
   const monthColors = [
-    'bg-blue-100', 'bg-purple-100', 'bg-green-100', 'bg-yellow-100',
-    'bg-pink-100', 'bg-red-100', 'bg-indigo-100', 'bg-orange-100',
-    'bg-teal-100', 'bg-cyan-100', 'bg-amber-100', 'bg-lime-100'
+    'bg-blue-100 dark:bg-blue-900/50', 
+    'bg-purple-100 dark:bg-purple-900/50', 
+    'bg-green-100 dark:bg-green-900/50', 
+    'bg-yellow-100 dark:bg-yellow-900/50',
+    'bg-pink-100 dark:bg-pink-900/50', 
+    'bg-red-100 dark:bg-red-900/50', 
+    'bg-indigo-100 dark:bg-indigo-900/50', 
+    'bg-orange-100 dark:bg-orange-900/50',
+    'bg-teal-100 dark:bg-teal-900/50', 
+    'bg-cyan-100 dark:bg-cyan-900/50', 
+    'bg-amber-100 dark:bg-amber-900/50', 
+    'bg-lime-100 dark:bg-lime-900/50'
   ];
   
   const borderColors = [
-    'border-blue-300', 'border-purple-300', 'border-green-300', 'border-yellow-300',
-    'border-pink-300', 'border-red-300', 'border-indigo-300', 'border-orange-300',
-    'border-teal-300', 'border-cyan-300', 'border-amber-300', 'border-lime-300'
+    'border-blue-300 dark:border-blue-700', 
+    'border-purple-300 dark:border-purple-700', 
+    'border-green-300 dark:border-green-700', 
+    'border-yellow-300 dark:border-yellow-700',
+    'border-pink-300 dark:border-pink-700', 
+    'border-red-300 dark:border-red-700', 
+    'border-indigo-300 dark:border-indigo-700', 
+    'border-orange-300 dark:border-orange-700',
+    'border-teal-300 dark:border-teal-700', 
+    'border-cyan-300 dark:border-cyan-700', 
+    'border-amber-300 dark:border-amber-700', 
+    'border-lime-300 dark:border-lime-700'
+  ];
+  
+  const textColors = [
+    'text-blue-800 dark:text-blue-100',
+    'text-purple-800 dark:text-purple-100',
+    'text-green-800 dark:text-green-100',
+    'text-yellow-800 dark:text-yellow-100',
+    'text-pink-800 dark:text-pink-100',
+    'text-red-800 dark:text-red-100',
+    'text-indigo-800 dark:text-indigo-100',
+    'text-orange-800 dark:text-orange-100',
+    'text-teal-800 dark:text-teal-100',
+    'text-cyan-800 dark:text-cyan-100',
+    'text-amber-800 dark:text-amber-100',
+    'text-lime-800 dark:text-lime-100'
   ];
   
   return (
-    <div className={`flex items-center justify-between py-2 px-4 bg-galileo-card rounded-lg border-2 ${borderColors[selectedMonth]}`}>
+    <div className={`flex items-center justify-between py-2 px-4 bg-galileo-card rounded-lg border-2 ${borderColors[selectedMonth]} shadow-sm transition-all duration-300`}>
       <Button 
         variant="ghost" 
         size="icon" 
@@ -94,7 +127,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
         <PopoverTrigger asChild>
           <Button 
             variant="ghost" 
-            className={`flex items-center gap-2 px-4 py-2 rounded-full ${monthColors[selectedMonth]} text-galileo-text font-medium hover:bg-galileo-accent/20`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full ${monthColors[selectedMonth]} ${textColors[selectedMonth]} font-medium hover:bg-galileo-accent/20 transition-all duration-300`}
           >
             <CalendarIcon size={16} />
             {months[selectedMonth]} {selectedYear}

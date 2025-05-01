@@ -7,6 +7,8 @@ import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
 import { isLoggedIn } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
+import { ChatMessage } from '@/types';
+import { v4 as uuidv4 } from 'uuid';
 
 const suggestions = [
   "Como posso economizar mais?",
@@ -20,6 +22,14 @@ const suggestions = [
 const FinancialAdvisorPage: React.FC = () => {
   const navigate = useNavigate();
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: uuidv4(),
+      text: "Olá! Eu sou seu consultor financeiro. Como posso ajudar você hoje?",
+      sender: "system",
+      timestamp: new Date()
+    }
+  ]);
   
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -28,8 +38,31 @@ const FinancialAdvisorPage: React.FC = () => {
   }, [navigate]);
   
   const handleSuggestionClick = (suggestion: string) => {
-    // Implementar a lógica para usar a sugestão
+    handleSendMessage(suggestion);
     setShowSuggestions(false);
+  };
+  
+  const handleSendMessage = (message: string) => {
+    const userMessage: ChatMessage = {
+      id: uuidv4(),
+      text: message,
+      sender: "user",
+      timestamp: new Date()
+    };
+    
+    setMessages(prevMessages => [...prevMessages, userMessage]);
+    
+    // Simulate advisor response after a short delay
+    setTimeout(() => {
+      const advisorResponse: ChatMessage = {
+        id: uuidv4(),
+        text: `Em breve terei uma resposta personalizada para: "${message}"`,
+        sender: "system",
+        timestamp: new Date()
+      };
+      
+      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+    }, 1000);
   };
   
   return (
@@ -37,7 +70,9 @@ const FinancialAdvisorPage: React.FC = () => {
       <PageHeader title="Consultor Financeiro" showSearch={false} />
       
       <div className="px-4 pt-2 pb-16">
-        <ChatMessages />
+        <ChatMessages 
+          messages={messages} 
+        />
         
         {showSuggestions && (
           <div className="mb-4">
@@ -57,7 +92,9 @@ const FinancialAdvisorPage: React.FC = () => {
           </div>
         )}
         
-        <ChatInput />
+        <ChatInput 
+          onSubmit={handleSendMessage} 
+        />
       </div>
       
       <NavBar />

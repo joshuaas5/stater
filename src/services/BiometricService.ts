@@ -62,20 +62,17 @@ class BiometricServiceClass {
 
   async verifyIdentity(): Promise<boolean> {
     try {
-      // First receive the result as unknown type
-      const result = await NativeBiometric.verifyIdentity({
+      // Call the verifyIdentity method but don't try to access any property directly
+      // as it might return void depending on the platform
+      await NativeBiometric.verifyIdentity({
         reason: "Para acessar sua conta",
         title: "Autenticação Biométrica",
         subtitle: "Use sua biometria para acessar o aplicativo",
         description: "Autenticação com biometria para acesso seguro"
       });
       
-      // Then check if it exists and has the verified property
-      if (result && typeof result === 'object' && 'verified' in result) {
-        return Boolean(result.verified);
-      }
-      
-      return false;
+      // If we reach this point without an exception, authentication was successful
+      return true;
     } catch (error) {
       console.error('Error verifying biometric identity:', error);
       return false;

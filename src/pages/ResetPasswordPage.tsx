@@ -19,12 +19,40 @@ const ResetPasswordPage = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    // Check if we have a hash in the URL (password reset link)
-    const hash = window.location.hash.substring(1);
-    if (!hash.includes('type=recovery')) {
-      navigate('/login');
+    // Verificar se temos um hash na URL (link de redefinição de senha)
+    const getHashParams = () => {
+      const hash = window.location.hash.substring(1);
+      const params: Record<string, string> = {};
+      
+      if (!hash) return params;
+      
+      const hashParts = hash.split('&');
+      
+      hashParts.forEach(part => {
+        const [key, value] = part.split('=');
+        if (key && value) {
+          params[key] = decodeURIComponent(value);
+        }
+      });
+      
+      return params;
+    };
+    
+    const params = getHashParams();
+    
+    if (!params['type'] || params['type'] !== 'recovery') {
+      // Verificar se o usuário foi redirecionado por um token na URL
+      const accessToken = new URLSearchParams(window.location.search).get('access_token');
+      if (!accessToken) {
+        toast({
+          title: "Link inválido",
+          description: "Este link de redefinição de senha é inválido ou expirou",
+          variant: "destructive"
+        });
+        navigate('/login');
+      }
     }
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +76,23 @@ const ResetPasswordPage = () => {
     
     try {
       setLoading(true);
-      const { error } = await supabase.auth.updateUser({ password });
+      
+      // Verificar se há um token na URL (caso o usuário venha do email)
+      const accessToken = new URLSearchParams(window.location.search).get('access_token');
+      
+      let error;
+      
+      if (accessToken) {
+        const { error: updateError } = await supabase.auth.updateUser(
+          { password },
+          { accessToken }
+        );
+        error = updateError;
+      } else {
+        // Caso contrário, assume que o usuário já está autenticado
+        const { error: updateError } = await supabase.auth.updateUser({ password });
+        error = updateError;
+      }
       
       if (error) {
         throw error;

@@ -3,7 +3,8 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { saveUser, clearUserData } from '@/utils/localStorage';
+import { saveUser, clearUserData, getCurrentUser } from '@/utils/localStorage';
+import { BiometricService } from '@/services/BiometricService';
 
 type AuthContextType = {
   session: Session | null;
@@ -12,8 +13,10 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, username: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithBiometrics: () => Promise<boolean>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  saveBiometricCredentials: (email: string, password: string) => Promise<boolean>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -106,6 +109,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
+      // Criar perfil no banco de dados
+      const { error: profileError } = await supabase.from('profiles').insert([
+        { 
+          id: (await supabase.auth.getUser()).data.user?.id,
+          username, 
+          email 
+        }
+      ]);
+      
+      if (profileError) {
+        console.error("Erro ao criar perfil:", profileError);
+      }
+      
       toast({
         title: "Conta criada com sucesso!",
         description: "Verifique seu email para confirmar sua conta"
@@ -142,6 +158,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         variant: "destructive"
       });
       throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const signInWithBiometrics = async (): Promise<boolean> => {
+    try {
+      setLoading(true);
+      
+      // Verificar identidade biométrica
+      const isVerified = await BiometricService.verifyIdentity();
+      
+      if (!isVerified) {
+        toast({
+          title: "Autenticação biométrica falhou",
+          description: "Não foi possível verificar sua identidade",
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      // Obter credenciais salvas
+      const credentials = await BiometricService.getCredentials();
+      
+      if (!credentials) {
+        toast({
+          title: "Credenciais não encontradas",
+          description: "Configure a biometria nas configurações de segurança",
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      // Login com as credenciais recuperadas
+      await signIn(credentials.username, credentials.password);
+      return true;
+    } catch (error: any) {
+      toast({
+        title: "Erro na autenticação biométrica",
+        description: error.message,
+        variant: "destructive"
+      });
+      return false;
     } finally {
       setLoading(false);
     }
@@ -184,6 +243,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     }
   };
+  
+  const saveBiometricCredentials = async (email: string, password: string): Promise<boolean> => {
+    return await BiometricService.saveCredentials(email, password);
+  };
 
   const value = {
     session,
@@ -192,8 +255,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signUp,
     signInWithGoogle,
+    signInWithBiometrics,
     signOut,
-    resetPassword
+    resetPassword,
+    saveBiometricCredentials
   };
 
   return (

@@ -19,7 +19,7 @@ class BiometricServiceClass {
       const user = getCurrentUser();
       if (!user) return false;
 
-      const result = await NativeBiometric.setCredentials({
+      await NativeBiometric.setCredentials({
         username: email,
         password: password,
         server: 'https://sprout-finance-app.com',

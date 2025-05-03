@@ -1,13 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Label } from '@/components/ui/label';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Fingerprint } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
+import { BiometricService } from '@/services/BiometricService';
 
 type AuthMode = 'login' | 'register' | 'reset';
 
@@ -18,11 +19,22 @@ const AuthForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isBiometricsAvailable, setIsBiometricsAvailable] = useState(false);
   
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signIn, signUp, signInWithGoogle, resetPassword, loading } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithBiometrics, resetPassword, loading, saveBiometricCredentials } = useAuth();
   const { t } = useTranslation();
+  
+  useEffect(() => {
+    // Verificar se a biometria está disponível
+    const checkBiometrics = async () => {
+      const available = await BiometricService.isBiometricsAvailable();
+      setIsBiometricsAvailable(available);
+    };
+    
+    checkBiometrics();
+  }, []);
   
   const toggleMode = (newMode: AuthMode) => {
     setMode(newMode);
@@ -68,6 +80,21 @@ const AuthForm: React.FC = () => {
         }
         
         await signIn(email, password);
+        
+        // Perguntar se deseja salvar as credenciais para login biométrico
+        if (isBiometricsAvailable) {
+          setTimeout(() => {
+            const wantToSave = window.confirm("Deseja salvar suas credenciais para login biométrico?");
+            if (wantToSave) {
+              saveBiometricCredentials(email, password);
+              toast({
+                title: "Biometria configurada",
+                description: "Você poderá fazer login com sua biometria a partir de agora"
+              });
+            }
+          }, 1000);
+        }
+        
         navigate('/');
         
       } else if (mode === 'reset') {
@@ -90,6 +117,17 @@ const AuthForm: React.FC = () => {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
+    } catch (error) {
+      // Error is handled in the auth context
+    }
+  };
+  
+  const handleBiometricSignIn = async () => {
+    try {
+      const success = await signInWithBiometrics();
+      if (success) {
+        navigate('/');
+      }
     } catch (error) {
       // Error is handled in the auth context
     }
@@ -184,6 +222,21 @@ const AuthForm: React.FC = () => {
           {mode === 'login' ? t('login') : mode === 'register' ? t('register') : t('sendResetLink')}
         </Button>
       </form>
+      
+      {mode === 'login' && isBiometricsAvailable && (
+        <div className="mt-4">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full border border-galileo-border hover:bg-galileo-accent/20 flex items-center justify-center gap-2"
+            onClick={handleBiometricSignIn}
+            disabled={loading}
+          >
+            <Fingerprint size={18} />
+            Entrar com Biometria
+          </Button>
+        </div>
+      )}
       
       {mode !== 'reset' && (
         <div className="mt-4">

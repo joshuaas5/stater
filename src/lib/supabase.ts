@@ -11,10 +11,10 @@ if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KE
   console.log('Using default Supabase configuration values');
 }
 
-// Criar o cliente do Supabase
+// Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Guia para personalização dos templates de email do Supabase:
+// Guide for customizing Supabase email templates:
 /*
 Para personalizar os templates de email do Supabase, siga os passos abaixo:
 

@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
@@ -142,10 +141,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
+      // Fixed the Google authentication redirect URL to use the current origin
+      const redirectTo = `${window.location.origin}/dashboard`;
+      console.log("Google redirect URL:", redirectTo);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: redirectTo,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -154,6 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (error) {
+        console.error("Google auth error:", error);
         throw error;
       }
       
@@ -164,11 +168,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: "Não foi possível iniciar o processo de autenticação",
           variant: "destructive"
         });
+        return;
       }
       
+      console.log("Redirecting to Google auth URL:", data.url);
       // Redirecionar para o URL de autorização do Google
       window.location.href = data.url;
     } catch (error: any) {
+      console.error("Google auth exception:", error);
       toast({
         title: "Erro ao fazer login com Google",
         description: error.message,
@@ -237,11 +244,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resetPassword = async (email: string) => {
     try {
       setLoading(true);
+      // Fixed the reset password redirect URL to use the current origin
+      const redirectTo = `${window.location.origin}/reset-password`;
+      console.log("Reset password redirect URL:", redirectTo);
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: redirectTo,
       });
       
       if (error) {
+        console.error("Reset password error:", error);
         throw error;
       }
       
@@ -250,6 +262,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Verifique sua caixa de entrada para redefinir sua senha"
       });
     } catch (error: any) {
+      console.error("Reset password exception:", error);
       toast({
         title: "Erro ao redefinir senha",
         description: error.message,

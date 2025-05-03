@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -15,32 +15,67 @@ const ResetPasswordPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hasSession, setHasSession] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
 
   useEffect(() => {
     const checkSession = async () => {
-      // Verificar se o usuário tem uma sessão válida
+      console.log("Current URL:", window.location.href);
+      
+      // Get session to check if user is already logged in
       const { data } = await supabase.auth.getSession();
       
       if (data.session) {
+        console.log("User already has a session");
         setHasSession(true);
         return;
       }
-
-      // Se não tem sessão, verificar se há um token de recuperação na URL
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get('token');
-      const type = params.get('type');
       
-      if (!token || type !== 'recovery') {
-        toast({
-          title: "Link inválido",
-          description: "Este link de redefinição de senha é inválido ou expirou",
-          variant: "destructive"
+      // Parse hash parameters from URL (Supabase adds them after # for security)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const type = hashParams.get('type');
+      
+      console.log("Hash params:", { accessToken, type });
+      
+      if (accessToken && type === 'recovery') {
+        // Save the token for later use with updateUser
+        setToken(accessToken);
+        
+        // Set the session using the recovery token
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: hashParams.get('refresh_token') || '',
         });
-        navigate('/login');
+        
+        if (error) {
+          console.error("Error setting session:", error);
+          toast({
+            title: "Link inválido",
+            description: "Este link de redefinição de senha é inválido ou expirou",
+            variant: "destructive"
+          });
+          navigate('/login');
+        }
+      } else {
+        // Check for URL parameters (older approach)
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlToken = urlParams.get('token');
+        const urlType = urlParams.get('type');
+        
+        console.log("URL params:", { urlToken, urlType });
+        
+        if (!urlToken || urlType !== 'recovery') {
+          toast({
+            title: "Link inválido",
+            description: "Este link de redefinição de senha é inválido ou expirou",
+            variant: "destructive"
+          });
+          navigate('/login');
+        }
       }
     };
     
@@ -70,12 +105,17 @@ const ResetPasswordPage = () => {
     try {
       setLoading(true);
       
-      const { error } = await supabase.auth.updateUser({ password });
+      console.log("Updating password...");
+      const { error } = await supabase.auth.updateUser({ 
+        password: password 
+      });
       
       if (error) {
+        console.error("Error updating password:", error);
         throw error;
       }
       
+      console.log("Password reset successful");
       toast({
         title: "Senha redefinida com sucesso",
         description: "Você pode fazer login com sua nova senha"
@@ -83,6 +123,7 @@ const ResetPasswordPage = () => {
       
       navigate('/login');
     } catch (error: any) {
+      console.error("Exception in password reset:", error);
       toast({
         title: "Erro ao redefinir senha",
         description: error.message || "Ocorreu um erro ao redefinir sua senha",

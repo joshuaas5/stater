@@ -33,21 +33,21 @@ const ResetPasswordPage = () => {
         setHasSession(true);
         return;
       }
-      
-      // Parse hash parameters from URL (Supabase adds them after # for security)
+
+      // Check if we have a recovery token in the hash
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
+      const recoveryToken = hashParams.get('access_token');
       const type = hashParams.get('type');
       
-      console.log("Hash params:", { accessToken, type });
+      console.log("Hash params:", { recoveryToken, type });
       
-      if (accessToken && type === 'recovery') {
-        // Save the token for later use with updateUser
-        setToken(accessToken);
+      if (recoveryToken && type === 'recovery') {
+        // Save the token for later use
+        setToken(recoveryToken);
         
         // Set the session using the recovery token
         const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
+          access_token: recoveryToken,
           refresh_token: hashParams.get('refresh_token') || '',
         });
         

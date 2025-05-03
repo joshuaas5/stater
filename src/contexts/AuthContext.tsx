@@ -241,28 +241,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  // Função para resetar senha
   const resetPassword = async (email: string) => {
     try {
       setLoading(true);
-      // Fixed the reset password redirect URL to use the current origin
       const redirectTo = `${window.location.origin}/reset-password`;
-      console.log("Reset password redirect URL:", redirectTo);
-      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectTo,
+        redirectTo
       });
-      
       if (error) {
-        console.error("Reset password error:", error);
         throw error;
       }
-      
       toast({
         title: "Email enviado",
         description: "Verifique sua caixa de entrada para redefinir sua senha"
       });
     } catch (error: any) {
-      console.error("Reset password exception:", error);
       toast({
         title: "Erro ao redefinir senha",
         description: error.message,
@@ -273,7 +267,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     }
   };
-  
+
+  // Função para salvar credenciais biométricas
   const saveBiometricCredentials = async (email: string, password: string): Promise<boolean> => {
     return await BiometricService.saveCredentials(email, password);
   };
@@ -290,6 +285,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     resetPassword,
     saveBiometricCredentials
   };
+
 
   return (
     <AuthContext.Provider value={value}>

@@ -101,7 +101,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         options: {
           data: {
             username,
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/login`
         }
       });
       
@@ -141,16 +142,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
       
       if (error) {
         throw error;
       }
+      
+      // Se não houver URL, algo deu errado
+      if (!data.url) {
+        toast({
+          title: "Erro ao fazer login com Google",
+          description: "Não foi possível iniciar o processo de autenticação",
+          variant: "destructive"
+        });
+      }
+      
+      // Redirecionar para o URL de autorização do Google
+      window.location.href = data.url;
     } catch (error: any) {
       toast({
         title: "Erro ao fazer login com Google",

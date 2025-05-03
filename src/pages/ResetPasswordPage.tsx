@@ -14,36 +14,27 @@ const ResetPasswordPage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   useEffect(() => {
-    // Verificar se temos um hash na URL (link de redefinição de senha)
-    const getHashParams = () => {
-      const hash = window.location.hash.substring(1);
-      const params: Record<string, string> = {};
+    const checkSession = async () => {
+      // Verificar se o usuário tem uma sessão válida
+      const { data } = await supabase.auth.getSession();
       
-      if (!hash) return params;
+      if (data.session) {
+        setHasSession(true);
+        return;
+      }
+
+      // Se não tem sessão, verificar se há um token de recuperação na URL
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+      const type = params.get('type');
       
-      const hashParts = hash.split('&');
-      
-      hashParts.forEach(part => {
-        const [key, value] = part.split('=');
-        if (key && value) {
-          params[key] = decodeURIComponent(value);
-        }
-      });
-      
-      return params;
-    };
-    
-    const params = getHashParams();
-    
-    if (!params['type'] || params['type'] !== 'recovery') {
-      // Verificar se o usuário foi redirecionado por um token na URL
-      const accessToken = new URLSearchParams(window.location.search).get('access_token');
-      if (!accessToken) {
+      if (!token || type !== 'recovery') {
         toast({
           title: "Link inválido",
           description: "Este link de redefinição de senha é inválido ou expirou",
@@ -51,7 +42,9 @@ const ResetPasswordPage = () => {
         });
         navigate('/login');
       }
-    }
+    };
+    
+    checkSession();
   }, [navigate, toast]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -77,20 +70,7 @@ const ResetPasswordPage = () => {
     try {
       setLoading(true);
       
-      // Verificar se há um token na URL (caso o usuário venha do email)
-      const accessToken = new URLSearchParams(window.location.search).get('access_token');
-      
-      let error;
-      
-      if (accessToken) {
-        // Use updateUser without the accessToken in the options object since it's not a valid property
-        const { error: updateError } = await supabase.auth.updateUser({ password });
-        error = updateError;
-      } else {
-        // Caso contrário, assume que o usuário já está autenticado
-        const { error: updateError } = await supabase.auth.updateUser({ password });
-        error = updateError;
-      }
+      const { error } = await supabase.auth.updateUser({ password });
       
       if (error) {
         throw error;
@@ -105,7 +85,7 @@ const ResetPasswordPage = () => {
     } catch (error: any) {
       toast({
         title: "Erro ao redefinir senha",
-        description: error.message,
+        description: error.message || "Ocorreu um erro ao redefinir sua senha",
         variant: "destructive"
       });
     } finally {

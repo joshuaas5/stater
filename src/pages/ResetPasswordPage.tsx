@@ -83,10 +83,8 @@ const ResetPasswordPage = () => {
       let error;
       
       if (accessToken) {
-        const { error: updateError } = await supabase.auth.updateUser(
-          { password },
-          { accessToken }
-        );
+        // Use updateUser without the accessToken in the options object since it's not a valid property
+        const { error: updateError } = await supabase.auth.updateUser({ password });
         error = updateError;
       } else {
         // Caso contrário, assume que o usuário já está autenticado

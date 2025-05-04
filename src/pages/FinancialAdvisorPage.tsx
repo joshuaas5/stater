@@ -18,22 +18,7 @@ const FinancialAdvisorPage: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: uuidv4(),
-      text: `Oiê! Eu sou o Consultor IA 🤖💸, seu parceiro digital para deixar suas finanças muito mais leves, organizadas e até divertidas!
-
-✨ Minha missão? Te ajudar a conquistar seus sonhos sem perder o bom humor! Pode contar comigo para:
-
-👉 Registrar receitas e despesas rapidinho: é só mandar frases como "gastei 50 reais no mercado" ou "recebi 1000 de salário" e eu cuido do resto. Fácil, né? Quanto mais você registra, mais dicas personalizadas eu posso te dar!
-
-💡 Também respondo perguntas como:
-• Como posso economizar mais?
-• Quais são meus maiores gastos?
-• Como criar um orçamento?
-• O que é Tesouro Direto?
-• Mostre meu saldo ou extrato
-
-E se quiser, trago dicas, explico conceitos, dou aquele empurrãozinho motivacional e até conto umas curiosidades financeiras! 💬💪
-
-Bora juntos transformar sua relação com o dinheiro? Me conta: o que você quer fazer hoje? 😃`,
+      text: `Olá! Eu sou o Consultor IA. Registre receitas e despesas aqui. Se quiser, pergunte sobre seu dinheiro.`,
       sender: "system",
       timestamp: new Date()
     }
@@ -761,40 +746,26 @@ Bora juntos transformar sua relação com o dinheiro? Me conta: o que você quer
   return (
     <div className="min-h-screen bg-gradient-to-t from-blue-50 to-white flex flex-col pb-0">
       {/* Header Material Design */}
-      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md shadow-lg rounded-b-3xl px-4 pt-6 pb-4 flex flex-col items-center mx-auto w-full max-w-2xl">
-        <div className="flex flex-row items-center gap-4 w-full justify-center">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center shadow-xl border-4 border-white">
-            <span className="text-3xl">🤖</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-2xl font-extrabold text-blue-700 tracking-tight">Consultor IA</span>
-            <span className="text-sm text-gray-500 font-medium">Seu assistente financeiro inteligente</span>
-          </div>
-          <div className="ml-auto">
-            {/* Botão de tema, se houver */}
-          </div>
+      <header className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 flex flex-col items-center mx-auto w-full max-w-2xl">
+        <div className="flex flex-row items-center gap-3 w-full justify-center">
+          <span className="text-xl font-bold text-gray-800 tracking-tight">Consultor IA</span>
+          <span className="text-xs text-gray-400 ml-2">Assistente financeiro</span>
         </div>
       </header>
       {/* Container centralizado para o chat */}
       <main className="flex-1 w-full flex flex-col items-center px-2 sm:px-0">
-        <section className="w-full max-w-xl flex flex-col flex-1 bg-white/95 rounded-3xl shadow-2xl mt-4 mb-2 overflow-hidden border border-blue-100">
-          <div className="flex-1 overflow-y-auto px-2 pt-4 pb-24" style={{ minHeight: '60vh' }}>
-            <ChatMessages 
-              messages={messages} 
-              bubbleStyle="rounded-3xl shadow-lg px-5 py-3 text-base font-normal animate-fade-in"
-              systemBubbleStyle="bg-blue-100 text-blue-900 border border-blue-200"
-              userBubbleStyle="bg-green-100 text-green-900 border border-green-200"
-            />
+        <section className="w-full max-w-xl flex flex-col flex-1 bg-white rounded-2xl mt-2 mb-2 overflow-hidden border border-gray-100">
+          <div className="flex-1 overflow-y-auto px-1 pt-2 pb-20" style={{ minHeight: '60vh' }}>
+            <ChatMessages messages={messages} />
           </div>
           {showSuggestions && (
-            <div className="mb-4 px-3">
+            <div className="mb-2 px-2">
               <div className="flex flex-wrap gap-2 justify-center">
                 {suggestions.map((suggestion, index) => (
                   <button
                     key={index}
-                    className="px-4 py-2 rounded-full bg-blue-50 hover:bg-blue-200 text-blue-800 text-sm font-semibold shadow transition-all border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="px-3 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium border border-gray-200 focus:outline-none"
                     onClick={() => handleSuggestionClick(suggestion.text)}
-                    style={{transition: 'all 0.2s'}}
                   >
                     {suggestion.text}
                   </button>
@@ -802,18 +773,10 @@ Bora juntos transformar sua relação com o dinheiro? Me conta: o que você quer
               </div>
             </div>
           )}
-          {/* Input fixo Material Design */}
-          <div className="sticky bottom-0 w-full bg-gradient-to-t from-white/95 to-blue-50/80 pt-2 pb-4 px-2 border-t border-blue-100 z-10">
-            <ChatInput 
-              onSubmit={handleSendMessage} 
-              placeholder="Digite sua mensagem..."
-              buttonClassName="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full px-6 py-2 shadow-lg transition-all"
-            />
+          <div className="sticky bottom-0 w-full bg-white pt-1 pb-2 px-1 border-t border-gray-100 z-10">
+            <ChatInput onSubmit={handleSendMessage} />
           </div>
         </section>
-        <div className="w-full max-w-xl">
-          <NavBar />
-        </div>
       </main>
     </div>
   );

@@ -16,32 +16,25 @@ interface ChatMessagesProps {
 
 const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, transactions }) => {
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex-1 overflow-y-auto p-2 space-y-2">
       {messages.map((message) => (
         <div
           key={message.id}
-          className={`flex flex-col ${
-            message.sender === 'user' 
-              ? 'items-end' 
-              : 'items-start'
-          }`}
+          className={`flex flex-col ${message.sender === 'user' ? 'items-end' : 'items-start'}`}
         >
           <div
-            className={`max-w-[80%] rounded-2xl p-3 ${
-              message.sender === 'user'
-                ? 'bg-galileo-accent text-white rounded-tr-none'
-                : 'bg-galileo-card text-galileo-text rounded-tl-none'
-            }`}
+            className={
+              'max-w-[80%] rounded-md px-3 py-2 bg-gray-50 text-gray-800 border border-gray-200 text-sm'
+            }
           >
             <p>{message.text}</p>
-            
             {message.sender === 'system' && transactions && transactions.length > 0 && (
-              <div className="mt-2 border-t border-galileo-border pt-2 space-y-2">
-                <p className="font-medium text-sm">Transações identificadas:</p>
+              <div className="mt-1 border-t border-gray-100 pt-1 space-y-1">
+                <p className="font-medium text-xs">Transações identificadas:</p>
                 {transactions.map((tx, index) => (
-                  <div key={index} className="flex justify-between items-center">
+                  <div key={index} className="flex justify-between items-center text-xs">
                     <span>{tx.title}</span>
-                    <span className={tx.type === 'income' ? 'text-galileo-positive' : 'text-galileo-negative'}>
+                    <span className={tx.type === 'income' ? 'text-green-600' : 'text-red-500'}>
                       {tx.type === 'income' ? '+' : '-'} {formatCurrency(tx.amount)}
                     </span>
                   </div>
@@ -49,10 +42,10 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, transactions }) =
               </div>
             )}
           </div>
-          <span className="text-xs text-galileo-secondaryText mt-1">
-            {formatDistanceToNow(new Date(message.timestamp), { 
+          <span className="text-[10px] text-gray-400 mt-0.5">
+            {formatDistanceToNow(new Date(message.timestamp), {
               addSuffix: true,
-              locale: ptBR 
+              locale: ptBR
             })}
           </span>
         </div>

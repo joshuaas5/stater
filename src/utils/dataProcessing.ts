@@ -82,7 +82,11 @@ const parseTransactionText = (text: string): ParsedTransaction | null => {
   
   // Lista de categorias comuns
   const categories = {
-    income: ['salário', 'salario', 'receita', 'entrada', 'recebimento', 'ganho', 'rendimento', 'renda'],
+    income: [
+      'salário', 'salario', 'receita', 'entrada', 'recebimento', 'ganho', 'rendimento', 'renda',
+      'achei', 'encontrei', 'ganhei', 'presente', 'doação', 'doacao', 'herança', 'heranca',
+      'bônus', 'bonus', 'pix recebido', 'recebido', 'transferência recebida', 'transferencia recebida'
+    ],
     expense: {
       'alimentação': ['comida', 'mercado', 'restaurante', 'lanche', 'supermercado', 'feira'],
       'moradia': ['aluguel', 'apartamento', 'casa', 'condomínio', 'condominio', 'hipoteca', 'luz', 'água', 'agua', 'energia', 'gás', 'gas'],

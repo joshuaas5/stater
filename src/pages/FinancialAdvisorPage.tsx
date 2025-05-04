@@ -759,48 +759,62 @@ Bora juntos transformar sua relação com o dinheiro? Me conta: o que você quer
   ];
   
   return (
-    <div className="bg-galileo-background min-h-screen pb-20">
-      {/* Header com avatar e subtítulo */}
-      <div className="flex flex-col items-center py-6 bg-white shadow-md rounded-b-3xl mb-2">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center shadow-lg mb-2">
-          <span className="text-4xl">🤖</span>
-        </div>
-        <div className="text-2xl font-bold text-blue-700">Consultor IA</div>
-        <div className="text-sm text-gray-500 font-medium">Seu assistente financeiro inteligente</div>
-      </div>
-      <div className="px-2 pt-2 pb-16 max-w-xl mx-auto">
-        <div className="mb-4">
-          <ChatMessages 
-            messages={messages} 
-            bubbleStyle="rounded-2xl shadow-md px-4 py-2 text-base font-normal"
-            systemBubbleStyle="bg-blue-50 text-blue-900 border border-blue-200"
-            userBubbleStyle="bg-green-50 text-green-900 border border-green-200"
-          />
-        </div>
-        {showSuggestions && (
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-2 justify-center">
-              {suggestions.map((suggestion, index) => (
-                <button
-                  key={index}
-                  className="px-4 py-2 rounded-full bg-blue-100 hover:bg-blue-300 text-blue-800 text-sm font-medium shadow-sm transition-all border border-blue-200"
-                  onClick={() => handleSuggestionClick(suggestion.text)}
-                >
-                  {suggestion.text}
-                </button>
-              ))}
-            </div>
+    <div className="min-h-screen bg-gradient-to-t from-blue-50 to-white flex flex-col pb-0">
+      {/* Header Material Design */}
+      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md shadow-lg rounded-b-3xl px-4 pt-6 pb-4 flex flex-col items-center mx-auto w-full max-w-2xl">
+        <div className="flex flex-row items-center gap-4 w-full justify-center">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center shadow-xl border-4 border-white">
+            <span className="text-3xl">🤖</span>
           </div>
-        )}
-        <div className="sticky bottom-0 bg-galileo-background pt-2">
-          <ChatInput 
-            onSubmit={handleSendMessage} 
-            placeholder="Digite sua mensagem..."
-            buttonClassName="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full px-6 py-2 shadow-lg"
-          />
+          <div className="flex flex-col">
+            <span className="text-2xl font-extrabold text-blue-700 tracking-tight">Consultor IA</span>
+            <span className="text-sm text-gray-500 font-medium">Seu assistente financeiro inteligente</span>
+          </div>
+          <div className="ml-auto">
+            {/* Botão de tema, se houver */}
+          </div>
         </div>
-      </div>
-      <NavBar />
+      </header>
+      {/* Container centralizado para o chat */}
+      <main className="flex-1 w-full flex flex-col items-center px-2 sm:px-0">
+        <section className="w-full max-w-xl flex flex-col flex-1 bg-white/95 rounded-3xl shadow-2xl mt-4 mb-2 overflow-hidden border border-blue-100">
+          <div className="flex-1 overflow-y-auto px-2 pt-4 pb-24" style={{ minHeight: '60vh' }}>
+            <ChatMessages 
+              messages={messages} 
+              bubbleStyle="rounded-3xl shadow-lg px-5 py-3 text-base font-normal animate-fade-in"
+              systemBubbleStyle="bg-blue-100 text-blue-900 border border-blue-200"
+              userBubbleStyle="bg-green-100 text-green-900 border border-green-200"
+            />
+          </div>
+          {showSuggestions && (
+            <div className="mb-4 px-3">
+              <div className="flex flex-wrap gap-2 justify-center">
+                {suggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    className="px-4 py-2 rounded-full bg-blue-50 hover:bg-blue-200 text-blue-800 text-sm font-semibold shadow transition-all border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    onClick={() => handleSuggestionClick(suggestion.text)}
+                    style={{transition: 'all 0.2s'}}
+                  >
+                    {suggestion.text}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* Input fixo Material Design */}
+          <div className="sticky bottom-0 w-full bg-gradient-to-t from-white/95 to-blue-50/80 pt-2 pb-4 px-2 border-t border-blue-100 z-10">
+            <ChatInput 
+              onSubmit={handleSendMessage} 
+              placeholder="Digite sua mensagem..."
+              buttonClassName="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full px-6 py-2 shadow-lg transition-all"
+            />
+          </div>
+        </section>
+        <div className="w-full max-w-xl">
+          <NavBar />
+        </div>
+      </main>
     </div>
   );
 };

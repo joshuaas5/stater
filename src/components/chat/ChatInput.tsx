@@ -39,20 +39,27 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSubmit }) => {
   };
   
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 p-4 bg-galileo-background border-t border-galileo-border">
-      <input
-        type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        placeholder="Digite seus gastos ou receitas..."
-        className="flex-1 p-3 rounded-full bg-galileo-card border border-galileo-border text-galileo-text focus:outline-none focus:ring-2 focus:ring-galileo-accent"
-      />
+    <form onSubmit={handleSubmit} className="flex items-center gap-2">
+      <div className="relative flex-1">
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Digite uma mensagem, despesa ou receita..."
+          className="w-full py-2.5 px-4 pr-10 rounded-full bg-white border border-indigo-200 text-gray-700 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent shadow-sm transition-all"
+        />
+        {message.length > 0 && (
+          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-indigo-400">
+            {message.length} caracteres
+          </span>
+        )}
+      </div>
       <Button 
         type="submit" 
         size="icon"
-        className="bg-galileo-accent hover:bg-galileo-accent/80 text-white rounded-full"
+        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 p-2.5"
       >
-        <Send size={20} />
+        <Send size={18} className="transform transition-transform group-hover:translate-x-1" />
       </Button>
     </form>
   );

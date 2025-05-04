@@ -744,27 +744,41 @@ const FinancialAdvisorPage: React.FC = () => {
   ];
   
   return (
-    <div className="min-h-screen bg-gradient-to-t from-blue-50 to-white flex flex-col pb-0">
-      {/* Header Material Design */}
-      <header className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 flex flex-col items-center mx-auto w-full max-w-2xl">
-        <div className="flex flex-row items-center gap-3 w-full justify-center">
-          <span className="text-xl font-bold text-gray-800 tracking-tight">Consultor IA</span>
-          <span className="text-xs text-gray-400 ml-2">Assistente financeiro</span>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 flex flex-col pb-16">
+      {/* Header com design moderno e colorido */}
+      <header className="sticky top-0 z-10 bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md px-4 py-3 flex flex-col items-center mx-auto w-full">
+        <div className="flex flex-row items-center gap-3 w-full max-w-xl justify-between">
+          <div className="flex items-center">
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-2">
+              <span className="text-white text-sm">💡</span>
+            </div>
+            <div>
+              <span className="text-lg font-bold text-white tracking-tight">Consultor IA</span>
+              <span className="block text-xs text-blue-100">Assistente financeiro</span>
+            </div>
+          </div>
+          <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </button>
         </div>
       </header>
+      
       {/* Container centralizado para o chat */}
-      <main className="flex-1 w-full flex flex-col items-center px-2 sm:px-0">
-        <section className="w-full max-w-xl flex flex-col flex-1 bg-white rounded-2xl mt-2 mb-2 overflow-hidden border border-gray-100">
-          <div className="flex-1 overflow-y-auto px-1 pt-2 pb-20" style={{ minHeight: '60vh' }}>
+      <main className="flex-1 w-full flex flex-col items-center px-3 sm:px-4 pt-4">
+        <section className="w-full max-w-xl flex flex-col flex-1 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border border-indigo-100">
+          <div className="flex-1 overflow-y-auto px-3 pt-3 pb-20" style={{ minHeight: '60vh' }}>
             <ChatMessages messages={messages} />
           </div>
+          
           {showSuggestions && (
-            <div className="mb-2 px-2">
+            <div className="mb-3 px-3">
               <div className="flex flex-wrap gap-2 justify-center">
                 {suggestions.map((suggestion, index) => (
                   <button
                     key={index}
-                    className="px-3 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium border border-gray-200 focus:outline-none"
+                    className="px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 text-indigo-700 text-xs font-medium border border-indigo-200 shadow-sm transition-all"
                     onClick={() => handleSuggestionClick(suggestion.text)}
                   >
                     {suggestion.text}
@@ -773,11 +787,17 @@ const FinancialAdvisorPage: React.FC = () => {
               </div>
             </div>
           )}
-          <div className="sticky bottom-0 w-full bg-white pt-1 pb-2 px-1 border-t border-gray-100 z-10">
+          
+          <div className="sticky bottom-0 w-full bg-white/90 backdrop-blur-sm pt-2 pb-3 px-3 border-t border-indigo-100 z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
             <ChatInput onSubmit={handleSendMessage} />
           </div>
         </section>
       </main>
+      
+      {/* NavBar fixa na parte inferior */}
+      <div className="fixed bottom-0 left-0 right-0 z-20">
+        <NavBar />
+      </div>
     </div>
   );
 };

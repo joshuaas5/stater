@@ -23,11 +23,13 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, transactions }) =
           className={`flex flex-col ${message.sender === 'user' ? 'items-end' : 'items-start'}`}
         >
           <div
-            className={
-              message.sender === 'user'
-                ? 'max-w-[80%] rounded-2xl rounded-br-sm px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-sm animate-fade-in'
-                : 'max-w-[80%] rounded-2xl rounded-tl-sm px-4 py-3 bg-white shadow-sm border border-indigo-100 text-gray-700 animate-fade-in'
-            }
+            className={`
+              max-w-[80%] rounded-2xl px-4 py-3 animate-fade-in
+              ${message.sender === 'user'
+                ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-sm'
+                : 'bg-galileo-card text-galileo-text shadow-sm border border-galileo-border'
+              }
+            `}
           >
             <p className="text-sm leading-relaxed">{message.text}</p>
             {message.sender === 'system' && transactions && transactions.length > 0 && (

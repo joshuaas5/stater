@@ -1,0 +1,23 @@
+:root {
+  /* Light theme */
+  --galileo-card: 255, 255, 255;
+  --galileo-card-foreground: 0, 0, 0;
+  --galileo-text: 0, 0, 0;
+  --galileo-text-foreground: 255, 255, 255;
+  --galileo-border: 209, 213, 219;
+  --galileo-border-foreground: 0, 0, 0;
+  --galileo-placeholder: 156, 163, 175;
+  --galileo-placeholder-foreground: 255, 255, 255;
+}
+
+[data-theme="dark"] {
+  /* Dark theme */
+  --galileo-card: 17, 24, 39;
+  --galileo-card-foreground: 255, 255, 255;
+  --galileo-text: 255, 255, 255;
+  --galileo-text-foreground: 0, 0, 0;
+  --galileo-border: 55, 65, 81;
+  --galileo-border-foreground: 255, 255, 255;
+  --galileo-placeholder: 107, 114, 128;
+  --galileo-placeholder-foreground: 255, 255, 255;
+}

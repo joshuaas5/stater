@@ -59,6 +59,14 @@ const Dashboard: React.FC = () => {
       navigate('/login');
       return;
     }
+
+    // Agendar lembretes de contas a vencer (notificações push)
+    import('@/utils/localStorage').then(({ getBills }) => {
+      import('@/services/NotificationService').then(({ NotificationService }) => {
+        const bills = getBills();
+        NotificationService.scheduleBillReminders(bills);
+      });
+    });
     
     loadTransactions(selectedMonth, selectedYear);
   }, [navigate, selectedMonth, selectedYear]);

@@ -63,12 +63,13 @@ const BillsPage: React.FC = () => {
   };
   
   const handleMarkAsPaid = (billId: string) => {
-    markBillAsPaid(billId);
-    toast({
-      title: "Conta marcada como paga",
-      description: "A conta foi marcada como paga com sucesso.",
+    markBillAsPaid(billId, (bill) => {
+      toast({
+        title: `Conta paga: ${bill.title}`,
+        description: `A conta foi marcada como paga com sucesso.`,
+      });
+      loadBills();
     });
-    loadBills();
   };
   
   const handleAddBill = () => {

@@ -67,7 +67,7 @@ export interface Bill {
   cardItems?: CardItem[];
 }
 
-export type NotificationType = 'fiveDaysBefore' | 'oneDayBefore' | 'dueDay' | 'overdue' | 'almostFinished';
+export type NotificationType = 'fiveDaysBefore' | 'oneDayBefore' | 'dueDay' | 'overdue' | 'almostFinished' | 'paid';
 
 export interface Notification {
   id: string;

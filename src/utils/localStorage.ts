@@ -173,7 +173,7 @@ export const getBills = (): Bill[] => {
 };
 
 // Marcar uma conta como paga
-export const markBillAsPaid = (billId: string): void => {
+export const markBillAsPaid = (billId: string, onPaid?: (bill: Bill) => void): void => {
   const user = getCurrentUser();
   if (!user) return;
   
@@ -186,6 +186,39 @@ export const markBillAsPaid = (billId: string): void => {
   if (index !== -1) {
     bills[index].isPaid = true;
     localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
+    // Criar transação de saída automaticamente ao pagar a conta
+    const transaction = {
+      id: `transaction_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      title: bills[index].title,
+      amount: bills[index].amount,
+      type: 'expense',
+      category: bills[index].category,
+      date: new Date(),
+      userId: user.id,
+      isRecurring: bills[index].isRecurring,
+      recurringDay: bills[index].recurringDay,
+      dueDate: bills[index].dueDate,
+      isPaid: true,
+      totalInstallments: bills[index].totalInstallments,
+      currentInstallment: bills[index].currentInstallment,
+      isCardBill: bills[index].isCardBill,
+      cardItems: bills[index].cardItems,
+    };
+    const transactionsStr = localStorage.getItem(`transactions_${user.id}`);
+    let transactions = transactionsStr ? JSON.parse(transactionsStr) : [];
+    transactions.push(transaction);
+    localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
+    // Notificação local
+    saveNotification({
+      id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      billId: billId,
+      userId: user.id,
+      type: 'paid',
+      message: `Conta "${bills[index].title}" marcada como paga!`,
+      date: new Date(),
+      read: false
+    });
+    if (onPaid) onPaid(bills[index]);
   }
 };
 

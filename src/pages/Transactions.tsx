@@ -17,6 +17,49 @@ import { Edit, Trash2, Filter, CalendarRange } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 const Transactions: React.FC = () => {
+  // ...
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newTransaction, setNewTransaction] = useState<Transaction | null>(null);
+
+  // Função para clonar transação
+  const handleCloneTransaction = (transaction: Transaction) => {
+    const cloned = {
+      ...transaction,
+      id: `${transaction.id}_clone_${Date.now()}`,
+      date: new Date(),
+    };
+    setNewTransaction(cloned);
+    setIsAddDialogOpen(true);
+  };
+
+  // Função para adicionar transação clonada
+  const handleSaveClonedTransaction = () => {
+    if (!newTransaction) return;
+    const user = getCurrentUser();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    const allTransactions = getTransactions();
+    allTransactions.push(newTransaction);
+    localStorage.setItem(`transactions_${user.id}`, JSON.stringify(allTransactions));
+    loadTransactions();
+    setIsAddDialogOpen(false);
+    setNewTransaction(null);
+    toast({
+      title: 'Transação clonada',
+      description: `${newTransaction.title} foi clonada com sucesso!`,
+    });
+  };
+
+  // Função para excluir transação no modal de edição
+  const handleDeleteFromEdit = () => {
+    if (!editingTransaction) return;
+    handleDeleteTransaction(editingTransaction);
+    setIsDialogOpen(false);
+    setEditingTransaction(null);
+  };
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -211,12 +254,20 @@ const Transactions: React.FC = () => {
             <div key={transaction.id} className="flex items-center bg-galileo-background px-4 min-h-[72px] py-2 justify-between border-t border-galileo-border">
               <TransactionItem transaction={transaction} />
               <div className="flex gap-2 ml-2">
-                <Button 
+                 <Button 
                   variant="ghost" 
                   size="icon"
                   onClick={() => handleEditTransaction(transaction)}
                 >
                   <Edit size={18} className="text-galileo-secondaryText" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => handleCloneTransaction(transaction)}
+                  aria-label="Clonar transação"
+                >
+                  <span role="img" aria-label="clonar">📋</span>
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -324,45 +375,381 @@ const Transactions: React.FC = () => {
                 onValueChange={(value: 'income' | 'expense') => editingTransaction && setEditingTransaction({...editingTransaction, type: value})}
               >
                 <SelectTrigger id="editType">
-                  <SelectValue placeholder="Tipo de transação" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="income">Entrada</SelectItem>
-                  <SelectItem value="expense">Saída</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+    </div>
+    
+    {/* Edit Transaction Dialog */}
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Editar Transação</DialogTitle>
+          <DialogDescription>
+            Altere os detalhes da transação.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="editTitle">Descrição</Label>
+            <Input 
+              id="editTitle" 
+              value={editingTransaction?.title || ''} 
+              onChange={(e) => editingTransaction && setEditingTransaction({...editingTransaction, title: e.target.value})}
+            />
           </div>
           
-          <DialogFooter>
-            <Button onClick={handleSaveTransaction} className="bg-galileo-accent hover:bg-galileo-accent/80">
-              Salvar Alterações
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <div className="grid gap-2">
+            <Label htmlFor="editAmount">Valor</Label>
+            <Input 
+              id="editAmount" 
+              type="number" 
+              min="0" 
+              step="0.01"
+              value={editingTransaction?.amount || 0} 
+              onChange={(e) => editingTransaction && setEditingTransaction({...editingTransaction, amount: parseFloat(e.target.value)})}
+            />
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="editCategory">Categoria</Label>
+            <Select 
+              value={editingTransaction?.category || ''} 
+              onValueChange={(value) => editingTransaction && setEditingTransaction({...editingTransaction, category: value})}
+            >
+              <SelectTrigger id="editCategory">
+                <SelectValue placeholder="Selecione uma categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                {editingTransaction?.type === 'income' ? (
+                  INCOME_CATEGORIES.map((category) => (
+                    <SelectItem key={category} value={category.toLowerCase()}>
+                      {category}
+                    </SelectItem>
+                  ))
+                ) : (
+                  EXPENSE_CATEGORIES.map((category) => (
+                    <SelectItem key={category} value={category.toLowerCase()}>
+                      {category}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="isRecurring" 
+              checked={editingTransaction?.isRecurring || false}
+              onCheckedChange={(checked: boolean) => handleRecurrenceChange(checked)}
+            />
+            <Label 
+              htmlFor="isRecurring" 
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+            >
+              <CalendarRange size={16} />
+              Transação recorrente
+            </Label>
+          </div>
+          
+          <AlertDialogDescription>
+            Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={confirmDeleteTransaction} className="bg-galileo-negative hover:bg-galileo-negative/80">
+            Excluir
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    
+    {/* Add/Clone Transaction Dialog */}
+    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Clonar Lançamento</DialogTitle>
+          <DialogDescription>Revise os dados e confirme para adicionar.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="cloneTitle">Descrição</Label>
+            <Input
+              id="cloneTitle"
+              value={newTransaction?.title || ''}
+              onChange={e => newTransaction && setNewTransaction({ ...newTransaction, title: e.target.value })}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="cloneAmount">Valor</Label>
+            <Input
+              id="cloneAmount"
+              type="number"
+              min="0"
+              step="0.01"
+              value={newTransaction?.amount || 0}
+              onChange={e => newTransaction && setNewTransaction({ ...newTransaction, amount: parseFloat(e.target.value) })}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="cloneCategory">Categoria</Label>
+            <Select
+              value={newTransaction?.category || ''}
+              onValueChange={value => newTransaction && setNewTransaction({ ...newTransaction, category: value })}
+            >
+              <SelectTrigger id="cloneCategory">
+                <SelectValue placeholder="Selecione uma categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                {newTransaction?.type === 'income'
+                  ? INCOME_CATEGORIES.map(category => (
+                      <SelectItem key={category} value={category.toLowerCase()}>
+                        {category}
+                      </SelectItem>
+                    ))
+                  : EXPENSE_CATEGORIES.map(category => (
+                      <SelectItem key={category} value={category.toLowerCase()}>
+                        {category}
+                      </SelectItem>
+                    ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="cloneIsRecurring"
+              checked={newTransaction?.isRecurring || false}
+              onCheckedChange={checked => newTransaction && setNewTransaction({ ...newTransaction, isRecurring: !!checked })}
+            />
+            <Label htmlFor="cloneIsRecurring" className="text-sm font-medium leading-none flex items-center gap-2">
+              <CalendarRange size={16} />
+              Transação recorrente
+            </Label>
+          </div>
+  </div>
+  
+  <div className="flex items-center space-x-2">
+    <Checkbox 
+      id="isRecurring" 
+      checked={editingTransaction?.isRecurring || false}
+      onCheckedChange={(checked: boolean) => handleRecurrenceChange(checked)}
+    />
+    <Label 
+      htmlFor="isRecurring" 
+      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+    >
+      <CalendarRange size={16} />
+      Transação recorrente
+    </Label>
+  </div>
+  
+  <div className="grid gap-2">
+    <Label htmlFor="editType">Tipo</Label>
+    <Select 
+      value={editingTransaction?.type || 'expense'} 
+      onValueChange={(value: 'income' | 'expense') => editingTransaction && setEditingTransaction({...editingTransaction, type: value})}
+    >
+      <SelectTrigger id="editType">
+        <SelectValue placeholder="Tipo de transação" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="income">Entrada</SelectItem>
+        <SelectItem value="expense">Saída</SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+</div>
+
+{/* Edit Transaction Dialog */}
+<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Editar Transação</DialogTitle>
+      <DialogDescription>
+        Altere os detalhes da transação.
+      </DialogDescription>
+    </DialogHeader>
+    
+    <div className="grid gap-4 py-4">
+      <div className="grid gap-2">
+        <Label htmlFor="editTitle">Descrição</Label>
+        <Input 
+          id="editTitle" 
+          value={editingTransaction?.title || ''} 
+          onChange={(e) => editingTransaction && setEditingTransaction({...editingTransaction, title: e.target.value})}
+        />
+      </div>
       
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Transação</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteTransaction} className="bg-galileo-negative hover:bg-galileo-negative/80">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <div className="grid gap-2">
+        <Label htmlFor="editAmount">Valor</Label>
+        <Input 
+          id="editAmount" 
+          type="number" 
+          min="0" 
+          step="0.01"
+          value={editingTransaction?.amount || 0} 
+          onChange={(e) => editingTransaction && setEditingTransaction({...editingTransaction, amount: parseFloat(e.target.value)})}
+        />
+      </div>
       
-      <NavBar />
+      <div className="grid gap-2">
+        <Label htmlFor="editCategory">Categoria</Label>
+        <Select 
+          value={editingTransaction?.category || ''} 
+          onValueChange={(value) => editingTransaction && setEditingTransaction({...editingTransaction, category: value})}
+        >
+          <SelectTrigger id="editCategory">
+            <SelectValue placeholder="Selecione uma categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            {editingTransaction?.type === 'income' ? (
+              INCOME_CATEGORIES.map((category) => (
+                <SelectItem key={category} value={category.toLowerCase()}>
+                  {category}
+                </SelectItem>
+              ))
+            ) : (
+              EXPENSE_CATEGORIES.map((category) => (
+                <SelectItem key={category} value={category.toLowerCase()}>
+                  {category}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="flex items-center space-x-2">
+        <Checkbox 
+          id="isRecurring" 
+          checked={editingTransaction?.isRecurring || false}
+          onCheckedChange={(checked: boolean) => handleRecurrenceChange(checked)}
+        />
+        <Label 
+          htmlFor="isRecurring" 
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+        >
+          <CalendarRange size={16} />
+          Transação recorrente
+        </Label>
+      </div>
+      
+      <div className="grid gap-2">
+        <Label htmlFor="editType">Tipo</Label>
+        <Select 
+          value={editingTransaction?.type || 'expense'} 
+          onValueChange={(value: 'income' | 'expense') => editingTransaction && setEditingTransaction({...editingTransaction, type: value})}
+        >
+          <SelectTrigger id="editType">
+            <SelectValue placeholder="Tipo de transação" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="income">Entrada</SelectItem>
+            <SelectItem value="expense">Saída</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
-  );
+    
+    <DialogFooter>
+      <Button onClick={handleSaveTransaction} className="bg-galileo-accent hover:bg-galileo-accent/80">
+        Salvar Alterações
+      </Button>
+      <Button onClick={handleDeleteFromEdit} className="bg-galileo-negative hover:bg-galileo-negative/80 ml-2">
+        Excluir
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+{/* Add/Clone Transaction Dialog */}
+<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Clonar Lançamento</DialogTitle>
+      <DialogDescription>Revise os dados e confirme para adicionar.</DialogDescription>
+    </DialogHeader>
+    <div className="grid gap-4 py-4">
+      <div className="grid gap-2">
+        <Label htmlFor="cloneTitle">Descrição</Label>
+        <Input
+          id="cloneTitle"
+          value={newTransaction?.title || ''}
+          onChange={e => newTransaction && setNewTransaction({ ...newTransaction, title: e.target.value })}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="cloneAmount">Valor</Label>
+        <Input
+          id="cloneAmount"
+          type="number"
+          min="0"
+          step="0.01"
+          value={newTransaction?.amount || 0}
+          onChange={e => newTransaction && setNewTransaction({ ...newTransaction, amount: parseFloat(e.target.value) })}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="cloneCategory">Categoria</Label>
+        <Select
+          value={newTransaction?.category || ''}
+          onValueChange={value => newTransaction && setNewTransaction({ ...newTransaction, category: value })}
+        >
+          <SelectTrigger id="cloneCategory">
+            <SelectValue placeholder="Selecione uma categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            {newTransaction?.type === 'income'
+              ? INCOME_CATEGORIES.map(category => (
+                  <SelectItem key={category} value={category.toLowerCase()}>
+                    {category}
+                  </SelectItem>
+                ))
+              : EXPENSE_CATEGORIES.map(category => (
+                  <SelectItem key={category} value={category.toLowerCase()}>
+                    {category}
+                  </SelectItem>
+                ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="cloneIsRecurring"
+          checked={newTransaction?.isRecurring || false}
+          onCheckedChange={checked => newTransaction && setNewTransaction({ ...newTransaction, isRecurring: !!checked })}
+        />
+        <Label htmlFor="cloneIsRecurring" className="text-sm font-medium leading-none flex items-center gap-2">
+          <CalendarRange size={16} />
+          Transação recorrente
+        </Label>
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="cloneType">Tipo</Label>
+        <Select
+          value={newTransaction?.type || 'expense'}
+          onValueChange={value => newTransaction && setNewTransaction({ ...newTransaction, type: value as 'income' | 'expense' })}
+        >
+          <SelectTrigger id="cloneType">
+            <SelectValue placeholder="Tipo de transação" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="income">Entrada</SelectItem>
+            <SelectItem value="expense">Saída</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+    <DialogFooter>
+      <Button onClick={handleSaveClonedTransaction} className="bg-galileo-accent hover:bg-galileo-accent/80">
+        Adicionar Lançamento
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+<NavBar />
+</div>
+);
 };
 
 export default Transactions;

@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import './Dashboard.module.css';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
@@ -277,28 +278,27 @@ const Dashboard: React.FC = () => {
   
   return (
     <div className="bg-galileo-background min-h-screen pb-20">
-      <div className="flex items-center justify-between p-4">
-        <h2 className="text-galileo-text text-lg font-bold leading-tight">
-          Olá, {userName}!
-        </h2>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowFinancialTips(true)}
-            className="text-galileo-text"
-          >
-            <BellRing size={20} />
-          </Button>
-          <ThemeToggle />
-        </div>
-      </div>
-      
-      <div className="px-4 mb-4">
-        <MonthSelector onMonthChange={handleMonthChange} />
-      </div>
+  <div className="flex items-center justify-between p-4">
+    <h2 className="text-galileo-text text-lg font-bold leading-tight">
+      Olá, {userName}!
+    </h2>
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => setShowFinancialTips(true)}
+        className="pop-art-tips focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-galileo-accent"
+        aria-label="Show Tips"
+      >
+        TIPS
+      </button>
+      <ThemeToggle />
+    </div>
+  </div>
 
-      <div className="flex flex-wrap gap-4 px-4 mb-6">
+  <div className="px-4 mb-4">
+    <MonthSelector onMonthChange={handleMonthChange} />
+  </div>
+
+  <div className="flex flex-wrap gap-4 px-4 mb-6">
         <div className="w-full">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

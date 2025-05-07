@@ -1,14 +1,5 @@
 
-// Import seguro para ambientes web e mobile
-// Serviço de notificações: mock para ambiente web
-const LocalNotifications = {
-  requestPermissions: async () => ({ display: 'granted' }),
-  checkPermissions: async () => ({ display: 'granted' }),
-  schedule: async () => {},
-  cancel: async () => {}
-};
-
-
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { Bill, Notification as AppNotification } from '@/types';
 import { getBills, saveNotification } from '@/utils/localStorage';
 

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
 import BalanceCard from '@/components/dashboard/BalanceCard';
+import { Eye, EyeOff, Edit } from 'lucide-react';
 import SpendingChart from '@/components/dashboard/SpendingChart';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { MonthSelector } from '@/components/ui/month-selector';
@@ -44,6 +45,8 @@ const Dashboard: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showFinancialTips, setShowFinancialTips] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [balanceVisible, setBalanceVisible] = useState(true);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   
   const [newTransaction, setNewTransaction] = useState({
     title: '',
@@ -287,13 +290,26 @@ const Dashboard: React.FC = () => {
       <div className="px-4 mb-4">
         <MonthSelector onMonthChange={handleMonthChange} />
       </div>
-      
+
       <div className="flex flex-wrap gap-4 px-4 mb-6">
         <div className="w-full">
-          <BalanceCard balance={balance} percentChange={percentChange} />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-galileo-secondaryText text-base font-medium leading-normal">Saldo da Conta</span>
+              <button
+                aria-label={balanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
+                className="ml-1 text-galileo-secondaryText hover:text-galileo-text"
+                onClick={() => setBalanceVisible((v) => !v)}
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              >
+                {balanceVisible ? <Eye size={20} /> : <EyeOff size={20} />}
+              </button>
+            </div>
+          </div>
+          <BalanceCard balance={balance} percentChange={percentChange} visible={balanceVisible} />
         </div>
       </div>
-      
+
       <div className="flex justify-center gap-4 mb-6">
         <Button 
           onClick={() => handleAddTransaction('income')}
@@ -302,7 +318,6 @@ const Dashboard: React.FC = () => {
           <TrendingUp size={18} />
           Adicionar Entrada
         </Button>
-        
         <Button 
           onClick={() => handleAddTransaction('expense')}
           className="bg-galileo-negative hover:bg-galileo-negative/80 text-white flex items-center gap-2"
@@ -311,19 +326,22 @@ const Dashboard: React.FC = () => {
           Adicionar Saída
         </Button>
       </div>
-      
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        setDialogOpen(open);
+        if (!open) setEditingTransaction(null);
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {newTransaction.type === 'income' 
-                ? 'Adicionar Nova Entrada' 
-                : 'Adicionar Nova Saída'}
+              {editingTransaction
+                ? (editingTransaction.type === 'income' ? 'Editar Entrada' : 'Editar Saída')
+                : (newTransaction.type === 'income' ? 'Adicionar Nova Entrada' : 'Adicionar Nova Saída')}
             </DialogTitle>
             <DialogDescription>
-              {newTransaction.type === 'income' 
-                ? 'Adicione uma nova receita ou entrada financeira.' 
-                : 'Adicione uma nova despesa ou saída financeira.'}
+              {editingTransaction
+                ? (editingTransaction.type === 'income' ? 'Edite uma receita ou entrada financeira.' : 'Edite uma despesa ou saída financeira.')
+                : (newTransaction.type === 'income' ? 'Adicione uma nova receita ou entrada financeira.' : 'Adicione uma nova despesa ou saída financeira.')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -332,9 +350,10 @@ const Dashboard: React.FC = () => {
               <Input 
                 id="title" 
                 name="title"
-                value={newTransaction.title} 
+                value={editingTransaction ? editingTransaction.title : newTransaction.title} 
                 onChange={handleNewTransactionChange} 
-                placeholder={`Ex: ${newTransaction.type === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
+                placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
+                disabled={!!editingTransaction}
               />
             </div>
             <div className="grid gap-2">
@@ -342,9 +361,10 @@ const Dashboard: React.FC = () => {
               <Input 
                 id="amount" 
                 name="amount"
-                value={newTransaction.amount} 
+                value={editingTransaction ? editingTransaction.amount : newTransaction.amount} 
                 onChange={handleNewTransactionChange} 
                 placeholder="Ex: 1000 ou 2 mil"
+                disabled={!!editingTransaction}
               />
             </div>
             <div className="grid gap-2">
@@ -352,16 +372,18 @@ const Dashboard: React.FC = () => {
               <Input 
                 id="category" 
                 name="category"
-                value={newTransaction.category} 
+                value={editingTransaction ? editingTransaction.category : newTransaction.category} 
                 onChange={handleNewTransactionChange} 
-                placeholder={`Ex: ${newTransaction.type === 'income' ? 'Salário, Investimentos' : 'Moradia, Alimentação'}`}
+                placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Investimentos' : 'Moradia, Alimentação'}`}
+                disabled={!!editingTransaction}
               />
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="isRecurring" 
-                checked={newTransaction.isRecurring}
+                checked={editingTransaction ? editingTransaction.isRecurring : newTransaction.isRecurring}
                 onCheckedChange={handleRecurrenceChange}
+                disabled={!!editingTransaction}
               />
               <Label 
                 htmlFor="isRecurring" 
@@ -371,12 +393,13 @@ const Dashboard: React.FC = () => {
               </Label>
             </div>
             
-            {newTransaction.isRecurring && (
+            {(editingTransaction ? editingTransaction.isRecurring : newTransaction.isRecurring) && (
               <div className="grid gap-2">
                 <Label htmlFor="recurrenceFrequency">Frequência</Label>
                 <Select 
-                  value={newTransaction.recurrenceFrequency} 
+                  value={editingTransaction ? (newTransaction.recurrenceFrequency) : newTransaction.recurrenceFrequency} 
                   onValueChange={handleRecurrenceFrequencyChange}
+                  disabled={!!editingTransaction}
                 >
                   <SelectTrigger id="recurrenceFrequency">
                     <SelectValue placeholder="Selecione a frequência" />
@@ -391,13 +414,15 @@ const Dashboard: React.FC = () => {
             )}
           </div>
           <DialogFooter>
-            <Button onClick={handleSaveTransaction} className={
-              newTransaction.type === 'income' 
-                ? "bg-galileo-positive hover:bg-galileo-positive/80" 
-                : "bg-galileo-negative hover:bg-galileo-negative/80"
-            }>
-              Salvar {newTransaction.type === 'income' ? 'Entrada' : 'Saída'}
-            </Button>
+            {!editingTransaction && (
+              <Button onClick={handleSaveTransaction} className={
+                newTransaction.type === 'income' 
+                  ? "bg-galileo-positive hover:bg-galileo-positive/80" 
+                  : "bg-galileo-negative hover:bg-galileo-negative/80"
+              }>
+                Salvar {newTransaction.type === 'income' ? 'Entrada' : 'Saída'}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -448,12 +473,23 @@ const Dashboard: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div className="shrink-0">
+            <div className="flex items-center gap-2">
               <p className={`text-base font-normal leading-normal ${
                 transaction.type === 'income' ? 'text-galileo-positive' : 'text-galileo-negative'
               }`}>
                 {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
               </p>
+              <button
+                aria-label="Editar transação"
+                className="ml-2 text-galileo-secondaryText hover:text-galileo-text"
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                onClick={() => {
+                  setEditingTransaction(transaction);
+                  setDialogOpen(true);
+                }}
+              >
+                <Edit size={18} />
+              </button>
             </div>
           </div>
         ))

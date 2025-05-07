@@ -744,9 +744,9 @@ const FinancialAdvisorPage: React.FC = () => {
   ];
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 flex flex-col pb-16">
+    <div className="min-h-screen bg-galileo-background flex flex-col pb-16">
       {/* Header com design moderno e colorido */}
-      <header className="sticky top-0 z-10 bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md px-4 py-3 flex flex-col items-center mx-auto w-full">
+      <header className="sticky top-0 z-10 bg-galileo-card shadow-md px-4 py-3 flex flex-col items-center mx-auto w-full border-b border-galileo-border">
         <div className="flex flex-row items-center gap-3 w-full max-w-xl justify-between">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-2">
@@ -763,7 +763,7 @@ const FinancialAdvisorPage: React.FC = () => {
       
       {/* Container centralizado para o chat */}
       <main className="flex-1 w-full flex flex-col items-center px-3 sm:px-4 pt-4">
-        <section className="w-full max-w-xl flex flex-col flex-1 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border border-indigo-100">
+        <section className="w-full max-w-xl flex flex-col flex-1 bg-galileo-card rounded-xl shadow-lg overflow-hidden border border-galileo-border">
           <div className="flex-1 overflow-y-auto px-3 pt-3 pb-20" style={{ minHeight: '60vh' }}>
             <ChatMessages messages={messages} />
           </div>
@@ -774,7 +774,7 @@ const FinancialAdvisorPage: React.FC = () => {
                 {suggestions.map((suggestion, index) => (
                   <button
                     key={index}
-                    className="px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 text-indigo-700 text-xs font-medium border border-indigo-200 shadow-sm transition-all"
+                    className="px-3 py-1.5 rounded-full bg-galileo-background hover:bg-galileo-accent text-galileo-text text-xs font-medium border border-galileo-border shadow-sm transition-all"
                     onClick={() => handleSuggestionClick(suggestion.text)}
                   >
                     {suggestion.text}
@@ -784,7 +784,7 @@ const FinancialAdvisorPage: React.FC = () => {
             </div>
           )}
           
-          <div className="sticky bottom-0 w-full bg-white/90 backdrop-blur-sm pt-2 pb-3 px-3 border-t border-indigo-100 z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
+          <div className="sticky bottom-0 w-full bg-galileo-card pt-2 pb-3 px-3 border-t border-galileo-border z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
             <ChatInput onSubmit={handleSendMessage} />
           </div>
         </section>

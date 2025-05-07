@@ -1,4 +1,4 @@
-// Global type declarations
+
 declare module '@/types' {
   export interface User {
     id: string;

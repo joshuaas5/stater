@@ -746,7 +746,7 @@ const FinancialAdvisorPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-galileo-background flex flex-col pb-16">
       {/* Header com design moderno e colorido */}
-      <header className="sticky top-0 z-10 bg-galileo-card shadow-md px-4 py-3 flex flex-col items-center mx-auto w-full border-b border-galileo-border">
+      <header className="sticky top-0 z-10 bg-galileo-accent text-white dark:bg-galileo-card dark:text-galileo-text shadow-md px-4 py-3 flex flex-col items-center mx-auto w-full border-b border-galileo-border">
         <div className="flex flex-row items-center gap-3 w-full max-w-xl justify-between">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-2">

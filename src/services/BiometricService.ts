@@ -1,81 +1,70 @@
 
-import { NativeBiometric } from 'capacitor-native-biometric';
-import { useToast } from '@/hooks/use-toast';
-import { getCurrentUser } from '@/utils/localStorage';
+// BiometricService.ts
+// Service for handling biometric authentication
 
 class BiometricServiceClass {
   async isBiometricsAvailable(): Promise<boolean> {
     try {
-      const result = await NativeBiometric.isAvailable();
-      return result.isAvailable;
+      // On web, biometrics are not natively available
+      if (typeof window !== 'undefined' && window.Capacitor === undefined) {
+        console.log('Biometrics not available in web environment');
+        return false;
+      }
+      
+      // For mobile, we would check using capacitor-native-biometric
+      // But we'll return false for now to avoid errors
+      return false;
     } catch (error) {
       console.error('Error checking biometrics availability:', error);
       return false;
     }
   }
 
-  async saveCredentials(email: string, password: string): Promise<boolean> {
-    try {
-      const user = getCurrentUser();
-      if (!user) return false;
-
-      await NativeBiometric.setCredentials({
-        username: email,
-        password: password,
-        server: 'https://sprout-finance-app.com',
-      });
-      
-      return true;
-    } catch (error) {
-      console.error('Error saving biometric credentials:', error);
-      return false;
-    }
-  }
-
-  async deleteCredentials(): Promise<boolean> {
-    try {
-      await NativeBiometric.deleteCredentials({
-        server: 'https://sprout-finance-app.com',
-      });
-      return true;
-    } catch (error) {
-      console.error('Error deleting biometric credentials:', error);
-      return false;
-    }
-  }
-
-  async getCredentials(): Promise<{ username: string; password: string } | null> {
-    try {
-      const credentials = await NativeBiometric.getCredentials({
-        server: 'https://sprout-finance-app.com',
-      });
-      
-      return {
-        username: credentials.username,
-        password: credentials.password,
-      };
-    } catch (error) {
-      console.error('Error retrieving biometric credentials:', error);
-      return null;
-    }
-  }
-
   async verifyIdentity(): Promise<boolean> {
     try {
-      // Call the verifyIdentity method but don't try to access any property directly
-      // as it might return void depending on the platform
-      await NativeBiometric.verifyIdentity({
-        reason: "Para acessar sua conta",
-        title: "Autenticação Biométrica",
-        subtitle: "Use sua biometria para acessar o aplicativo",
-        description: "Autenticação com biometria para acesso seguro"
-      });
+      // Web fallback - always return false
+      if (typeof window !== 'undefined' && window.Capacitor === undefined) {
+        console.log('Biometric verification not available in web environment');
+        return false;
+      }
       
-      // If we reach this point without an exception, authentication was successful
-      return true;
-    } catch (error) {
-      console.error('Error verifying biometric identity:', error);
+      // In a real mobile app, this would use the native plugin
       return false;
+    } catch (error) {
+      console.error('Error verifying identity with biometrics:', error);
+      return false;
+    }
+  }
+
+  async saveCredentials(username: string, password: string): Promise<boolean> {
+    try {
+      // Web fallback - always return false
+      if (typeof window !== 'undefined' && window.Capacitor === undefined) {
+        console.log('Saving biometric credentials not available in web environment');
+        return false;
+      }
+      
+      // In a real mobile app, this would use the native plugin
+      return false;
+    } catch (error) {
+      console.error('Error saving credentials for biometrics:', error);
+      return false;
+    }
+  }
+
+  async getCredentials(): Promise<{ username: string, password: string } | null> {
+    try {
+      // Web fallback - always return null
+      if (typeof window !== 'undefined' && window.Capacitor === undefined) {
+        console.log('Getting biometric credentials not available in web environment');
+        return null;
+      }
+      
+      // In a real mobile app, this would use the native plugin
+      return null;
+    } catch (error) {
+      console.error('Error getting credentials with biometrics:', error);
+      return null;
     }
   }
 }

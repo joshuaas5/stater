@@ -1,4 +1,5 @@
 
+// Global type definitions for '@/types' module
 declare module '@/types' {
   export interface User {
     id: string;

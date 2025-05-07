@@ -8,6 +8,7 @@ import {
   Sun, Moon, Bell, Languages, DollarSign, 
   Calendar, Paintbrush, Save
 } from 'lucide-react';
+import { CURRENCIES, suggestCurrencyByCountry } from '@/utils/currencies';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -40,7 +41,18 @@ const PreferencesPage: React.FC = () => {
       navigate('/login');
       return;
     }
-    
+    // Detectar país e sugerir moeda se não houver preferência
+    if (!preferences.currency || preferences.currency === 'USD') {
+      try {
+        const locale = navigator.language || 'en-US';
+        // Tenta obter o país pelo locale
+        const country = locale.split('-')[1] || 'US';
+        const suggested = suggestCurrencyByCountry(country);
+        if (suggested !== preferences.currency) {
+          setPreferences(prev => ({ ...prev, currency: suggested }));
+        }
+      } catch {}
+    }
     // Carregar preferências salvas
     const savedPreferences = getUserPreferences();
     if (Object.keys(savedPreferences).length > 0) {
@@ -130,10 +142,19 @@ const PreferencesPage: React.FC = () => {
           <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
             <DollarSign size={18} className="mr-2" /> {t('currency')}
           </h2>
-          <div className="flex space-x-4 mb-2">
-            <Button variant={preferences.currency === 'BRL' ? 'default' : 'outline'} onClick={() => setPreferences(prev => ({ ...prev, currency: 'BRL' }))} className="flex-1">R$ (Real)</Button>
-            <Button variant={preferences.currency === 'USD' ? 'default' : 'outline'} onClick={() => setPreferences(prev => ({ ...prev, currency: 'USD' }))} className="flex-1">$ (Dólar)</Button>
-            <Button variant={preferences.currency === 'EUR' ? 'default' : 'outline'} onClick={() => setPreferences(prev => ({ ...prev, currency: 'EUR' }))} className="flex-1">€ (Euro)</Button>
+          <div className="mb-2">
+            <label className="block text-galileo-text font-medium mb-1">Selecione sua moeda</label>
+            <select
+              className="w-full rounded-lg border border-galileo-border py-2 px-3 bg-galileo-background text-galileo-text focus:outline-none focus:ring-2 focus:ring-galileo-accent"
+              value={preferences.currency}
+              onChange={e => setPreferences(prev => ({ ...prev, currency: e.target.value }))}
+            >
+              {CURRENCIES.map(cur => (
+                <option key={cur.code} value={cur.code}>
+                  {cur.symbol} - {cur.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="flex items-center justify-between">
             <Label htmlFor="show-cents" className="cursor-pointer">{t('showCents')}</Label>

@@ -351,9 +351,11 @@ const Dashboard: React.FC = () => {
                 id="title" 
                 name="title"
                 value={editingTransaction ? editingTransaction.title : newTransaction.title} 
-                onChange={handleNewTransactionChange} 
+                onChange={e => {
+                  if (editingTransaction) setEditingTransaction({...editingTransaction, title: e.target.value});
+                  else handleNewTransactionChange(e);
+                }}
                 placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
-                disabled={!!editingTransaction}
               />
             </div>
             <div className="grid gap-2">
@@ -361,10 +363,13 @@ const Dashboard: React.FC = () => {
               <Input 
                 id="amount" 
                 name="amount"
-                value={editingTransaction ? editingTransaction.amount : newTransaction.amount} 
-                onChange={handleNewTransactionChange} 
+                value={editingTransaction ? String(editingTransaction.amount ?? '') : newTransaction.amount} 
+                onChange={e => {
+                  const value = e.target.value;
+                  if (editingTransaction) setEditingTransaction({...editingTransaction, amount: value === '' ? '' : Number(value)});
+                  else handleNewTransactionChange(e);
+                }}
                 placeholder="Ex: 1000 ou 2 mil"
-                disabled={!!editingTransaction}
               />
             </div>
             <div className="grid gap-2">
@@ -373,17 +378,21 @@ const Dashboard: React.FC = () => {
                 id="category" 
                 name="category"
                 value={editingTransaction ? editingTransaction.category : newTransaction.category} 
-                onChange={handleNewTransactionChange} 
+                onChange={e => {
+                  if (editingTransaction) setEditingTransaction({...editingTransaction, category: e.target.value});
+                  else handleNewTransactionChange(e);
+                }}
                 placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Investimentos' : 'Moradia, Alimentação'}`}
-                disabled={!!editingTransaction}
               />
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="isRecurring" 
                 checked={editingTransaction ? editingTransaction.isRecurring : newTransaction.isRecurring}
-                onCheckedChange={handleRecurrenceChange}
-                disabled={!!editingTransaction}
+                onCheckedChange={val => {
+                  if (editingTransaction) setEditingTransaction({...editingTransaction, isRecurring: !!val});
+                  else handleRecurrenceChange(!!val);
+                }}
               />
               <Label 
                 htmlFor="isRecurring" 
@@ -397,9 +406,11 @@ const Dashboard: React.FC = () => {
               <div className="grid gap-2">
                 <Label htmlFor="recurrenceFrequency">Frequência</Label>
                 <Select 
-                  value={editingTransaction ? (newTransaction.recurrenceFrequency) : newTransaction.recurrenceFrequency} 
-                  onValueChange={handleRecurrenceFrequencyChange}
-                  disabled={!!editingTransaction}
+                  value={editingTransaction ? (editingTransaction.recurrenceFrequency as 'weekly' | 'monthly' | 'yearly' || 'monthly') : newTransaction.recurrenceFrequency} 
+                  onValueChange={val => {
+                    if (editingTransaction) setEditingTransaction({...editingTransaction, recurrenceFrequency: val as 'weekly' | 'monthly' | 'yearly'});
+                    else handleRecurrenceFrequencyChange(val);
+                  }}
                 >
                   <SelectTrigger id="recurrenceFrequency">
                     <SelectValue placeholder="Selecione a frequência" />
@@ -414,7 +425,41 @@ const Dashboard: React.FC = () => {
             )}
           </div>
           <DialogFooter>
-            {!editingTransaction && (
+            {editingTransaction ? (
+              <Button onClick={() => {
+                // Salvar edição da transação
+                const user = getCurrentUser();
+                if (!user) {
+                  navigate('/login');
+                  return;
+                }
+                const allTransactions = getTransactions();
+                const idx = allTransactions.findIndex(t => t.id === editingTransaction.id);
+                if (idx !== -1) {
+                  // Atualizar valores corretos
+                  const updated = {
+                    ...editingTransaction,
+                    amount: parseFloat(editingTransaction.amount as any),
+                    recurrenceFrequency: editingTransaction.recurrenceFrequency || 'monthly',
+                  };
+                  allTransactions[idx] = updated;
+                  localStorage.setItem(`transactions_${user.id}`, JSON.stringify(allTransactions));
+                  loadTransactions(selectedMonth, selectedYear);
+                  setDialogOpen(false);
+                  setEditingTransaction(null);
+                  toast({
+                    title: 'Transação atualizada',
+                    description: `${updated.title} foi atualizada com sucesso.`
+                  });
+                }
+              }} className={
+                editingTransaction.type === 'income' 
+                  ? "bg-galileo-positive hover:bg-galileo-positive/80" 
+                  : "bg-galileo-negative hover:bg-galileo-negative/80"
+              }>
+                Salvar {editingTransaction.type === 'income' ? 'Entrada' : 'Saída'}
+              </Button>
+            ) : (
               <Button onClick={handleSaveTransaction} className={
                 newTransaction.type === 'income' 
                   ? "bg-galileo-positive hover:bg-galileo-positive/80" 

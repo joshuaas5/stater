@@ -23,6 +23,7 @@ export interface Transaction {
   // Para cartões de crédito
   isCardBill?: boolean;
   cardItems?: CardItem[];
+  recurrenceFrequency?: 'weekly' | 'monthly' | 'yearly'; // Frequência de recorrência
 }
 
 export interface CardItem {

@@ -1,6 +1,6 @@
 
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { Bill, Notification as AppNotification } from '@/types';
+import { Bill, Notification as AppNotification, NotificationType } from '@/types';
 import { getBills, saveNotification } from '@/utils/localStorage';
 
 class NotificationServiceClass {
@@ -21,6 +21,52 @@ class NotificationServiceClass {
     } catch (error) {
       console.error('Error checking notification permissions:', error);
       return false;
+    }
+  }
+  
+  async createNotification(userId: string, billId: string, type: NotificationType, message: string): Promise<void> {
+    try {
+      const notification: AppNotification = {
+        id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        billId,
+        userId,
+        type,
+        message,
+        date: new Date(),
+        read: false
+      };
+      
+      await saveNotification(notification);
+      
+      // Mostrar uma notificação do sistema se for permitido
+      await this.showSystemNotification(billId, message);
+      
+    } catch (error) {
+      console.error('Error creating notification:', error);
+    }
+  }
+  
+  async showSystemNotification(id: string, message: string): Promise<void> {
+    try {
+      const hasPermission = await this.checkPermissions();
+      if (!hasPermission) {
+        const granted = await this.requestPermissions();
+        if (!granted) return;
+      }
+      
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: parseInt(id.replace(/\D/g, '').substring(0, 8)),
+            title: 'Lembrete Financeiro',
+            body: message,
+            schedule: { at: new Date(Date.now() + 1000) },
+            sound: null
+          }
+        ]
+      });
+    } catch (error) {
+      console.error('Error showing system notification:', error);
     }
   }
   
@@ -55,13 +101,23 @@ class NotificationServiceClass {
               scheduleTime.setDate(scheduleTime.getDate() + 1);
             }
             
+            const notificationId = parseInt(bill.id.replace(/\D/g, '').substring(0, 8) + days);
+            
             notifications.push({
-              id: parseInt(`${bill.id.replace(/\D/g, '').substring(0, 8)}${days}`),
+              id: notificationId,
               title: 'Lembrete de Conta',
               body: `A conta "${bill.title}" vence em ${days === 0 ? 'hoje' : days === 1 ? 'amanhã' : `${days} dias`}!`,
               schedule: { at: scheduleTime },
               sound: null
             });
+            
+            // Criar notificação no app
+            this.createNotification(
+              bill.userId,
+              bill.id,
+              days === 0 ? 'dueDay' : days === 1 ? 'oneDayBefore' : 'fiveDaysBefore',
+              `A conta "${bill.title}" vence em ${days === 0 ? 'hoje' : days === 1 ? 'amanhã' : `${days} dias`}!`
+            );
           }
         }
       }

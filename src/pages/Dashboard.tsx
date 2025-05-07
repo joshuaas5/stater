@@ -72,6 +72,13 @@ const Dashboard: React.FC = () => {
     });
     
     loadTransactions(selectedMonth, selectedYear);
+
+    // Listener para atualizar transações quando houver novas
+    const handler = () => loadTransactions(selectedMonth, selectedYear);
+    window.addEventListener('transactionsUpdated', handler);
+    return () => {
+      window.removeEventListener('transactionsUpdated', handler);
+    };
   }, [navigate, selectedMonth, selectedYear]);
   
   const loadTransactions = (month: number, year: number) => {

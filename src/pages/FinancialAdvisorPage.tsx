@@ -46,6 +46,9 @@ const FinancialAdvisorPage: React.FC = () => {
     if (user) {
       const transactions = processChat(message, user.id);
       if (transactions.length > 0) {
+        // Notificar outras abas/páginas que há novas transações
+        window.dispatchEvent(new Event('transactionsUpdated'));
+
         // Montar resposta amigável para cada transação registrada
         const { formatCurrency } = await import('@/utils/dataProcessing');
         const summaries = transactions.map(tx => {

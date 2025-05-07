@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-reac
 import { Button } from './button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { getWeeksInMonth, getWeekStartDay } from '@/utils/weekStart';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -141,6 +142,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
             initialFocus
             locale={ptBR}
             className={cn("p-3 pointer-events-auto")}
+            weekStartsOn={getWeekStartDay()}
           />
         </PopoverContent>
       </Popover>

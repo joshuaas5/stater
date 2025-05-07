@@ -6,6 +6,7 @@ import NavBar from '@/components/navigation/NavBar';
 import { isLoggedIn, getTransactions } from '@/utils/localStorage';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, Transaction } from '@/types';
 import { formatCurrency } from '@/utils/dataProcessing';
+import { getWeeksInMonth } from '@/utils/weekStart';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {

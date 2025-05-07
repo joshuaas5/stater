@@ -1,4 +1,3 @@
-
 :root {
   /* Light theme */
   --galileo-card: 255, 255, 255;
@@ -9,11 +8,6 @@
   --galileo-border-foreground: 0, 0, 0;
   --galileo-placeholder: 156, 163, 175;
   --galileo-placeholder-foreground: 255, 255, 255;
-  --galileo-secondaryText: 107, 114, 128;
-  --galileo-accent: 243, 244, 246;
-  --galileo-background: 249, 250, 251;
-  --galileo-positive: 34, 197, 94;
-  --galileo-negative: 239, 68, 68;
 }
 
 [data-theme="dark"] {
@@ -26,9 +20,4 @@
   --galileo-border-foreground: 255, 255, 255;
   --galileo-placeholder: 107, 114, 128;
   --galileo-placeholder-foreground: 255, 255, 255;
-  --galileo-secondaryText: 156, 163, 175;
-  --galileo-accent: 31, 41, 55;
-  --galileo-background: 17, 24, 39;
-  --galileo-positive: 34, 197, 94;
-  --galileo-negative: 239, 68, 68;
 }

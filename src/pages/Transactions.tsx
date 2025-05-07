@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
@@ -64,11 +63,6 @@ const Transactions: React.FC = () => {
   const handleMonthChange = (month: number, year: number) => {
     setSelectedMonth(month);
     setSelectedYear(year);
-  };
-  
-  const handleClickTransaction = (transaction: Transaction) => {
-    setEditingTransaction({...transaction});
-    setIsDialogOpen(true);
   };
   
   const handleEditTransaction = (transaction: Transaction) => {
@@ -214,28 +208,20 @@ const Transactions: React.FC = () => {
       <div className="mt-4">
         {filteredTransactions.length > 0 ? (
           filteredTransactions.map(transaction => (
-            <div key={transaction.id} 
-                 className="flex items-center bg-galileo-background px-4 min-h-[72px] py-2 justify-between border-t border-galileo-border cursor-pointer hover:bg-galileo-accent/50 transition-colors"
-                 onClick={() => handleClickTransaction(transaction)}>
+            <div key={transaction.id} className="flex items-center bg-galileo-background px-4 min-h-[72px] py-2 justify-between border-t border-galileo-border">
               <TransactionItem transaction={transaction} />
               <div className="flex gap-2 ml-2">
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation(); 
-                    handleEditTransaction(transaction);
-                  }}
+                  onClick={() => handleEditTransaction(transaction)}
                 >
                   <Edit size={18} className="text-galileo-secondaryText" />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteTransaction(transaction);
-                  }}
+                  onClick={() => handleDeleteTransaction(transaction)}
                 >
                   <Trash2 size={18} className="text-galileo-negative" />
                 </Button>
@@ -301,13 +287,13 @@ const Transactions: React.FC = () => {
                 <SelectContent>
                   {editingTransaction?.type === 'income' ? (
                     INCOME_CATEGORIES.map((category) => (
-                      <SelectItem key={category} value={category}>
+                      <SelectItem key={category} value={category.toLowerCase()}>
                         {category}
                       </SelectItem>
                     ))
                   ) : (
                     EXPENSE_CATEGORIES.map((category) => (
-                      <SelectItem key={category} value={category}>
+                      <SelectItem key={category} value={category.toLowerCase()}>
                         {category}
                       </SelectItem>
                     ))

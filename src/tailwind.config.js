@@ -1,4 +1,3 @@
-
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -25,11 +24,6 @@ module.exports = {
             DEFAULT: 'rgb(var(--galileo-placeholder) / <alpha-value>)',
             foreground: 'rgb(var(--galileo-placeholder-foreground))',
           },
-          secondaryText: 'rgb(var(--galileo-secondaryText) / <alpha-value>)',
-          accent: 'rgb(var(--galileo-accent) / <alpha-value>)',
-          background: 'rgb(var(--galileo-background) / <alpha-value>)',
-          positive: 'rgb(var(--galileo-positive) / <alpha-value>)',
-          negative: 'rgb(var(--galileo-negative) / <alpha-value>)',
         },
       },
     },

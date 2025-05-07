@@ -46,8 +46,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSubmit }) => {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Digite uma mensagem, despesa ou receita..."
-          className="w-full py-2.5 px-4 rounded-full bg-galileo-card border border-galileo-border text-galileo-text placeholder-galileo-placeholder text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent shadow-sm transition-all"
+          className="w-full py-2.5 px-4 pr-10 rounded-full bg-galileo-card border border-galileo-border text-galileo-text placeholder-galileo-placeholder text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent shadow-sm transition-all"
         />
+        {message.length > 0 && (
+          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-galileo-text">
+            {message.length} caracteres
+          </span>
+        )}
       </div>
       <Button 
         type="submit" 

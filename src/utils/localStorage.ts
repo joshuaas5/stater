@@ -1,4 +1,4 @@
-import { User, Transaction, ChatMessage, Category, Bill, Notification } from '@/types';
+import { User, Transaction, Bill, Notification, CardItem, NotificationType } from "@/types";
 
 // Salvar usuário
 export const saveUser = (user: User): void => {
@@ -139,15 +139,10 @@ export const saveBill = (bill: Bill): void => {
   const user = getCurrentUser();
   if (!user) return;
   
-  const bills = getBills();
-  const existingIndex = bills.findIndex(b => b.id === bill.id);
+  const billsStr = localStorage.getItem(`bills_${user.id}`);
+  let bills: Bill[] = billsStr ? JSON.parse(billsStr) : [];
   
-  if (existingIndex >= 0) {
-    bills[existingIndex] = bill;
-  } else {
-    bills.push(bill);
-  }
-  
+  bills.push(bill);
   localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
 };
 
@@ -156,13 +151,16 @@ export const updateBill = (bill: Bill): void => {
   const user = getCurrentUser();
   if (!user) return;
   
-  const bills = getBills();
-  const billIndex = bills.findIndex(b => b.id === bill.id);
+  const billsStr = localStorage.getItem(`bills_${user.id}`);
+  if (!billsStr) return;
   
-  if (billIndex === -1) return;
+  let bills: Bill[] = JSON.parse(billsStr);
+  const index = bills.findIndex(b => b.id === bill.id);
   
-  bills[billIndex] = bill;
-  localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
+  if (index !== -1) {
+    bills[index] = bill;
+    localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
+  }
 };
 
 // Obter todas as contas a pagar do usuário atual
@@ -170,66 +168,58 @@ export const getBills = (): Bill[] => {
   const user = getCurrentUser();
   if (!user) return [];
   
-  const billsKey = `bills_${user.id}`;
-  const billsStr = localStorage.getItem(billsKey);
-  
+  const billsStr = localStorage.getItem(`bills_${user.id}`);
   return billsStr ? JSON.parse(billsStr) : [];
 };
 
 // Marcar uma conta como paga
-export const markBillAsPaid = (billId: string): Bill | null => {
+export const markBillAsPaid = (billId: string, onPaid?: (bill: Bill) => void): void => {
   const user = getCurrentUser();
-  if (!user) return null;
+  if (!user) return;
   
-  const bills = getBills();
-  const billIndex = bills.findIndex(b => b.id === billId);
+  const billsStr = localStorage.getItem(`bills_${user.id}`);
+  if (!billsStr) return;
   
-  if (billIndex === -1) return null;
+  let bills: Bill[] = JSON.parse(billsStr);
+  const index = bills.findIndex(b => b.id === billId);
   
-  const bill = bills[billIndex];
-  
-  if (!bill.isPaid) {
-    // Marcar como paga
-    bill.isPaid = true;
-    
-    // Deduzir do saldo (criar transação)
-    const transaction: Transaction = {
+  if (index !== -1) {
+    bills[index].isPaid = true;
+    localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
+    // Criar transação de saída automaticamente ao pagar a conta
+    const transaction = {
       id: `transaction_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      title: `Pagamento: ${bill.title}`,
-      amount: bill.amount,
+      title: bills[index].title,
+      amount: bills[index].amount,
       type: 'expense',
-      category: bill.category || 'Pagamentos de Dívidas',
+      category: bills[index].category,
       date: new Date(),
       userId: user.id,
-      dueDate: bill.dueDate,
+      isRecurring: bills[index].isRecurring,
+      recurringDay: bills[index].recurringDay,
+      dueDate: bills[index].dueDate,
+      isPaid: true,
+      totalInstallments: bills[index].totalInstallments,
+      currentInstallment: bills[index].currentInstallment,
+      isCardBill: bills[index].isCardBill,
+      cardItems: bills[index].cardItems,
     };
-    
-    // Salvar a transação
-    const transactions = getTransactions();
+    const transactionsStr = localStorage.getItem(`transactions_${user.id}`);
+    let transactions = transactionsStr ? JSON.parse(transactionsStr) : [];
     transactions.push(transaction);
     localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
-    
-    // Salvar a conta atualizada
-    bills[billIndex] = bill;
-    localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
-    
-    // Criar notificação de pagamento
-    const notification: Notification = {
+    // Notificação local
+    saveNotification({
       id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      billId: bill.id,
+      billId: billId,
       userId: user.id,
       type: 'paid',
-      message: `Conta "${bill.title}" foi marcada como paga.`,
+      message: `Conta "${bills[index].title}" marcada como paga!`,
       date: new Date(),
       read: false
-    };
-    
-    saveNotification(notification);
-    
-    return bill;
+    });
+    if (onPaid) onPaid(bills[index]);
   }
-  
-  return bill;
 };
 
 // Processar transações recorrentes para o mês atual
@@ -280,15 +270,10 @@ export const saveNotification = (notification: Notification): void => {
   const user = getCurrentUser();
   if (!user) return;
   
-  const notifications = getNotifications();
-  const existingIndex = notifications.findIndex(n => n.id === notification.id);
+  const notificationsStr = localStorage.getItem(`notifications_${user.id}`);
+  let notifications: Notification[] = notificationsStr ? JSON.parse(notificationsStr) : [];
   
-  if (existingIndex >= 0) {
-    notifications[existingIndex] = notification;
-  } else {
-    notifications.push(notification);
-  }
-  
+  notifications.push(notification);
   localStorage.setItem(`notifications_${user.id}`, JSON.stringify(notifications));
 };
 
@@ -297,9 +282,7 @@ export const getNotifications = (): Notification[] => {
   const user = getCurrentUser();
   if (!user) return [];
   
-  const notificationsKey = `notifications_${user.id}`;
-  const notificationsStr = localStorage.getItem(notificationsKey);
-  
+  const notificationsStr = localStorage.getItem(`notifications_${user.id}`);
   return notificationsStr ? JSON.parse(notificationsStr) : [];
 };
 
@@ -308,11 +291,14 @@ export const markNotificationAsRead = (notificationId: string): void => {
   const user = getCurrentUser();
   if (!user) return;
   
-  const notifications = getNotifications();
-  const notificationIndex = notifications.findIndex(n => n.id === notificationId);
+  const notificationsStr = localStorage.getItem(`notifications_${user.id}`);
+  if (!notificationsStr) return;
   
-  if (notificationIndex !== -1) {
-    notifications[notificationIndex].read = true;
+  let notifications: Notification[] = JSON.parse(notificationsStr);
+  const index = notifications.findIndex(n => n.id === notificationId);
+  
+  if (index !== -1) {
+    notifications[index].read = true;
     localStorage.setItem(`notifications_${user.id}`, JSON.stringify(notifications));
   }
 };
@@ -424,12 +410,4 @@ export const getUserPreferences = (): Record<string, any> => {
   
   const preferencesStr = localStorage.getItem(`preferences_${user.id}`);
   return preferencesStr ? JSON.parse(preferencesStr) : {};
-};
-
-export const deleteNotification = (notificationId: string): void => {
-  const user = getCurrentUser();
-  if (!user) return;
-  
-  const notifications = getNotifications().filter(n => n.id !== notificationId);
-  localStorage.setItem(`notifications_${user.id}`, JSON.stringify(notifications));
 };

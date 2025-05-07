@@ -2,38 +2,60 @@
 import React from 'react';
 import { Transaction } from '@/types';
 import { formatCurrency } from '@/utils/dataProcessing';
-import { CalendarRange, TrendingUp, CreditCard } from 'lucide-react';
+import { CreditCard, TrendingUp, CalendarRange } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface TransactionItemProps {
   transaction: Transaction;
-  onClick?: () => void;
 }
 
-const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onClick }) => {
+const TransactionItem: React.FC<TransactionItemProps> = ({ transaction }) => {
+  // Format recurring day display
+  const recurringInfo = transaction.isRecurring && transaction.recurringDay
+    ? `Todo dia ${transaction.recurringDay}`
+    : 'Recorrente';
+
   return (
-    <div className="flex items-center gap-4 flex-1" onClick={onClick}>
+    <div className="flex items-center gap-4 w-full">
       <div className="text-galileo-text flex items-center justify-center rounded-lg bg-galileo-accent shrink-0 size-12">
-        {transaction.isRecurring ? 
-          <CalendarRange size={24} /> : 
-          (transaction.type === 'income' ? <TrendingUp size={24} /> : <CreditCard size={24} />)
-        }
+        {transaction.isRecurring ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <CalendarRange size={24} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{recurringInfo}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : transaction.type === 'income' ? (
+          <TrendingUp size={24} />
+        ) : (
+          <CreditCard size={24} />
+        )}
       </div>
-      
       <div className="flex flex-col justify-center flex-1 min-w-0">
-        <p className="text-galileo-text text-base font-medium leading-normal truncate">
-          {transaction.title}
-        </p>
-        <p className="text-galileo-secondaryText text-sm font-normal leading-normal truncate">
-          {transaction.category} {transaction.isRecurring && '(Recorrente)'}
-        </p>
-      </div>
-      
-      <div className="shrink-0">
-        <p className={`text-base font-normal leading-normal ${
-          transaction.type === 'income' ? 'text-galileo-positive' : 'text-galileo-negative'
-        }`}>
-          {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-galileo-text text-base font-medium leading-normal truncate max-w-[180px]">
+            {transaction.title}
+          </p>
+          <p className={`text-base font-normal leading-normal ${
+            transaction.type === 'income' ? 'text-galileo-positive' : 'text-galileo-negative'
+          }`}>
+            {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
+          </p>
+        </div>
+        <div className="flex items-center">
+          <p className="text-galileo-secondaryText text-sm font-normal leading-normal truncate">
+            {transaction.category}
+          </p>
+          {transaction.isRecurring && (
+            <span className="ml-2 px-1.5 py-0.5 text-xs bg-galileo-accent text-galileo-text rounded-md">
+              {transaction.recurringDay ? `Dia ${transaction.recurringDay}` : 'Recorrente'}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

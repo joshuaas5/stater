@@ -1,9 +1,33 @@
 
-// Create a mock/fallback implementation for web environments
+import { NotificationType } from '@/types';
+
+// Try to import the Capacitor plugin, with a fallback for web environments
+let LocalNotifications: any;
+try {
+  LocalNotifications = require('@capacitor/local-notifications');
+} catch (error) {
+  console.log('Capacitor Local Notifications not available, using web fallback');
+}
+
+// Check if running in a Capacitor environment
+const isCapacitorAvailable = () => {
+  return typeof window !== 'undefined' && window.Capacitor !== undefined;
+};
+
 class NotificationServiceClass {
   async requestPermissions(): Promise<boolean> {
-    // For web environments, use the native browser notifications API if available
     try {
+      // Try to use Capacitor first
+      if (isCapacitorAvailable() && LocalNotifications) {
+        const { display } = await LocalNotifications.checkPermissions();
+        if (display === 'prompt' || display === 'prompt-with-rationale') {
+          const requestResult = await LocalNotifications.requestPermissions();
+          return requestResult.display === 'granted';
+        }
+        return display === 'granted';
+      }
+      
+      // Fallback to web notifications
       if ('Notification' in window) {
         const permission = await Notification.requestPermission();
         return permission === 'granted';
@@ -17,6 +41,13 @@ class NotificationServiceClass {
   
   async checkPermissions(): Promise<boolean> {
     try {
+      // Try to use Capacitor first
+      if (isCapacitorAvailable() && LocalNotifications) {
+        const { display } = await LocalNotifications.checkPermissions();
+        return display === 'granted';
+      }
+      
+      // Fallback to web notifications
       if ('Notification' in window) {
         return Notification.permission === 'granted';
       }
@@ -27,9 +58,9 @@ class NotificationServiceClass {
     }
   }
   
-  async createNotification(userId: string, billId: string, type: import('@/types').NotificationType, message: string): Promise<void> {
+  async createNotification(userId: string, billId: string, type: NotificationType, message: string): Promise<void> {
     try {
-      const notification: import('@/types').Notification = {
+      const notification = {
         id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         billId,
         userId,
@@ -47,7 +78,7 @@ class NotificationServiceClass {
     }
   }
   
-  async saveNotification(notification: import('@/types').Notification): Promise<void> {
+  async saveNotification(notification: any): Promise<void> {
     try {
       // Get existing notifications
       const existingNotificationsJSON = localStorage.getItem(`notifications_${notification.userId}`);
@@ -71,6 +102,24 @@ class NotificationServiceClass {
         if (!granted) return;
       }
       
+      // First try to use Capacitor for native notifications
+      if (isCapacitorAvailable() && LocalNotifications) {
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              id: parseInt(id.replace(/\D/g, '').substr(0, 8)),
+              title: 'Lembrete Financeiro',
+              body: message,
+              schedule: { at: new Date(Date.now()) },
+              sound: 'beep.wav',
+              smallIcon: 'ic_stat_icon_config_sample',
+              iconColor: '#488AFF'
+            }
+          ]
+        });
+        return;
+      }
+      
       // Use native browser notifications for web
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('Lembrete Financeiro', {
@@ -83,7 +132,7 @@ class NotificationServiceClass {
     }
   }
   
-  async scheduleBillReminders(bills: import('@/types').Bill[]): Promise<void> {
+  async scheduleBillReminders(bills: any[]): Promise<void> {
     try {
       const hasPermission = await this.checkPermissions();
       if (!hasPermission) {
@@ -121,8 +170,18 @@ class NotificationServiceClass {
   }
   
   async clearAllNotifications(): Promise<void> {
-    // No-op in web environment
-    console.log('Clearing notifications is not fully supported in web environment');
+    try {
+      if (isCapacitorAvailable() && LocalNotifications) {
+        const pendingNotifications = await LocalNotifications.getPending();
+        if (pendingNotifications && pendingNotifications.notifications.length > 0) {
+          const ids = pendingNotifications.notifications.map(n => n.id);
+          await LocalNotifications.cancel({ notifications: ids });
+        }
+      }
+      console.log('Notifications cleared');
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+    }
   }
   
   async triggerDailyCheck(): Promise<void> {
@@ -138,7 +197,7 @@ class NotificationServiceClass {
   }
   
   // Helper method to get bills from localStorage
-  getBills(): import('@/types').Bill[] {
+  getBills(): any[] {
     try {
       const user = this.getCurrentUser();
       if (!user) return [];

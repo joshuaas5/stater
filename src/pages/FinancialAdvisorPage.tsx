@@ -9,10 +9,12 @@ import { Button } from '@/components/ui/button';
 import { ChatMessage } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '@/hooks/use-translation';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const FinancialAdvisorPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -196,10 +198,19 @@ const FinancialAdvisorPage: React.FC = () => {
     { key: "howMuchToSave", text: t("howMuchToSave") }
   ];
   
+  // Determinar classes com base no tema
+  const headerBgClass = theme === 'dark' 
+    ? "bg-gradient-to-r from-blue-900 to-indigo-900" 
+    : "bg-gradient-to-r from-blue-500 to-indigo-600";
+    
+  const cardBgClass = theme === 'dark'
+    ? "bg-galileo-card/80 backdrop-blur-sm border-galileo-border/50"
+    : "bg-galileo-card backdrop-blur-sm border-galileo-border";
+  
   return (
     <div className="min-h-screen bg-galileo-background flex flex-col pb-16">
       {/* Header com design moderno e colorido */}
-      <header className="sticky top-0 z-10 bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md px-4 py-3 flex flex-col items-center mx-auto w-full">
+      <header className={`sticky top-0 z-10 ${headerBgClass} shadow-md px-4 py-3 flex flex-col items-center mx-auto w-full`}>
         <div className="flex flex-row items-center gap-3 w-full max-w-xl justify-between">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-2">
@@ -215,7 +226,7 @@ const FinancialAdvisorPage: React.FC = () => {
       
       {/* Container centralizado para o chat */}
       <main className="flex-1 w-full flex flex-col items-center px-3 sm:px-4 pt-4">
-        <section className="w-full max-w-xl flex flex-col flex-1 bg-galileo-card backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border border-galileo-border">
+        <section className={`w-full max-w-xl flex flex-col flex-1 ${cardBgClass} rounded-xl shadow-lg overflow-hidden`}>
           <div className="flex-1 overflow-y-auto px-3 pt-3 pb-20" style={{ minHeight: '60vh' }}>
             <ChatMessages messages={messages} />
           </div>
@@ -226,7 +237,11 @@ const FinancialAdvisorPage: React.FC = () => {
                 {suggestions.map((suggestion, index) => (
                   <button
                     key={index}
-                    className="px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 text-indigo-700 text-xs font-medium border border-indigo-200 shadow-sm transition-all dark:text-indigo-900"
+                    className={`px-3 py-1.5 rounded-full ${
+                      theme === 'dark' 
+                        ? 'bg-gradient-to-r from-blue-900/50 to-indigo-900/50 hover:from-blue-900/70 hover:to-indigo-900/70 text-blue-200 border border-blue-800' 
+                        : 'bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 text-indigo-700 border border-indigo-200'
+                    } text-xs font-medium shadow-sm transition-all`}
                     onClick={() => handleSuggestionClick(suggestion.text)}
                   >
                     {suggestion.text}
@@ -236,7 +251,11 @@ const FinancialAdvisorPage: React.FC = () => {
             </div>
           )}
           
-          <div className="sticky bottom-0 w-full bg-galileo-card/90 backdrop-blur-sm pt-2 pb-3 px-3 border-t border-galileo-border z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
+          <div className={`sticky bottom-0 w-full ${
+            theme === 'dark' 
+              ? 'bg-galileo-card/80 backdrop-blur-sm border-t border-galileo-border/50' 
+              : 'bg-galileo-card/90 backdrop-blur-sm border-t border-galileo-border'
+          } pt-2 pb-3 px-3 z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]`}>
             <ChatInput onSubmit={handleSendMessage} />
           </div>
         </section>

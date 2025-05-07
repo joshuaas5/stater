@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -63,13 +62,14 @@ const BillsPage: React.FC = () => {
   };
   
   const handleMarkAsPaid = (billId: string) => {
-    markBillAsPaid(billId, (bill) => {
+    const bill = markBillAsPaid(billId);
+    if (bill) {
       toast({
         title: `Conta paga: ${bill.title}`,
         description: `A conta foi marcada como paga com sucesso.`,
       });
-      loadBills();
-    });
+      loadBills(); // Recarregar as contas após marcar como paga
+    }
   };
   
   const handleAddBill = () => {

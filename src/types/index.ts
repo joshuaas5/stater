@@ -1,4 +1,7 @@
 
+// Re-export all types from the types module
+// This file serves as the central location for all type definitions
+
 export interface User {
   id: string;
   username: string;

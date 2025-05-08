@@ -8,9 +8,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 interface TransactionItemProps {
   transaction: Transaction;
   onEditClick?: (transaction: Transaction) => void;
+  onDeleteClick?: (transaction: Transaction) => void;
 }
 
-const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEditClick }) => {
+const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEditClick, onDeleteClick }) => {
   // Format recurring day display
   const recurringInfo = transaction.isRecurring && transaction.recurringDay
     ? `Todo dia ${transaction.recurringDay}`
@@ -64,6 +65,19 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEditCl
           )}
         </div>
       </div>
+      {onDeleteClick && (
+        <button
+          className="ml-2 text-galileo-negative hover:text-red-700 transition-colors"
+          title="Remover transação"
+          onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+            e.stopPropagation();
+            onDeleteClick && onDeleteClick(transaction);
+          }}
+          data-testid={`delete-transaction-btn-${transaction.id}`}
+        >
+          🗑️
+        </button>
+      )}
     </div>
   );
 };

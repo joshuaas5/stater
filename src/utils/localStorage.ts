@@ -172,6 +172,17 @@ export const getBills = (): Bill[] => {
   return billsStr ? JSON.parse(billsStr) : [];
 };
 
+// Remover uma conta a pagar
+export const deleteBill = (billId: string): void => {
+  const user = getCurrentUser();
+  if (!user) return;
+  const billsStr = localStorage.getItem(`bills_${user.id}`);
+  if (!billsStr) return;
+  let bills: Bill[] = JSON.parse(billsStr);
+  bills = bills.filter(b => b.id !== billId);
+  localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
+};
+
 // Marcar uma conta como paga
 export const markBillAsPaid = (billId: string, onPaid?: (bill: Bill) => void): void => {
   const user = getCurrentUser();

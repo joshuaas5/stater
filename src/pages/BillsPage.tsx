@@ -36,6 +36,18 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const BillsPage: React.FC = () => {
+  // ...
+  const handleDeleteBill = (billId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir esta conta? Esta ação não poderá ser desfeita.')) {
+      deleteBill(billId);
+      toast({
+        title: 'Conta excluída',
+        description: 'A conta foi removida com sucesso.',
+      });
+      loadBills();
+    }
+  };
+
   const navigate = useNavigate();
   const [bills, setBills] = useState<Bill[]>([]);
   const [overdueBills, setOverdueBills] = useState<Bill[]>([]);
@@ -267,30 +279,34 @@ const BillsPage: React.FC = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleOpenNotificationSettings(bill)}>
-                              <Bell className="mr-2 h-4 w-4" />
-                              <span>Configurar Notificações</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleNotifications(bill)}>
-                              {bill.notificationsEnabled ? (
-                                <>
-                                  <BellOff className="mr-2 h-4 w-4" />
-                                  <span>Desativar Notificações</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Bell className="mr-2 h-4 w-4" />
-                                  <span>Ativar Notificações</span>
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                            {!bill.isPaid && (
-                              <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
-                                <CalendarCheck className="mr-2 h-4 w-4" />
-                                <span>Marcar como Paga</span>
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
+  <DropdownMenuItem onClick={() => handleOpenNotificationSettings(bill)}>
+    <Bell className="mr-2 h-4 w-4" />
+    <span>Configurar Notificações</span>
+  </DropdownMenuItem>
+  <DropdownMenuItem onClick={() => handleToggleNotifications(bill)}>
+    {bill.notificationsEnabled ? (
+      <>
+        <BellOff className="mr-2 h-4 w-4" />
+        <span>Desativar Notificações</span>
+      </>
+    ) : (
+      <>
+        <Bell className="mr-2 h-4 w-4" />
+        <span>Ativar Notificações</span>
+      </>
+    )}
+  </DropdownMenuItem>
+  {!bill.isPaid && (
+    <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
+      <CalendarCheck className="mr-2 h-4 w-4" />
+      <span>Marcar como Paga</span>
+    </DropdownMenuItem>
+  )}
+  <DropdownMenuItem className="text-galileo-negative" onClick={() => handleDeleteBill(bill.id)}>
+    <Trash className="mr-2 h-4 w-4" />
+    <span>Excluir Conta</span>
+  </DropdownMenuItem>
+</DropdownMenuContent>
                         </DropdownMenu>
                       </div>
                     </div>

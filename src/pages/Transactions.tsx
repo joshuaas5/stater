@@ -263,17 +263,11 @@ const Transactions: React.FC = () => {
         </Select>
       </div>
       
-      <div className="mt-4">
-        {filteredTransactions.length > 0 ? (
-          filteredTransactions.map(transaction => (
-            <div key={transaction.id} className="flex items-center bg-galileo-background px-4 min-h-[72px] py-2 justify-between border-t border-galileo-border">
-              <TransactionItem transaction={transaction} onEditClick={handleEditTransaction} />
-            </div>
-          ))
-        ) : (
-          <div className="flex flex-col items-center justify-center p-8 text-galileo-secondaryText">
-            <p>Nenhuma transação encontrada</p>
-            {searchQuery && (
+      <Select value={filterType} onValueChange={setFilterType}>
+        <SelectTrigger className="w-[160px]">
+          <div className="flex items-center">
+            <Filter className="mr-2 h-4 w-4" />
+            <span>Filtrar</span>
               <button 
                 onClick={() => setSearchQuery('')}
                 className="mt-2 text-galileo-text underline"
@@ -286,8 +280,13 @@ const Transactions: React.FC = () => {
       </div>
       
       {/* Edit Transaction Dialog */}
+      {(!editingTransaction && isDialogOpen) && (
+        <div className="bg-galileo-negative text-white p-4 mb-2 rounded" data-testid="edit-modal-error">
+          Erro: Não foi possível abrir o modal de edição. Tente novamente.
+        </div>
+      )}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent data-testid="edit-modal">
           <DialogHeader className="flex justify-between items-start">
             <div>
               <DialogTitle>Editar Transação</DialogTitle>
@@ -298,6 +297,7 @@ const Transactions: React.FC = () => {
             <Button 
               variant="destructive" 
               size="sm"
+              data-testid="delete-transaction-btn"
               onClick={() => {
                 if (editingTransaction) {
                   deleteTransaction(editingTransaction.id);
@@ -307,6 +307,12 @@ const Transactions: React.FC = () => {
                   });
                   setIsDialogOpen(false);
                   loadTransactions();
+                } else {
+                  toast({
+                    title: "Erro ao excluir",
+                    description: "Nenhuma transação selecionada para exclusão.",
+                    variant: "destructive"
+                  });
                 }
               }}
             >
@@ -331,6 +337,7 @@ const Transactions: React.FC = () => {
                   <button
                     key={icon}
                     type="button"
+                    data-testid={`icon-select-${icon}`}
                     className={`text-2xl p-1 rounded border ${editingTransaction?.icon === icon ? 'border-galileo-accent' : 'border-transparent'} hover:border-galileo-accent/60`}
                     onClick={() => editingTransaction && setEditingTransaction({...editingTransaction, icon })}
                   >

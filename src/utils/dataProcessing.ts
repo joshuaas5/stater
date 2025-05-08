@@ -268,10 +268,21 @@ export const getOverdueBills = (bills: Bill[]): Bill[] => {
 };
 
 // Formatar valor para exibição
-export const formatCurrency = (value: number): string => {
+import { getUserPreferences } from './localStorage';
+
+export const formatCurrency = (value: number, currencyCode?: string): string => {
+  let currency = currencyCode;
+  if (!currency) {
+    try {
+      const prefs = getUserPreferences();
+      currency = prefs.currency || 'BRL';
+    } catch {
+      currency = 'BRL';
+    }
+  }
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'BRL',
+    currency: currency,
   }).format(value);
 };
 

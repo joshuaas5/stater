@@ -136,7 +136,7 @@ const Transactions: React.FC = () => {
     
     toast({
       title: "Transação excluída",
-      description: "A transação foi removida com sucesso."
+      description: `O valor de ${selectedTransaction.type === 'income' ? '+' : '-'} ${formatCurrency(selectedTransaction.amount)} foi restituído ao saldo.`
     });
     
     setIsDeleteDialogOpen(false);
@@ -313,6 +313,22 @@ const Transactions: React.FC = () => {
                 onChange={(e) => editingTransaction && setEditingTransaction({...editingTransaction, title: e.target.value})}
               />
             </div>
+            {/* Seletor de Ícone */}
+            <div className="grid gap-2">
+              <label className="font-medium">Ícone</label>
+              <div className="flex gap-2 flex-wrap">
+                {['💸','💰','🍔','🏠','🚗','🎉','🛒','📚','💳','🧾','⚡','🛠️','🧃','🧑‍💻','🏦'].map(icon => (
+                  <button
+                    key={icon}
+                    type="button"
+                    className={`text-2xl p-1 rounded border ${editingTransaction?.icon === icon ? 'border-galileo-accent' : 'border-transparent'} hover:border-galileo-accent/60`}
+                    onClick={() => editingTransaction && setEditingTransaction({...editingTransaction, icon })}
+                  >
+                    {icon}
+                  </button>
+                ))}
+              </div>
+            </div>
             
             <div className="grid gap-2">
               <Label htmlFor="editAmount">Valor</Label>
@@ -411,6 +427,22 @@ const Transactions: React.FC = () => {
                 value={newTransaction?.title || ''}
                 onChange={e => newTransaction && setNewTransaction({ ...newTransaction, title: e.target.value })}
               />
+            </div>
+            {/* Seletor de Ícone */}
+            <div className="grid gap-2">
+              <label className="font-medium">Ícone</label>
+              <div className="flex gap-2 flex-wrap">
+                {['💸','💰','🍔','🏠','🚗','🎉','🛒','📚','💳','🧾','⚡','🛠️','🧃','🧑‍💻','🏦'].map(icon => (
+                  <button
+                    key={icon}
+                    type="button"
+                    className={`text-2xl p-1 rounded border ${newTransaction?.icon === icon ? 'border-galileo-accent' : 'border-transparent'} hover:border-galileo-accent/60`}
+                    onClick={() => newTransaction && setNewTransaction({...newTransaction, icon })}
+                  >
+                    {icon}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="cloneAmount">Valor</Label>

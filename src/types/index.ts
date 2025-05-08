@@ -13,6 +13,7 @@ export interface Transaction {
   category: string;
   date: Date;
   userId: string;
+  icon?: string; // Ícone personalizado da transação
   // Campos adicionais para contas a pagar
   isRecurring?: boolean;
   recurringDay?: number; // Dia do mês para transações recorrentes

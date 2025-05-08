@@ -18,7 +18,9 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction }) => {
   return (
     <div className="flex items-center gap-4 w-full">
       <div className="text-galileo-text flex items-center justify-center rounded-lg bg-galileo-accent shrink-0 size-12">
-        {transaction.isRecurring ? (
+        {transaction.icon ? (
+          <span className="text-2xl">{transaction.icon}</span>
+        ) : transaction.isRecurring ? (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>

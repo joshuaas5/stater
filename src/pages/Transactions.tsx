@@ -267,30 +267,6 @@ const Transactions: React.FC = () => {
           filteredTransactions.map(transaction => (
             <div key={transaction.id} className="flex items-center bg-galileo-background px-4 min-h-[72px] py-2 justify-between border-t border-galileo-border">
               <TransactionItem transaction={transaction} onEditClick={handleEditTransaction} />
-              <div className="flex gap-2 ml-2">
-                 <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => handleEditTransaction(transaction)}
-                >
-                  <Edit size={18} className="text-galileo-secondaryText" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => handleCloneTransaction(transaction)}
-                  aria-label="Clonar transação"
-                >
-                  <span role="img" aria-label="clonar">📋</span>
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => handleDeleteTransaction(transaction)}
-                >
-                  <Trash2 size={18} className="text-galileo-negative" />
-                </Button>
-              </div>
             </div>
           ))
         ) : (

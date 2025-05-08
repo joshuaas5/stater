@@ -299,30 +299,6 @@ const Transactions: React.FC = () => {
                 Altere os detalhes da transação.
               </DialogDescription>
             </div>
-            <Button 
-              variant="destructive" 
-              size="sm"
-              data-testid="delete-transaction-btn"
-              onClick={() => {
-                if (editingTransaction) {
-                  deleteTransaction(editingTransaction.id);
-                  toast({
-                    title: "Transação excluída",
-                    description: "A transação foi excluída com sucesso.",
-                  });
-                  setIsDialogOpen(false);
-                  loadTransactions();
-                } else {
-                  toast({
-                    title: "Erro ao excluir",
-                    description: "Nenhuma transação selecionada para exclusão.",
-                    variant: "destructive"
-                  });
-                }
-              }}
-            >
-              <Trash2 size={16} className="mr-1" /> Excluir
-            </Button>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
@@ -427,8 +403,30 @@ const Transactions: React.FC = () => {
             <Button onClick={handleSaveTransaction} className="bg-galileo-accent hover:bg-galileo-accent/80">
               Salvar Alterações
             </Button>
-            <Button onClick={handleDeleteFromEdit} className="bg-galileo-negative hover:bg-galileo-negative/80 ml-2">
-              Excluir
+            <Button 
+              variant="destructive" 
+              size="sm"
+              data-testid="delete-transaction-btn"
+              onClick={() => {
+                if (editingTransaction) {
+                  deleteTransaction(editingTransaction.id);
+                  toast({
+                    title: "Transação excluída",
+                    description: "A transação foi excluída com sucesso.",
+                  });
+                  setIsDialogOpen(false);
+                  loadTransactions();
+                } else {
+                  toast({
+                    title: "Erro ao excluir",
+                    description: "Nenhuma transação selecionada para exclusão.",
+                    variant: "destructive"
+                  });
+                }
+              }}
+              className="bg-galileo-negative hover:bg-galileo-negative/80 ml-2"
+            >
+              <Trash2 size={16} className="mr-1" /> Excluir
             </Button>
           </DialogFooter>
         </DialogContent>

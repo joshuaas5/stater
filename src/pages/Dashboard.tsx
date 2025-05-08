@@ -353,18 +353,37 @@ const Dashboard: React.FC = () => {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="title">Descrição</Label>
-              <Input 
-                id="title" 
-                name="title"
-                value={editingTransaction ? editingTransaction.title : newTransaction.title} 
-                onChange={e => {
-                  if (editingTransaction) setEditingTransaction({...editingTransaction, title: e.target.value});
-                  else handleNewTransactionChange(e);
-                }}
-                placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
-              />
-            </div>
+  <Label htmlFor="title">Descrição</Label>
+  <Input 
+    id="title" 
+    name="title"
+    value={editingTransaction ? editingTransaction.title : newTransaction.title} 
+    onChange={e => {
+      if (editingTransaction) setEditingTransaction({...editingTransaction, title: e.target.value});
+      else handleNewTransactionChange(e);
+    }}
+    placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
+  />
+</div>
+{/* Seletor de Ícone */}
+<div className="grid gap-2">
+  <Label>Ícone</Label>
+  <div className="flex gap-2 flex-wrap">
+    {['💸','💰','🍔','🏠','🚗','🎉','🛒','📚','💳','🧾','⚡','🛠️','🧃','🧑‍💻','🏦','🛍️','✈️','🏥','💊','👕','💼','🎓','🎭','👶','💻','📱','🏋️','🎮','🔌'].map(icon => (
+      <button
+        key={icon}
+        type="button"
+        className={`text-2xl p-1 rounded border ${editingTransaction ? (editingTransaction.icon === icon ? 'border-galileo-accent' : 'border-transparent') : (newTransaction.icon === icon ? 'border-galileo-accent' : 'border-transparent')} hover:border-galileo-accent/60`}
+        onClick={() => {
+          if (editingTransaction) setEditingTransaction({...editingTransaction, icon});
+          else setNewTransaction({...newTransaction, icon});
+        }}
+      >
+        {icon}
+      </button>
+    ))}
+  </div>
+</div>
             <div className="grid gap-2">
               <Label htmlFor="amount">Valor</Label>
               <Input 

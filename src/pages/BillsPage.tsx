@@ -78,7 +78,20 @@ const BillsPage: React.FC = () => {
     setUpcomingBills(getBillsDueInNextDays(userBills, 30));
   };
   
-  const handleMarkAsPaid = (billId: string) => {
+  const [showAddBillModal, setShowAddBillModal] = useState(false);
+const [newBill, setNewBill] = useState<Bill | null>(null);
+
+const handleCloneBill = (bill: Bill) => {
+  setNewBill({
+    ...bill,
+    id: uuidv4(), // Novo ID
+    title: bill.title + ' (Cópia)',
+    isPaid: false,
+  });
+  setShowAddBillModal(true);
+};
+
+const handleMarkAsPaid = (billId: string) => {
     markBillAsPaid(billId, (bill) => {
       toast({
         title: `Conta paga: ${bill.title}`,
@@ -301,16 +314,6 @@ const BillsPage: React.FC = () => {
     )}
   </DropdownMenuItem>
   {!bill.isPaid && (
-    <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
-      <CalendarCheck className="mr-2 h-4 w-4" />
-      <span>Marcar como Paga</span>
-    </DropdownMenuItem>
-  )}
-  <DropdownMenuItem className="text-galileo-negative" onClick={() => handleDeleteBill(bill.id)}>
-    <Trash className="mr-2 h-4 w-4" />
-    <span>Excluir Conta</span>
-  </DropdownMenuItem>
-</DropdownMenuContent>
                         </DropdownMenu>
                       </div>
                     </div>
@@ -524,12 +527,86 @@ const BillsPage: React.FC = () => {
               className="bg-galileo-accent hover:bg-galileo-accent/80"
             >
               Fechar
-            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       
       <NavBar />
+      
+      {/* Modal de Nova Conta Clonada */}
+      <Dialog open={showAddBillModal} onOpenChange={setShowAddBillModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Clonar Conta</DialogTitle>
+            <DialogDescription>Edite os dados da conta clonada antes de salvar.</DialogDescription>
+          </DialogHeader>
+          {newBill && (
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                saveBill(newBill);
+                setShowAddBillModal(false);
+                setNewBill(null);
+                loadBills();
+                toast({ title: 'Conta clonada', description: 'A conta foi clonada com sucesso!' });
+              }}
+              className="grid gap-4"
+            >
+              <div className="grid gap-2">
+                <Label htmlFor="title">Título</Label>
+                <Input
+                  id="title"
+                  value={newBill.title}
+                  onChange={e => setNewBill({ ...newBill, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="amount">Valor</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  value={newBill.amount}
+                  onChange={e => setNewBill({ ...newBill, amount: Number(e.target.value) })}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="category">Categoria</Label>
+                <Input
+                  id="category"
+                  value={newBill.category}
+                  onChange={e => setNewBill({ ...newBill, category: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="dueDate">Data de Vencimento</Label>
+                <Input
+                  id="dueDate"
+                  type="date"
+                  value={typeof newBill.dueDate === 'string' ? newBill.dueDate.slice(0,10) : ''}
+                  onChange={e => setNewBill({ ...newBill, dueDate: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="totalInstallments">Nº de Parcelas</Label>
+                <Input
+                  id="totalInstallments"
+                  type="number"
+                  value={newBill.totalInstallments || ''}
+                  onChange={e => setNewBill({ ...newBill, totalInstallments: Number(e.target.value) })}
+                />
+              </div>
+              <DialogFooter>
+                <Button type="submit" className="bg-galileo-accent hover:bg-galileo-accent/80">Salvar Conta Clonada</Button>
+                <Button type="button" variant="ghost" onClick={() => setShowAddBillModal(false)}>Cancelar</Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

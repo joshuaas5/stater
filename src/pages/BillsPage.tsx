@@ -313,10 +313,17 @@ const handleMarkAsPaid = (billId: string) => {
       </>
     )}
   </DropdownMenuItem>
+  {/* Se a conta não está paga, renderize o item condicionalmente */}
   {!bill.isPaid && (
-                        </DropdownMenu>
-                      </div>
-                    </div>
+    <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
+      <CheckCircle className="mr-2 h-4 w-4" />
+      <span>Marcar como Paga</span>
+    </DropdownMenuItem>
+  )}
+  </DropdownMenuContent>
+</DropdownMenu>
+                  </div>
+                </div>
                     <div className="flex items-center flex-wrap gap-2 mt-1">
                       <Badge variant="outline" className="bg-galileo-card text-galileo-text text-xs">
                         {formatDueDate(bill.dueDate)}

@@ -268,16 +268,21 @@ const Transactions: React.FC = () => {
           <div className="flex items-center">
             <Filter className="mr-2 h-4 w-4" />
             <span>Filtrar</span>
-              <button 
-                onClick={() => setSearchQuery('')}
-                className="mt-2 text-galileo-text underline"
-              >
-                Limpar pesquisa
-              </button>
-            )}
           </div>
-        )}
-      </div>
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todas</SelectItem>
+          <SelectItem value="income">Entradas</SelectItem>
+          <SelectItem value="expense">Saídas</SelectItem>
+          <SelectItem value="recurring">Recorrentes</SelectItem>
+        </SelectContent>
+      </Select>
+      <button 
+        onClick={() => setSearchQuery('')}
+        className="mt-2 text-galileo-text underline"
+      >
+        Limpar pesquisa
+      </button>
       
       {/* Edit Transaction Dialog */}
       {(!editingTransaction && isDialogOpen) && (

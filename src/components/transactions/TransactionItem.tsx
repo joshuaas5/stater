@@ -19,7 +19,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEditCl
   return (
     <div className="flex items-center gap-4 w-full">
       <div 
-        className="text-galileo-text flex items-center justify-center rounded-lg bg-galileo-accent shrink-0 size-12 cursor-pointer hover:bg-galileo-accent/80 transition-colors"
+        className="text-galileo-text flex items-center justify-center rounded-lg bg-galileo-accent shrink-0 size-12 cursor-pointer hover:bg-galileo-accent/80 transition-colors border-2 border-dashed border-galileo-border hover:border-solid hover:border-galileo-text relative after:content-['✏️'] after:absolute after:-top-1 after:-right-1 after:bg-galileo-text after:text-[10px] after:text-galileo-background after:px-0.5 after:rounded-full after:scale-75 hover:after:scale-100 after:transition-transform"
         onClick={() => onEditClick && onEditClick(transaction)}
         title="Clique para editar transação"
       >

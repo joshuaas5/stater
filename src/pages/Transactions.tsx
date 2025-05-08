@@ -5,6 +5,7 @@ import NavBar from '@/components/navigation/NavBar';
 import TransactionItem from '@/components/transactions/TransactionItem';
 import { Transaction, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
 import { getTransactions, isLoggedIn, getCurrentUser } from '@/utils/localStorage';
+import { formatCurrency } from '@/utils/dataProcessing';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';

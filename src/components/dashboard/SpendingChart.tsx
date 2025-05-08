@@ -2,6 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { Transaction } from '@/types';
+import { formatCurrency } from '@/utils/dataProcessing';
 
 interface SpendingChartProps {
   transactions: Transaction[];
@@ -69,7 +70,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, days }) => 
                 borderRadius: '8px',
                 color: '#F8F9FB'
               }}
-              formatter={(value: number) => [`R$ ${value.toFixed(2)}`, 'Saldo']}
+              formatter={(value: number) => [formatCurrency(value), 'Saldo']}
               labelFormatter={(label) => {
                 const date = new Date(label);
                 return date.toLocaleDateString('pt-BR');

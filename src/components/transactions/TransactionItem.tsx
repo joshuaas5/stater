@@ -7,9 +7,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 interface TransactionItemProps {
   transaction: Transaction;
+  onEditClick?: (transaction: Transaction) => void;
 }
 
-const TransactionItem: React.FC<TransactionItemProps> = ({ transaction }) => {
+const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEditClick }) => {
   // Format recurring day display
   const recurringInfo = transaction.isRecurring && transaction.recurringDay
     ? `Todo dia ${transaction.recurringDay}`
@@ -17,7 +18,11 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction }) => {
 
   return (
     <div className="flex items-center gap-4 w-full">
-      <div className="text-galileo-text flex items-center justify-center rounded-lg bg-galileo-accent shrink-0 size-12">
+      <div 
+        className="text-galileo-text flex items-center justify-center rounded-lg bg-galileo-accent shrink-0 size-12 cursor-pointer hover:bg-galileo-accent/80 transition-colors"
+        onClick={() => onEditClick && onEditClick(transaction)}
+        title="Clique para editar transação"
+      >
         {transaction.icon ? (
           <span className="text-2xl">{transaction.icon}</span>
         ) : transaction.isRecurring ? (

@@ -118,6 +118,20 @@ const Transactions: React.FC = () => {
     setIsDeleteDialogOpen(true);
   };
   
+  // Função para excluir uma transação diretamente pelo ID
+  const deleteTransaction = (transactionId: string) => {
+    const user = getCurrentUser();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
+    const allTransactions = getTransactions();
+    const updatedTransactions = allTransactions.filter(t => t.id !== transactionId);
+    
+    localStorage.setItem(`transactions_${user.id}`, JSON.stringify(updatedTransactions));
+  };
+  
   const confirmDeleteTransaction = () => {
     if (!selectedTransaction) return;
     
@@ -252,7 +266,7 @@ const Transactions: React.FC = () => {
         {filteredTransactions.length > 0 ? (
           filteredTransactions.map(transaction => (
             <div key={transaction.id} className="flex items-center bg-galileo-background px-4 min-h-[72px] py-2 justify-between border-t border-galileo-border">
-              <TransactionItem transaction={transaction} />
+              <TransactionItem transaction={transaction} onEditClick={handleEditTransaction} />
               <div className="flex gap-2 ml-2">
                  <Button 
                   variant="ghost" 
@@ -297,11 +311,30 @@ const Transactions: React.FC = () => {
       {/* Edit Transaction Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Transação</DialogTitle>
-            <DialogDescription>
-              Altere os detalhes da transação.
-            </DialogDescription>
+          <DialogHeader className="flex justify-between items-start">
+            <div>
+              <DialogTitle>Editar Transação</DialogTitle>
+              <DialogDescription>
+                Altere os detalhes da transação.
+              </DialogDescription>
+            </div>
+            <Button 
+              variant="destructive" 
+              size="sm"
+              onClick={() => {
+                if (editingTransaction) {
+                  deleteTransaction(editingTransaction.id);
+                  toast({
+                    title: "Transação excluída",
+                    description: "A transação foi excluída com sucesso.",
+                  });
+                  setIsDialogOpen(false);
+                  loadTransactions();
+                }
+              }}
+            >
+              <Trash2 size={16} className="mr-1" /> Excluir
+            </Button>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
@@ -317,7 +350,7 @@ const Transactions: React.FC = () => {
             <div className="grid gap-2">
               <label className="font-medium">Ícone</label>
               <div className="flex gap-2 flex-wrap">
-                {['💸','💰','🍔','🏠','🚗','🎉','🛒','📚','💳','🧾','⚡','🛠️','🧃','🧑‍💻','🏦'].map(icon => (
+                {['💸','💰','🍔','🏠','🚗','🎉','🛒','📚','💳','🧾','⚡','🛠️','🧃','🧑‍💻','🏦','🛍️','✈️','🏥','💊','👕','💼','💸','🎓','🎭','👶','💻','📱','🏋️','🎮','🔌'].map(icon => (
                   <button
                     key={icon}
                     type="button"

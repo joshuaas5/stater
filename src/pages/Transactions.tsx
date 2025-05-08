@@ -483,8 +483,8 @@ const Transactions: React.FC = () => {
       </Dialog>
       
       {/* Delete Transaction Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Transação</AlertDialogTitle>
             <AlertDialogDescription>
@@ -497,8 +497,8 @@ const Transactions: React.FC = () => {
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
-        </DialogContent>
-      </Dialog>
+        </AlertDialogContent>
+      </AlertDialog>
       
       <NavBar />
     </div>

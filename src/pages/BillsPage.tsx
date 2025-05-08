@@ -38,15 +38,19 @@ import { Checkbox } from "@/components/ui/checkbox";
 const BillsPage: React.FC = () => {
   // ...
   const handleDeleteBill = (billId: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta conta? Esta ação não poderá ser desfeita.')) {
-      deleteBill(billId);
-      toast({
-        title: 'Conta excluída',
-        description: 'A conta foi removida com sucesso.',
-      });
+  console.log('Tentando excluir conta com id:', billId);
+  if (window.confirm('Tem certeza que deseja excluir esta conta? Esta ação não poderá ser desfeita.')) {
+    deleteBill(billId);
+    setTimeout(() => {
       loadBills();
-    }
-  };
+      console.log('Contas recarregadas após exclusão');
+    }, 100);
+    toast({
+      title: 'Conta excluída',
+      description: 'A conta foi removida com sucesso.',
+    });
+  }
+};
 
   const navigate = useNavigate();
   const [bills, setBills] = useState<Bill[]>([]);

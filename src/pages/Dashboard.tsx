@@ -432,50 +432,82 @@ const Dashboard: React.FC = () => {
             )}
           </div>
           <DialogFooter>
-            {editingTransaction ? (
-              <Button onClick={() => {
-                // Salvar edição da transação
-                const user = getCurrentUser();
-                if (!user) {
-                  navigate('/login');
-                  return;
-                }
-                const allTransactions = getTransactions();
-                const idx = allTransactions.findIndex(t => t.id === editingTransaction.id);
-                if (idx !== -1) {
-                  // Atualizar valores corretos
-                  const updated = {
-                    ...editingTransaction,
-                    amount: parseFloat(editingTransaction.amount as any),
-                    recurrenceFrequency: editingTransaction.recurrenceFrequency || 'monthly',
-                  };
-                  allTransactions[idx] = updated;
-                  localStorage.setItem(`transactions_${user.id}`, JSON.stringify(allTransactions));
-                  loadTransactions(selectedMonth, selectedYear);
-                  setDialogOpen(false);
-                  setEditingTransaction(null);
-                  toast({
-                    title: 'Transação atualizada',
-                    description: `${updated.title} foi atualizada com sucesso.`
-                  });
-                }
-              }} className={
-                editingTransaction.type === 'income' 
-                  ? "bg-galileo-positive hover:bg-galileo-positive/80" 
-                  : "bg-galileo-negative hover:bg-galileo-negative/80"
-              }>
-                Salvar {editingTransaction.type === 'income' ? 'Entrada' : 'Saída'}
-              </Button>
-            ) : (
-              <Button onClick={handleSaveTransaction} className={
-                newTransaction.type === 'income' 
-                  ? "bg-galileo-positive hover:bg-galileo-positive/80" 
-                  : "bg-galileo-negative hover:bg-galileo-negative/80"
-              }>
-                Salvar {newTransaction.type === 'income' ? 'Entrada' : 'Saída'}
-              </Button>
-            )}
-          </DialogFooter>
+  {editingTransaction ? (
+    <>
+      <Button
+        onClick={() => {
+          // Salvar edição da transação
+          const user = getCurrentUser();
+          if (!user) {
+            navigate('/login');
+            return;
+          }
+          const allTransactions = getTransactions();
+          const idx = allTransactions.findIndex(t => t.id === editingTransaction.id);
+          if (idx !== -1) {
+            // Atualizar valores corretos
+            const updated = {
+              ...editingTransaction,
+              amount: parseFloat(editingTransaction.amount as any),
+              recurrenceFrequency: editingTransaction.recurrenceFrequency || 'monthly',
+            };
+            allTransactions[idx] = updated;
+            localStorage.setItem(`transactions_${user.id}`, JSON.stringify(allTransactions));
+            loadTransactions(selectedMonth, selectedYear);
+            setDialogOpen(false);
+            setEditingTransaction(null);
+            toast({
+              title: 'Transação atualizada',
+              description: `${updated.title} foi atualizada com sucesso.`
+            });
+          }
+        }}
+        className={
+          editingTransaction.type === 'income'
+            ? 'bg-galileo-positive hover:bg-galileo-positive/80'
+            : 'bg-galileo-negative hover:bg-galileo-negative/80'
+        }
+      >
+        Salvar {editingTransaction.type === 'income' ? 'Entrada' : 'Saída'}
+      </Button>
+      <Button
+        variant="destructive"
+        className="ml-2"
+        onClick={() => {
+          const user = getCurrentUser();
+          if (!user) {
+            navigate('/login');
+            return;
+          }
+          const allTransactions = getTransactions();
+          const filtered = allTransactions.filter(t => t.id !== editingTransaction.id);
+          localStorage.setItem(`transactions_${user.id}`, JSON.stringify(filtered));
+          loadTransactions(selectedMonth, selectedYear);
+          setDialogOpen(false);
+          setEditingTransaction(null);
+          toast({
+            title: 'Transação excluída',
+            description: 'A transação foi removida com sucesso.'
+          });
+        }}
+        data-testid="delete-transaction-btn"
+      >
+        Excluir
+      </Button>
+    </>
+  ) : (
+    <Button
+      onClick={handleSaveTransaction}
+      className={
+        newTransaction.type === 'income'
+          ? 'bg-galileo-positive hover:bg-galileo-positive/80'
+          : 'bg-galileo-negative hover:bg-galileo-negative/80'
+      }
+    >
+      Salvar {newTransaction.type === 'income' ? 'Entrada' : 'Saída'}
+    </Button>
+  )}
+</DialogFooter>
         </DialogContent>
       </Dialog>
       

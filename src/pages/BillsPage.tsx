@@ -297,10 +297,15 @@ const handleMarkAsPaid = (billId: string) => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleOpenNotificationSettings(bill)}>
+<<<<<<< HEAD
+=======
+                              <Bell className="mr-2 h-4 w-4" />
+>>>>>>> 1f1f956 (fix: corrigido estrutura do DropdownMenu em BillsPage)
                               <span>Configurar Notificações</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleToggleNotifications(bill)}>
                               {bill.notificationsEnabled ? (
+<<<<<<< HEAD
                                 <span>Desativar Notificações</span>
                               ) : (
                                 <span>Ativar Notificações</span>
@@ -314,6 +319,20 @@ const handleMarkAsPaid = (billId: string) => {
                             <DropdownMenuItem onClick={() => handleCloneBill(bill)}>
                               <span>Clonar Conta</span>
                             </DropdownMenuItem>
+=======
+                                <>
+                                  <BellOff className="mr-2 h-4 w-4" />
+                                  <span>Desativar Notificações</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Bell className="mr-2 h-4 w-4" />
+                                  <span>Ativar Notificações</span>
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            {/* Aqui podem entrar mais DropdownMenuItem se necessário */}
+>>>>>>> 1f1f956 (fix: corrigido estrutura do DropdownMenu em BillsPage)
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>

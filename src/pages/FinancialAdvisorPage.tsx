@@ -59,7 +59,8 @@ const FinancialAdvisorPage: React.FC = () => {
     return null;
   }
 
-  // Função para enviar mensagem para Gemini 2.0 Flash Lite
+  // Função para enviar mensagem para Gemini 2.0 Flash Lite API com controle de uso
+  // Utiliza a função fetchGeminiFlashLite importada no topo do arquivo
   const getGeminiResponse = async (prompt: string): Promise<string> => {
     try {
       const response = await fetchGeminiFlashLite(prompt);
@@ -680,8 +681,8 @@ const FinancialAdvisorPage: React.FC = () => {
         }
       ]);
     });
-  }, 1000);
-};
+  };
+
   
   const suggestions = [
     { key: "howToSaveMore", text: t("howToSaveMore") },

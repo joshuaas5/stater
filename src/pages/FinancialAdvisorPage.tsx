@@ -12,6 +12,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '@/hooks/use-translation';
 import { fetchGeminiFlashLite } from '@/utils/gemini';
 
+import { supabase } from '@/lib/supabase';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Loader2, CheckCircle2, Sparkles } from 'lucide-react';
+import clsx from 'clsx';
+
+const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
+
 const FinancialAdvisorPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -19,11 +26,16 @@ const FinancialAdvisorPage: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: uuidv4(),
-      text: `Olá! Eu sou o Consultor IA. Registre receitas e despesas aqui. Se quiser, pergunte sobre seu dinheiro.`,
-      sender: "system",
+      text: `Olá! Eu sou o Consultor IA 🤖. Pergunte sobre finanças ou registre receitas/despesas. Tudo será confirmado antes de registrar!`,
+      sender: "ia",
       timestamp: new Date()
     }
   ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [pendingAction, setPendingAction] = useState<null | { tipo: string, dados: any }>(null);
+  const [waitingConfirmation, setWaitingConfirmation] = useState(false);
   
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -36,170 +48,148 @@ const FinancialAdvisorPage: React.FC = () => {
     setShowSuggestions(false);
   };
   
+  // Detectar intenção de registro na resposta da IA
+  function parseConfirmationIntent(text: string) {
+    // Simples: IA sempre diz "Confirma o registro de ...?"
+    const match = text.match(/Confirma o registro de (uma|um)?\s?([\w\W]+?)\?/i);
+    if (match) {
+      // Exemplo: "uma saída de R$50 em mercado"
+      return match[2];
+    }
+    return null;
+  }
+
+  // Função para enviar mensagem para Gemini 2.0 Flash Lite
+  import { fetchGeminiFlashLite } from '@/utils/gemini';
+  const getGeminiResponse = async (prompt: string): Promise<string> => {
+    try {
+      const response = await fetchGeminiFlashLite(prompt);
+      if (!response || response.length < 5) {
+        return 'Desculpe, não consegui encontrar uma resposta adequada. Pode reformular sua pergunta?';
+      }
+      return response;
+    } catch (e: any) {
+      return 'Houve um erro ao acessar a IA. Tente novamente em instantes.';
+    }
+  };
+
   const handleSendMessage = async (message: string) => {
   const lowerMsg = message.trim().toLowerCase();
 
-  // 1. Tentar registrar transação a partir do texto
-  try {
-    const { getCurrentUser } = await import('@/utils/localStorage');
-    const { processChat } = await import('@/utils/dataProcessing');
-    const user = getCurrentUser();
-    if (user) {
-      const transactions = processChat(message, user.id);
-      if (transactions.length > 0) {
-        // Notificar outras abas/páginas que há novas transações
-        window.dispatchEvent(new Event('transactionsUpdated'));
-
-        // Montar resposta amigável para cada transação registrada
-        const { formatCurrency } = await import('@/utils/dataProcessing');
-        const summaries = transactions.map(tx => {
-          const tipo = tx.type === 'income' ? 'entrada' : 'saída';
-          return `✔️ ${tipo === 'entrada' ? 'Entrada' : 'Saída'} registrada: ${tx.title} - ${formatCurrency(tx.amount)} (${tx.category})`;
-        }).join('\n');
-        setMessages(prevMessages => [
-          ...prevMessages,
+  // Se aguardando confirmação e usuário diz sim
+  if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim')) {
+    setLoading(true);
+    setError("");
+    // Exemplo: pendingAction.tipo = 'saida', dados = { valor, categoria, ... }
+    try {
+      // Aqui você pode adaptar para entrada/saída/conta conforme seu schema
+      if (pendingAction.tipo === 'entrada' || pendingAction.tipo === 'saída' || pendingAction.tipo === 'saida') {
+        const { valor, categoria, descricao } = pendingAction.dados;
+        await supabase.from('transactions').insert([
           {
-            id: uuidv4(),
-            text: message,
-            sender: "user",
-            timestamp: new Date()
-          },
-          {
-            id: uuidv4(),
-            text: summaries,
-            sender: "system",
-            timestamp: new Date()
+            type: pendingAction.tipo === 'entrada' ? 'income' : 'expense',
+            amount: valor,
+            category: categoria,
+            title: descricao || categoria,
+            created_at: new Date().toISOString(),
+            // Adicione outros campos necessários
           }
         ]);
-        return;
+        setMessages((msgs) => ([
+          ...msgs,
+          { id: uuidv4(), text: '✅ Registro efetuado com sucesso!', sender: 'ia', timestamp: new Date() }
+        ]));
+      } else if (pendingAction.tipo === 'conta') {
+        // Exemplo para contas
+        const { valor, descricao, vencimento } = pendingAction.dados;
+        await supabase.from('bills').insert([
+          {
+            amount: valor,
+            title: descricao,
+            due_date: vencimento,
+            created_at: new Date().toISOString(),
+            // Outros campos
+          }
+        ]);
+        setMessages((msgs) => ([
+          ...msgs,
+          { id: uuidv4(), text: '✅ Conta registrada com sucesso!', sender: 'ia', timestamp: new Date() }
+        ]));
       }
+      setPendingAction(null);
+      setWaitingConfirmation(false);
+    } catch (e) {
+      setError('Erro ao registrar no banco.');
+    } finally {
+      setLoading(false);
     }
+    return;
+  }
+
+  // Se aguardando confirmação e usuário diz não
+  if (waitingConfirmation && lowerMsg.startsWith('não') || lowerMsg.startsWith('nao')) {
+    setMessages((msgs) => ([
+      ...msgs,
+      { id: uuidv4(), text: 'Registro cancelado.', sender: 'ia', timestamp: new Date() }
+    ]));
+    setPendingAction(null);
+    setWaitingConfirmation(false);
+    return;
+  }
+
+  // Enviar mensagem para IA normalmente
+  setLoading(true);
+  setError("");
+  setMessages((msgs) => ([...msgs, { id: uuidv4(), text: message, sender: 'user', timestamp: new Date() }]));
+  // Envio para Gemini via API
+  try {
+    setLoading(true);
+    setError("");
+    const respostaIA = await getGeminiResponse(message);
+    setLoading(false);
+
+    // Se Gemini pedir confirmação
+    const intent = parseConfirmationIntent(respostaIA);
+    if (intent) {
+      setMessages((prevMessages: ChatMessage[]) => [
+        ...prevMessages,
+        {
+          id: uuidv4(),
+          text: respostaIA,
+          sender: "ia",
+          timestamp: new Date()
+        }
+      ]);
+      // Exemplo de parsing: "uma saída de R$50 em mercado" => { tipo: 'saída', valor: 50, categoria: 'mercado' }
+      // Aqui simplificamos: Gemini deve retornar JSON ou string fácil de parsear
+      // Suponha que Gemini retorna: "Confirma o registro de uma saída de R$50 em mercado? {\"tipo\":\"saída\",\"valor\":50,\"categoria\":\"mercado\"}"
+      let dados: any = {};
+      try {
+        const jsonMatch = respostaIA.match(/\{.*\}$/);
+        if (jsonMatch) {
+          dados = JSON.parse(jsonMatch[0]);
+        }
+      } catch (e) {
+        // fallback: não conseguiu parsear JSON
+      }
+      setPendingAction({ tipo: dados.tipo || 'saída', dados });
+      setWaitingConfirmation(true);
+      return;
+    }
+    // Resposta normal da IA
+    setMessages((prevMessages: ChatMessage[]) => [
+      ...prevMessages,
+      {
+        id: uuidv4(),
+        text: respostaIA,
+        sender: "ia",
+        timestamp: new Date()
+      }
+    ]);
   } catch (e) {
-    // Se der erro, segue fluxo normal
+    setError('Erro ao se comunicar com a IA.');
+    setLoading(false);
   }
-
-  // Respostas personalizadas para identidade e sugestões
-  if (["qual é o seu nome", "qual seu nome", "quem é você", "quem é vc", "quem é voce", "quem é vc?", "quem é você?", "quem é voce?", "seu nome", "o que você faz", "o que vc faz", "quem é o consultor ia", "quem é o consultor"].some(q => lowerMsg.includes(q))) {
-    const advisorResponse: ChatMessage = {
-      id: uuidv4(),
-      text: "Eu sou o Consultor IA 🤖! Fui criado para te ajudar a organizar suas finanças, responder dúvidas, dar dicas e motivar você a conquistar seus objetivos financeiros.",
-      sender: "system",
-      timestamp: new Date()
-    };
-    setMessages(prevMessages => [...prevMessages, {
-      id: uuidv4(),
-      text: message,
-      sender: "user",
-      timestamp: new Date()
-    }, advisorResponse]);
-    return;
-  }
-  if (["dicas do que te perguntar", "exemplos de perguntas", "o que posso perguntar", "o que perguntar", "sugestão de pergunta", "sugestoes de perguntas", "dica de pergunta", "dicas de pergunta"].some(q => lowerMsg.includes(q))) {
-    const advisorResponse: ChatMessage = {
-      id: uuidv4(),
-      text: `Aqui estão exemplos de perguntas e comandos que posso responder:\n
-• Como posso economizar mais?\n• Quais são meus maiores gastos?\n• Como criar um orçamento?\n• Devo investir ou pagar dívidas?\n• Quanto devo guardar por mês?\n• O que é Tesouro Direto?\n• Como funciona o PIX?\n• Mostre meu saldo ou extrato\n• Dicas para ganhar renda extra\n\nMas minha principal recomendação é: registre suas receitas e despesas diretamente aqui no chat, de forma rápida e fácil! Basta digitar frases como \'gastei 50 reais no mercado\' ou \'recebi 1000 de salário\' e eu registro para você, tornando seu controle financeiro muito mais prático!\n\nAlém disso, posso tirar dúvidas, dar dicas e motivar você a conquistar sua saúde financeira.`,
-      sender: "system",
-      timestamp: new Date()
-    };
-    setMessages(prevMessages => [...prevMessages, {
-      id: uuidv4(),
-      text: message,
-      sender: "user",
-      timestamp: new Date()
-    }, advisorResponse]);
-    return;
-  }
-  const userMessage: ChatMessage = {
-    id: uuidv4(),
-    text: message,
-    sender: "user",
-    timestamp: new Date()
-  };
-
-  setMessages(prevMessages => [...prevMessages, userMessage]);
-
-  setTimeout(() => {
-    const lowerMsg = message.toLowerCase();
-
-    // Função para buscar transações e utilidades
-    const getDataUtils = async () => {
-      const { getTransactions } = await import("@/utils/localStorage");
-      const { calculateTotalByCategory, formatCurrency, calculateBalance } = await import("@/utils/dataProcessing");
-      const transactions = getTransactions();
-      return { transactions, calculateTotalByCategory, formatCurrency, calculateBalance };
-    };
-
-    // 1. Maiores gastos
-    if (
-      lowerMsg.includes("maiores gastos") ||
-      lowerMsg.includes("gasto mais alto") ||
-      lowerMsg.includes("top gastos") ||
-      lowerMsg.includes("gasto principal") ||
-      lowerMsg.match(/maior gasto (do mês|da semana|do dia)?/) ||
-      lowerMsg.match(/gastei mais com/) ||
-      lowerMsg.match(/gasto elevado/)
-    ) {
-      getDataUtils().then(({ transactions, calculateTotalByCategory, formatCurrency }) => {
-        const expenses = transactions.filter((t: any) => t.type === 'expense');
-        const totals = calculateTotalByCategory(expenses);
-        const sorted = Object.entries(totals)
-          .filter(([_, value]) => value < 0)
-          .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
-          .slice(0, 3);
-        let resp = "Aqui estão suas maiores categorias de gasto:";
-        if (sorted.length === 0) {
-          resp = "Não encontrei despesas registradas para analisar.";
-        } else {
-          resp += "\n" + sorted.map(([cat, value]) => `• ${cat}: ${formatCurrency(Math.abs(value))}`).join("\n");
-        }
-        const advisorResponse: ChatMessage = {
-          id: uuidv4(),
-          text: resp,
-          sender: "system",
-          timestamp: new Date()
-        };
-        setMessages(prevMessages => [...prevMessages, advisorResponse]);
-      });
-      return;
-    }
-
-    // 2. Como posso economizar mais?
-    if (
-      lowerMsg.includes("como posso economizar") ||
-      lowerMsg.includes("dicas para economizar") ||
-      lowerMsg.includes("como gastar menos") ||
-      lowerMsg.includes("como reduzir despesas") ||
-      lowerMsg.includes("como cortar gastos") ||
-      lowerMsg.match(/economizar (dinheiro|mais)/) ||
-      lowerMsg.match(/reduzir (gastos|despesas)/)
-    ) {
-      getDataUtils().then(({ transactions, calculateTotalByCategory, formatCurrency }) => {
-        const expenses = transactions.filter((t: any) => t.type === 'expense');
-        const totals = calculateTotalByCategory(expenses);
-        const sorted = Object.entries(totals)
-          .filter(([_, value]) => value < 0)
-          .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
-          .slice(0, 2);
-        let resp = "Aqui vão algumas dicas para economizar mais:\n";
-        if (sorted.length > 0) {
-          resp += sorted
-            .map(([cat]) => `• Revise seus gastos em ${cat}. Às vezes, pequenas mudanças em categorias frequentes trazem grande economia.`)
-            .join("\n");
-        } else {
-          resp += "• Registre suas despesas para receber dicas personalizadas.";
-        }
-        resp += "\n• Estabeleça metas de economia mensais.\n• Evite compras por impulso e revise assinaturas recorrentes.";
-        const advisorResponse: ChatMessage = {
-          id: uuidv4(),
-          text: resp,
-          sender: "system",
-          timestamp: new Date()
-        };
-        setMessages(prevMessages => [...prevMessages, advisorResponse]);
-      });
-      return;
-    }
 
     // 3. Como criar um orçamento?
     if (
@@ -221,7 +211,7 @@ const FinancialAdvisorPage: React.FC = () => {
           sender: "system",
           timestamp: new Date()
         };
-        setMessages(prevMessages => [...prevMessages, advisorResponse]);
+        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       });
       return;
     }
@@ -242,7 +232,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
 
@@ -265,7 +255,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
 
@@ -292,7 +282,7 @@ const FinancialAdvisorPage: React.FC = () => {
           sender: "system",
           timestamp: new Date()
         };
-        setMessages(prevMessages => [...prevMessages, advisorResponse]);
+        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       });
       return;
     }
@@ -314,7 +304,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // Cartão de crédito
@@ -332,7 +322,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // PIX, transferências e bancos digitais
@@ -349,7 +339,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // Impostos e declaração de renda
@@ -366,7 +356,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // Aposentadoria e INSS
@@ -383,7 +373,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // Inflação, câmbio e economia
@@ -402,7 +392,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // Renda extra e empreendedorismo
@@ -420,7 +410,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // Educação financeira e hábitos
@@ -438,7 +428,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // Perguntas sobre salário, FGTS, direitos trabalhistas
@@ -457,7 +447,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // Consultas de saldo, extrato, histórico
@@ -468,10 +458,10 @@ const FinancialAdvisorPage: React.FC = () => {
       lowerMsg.match(/histórico de transações/) ||
       lowerMsg.match(/quanto gastei (este mês|no mês|essa semana|hoje)/)
     ) {
-      getDataUtils().then(({ transactions, formatCurrency, calculateBalance }) => {
+      getDataUtils().then(({ transactions, formatCurrency, calculateBalance }: { transactions: any[], formatCurrency: (value: number) => string, calculateBalance: (transactions: any[]) => number }) => {
         const saldo = calculateBalance(transactions);
         let resp = `Seu saldo atual é: ${formatCurrency(saldo)}.`;
-        setMessages(prevMessages => [...prevMessages, {
+        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, {
           id: uuidv4(),
           text: resp,
           sender: "system",
@@ -510,7 +500,7 @@ const FinancialAdvisorPage: React.FC = () => {
         if (proximas.length > 0) {
           resp += `Próximas contas:\n` + proximas.map(b => `• ${b.title} (${formatCurrency(b.amount)}) - Vence em ${new Date(b.dueDate).toLocaleDateString('pt-BR')}`).join('\n');
         }
-        setMessages(prevMessages => [...prevMessages, {
+        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, {
           id: uuidv4(),
           text: resp,
           sender: "system",
@@ -533,7 +523,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // Perguntas sobre reserva de emergência
@@ -549,7 +539,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // Perguntas sobre dívidas, renegociação, nome sujo
@@ -567,7 +557,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // Perguntas sobre seguros (vida, carro, residência)
@@ -584,7 +574,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // Perguntas sobre planejamento familiar, filhos, educação
@@ -602,7 +592,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // Perguntas sobre doações, voluntariado, impacto social
@@ -620,7 +610,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     // --- IA BÁSICA: Resposta automática para qualquer questão ---
@@ -642,7 +632,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     if (educationKeywords.some(k => lowerMsg.includes(k))) {
@@ -654,7 +644,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
     if (motivationalKeywords.some(k => lowerMsg.includes(k))) {
@@ -666,7 +656,7 @@ const FinancialAdvisorPage: React.FC = () => {
         sender: "system",
         timestamp: new Date()
       };
-      setMessages(prevMessages => [...prevMessages, advisorResponse]);
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
       return;
     }
 
@@ -677,7 +667,7 @@ const FinancialAdvisorPage: React.FC = () => {
       sender: "system",
       timestamp: new Date()
     };
-    setMessages(prevMessages => [...prevMessages, thinkingMsg]);
+    setMessages((prevMessages: ChatMessage[]) => [...prevMessages, thinkingMsg]);
 
     // Usar a função fetchGeminiFlashLite que importamos
     fetchGeminiFlashLite(message).then((geminiResp: string) => {
@@ -715,47 +705,153 @@ const FinancialAdvisorPage: React.FC = () => {
             <div>
               <span className="text-lg font-bold text-white tracking-tight">Consultor IA</span>
               <span className="block text-xs text-blue-100">Assistente financeiro</span>
+    // Função antiga removida: integração agora é com Gemini 2.0 Flash Lite via fetchGeminiFlashLite.
+
+
+    return (
+      <div className="min-h-screen bg-galileo-background flex flex-col pb-16">
+        {/* Header com design moderno e colorido */}
+        <header className="sticky top-0 z-10 bg-galileo-accent text-white dark:bg-galileo-card dark:text-galileo-text shadow-md px-4 py-3 flex flex-col items-center mx-auto w-full border-b border-galileo-border">
+          <div className="flex flex-row items-center gap-3 w-full max-w-xl justify-between">
+            <div className="flex items-center">
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-2">
+                <span className="text-white text-sm">💡</span>
+              </div>
+              <div>
+                <span className="text-lg font-bold text-white tracking-tight">Consultor IA</span>
+                <span className="block text-xs text-blue-100">Assistente financeiro</span>
+              </div>
             </div>
           </div>
+        </header>
 
+        {/* Container centralizado para o chat */}
+        <main className="flex-1 w-full flex flex-col items-center px-3 sm:px-4 pt-4">
+          <section className="w-full max-w-xl flex flex-col flex-1 bg-galileo-card rounded-xl shadow-lg overflow-hidden border border-galileo-border">
+            <div className="flex-1 overflow-y-auto px-3 pt-3 pb-20" style={{ minHeight: '60vh' }}>
+              <ChatMessages messages={messages} />
+              {/* Loading animado */}
+              {loading && (
+                <div className="flex items-center gap-2 mt-2 animate-pulse">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={IA_AVATAR} alt="IA" />
+                    <AvatarFallback>IA</AvatarFallback>
+                  </Avatar>
+                  <span className="text-galileo-text bg-gradient-to-r from-blue-100 to-indigo-100 px-3 py-2 rounded-2xl shadow-sm text-sm">Pensando...</span>
+                  <Loader2 className="animate-spin text-blue-500" size={20} />
+                </div>
+              )}
+              {/* Confirmação de registro */}
+              {waitingConfirmation && pendingAction && (
+                <div className="flex flex-col items-center mt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={IA_AVATAR} alt="IA" />
+                      <AvatarFallback>IA</AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm bg-yellow-100 text-yellow-900 px-4 py-2 rounded-2xl border border-yellow-300 shadow-sm font-medium animate-fade-in">
+                      Confirma o registro de <b>{pendingAction.dados?.descricao || pendingAction.dados?.categoria || 'transação'}</b>?
+                    </span>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      className="px-4 py-2 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold shadow transition-all"
+                      onClick={() => handleSendMessage('sim')}
+                      aria-label="Confirmar registro"
+                    >Confirmar</button>
+                    <button
+                      className="px-4 py-2 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold shadow transition-all"
+                      onClick={() => handleSendMessage('não')}
+                      aria-label="Cancelar registro"
+                    >Cancelar</button>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Sugestões só aparecem se não estiver esperando confirmação ou loading */}
+            {showSuggestions && !waitingConfirmation && !loading && (
+              <div className="mb-3 px-3">
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {suggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      className="px-3 py-1.5 rounded-full bg-galileo-background hover:bg-galileo-accent text-galileo-text text-xs font-medium border border-galileo-border shadow-sm transition-all"
+                      onClick={() => handleSuggestionClick(suggestion.text)}
+                    >
+                      {suggestion.text}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="sticky bottom-0 w-full bg-galileo-card pt-2 pb-3 px-3 border-t border-galileo-border z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
+              <ChatInput onSubmit={(message: string) => handleSendMessage(message)} />
+            </div>
+          </section>
+        </main>
+
+        {/* NavBar fixa na parte inferior */}
+        <div className="fixed bottom-0 left-0 right-0 z-20">
+          <NavBar />
         </div>
-      </header>
-      
-      {/* Container centralizado para o chat */}
-      <main className="flex-1 w-full flex flex-col items-center px-3 sm:px-4 pt-4">
-        <section className="w-full max-w-xl flex flex-col flex-1 bg-galileo-card rounded-xl shadow-lg overflow-hidden border border-galileo-border">
-          <div className="flex-1 overflow-y-auto px-3 pt-3 pb-20" style={{ minHeight: '60vh' }}>
-            <ChatMessages messages={messages} />
-          </div>
-          
-          {showSuggestions && (
-            <div className="mb-3 px-3">
-              <div className="flex flex-wrap gap-2 justify-center">
-                {suggestions.map((suggestion, index) => (
-                  <button
-                    key={index}
-                    className="px-3 py-1.5 rounded-full bg-galileo-background hover:bg-galileo-accent text-galileo-text text-xs font-medium border border-galileo-border shadow-sm transition-all"
-                    onClick={() => handleSuggestionClick(suggestion.text)}
-                  >
-                    {suggestion.text}
-                  </button>
-                ))}
+      </div>
+    );
+            </div>
+          )}
+          {/* Confirmação de registro */}
+          {waitingConfirmation && pendingAction && (
+            <div className="flex flex-col items-center mt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={IA_AVATAR} alt="IA" />
+                  <AvatarFallback>IA</AvatarFallback>
+                </Avatar>
+                <span className="text-sm bg-yellow-100 text-yellow-900 px-4 py-2 rounded-2xl border border-yellow-300 shadow-sm font-medium animate-fade-in">
+                  Confirma o registro de <b>{pendingAction.dados?.descricao || pendingAction.dados?.categoria || 'transação'}</b>?
+                </span>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  className="px-4 py-2 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold shadow transition-all"
+                  onClick={() => handleSendMessage('sim')}
+                  aria-label="Confirmar registro"
+                >Confirmar</button>
+                <button
+                  className="px-4 py-2 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold shadow transition-all"
+                  onClick={() => handleSendMessage('não')}
+                  aria-label="Cancelar registro"
+                >Cancelar</button>
               </div>
             </div>
           )}
-          
-          <div className="sticky bottom-0 w-full bg-galileo-card pt-2 pb-3 px-3 border-t border-galileo-border z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
-            <ChatInput onSubmit={handleSendMessage} />
+        </div>
+        {/* Sugestões só aparecem se não estiver esperando confirmação ou loading */}
+        {showSuggestions && !waitingConfirmation && !loading && (
+          <div className="mb-3 px-3">
+            <div className="flex flex-wrap gap-2 justify-center">
+              {suggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  className="px-3 py-1.5 rounded-full bg-galileo-background hover:bg-galileo-accent text-galileo-text text-xs font-medium border border-galileo-border shadow-sm transition-all"
+                  onClick={() => handleSuggestionClick(suggestion.text)}
+                >
+                  {suggestion.text}
+                </button>
+              ))}
+            </div>
           </div>
-        </section>
-      </main>
-      
-      {/* NavBar fixa na parte inferior */}
-      <div className="fixed bottom-0 left-0 right-0 z-20">
-        <NavBar />
-      </div>
-    </div>
-  );
-};
+        )}
+        <div className="sticky bottom-0 w-full bg-galileo-card pt-2 pb-3 px-3 border-t border-galileo-border z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
+          <ChatInput onSubmit={(message: string) => handleSendMessage(message)} />
+        </div>
+      </section>
+    </main>
 
-export default FinancialAdvisorPage;
+    {/* NavBar fixa na parte inferior */}
+    <div className="fixed bottom-0 left-0 right-0 z-20">
+      <NavBar />
+    </div>
+  </div>
+);
+
+// ... (rest of the code remains the same)

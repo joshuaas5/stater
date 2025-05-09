@@ -466,44 +466,42 @@ const ChartsPage: React.FC = () => {
       <div className="px-4 mb-16">
         <h3 className="font-medium mb-2">{filterType === 'income' ? 'Maiores Receitas' : 'Maiores Despesas'}</h3>
         
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[320px] overflow-y-auto pr-1">
           {transactions
             .filter(t => filterType === 'all' ? true : t.type === filterType)
             .sort((a, b) => b.amount - a.amount)
-            .slice(0, 5)
+            .slice(0, 6)
             .map((transaction, index) => (
-              <Card key={index} className="bg-galileo-card border-galileo-border">
-                <CardContent className="p-3">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">{transaction.title}</p>
-                      <div className="flex items-center mt-1">
+              <Card key={index} className="bg-galileo-card border-galileo-border h-full flex flex-col justify-between shadow-sm hover:scale-[1.02] transition-transform duration-100">
+                <CardContent className="p-3 flex flex-col gap-2">
+                  <div>
+                    <p className="font-medium truncate max-w-[160px] md:max-w-[220px]" title={transaction.title}>{transaction.title}</p>
+                    <div className="flex items-center mt-1 flex-wrap gap-1">
+                      <Badge 
+                        variant="outline" 
+                        className="text-xs bg-galileo-background"
+                      >
+                        {transaction.category}
+                      </Badge>
+                      {transaction.isRecurring && (
                         <Badge 
                           variant="outline" 
                           className="text-xs bg-galileo-background"
                         >
-                          {transaction.category}
+                          Recorrente
                         </Badge>
-                        {transaction.isRecurring && (
-                          <Badge 
-                            variant="outline" 
-                            className="text-xs bg-galileo-background ml-1"
-                          >
-                            Recorrente
-                          </Badge>
-                        )}
-                      </div>
+                      )}
                     </div>
-                    <span className={`font-semibold ${transaction.type === 'income' ? 'text-galileo-positive' : 'text-galileo-negative'}`}>
-                      {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
-                    </span>
                   </div>
+                  <span className={`font-semibold text-lg ${transaction.type === 'income' ? 'text-galileo-positive' : 'text-galileo-negative'}`}
+                    style={{wordBreak: 'break-word'}}>
+                    {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
+                  </span>
                 </CardContent>
               </Card>
             ))}
-            
           {transactions.filter(t => filterType === 'all' ? true : t.type === filterType).length === 0 && (
-            <div className="text-center py-6 text-galileo-secondaryText">
+            <div className="text-center py-6 text-galileo-secondaryText col-span-full">
               <p>Nenhuma {filterType === 'income' ? 'receita' : 'despesa'} registrada neste mês</p>
             </div>
           )}

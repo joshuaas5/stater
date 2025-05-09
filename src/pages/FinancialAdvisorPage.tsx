@@ -60,7 +60,6 @@ const FinancialAdvisorPage: React.FC = () => {
   }
 
   // Função para enviar mensagem para Gemini 2.0 Flash Lite
-  import { fetchGeminiFlashLite } from '@/utils/gemini';
   const getGeminiResponse = async (prompt: string): Promise<string> => {
     try {
       const response = await fetchGeminiFlashLite(prompt);

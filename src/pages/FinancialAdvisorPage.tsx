@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ChatMessage } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '@/hooks/use-translation';
+import { fetchGeminiFlashLite } from '@/utils/gemini';
 
 const FinancialAdvisorPage: React.FC = () => {
   const navigate = useNavigate();
@@ -669,7 +670,7 @@ const FinancialAdvisorPage: React.FC = () => {
       return;
     }
 
-    // 3. Fallback: resposta com IA real (Hugging Face)
+    // 3. Fallback: resposta com IA real (Gemini)
     const thinkingMsg: ChatMessage = {
       id: uuidv4(),
       text: "Pensando...",
@@ -678,57 +679,13 @@ const FinancialAdvisorPage: React.FC = () => {
     };
     setMessages(prevMessages => [...prevMessages, thinkingMsg]);
 
-    async function getHuggingFaceResponse(prompt: string): Promise<string> {
-      try {
-        const response = await fetch("https://api-inference.huggingface.co/models/google/flan-t5-small", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ inputs: prompt })
-        });
-        const data = await response.json();
-        let answer = "";
-        if (Array.isArray(data) && data[0]?.generated_text) {
-          answer = data[0].generated_text.trim();
-        } else if (typeof data === 'object' && data.generated_text) {
-          answer = data.generated_text.trim();
-        }
-        // Se a resposta for vazia ou "desculpe", gere uma resposta positiva
-        if (
-          !answer ||
-          answer.length < 5 ||
-          /desculpe|não consegui|não posso|não tenho|não sei|não posso responder|não entendi|não foi possível/i.test(answer)
-        ) {
-          // Respostas alternativas
-          const alternatives = [
-            "Não tenho uma resposta exata para isso agora, mas posso te ajudar a encontrar soluções financeiras criativas! Quer uma dica de economia ou investimento?",
-            "Às vezes, o segredo está em dar o primeiro passo. Que tal revisar seus gastos ou definir uma nova meta financeira hoje?",
-            "Ótima pergunta! Se quiser, posso sugerir livros, vídeos ou ferramentas para aprofundar seu conhecimento financeiro.",
-            "Se estiver com dúvidas, registre suas receitas e despesas para receber dicas personalizadas! Basta digitar aqui no chat, por exemplo: 'gastei 80 reais no mercado' ou 'recebi 500 de salário', e eu registro para você.",
-            "Lembre-se: cada dúvida financeira é uma oportunidade de aprender e evoluir. Posso te ajudar com planejamento, investimentos ou controle de gastos!",
-            "Motivação do dia: pequenas mudanças constroem grandes resultados. Continue buscando conhecimento!",
-            "Se quiser, posso explicar conceitos como orçamento, investimentos, dívidas ou metas financeiras. É só pedir!",
-            "Não tenho uma resposta exata, mas posso te motivar: a organização financeira é o primeiro passo para conquistar seus sonhos! E lembre-se: registrar receitas e despesas aqui no chat é rápido, fácil e faz toda a diferença!"
-          ];
-          return alternatives[Math.floor(Math.random() * alternatives.length)];
-        }
-        return answer;
-      } catch (e) {
-        // Em caso de erro de conexão, também retorna uma alternativa positiva
-        const alternatives = [
-          "Não consegui acessar a IA agora, mas posso te ajudar com dicas de finanças, motivação ou organização. Pergunte algo como: 'Como economizar mais?' ou 'Como investir melhor?'",
-          "Mesmo sem acesso à IA, posso sugerir: revise seus gastos, defina metas e busque conhecimento financeiro sempre!",
-          "Estou offline no momento, mas sigo aqui para te motivar: a persistência financeira vale a pena!"
-        ];
-        return alternatives[Math.floor(Math.random() * alternatives.length)];
-      }
-    }
-
-    getHuggingFaceResponse(message).then((hfResp) => {
+    // Usar a função fetchGeminiFlashLite que importamos
+    fetchGeminiFlashLite(message).then((geminiResp: string) => {
       setMessages(prevMessages => [
         ...prevMessages.filter(m => m.id !== thinkingMsg.id),
         {
           id: uuidv4(),
-          text: hfResp,
+          text: geminiResp,
           sender: "system",
           timestamp: new Date()
         }

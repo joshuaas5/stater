@@ -310,23 +310,7 @@ const Transactions: React.FC = () => {
                 onChange={(e) => editingTransaction && setEditingTransaction({...editingTransaction, title: e.target.value})}
               />
             </div>
-            {/* Seletor de Ícone */}
-            <div className="grid gap-2">
-              <label className="font-medium">Ícone</label>
-              <div className="flex gap-2 flex-wrap">
-                {['💸','💰','🍔','🏠','🚗','🎉','🛒','📚','💳','🧾','⚡','🛠️','🧃','🧑‍💻','🏦','🛍️','✈️','🏥','💊','👕','💼','💸','🎓','🎭','👶','💻','📱','🏋️','🎮','🔌'].map(icon => (
-                  <button
-                    key={icon}
-                    type="button"
-                    data-testid={`icon-select-${icon}`}
-                    className={`text-2xl p-1 rounded border ${editingTransaction?.icon === icon ? 'border-galileo-accent' : 'border-transparent'} hover:border-galileo-accent/60`}
-                    onClick={() => editingTransaction && setEditingTransaction({...editingTransaction, icon })}
-                  >
-                    {icon}
-                  </button>
-                ))}
-              </div>
-            </div>
+
             
             <div className="grid gap-2">
               <Label htmlFor="editAmount">Valor</Label>

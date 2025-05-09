@@ -80,8 +80,15 @@ const Transactions: React.FC = () => {
       navigate('/login');
       return;
     }
-    
     loadTransactions();
+    // Listener para atualizar quando houver novas transações adicionadas pelo consultor IA
+    const handleTransactionsUpdated = () => {
+      loadTransactions();
+    };
+    window.addEventListener('transactionsUpdated', handleTransactionsUpdated);
+    return () => {
+      window.removeEventListener('transactionsUpdated', handleTransactionsUpdated);
+    };
   }, [navigate, selectedMonth, selectedYear]);
   
   const loadTransactions = () => {

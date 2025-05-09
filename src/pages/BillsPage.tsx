@@ -79,6 +79,8 @@ const BillsPage: React.FC = () => {
   };
   
   const [showAddBillModal, setShowAddBillModal] = useState(false);
+const [showEditBillModal, setShowEditBillModal] = useState(false);
+const [editBill, setEditBill] = useState<Bill | null>(null);
 const [newBill, setNewBill] = useState<Bill | null>(null);
 
 const handleCloneBill = (bill: Bill) => {
@@ -296,30 +298,16 @@ const handleMarkAsPaid = (billId: string) => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => { setEditBill(bill); setShowEditBillModal(true); }}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              <span>Editar</span>
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleOpenNotificationSettings(bill)}>
-<<<<<<< HEAD
-=======
                               <Bell className="mr-2 h-4 w-4" />
->>>>>>> 1f1f956 (fix: corrigido estrutura do DropdownMenu em BillsPage)
                               <span>Configurar Notificações</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleToggleNotifications(bill)}>
                               {bill.notificationsEnabled ? (
-<<<<<<< HEAD
-                                <span>Desativar Notificações</span>
-                              ) : (
-                                <span>Ativar Notificações</span>
-                              )}
-                            </DropdownMenuItem>
-                            {!bill.isPaid && (
-                              <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
-                                <span>Marcar como Paga</span>
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem onClick={() => handleCloneBill(bill)}>
-                              <span>Clonar Conta</span>
-                            </DropdownMenuItem>
-=======
                                 <>
                                   <BellOff className="mr-2 h-4 w-4" />
                                   <span>Desativar Notificações</span>
@@ -331,8 +319,14 @@ const handleMarkAsPaid = (billId: string) => {
                                 </>
                               )}
                             </DropdownMenuItem>
-                            {/* Aqui podem entrar mais DropdownMenuItem se necessário */}
->>>>>>> 1f1f956 (fix: corrigido estrutura do DropdownMenu em BillsPage)
+                            {!bill.isPaid && (
+                              <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
+                                <span>Marcar como Paga</span>
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => handleCloneBill(bill)}>
+                              <span>Clonar Conta</span>
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -626,6 +620,81 @@ const handleMarkAsPaid = (billId: string) => {
     <Button type="button" variant="ghost" onClick={() => setShowAddBillModal(false)} className="w-full sm:w-auto">Cancelar</Button>
   </div>
 </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Edição de Conta */}
+      <Dialog open={showEditBillModal} onOpenChange={setShowEditBillModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Conta</DialogTitle>
+            <DialogDescription>Altere os detalhes da conta e salve as modificações.</DialogDescription>
+          </DialogHeader>
+          {editBill && (
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                updateBill(editBill);
+                setShowEditBillModal(false);
+                setEditBill(null);
+                loadBills();
+                toast({ title: 'Conta atualizada', description: 'A conta foi editada com sucesso!' });
+              }}
+              className="grid gap-4"
+            >
+              <div className="grid gap-2">
+                <Label htmlFor="edit-title">Título</Label>
+                <Input
+                  id="edit-title"
+                  value={editBill.title}
+                  onChange={e => setEditBill({ ...editBill, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-amount">Valor</Label>
+                <Input
+                  id="edit-amount"
+                  type="number"
+                  value={editBill.amount}
+                  onChange={e => setEditBill({ ...editBill, amount: Number(e.target.value) })}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-category">Categoria</Label>
+                <Input
+                  id="edit-category"
+                  value={editBill.category}
+                  onChange={e => setEditBill({ ...editBill, category: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-dueDate">Data de Vencimento</Label>
+                <Input
+                  id="edit-dueDate"
+                  type="date"
+                  value={typeof editBill.dueDate === 'string' ? editBill.dueDate.slice(0,10) : ''}
+                  onChange={e => setEditBill({ ...editBill, dueDate: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-totalInstallments">Nº de Parcelas</Label>
+                <Input
+                  id="edit-totalInstallments"
+                  type="number"
+                  value={editBill.totalInstallments || ''}
+                  onChange={e => setEditBill({ ...editBill, totalInstallments: Number(e.target.value) })}
+                />
+              </div>
+              <DialogFooter>
+                <Button type="submit" className="bg-galileo-accent hover:bg-galileo-accent/80">Salvar Alterações</Button>
+                <Button type="button" variant="ghost" onClick={() => setShowEditBillModal(false)}>Cancelar</Button>
+              </DialogFooter>
             </form>
           )}
         </DialogContent>

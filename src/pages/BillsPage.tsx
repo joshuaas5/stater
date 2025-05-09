@@ -529,12 +529,13 @@ const handleMarkAsPaid = (billId: string) => {
           </div>
           
           <DialogFooter>
-            <Button 
-              onClick={() => setShowNotificationSettings(false)}
-              className="bg-galileo-accent hover:bg-galileo-accent/80"
-            >
-              Fechar
-          </DialogFooter>
+  <Button 
+    onClick={() => setShowNotificationSettings(false)}
+    className="bg-galileo-accent hover:bg-galileo-accent/80"
+  >
+    Fechar
+  </Button>
+</DialogFooter>
         </DialogContent>
       </Dialog>
       

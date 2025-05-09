@@ -267,7 +267,7 @@ const handleMarkAsPaid = (billId: string) => {
           className="bg-galileo-accent hover:bg-galileo-accent/80 text-white"
           onClick={handleAddBill}
         >
-          <Plus size={16} className="mr-1" /> Nova
+          Nova
         </Button>
       </div>
       
@@ -292,23 +292,23 @@ const handleMarkAsPaid = (billId: string) => {
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <MoreVertical size={16} />
+                              
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
   <DropdownMenuItem onClick={() => handleOpenNotificationSettings(bill)}>
-    <Bell className="mr-2 h-4 w-4" />
+    
     <span>Configurar Notificações</span>
   </DropdownMenuItem>
   <DropdownMenuItem onClick={() => handleToggleNotifications(bill)}>
     {bill.notificationsEnabled ? (
       <>
-        <BellOff className="mr-2 h-4 w-4" />
+        
         <span>Desativar Notificações</span>
       </>
     ) : (
       <>
-        <Bell className="mr-2 h-4 w-4" />
+        
         <span>Ativar Notificações</span>
       </>
     )}
@@ -316,7 +316,7 @@ const handleMarkAsPaid = (billId: string) => {
   {/* Se a conta não está paga, renderize o item condicionalmente */}
   {!bill.isPaid && (
     <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
-      <CheckCircle className="mr-2 h-4 w-4" />
+      
       <span>Marcar como Paga</span>
     </DropdownMenuItem>
   )}
@@ -337,7 +337,7 @@ const handleMarkAsPaid = (billId: string) => {
                       
                       {bill.isRecurring && (
                         <Badge variant="outline" className="bg-galileo-accent/10 text-galileo-accent text-xs flex items-center gap-1">
-                          <Calendar size={12} />
+                          
                           {bill.recurringDay ? `Dia ${bill.recurringDay}` : 'Recorrente'}
                         </Badge>
                       )}
@@ -608,9 +608,11 @@ const handleMarkAsPaid = (billId: string) => {
                 />
               </div>
               <DialogFooter>
-                <Button type="submit" className="bg-galileo-accent hover:bg-galileo-accent/80">Salvar Conta Clonada</Button>
-                <Button type="button" variant="ghost" onClick={() => setShowAddBillModal(false)}>Cancelar</Button>
-              </DialogFooter>
+  <div className="flex flex-col gap-2 sm:flex-row sm:gap-4 w-full">
+    <Button type="submit" className="bg-galileo-accent hover:bg-galileo-accent/80 w-full sm:w-auto">Salvar Conta Clonada</Button>
+    <Button type="button" variant="ghost" onClick={() => setShowAddBillModal(false)} className="w-full sm:w-auto">Cancelar</Button>
+  </div>
+</DialogFooter>
             </form>
           )}
         </DialogContent>

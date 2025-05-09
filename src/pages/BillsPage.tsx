@@ -291,39 +291,33 @@ const handleMarkAsPaid = (billId: string) => {
                         </p>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Opções">
+                              <span style={{fontSize: '1.5rem', fontWeight: 'bold'}}>⋮</span>
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-  <DropdownMenuItem onClick={() => handleOpenNotificationSettings(bill)}>
-    
-    <span>Configurar Notificações</span>
-  </DropdownMenuItem>
-  <DropdownMenuItem onClick={() => handleToggleNotifications(bill)}>
-    {bill.notificationsEnabled ? (
-      <>
-        
-        <span>Desativar Notificações</span>
-      </>
-    ) : (
-      <>
-        
-        <span>Ativar Notificações</span>
-      </>
-    )}
-  </DropdownMenuItem>
-  {/* Se a conta não está paga, renderize o item condicionalmente */}
-  {!bill.isPaid && (
-    <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
-      
-      <span>Marcar como Paga</span>
-    </DropdownMenuItem>
-  )}
-  </DropdownMenuContent>
-</DropdownMenu>
-                  </div>
-                </div>
+                            <DropdownMenuItem onClick={() => handleOpenNotificationSettings(bill)}>
+                              <span>Configurar Notificações</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleToggleNotifications(bill)}>
+                              {bill.notificationsEnabled ? (
+                                <span>Desativar Notificações</span>
+                              ) : (
+                                <span>Ativar Notificações</span>
+                              )}
+                            </DropdownMenuItem>
+                            {!bill.isPaid && (
+                              <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
+                                <span>Marcar como Paga</span>
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => handleCloneBill(bill)}>
+                              <span>Clonar Conta</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
                     <div className="flex items-center flex-wrap gap-2 mt-1">
                       <Badge variant="outline" className="bg-galileo-card text-galileo-text text-xs">
                         {formatDueDate(bill.dueDate)}

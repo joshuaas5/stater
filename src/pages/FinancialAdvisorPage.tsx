@@ -11,13 +11,29 @@ import { ChatMessage } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '@/hooks/use-translation';
 import { fetchGeminiFlashLite } from '@/utils/gemini';
-
 import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, CheckCircle2, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
 
 const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
+
+// Definir um tipo para getDataUtils para evitar erros
+type DataUtils = {
+  transactions: any[];
+  calculateBalance: (transactions: any[]) => number;
+  formatCurrency: (value: number) => string;
+};
+
+// Mock da função getDataUtils para evitar erros de compilação
+const getDataUtils = async (): Promise<DataUtils> => {
+  // Implementação real seria feita aqui
+  return {
+    transactions: [],
+    calculateBalance: (transactions) => 0,
+    formatCurrency: (value) => `R$ ${value.toFixed(2)}`
+  };
+};
 
 const FinancialAdvisorPage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,7 +43,7 @@ const FinancialAdvisorPage: React.FC = () => {
     {
       id: uuidv4(),
       text: `Olá! Eu sou o Consultor IA 🤖. Pergunte sobre finanças ou registre receitas/despesas. Tudo será confirmado antes de registrar!`,
-      sender: "ia",
+      sender: "system",
       timestamp: new Date()
     }
   ]);
@@ -36,18 +52,18 @@ const FinancialAdvisorPage: React.FC = () => {
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState<null | { tipo: string, dados: any }>(null);
   const [waitingConfirmation, setWaitingConfirmation] = useState(false);
-  
+
   useEffect(() => {
     if (!isLoggedIn()) {
       navigate('/login');
     }
   }, [navigate]);
-  
+
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
     setShowSuggestions(false);
   };
-  
+
   // Detectar intenção de registro na resposta da IA
   function parseConfirmationIntent(text: string) {
     // Simples: IA sempre diz "Confirma o registro de ...?"
@@ -74,122 +90,121 @@ const FinancialAdvisorPage: React.FC = () => {
   };
 
   const handleSendMessage = async (message: string) => {
-  const lowerMsg = message.trim().toLowerCase();
+    const lowerMsg = message.trim().toLowerCase();
 
-  // Se aguardando confirmação e usuário diz sim
-  if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim')) {
-    setLoading(true);
-    setError("");
-    // Exemplo: pendingAction.tipo = 'saida', dados = { valor, categoria, ... }
-    try {
-      // Aqui você pode adaptar para entrada/saída/conta conforme seu schema
-      if (pendingAction.tipo === 'entrada' || pendingAction.tipo === 'saída' || pendingAction.tipo === 'saida') {
-        const { valor, categoria, descricao } = pendingAction.dados;
-        await supabase.from('transactions').insert([
-          {
-            type: pendingAction.tipo === 'entrada' ? 'income' : 'expense',
-            amount: valor,
-            category: categoria,
-            title: descricao || categoria,
-            created_at: new Date().toISOString(),
-            // Adicione outros campos necessários
-          }
-        ]);
-        setMessages((msgs) => ([
-          ...msgs,
-          { id: uuidv4(), text: '✅ Registro efetuado com sucesso!', sender: 'ia', timestamp: new Date() }
-        ]));
-      } else if (pendingAction.tipo === 'conta') {
-        // Exemplo para contas
-        const { valor, descricao, vencimento } = pendingAction.dados;
-        await supabase.from('bills').insert([
-          {
-            amount: valor,
-            title: descricao,
-            due_date: vencimento,
-            created_at: new Date().toISOString(),
-            // Outros campos
-          }
-        ]);
-        setMessages((msgs) => ([
-          ...msgs,
-          { id: uuidv4(), text: '✅ Conta registrada com sucesso!', sender: 'ia', timestamp: new Date() }
-        ]));
+    // Se aguardando confirmação e usuário diz sim
+    if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim')) {
+      setLoading(true);
+      setError("");
+      // Exemplo: pendingAction.tipo = 'saida', dados = { valor, categoria, ... }
+      try {
+        // Aqui você pode adaptar para entrada/saída/conta conforme seu schema
+        if (pendingAction.tipo === 'entrada' || pendingAction.tipo === 'saída' || pendingAction.tipo === 'saida') {
+          const { valor, categoria, descricao } = pendingAction.dados;
+          await supabase.from('transactions').insert([
+            {
+              type: pendingAction.tipo === 'entrada' ? 'income' : 'expense',
+              amount: valor,
+              category: categoria,
+              title: descricao || categoria,
+              created_at: new Date().toISOString(),
+              // Adicione outros campos necessários
+            }
+          ]);
+          setMessages((msgs) => ([
+            ...msgs,
+            { id: uuidv4(), text: '✅ Registro efetuado com sucesso!', sender: 'system', timestamp: new Date() }
+          ]));
+        } else if (pendingAction.tipo === 'conta') {
+          // Exemplo para contas
+          const { valor, descricao, vencimento } = pendingAction.dados;
+          await supabase.from('bills').insert([
+            {
+              amount: valor,
+              title: descricao,
+              due_date: vencimento,
+              created_at: new Date().toISOString(),
+              // Outros campos
+            }
+          ]);
+          setMessages((msgs) => ([
+            ...msgs,
+            { id: uuidv4(), text: '✅ Conta registrada com sucesso!', sender: 'system', timestamp: new Date() }
+          ]));
+        }
+        setPendingAction(null);
+        setWaitingConfirmation(false);
+      } catch (e) {
+        setError('Erro ao registrar no banco.');
+      } finally {
+        setLoading(false);
       }
+      return;
+    }
+
+    // Se aguardando confirmação e usuário diz não
+    if (waitingConfirmation && (lowerMsg.startsWith('não') || lowerMsg.startsWith('nao'))) {
+      setMessages((msgs) => ([
+        ...msgs,
+        { id: uuidv4(), text: 'Registro cancelado.', sender: 'system', timestamp: new Date() }
+      ]));
       setPendingAction(null);
       setWaitingConfirmation(false);
-    } catch (e) {
-      setError('Erro ao registrar no banco.');
-    } finally {
-      setLoading(false);
+      return;
     }
-    return;
-  }
 
-  // Se aguardando confirmação e usuário diz não
-  if (waitingConfirmation && lowerMsg.startsWith('não') || lowerMsg.startsWith('nao')) {
-    setMessages((msgs) => ([
-      ...msgs,
-      { id: uuidv4(), text: 'Registro cancelado.', sender: 'ia', timestamp: new Date() }
-    ]));
-    setPendingAction(null);
-    setWaitingConfirmation(false);
-    return;
-  }
-
-  // Enviar mensagem para IA normalmente
-  setLoading(true);
-  setError("");
-  setMessages((msgs) => ([...msgs, { id: uuidv4(), text: message, sender: 'user', timestamp: new Date() }]));
-  // Envio para Gemini via API
-  try {
+    // Enviar mensagem para IA normalmente
     setLoading(true);
     setError("");
-    const respostaIA = await getGeminiResponse(message);
-    setLoading(false);
+    setMessages((msgs) => ([...msgs, { id: uuidv4(), text: message, sender: 'user', timestamp: new Date() }]));
+    
+    // Envio para Gemini via API
+    try {
+      const respostaIA = await getGeminiResponse(message);
+      setLoading(false);
 
-    // Se Gemini pedir confirmação
-    const intent = parseConfirmationIntent(respostaIA);
-    if (intent) {
+      // Se Gemini pedir confirmação
+      const intent = parseConfirmationIntent(respostaIA);
+      if (intent) {
+        setMessages((prevMessages: ChatMessage[]) => [
+          ...prevMessages,
+          {
+            id: uuidv4(),
+            text: respostaIA,
+            sender: "system",
+            timestamp: new Date()
+          }
+        ]);
+        // Exemplo de parsing: "uma saída de R$50 em mercado" => { tipo: 'saída', valor: 50, categoria: 'mercado' }
+        // Aqui simplificamos: Gemini deve retornar JSON ou string fácil de parsear
+        // Suponha que Gemini retorna: "Confirma o registro de uma saída de R$50 em mercado? {\"tipo\":\"saída\",\"valor\":50,\"categoria\":\"mercado\"}"
+        let dados: any = {};
+        try {
+          const jsonMatch = respostaIA.match(/\{.*\}$/);
+          if (jsonMatch) {
+            dados = JSON.parse(jsonMatch[0]);
+          }
+        } catch (e) {
+          // fallback: não conseguiu parsear JSON
+        }
+        setPendingAction({ tipo: dados.tipo || 'saída', dados });
+        setWaitingConfirmation(true);
+        return;
+      }
+      // Resposta normal da IA
       setMessages((prevMessages: ChatMessage[]) => [
         ...prevMessages,
         {
           id: uuidv4(),
           text: respostaIA,
-          sender: "ia",
+          sender: "system",
           timestamp: new Date()
         }
       ]);
-      // Exemplo de parsing: "uma saída de R$50 em mercado" => { tipo: 'saída', valor: 50, categoria: 'mercado' }
-      // Aqui simplificamos: Gemini deve retornar JSON ou string fácil de parsear
-      // Suponha que Gemini retorna: "Confirma o registro de uma saída de R$50 em mercado? {\"tipo\":\"saída\",\"valor\":50,\"categoria\":\"mercado\"}"
-      let dados: any = {};
-      try {
-        const jsonMatch = respostaIA.match(/\{.*\}$/);
-        if (jsonMatch) {
-          dados = JSON.parse(jsonMatch[0]);
-        }
-      } catch (e) {
-        // fallback: não conseguiu parsear JSON
-      }
-      setPendingAction({ tipo: dados.tipo || 'saída', dados });
-      setWaitingConfirmation(true);
-      return;
+    } catch (e) {
+      setError('Erro ao se comunicar com a IA.');
+      setLoading(false);
     }
-    // Resposta normal da IA
-    setMessages((prevMessages: ChatMessage[]) => [
-      ...prevMessages,
-      {
-        id: uuidv4(),
-        text: respostaIA,
-        sender: "ia",
-        timestamp: new Date()
-      }
-    ]);
-  } catch (e) {
-    setError('Erro ao se comunicar com a IA.');
-    setLoading(false);
-  }
 
     // 3. Como criar um orçamento?
     if (
@@ -705,22 +720,36 @@ const FinancialAdvisorPage: React.FC = () => {
             <div>
               <span className="text-lg font-bold text-white tracking-tight">Consultor IA</span>
               <span className="block text-xs text-blue-100">Assistente financeiro</span>
-    // Função antiga removida: integração agora é com Gemini 2.0 Flash Lite via fetchGeminiFlashLite.
+  // Sugestões para o consultor financeiro
+  const suggestions = [
+    { key: "howToSaveMore", text: t("howToSaveMore") || "Como economizar mais?" },
+    { key: "biggestExpenses", text: t("biggestExpenses") || "Quais são meus maiores gastos?" },
+    { key: "createBudget", text: t("createBudget") || "Como criar um orçamento?" },
+    { key: "investOrPayDebt", text: t("investOrPayDebt") || "Devo investir ou pagar dívidas?" },
+    { key: "reduceEatingOut", text: t("reduceEatingOut") || "Como reduzir gastos com alimentação?" },
+    { key: "howMuchToSave", text: t("howMuchToSave") || "Quanto devo guardar por mês?" }
+  ];
 
-
-    return (
-      <div className="min-h-screen bg-galileo-background flex flex-col pb-16">
-        {/* Header com design moderno e colorido */}
-        <header className="sticky top-0 z-10 bg-galileo-accent text-white dark:bg-galileo-card dark:text-galileo-text shadow-md px-4 py-3 flex flex-col items-center mx-auto w-full border-b border-galileo-border">
-          <div className="flex flex-row items-center gap-3 w-full max-w-xl justify-between">
-            <div className="flex items-center">
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-2">
-                <span className="text-white text-sm">💡</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-white tracking-tight">Consultor IA</span>
-                <span className="block text-xs text-blue-100">Assistente financeiro</span>
-              </div>
+  // Renderização do componente
+  return (
+    <div className="min-h-screen bg-galileo-background flex flex-col pb-16">
+      {/* Header com design moderno e colorido */}
+      <header className="sticky top-0 z-10 bg-galileo-accent text-white dark:bg-galileo-card dark:text-galileo-text shadow-md px-4 py-3 flex flex-col items-center mx-auto w-full border-b border-galileo-border">
+        <div className="flex flex-row items-center gap-3 w-full max-w-xl justify-between">
+          <div className="flex items-center">
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-2">
+              <span className="text-white text-sm">💡</span>
+            </div>
+            <div>
+              <span className="text-lg font-bold text-white tracking-tight">Consultor IA</span>
+              <span className="block text-xs text-blue-100">Assistente financeiro</span>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <main className="flex-1 overflow-auto px-4 py-6 max-w-xl mx-auto w-full">
+        <section className="flex flex-col h-full">
             </div>
           </div>
         </header>
@@ -854,4 +883,69 @@ const FinancialAdvisorPage: React.FC = () => {
   </div>
 );
 
-// ... (rest of the code remains the same)
+          {/* Sugestões iniciais */}
+          {showSuggestions && (
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {suggestions.map((suggestion) => (
+                <Button
+                  key={suggestion.key}
+                  variant="outline"
+                  className="text-sm p-2 h-auto whitespace-normal text-left justify-start"
+                  onClick={() => handleSuggestionClick(suggestion.text)}
+                >
+                  {suggestion.text}
+                </Button>
+              ))}
+            </div>
+          )}
+          
+          {/* Mensagens */}
+          <div className="flex-1 overflow-y-auto mb-4">
+            <ChatMessages messages={messages} />
+          </div>
+          
+          {/* Indicador de carregamento */}
+          {loading && (
+            <div className="flex justify-center my-2">
+              <Loader2 className="h-6 w-6 animate-spin text-galileo-accent" />
+            </div>
+          )}
+          
+          {/* Confirmação de registro */}
+          {waitingConfirmation && pendingAction && (
+            <div className="flex flex-col items-center mt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={IA_AVATAR} alt="IA" />
+                  <AvatarFallback>IA</AvatarFallback>
+                </Avatar>
+                <div className="bg-blue-100 dark:bg-blue-900/30 rounded-lg p-3 text-sm">
+                  <p>Por favor, confirme digitando "sim" ou "não":</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Mensagem de erro */}
+          {error && (
+            <div className="bg-red-100 border border-red-200 text-red-700 px-4 py-2 rounded-md mb-4">
+              {error}
+            </div>
+          )}
+          
+          {/* Input de chat */}
+          <div className="sticky bottom-0 w-full bg-galileo-card pt-2 pb-3 px-3 border-t border-galileo-border z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
+            <ChatInput onSubmit={(message: string) => handleSendMessage(message)} />
+          </div>
+        </section>
+      </main>
+
+      {/* NavBar fixa na parte inferior */}
+      <div className="fixed bottom-0 left-0 right-0 z-20">
+        <NavBar />
+      </div>
+    </div>
+  );
+};
+
+export default FinancialAdvisorPage;

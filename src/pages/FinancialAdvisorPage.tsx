@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/navigation/NavBar';
@@ -33,7 +32,7 @@ const getDataUtils = async (): Promise<DataUtils> => {
   };
 };
 
-const FinancialAdvisorPage: React.FC = () => {
+export const FinancialAdvisorPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -49,6 +48,7 @@ const FinancialAdvisorPage: React.FC = () => {
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState<null | { tipo: string, dados: any }>(null);
   const [waitingConfirmation, setWaitingConfirmation] = useState(false);
+  const [showApiConfig, setShowApiConfig] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -831,5 +831,3 @@ const FinancialAdvisorPage: React.FC = () => {
     </div>
   );
 };
-
-export default FinancialAdvisorPage;

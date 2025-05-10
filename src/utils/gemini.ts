@@ -5,7 +5,20 @@
 import { checkApiUsageLimit, incrementApiUsage, estimateTokenCount } from './api-usage';
 
 // API key para o Gemini - em produção, isso deve vir de variáveis de ambiente
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '';
+// Verifica e faz console.log para debug
+const processEnvKey = typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : null;
+const viteEnvKey = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : null;
+
+// Log dos valores para debug (apenas em desenvolvimento)
+if (import.meta.env.DEV) {
+  console.log('Debug - Variáveis Gemini API:', { 
+    processEnvKey: processEnvKey ? 'Presente' : 'Ausente', 
+    viteEnvKey: viteEnvKey ? 'Presente' : 'Ausente',
+    ambiente: import.meta.env.MODE
+  });
+}
+
+const GEMINI_API_KEY = processEnvKey || viteEnvKey || '';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
 // Nome da API para controle de uso
@@ -53,10 +66,35 @@ export async function fetchGeminiFlashLite(
   options?: { systemInstruction?: string }
 ): Promise<string> {
   try {
-    // Se não tiver API key, retorna mensagem informativa
+    // Se não tiver API key, tenta dar respostas pré-definidas para perguntas comuns
     if (!GEMINI_API_KEY) {
-      console.warn('Gemini API key not found. Using fallback response.');
-      return "Para usar o Gemini, configure uma API key válida nas variáveis de ambiente.";
+      console.warn('Gemini API key not found. Using hardcoded responses.');
+      
+      // Converter prompt para minúsculas e remover acentos para comparação
+      const normalizedPrompt = prompt.toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      
+      // Respostas pré-definidas para perguntas comuns
+      if (normalizedPrompt.includes('quem e voce') || normalizedPrompt.includes('quem é você') || 
+          normalizedPrompt.includes('seu nome') || normalizedPrompt.includes('se apresente')) {
+        return "Olá! Sou o Consultor IA, seu assistente financeiro pessoal! Estou aqui para ajudar com dicas de economia, organização financeira e muito mais. Como posso ajudar hoje?";
+      }
+      
+      if (normalizedPrompt.includes('economizar') || normalizedPrompt.includes('poupar') || normalizedPrompt.includes('guardar dinheiro')) {
+        return "Para economizar mais dinheiro: 1) Estabeleça um orçamento claro, 2) Elimine despesas desnecessárias, 3) Automatize sua poupança, e 4) Use a regra 50/30/20 (50% para necessidades, 30% para desejos, 20% para poupança).";
+      }
+      
+      if (normalizedPrompt.includes('investir') || normalizedPrompt.includes('investimento')) {
+        return "Para começar a investir: 1) Tenha uma reserva de emergência em investimentos de baixo risco, 2) Defina seus objetivos (curto, médio e longo prazo), 3) Diversifique seus investimentos conforme seu perfil de risco. O básico é começar com renda fixa!";
+      }
+      
+      if (normalizedPrompt.includes('divida') || normalizedPrompt.includes('dívida')) {
+        return "Para sair das dívidas: 1) Liste todas suas dívidas com valores e juros, 2) Priorize quitar as com juros mais altos, 3) Negocie taxas menores, 4) Considere consolidar dívidas caras, e 5) Corte gastos temporários para acelerar o pagamento.";
+      }
+      
+      // Mensagem genérica se não corresponder a nenhuma pergunta conhecida
+      return "O serviço de IA está temporariamente limitado. Por favor, configure a API key nas variáveis de ambiente. Enquanto isso, posso responder perguntas simples sobre economia, investimentos ou dívidas.";
     }
     
     // Verificar se o uso da API está dentro do limite

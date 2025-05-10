@@ -1,62 +1,101 @@
 /**
- * Utility functions for interacting with Gemini API
+ * Utility functions for interacting with Gemini API 2.0
  */
 
 import { checkApiUsageLimit, incrementApiUsage, estimateTokenCount } from './api-usage';
 
-// API key para o Gemini - em produção, isso deve vir de variáveis de ambiente
-// Verifica e faz console.log para debug
-const processEnvKey = typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : null;
-const viteEnvKey = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : null;
-
-// Log dos valores para debug (apenas em desenvolvimento)
-if (import.meta.env.DEV) {
-  console.log('Debug - Variáveis Gemini API:', { 
-    processEnvKey: processEnvKey ? 'Presente' : 'Ausente', 
-    viteEnvKey: viteEnvKey ? 'Presente' : 'Ausente',
-    ambiente: import.meta.env.MODE
-  });
-}
-
-const GEMINI_API_KEY = processEnvKey || viteEnvKey || '';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-
+/**
+ * Configuração da API Gemini
+ */
 // Nome da API para controle de uso
-const API_NAME = 'gemini-flash-lite';
+const API_NAME = 'gemini';
 
-// Respostas alternativas para quando o limite de uso for atingido
+// Para o Gemini 2.0 Flash Lite, usamos o modelo mais atual e rápido
+const GEMINI_MODEL = 'gemini-1.5-flash';
+
+// URL base da API Gemini
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+
+/**
+ * Função para obter a API key de diferentes fontes de ambiente
+ */
+const getApiKey = () => {
+  // Vercel/Next.js - variável de ambiente do lado do servidor
+  const processEnvKey = 
+    typeof process !== 'undefined' && 
+    process.env && 
+    process.env.GEMINI_API_KEY;
+  
+  // Vite - variável de ambiente do lado do cliente
+  const viteEnvKey = 
+    typeof import.meta !== 'undefined' && 
+    import.meta.env && 
+    import.meta.env.VITE_GEMINI_API_KEY;
+
+  // Gerar logs detalhados para depuração
+  console.log('Debug - Fontes de API Key:', { 
+    processEnvPresente: !!processEnvKey,
+    viteEnvPresente: !!viteEnvKey,
+    // Mostrar primeiros 5 caracteres apenas para confirmar que existe sem expor a chave
+    processKeyPreview: processEnvKey ? `${processEnvKey.substring(0, 5)}...` : 'ausente',
+    viteKeyPreview: viteEnvKey ? `${viteEnvKey.substring(0, 5)}...` : 'ausente',
+    ambiente: typeof import.meta !== 'undefined' ? import.meta.env.MODE : 'server-side'
+  });
+
+  // Retorna a primeira chave disponível
+  return processEnvKey || viteEnvKey || '';
+};
+
+// Obtenção da API key
+const GEMINI_API_KEY = getApiKey();
+
+// URL completa para o endpoint generateContent
+const GEMINI_API_URL = `${GEMINI_API_BASE}/models/${GEMINI_MODEL}:generateContent`;
+
+// Respostas para quando o limite de API for atingido
 const LIMIT_REACHED_RESPONSES = [
-  "Desculpe, atingimos o limite de consultas por hoje. Tente novamente amanhã ou use as funcionalidades offline do app!",
-  "Parece que estamos com muitas consultas hoje! Para continuar ajudando todos os usuários, precisei pausar algumas respostas. Que tal tentar novamente amanhã?",
-  "Atingimos o limite de consultas para hoje. Enquanto isso, você pode continuar registrando suas transações e usando as outras funcionalidades do app!"
+  "Já alcançamos nosso limite diário de chamadas à API. Por favor, tente novamente amanhã.",
+  "Ops, parece que estamos com muitas consultas hoje! Tente novamente mais tarde.",
+  "Nosso assistente está em pausa para descanso. Volte em algumas horas!"
 ];
 
+/**
+ * Interface para resposta da API Gemini
+ */
 interface GeminiResponse {
   candidates?: Array<{
     content: {
-      parts: Array<{
-        text: string;
-      }>;
-    };
-    finishReason?: string;
+      parts: Array<{ text: string }>
+    },
+    finishReason?: string,
     tokenCount?: {
-      totalTokens: number;
-      promptTokens: number;
-      responseTokens: number;
-    };
+      totalTokens?: number
+      promptTokens?: number
+      responseTokens?: number
+    }
   }>;
   promptFeedback?: {
-    blockReason?: string;
+    blockReason?: string
+    safetyRatings?: Array<{
+      category: string
+      probability: string
+    }>
   };
   usage?: {
-    promptTokenCount: number;
-    candidatesTokenCount: number;
-    totalTokenCount: number;
+    promptTokenCount?: number
+    candidatesTokenCount?: number
+    totalTokenCount?: number
+  };
+  error?: {
+    code: number
+    message: string
+    status: string
+    details?: Array<any>
   };
 }
 
 /**
- * Fetches a response from Gemini Flash Lite API
+ * Fetches a response from Gemini 2.0 Flash API
  * @param prompt - The prompt to send to Gemini
  * @param options - Optional configuration including system instructions
  * @returns A promise that resolves to the Gemini response text
@@ -66,6 +105,9 @@ export async function fetchGeminiFlashLite(
   options?: { systemInstruction?: string }
 ): Promise<string> {
   try {
+    // Log inicial para depuração
+    console.log(`Iniciando chamada ao Gemini para prompt: "${prompt.substring(0, 50)}..."`);
+    
     // Se não tiver API key, tenta dar respostas pré-definidas para perguntas comuns
     if (!GEMINI_API_KEY) {
       console.warn('Gemini API key not found. Using hardcoded responses.');
@@ -116,39 +158,75 @@ export async function fetchGeminiFlashLite(
     // Estimar tokens do prompt para registro prévio
     const estimatedPromptTokens = typeof estimateTokenCount === 'function' ? estimateTokenCount(enhancedPrompt) : 0;
     
-    // Fazer a chamada direta para a API do Gemini
+    // Construir o corpo da requisição para o Gemini 2.0
+    const requestBody = {
+      contents: [{
+        parts: [{
+          text: enhancedPrompt
+        }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 150,
+      }
+    };
+    
+    // Log detalhado antes da chamada API para depuração
+    console.log('Calling Gemini API with:', {
+      url: `${GEMINI_API_URL}?key=XXXXX`, // Não exibimos a chave real no log
+      requestBodyPreview: JSON.stringify(requestBody).substring(0, 200) + '...'
+    });
+    
+    // Fazer a chamada direta para a API do Gemini 2.0 Flash
     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: enhancedPrompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 150,
-        }
-      })
+      body: JSON.stringify(requestBody)
     });
     
+    // Log do status da resposta
+    console.log(`Gemini API response status: ${response.status} ${response.statusText}`);
+    
+    // Se a resposta não for OK, tentar extrair informações detalhadas do erro
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Gemini API error:', errorData);
-      throw new Error(`API error: ${response.status}`);
+      let errorDetails = '';
+      try {
+        // Tentar extrair o JSON de erro para detalhes mais precisos
+        const errorJson = await response.json();
+        errorDetails = JSON.stringify(errorJson, null, 2);
+        console.error('Gemini API detailed error:', errorJson);
+        
+        // Se houver uma mensagem de erro específica, usar para a resposta de fallback
+        if (errorJson.error && errorJson.error.message) {
+          return `Desculpe, houve um problema com a IA: ${errorJson.error.message}`;
+        }
+      } catch (e) {
+        // Se não for possível extrair JSON, usar o texto bruto
+        errorDetails = await response.text();
+        console.error('Gemini API error text:', errorDetails);
+      }
+      
+      throw new Error(`API error (${response.status}): ${errorDetails}`);
     }
     
+    // Parse da resposta como JSON
     const data = await response.json() as GeminiResponse;
+    console.log('Gemini API response preview:', JSON.stringify(data).substring(0, 200) + '...');
     
     // Verificar se há conteúdo bloqueado ou erro
     if (data.promptFeedback?.blockReason) {
-      console.warn('Prompt blocked:', data.promptFeedback.blockReason);
+      console.warn('Prompt blocked by safety settings:', data.promptFeedback.blockReason);
       return "Desculpe, não posso responder a esse tipo de pergunta. Posso ajudar com questões financeiras!";
+    }
+    
+    // Verificar se há erro explícito na resposta
+    if (data.error) {
+      console.error('Gemini API error in response:', data.error);
+      return `Desculpe, houve um problema com a IA: ${data.error.message}`;
     }
     
     // Extrair o texto da resposta
@@ -157,6 +235,7 @@ export async function fetchGeminiFlashLite(
       const textParts = data.candidates[0].content.parts;
       if (textParts && textParts.length > 0) {
         responseText = textParts[0].text.trim();
+        console.log('Gemini response text extracted successfully:', responseText.substring(0, 50) + '...');
         
         // Calcular tokens usados e registrar (se implementado)
         if (typeof incrementApiUsage === 'function') {
@@ -179,13 +258,19 @@ export async function fetchGeminiFlashLite(
       }
     }
     
+    // Verificar se temos uma resposta válida
     if (!responseText) {
-      throw new Error('No valid response from Gemini API');
+      console.error('No text in Gemini response:', data);
+      throw new Error('No valid response content received from Gemini API');
     }
     
     return responseText;
-  } catch (error) {
+  } catch (error: any) {
+    // Log detalhado do erro
     console.error("Error fetching from Gemini:", error);
-    return "Desculpe, não foi possível obter uma resposta neste momento. Tente novamente mais tarde.";
+    console.error("Error stack:", error.stack);
+    
+    // Resposta amigável para o usuário
+    return "Desculpe, estou com dificuldades para me comunicar com o serviço de IA neste momento. Tente novamente em alguns instantes.";
   }
 }

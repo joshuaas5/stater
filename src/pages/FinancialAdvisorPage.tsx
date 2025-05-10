@@ -636,72 +636,85 @@ const FinancialAdvisorPage: React.FC = () => {
     // Se nenhum padrao hardcoded foi encontrado, tente o Gemini como fallback
     if (!respostaEnviada) {
       // Mensagem temporária "Pensando..."
+      const thinkingMsgId = uuidv4();
       const thinkingMsg: ChatMessage = {
-        id: uuidv4(),
+        id: thinkingMsgId,
         text: "Pensando...",
         sender: "system",
         timestamp: new Date()
       };
       setMessages((prevMessages: ChatMessage[]) => [...prevMessages, thinkingMsg]);
 
-      // Chamada ao Gemini API
-      try {
-        getGeminiResponse(message).then((geminiResp: string) => {
-          setLoading(false);
-          
-          // Se Gemini pedir confirmação
-          const intent = parseConfirmationIntent(geminiResp);
-          if (intent) {
-            setMessages(prevMessages => [
-              ...prevMessages.filter(m => m.id !== thinkingMsg.id),
-              {
-                id: uuidv4(),
-                text: geminiResp,
-                sender: "system",
-                timestamp: new Date()
-              }
-            ]);
-            
-            // Tratar JSON para ação pendente
-            let dados: any = {};
-            try {
-              const jsonMatch = geminiResp.match(/\{.*\}$/);
-              if (jsonMatch) {
-                dados = JSON.parse(jsonMatch[0]);
-              }
-            } catch (e) {
-              // fallback: não conseguiu parsear JSON
-            }
-            setPendingAction({ tipo: dados.tipo || 'saída', dados });
-            setWaitingConfirmation(true);
-          } else {
-            // Resposta normal da IA
-            setMessages(prevMessages => [
-              ...prevMessages.filter(m => m.id !== thinkingMsg.id),
-              {
-                id: uuidv4(),
-                text: geminiResp,
-                sender: "system",
-                timestamp: new Date()
-              }
-            ]);
-          }
-        }).catch(error => {
-          console.error("Erro na chamada do Gemini:", error);
-          setMessages(prevMessages => [
-            ...prevMessages.filter(m => m.id !== thinkingMsg.id),
-            {
-              id: uuidv4(),
-              text: "Desculpe, tive um problema de comunicação. Pode tentar novamente?",
-              sender: "system",
-              timestamp: new Date()
-            }
-          ]);
-          setLoading(false);
-        });
-      } catch (e) {
-        setError("Erro ao se comunicar com a IA.");
+      // Garantir que a mensagem "Pensando..." será removida e o loading será desativado, mesmo em caso de erro
+      const finalizarPensando = (resposta: string) => {
+        // Log para debug
+        console.log("Resposta do Gemini recebida:", { length: resposta.length, preview: resposta.slice(0, 50) });
+        
+        // Sempre remover o indicador de carregamento
         setLoading(false);
+        
+        // Substituir a mensagem "Pensando..." pela resposta
+        setMessages(prevMessages => [
+          ...prevMessages.filter(m => m.id !== thinkingMsgId),
+          {
+            id: uuidv4(),
+            text: resposta,
+            sender: "system",
+            timestamp: new Date()
+          }
+        ]);
+        
+        // Se for uma pergunta de confirmação, ativar o modo de confirmação
+        const intent = parseConfirmationIntent(resposta);
+        if (intent) {
+          // Tratar JSON para ação pendente
+          let dados: any = {};
+          try {
+            const jsonMatch = resposta.match(/\{.*\}$/);
+            if (jsonMatch) {
+              dados = JSON.parse(jsonMatch[0]);
+            }
+          } catch (e) {
+            // fallback: não conseguiu parsear JSON
+          }
+          setPendingAction({ tipo: dados.tipo || 'saída', dados });
+          setWaitingConfirmation(true);
+        }
+      };
+
+      // Função para lidar com erros
+      const handleError = (erro: any) => {
+        console.error("Erro ao chamar a API Gemini:", erro);
+        setLoading(false);
+        
+        // Substitui a mensagem "Pensando..." por uma mensagem de erro
+        setMessages(prevMessages => [
+          ...prevMessages.filter(m => m.id !== thinkingMsgId),
+          {
+            id: uuidv4(),
+            text: "Desculpe, tive um problema ao me comunicar com a API. Verifique sua conexão ou chave API.",
+            sender: "system",
+            timestamp: new Date()
+          }
+        ]);
+      };
+
+      // Chamar a API Gemini com um timeout de 10 segundos
+      try {
+        // Adicionar um timeout para garantir que a promessa será resolvida
+        const timeoutPromise = new Promise<string>((_, reject) => {
+          setTimeout(() => reject(new Error("Timeout ao aguardar resposta da API")), 10000);
+        });
+        
+        // Corremos ambas as promessas e usamos a primeira que resolver
+        Promise.race([
+          getGeminiResponse(message),
+          timeoutPromise
+        ])
+          .then(finalizarPensando)
+          .catch(handleError);
+      } catch (e) {
+        handleError(e);
       }
     }
   };

@@ -150,58 +150,15 @@ const FinancialAdvisorPage: React.FC = () => {
       return;
     }
 
-    // Enviar mensagem para IA normalmente
+    // Adicionar a mensagem do usuário ao chat
     setLoading(true);
     setError("");
     setMessages((msgs) => ([...msgs, { id: uuidv4(), text: message, sender: 'user', timestamp: new Date() }]));
     
-    // Envio para Gemini via API
-    try {
-      const respostaIA = await getGeminiResponse(message);
-      setLoading(false);
-
-      // Se Gemini pedir confirmação
-      const intent = parseConfirmationIntent(respostaIA);
-      if (intent) {
-        setMessages((prevMessages: ChatMessage[]) => [
-          ...prevMessages,
-          {
-            id: uuidv4(),
-            text: respostaIA,
-            sender: "system",
-            timestamp: new Date()
-          }
-        ]);
-        // Exemplo de parsing: "uma saída de R$50 em mercado" => { tipo: 'saída', valor: 50, categoria: 'mercado' }
-        // Aqui simplificamos: Gemini deve retornar JSON ou string fácil de parsear
-        // Suponha que Gemini retorna: "Confirma o registro de uma saída de R$50 em mercado? {\"tipo\":\"saída\",\"valor\":50,\"categoria\":\"mercado\"}"
-        let dados: any = {};
-        try {
-          const jsonMatch = respostaIA.match(/\{.*\}$/);
-          if (jsonMatch) {
-            dados = JSON.parse(jsonMatch[0]);
-          }
-        } catch (e) {
-          // fallback: não conseguiu parsear JSON
-        }
-        setPendingAction({ tipo: dados.tipo || 'saída', dados });
-        setWaitingConfirmation(true);
-        return;
-      }
-      // Resposta normal da IA
-      setMessages((prevMessages: ChatMessage[]) => [
-        ...prevMessages,
-        {
-          id: uuidv4(),
-          text: respostaIA,
-          sender: "system",
-          timestamp: new Date()
-        }
-      ]);
-    } catch (e) {
-      setError('Erro ao se comunicar com a IA.');
-      setLoading(false);
-    }
+    // Flag para controlar se uma resposta já foi enviada
+    let respostaEnviada = false;
+    
+    // Tentar corresponder a padrões hardcoded primeiro (eles são mais rápidos e confiáveis)
 
     // 3. Como criar um orçamento?
     if (
@@ -224,7 +181,9 @@ const FinancialAdvisorPage: React.FC = () => {
           timestamp: new Date()
         };
         setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
+        setLoading(false);
       });
+      respostaEnviada = true;
       return;
     }
 
@@ -245,6 +204,8 @@ const FinancialAdvisorPage: React.FC = () => {
         timestamp: new Date()
       };
       setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
+      setLoading(false);
+      respostaEnviada = true;
       return;
     }
 
@@ -672,27 +633,77 @@ const FinancialAdvisorPage: React.FC = () => {
       return;
     }
 
-    // 3. Fallback: resposta com IA real (Gemini)
-    const thinkingMsg: ChatMessage = {
-      id: uuidv4(),
-      text: "Pensando...",
-      sender: "system",
-      timestamp: new Date()
-    };
-    setMessages((prevMessages: ChatMessage[]) => [...prevMessages, thinkingMsg]);
+    // Se nenhum padrao hardcoded foi encontrado, tente o Gemini como fallback
+    if (!respostaEnviada) {
+      // Mensagem temporária "Pensando..."
+      const thinkingMsg: ChatMessage = {
+        id: uuidv4(),
+        text: "Pensando...",
+        sender: "system",
+        timestamp: new Date()
+      };
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, thinkingMsg]);
 
-    // Usar a função fetchGeminiFlashLite que importamos
-    fetchGeminiFlashLite(message).then((geminiResp: string) => {
-      setMessages(prevMessages => [
-        ...prevMessages.filter(m => m.id !== thinkingMsg.id),
-        {
-          id: uuidv4(),
-          text: geminiResp,
-          sender: "system",
-          timestamp: new Date()
-        }
-      ]);
-    });
+      // Chamada ao Gemini API
+      try {
+        getGeminiResponse(message).then((geminiResp: string) => {
+          setLoading(false);
+          
+          // Se Gemini pedir confirmação
+          const intent = parseConfirmationIntent(geminiResp);
+          if (intent) {
+            setMessages(prevMessages => [
+              ...prevMessages.filter(m => m.id !== thinkingMsg.id),
+              {
+                id: uuidv4(),
+                text: geminiResp,
+                sender: "system",
+                timestamp: new Date()
+              }
+            ]);
+            
+            // Tratar JSON para ação pendente
+            let dados: any = {};
+            try {
+              const jsonMatch = geminiResp.match(/\{.*\}$/);
+              if (jsonMatch) {
+                dados = JSON.parse(jsonMatch[0]);
+              }
+            } catch (e) {
+              // fallback: não conseguiu parsear JSON
+            }
+            setPendingAction({ tipo: dados.tipo || 'saída', dados });
+            setWaitingConfirmation(true);
+          } else {
+            // Resposta normal da IA
+            setMessages(prevMessages => [
+              ...prevMessages.filter(m => m.id !== thinkingMsg.id),
+              {
+                id: uuidv4(),
+                text: geminiResp,
+                sender: "system",
+                timestamp: new Date()
+              }
+            ]);
+          }
+        }).catch(error => {
+          console.error("Erro na chamada do Gemini:", error);
+          setMessages(prevMessages => [
+            ...prevMessages.filter(m => m.id !== thinkingMsg.id),
+            {
+              id: uuidv4(),
+              text: "Desculpe, tive um problema de comunicação. Pode tentar novamente?",
+              sender: "system",
+              timestamp: new Date()
+            }
+          ]);
+          setLoading(false);
+        });
+      } catch (e) {
+        setError("Erro ao se comunicar com a IA.");
+        setLoading(false);
+      }
+    }
   };
 
   

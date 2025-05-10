@@ -715,27 +715,6 @@ const FinancialAdvisorPage: React.FC = () => {
         <div className="flex flex-row items-center gap-3 w-full max-w-xl justify-between">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-2">
-              <span className="text-white text-sm">💡</span>
-            </div>
-            <div>
-              <span className="text-lg font-bold text-white tracking-tight">Consultor IA</span>
-              <span className="block text-xs text-blue-100">Assistente financeiro</span>
-  // Sugestões para o consultor financeiro
-  const suggestions = [
-    { key: "howToSaveMore", text: t("howToSaveMore") || "Como economizar mais?" },
-    { key: "biggestExpenses", text: t("biggestExpenses") || "Quais são meus maiores gastos?" },
-    { key: "createBudget", text: t("createBudget") || "Como criar um orçamento?" },
-    { key: "investOrPayDebt", text: t("investOrPayDebt") || "Devo investir ou pagar dívidas?" },
-    { key: "reduceEatingOut", text: t("reduceEatingOut") || "Como reduzir gastos com alimentação?" },
-    { key: "howMuchToSave", text: t("howMuchToSave") || "Quanto devo guardar por mês?" }
-  ];
-
-  // Renderização do componente
-  return (
-    <div className="min-h-screen bg-galileo-background flex flex-col pb-16">
-      {/* Header com design moderno e colorido */}
-      <header className="sticky top-0 z-10 bg-galileo-accent text-white dark:bg-galileo-card dark:text-galileo-text shadow-md px-4 py-3 flex flex-col items-center mx-auto w-full border-b border-galileo-border">
-        <div className="flex flex-row items-center gap-3 w-full max-w-xl justify-between">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-2">
               <span className="text-white text-sm">💡</span>
@@ -825,63 +804,9 @@ const FinancialAdvisorPage: React.FC = () => {
         </div>
       </div>
     );
-            </div>
-          )}
-          {/* Confirmação de registro */}
-          {waitingConfirmation && pendingAction && (
-            <div className="flex flex-col items-center mt-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={IA_AVATAR} alt="IA" />
-                  <AvatarFallback>IA</AvatarFallback>
-                </Avatar>
-                <span className="text-sm bg-yellow-100 text-yellow-900 px-4 py-2 rounded-2xl border border-yellow-300 shadow-sm font-medium animate-fade-in">
-                  Confirma o registro de <b>{pendingAction.dados?.descricao || pendingAction.dados?.categoria || 'transação'}</b>?
-                </span>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  className="px-4 py-2 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold shadow transition-all"
-                  onClick={() => handleSendMessage('sim')}
-                  aria-label="Confirmar registro"
-                >Confirmar</button>
-                <button
-                  className="px-4 py-2 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold shadow transition-all"
-                  onClick={() => handleSendMessage('não')}
-                  aria-label="Cancelar registro"
-                >Cancelar</button>
-              </div>
-            </div>
-          )}
-        </div>
-        {/* Sugestões só aparecem se não estiver esperando confirmação ou loading */}
-        {showSuggestions && !waitingConfirmation && !loading && (
-          <div className="mb-3 px-3">
-            <div className="flex flex-wrap gap-2 justify-center">
-              {suggestions.map((suggestion, index) => (
-                <button
-                  key={index}
-                  className="px-3 py-1.5 rounded-full bg-galileo-background hover:bg-galileo-accent text-galileo-text text-xs font-medium border border-galileo-border shadow-sm transition-all"
-                  onClick={() => handleSuggestionClick(suggestion.text)}
-                >
-                  {suggestion.text}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        <div className="sticky bottom-0 w-full bg-galileo-card pt-2 pb-3 px-3 border-t border-galileo-border z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
-          <ChatInput onSubmit={(message: string) => handleSendMessage(message)} />
-        </div>
-      </section>
-    </main>
+}
 
-    {/* NavBar fixa na parte inferior */}
-    <div className="fixed bottom-0 left-0 right-0 z-20">
-      <NavBar />
-    </div>
-  </div>
-);
+export default FinancialAdvisorPage;
 
           {/* Sugestões iniciais */}
           {showSuggestions && (

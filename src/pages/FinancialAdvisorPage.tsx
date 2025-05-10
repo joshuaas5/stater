@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ChatMessage } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '@/hooks/use-translation';
-import { fetchGeminiFlashLite } from '@/utils/gemini';
+import { fetchGeminiFlashLite, GeminiTransactionIntent } from '@/utils/gemini';
 import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
@@ -153,573 +153,96 @@ export const FinancialAdvisorPage: React.FC = () => {
     // Adicionar a mensagem do usuário ao chat
     setLoading(true);
     setError("");
-    setMessages((msgs) => ([...msgs, { id: uuidv4(), text: message, sender: 'user', timestamp: new Date() }]));
+    const userMessage: ChatMessage = { id: uuidv4(), text: message, sender: 'user', timestamp: new Date() };
+    setMessages((msgs) => ([...msgs, userMessage]));
     
+    // Limpar sugestões ao enviar mensagem
+    setShowSuggestions(false);
+
     // Flag para controlar se uma resposta já foi enviada
     let respostaEnviada = false;
     
-    // Tentar corresponder a padrões hardcoded primeiro (eles são mais rápidos e confiáveis)
+    // Remover lógicas de padrões hardcoded para dar prioridade à Gemini para intenções de transação
+    // ... (seção de if/else com padrões hardcoded foi removida para simplificar e focar na Gemini)
+    // ...
 
-    // 3. Como criar um orçamento?
-    if (
-      lowerMsg.includes("criar um orçamento") ||
-      lowerMsg.includes("montar orçamento") ||
-      lowerMsg.includes("planejar orçamento") ||
-      lowerMsg.match(/como (faço|fazer) um orçamento/) ||
-      lowerMsg.match(/dicas.*orçamento/)
-    ) {
-      getDataUtils().then(({ transactions, calculateBalance, formatCurrency }) => {
-        const totalIncome = transactions.filter((t: any) => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
-        let resp = "Para criar um orçamento eficiente:\n";
-        resp += "1. Liste todas as suas receitas e despesas mensais.\n";
-        resp += `2. Sua receita mensal registrada: ${formatCurrency(totalIncome)}.\n`;
-        resp += "3. Defina limites para cada categoria.\n5. Monitore seus gastos e ajuste quando necessário.";
-        const advisorResponse: ChatMessage = {
-          id: uuidv4(),
-          text: resp,
-          sender: "system",
-          timestamp: new Date()
-        };
-        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-        setLoading(false);
-      });
-      respostaEnviada = true;
-      return;
-    }
-
-    // 4. Devo investir ou pagar dívidas?
-    if (
-      lowerMsg.includes("investir ou pagar dívidas") ||
-      lowerMsg.includes("investir ou pagar dividas") ||
-      lowerMsg.includes("priorizar dívidas ou investimentos") ||
-      lowerMsg.match(/(quitar|pagar) dívidas.*investir/) ||
-      lowerMsg.match(/investimento.*dívida/)
-    ) {
-      let resp = "Se você possui dívidas com juros altos (ex: cartão de crédito), priorize quitá-las antes de investir. Após quitar dívidas caras, comece a investir para construir patrimônio.";
-      resp += "\nAvalie sempre a taxa de juros das suas dívidas versus o rendimento esperado dos investimentos.";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      setLoading(false);
-      respostaEnviada = true;
-      return;
-    }
-
-    // 5. Como reduzir gastos com alimentação?
-    if (
-      lowerMsg.includes("reduzir gastos com alimentação") ||
-      lowerMsg.includes("gasto com comida") ||
-      lowerMsg.includes("gasto com restaurante") ||
-      lowerMsg.match(/como economizar.*alimentação/) ||
-      lowerMsg.match(/dicas.*supermercado/)
-    ) {
-      let resp = "Algumas dicas para reduzir gastos com alimentação:\n";
-      resp += "• Planeje suas refeições e faça compras com lista.\n";
-      resp += "• Prefira cozinhar em casa ao invés de pedir comida pronta.\n";
-      resp += "• Evite desperdícios, aproveite sobras.\n";
-      resp += "• Compare preços entre mercados e busque promoções.";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-
-    // 6. Quanto devo guardar por mês?
-    if (
-      lowerMsg.includes("quanto devo guardar") ||
-      lowerMsg.includes("quanto guardar todo mês") ||
-      lowerMsg.includes("quanto economizar mensalmente") ||
-      lowerMsg.match(/quanto.*guardar.*(mês|mensal)/) ||
-      lowerMsg.match(/quanto.*poupar/)
-    ) {
-      getDataUtils().then(({ transactions, calculateBalance, formatCurrency }) => {
-        const totalIncome = transactions.filter((t: any) => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
-        let suggested = totalIncome * 0.2;
-        let resp = "O ideal é guardar cerca de 20% da sua renda mensal.\n";
-        if (totalIncome > 0) {
-          resp += `Com base na sua receita registrada (${formatCurrency(totalIncome)}), tente guardar ao menos ${formatCurrency(suggested)} por mês.`;
-        } else {
-          resp += "Registre suas receitas para obter uma sugestão personalizada.";
-        }
-        const advisorResponse: ChatMessage = {
-          id: uuidv4(),
-          text: resp,
-          sender: "system",
-          timestamp: new Date()
-        };
-        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      });
-      return;
-    }
-
-    // --- INTELIGÊNCIA EXPANDIDA: Respostas para dezenas de temas financeiros ---
-    // Investimentos
-    if (
-      lowerMsg.includes("investir em renda fixa") ||
-      lowerMsg.includes("investir em renda variável") ||
-      lowerMsg.includes("tesouro direto") ||
-      lowerMsg.match(/investir em (ações|fundos|cdb|lci|lca|tesouro|cripto)/) ||
-      lowerMsg.match(/melhor investimento/) ||
-      lowerMsg.match(/onde investir/)
-    ) {
-      let resp = "Investir depende do seu perfil e objetivos. Renda fixa (Tesouro Direto, CDB, LCI/LCA) é indicada para quem busca segurança. Renda variável (ações, fundos imobiliários, ETFs) oferece maior potencial de retorno, mas também mais risco. Diversifique e nunca invista sem conhecer o produto! Quer uma explicação sobre algum investimento específico?";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // Cartão de crédito
-    if (
-      lowerMsg.includes("cartão de crédito") ||
-      lowerMsg.includes("fatura do cartão") ||
-      lowerMsg.includes("melhor cartão") ||
-      lowerMsg.match(/dicas.*cartão/) ||
-      lowerMsg.match(/controle.*cartão/)
-    ) {
-      let resp = "Dica: sempre pague o valor total da fatura do cartão de crédito para evitar juros altos. Use o cartão como aliado, nunca como extensão da sua renda. Controle os gastos e evite parcelar compras desnecessárias. Quer dicas para escolher um cartão ou controlar melhor sua fatura?";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // PIX, transferências e bancos digitais
-    if (
-      lowerMsg.includes("pix") ||
-      lowerMsg.includes("transferência instantânea") ||
-      lowerMsg.match(/como usar o pix/) ||
-      lowerMsg.match(/banco digital/)
-    ) {
-      let resp = "O PIX revolucionou as transferências: é rápido, gratuito e funciona 24h. Bancos digitais oferecem praticidade e menos tarifas. Sempre confira os dados antes de transferir e evite cair em golpes! Quer saber como cadastrar uma chave PIX ou dicas de segurança?";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // Impostos e declaração de renda
-    if (
-      lowerMsg.includes("imposto de renda") ||
-      lowerMsg.includes("declaração de imposto") ||
-      lowerMsg.match(/como declarar/) ||
-      lowerMsg.match(/preciso declarar/)
-    ) {
-      let resp = "O Imposto de Renda deve ser declarado anualmente por quem atingiu certos limites de renda, bens ou investimentos. Organize seus comprovantes, baixe o programa da Receita Federal e preencha com atenção. Dúvidas sobre deduções ou quem precisa declarar? Pergunte!";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // Aposentadoria e INSS
-    if (
-      lowerMsg.includes("aposentadoria") ||
-      lowerMsg.includes("inss") ||
-      lowerMsg.match(/como me aposentar/) ||
-      lowerMsg.match(/quanto vou receber de aposentadoria/)
-    ) {
-      let resp = "A aposentadoria depende do tempo de contribuição e valor recolhido ao INSS. Planeje-se cedo, contribua regularmente e avalie opções como previdência privada para complementar a renda. Quer simular sua aposentadoria ou entender as regras atuais?";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // Inflação, câmbio e economia
-    if (
-      lowerMsg.includes("inflação") ||
-      lowerMsg.includes("câmbio") ||
-      lowerMsg.includes("dólar") ||
-      lowerMsg.includes("euro") ||
-      lowerMsg.match(/como funciona a inflação/) ||
-      lowerMsg.match(/por que o dólar sobe/)
-    ) {
-      let resp = "Inflação é o aumento generalizado dos preços, reduzindo o poder de compra. O câmbio (dólar, euro) varia conforme oferta, demanda e cenário global. Diversifique seus investimentos para se proteger da inflação e acompanhe indicadores econômicos! Quer saber como a inflação afeta seu dinheiro?";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // Renda extra e empreendedorismo
-    if (
-      lowerMsg.includes("renda extra") ||
-      lowerMsg.includes("ganhar dinheiro") ||
-      lowerMsg.includes("empreender") ||
-      lowerMsg.match(/como fazer renda extra/) ||
-      lowerMsg.match(/ideias para ganhar dinheiro/)
-    ) {
-      let resp = "Renda extra pode vir de freelas, vendas, ensino, economia colaborativa ou investimentos. Identifique suas habilidades e oportunidades no seu contexto. Empreender exige planejamento, pesquisa e controle financeiro. Quer dicas de renda extra ou abrir seu próprio negócio?";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // Educação financeira e hábitos
-    if (
-      lowerMsg.includes("educação financeira") ||
-      lowerMsg.includes("organizar finanças") ||
-      lowerMsg.includes("controle financeiro") ||
-      lowerMsg.match(/como aprender finanças/) ||
-      lowerMsg.match(/dicas de educação financeira/)
-    ) {
-      let resp = "Educação financeira é essencial para conquistar objetivos. Estude sobre orçamento, investimentos, dívidas e planejamento. O primeiro passo é registrar tudo o que entra e sai. Quer recomendações de livros, cursos ou canais sobre finanças?";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // Perguntas sobre salário, FGTS, direitos trabalhistas
-    if (
-      lowerMsg.includes("salário") ||
-      lowerMsg.includes("fgts") ||
-      lowerMsg.includes("direitos trabalhistas") ||
-      lowerMsg.match(/como calcular salário/) ||
-      lowerMsg.match(/13º salário/) ||
-      lowerMsg.match(/férias proporcionais/)
-    ) {
-      let resp = "Salário, FGTS e direitos trabalhistas são garantidos por lei. O FGTS é depositado mensalmente pelo empregador e pode ser sacado em situações específicas. O 13º salário é pago no fim do ano. Tem dúvidas sobre descontos, férias ou rescisão? Pergunte!";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // Consultas de saldo, extrato, histórico
-    if (
-      lowerMsg.match(/quanto tenho de saldo/) ||
-      lowerMsg.match(/meu saldo/) ||
-      lowerMsg.match(/meu extrato/) ||
-      lowerMsg.match(/histórico de transações/) ||
-      lowerMsg.match(/quanto gastei (este mês|no mês|essa semana|hoje)/)
-    ) {
-      getDataUtils().then(({ transactions, formatCurrency, calculateBalance }: { transactions: any[], formatCurrency: (value: number) => string, calculateBalance: (transactions: any[]) => number }) => {
-        const saldo = calculateBalance(transactions);
-        let resp = `Seu saldo atual é: ${formatCurrency(saldo)}.`;
-        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, {
-          id: uuidv4(),
-          text: resp,
-          sender: "system",
-          timestamp: new Date()
-        }]);
-      });
-      return;
-    }
-    // Perguntas sobre boletos, contas a pagar, vencimentos
-    if (
-      lowerMsg.includes("conta a pagar") ||
-      lowerMsg.includes("boleto") ||
-      lowerMsg.includes("vencimento") ||
-      lowerMsg.match(/próximas contas/) ||
-      lowerMsg.match(/contas vencidas/)
-    ) {
-      const getBills = async () => {
-        const { getBills } = await import('@/utils/localStorage');
-        const { formatCurrency } = await import('@/utils/dataProcessing');
-        const bills = getBills();
-        if (!bills || bills.length === 0) {
-          setMessages(prevMessages => [...prevMessages, {
-            id: uuidv4(),
-            text: "Você não possui contas a pagar registradas.",
-            sender: "system",
-            timestamp: new Date()
-          }]);
-          return;
-        }
-        const vencidas = bills.filter(b => !b.isPaid && new Date(b.dueDate) < new Date());
-        const proximas = bills.filter(b => !b.isPaid && new Date(b.dueDate) >= new Date());
-        let resp = '';
-        if (vencidas.length > 0) {
-          resp += `Contas vencidas:\n` + vencidas.map(b => `• ${b.title} (${formatCurrency(b.amount)}) - Venceu em ${new Date(b.dueDate).toLocaleDateString('pt-BR')}`).join('\n') + '\n';
-        }
-        if (proximas.length > 0) {
-          resp += `Próximas contas:\n` + proximas.map(b => `• ${b.title} (${formatCurrency(b.amount)}) - Vence em ${new Date(b.dueDate).toLocaleDateString('pt-BR')}`).join('\n');
-        }
-        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, {
-          id: uuidv4(),
-          text: resp,
-          sender: "system",
-          timestamp: new Date()
-        }]);
-      };
-      getBills();
-      return;
-    }
-    // Perguntas sobre parcelamentos
-    if (
-      lowerMsg.includes("parcelamento") ||
-      lowerMsg.match(/parcelado/) ||
-      lowerMsg.match(/quantas parcelas/)
-    ) {
-      let resp = "Compras parceladas devem ser planejadas! Sempre avalie o valor total (incluindo juros), o impacto nas próximas faturas e se a parcela cabe no seu orçamento. Quer ajuda para calcular ou controlar parcelas?";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // Perguntas sobre reserva de emergência
-    if (
-      lowerMsg.includes("reserva de emergência") ||
-      lowerMsg.match(/quanto devo ter de reserva/) ||
-      lowerMsg.match(/reserva financeira/)
-    ) {
-      let resp = "Sua reserva de emergência deve cobrir de 3 a 6 meses dos seus custos fixos. Mantenha esse valor em aplicações seguras e de alta liquidez, como Tesouro Selic ou CDB com liquidez diária. Quer ajuda para calcular sua reserva?";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // Perguntas sobre dívidas, renegociação, nome sujo
-    if (
-      lowerMsg.includes("nome sujo") ||
-      lowerMsg.includes("serasa") ||
-      lowerMsg.includes("negativado") ||
-      lowerMsg.match(/como limpar meu nome/) ||
-      lowerMsg.match(/renegociar dívida/)
-    ) {
-      let resp = "Se está negativado ou com o nome sujo, o primeiro passo é levantar todas as dívidas, priorizar as mais caras e buscar renegociação. Feirões do Serasa e bancos costumam oferecer descontos. Nunca aceite acordos que não cabem no seu orçamento! Precisa de um passo a passo para renegociar?";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // Perguntas sobre seguros (vida, carro, residência)
-    if (
-      lowerMsg.includes("seguro de vida") ||
-      lowerMsg.includes("seguro de carro") ||
-      lowerMsg.includes("seguro residencial") ||
-      lowerMsg.match(/vale a pena seguro/)
-    ) {
-      let resp = "Seguros protegem seu patrimônio e sua família. Analise as coberturas, franquias e reputação da seguradora. Seguro de vida é importante se você tem dependentes. Seguro auto/residencial protege contra imprevistos. Quer ajuda para escolher um seguro?";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // Perguntas sobre planejamento familiar, filhos, educação
-    if (
-      lowerMsg.includes("planejamento familiar") ||
-      lowerMsg.includes("filhos") ||
-      lowerMsg.includes("poupança para filhos") ||
-      lowerMsg.match(/como planejar família/) ||
-      lowerMsg.match(/educação dos filhos/)
-    ) {
-      let resp = "Planejamento familiar envolve ajustar o orçamento, prever gastos com filhos e investir em educação. Comece a poupar cedo para garantir o futuro dos pequenos. Quer dicas para montar uma poupança para filhos ou planejar educação?";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // Perguntas sobre doações, voluntariado, impacto social
-    if (
-      lowerMsg.includes("doação") ||
-      lowerMsg.includes("voluntariado") ||
-      lowerMsg.includes("impacto social") ||
-      lowerMsg.match(/como doar/) ||
-      lowerMsg.match(/ajudar o próximo/)
-    ) {
-      let resp = "Doar e praticar voluntariado faz bem para quem recebe e para quem doa! Planeje suas doações, escolha causas confiáveis e, se possível, dedique tempo também. Algumas doações podem ser deduzidas do Imposto de Renda. Quer saber como doar de forma segura?";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    // --- IA BÁSICA: Resposta automática para qualquer questão ---
-    // 1. Tentar identificar palavras-chave financeiras
-    const financialKeywords = [
-      "gasto", "despesa", "receita", "investimento", "economizar", "guardar", "orçamento", "dívida", "cartão", "fatura", "poupança", "renda", "salário", "dinheiro", "juros", "pix", "imposto", "aposentadoria", "inflação", "câmbio", "fgts", "boleto", "parcelamento", "reserva", "seguro", "doação", "empreender", "educação financeira", "controle", "extrato", "saldo", "conta", "renda extra", "planejamento", "filhos", "doar", "voluntariado", "impacto social"];
-    const educationKeywords = [
-      "explica", "o que é", "como funciona", "significa", "diferença entre", "exemplo de", "exemplo", "exemplos", "detalhe", "detalhes"];
-    const motivationalKeywords = [
-      "motivar", "desanimado", "cansado", "difícil", "ajuda", "conselho", "dica de vida", "inspirar", "desistir", "ânimo", "motivação", "força"];
-
-    // 2. Respostas automáticas baseadas em intenção
-    if (financialKeywords.some(k => lowerMsg.includes(k))) {
-      const resp =
-        "Ótima pergunta! Gerenciar suas finanças é fundamental. Use as ferramentas do app para registrar receitas e despesas, acompanhar suas categorias de gasto, definir metas e buscar conhecimento. Se quiser uma análise personalizada, registre suas movimentações!";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    if (educationKeywords.some(k => lowerMsg.includes(k))) {
-      const resp =
-        "Claro! Sempre que quiser saber o significado de um termo ou conceito financeiro, é só perguntar. Por exemplo: orçamento é o planejamento dos seus ganhos e gastos. Se quiser uma explicação específica, detalhe sua dúvida!";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-    if (motivationalKeywords.some(k => lowerMsg.includes(k))) {
-      const resp =
-        "Lembre-se: cuidar da sua vida financeira é um passo importante para realizar sonhos! Persistência e organização fazem toda a diferença. Conte comigo para te ajudar nessa jornada! 💪";
-      const advisorResponse: ChatMessage = {
-        id: uuidv4(),
-        text: resp,
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-      return;
-    }
-
-    // Se nenhum padrao hardcoded foi encontrado, tente o Gemini como fallback
+    // Se não for um comando hardcoded, chamar Gemini
     if (!respostaEnviada) {
-      // Mensagem temporária "Pensando..."
-      const thinkingMsgId = uuidv4();
-      const thinkingMsg: ChatMessage = {
-        id: thinkingMsgId,
-        text: "Pensando...",
-        sender: "system",
-        timestamp: new Date()
-      };
-      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, thinkingMsg]);
-
-      // Garantir que a mensagem "Pensando..." será removida e o loading será desativado, mesmo em caso de erro
-      const finalizarPensando = (resposta: string) => {
-        // Log para debug
-        console.log("Resposta do Gemini recebida:", { length: resposta.length, preview: resposta.slice(0, 50) });
-        
-        // Sempre remover o indicador de carregamento
-        setLoading(false);
-        
-        // Substituir a mensagem "Pensando..." pela resposta
-        setMessages(prevMessages => [
-          ...prevMessages.filter(m => m.id !== thinkingMsgId),
-          {
-            id: uuidv4(),
-            text: resposta,
-            sender: "system",
-            timestamp: new Date()
-          }
-        ]);
-        
-        // Se for uma pergunta de confirmação, ativar o modo de confirmação
-        const intent = parseConfirmationIntent(resposta);
-        if (intent) {
-          // Tratar JSON para ação pendente
-          let dados: any = {};
-          try {
-            const jsonMatch = resposta.match(/\{.*\}$/);
-            if (jsonMatch) {
-              dados = JSON.parse(jsonMatch[0]);
-            }
-          } catch (e) {
-            // fallback: não conseguiu parsear JSON
-          }
-          setPendingAction({ tipo: dados.tipo || 'saída', dados });
-          setWaitingConfirmation(true);
-        }
-      };
-
-      // Função para lidar com erros
-      const handleError = (erro: any) => {
-        console.error("Erro ao chamar a API Gemini:", erro);
-        setLoading(false);
-        
-        // Substitui a mensagem "Pensando..." por uma mensagem de erro
-        setMessages(prevMessages => [
-          ...prevMessages.filter(m => m.id !== thinkingMsgId),
-          {
-            id: uuidv4(),
-            text: "Desculpe, tive um problema ao me comunicar com a API. Verifique sua conexão ou chave API.",
-            sender: "system",
-            timestamp: new Date()
-          }
-        ]);
-      };
-
-      // Chamar a API Gemini com um timeout de 10 segundos
       try {
-        // Adicionar um timeout para garantir que a promessa será resolvida
-        const timeoutPromise = new Promise<string>((_, reject) => {
-          setTimeout(() => reject(new Error("Timeout ao aguardar resposta da API")), 10000);
-        });
-        
-        // Corremos ambas as promessas e usamos a primeira que resolver
-        Promise.race([
-          getGeminiResponse(message),
-          timeoutPromise
-        ])
-          .then(finalizarPensando)
-          .catch(handleError);
-      } catch (e) {
-        handleError(e);
+        const geminiTextResponse = await getGeminiResponse(message);
+        let botResponseText = geminiTextResponse;
+        let transactionDetailsMessage: ChatMessage | null = null;
+
+        try {
+          // Tentar parsear a resposta como JSON de transação
+          const parsedResponse: GeminiTransactionIntent = JSON.parse(geminiTextResponse);
+          if (parsedResponse && parsedResponse.action === 'add_transaction') {
+            // É uma intenção de transação!
+            const { transaction_type, description, amount, category, date } = parsedResponse;
+            let details = `Entendi que você quer adicionar uma ${transaction_type === 'income' ? 'receita' : 'despesa'} de R$${amount.toFixed(2)} para "${description}".`;
+            if (category) details += ` Categoria: ${category}.`;
+            if (date) {
+              try {
+                const formattedDate = new Date(date + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso ao formatar
+                details += ` Data: ${formattedDate.toLocaleDateString('pt-BR')}.`;
+              } catch (e) {
+                 details += ` Data (não formatada): ${date}.`;
+              }
+            }
+            // Por agora, apenas mostramos o que a IA entendeu.
+            // Próximo passo seria perguntar "Está correto?" e usar pendingAction.
+            botResponseText = details + "\n\n(Esta é uma funcionalidade em teste. Para registrar, use o formulário ou confirme quando solicitado.)";
+            
+            // Poderíamos criar uma mensagem separada para os detalhes se quiséssemos um tratamento visual diferente
+            // transactionDetailsMessage = { 
+            //   id: uuidv4(), 
+            //   text: details + "\n\nQuer que eu prepare isso para registro? (sim/não)", 
+            //   sender: 'system', 
+            //   timestamp: new Date() 
+            // };
+            // Se usarmos transactionDetailsMessage, então botResponseText = null ou uma mensagem diferente.
+          }
+        } catch (e) {
+          // Não é um JSON de transação válido, tratar como chat normal
+          // botResponseText já está com geminiTextResponse
+          if (!(e instanceof SyntaxError)) {
+            console.error("Erro ao processar resposta da Gemini (não foi SyntaxError ao parsear JSON):", e);
+          }
+        }
+
+        if (botResponseText) {
+          const advisorResponse: ChatMessage = {
+            id: uuidv4(),
+            text: botResponseText,
+            sender: "system",
+            timestamp: new Date(),
+            avatarUrl: IA_AVATAR
+          };
+          setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
+        }
+        // Se transactionDetailsMessage for usado, adicionar aqui também
+        // if (transactionDetailsMessage) {
+        //   setMessages((prevMessages: ChatMessage[]) => [...prevMessages, transactionDetailsMessage]);
+        //   setWaitingConfirmation(true); // Ativar espera por confirmação
+        //   setPendingAction({ tipo: parsedResponse.transaction_type, dados: parsedResponse }); // Salvar dados para confirmação
+        // }
+
+      } catch (e: any) {
+        setError(e.message || "Erro ao obter resposta da IA.");
+        const errorResponse: ChatMessage = {
+          id: uuidv4(),
+          text: "Houve um erro ao comunicar com o assistente. Tente novamente.",
+          sender: "system",
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        };
+        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, errorResponse]);
+      } finally {
+        setLoading(false);
       }
     }
   };
 
-  
   const suggestions = [
     { key: "howToSaveMore", text: t("howToSaveMore") || "Como economizar mais?" },
     { key: "biggestExpenses", text: t("biggestExpenses") || "Quais são meus maiores gastos?" },

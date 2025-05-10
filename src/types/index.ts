@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   username: string;
@@ -42,6 +41,7 @@ export interface ChatMessage {
   text: string;
   sender: 'user' | 'system';
   timestamp: Date;
+  avatarUrl?: string; // Adicionado para permitir avatares personalizados para a IA
 }
 
 export interface Category {

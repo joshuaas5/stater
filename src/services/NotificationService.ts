@@ -1,12 +1,75 @@
-
-import { LocalNotifications } from '@capacitor/local-notifications';
 import { Bill, Notification as AppNotification } from '@/types';
 import { getBills, saveNotification } from '@/utils/localStorage';
 
+// Definições de tipo mínimas para emular partes do @capacitor/local-notifications
+// Isso evita o erro 'Cannot find module' se o pacote não estiver instalado
+// e permite o desenvolvimento/linting em um ambiente puramente web.
+
+interface CapacitorPlugins {
+  LocalNotifications?: LocalNotificationsPlugin;
+}
+
+interface LocalNotificationsPlugin {
+  requestPermissions(): Promise<PermissionStatus>;
+  checkPermissions(): Promise<PermissionStatus>;
+  schedule(options: { notifications: Partial<NotificationSchema>[] }): Promise<ScheduleResult>;
+  getPending(): Promise<PendingResult>;
+  cancel(options: { notifications: { id: string | number }[] }): Promise<void>;
+}
+
+interface PermissionStatus {
+  display: 'granted' | 'denied' | 'prompt' | 'prompt-with-rationale';
+}
+
+interface NotificationSchema {
+  id: number; // Ou string, dependendo de como você os configura
+  title: string;
+  body: string;
+  schedule?: { at?: Date; every?: string; count?: number };
+  sound?: string | null;
+  // Outras propriedades conforme necessário
+}
+
+interface ScheduleResult {
+  notifications: { id: string | number }[];
+}
+
+interface PendingResult {
+  notifications: { id: string | number }[];
+}
+
+// Acessar o plugin LocalNotifications de forma segura
+const getLocalNotificationsPlugin = (): LocalNotificationsPlugin | undefined => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const capacitor = (window as any).Capacitor;
+  if (capacitor?.Plugins?.LocalNotifications) {
+    return capacitor.Plugins.LocalNotifications;
+  }
+  return undefined;
+};
+
 class NotificationServiceClass {
-  async requestPermissions(): Promise<boolean> {
+  private async isSupported(): Promise<boolean> {
+    const plugin = getLocalNotificationsPlugin();
+    if (!plugin) {
+      console.warn('Capacitor LocalNotifications não está disponível neste ambiente.');
+      return false;
+    }
+    // Tenta uma chamada leve para confirmar funcionalidade, se necessário
     try {
-      const result = await LocalNotifications.requestPermissions();
+      await plugin.checkPermissions();
+      return true;
+    } catch (e) {
+      console.warn('Falha ao verificar permissões de LocalNotifications.', e);
+      return false;
+    }
+  }
+
+  async requestPermissions(): Promise<boolean> {
+    const plugin = getLocalNotificationsPlugin();
+    if (!plugin) return false;
+    try {
+      const result: PermissionStatus = await plugin.requestPermissions();
       return result.display === 'granted';
     } catch (error) {
       console.error('Error requesting notification permissions:', error);
@@ -15,8 +78,10 @@ class NotificationServiceClass {
   }
   
   async checkPermissions(): Promise<boolean> {
+    const plugin = getLocalNotificationsPlugin();
+    if (!plugin) return false;
     try {
-      const result = await LocalNotifications.checkPermissions();
+      const result: PermissionStatus = await plugin.checkPermissions();
       return result.display === 'granted';
     } catch (error) {
       console.error('Error checking notification permissions:', error);
@@ -25,14 +90,17 @@ class NotificationServiceClass {
   }
   
   async scheduleBillReminders(bills: Bill[]): Promise<void> {
+    const plugin = getLocalNotificationsPlugin();
+    if (!plugin) return;
+
     try {
-      const hasPermission = await this.checkPermissions();
+      const hasPermission = await this.checkPermissions(); // Reutiliza a lógica que já usa o plugin
       if (!hasPermission) {
         const granted = await this.requestPermissions();
         if (!granted) return;
       }
       
-      const notifications = [];
+      const notificationsToSchedule: Partial<NotificationSchema>[] = [];
       
       for (const bill of bills) {
         if (!bill.notificationsEnabled || bill.isPaid) continue;
@@ -51,12 +119,13 @@ class NotificationServiceClass {
             const scheduleTime = new Date();
             scheduleTime.setHours(9, 0, 0, 0); // 9:00 AM
             
-            if (scheduleTime < new Date()) {
-              scheduleTime.setDate(scheduleTime.getDate() + 1);
-            }
+            // Se a hora agendada para hoje já passou, agenda para amanhã (ou não, dependendo da lógica desejada)
+            // if (scheduleTime < new Date()) {
+            //   scheduleTime.setDate(scheduleTime.getDate() + 1);
+            // }
             
-            notifications.push({
-              id: parseInt(`${bill.id.replace(/\D/g, '').substring(0, 8)}${days}`),
+            notificationsToSchedule.push({
+              id: parseInt(`${bill.id.replace(/\D/g, '').substring(0, 8)}${days}`), // Garante um ID numérico único
               title: 'Lembrete de Conta',
               body: `A conta "${bill.title}" vence em ${days === 0 ? 'hoje' : days === 1 ? 'amanhã' : `${days} dias`}!`,
               schedule: { at: scheduleTime },
@@ -66,9 +135,9 @@ class NotificationServiceClass {
         }
       }
       
-      if (notifications.length > 0) {
-        await LocalNotifications.schedule({
-          notifications,
+      if (notificationsToSchedule.length > 0) {
+        await plugin.schedule({
+          notifications: notificationsToSchedule,
         });
       }
     } catch (error) {
@@ -77,12 +146,15 @@ class NotificationServiceClass {
   }
   
   async clearAllNotifications(): Promise<void> {
+    const plugin = getLocalNotificationsPlugin();
+    if (!plugin) return;
+
     try {
-      const pendingNotifications = await LocalNotifications.getPending();
-      const ids = pendingNotifications.notifications.map(notification => notification.id);
+      const pendingNotifications: PendingResult = await plugin.getPending();
+      const idsToCancel: { id: string | number }[] = pendingNotifications.notifications.map((notification: { id: string | number }) => ({ id: notification.id }));
       
-      if (ids.length > 0) {
-        await LocalNotifications.cancel({ notifications: ids.map(id => ({ id })) });
+      if (idsToCancel.length > 0) {
+        await plugin.cancel({ notifications: idsToCancel });
       }
     } catch (error) {
       console.error('Error clearing notifications:', error);
@@ -93,6 +165,7 @@ class NotificationServiceClass {
     const bills = getBills();
     
     if (bills.length > 0) {
+      // scheduleBillReminders internamente já verifica o suporte e as permissões
       await this.scheduleBillReminders(bills);
     }
   }

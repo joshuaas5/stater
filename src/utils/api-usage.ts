@@ -1,132 +1,104 @@
 /**
  * Utilitário para controle de uso de APIs externas
- * Evita ultrapassar limites e gerar cobranças inesperadas
+ * Registra o uso de tokens e verifica limites para evitar cobranças inesperadas.
  */
 
 import { supabase } from '@/lib/supabase';
 
-// Configuração de limites para API do Gemini
-const GEMINI_MONTHLY_LIMIT = 30000; // 30k tokens por mês (ajuste conforme seu plano)
-const GEMINI_USAGE_THRESHOLD = 0.9; // 90% do limite
+// Configuração de limites para a API Gemini (aplicado por usuário)
+const USER_MONTHLY_TOKEN_LIMIT = 30000; // Ex: 30.000 tokens por mês por usuário
+const USER_USAGE_THRESHOLD = 0.9; // Verificar quando atingir 90% do limite
 
-interface ApiUsageRecord {
-  id?: string;
-  api_name: string;
-  month_year: string;
-  usage_count: number;
-  last_updated: string;
+export interface ApiCallDetails {
+  user_id: string;
+  api_name?: string; // Default 'gemini'
+  model_name?: string;
+  prompt_tokens?: number;
+  candidates_tokens?: number;
+  total_tokens?: number;
+  api_key_source?: string;
+  error_message?: string;
+  // created_at é gerado pelo DB
 }
 
 /**
- * Verifica se o uso da API está dentro do limite permitido
- * @param apiName Nome da API a ser verificada
- * @returns Promise<boolean> True se estiver dentro do limite, false caso contrário
+ * Registra os detalhes de uma chamada à API no banco de dados.
+ * @param details Detalhes da chamada à API.
  */
-export async function checkApiUsageLimit(apiName: string): Promise<boolean> {
+export async function logApiCallDetails(details: Omit<ApiCallDetails, 'user_id'>): Promise<void> {
   try {
-    // Obter o mês e ano atual para rastreamento mensal
-    const date = new Date();
-    const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    
-    // Verificar se já existe um registro para este mês
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.warn('Tentativa de registrar uso da API sem usuário autenticado.');
+      return; // Não registrar se não houver usuário
+    }
+
+    const recordToInsert: ApiCallDetails = {
+      ...details,
+      user_id: user.id,
+      api_name: details.api_name || 'gemini', // Garante que api_name tenha um valor
+    };
+
+    const { error } = await supabase.from('api_usage').insert(recordToInsert);
+
+    if (error) {
+      console.error('Erro ao registrar detalhes da chamada da API:', error);
+    }
+  } catch (error) {
+    console.error('Erro inesperado ao registrar detalhes da chamada da API:', error);
+  }
+}
+
+/**
+ * Verifica se o uso total de tokens do usuário no mês corrente está dentro do limite permitido.
+ * @returns Promise<boolean> True se estiver dentro do limite, false caso contrário.
+ */
+export async function checkUserMonthlyTokenLimit(): Promise<boolean> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.warn('Tentativa de verificar limite de API sem usuário autenticado. Permitindo uso por padrão.');
+      return true; // Permitir por padrão se não houver usuário (ex: em cenários de teste sem auth)
+    }
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-indexed (Janeiro = 0)
+
+    // Define o primeiro dia do mês corrente (UTC)
+    const firstDayOfMonth = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
+    // Define o primeiro dia do próximo mês (UTC), que serve como fim do mês corrente
+    const firstDayOfNextMonth = new Date(Date.UTC(year, month + 1, 1, 0, 0, 0, 0));
+
+    // console.log(`Verificando uso de tokens para user ${user.id} entre ${firstDayOfMonth.toISOString()} e ${firstDayOfNextMonth.toISOString()}`);
+
     const { data, error } = await supabase
       .from('api_usage')
-      .select('*')
-      .eq('api_name', apiName)
-      .eq('month_year', monthYear)
-      .single();
-    
-    if (error && error.code !== 'PGRST116') { // PGRST116 = not found
-      console.error('Erro ao verificar uso da API:', error);
-      // Em caso de erro, permitir o uso para não bloquear a funcionalidade
+      .select('total_tokens')
+      .eq('user_id', user.id)
+      .gte('created_at', firstDayOfMonth.toISOString())
+      .lt('created_at', firstDayOfNextMonth.toISOString());
+
+    if (error) {
+      console.error('Erro ao verificar uso de tokens do usuário:', error);
+      // Em caso de erro ao consultar, permitir o uso para não bloquear a funcionalidade crítica.
       return true;
     }
-    
-    // Se não há registro ou o uso está abaixo do limite
-    if (!data || (data.usage_count < GEMINI_MONTHLY_LIMIT * GEMINI_USAGE_THRESHOLD)) {
-      return true;
+
+    const currentMonthTotalTokens = data.reduce((sum, record) => sum + (record.total_tokens || 0), 0);
+    const limit = USER_MONTHLY_TOKEN_LIMIT * USER_USAGE_THRESHOLD;
+
+    // console.log(`Usuário ${user.id}: Tokens consumidos este mês: ${currentMonthTotalTokens}, Limite (90%): ${limit}`);
+
+    if (currentMonthTotalTokens >= limit) {
+      console.warn(`Usuário ${user.id} atingiu ${currentMonthTotalTokens} tokens de ${USER_MONTHLY_TOKEN_LIMIT} (${(currentMonthTotalTokens / USER_MONTHLY_TOKEN_LIMIT * 100).toFixed(1)}%) no mês. Limite de ${USER_USAGE_THRESHOLD*100}% atingido.`);
+      return false; // Limite atingido ou excedido
     }
-    
-    // Uso excedeu o limite
-    console.warn(`Uso da API ${apiName} atingiu ${data.usage_count} de ${GEMINI_MONTHLY_LIMIT} (${(data.usage_count / GEMINI_MONTHLY_LIMIT * 100).toFixed(1)}%)`);
-    return false;
+
+    return true; // Dentro do limite
   } catch (error) {
-    console.error('Erro ao verificar limite de API:', error);
-    // Em caso de erro, permitir o uso para não bloquear a funcionalidade
+    console.error('Erro inesperado ao verificar limite de tokens do usuário:', error);
+    // Em caso de erro inesperado, permitir o uso.
     return true;
   }
-}
-
-/**
- * Incrementa o contador de uso da API
- * @param apiName Nome da API utilizada
- * @param tokenCount Número de tokens utilizados (estimativa)
- */
-export async function incrementApiUsage(apiName: string, tokenCount: number = 1): Promise<void> {
-  try {
-    // Obter o mês e ano atual para rastreamento mensal
-    const date = new Date();
-    const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    const now = new Date().toISOString();
-    
-    // Verificar se já existe um registro para este mês
-    const { data, error } = await supabase
-      .from('api_usage')
-      .select('*')
-      .eq('api_name', apiName)
-      .eq('month_year', monthYear)
-      .single();
-    
-    if (error && error.code !== 'PGRST116') { // PGRST116 = not found
-      console.error('Erro ao incrementar uso da API:', error);
-      return;
-    }
-    
-    if (!data) {
-      // Criar novo registro
-      const newRecord: ApiUsageRecord = {
-        api_name: apiName,
-        month_year: monthYear,
-        usage_count: tokenCount,
-        last_updated: now
-      };
-      
-      const { error: insertError } = await supabase
-        .from('api_usage')
-        .insert(newRecord);
-      
-      if (insertError) {
-        console.error('Erro ao criar registro de uso da API:', insertError);
-      }
-    } else {
-      // Atualizar registro existente
-      const { error: updateError } = await supabase
-        .from('api_usage')
-        .update({
-          usage_count: data.usage_count + tokenCount,
-          last_updated: now
-        })
-        .eq('id', data.id);
-      
-      if (updateError) {
-        console.error('Erro ao atualizar registro de uso da API:', updateError);
-      }
-    }
-  } catch (error) {
-    console.error('Erro ao registrar uso da API:', error);
-  }
-}
-
-/**
- * Estima o número de tokens em um texto
- * Esta é uma estimativa simples baseada em palavras
- * @param text Texto para estimar tokens
- * @returns Número estimado de tokens
- */
-export function estimateTokenCount(text: string): number {
-  if (!text) return 0;
-  
-  // Estimativa simples: ~1.3 tokens por palavra
-  const words = text.trim().split(/\s+/).length;
-  return Math.ceil(words * 1.3);
 }

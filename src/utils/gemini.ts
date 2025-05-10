@@ -2,7 +2,10 @@
  * Utility functions for interacting with Gemini API 2.0
  */
 
-import { checkApiUsageLimit, incrementApiUsage, estimateTokenCount } from './api-usage';
+import { supabase } from '@/lib/supabase'; // Ensure supabase is imported
+import { Transaction } from '@/types';
+// Corrected imports from api-usage.ts
+import { checkUserMonthlyTokenLimit, logApiCallDetails, ApiCallDetails } from './api-usage';
 
 /**
  * Configuração da API Gemini
@@ -10,8 +13,8 @@ import { checkApiUsageLimit, incrementApiUsage, estimateTokenCount } from './api
 // Nome da API para controle de uso
 const API_NAME = 'gemini';
 
-// Usando o modelo Gemini Flash mais recente e otimizado, que é o 'gemini-2.0-flash-lite'
-const GEMINI_MODEL = 'gemini-2.0-flash-lite'; // Updated to use the specific 2.0 Flash Lite model
+// Usando o modelo Gemini Flash mais recente e otimizado, que é o 'gemini-1.5-flash-latest'
+const GEMINI_MODEL_NAME = 'gemini-1.5-flash-latest'; // Updated to use the specific 1.5 Flash Latest model
 
 // URL base da API Gemini
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
@@ -26,110 +29,265 @@ interface ApiKeyInfo {
 }
 
 /**
+ * Interface para o JSON estruturado que a Gemini deve retornar para transações
+ */
+export interface GeminiTransactionIntent {
+  action: 'add_transaction';
+  transaction_type: 'income' | 'expense';
+  description: string;
+  amount: number;
+  category?: string; // Opcional, Gemini pode não conseguir identificar sempre
+  date?: string; // Opcional, formato YYYY-MM-DD
+}
+
+/**
  * Função para obter a API key de diferentes fontes de ambiente
  */
 export function getApiKey(): string | null {
-  const possibleKeys: ApiKeyInfo[] = [];
-
-  // DEBUG LOGS INSIDE getApiKey
-  console.log('[getApiKey CALLED] Environment MODE:', import.meta.env.MODE);
+  // Tenta obter de import.meta.env (Vite)
   if (typeof import.meta !== 'undefined' && import.meta.env) {
-    console.log('[getApiKey CALLED] import.meta.env.VITE_GEMINI_API_KEY:', import.meta.env.VITE_GEMINI_API_KEY);
-    console.log('[getApiKey CALLED] import.meta.env.GEMINI_API_KEY:', import.meta.env.GEMINI_API_KEY);
+    const viteKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
+    if (viteKey) return viteKey as string;
   }
+  // Tenta obter de process.env (Node.js, pode não ser relevante no frontend diretamente mas bom para SSR/testes)
   if (typeof process !== 'undefined' && process.env) {
-    console.log('[getApiKey CALLED] process.env.VITE_GEMINI_API_KEY:', process.env.VITE_GEMINI_API_KEY);
-    console.log('[getApiKey CALLED] process.env.GEMINI_API_KEY:', process.env.GEMINI_API_KEY);
+    const nodeKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    if (nodeKey) return nodeKey;
   }
-
-  // Try to get from process.env (Node.js environment - more relevant for backend or build processes)
-  if (typeof process !== 'undefined' && process.env) {
-    const processViteKey = process.env.VITE_GEMINI_API_KEY;
-    if (processViteKey) {
-      possibleKeys.push({ source: 'process.env.VITE_GEMINI_API_KEY', key: processViteKey });
-    }
-    const processGeminiKey = process.env.GEMINI_API_KEY;
-    if (processGeminiKey) {
-      possibleKeys.push({ source: 'process.env.GEMINI_API_KEY', key: processGeminiKey });
-    }
-    // You can add other process.env checks here if needed, e.g., GOOGLE_API_KEY
+  // Tenta obter do localStorage
+  if (typeof localStorage !== 'undefined') {
+    const localKey = localStorage.getItem('gemini_api_key');
+    if (localKey) return localKey;
   }
-
-  // Try to get from import.meta.env (Vite specific - for client-side)
-  if (typeof import.meta !== 'undefined' && import.meta.env) {
-    const importMetaViteKeyVal = import.meta.env.VITE_GEMINI_API_KEY;
-    if (importMetaViteKeyVal) {
-      possibleKeys.push({ source: 'import.meta.env.VITE_GEMINI_API_KEY', key: importMetaViteKeyVal, mode: import.meta.env.MODE });
-    }
-    const importMetaGeminiKeyVal = import.meta.env.GEMINI_API_KEY;
-    if (importMetaGeminiKeyVal) {
-      possibleKeys.push({ source: 'import.meta.env.GEMINI_API_KEY', key: importMetaGeminiKeyVal, mode: import.meta.env.MODE });
-    }
-  }
-
-  // Try to get from localStorage (user-set in browser)
-  if (typeof window !== 'undefined') {
-    const localStorageKey = window.localStorage.getItem('gemini_api_key');
-    if (localStorageKey) {
-      possibleKeys.push({ source: 'localStorage.gemini_api_key', key: localStorageKey });
-    }
-  }
-
-  console.log("Debug - API Key Search: Potential keys collected (first 5 chars for brevity if key exists):", 
-    possibleKeys.map(pk => ({ ...pk, key: pk.key ? pk.key.substring(0, 5) + '...' : 'N/A' }))
-  );
-
-  // Prioritized retrieval
-  // 1. Vite specific from import.meta.env
-  let foundKey = possibleKeys.find(pk => pk.source === 'import.meta.env.VITE_GEMINI_API_KEY');
-  if (foundKey && foundKey.key) {
-    console.log("Using key from import.meta.env.VITE_GEMINI_API_KEY");
-    return foundKey.key;
-  }
-
-  // 2. Non-prefixed from import.meta.env (for Vercel GEMINI_API_KEY)
-  foundKey = possibleKeys.find(pk => pk.source === 'import.meta.env.GEMINI_API_KEY');
-  if (foundKey && foundKey.key) {
-    console.log("Using key from import.meta.env.GEMINI_API_KEY");
-    return foundKey.key;
-  }
-  
-  // 3. Vite specific from process.env (less common for client, but for completeness)
-  foundKey = possibleKeys.find(pk => pk.source === 'process.env.VITE_GEMINI_API_KEY');
-  if (foundKey && foundKey.key) {
-    console.log("Using key from process.env.VITE_GEMINI_API_KEY");
-    return foundKey.key;
-  }
-
-  // 4. Non-prefixed from process.env
-  foundKey = possibleKeys.find(pk => pk.source === 'process.env.GEMINI_API_KEY');
-  if (foundKey && foundKey.key) {
-    console.log("Using key from process.env.GEMINI_API_KEY");
-    return foundKey.key;
-  }
-
-  // 5. LocalStorage (if user provided one)
-  foundKey = possibleKeys.find(pk => pk.source === 'localStorage.gemini_api_key');
-  if (foundKey && foundKey.key) {
-    console.log("Using key from localStorage.gemini_api_key");
-    return foundKey.key;
-  }
-  
-  console.warn("Gemini API Key not found in any specified environment variables or localStorage.");
   return null;
 }
 
-// REMOVED: const GEMINI_API_KEY = getApiKey(); // Key will be fetched by fetchGeminiFlashLite
+/**
+ * Determina a origem da chave da API para fins de log.
+ * @returns String descrevendo a origem da chave.
+ */
+function getApiKeySource(): string {
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    if (import.meta.env.VITE_GEMINI_API_KEY) return 'import.meta.env.VITE_GEMINI_API_KEY';
+    if (import.meta.env.GEMINI_API_KEY) return 'import.meta.env.GEMINI_API_KEY';
+  }
+  if (typeof process !== 'undefined' && process.env) {
+    if (process.env.VITE_GEMINI_API_KEY) return 'process.env.VITE_GEMINI_API_KEY';
+    if (process.env.GEMINI_API_KEY) return 'process.env.GEMINI_API_KEY';
+  }
+  if (typeof localStorage !== 'undefined' && localStorage.getItem('gemini_api_key')) {
+    return 'localStorage';
+  }
+  return 'unknown';
+}
 
-// URL completa para o endpoint generateContent
-const GEMINI_API_URL = `${GEMINI_API_BASE}/models/${GEMINI_MODEL}:generateContent`;
+/**
+ * Busca uma resposta do modelo Gemini 1.5 Flash Lite.
+ * @param prompt O prompt do usuário.
+ * @param options Opções adicionais, como instruções de sistema.
+ * @returns Uma promessa que resolve para a resposta da IA ou uma mensagem de erro.
+ */
+export async function fetchGeminiFlashLite(
+  prompt: string,
+  options?: { systemInstruction?: string }
+): Promise<string> {
+  const withinLimit = await checkUserMonthlyTokenLimit();
+  if (!withinLimit) {
+    const limitReachedMessage = "Limite de uso da IA atingido para este mês. Por favor, tente novamente mais tarde.";
+    await logApiCallDetails({
+      model_name: GEMINI_MODEL_NAME,
+      error_message: 'LIMIT_REACHED',
+      api_key_source: getApiKeySource()
+    });
+    return limitReachedMessage;
+  }
 
-// Respostas para quando o limite de API for atingido
-const LIMIT_REACHED_RESPONSES = [
-  "Já alcançamos nosso limite diário de chamadas à API. Por favor, tente novamente amanhã.",
-  "Ops, parece que estamos com muitas consultas hoje! Tente novamente mais tarde.",
-  "Nosso assistente está em pausa para descanso. Volte em algumas horas!"
-];
+  const apiKey = getApiKey();
+  const apiKeySource = getApiKeySource();
+
+  const defaultSystemInstruction = `
+Você é um assistente financeiro amigável e prestativo chamado Sprout Spending Hub IA.
+Seu objetivo é ajudar o usuário a gerenciar suas finanças.
+Responda de forma concisa, prática e motivadora.
+
+Se o usuário expressar a intenção de adicionar uma nova transação (receita ou despesa), você DEVE tentar extrair as seguintes informações:
+- tipo da transação ('income' para receita, 'expense' para despesa)
+- descrição da transação
+- valor da transação (deve ser um número)
+- opcionalmente, uma categoria
+- opcionalmente, uma data (no formato YYYY-MM-DD)
+
+Se você identificar uma intenção de adicionar transação e conseguir extrair PELO MENOS o tipo, descrição e valor, você DEVE responder APENAS com um objeto JSON formatado da seguinte maneira, SEM NENHUM TEXTO ADICIONAL ANTES OU DEPOIS DO JSON:
+{
+  "action": "add_transaction",
+  "transaction_type": "income" | "expense",
+  "description": "string",
+  "amount": number,
+  "category": "string" | null,
+  "date": "YYYY-MM-DD" | null
+}
+
+Exemplos de como você deve responder com JSON:
+Usuário: "adicione uma despesa de 50 reais com mercado"
+Sua Resposta (APENAS O JSON):
+{
+  "action": "add_transaction",
+  "transaction_type": "expense",
+  "description": "mercado",
+  "amount": 50,
+  "category": "Alimentação", 
+  "date": null
+}
+
+Usuário: "registre uma receita de 1200 de salário dia 05/03/2025"
+Sua Resposta (APENAS O JSON):
+{
+  "action": "add_transaction",
+  "transaction_type": "income",
+  "description": "salário",
+  "amount": 1200,
+  "category": "Salário",
+  "date": "2025-03-05"
+}
+
+Se não for uma intenção clara de adicionar transação ou se você não conseguir extrair os dados mínimos, responda normalmente como um assistente de chat.
+Se o usuário pedir para registrar, adicionar, anotar, etc., uma receita, entrada, ganho, despesa, saida, gasto, etc., isso é uma intenção de adicionar transação.
+`;
+
+  const systemInstructionToUse = options?.systemInstruction || defaultSystemInstruction;
+
+  if (!apiKey) {
+    console.error("API Key for Gemini is not configured. Returning hardcoded response.");
+    // Registrar a falha de configuração da API Key
+    await logApiCallDetails({
+      model_name: GEMINI_MODEL_NAME,
+      error_message: 'API_KEY_NOT_CONFIGURED',
+      api_key_source: apiKeySource
+    });
+    return "A chave da API para o Gemini não está configurada. Por favor, adicione sua chave nas configurações para usar esta funcionalidade.";
+  }
+
+  // Obter o user_id para logar
+  let userId = null;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) userId = user.id;
+  } catch (e) {
+    console.warn('Não foi possível obter user_id para log de API, mas prosseguindo.');
+  }
+
+  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL_NAME}:generateContent`;
+
+  const requestBody = {
+    contents: [
+      {
+        parts: [{ text: prompt }],
+        role: 'user'
+      }
+    ],
+    system_instruction: {
+      parts: [{ text: systemInstructionToUse }]
+    },
+    generationConfig: {
+      temperature: 0.7,
+    },
+  };
+
+  try {
+    console.log('Calling Gemini API with:', { 
+      url: `${GEMINI_API_URL}?key=XXXXX`, // Key omitted for logging
+      requestBodyPreview: JSON.stringify(requestBody).substring(0, 200) + '...',
+      userId: userId // Logando o userId que fará a chamada
+    });
+
+    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    // Log do status da resposta
+    console.log(`Gemini API response status: ${response.status} ${response.statusText}`);
+    
+    // Se a resposta não for OK, tentar extrair informações detalhadas do erro
+    if (!response.ok) {
+      let errorDetails = '';
+      try {
+        // Tentar extrair o JSON de erro para detalhes mais precisos
+        const errorJson = await response.json();
+        errorDetails = JSON.stringify(errorJson, null, 2);
+        console.error('Gemini API detailed error:', errorJson);
+        
+        // Se houver uma mensagem de erro específica, usar para a resposta de fallback
+        if (errorJson.error && errorJson.error.message) {
+          return `Desculpe, houve um problema com a IA: ${errorJson.error.message}`;
+        }
+      } catch (e) {
+        // Se não for possível extrair JSON, usar o texto bruto
+        errorDetails = await response.text();
+        console.error('Gemini API error text:', errorDetails);
+      }
+      
+      throw new Error(`API error (${response.status}): ${errorDetails}`);
+    }
+    
+    // Parse da resposta como JSON
+    const data: GeminiResponse = await response.json();
+    console.log('Gemini API response preview:', JSON.stringify(data).substring(0, 200) + '...');
+    
+    // Verificar se há conteúdo bloqueado ou erro
+    if (data.promptFeedback?.blockReason) {
+      console.warn('Prompt blocked by safety settings:', data.promptFeedback.blockReason);
+      return "Desculpe, não posso responder a esse tipo de pergunta. Posso ajudar com questões financeiras!";
+    }
+    
+    // Verificar se há erro explícito na resposta
+    if (data.error) {
+      console.error('Gemini API error in response:', data.error);
+      return `Desculpe, houve um problema com a IA: ${data.error.message}`;
+    }
+    
+    // Extrair o texto da resposta
+    let responseText = "";
+    if (data.candidates && data.candidates.length > 0) {
+      const textParts = data.candidates[0].content.parts;
+      if (textParts && textParts.length > 0) {
+        responseText = textParts[0].text.trim();
+        console.log('Gemini response text extracted successfully:', responseText.substring(0, 50) + '...');
+        
+        // Calcular tokens usados e registrar (se implementado)
+        if (data.usageMetadata) {
+          await logApiCallDetails({
+            model_name: GEMINI_MODEL_NAME,
+            prompt_tokens: data.usageMetadata.promptTokenCount,
+            candidates_tokens: data.usageMetadata.candidatesTokenCount,
+            total_tokens: data.usageMetadata.totalTokenCount,
+            api_key_source: apiKeySource
+          });
+        }
+      }
+    }
+    
+    // Verificar se temos uma resposta válida
+    if (!responseText) {
+      console.error('No text in Gemini response:', data);
+      throw new Error('No valid response content received from Gemini API');
+    }
+    
+    return responseText;
+  } catch (error: any) {
+    console.error('Erro ao fazer a chamada para a API Gemini:', error);
+    // Registrar erro genérico da chamada fetch
+    await logApiCallDetails({
+      model_name: GEMINI_MODEL_NAME,
+      error_message: `FETCH_ERROR: ${error.message}`,
+      api_key_source: apiKeySource
+    });
+    return "Erro ao comunicar com o serviço de IA. Verifique sua conexão e tente novamente.";
+  }
+}
 
 /**
  * Interface para resposta da API Gemini
@@ -137,213 +295,37 @@ const LIMIT_REACHED_RESPONSES = [
 interface GeminiResponse {
   candidates?: Array<{
     content: {
-      parts: Array<{ text: string }>
-    },
-    finishReason?: string,
-    tokenCount?: {
-      totalTokens?: number
-      promptTokens?: number
-      responseTokens?: number
-    }
+      parts: Array<{ text: string }>;
+      role?: string;
+    };
+    finishReason?: string;
+    safetyRatings?: any[];
+    // tokenCount pode existir aqui em algumas versões da API, mas usageMetadata é mais comum para o total
   }>;
   promptFeedback?: {
-    blockReason?: string
-    safetyRatings?: Array<{
-      category: string
-      probability: string
-    }>
+    blockReason?: string;
+    safetyRatings?: any[];
   };
-  usage?: {
-    promptTokenCount?: number
-    candidatesTokenCount?: number
-    totalTokenCount?: number
+  usageMetadata?: { // Local primário para contagem de tokens da chamada
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+    totalTokenCount?: number;
   };
-  error?: {
-    code: number
-    message: string
-    status: string
-    details?: Array<any>
+  error?: { 
+    code: number;
+    message: string;
+    details?: any[];
   };
 }
 
 /**
- * Fetches a response from Gemini 2.0 Flash API
- * @param prompt - The prompt to send to Gemini
- * @param options - Optional configuration including system instructions
- * @returns A promise that resolves to the Gemini response text
+ * Estima o número de tokens em um texto.
+ * Esta é uma estimativa simples baseada em palavras.
+ * @param text Texto para estimar tokens.
+ * @returns Número estimado de tokens.
  */
-export async function fetchGeminiFlashLite(
-  prompt: string,
-  options?: { systemInstruction?: string }
-): Promise<string> {
-  const apiKey = getApiKey(); // Fetch API key when the function is called
-
-  if (!apiKey) {
-    console.error("API Key for Gemini is not configured. Returning hardcoded response.");
-    
-    // Converter prompt para minúsculas e remover acentos para comparação
-    const normalizedPrompt = prompt.toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-    
-    // Respostas pré-definidas para perguntas comuns
-    if (normalizedPrompt.includes('quem e voce') || normalizedPrompt.includes('quem é você') || 
-        normalizedPrompt.includes('seu nome') || normalizedPrompt.includes('se apresente')) {
-      return "Olá! Sou o Consultor IA, seu assistente financeiro pessoal! Estou aqui para ajudar com dicas de economia, organização financeira e muito mais. Como posso ajudar hoje?";
-    }
-    
-    if (normalizedPrompt.includes('economizar') || normalizedPrompt.includes('poupar') || normalizedPrompt.includes('guardar dinheiro')) {
-      return "Para economizar mais dinheiro: 1) Estabeleça um orçamento claro, 2) Elimine despesas desnecessárias, 3) Automatize sua poupança, e 4) Use a regra 50/30/20 (50% para necessidades, 30% para desejos, 20% para poupança).";
-    }
-    
-    if (normalizedPrompt.includes('investir') || normalizedPrompt.includes('investimento')) {
-      return "Para começar a investir: 1) Tenha uma reserva de emergência em investimentos de baixo risco, 2) Defina seus objetivos (curto, médio e longo prazo), 3) Diversifique seus investimentos conforme seu perfil de risco. O básico é começar com renda fixa!";
-    }
-    
-    if (normalizedPrompt.includes('divida') || normalizedPrompt.includes('dívida')) {
-      return "Para sair das dívidas: 1) Liste todas suas dívidas com valores e juros, 2) Priorize quitar as com juros mais altos, 3) Negocie taxas menores, 4) Considere consolidar dívidas caras, e 5) Corte gastos temporários para acelerar o pagamento.";
-    }
-    
-    // Mensagem genérica se não corresponder a nenhuma pergunta conhecida
-    return "O serviço de IA está temporariamente limitado. Por favor, configure a API key nas variáveis de ambiente. Enquanto isso, posso responder perguntas simples sobre economia, investimentos ou dívidas.";
-  }
-  
-  // Verificar se o uso da API está dentro do limite
-  if (typeof checkApiUsageLimit === 'function') {
-    const withinLimit = await checkApiUsageLimit(API_NAME);
-    if (!withinLimit) {
-      // Retornar uma resposta aleatória informando que o limite foi atingido
-      const randomResponse = LIMIT_REACHED_RESPONSES[Math.floor(Math.random() * LIMIT_REACHED_RESPONSES.length)];
-      return randomResponse;
-    }
-  }
-  
-  // Preparar o prompt com contexto financeiro
-  const systemInstruction = options?.systemInstruction || 
-    "Você é um assistente financeiro amigável e motivador, focado em ajudar pessoas a organizarem suas finanças pessoais. ";
-  
-  const enhancedPrompt = `${systemInstruction} Responda de forma concisa, prática e motivadora. Limite sua resposta a 3-4 frases. Pergunta: ${prompt}`;
-  
-  // Estimar tokens do prompt para registro prévio
-  const estimatedPromptTokens = typeof estimateTokenCount === 'function' ? estimateTokenCount(enhancedPrompt) : 0;
-  
-  // Construir o corpo da requisição otimizado para Gemini 2.0 Flash Lite
-  const requestBody = {
-    contents: [{
-      parts: [{
-        text: enhancedPrompt
-      }]
-    }],
-    generationConfig: {
-      temperature: 0.4,      // Temperatura mais baixa para respostas mais precisas
-      topK: 32,             // Valor otimizado para Flash Lite
-      topP: 0.9,            // Valor otimizado para Flash Lite
-      maxOutputTokens: 250,  // Aumentamos o limite para permitir respostas mais completas
-      candidateCount: 1      // Flash Lite funciona melhor com 1 candidato
-    },
-    // Configuração de segurança específica para Flash Lite
-    safetySettings: [
-      {
-        category: "HARM_CATEGORY_HATE_SPEECH",
-        threshold: "BLOCK_MEDIUM_AND_ABOVE"
-      },
-      {
-        category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-        threshold: "BLOCK_MEDIUM_AND_ABOVE"
-      }
-    ]
-  };
-  
-  // Log detalhado antes da chamada API para depuração
-  console.log('Calling Gemini API with:', {
-    url: `${GEMINI_API_URL}?key=XXXXX`, // Não exibimos a chave real no log
-    requestBodyPreview: JSON.stringify(requestBody).substring(0, 200) + '...'
-  });
-  
-  // Fazer a chamada direta para a API do Gemini 2.0 Flash
-  const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(requestBody)
-  });
-  
-  // Log do status da resposta
-  console.log(`Gemini API response status: ${response.status} ${response.statusText}`);
-  
-  // Se a resposta não for OK, tentar extrair informações detalhadas do erro
-  if (!response.ok) {
-    let errorDetails = '';
-    try {
-      // Tentar extrair o JSON de erro para detalhes mais precisos
-      const errorJson = await response.json();
-      errorDetails = JSON.stringify(errorJson, null, 2);
-      console.error('Gemini API detailed error:', errorJson);
-      
-      // Se houver uma mensagem de erro específica, usar para a resposta de fallback
-      if (errorJson.error && errorJson.error.message) {
-        return `Desculpe, houve um problema com a IA: ${errorJson.error.message}`;
-      }
-    } catch (e) {
-      // Se não for possível extrair JSON, usar o texto bruto
-      errorDetails = await response.text();
-      console.error('Gemini API error text:', errorDetails);
-    }
-    
-    throw new Error(`API error (${response.status}): ${errorDetails}`);
-  }
-  
-  // Parse da resposta como JSON
-  const data = await response.json() as GeminiResponse;
-  console.log('Gemini API response preview:', JSON.stringify(data).substring(0, 200) + '...');
-  
-  // Verificar se há conteúdo bloqueado ou erro
-  if (data.promptFeedback?.blockReason) {
-    console.warn('Prompt blocked by safety settings:', data.promptFeedback.blockReason);
-    return "Desculpe, não posso responder a esse tipo de pergunta. Posso ajudar com questões financeiras!";
-  }
-  
-  // Verificar se há erro explícito na resposta
-  if (data.error) {
-    console.error('Gemini API error in response:', data.error);
-    return `Desculpe, houve um problema com a IA: ${data.error.message}`;
-  }
-  
-  // Extrair o texto da resposta
-  let responseText = "";
-  if (data.candidates && data.candidates.length > 0) {
-    const textParts = data.candidates[0].content.parts;
-    if (textParts && textParts.length > 0) {
-      responseText = textParts[0].text.trim();
-      console.log('Gemini response text extracted successfully:', responseText.substring(0, 50) + '...');
-      
-      // Calcular tokens usados e registrar (se implementado)
-      if (typeof incrementApiUsage === 'function') {
-        // Usar contagem exata da API ou estimar
-        let tokensUsed = 0;
-      
-        if (data.usage?.totalTokenCount) {
-          tokensUsed = data.usage.totalTokenCount;
-        } else if (data.candidates[0].tokenCount?.totalTokens) {
-          tokensUsed = data.candidates[0].tokenCount.totalTokens;
-        } else {
-          // Estimar baseado no prompt e resposta
-          const estimatedResponseTokens = typeof estimateTokenCount === 'function' ? 
-            estimateTokenCount(responseText) : 0;
-          tokensUsed = estimatedPromptTokens + estimatedResponseTokens;
-        }
-        
-        incrementApiUsage(API_NAME, tokensUsed);
-      }
-    }
-  }
-  
-  // Verificar se temos uma resposta válida
-  if (!responseText) {
-    console.error('No text in Gemini response:', data);
-    throw new Error('No valid response content received from Gemini API');
-  }
-  
-  return responseText;
+export function estimateTokenCount(text: string): number {
+  if (!text) return 0;
+  const words = text.trim().split(/\s+/).length;
+  return Math.ceil(words * 1.5); // Estimativa para português
 }

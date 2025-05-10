@@ -10,40 +10,65 @@ import { checkApiUsageLimit, incrementApiUsage, estimateTokenCount } from './api
 // Nome da API para controle de uso
 const API_NAME = 'gemini';
 
-// Para o Gemini 2.0 Flash Lite, usamos o modelo mais atual e rápido
-const GEMINI_MODEL = 'gemini-1.5-flash';
+// Usamos exclusivamente o Gemini 2.0 Flash Lite conforme solicitado
+const GEMINI_MODEL = 'gemini-2.0-flash-lite';
 
 // URL base da API Gemini
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 
 /**
  * Função para obter a API key de diferentes fontes de ambiente
+ * Esta função é super robusta e tenta várias abordagens diferentes
  */
 const getApiKey = () => {
-  // Vercel/Next.js - variável de ambiente do lado do servidor
-  const processEnvKey = 
-    typeof process !== 'undefined' && 
-    process.env && 
-    process.env.GEMINI_API_KEY;
+  // Todas as possíveis variáveis de ambiente que podem conter a API key
+  const possibleKeys = [];
   
-  // Vite - variável de ambiente do lado do cliente
-  const viteEnvKey = 
-    typeof import.meta !== 'undefined' && 
-    import.meta.env && 
-    import.meta.env.VITE_GEMINI_API_KEY;
-
-  // Gerar logs detalhados para depuração
-  console.log('Debug - Fontes de API Key:', { 
-    processEnvPresente: !!processEnvKey,
-    viteEnvPresente: !!viteEnvKey,
-    // Mostrar primeiros 5 caracteres apenas para confirmar que existe sem expor a chave
-    processKeyPreview: processEnvKey ? `${processEnvKey.substring(0, 5)}...` : 'ausente',
-    viteKeyPreview: viteEnvKey ? `${viteEnvKey.substring(0, 5)}...` : 'ausente',
-    ambiente: typeof import.meta !== 'undefined' ? import.meta.env.MODE : 'server-side'
+  // 1. Vercel/Next.js - variáveis de ambiente do lado do servidor
+  if (typeof process !== 'undefined' && process.env) {
+    // Tenta diferentes nomes de variáveis
+    possibleKeys.push(process.env.GEMINI_API_KEY); // Padrão Vercel
+    possibleKeys.push(process.env.VITE_GEMINI_API_KEY); // Com prefixo Vite
+    possibleKeys.push(process.env.GOOGLE_API_KEY); // Alternativa comum
+    possibleKeys.push(process.env.GOOGLE_GEMINI_API_KEY); // Alternativa descritiva
+  }
+  
+  // 2. Vite/front-end - variáveis de ambiente do lado do cliente
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    // Tenta diferentes nomes de variáveis
+    possibleKeys.push(import.meta.env.VITE_GEMINI_API_KEY); // Padrão Vite
+    possibleKeys.push(import.meta.env.GEMINI_API_KEY); // Sem prefixo (irregular, mas possível)
+    possibleKeys.push(import.meta.env.VITE_GOOGLE_API_KEY); // Alternativa
+    possibleKeys.push(import.meta.env.VITE_GOOGLE_GEMINI_API_KEY); // Alternativa descritiva
+    // Tenta acessar diretamente como string
+    try {
+      // @ts-ignore - tentativa não padrão
+      const directViteKey = import.meta.env['VITE_GEMINI_API_KEY'];
+      if (directViteKey) possibleKeys.push(directViteKey);
+    } catch (e) {}
+  }
+  
+  // 3. Hardcoded para testes (remover em produção)
+  // ATENÇÃO: Isto é apenas para teste local, nunca faça commit disto com uma chave real
+  const hardcodedTestKey = window.localStorage.getItem('gemini_api_key');
+  if (hardcodedTestKey) possibleKeys.push(hardcodedTestKey);
+  
+  // Filtra valores vazios e undefined
+  const validKeys = possibleKeys.filter(key => key && typeof key === 'string' && key.length > 10);
+  
+  // Gera logs detalhados para depuração (sem mostrar a chave completa)
+  console.log('Debug - API Key Search:', { 
+    encontrouProcessEnv: typeof process !== 'undefined' && !!process.env,
+    encontrouImportMeta: typeof import.meta !== 'undefined' && !!import.meta.env,
+    totalPossiveisChaves: possibleKeys.length,
+    chavesValidas: validKeys.length,
+    // Se encontrou alguma chave válida, mostre os primeiros caracteres
+    previewPrimeiraChave: validKeys.length > 0 ? `${validKeys[0].substring(0, 5)}...` : 'nenhuma',
+    ambiente: typeof import.meta !== 'undefined' ? import.meta.env.MODE : 'server-side',
   });
 
-  // Retorna a primeira chave disponível
-  return processEnvKey || viteEnvKey || '';
+  // Se o array de validKeys estiver vazio, retorna string vazia
+  return validKeys.length > 0 ? validKeys[0] : '';
 };
 
 // Obtenção da API key
@@ -158,7 +183,7 @@ export async function fetchGeminiFlashLite(
     // Estimar tokens do prompt para registro prévio
     const estimatedPromptTokens = typeof estimateTokenCount === 'function' ? estimateTokenCount(enhancedPrompt) : 0;
     
-    // Construir o corpo da requisição para o Gemini 2.0
+    // Construir o corpo da requisição otimizado para Gemini 2.0 Flash Lite
     const requestBody = {
       contents: [{
         parts: [{
@@ -166,11 +191,23 @@ export async function fetchGeminiFlashLite(
         }]
       }],
       generationConfig: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 150,
-      }
+        temperature: 0.4,      // Temperatura mais baixa para respostas mais precisas
+        topK: 32,             // Valor otimizado para Flash Lite
+        topP: 0.9,            // Valor otimizado para Flash Lite
+        maxOutputTokens: 250,  // Aumentamos o limite para permitir respostas mais completas
+        candidateCount: 1      // Flash Lite funciona melhor com 1 candidato
+      },
+      // Configuração de segurança específica para Flash Lite
+      safetySettings: [
+        {
+          category: "HARM_CATEGORY_HATE_SPEECH",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        }
+      ]
     };
     
     // Log detalhado antes da chamada API para depuração

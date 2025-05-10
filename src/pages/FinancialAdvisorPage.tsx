@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
 import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
@@ -13,8 +12,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { fetchGeminiFlashLite } from '@/utils/gemini';
 import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, CheckCircle2, Sparkles } from 'lucide-react';
-import clsx from 'clsx';
+import { Loader2 } from 'lucide-react';
 
 const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
 
@@ -47,7 +45,6 @@ const FinancialAdvisorPage: React.FC = () => {
       timestamp: new Date()
     }
   ]);
-  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState<null | { tipo: string, dados: any }>(null);
@@ -700,12 +697,12 @@ const FinancialAdvisorPage: React.FC = () => {
 
   
   const suggestions = [
-    { key: "howToSaveMore", text: t("howToSaveMore") },
-    { key: "biggestExpenses", text: t("biggestExpenses") },
-    { key: "createBudget", text: t("createBudget") },
-    { key: "investOrPayDebt", text: t("investOrPayDebt") },
-    { key: "reduceFoodExpenses", text: t("reduceFoodExpenses") },
-    { key: "howMuchToSave", text: t("howMuchToSave") }
+    { key: "howToSaveMore", text: t("howToSaveMore") || "Como economizar mais?" },
+    { key: "biggestExpenses", text: t("biggestExpenses") || "Quais são meus maiores gastos?" },
+    { key: "createBudget", text: t("createBudget") || "Como criar um orçamento?" },
+    { key: "investOrPayDebt", text: t("investOrPayDebt") || "Devo investir ou pagar dívidas?" },
+    { key: "reduceFoodExpenses", text: t("reduceFoodExpenses") || "Como reduzir gastos com alimentação?" },
+    { key: "howMuchToSave", text: t("howMuchToSave") || "Quanto devo guardar por mês?" }
   ];
   
   return (
@@ -713,8 +710,6 @@ const FinancialAdvisorPage: React.FC = () => {
       {/* Header com design moderno e colorido */}
       <header className="sticky top-0 z-10 bg-galileo-accent text-white dark:bg-galileo-card dark:text-galileo-text shadow-md px-4 py-3 flex flex-col items-center mx-auto w-full border-b border-galileo-border">
         <div className="flex flex-row items-center gap-3 w-full max-w-xl justify-between">
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-2">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-2">
               <span className="text-white text-sm">💡</span>
@@ -727,56 +722,60 @@ const FinancialAdvisorPage: React.FC = () => {
         </div>
       </header>
       
+      {/* Main Content */}
       <main className="flex-1 overflow-auto px-4 py-6 max-w-xl mx-auto w-full">
-        <section className="flex flex-col h-full">
-            </div>
-          </div>
-        </header>
-
-        {/* Container centralizado para o chat */}
-        <main className="flex-1 w-full flex flex-col items-center px-3 sm:px-4 pt-4">
-          <section className="w-full max-w-xl flex flex-col flex-1 bg-galileo-card rounded-xl shadow-lg overflow-hidden border border-galileo-border">
-            <div className="flex-1 overflow-y-auto px-3 pt-3 pb-20" style={{ minHeight: '60vh' }}>
-              <ChatMessages messages={messages} />
-              {/* Loading animado */}
-              {loading && (
-                <div className="flex items-center gap-2 mt-2 animate-pulse">
+        <section className="w-full max-w-xl flex flex-col flex-1 bg-galileo-card rounded-xl shadow-lg overflow-hidden border border-galileo-border">
+          <div className="flex-1 overflow-y-auto px-3 pt-3 pb-20" style={{ minHeight: '60vh' }}>
+            {/* Mensagens do chat */}
+            <ChatMessages messages={messages} />
+            
+            {/* Loading animado */}
+            {loading && (
+              <div className="flex items-center gap-2 mt-2 animate-pulse">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={IA_AVATAR} alt="IA" />
+                  <AvatarFallback>IA</AvatarFallback>
+                </Avatar>
+                <span className="text-galileo-text bg-gradient-to-r from-blue-100 to-indigo-100 px-3 py-2 rounded-2xl shadow-sm text-sm">Pensando...</span>
+                <Loader2 className="animate-spin text-blue-500" size={20} />
+              </div>
+            )}
+            
+            {/* Confirmação de registro */}
+            {waitingConfirmation && pendingAction && (
+              <div className="flex flex-col items-center mt-4">
+                <div className="flex items-center gap-2 mb-2">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={IA_AVATAR} alt="IA" />
                     <AvatarFallback>IA</AvatarFallback>
                   </Avatar>
-                  <span className="text-galileo-text bg-gradient-to-r from-blue-100 to-indigo-100 px-3 py-2 rounded-2xl shadow-sm text-sm">Pensando...</span>
-                  <Loader2 className="animate-spin text-blue-500" size={20} />
+                  <span className="text-sm bg-yellow-100 text-yellow-900 px-4 py-2 rounded-2xl border border-yellow-300 shadow-sm font-medium animate-fade-in">
+                    Confirma o registro de <b>{pendingAction.dados?.descricao || pendingAction.dados?.categoria || 'transação'}</b>?
+                  </span>
                 </div>
-              )}
-              {/* Confirmação de registro */}
-              {waitingConfirmation && pendingAction && (
-                <div className="flex flex-col items-center mt-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={IA_AVATAR} alt="IA" />
-                      <AvatarFallback>IA</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm bg-yellow-100 text-yellow-900 px-4 py-2 rounded-2xl border border-yellow-300 shadow-sm font-medium animate-fade-in">
-                      Confirma o registro de <b>{pendingAction.dados?.descricao || pendingAction.dados?.categoria || 'transação'}</b>?
-                    </span>
-                  </div>
-                  <div className="flex gap-3">
-                    <button
-                      className="px-4 py-2 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold shadow transition-all"
-                      onClick={() => handleSendMessage('sim')}
-                      aria-label="Confirmar registro"
-                    >Confirmar</button>
-                    <button
-                      className="px-4 py-2 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold shadow transition-all"
-                      onClick={() => handleSendMessage('não')}
-                      aria-label="Cancelar registro"
-                    >Cancelar</button>
-                  </div>
+                <div className="flex gap-3">
+                  <button
+                    className="px-4 py-2 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold shadow transition-all"
+                    onClick={() => handleSendMessage('sim')}
+                    aria-label="Confirmar registro"
+                  >Confirmar</button>
+                  <button
+                    className="px-4 py-2 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold shadow transition-all"
+                    onClick={() => handleSendMessage('não')}
+                    aria-label="Cancelar registro"
+                  >Cancelar</button>
                 </div>
-              )}
-            </div>
-            {/* Sugestões só aparecem se não estiver esperando confirmação ou loading */}
+              </div>
+            )}
+            
+            {/* Mensagem de erro */}
+            {error && (
+              <div className="bg-red-100 border border-red-200 text-red-700 px-4 py-2 rounded-md mb-4">
+                {error}
+              </div>
+            )}
+
+            {/* Sugestões em botões */}
             {showSuggestions && !waitingConfirmation && !loading && (
               <div className="mb-3 px-3">
                 <div className="flex flex-wrap gap-2 justify-center">
@@ -792,71 +791,7 @@ const FinancialAdvisorPage: React.FC = () => {
                 </div>
               </div>
             )}
-            <div className="sticky bottom-0 w-full bg-galileo-card pt-2 pb-3 px-3 border-t border-galileo-border z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
-              <ChatInput onSubmit={(message: string) => handleSendMessage(message)} />
-            </div>
-          </section>
-        </main>
-
-        {/* NavBar fixa na parte inferior */}
-        <div className="fixed bottom-0 left-0 right-0 z-20">
-          <NavBar />
-        </div>
-      </div>
-    );
-}
-
-export default FinancialAdvisorPage;
-
-          {/* Sugestões iniciais */}
-          {showSuggestions && (
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              {suggestions.map((suggestion) => (
-                <Button
-                  key={suggestion.key}
-                  variant="outline"
-                  className="text-sm p-2 h-auto whitespace-normal text-left justify-start"
-                  onClick={() => handleSuggestionClick(suggestion.text)}
-                >
-                  {suggestion.text}
-                </Button>
-              ))}
-            </div>
-          )}
-          
-          {/* Mensagens */}
-          <div className="flex-1 overflow-y-auto mb-4">
-            <ChatMessages messages={messages} />
           </div>
-          
-          {/* Indicador de carregamento */}
-          {loading && (
-            <div className="flex justify-center my-2">
-              <Loader2 className="h-6 w-6 animate-spin text-galileo-accent" />
-            </div>
-          )}
-          
-          {/* Confirmação de registro */}
-          {waitingConfirmation && pendingAction && (
-            <div className="flex flex-col items-center mt-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={IA_AVATAR} alt="IA" />
-                  <AvatarFallback>IA</AvatarFallback>
-                </Avatar>
-                <div className="bg-blue-100 dark:bg-blue-900/30 rounded-lg p-3 text-sm">
-                  <p>Por favor, confirme digitando "sim" ou "não":</p>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* Mensagem de erro */}
-          {error && (
-            <div className="bg-red-100 border border-red-200 text-red-700 px-4 py-2 rounded-md mb-4">
-              {error}
-            </div>
-          )}
           
           {/* Input de chat */}
           <div className="sticky bottom-0 w-full bg-galileo-card pt-2 pb-3 px-3 border-t border-galileo-border z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
@@ -864,7 +799,7 @@ export default FinancialAdvisorPage;
           </div>
         </section>
       </main>
-
+      
       {/* NavBar fixa na parte inferior */}
       <div className="fixed bottom-0 left-0 right-0 z-20">
         <NavBar />

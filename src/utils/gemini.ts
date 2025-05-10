@@ -43,118 +43,53 @@ interface GeminiResponse {
 }
 
 /**
- * Fetches a response from Gemini Flash Lite API
+ * Fetches a response from Gemini Flash Lite API via serverless function
  * @param prompt - The prompt to send to Gemini
+ * @param options - Optional configuration including system instructions
  * @returns A promise that resolves to the Gemini response text
  */
-export async function fetchGeminiFlashLite(prompt: string): Promise<string> {
-  try {
-    // Se não tiver API key, retorna mensagem informativa
-    if (!GEMINI_API_KEY) {
-      console.warn('Gemini API key not found. Using fallback response.');
-      return "Para usar o Gemini, configure uma API key válida nas variáveis de ambiente.";
-    }
-    
-    // Verificar se o uso da API está dentro do limite
-    const withinLimit = await checkApiUsageLimit(API_NAME);
-    if (!withinLimit) {
-      // Retornar uma resposta aleatória informando que o limite foi atingido
-      const randomResponse = LIMIT_REACHED_RESPONSES[Math.floor(Math.random() * LIMIT_REACHED_RESPONSES.length)];
-      return randomResponse;
-    }
-    
-    // Preparar o prompt com contexto financeiro
-    const enhancedPrompt = `Você é um assistente financeiro amigável e motivador, focado em ajudar pessoas a organizarem suas finanças pessoais. Responda de forma concisa, prática e motivadora. Limite sua resposta a 3-4 frases. Pergunta: ${prompt}`;
-    
-    // Estimar tokens do prompt para registro prévio
-    const estimatedPromptTokens = estimateTokenCount(enhancedPrompt);
-    
-    // Fazer a chamada para a API do Gemini
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: enhancedPrompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 150,
-        }
-      })
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Gemini API error:', errorData);
-      throw new Error(`API error: ${response.status}`);
-    }
-    
-    const data = await response.json() as GeminiResponse;
-    
-    // Verificar se há conteúdo bloqueado ou erro
-    if (data.promptFeedback?.blockReason) {
-      console.warn('Prompt blocked:', data.promptFeedback.blockReason);
-      return "Desculpe, não posso responder a esse tipo de pergunta. Posso ajudar com questões financeiras!";
-    }
-    
-    // Extrair o texto da resposta
-    if (data.candidates && data.candidates.length > 0) {
-      const textParts = data.candidates[0].content.parts;
-      if (textParts && textParts.length > 0) {
-        const responseText = textParts[0].text.trim();
-        
-        // Calcular tokens usados (usando dados da API quando disponível, ou estimativa)
-        let tokensUsed = 0;
-        
-        if (data.usage?.totalTokenCount) {
-          // Usar contagem exata da API
-          tokensUsed = data.usage.totalTokenCount;
-        } else if (data.candidates[0].tokenCount?.totalTokens) {
-          // Alternativa se a contagem estiver em outro lugar da resposta
-          tokensUsed = data.candidates[0].tokenCount.totalTokens;
-        } else {
-          // Estimar baseado no prompt e resposta
-          const estimatedResponseTokens = estimateTokenCount(responseText);
-          tokensUsed = estimatedPromptTokens + estimatedResponseTokens;
-        }
-        
-        // Registrar uso da API
-        incrementApiUsage(API_NAME, tokensUsed);
-        
-        return responseText;
-      }
-    }
-    
-    throw new Error('No valid response from Gemini API');
-  } catch (error) {
-    console.error("Error fetching from Gemini:", error);
-    return "Desculpe, não foi possível obter uma resposta neste momento. Tente novamente mais tarde.";
-  }
-// Gemini 2.0 Flash Lite API integration for Finan Freedom
-// Uses the Google Gemini API (generative language API)
-// Expects GEMINI_API_KEY to be set in environment variables (e.g. Vercel)
-
-// Chama a serverless function protegida /api/gemini
 export async function fetchGeminiFlashLite(
   prompt: string,
   options?: { systemInstruction?: string }
 ): Promise<string> {
-  const response = await fetch('/api/gemini', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, systemInstruction: options?.systemInstruction })
-  });
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new Error(data.error || 'Erro ao acessar Gemini');
+  try {
+    // Verificar se o uso da API está dentro do limite (se implementado)
+    if (typeof checkApiUsageLimit === 'function') {
+      const withinLimit = await checkApiUsageLimit(API_NAME);
+      if (!withinLimit) {
+        // Retornar uma resposta aleatória informando que o limite foi atingido
+        const randomResponse = LIMIT_REACHED_RESPONSES[Math.floor(Math.random() * LIMIT_REACHED_RESPONSES.length)];
+        return randomResponse;
+      }
+    }
+
+    // Chama a serverless function protegida /api/gemini
+    const response = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, systemInstruction: options?.systemInstruction })
+    });
+    
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Erro ao acessar Gemini');
+    }
+    
+    const data = await response.json();
+    const resposta = (data.resposta || '').trim();
+    
+    // Registrar uso da API (se implementado)
+    if (typeof incrementApiUsage === 'function') {
+      // Estimar tokens baseado no prompt e resposta
+      const estimatedPromptTokens = typeof estimateTokenCount === 'function' ? estimateTokenCount(prompt) : 0;
+      const estimatedResponseTokens = typeof estimateTokenCount === 'function' ? estimateTokenCount(resposta) : 0;
+      const tokensUsed = estimatedPromptTokens + estimatedResponseTokens;
+      incrementApiUsage(API_NAME, tokensUsed);
+    }
+    
+    return resposta;
+  } catch (error) {
+    console.error("Error fetching from Gemini:", error);
+    return "Desculpe, não foi possível obter uma resposta neste momento. Tente novamente mais tarde.";
   }
-  const data = await response.json();
-  return (data.resposta || '').trim();
 }

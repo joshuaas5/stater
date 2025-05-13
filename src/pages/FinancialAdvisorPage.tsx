@@ -191,7 +191,7 @@ export const FinancialAdvisorPage: React.FC = () => {
             }
             // Por agora, apenas mostramos o que a IA entendeu.
             // Próximo passo seria perguntar "Está correto?" e usar pendingAction.
-            botResponseText = details + "\n\n(Esta é uma funcionalidade em teste. Para registrar, use o formulário ou confirme quando solicitado.)";
+            botResponseText = details + "\n\nDeseja registrar esta transação? (sim/não)";
             
             // Poderíamos criar uma mensagem separada para os detalhes se quiséssemos um tratamento visual diferente
             // transactionDetailsMessage = { 

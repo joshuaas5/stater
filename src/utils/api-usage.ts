@@ -39,7 +39,7 @@ export async function logApiCallDetails(details: Omit<ApiCallDetails, 'user_id'>
       api_name: details.api_name || 'gemini', // Garante que api_name tenha um valor
     };
 
-    const { error } = await supabase.from('api_usage').insert(recordToInsert);
+    const { error } = await supabase.from('gemini_usage').insert(recordToInsert);
 
     if (error) {
       console.error('Erro ao registrar detalhes da chamada da API:', error);

@@ -171,11 +171,18 @@ export const FinancialAdvisorPage: React.FC = () => {
       try {
         const geminiTextResponse = await getGeminiResponse(message);
         let botResponseText = geminiTextResponse;
+
+        // Remove Markdown JSON block fences and trim whitespace
+        const cleanedJsonResponse = geminiTextResponse
+          .replace(/^```json\s*/, '') // Remove ```json at the start, plus any following whitespace
+          .replace(/\s*```$/, '')    // Remove ``` at the end, plus any preceding whitespace
+          .trim();                   // General trim
+
         let transactionDetailsMessage: ChatMessage | null = null;
 
         try {
           // Tentar parsear a resposta como JSON de transação
-          const parsedResponse: GeminiTransactionIntent = JSON.parse(geminiTextResponse);
+          const parsedResponse: GeminiTransactionIntent = JSON.parse(cleanedJsonResponse); // Use cleaned string
           if (parsedResponse && parsedResponse.action === 'add_transaction') {
             // É uma intenção de transação!
             const { transaction_type, description, amount, category, date } = parsedResponse;

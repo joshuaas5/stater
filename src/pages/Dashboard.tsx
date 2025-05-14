@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import './Dashboard.module.css';
 import { useNavigate } from 'react-router-dom';
@@ -167,10 +166,10 @@ const Dashboard: React.FC = () => {
     });
   };
   
-  const handleRecurrenceFrequencyChange = (value: string) => {
+  const handleRecurrenceFrequencyChange = (value: 'weekly' | 'monthly' | 'yearly') => {
     setNewTransaction({
       ...newTransaction,
-      recurrenceFrequency: value as 'weekly' | 'monthly' | 'yearly'
+      recurrenceFrequency: value
     });
   };
   
@@ -306,7 +305,7 @@ const Dashboard: React.FC = () => {
               <button
                 aria-label={balanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
                 className="ml-1 text-galileo-secondaryText hover:text-galileo-text"
-                onClick={() => setBalanceVisible((v) => !v)}
+                onClick={() => setBalanceVisible((v: boolean) => !v)}
                 style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
               >
                 {balanceVisible ? <Eye size={20} /> : <EyeOff size={20} />}
@@ -334,7 +333,7 @@ const Dashboard: React.FC = () => {
         </Button>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={(open) => {
+      <Dialog open={dialogOpen} onOpenChange={(open: boolean) => {
         setDialogOpen(open);
         if (!open) setEditingTransaction(null);
       }}>
@@ -358,31 +357,12 @@ const Dashboard: React.FC = () => {
     id="title" 
     name="title"
     value={editingTransaction ? editingTransaction.title : newTransaction.title} 
-    onChange={e => {
+    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
       if (editingTransaction) setEditingTransaction({...editingTransaction, title: e.target.value});
       else handleNewTransactionChange(e);
     }}
     placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
   />
-</div>
-{/* Seletor de Ícone */}
-<div className="grid gap-2">
-  <Label>Ícone</Label>
-  <div className="flex gap-2 flex-wrap">
-    {['💸','💰','🍔','🏠','🚗','🎉','🛒','📚','💳','🧾','⚡','🛠️','🧃','🧑‍💻','🏦','🛍️','✈️','🏥','💊','👕','💼','🎓','🎭','👶','💻','📱','🏋️','🎮','🔌'].map(icon => (
-      <button
-        key={icon}
-        type="button"
-        className={`text-2xl p-1 rounded border ${editingTransaction ? (editingTransaction.icon === icon ? 'border-galileo-accent' : 'border-transparent') : (newTransaction.icon === icon ? 'border-galileo-accent' : 'border-transparent')} hover:border-galileo-accent/60`}
-        onClick={() => {
-          if (editingTransaction) setEditingTransaction({...editingTransaction, icon});
-          else setNewTransaction({...newTransaction, icon});
-        }}
-      >
-        {icon}
-      </button>
-    ))}
-  </div>
 </div>
             <div className="grid gap-2">
               <Label htmlFor="amount">Valor</Label>
@@ -390,7 +370,7 @@ const Dashboard: React.FC = () => {
                 id="amount" 
                 name="amount"
                 value={editingTransaction ? String(editingTransaction.amount ?? '') : newTransaction.amount} 
-                onChange={e => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = e.target.value;
                   if (editingTransaction) setEditingTransaction({...editingTransaction, amount: value === '' ? '' : Number(value)});
                   else handleNewTransactionChange(e);
@@ -404,7 +384,7 @@ const Dashboard: React.FC = () => {
                 id="category" 
                 name="category"
                 value={editingTransaction ? editingTransaction.category : newTransaction.category} 
-                onChange={e => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   if (editingTransaction) setEditingTransaction({...editingTransaction, category: e.target.value});
                   else handleNewTransactionChange(e);
                 }}
@@ -415,7 +395,7 @@ const Dashboard: React.FC = () => {
               <Checkbox 
                 id="isRecurring" 
                 checked={editingTransaction ? editingTransaction.isRecurring : newTransaction.isRecurring}
-                onCheckedChange={val => {
+                onCheckedChange={(val: boolean) => {
                   if (editingTransaction) setEditingTransaction({...editingTransaction, isRecurring: !!val});
                   else handleRecurrenceChange(!!val);
                 }}
@@ -433,9 +413,9 @@ const Dashboard: React.FC = () => {
                 <Label htmlFor="recurrenceFrequency">Frequência</Label>
                 <Select 
                   value={editingTransaction ? (editingTransaction.recurrenceFrequency as 'weekly' | 'monthly' | 'yearly' || 'monthly') : newTransaction.recurrenceFrequency} 
-                  onValueChange={val => {
+                  onValueChange={(val: string) => { 
                     if (editingTransaction) setEditingTransaction({...editingTransaction, recurrenceFrequency: val as 'weekly' | 'monthly' | 'yearly'});
-                    else handleRecurrenceFrequencyChange(val);
+                    else handleRecurrenceFrequencyChange(val as 'weekly' | 'monthly' | 'yearly');
                   }}
                 >
                   <SelectTrigger id="recurrenceFrequency">
@@ -558,7 +538,7 @@ const Dashboard: React.FC = () => {
       </h2>
       
       {transactions.length > 0 ? (
-        transactions.slice(0, 5).map((transaction) => (
+        transactions.slice(0, 5).map((transaction: Transaction) => (
           <div key={transaction.id} className="flex items-center gap-4 bg-galileo-background px-4 min-h-[72px] py-2 justify-between border-t border-galileo-border">
             <div className="flex items-center gap-4">
               <div className="text-galileo-text flex items-center justify-center rounded-lg bg-galileo-accent shrink-0 size-12">

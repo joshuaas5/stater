@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/navigation/NavBar';
 import ChatMessages from '@/components/chat/ChatMessages';
@@ -36,25 +36,50 @@ export const FinancialAdvisorPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [showSuggestions, setShowSuggestions] = useState(true);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: uuidv4(),
-      text: `Olá! Eu sou o Consultor IA 🤖. Pergunte sobre finanças ou registre receitas/despesas. Tudo será confirmado antes de registrar!`,
-      sender: "system",
-      timestamp: new Date()
+  const initialSystemMessage: ChatMessage = {
+    id: uuidv4(),
+    text: `Olá! Eu sou o Consultor IA 🤖. Pergunte sobre finanças ou registre receitas/despesas. Tudo será confirmado antes de registrar!`,
+    sender: "system",
+    timestamp: new Date()
+  };
+
+  // Persistência do Chat: Carregar mensagens do localStorage ou usar inicial
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    const savedMessages = localStorage.getItem('financialAdvisorChatMessages');
+    if (savedMessages) {
+      try {
+        const parsed = JSON.parse(savedMessages) as ChatMessage[];
+        return parsed.map((msg: ChatMessage) => ({ ...msg, timestamp: new Date(msg.timestamp) }));
+      } catch (e) {
+        console.error("Erro ao parsear mensagens salvas do chat:", e);
+        return [initialSystemMessage]; // Fallback para mensagem inicial
+      }
     }
-  ]);
+    return [initialSystemMessage];
+  });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [pendingAction, setPendingAction] = useState<null | { tipo: string, dados: any }>(null);
+  const [pendingAction, setPendingAction] = useState<any>(null); // TODO: Tipar melhor
   const [waitingConfirmation, setWaitingConfirmation] = useState(false);
-  const [showApiConfig, setShowApiConfig] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isLoggedIn()) {
       navigate('/login');
     }
   }, [navigate]);
+
+  // Persistência do Chat: Salvar mensagens no localStorage
+  useEffect(() => {
+    localStorage.setItem('financialAdvisorChatMessages', JSON.stringify(
+      messages.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
+    ));
+  }, [messages]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
@@ -96,20 +121,20 @@ export const FinancialAdvisorPage: React.FC = () => {
       // Exemplo: pendingAction.tipo = 'saida', dados = { valor, categoria, ... }
       try {
         // Aqui você pode adaptar para entrada/saída/conta conforme seu schema
-        if (pendingAction.tipo === 'entrada' || pendingAction.tipo === 'saída' || pendingAction.tipo === 'saida') {
-          const { valor, categoria, descricao } = pendingAction.dados;
+        if (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense') {
+          const { description, amount, category, date } = pendingAction.dados;
           await supabase.from('transactions').insert([
             {
-              type: pendingAction.tipo === 'entrada' ? 'income' : 'expense',
-              amount: valor,
-              category: categoria,
-              title: descricao || categoria,
+              type: pendingAction.tipo === 'income' ? 'income' : 'expense',
+              amount: amount,
+              category: category || null,
+              title: description,
               created_at: new Date().toISOString(),
               // Adicione outros campos necessários
             }
           ]);
-          setMessages((msgs) => ([
-            ...msgs,
+          setMessages((prevMessages: ChatMessage[]) => ([
+            ...prevMessages,
             { id: uuidv4(), text: '✅ Registro efetuado com sucesso!', sender: 'system', timestamp: new Date() }
           ]));
         } else if (pendingAction.tipo === 'conta') {
@@ -124,8 +149,8 @@ export const FinancialAdvisorPage: React.FC = () => {
               // Outros campos
             }
           ]);
-          setMessages((msgs) => ([
-            ...msgs,
+          setMessages((prevMessages: ChatMessage[]) => ([
+            ...prevMessages,
             { id: uuidv4(), text: '✅ Conta registrada com sucesso!', sender: 'system', timestamp: new Date() }
           ]));
         }
@@ -141,8 +166,8 @@ export const FinancialAdvisorPage: React.FC = () => {
 
     // Se aguardando confirmação e usuário diz não
     if (waitingConfirmation && (lowerMsg.startsWith('não') || lowerMsg.startsWith('nao'))) {
-      setMessages((msgs) => ([
-        ...msgs,
+      setMessages((prevMessages: ChatMessage[]) => ([
+        ...prevMessages,
         { id: uuidv4(), text: 'Registro cancelado.', sender: 'system', timestamp: new Date() }
       ]));
       setPendingAction(null);
@@ -154,7 +179,7 @@ export const FinancialAdvisorPage: React.FC = () => {
     setLoading(true);
     setError("");
     const userMessage: ChatMessage = { id: uuidv4(), text: message, sender: 'user', timestamp: new Date() };
-    setMessages((msgs) => ([...msgs, userMessage]));
+    setMessages((prevMessages: ChatMessage[]) => ([...prevMessages, userMessage]));
     
     // Limpar sugestões ao enviar mensagem
     setShowSuggestions(false);
@@ -178,62 +203,48 @@ export const FinancialAdvisorPage: React.FC = () => {
           .replace(/\s*```$/, '')    // Remove ``` at the end, plus any preceding whitespace
           .trim();                   // General trim
 
-        let transactionDetailsMessage: ChatMessage | null = null;
-
         try {
           // Tentar parsear a resposta como JSON de transação
           const parsedResponse: GeminiTransactionIntent = JSON.parse(cleanedJsonResponse); // Use cleaned string
           if (parsedResponse && parsedResponse.action === 'add_transaction') {
             // É uma intenção de transação!
             const { transaction_type, description, amount, category, date } = parsedResponse;
-            let details = `Entendi que você quer adicionar uma ${transaction_type === 'income' ? 'receita' : 'despesa'} de R$${amount.toFixed(2)} para "${description}".`;
-            if (category) details += ` Categoria: ${category}.`;
+            
+            let formattedDateStr = '';
             if (date) {
               try {
-                const formattedDate = new Date(date + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso ao formatar
-                details += ` Data: ${formattedDate.toLocaleDateString('pt-BR')}.`;
+                const displayDate = new Date(date + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso ao formatar para display
+                formattedDateStr = displayDate.toLocaleDateString('pt-BR');
               } catch (e) {
-                 details += ` Data (não formatada): ${date}.`;
+                 formattedDateStr = date; // fallback se a data não for parseável para display
               }
             }
-            // Por agora, apenas mostramos o que a IA entendeu.
-            // Próximo passo seria perguntar "Está correto?" e usar pendingAction.
-            botResponseText = details + "\n\nDeseja registrar esta transação? (sim/não)";
+
+            // Mensagem de confirmação aprimorada e lógica para setar pendingAction
+            botResponseText = `📝 Ok! Você quer adicionar ${transaction_type === 'income' ? 'uma receita 🤑' : 'uma despesa 💸'} de R$${amount.toFixed(2)} para "${description}"${category ? ` na categoria "${category}"` : ''}${formattedDateStr ? ` em ${formattedDateStr}` : ''}.\n\nCorreto? Registrar? (sim/não)`;
             
-            // Poderíamos criar uma mensagem separada para os detalhes se quiséssemos um tratamento visual diferente
-            // transactionDetailsMessage = { 
-            //   id: uuidv4(), 
-            //   text: details + "\n\nQuer que eu prepare isso para registro? (sim/não)", 
-            //   sender: 'system', 
-            //   timestamp: new Date() 
-            // };
-            // Se usarmos transactionDetailsMessage, então botResponseText = null ou uma mensagem diferente.
+            setPendingAction({
+              tipo: transaction_type,
+              dados: { 
+                description,
+                amount,
+                category: category || null,
+                date: date || null 
+              }
+            });
+            setWaitingConfirmation(true);
+
+          } else {
+            // Não é uma transação válida ou não tem a action 'add_transaction'. Usa a resposta original da IA.
+            botResponseText = geminiTextResponse; 
           }
-        } catch (e) {
-          // Não é um JSON de transação válido, tratar como chat normal
-          // botResponseText já está com geminiTextResponse
-          if (!(e instanceof SyntaxError)) {
-            console.error("Erro ao processar resposta da Gemini (não foi SyntaxError ao parsear JSON):", e);
-          }
+        } catch (jsonError) {
+          // Não é JSON válido, trata como texto normal, usando a resposta original da IA.
+          botResponseText = geminiTextResponse; 
         }
 
-        if (botResponseText) {
-          const advisorResponse: ChatMessage = {
-            id: uuidv4(),
-            text: botResponseText,
-            sender: "system",
-            timestamp: new Date(),
-            avatarUrl: IA_AVATAR
-          };
-          setMessages((prevMessages: ChatMessage[]) => [...prevMessages, advisorResponse]);
-        }
-        // Se transactionDetailsMessage for usado, adicionar aqui também
-        // if (transactionDetailsMessage) {
-        //   setMessages((prevMessages: ChatMessage[]) => [...prevMessages, transactionDetailsMessage]);
-        //   setWaitingConfirmation(true); // Ativar espera por confirmação
-        //   setPendingAction({ tipo: parsedResponse.transaction_type, dados: parsedResponse }); // Salvar dados para confirmação
-        // }
-
+        const botMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botMessage]);
       } catch (e: any) {
         setError(e.message || "Erro ao obter resposta da IA.");
         const errorResponse: ChatMessage = {
@@ -304,7 +315,7 @@ export const FinancialAdvisorPage: React.FC = () => {
                     <AvatarFallback>IA</AvatarFallback>
                   </Avatar>
                   <span className="text-sm bg-yellow-100 text-yellow-900 px-4 py-2 rounded-2xl border border-yellow-300 shadow-sm font-medium animate-fade-in">
-                    Confirma o registro de <b>{pendingAction.dados?.descricao || pendingAction.dados?.categoria || 'transação'}</b>?
+                    Confirma o registro de <b>{pendingAction.dados?.description || pendingAction.dados?.category || 'transação'}</b>?
                   </span>
                 </div>
                 <div className="flex gap-3">

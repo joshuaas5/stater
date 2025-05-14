@@ -213,6 +213,79 @@ export const FinancialAdvisorPage: React.FC = () => {
     // Se não for um comando hardcoded, chamar Gemini
     if (!respostaEnviada) {
       try {
+        // FLUXO DE COLETA DE CAMPOS OBRIGATÓRIOS
+        // Se já existe pendingAction, completar os campos faltantes
+        if (pendingAction && (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense')) {
+          const dados = { ...pendingAction.dados };
+          // 1. Nome
+          if (!dados.description) {
+            dados.description = message;
+            setPendingAction({ ...pendingAction, dados });
+            setMessages((prev) => ([
+              ...prev,
+              { id: uuidv4(), text: 'Agora informe o valor (apenas número):', sender: 'system', timestamp: new Date() }
+            ]));
+            setLoading(false);
+            return;
+          }
+          // 2. Valor
+          if (!dados.amount) {
+            const parsed = parseFloat(message.replace(/[^\d,.]/g, '').replace(',', '.'));
+            if (isNaN(parsed) || parsed <= 0) {
+              setMessages((prev) => ([...prev, { id: uuidv4(), text: 'Valor inválido. Informe apenas o número, exemplo: 120.50', sender: 'system', timestamp: new Date() }]));
+              setLoading(false);
+              return;
+            }
+            dados.amount = parsed;
+            setPendingAction({ ...pendingAction, dados });
+            setMessages((prev) => ([...prev, { id: uuidv4(), text: 'Qual a categoria? (opcional, pode pular)', sender: 'system', timestamp: new Date() }]));
+            setLoading(false);
+            return;
+          }
+          // 3. Categoria (opcional)
+          if (!dados.category && message.trim().length > 0 && !['pular', 'não', 'nao', 'skip'].includes(message.trim().toLowerCase())) {
+            dados.category = message;
+            setPendingAction({ ...pendingAction, dados });
+            setMessages((prev) => ([...prev, { id: uuidv4(), text: 'Deseja informar uma data? (dd/mm/aaaa) ou digite "hoje"', sender: 'system', timestamp: new Date() }]));
+            setLoading(false);
+            return;
+          }
+          // 4. Data (opcional)
+          if (!dados.date && message.trim().length > 0 && !['hoje', 'não', 'nao', 'pular', 'skip'].includes(message.trim().toLowerCase())) {
+            // Aceita dd/mm/aaaa
+            const regex = /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/;
+            const match = message.match(regex);
+            if (match) {
+              const [_, d, m, y] = match;
+              const dataStr = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+              dados.date = dataStr;
+            } else {
+              setMessages((prev) => ([...prev, { id: uuidv4(), text: 'Formato de data inválido. Use dd/mm/aaaa ou digite "hoje".', sender: 'system', timestamp: new Date() }]));
+              setLoading(false);
+              return;
+            }
+            setPendingAction({ ...pendingAction, dados });
+          } else if (!dados.date && ['hoje', 'não', 'nao', 'pular', 'skip'].includes(message.trim().toLowerCase())) {
+            dados.date = new Date().toISOString().split('T')[0];
+            setPendingAction({ ...pendingAction, dados });
+          }
+          // Se todos os campos obrigatórios preenchidos, pedir confirmação
+          if (dados.description && dados.amount) {
+            setPendingAction({ ...pendingAction, dados });
+            setWaitingConfirmation(true);
+            setMessages((prev) => ([...prev, {
+              id: uuidv4(),
+              text: `📝 Ok! Você quer adicionar ${pendingAction.tipo === 'income' ? 'uma receita 🤑' : 'uma despesa 💸'} de R$${dados.amount.toFixed(2)} para "${dados.description}"${dados.category ? ` na categoria "${dados.category}"` : ''}${dados.date ? ` em ${dados.date.split('-').reverse().join('/')} ` : ''}.\n\nCorreto? Registrar? (sim/não)`,
+              sender: 'system',
+              timestamp: new Date()
+            }]));
+            setLoading(false);
+            return;
+          }
+        }
+        // FIM FLUXO DE CAMPOS OBRIGATÓRIOS
+
+        // Caso não esteja preenchendo campos, segue fluxo normal Gemini
         const geminiTextResponse = await getGeminiResponse(message);
         let botResponseText = geminiTextResponse;
 
@@ -226,51 +299,15 @@ export const FinancialAdvisorPage: React.FC = () => {
           // Tentar parsear a resposta como JSON de transação
           const parsedResponse: GeminiTransactionIntent = JSON.parse(cleanedJsonResponse); // Use cleaned string
           if (parsedResponse && parsedResponse.action === 'add_transaction') {
-            // É uma intenção de transação!
-            const { transaction_type, description, amount, category, date } = parsedResponse;
-            
-            let formattedDateStr = '';
-            if (date) {
-              try {
-                const displayDate = new Date(date + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso ao formatar para display
-                formattedDateStr = displayDate.toLocaleDateString('pt-BR');
-              } catch (e) {
-                 formattedDateStr = date; // fallback se a data não for parseável para display
-              }
-            }
-
-            // Se faltar o nome/título, perguntar antes de prosseguir
-            if (!description || description.trim().length < 2) {
-              botResponseText = `Qual o nome dessa ${transaction_type === 'income' ? 'receita' : 'despesa'}?`;
-              setPendingAction({
-                tipo: transaction_type,
-                dados: {
-                  ...parsedResponse,
-                  ask: 'title',
-                  amount,
-                  category,
-                  date
-                }
-              });
-              setWaitingConfirmation(false);
-            } else if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-              botResponseText = `Qual o valor dessa ${transaction_type === 'income' ? 'receita' : 'despesa'} "${description}"?`;
-              setPendingAction({
-                tipo: transaction_type,
-                dados: {
-                  ...parsedResponse,
-                  description,
-                  ask: 'amount',
-                  category,
-                  date
-                }
-              });
-              setWaitingConfirmation(false);
-            } else {
-              // Mensagem de confirmação aprimorada e lógica para setar pendingAction
-              botResponseText = `📝 Ok! Você quer adicionar ${transaction_type === 'income' ? 'uma receita 🤑' : 'uma despesa 💸'} de R$${Number(amount).toFixed(2)} para "${description}"${category ? ` na categoria "${category}"` : ''}${formattedDateStr ? ` em ${formattedDateStr}` : ''}.\n\nCorreto? Registrar? (sim/não)`;
-              setPendingAction({
-                tipo: transaction_type,
+          // É uma intenção de transação!
+          const { transaction_type, description, amount, category, date } = parsedResponse;
+          
+          let formattedDateStr = '';
+          if (date) {
+            try {
+              const displayDate = new Date(date + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso ao formatar para display
+              formattedDateStr = displayDate.toLocaleDateString('pt-BR');
+            } catch {}
                 dados: {
                   description,
                   amount,

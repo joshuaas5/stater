@@ -308,15 +308,17 @@ export const FinancialAdvisorPage: React.FC = () => {
               const displayDate = new Date(date + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso ao formatar para display
               formattedDateStr = displayDate.toLocaleDateString('pt-BR');
             } catch {}
-                dados: {
-                  description,
-                  amount,
-                  category: category || null,
-                  date: date || null
-                }
-              });
-              setWaitingConfirmation(true);
+          }
+          setPendingAction({
+            tipo: transaction_type === 'income' ? 'income' : 'expense',
+            dados: {
+              description,
+              amount,
+              category: category || null,
+              date: date || null
             }
+          });
+          setWaitingConfirmation(true);
 
           } else {
             // Não é uma transação válida ou não tem a action 'add_transaction'. Usa a resposta original da IA.

@@ -118,24 +118,43 @@ export const FinancialAdvisorPage: React.FC = () => {
     if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim')) {
       setLoading(true);
       setError("");
-      // Exemplo: pendingAction.tipo = 'saida', dados = { valor, categoria, ... }
       try {
-        // Aqui você pode adaptar para entrada/saída/conta conforme seu schema
         if (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense') {
           const { description, amount, category, date } = pendingAction.dados;
+          // Salva no Supabase
           await supabase.from('transactions').insert([
             {
               type: pendingAction.tipo === 'income' ? 'income' : 'expense',
               amount: amount,
               category: category || null,
               title: description,
+              date: date ? new Date(date).toISOString() : new Date().toISOString(),
               created_at: new Date().toISOString(),
-              // Adicione outros campos necessários
             }
           ]);
+          // Salva no localStorage
+          const userId = localStorage.getItem('userId');
+          if (userId) {
+            const txKey = `transactions_${userId}`;
+            const txsRaw = localStorage.getItem(txKey);
+            const txs = txsRaw ? JSON.parse(txsRaw) : [];
+            const newTx = {
+              id: uuidv4(),
+              title: description,
+              amount: Number(amount),
+              type: pendingAction.tipo,
+              category: category || '',
+              date: date ? new Date(date) : new Date(),
+              userId,
+            };
+            txs.push(newTx);
+            localStorage.setItem(txKey, JSON.stringify(txs));
+            // Dispara evento customizado para atualizar Dashboard/Transactions
+            window.dispatchEvent(new Event('transactionsUpdated'));
+          }
           setMessages((prevMessages: ChatMessage[]) => ([
             ...prevMessages,
-            { id: uuidv4(), text: '✅ Registro efetuado com sucesso!', sender: 'system', timestamp: new Date() }
+            { id: uuidv4(), text: `✅ ${pendingAction.tipo === 'income' ? 'Receita' : 'Despesa'} registrada com sucesso!`, sender: 'system', timestamp: new Date() }
           ]));
         } else if (pendingAction.tipo === 'conta') {
           // Exemplo para contas
@@ -220,19 +239,47 @@ export const FinancialAdvisorPage: React.FC = () => {
               }
             }
 
-            // Mensagem de confirmação aprimorada e lógica para setar pendingAction
-            botResponseText = `📝 Ok! Você quer adicionar ${transaction_type === 'income' ? 'uma receita 🤑' : 'uma despesa 💸'} de R$${amount.toFixed(2)} para "${description}"${category ? ` na categoria "${category}"` : ''}${formattedDateStr ? ` em ${formattedDateStr}` : ''}.\n\nCorreto? Registrar? (sim/não)`;
-            
-            setPendingAction({
-              tipo: transaction_type,
-              dados: { 
-                description,
-                amount,
-                category: category || null,
-                date: date || null 
-              }
-            });
-            setWaitingConfirmation(true);
+            // Se faltar o nome/título, perguntar antes de prosseguir
+            if (!description || description.trim().length < 2) {
+              botResponseText = `Qual o nome dessa ${transaction_type === 'income' ? 'receita' : 'despesa'}?`;
+              setPendingAction({
+                tipo: transaction_type,
+                dados: {
+                  ...parsedResponse,
+                  ask: 'title',
+                  amount,
+                  category,
+                  date
+                }
+              });
+              setWaitingConfirmation(false);
+            } else if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+              botResponseText = `Qual o valor dessa ${transaction_type === 'income' ? 'receita' : 'despesa'} "${description}"?`;
+              setPendingAction({
+                tipo: transaction_type,
+                dados: {
+                  ...parsedResponse,
+                  description,
+                  ask: 'amount',
+                  category,
+                  date
+                }
+              });
+              setWaitingConfirmation(false);
+            } else {
+              // Mensagem de confirmação aprimorada e lógica para setar pendingAction
+              botResponseText = `📝 Ok! Você quer adicionar ${transaction_type === 'income' ? 'uma receita 🤑' : 'uma despesa 💸'} de R$${Number(amount).toFixed(2)} para "${description}"${category ? ` na categoria "${category}"` : ''}${formattedDateStr ? ` em ${formattedDateStr}` : ''}.\n\nCorreto? Registrar? (sim/não)`;
+              setPendingAction({
+                tipo: transaction_type,
+                dados: {
+                  description,
+                  amount,
+                  category: category || null,
+                  date: date || null
+                }
+              });
+              setWaitingConfirmation(true);
+            }
 
           } else {
             // Não é uma transação válida ou não tem a action 'add_transaction'. Usa a resposta original da IA.

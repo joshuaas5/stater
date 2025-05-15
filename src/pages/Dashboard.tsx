@@ -15,7 +15,7 @@ import {
   formatCurrency, 
   getTransactionsFromLastDays 
 } from '@/utils/dataProcessing';
-import { getCurrentUser, getTransactions, isLoggedIn } from '@/utils/localStorage';
+import { getCurrentUser, getTransactions, isLoggedIn, saveTransaction, updateTransaction, deleteTransaction } from '@/utils/localStorage';
 import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -47,6 +47,9 @@ const Dashboard: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [showAllTransactionsInMonth, setShowAllTransactionsInMonth] = useState(false);
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
   
   const [newTransaction, setNewTransaction] = useState({
     title: '',
@@ -74,19 +77,34 @@ const Dashboard: React.FC = () => {
     loadTransactions(selectedMonth, selectedYear);
 
     // Listener para atualizar transações quando houver novas
-    const handler = () => loadTransactions(selectedMonth, selectedYear);
+    const handler = () => {
+      // Se um filtro de período estiver ativo, não recarrega automaticamente com o mês/ano
+      if (!startDate || !endDate) {
+        loadTransactions(selectedMonth, selectedYear);
+      }
+    };
     window.addEventListener('transactionsUpdated', handler);
     return () => {
       window.removeEventListener('transactionsUpdated', handler);
     };
   }, [navigate, selectedMonth, selectedYear]);
   
-  const loadTransactions = (month: number, year: number) => {
+  const loadTransactions = (month: number, year: number, useCustomPeriod = false) => {
     const allTransactions = getTransactions();
-    const filteredTransactions = allTransactions.filter(t => {
-      const transactionDate = new Date(t.date);
-      return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
-    });
+    let filteredTransactions = allTransactions;
+    if (useCustomPeriod && startDate && endDate) {
+      const start = new Date(startDate + 'T00:00:00');
+      const end = new Date(endDate + 'T23:59:59');
+      filteredTransactions = allTransactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate >= start && transactionDate <= end;
+      });
+    } else {
+      filteredTransactions = allTransactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
+      });
+    }
     
     // Sort transactions by date in descending order (most recent first)
     filteredTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -215,12 +233,7 @@ const Dashboard: React.FC = () => {
       dueDate: new Date()
     };
     
-    const allTransactions = getTransactions();
-    allTransactions.push(transaction);
-    
-    localStorage.setItem(`transactions_${user.id}`, JSON.stringify(allTransactions));
-    
-    loadTransactions(selectedMonth, selectedYear);
+    saveTransaction(transaction);
     
     setNewTransaction({
       title: '',
@@ -297,6 +310,19 @@ const Dashboard: React.FC = () => {
 
   <div className="px-4 mb-4">
     <MonthSelector onMonthChange={handleMonthChange} />
+  </div>
+
+  <div className="px-4 mb-4 flex flex-col sm:flex-row gap-2 items-center">
+    <div className="grid w-full sm:w-auto gap-1.5">
+      <Label htmlFor="start-date" className="text-xs text-galileo-secondaryText">De:</Label>
+      <Input type="date" id="start-date" value={startDate || ''} onChange={(e) => setStartDate(e.target.value)} className="text-sm" />
+    </div>
+    <div className="grid w-full sm:w-auto gap-1.5">
+      <Label htmlFor="end-date" className="text-xs text-galileo-secondaryText">Até:</Label>
+      <Input type="date" id="end-date" value={endDate || ''} onChange={(e) => setEndDate(e.target.value)} className="text-sm" />
+    </div>
+    <Button onClick={() => loadTransactions(selectedMonth, selectedYear, true)} className="mt-4 sm:mt-auto h-9" size="sm">Filtrar Período</Button>
+    <Button onClick={() => { setStartDate(null); setEndDate(null); loadTransactions(selectedMonth, selectedYear); }} variant="ghost" className="mt-1 sm:mt-auto h-9 text-xs" size="sm">Limpar Filtro</Button>
   </div>
 
   <div className="flex flex-wrap gap-4 px-4 mb-6">
@@ -451,9 +477,7 @@ const Dashboard: React.FC = () => {
               amount: parseFloat(editingTransaction.amount as any), // Consider making parsing more robust like for new transactions
               recurrenceFrequency: editingTransaction.recurrenceFrequency || 'monthly',
             };
-            allTransactions[idx] = updated;
-            localStorage.setItem(`transactions_${user.id}`, JSON.stringify(allTransactions));
-            loadTransactions(selectedMonth, selectedYear);
+            updateTransaction(updated);
             setDialogOpen(false);
             setEditingTransaction(null);
             toast({
@@ -478,10 +502,9 @@ const Dashboard: React.FC = () => {
             navigate('/login');
             return;
           }
-          const allTransactions = getTransactions();
-          const filtered = allTransactions.filter(t => t.id !== editingTransaction.id);
-          localStorage.setItem(`transactions_${user.id}`, JSON.stringify(filtered));
-          loadTransactions(selectedMonth, selectedYear);
+          if (editingTransaction) {
+            deleteTransaction(editingTransaction.id);
+          }
           setDialogOpen(false);
           setEditingTransaction(null);
           toast({
@@ -550,7 +573,7 @@ const Dashboard: React.FC = () => {
       </h2>
       
       {transactions.length > 0 ? (
-        transactions.slice(0, 5).map((transaction: Transaction) => (
+        (showAllTransactionsInMonth ? transactions : transactions.slice(0, 5)).map((transaction: Transaction) => (
           <div key={transaction.id} className="flex items-center gap-4 bg-galileo-background px-4 min-h-[72px] py-2 justify-between border-t border-galileo-border">
             <div className="flex items-center gap-4">
               <div className="text-galileo-text flex items-center justify-center rounded-lg bg-galileo-accent shrink-0 size-12">
@@ -594,6 +617,16 @@ const Dashboard: React.FC = () => {
       ) : (
         <div className="flex flex-col items-center justify-center p-8">
           <p className="text-galileo-secondaryText mb-4">Nenhuma transação encontrada para este mês</p>
+        </div>
+      )}
+      {transactions.length > 5 && (
+        <div className="px-4 mt-4 mb-2 flex justify-center">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowAllTransactionsInMonth(!showAllTransactionsInMonth)}
+          >
+            {showAllTransactionsInMonth ? 'Ver Menos' : 'Ver Todas as Transações do Mês'}
+          </Button>
         </div>
       )}
       

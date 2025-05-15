@@ -694,7 +694,7 @@ const handleMarkAsPaid = (billId: string) => {
                 />
               </div>
               <DialogFooter>
-                <Button type="submit" className="bg-galileo-accent hover:bg-galileo-accent/80">Salvar Alterações</Button>
+                <Button type="submit" className="bg-galileo-accent hover:bg-galileo-accent/80 text-white">Salvar Alterações</Button>
                 <Button type="button" variant="ghost" onClick={() => setShowEditBillModal(false)}>Cancelar</Button>
               </DialogFooter>
             </form>

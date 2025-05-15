@@ -71,9 +71,14 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, days }) => 
                 color: '#F8F9FB'
               }}
               formatter={(value: number) => [formatCurrency(value), 'Saldo']}
-              labelFormatter={(label) => {
-                const date = new Date(label);
-                return date.toLocaleDateString('pt-BR');
+              labelFormatter={(label: string) => {
+                const parts = label.split('-');
+                const year = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1; // Mês é 0-indexado no JS (0=Jan, 11=Dez)
+                const day = parseInt(parts[2], 10);
+                // Cria data à meia-noite no fuso horário local
+                const localDate = new Date(year, month, day);
+                return localDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
               }}
             />
             <Line 

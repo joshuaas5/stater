@@ -37,6 +37,7 @@ export const saveTransaction = (transaction: Transaction): void => {
   
   transactions.push(transaction);
   localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
+  window.dispatchEvent(new CustomEvent('transactionsUpdated'));
 };
 
 // Obter todas as transações do usuário atual
@@ -74,6 +75,7 @@ export const updateTransaction = (transaction: Transaction): void => {
   if (index !== -1) {
     transactions[index] = transaction;
     localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
+    window.dispatchEvent(new CustomEvent('transactionsUpdated'));
   }
 };
 
@@ -88,6 +90,7 @@ export const deleteTransaction = (transactionId: string): void => {
   let transactions: Transaction[] = JSON.parse(transactionsStr);
   transactions = transactions.filter(t => t.id !== transactionId);
   localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
+  window.dispatchEvent(new CustomEvent('transactionsUpdated'));
 };
 
 // Verificar se um usuário existe
@@ -160,6 +163,7 @@ export const updateBill = (bill: Bill): void => {
   if (index !== -1) {
     bills[index] = bill;
     localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
+    window.dispatchEvent(new CustomEvent('billsUpdated'));
   }
 };
 
@@ -197,6 +201,7 @@ export const markBillAsPaid = (billId: string, onPaid?: (bill: Bill) => void): v
   if (index !== -1) {
     bills[index].isPaid = true;
     localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
+    window.dispatchEvent(new CustomEvent('billsUpdated'));
     // Criar transação de saída automaticamente ao pagar a conta
     const transaction = {
       id: `transaction_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,

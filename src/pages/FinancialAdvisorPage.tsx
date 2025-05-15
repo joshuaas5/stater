@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/navigation/NavBar';
 import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
-import { isLoggedIn } from '@/utils/localStorage';
+import { isLoggedIn, saveTransaction as saveTransactionUtil } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
-import { ChatMessage } from '@/types';
+import { ChatMessage, Transaction } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '@/hooks/use-translation';
 import { fetchGeminiFlashLite, GeminiTransactionIntent } from '@/utils/gemini';
@@ -132,26 +132,28 @@ export const FinancialAdvisorPage: React.FC = () => {
               created_at: new Date().toISOString(),
             }
           ]);
-          // Salva no localStorage
+          // Salva no localStorage usando a função utilitária
           const userId = localStorage.getItem('userId');
-          if (userId) {
-            const txKey = `transactions_${userId}`;
-            const txsRaw = localStorage.getItem(txKey);
-            const txs = txsRaw ? JSON.parse(txsRaw) : [];
-            const newTx = {
-              id: uuidv4(),
-              title: description,
-              amount: Number(amount),
-              type: pendingAction.tipo,
-              category: category || '',
-              date: date ? new Date(date) : new Date(),
-              userId,
-            };
-            txs.push(newTx);
-            localStorage.setItem(txKey, JSON.stringify(txs));
-            // Dispara evento customizado para atualizar Dashboard/Transactions
-            window.dispatchEvent(new Event('transactionsUpdated'));
+          if (!userId) {
+            setError("Erro: Usuário não identificado. Não foi possível salvar a transação.");
+            setLoading(false);
+            setMessages((prevMessages: ChatMessage[]) => ([
+                ...prevMessages,
+                { id: uuidv4(), text: '❌ Erro: Usuário não identificado. Tente fazer login novamente.', sender: 'system', timestamp: new Date() }
+            ]));
+            return;
           }
+
+          const transactionToSave: Transaction = {
+            id: uuidv4(), 
+            title: description,
+            amount: Number(amount),
+            type: pendingAction.tipo as 'income' | 'expense',
+            category: category || '',
+            date: date ? new Date(date) : new Date(),
+            userId: userId,
+          };
+          saveTransactionUtil(transactionToSave);
           setMessages((prevMessages: ChatMessage[]) => ([
             ...prevMessages,
             { id: uuidv4(), text: `✅ ${pendingAction.tipo === 'income' ? 'Receita' : 'Despesa'} registrada com sucesso!`, sender: 'system', timestamp: new Date() }

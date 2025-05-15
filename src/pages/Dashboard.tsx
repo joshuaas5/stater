@@ -48,6 +48,8 @@ const Dashboard: React.FC = () => {
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [showAllTransactionsInMonth, setShowAllTransactionsInMonth] = useState(false);
+  const [editingTransactionDontAdjustBalance, setEditingTransactionDontAdjustBalance] = useState(false);
+  const [lastEditedTransactionIdForBalanceSkip, setLastEditedTransactionIdForBalanceSkip] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   
@@ -109,30 +111,39 @@ const Dashboard: React.FC = () => {
     // Sort transactions by date in descending order (most recent first)
     filteredTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setTransactions(filteredTransactions);
-    
-    const currentBalance = calculateBalance(filteredTransactions);
-    setBalance(currentBalance);
-    
+
+    // Calcular incomes e expenses sempre, pois eles não dependem do skip de saldo
     const incomes = filteredTransactions.filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
     const expenses = filteredTransactions.filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
-    
+
     setTotalIncomes(incomes);
     setTotalExpenses(expenses);
-    
-    const lastMonthDate = new Date(year, month, 1);
-    lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
-    
-    const lastMonthTransactions = allTransactions.filter(t => {
-      const transactionDate = new Date(t.date);
-      return transactionDate.getMonth() === lastMonthDate.getMonth() && 
-             transactionDate.getFullYear() === lastMonthDate.getFullYear();
-    });
-    
-    const lastMonthBalance = calculateBalance(lastMonthTransactions);
-    const change = calculatePercentageChange(currentBalance, lastMonthBalance);
-    setPercentChange(change);
+
+    if (lastEditedTransactionIdForBalanceSkip) {
+      // Pular o recálculo do saldo e a mudança percentual
+      // A transação foi editada com 'dontAdjustBalanceOnSave = true'
+      // O saldo atual (balance) e percentChange permanecem os mesmos de antes desta edição.
+      setLastEditedTransactionIdForBalanceSkip(null); // Resetar a flag para a próxima atualização
+    } else {
+      // Calcular saldo e percentChange normalmente
+      const currentBalance = calculateBalance(filteredTransactions);
+      setBalance(currentBalance);
+
+      const lastMonthDate = new Date(year, month, 1);
+      lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
+
+      const lastMonthTransactions = allTransactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate.getMonth() === lastMonthDate.getMonth() &&
+               transactionDate.getFullYear() === lastMonthDate.getFullYear();
+      });
+
+      const lastMonthBalance = calculateBalance(lastMonthTransactions);
+      const change = calculatePercentageChange(currentBalance, lastMonthBalance);
+      setPercentChange(change);
+    }
   };
   
   const handleMonthChange = (month: number, year: number) => {
@@ -194,6 +205,9 @@ const Dashboard: React.FC = () => {
   };
   
   const handleSaveTransaction = () => {
+    // Remove a lógica de dontAdjustBalanceOnSave da criação de nova transação
+    // Ela será adicionada apenas no bloco de edição mais abaixo.
+
     const user = getCurrentUser();
     if (!user) {
       navigate('/login');
@@ -230,7 +244,8 @@ const Dashboard: React.FC = () => {
       date: new Date(),
       userId: user.id,
       isRecurring: newTransaction.isRecurring,
-      dueDate: new Date()
+      recurrenceFrequency: newTransaction.isRecurring ? newTransaction.recurrenceFrequency : undefined,
+      dontAdjustBalanceOnSave: editingTransaction ? editingTransactionDontAdjustBalance : undefined // Salva o estado do checkbox
     };
     
     saveTransaction(transaction);
@@ -350,7 +365,10 @@ const Dashboard: React.FC = () => {
 
       <Dialog open={dialogOpen} onOpenChange={(open: boolean) => {
         setDialogOpen(open);
-        if (!open) setEditingTransaction(null);
+        if (!open) {
+          setEditingTransaction(null);
+          setEditingTransactionDontAdjustBalance(false); // Resetar aqui
+        }
       }}>
         <DialogContent>
           <DialogHeader>
@@ -444,34 +462,73 @@ const Dashboard: React.FC = () => {
                 </Select>
               </div>
             )}
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="dontAdjustBalance" 
+                checked={editingTransactionDontAdjustBalance}
+                onCheckedChange={(val: boolean) => {
+                  setEditingTransactionDontAdjustBalance(!!val);
+                }}
+              />
+              <Label 
+                htmlFor="dontAdjustBalance" 
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Não ajustar saldo
+              </Label>
+            </div>
           </div>
           <DialogFooter>
   {editingTransaction ? (
     <div className="flex flex-col sm:flex-row justify-end gap-2 w-full">
       <Button
         onClick={() => {
-          // Salvar edição da transação
+          if (!editingTransaction) return; // Safety check
+
           const user = getCurrentUser();
           if (!user) {
             navigate('/login');
             return;
           }
-          const allTransactions = getTransactions();
-          const idx = allTransactions.findIndex(t => t.id === editingTransaction.id);
-          if (idx !== -1) {
-            const updated = {
-              ...editingTransaction,
-              amount: parseFloat(editingTransaction.amount as any), // Consider making parsing more robust like for new transactions
-              recurrenceFrequency: editingTransaction.recurrenceFrequency || 'monthly',
-            };
-            updateTransaction(updated);
-            setDialogOpen(false);
-            setEditingTransaction(null);
-            toast({
-              title: 'Transação atualizada',
-              description: `${updated.title} foi atualizada com sucesso.`
-            });
+
+          // Robust amount parsing
+          let finalAmount: number;
+          const currentAmountFromState = editingTransaction.amount;
+
+          if (typeof currentAmountFromState === 'string') {
+            const cleanedAmountString = currentAmountFromState.replace(/[^0-9.,]/g, '').replace(',', '.');
+            finalAmount = parseFloat(cleanedAmountString);
+          } else if (typeof currentAmountFromState === 'number') {
+            finalAmount = currentAmountFromState;
+          } else {
+            // Handle undefined, null, or other unexpected types
+            finalAmount = NaN; // This will trigger the validation error below
           }
+
+          if (isNaN(finalAmount) || finalAmount <= 0) {
+            toast({
+              title: 'Valor Inválido',
+              description: 'Por favor, insira um valor numérico válido para a transação.',
+              variant: 'destructive',
+            });
+            return;
+          }
+
+          const transactionToUpdate: Transaction = {
+            ...editingTransaction,
+            amount: finalAmount, // Use the correctly parsed numeric amount
+            date: new Date(editingTransaction.date), // Ensure date is a Date object
+            dontAdjustBalanceOnSave: editingTransactionDontAdjustBalance,
+          };
+
+          updateTransaction(transactionToUpdate);
+
+          if (editingTransactionDontAdjustBalance) {
+            setLastEditedTransactionIdForBalanceSkip(transactionToUpdate.id);
+          }
+          
+          toast({ title: "Sucesso", description: "Transação atualizada." });
+          setDialogOpen(false); // Close dialog after successful save
         }}
         className={
           editingTransaction.type === 'income'
@@ -604,6 +661,7 @@ const Dashboard: React.FC = () => {
                 className="ml-2 text-galileo-secondaryText hover:text-galileo-text"
                 style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                 onClick={() => {
+                  setEditingTransactionDontAdjustBalance(transaction.dontAdjustBalanceOnSave || false); // Inicializar aqui
                   setEditingTransaction(transaction);
                   setDialogOpen(true);
                 }}

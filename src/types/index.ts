@@ -23,6 +23,7 @@ export interface Transaction {
   isCardBill?: boolean;
   cardItems?: CardItem[];
   recurrenceFrequency?: 'weekly' | 'monthly' | 'yearly'; // Frequência de recorrência
+  dontAdjustBalanceOnSave?: boolean; // Nova flag
 }
 
 export interface CardItem {

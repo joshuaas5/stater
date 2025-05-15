@@ -26,7 +26,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   };
 
   return (
-    <div className="flex items-center bg-galileo-background p-4 pb-2 justify-between sticky top-0 z-10">
+    <div className="flex items-center p-4 pb-2 justify-between sticky top-0 z-10 bg-background text-foreground transition-colors duration-200">
       <div className="flex items-center">
         {showBack && (
           <button

@@ -30,14 +30,24 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('theme', theme);
     
+    // Limpar todas as classes de tema existentes
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark', 'system');
+    
     if (theme === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      document.documentElement.classList.remove('light', 'dark');
-      document.documentElement.classList.add(systemTheme);
+      root.classList.add(systemTheme);
     } else {
-      document.documentElement.classList.remove('light', 'dark');
-      document.documentElement.classList.add(theme);
+      root.classList.add(theme);
     }
+    
+    // Forçar reflow para garantir que as mudanças sejam aplicadas
+    root.offsetHeight;
+    
+    // Aguardar um frame para garantir que as mudanças sejam aplicadas
+    requestAnimationFrame(() => {
+      root.style.transition = 'color 0.2s ease, background-color 0.2s ease';
+    });
   }, [theme]);
 
   const toggleTheme = () => {

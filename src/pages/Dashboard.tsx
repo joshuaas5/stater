@@ -496,7 +496,8 @@ const Dashboard: React.FC = () => {
 
           // Robust amount parsing
           let finalAmount: number;
-          const currentAmountFromState = editingTransaction.amount;
+          // Allow currentAmountFromState to be string or number to handle parsing from form input
+          const currentAmountFromState: string | number = editingTransaction.amount as (string | number);
 
           if (typeof currentAmountFromState === 'string') {
             const cleanedAmountString = currentAmountFromState.replace(/[^0-9.,]/g, '').replace(',', '.');

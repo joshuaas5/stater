@@ -105,29 +105,34 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const dataPoint = payload[0].payload; // Acesso ao objeto completo do ponto de dado
     const dateLabel = () => {
-      // O 'label' aqui é a string da data (ex: "2024-05-15") que vem do dataKey do LineChart
+      console.log('[SpendingChart Tooltip] Received label:', label, typeof label); // Log input label
+
       if (typeof label === 'string' && label.match(/^\d{4}-\d{2}-\d{2}$/)) {
         try {
-          // Adiciona 'T00:00:00' para evitar problemas de fuso horário que podem levar ao dia anterior.
-          // Isso força a interpretação da data como meia-noite no fuso horário local.
-          const dateObj = new Date(label + 'T00:00:00');
+          const dateStringForParsing = label + 'T00:00:00'; // Interpret as local midnight
+          const dateObj = new Date(dateStringForParsing);
+          console.log('[SpendingChart Tooltip] Parsed Date Object:', dateObj, 'isValid:', !isNaN(dateObj.getTime()));
+
           if (isNaN(dateObj.getTime())) {
-            // Se a data for inválida, retorna o label original para depuração
-            return label;
+            console.error('[SpendingChart Tooltip] Invalid date object from label:', label);
+            return label; // Return original malformed label
           }
-          return dateObj.toLocaleDateString('pt-BR', {
+          
+          const formattedDate = dateObj.toLocaleDateString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
           });
+          console.log('[SpendingChart Tooltip] Formatted Date:', formattedDate);
+          return formattedDate;
         } catch (e) {
-          // Em caso de qualquer erro de formatação, retorna o label original
-          console.error('Erro ao formatar data do tooltip:', e);
-          return label;
+          console.error('[SpendingChart Tooltip] Error formatting date for label:', label, e);
+          return label; // Return original label on error
         }
-      }      
-      // Se o label não for uma string de data no formato esperado, retorna como está
-      return label ? String(label) : '';
+      }
+      
+      console.log('[SpendingChart Tooltip] Label is not a YYYY-MM-DD string, returning as is:', label);
+      return label ? String(label) : ''; // Fallback for non-date string labels
     };
 
     return (

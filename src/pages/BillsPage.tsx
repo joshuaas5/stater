@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
 import { Bill, CardItem } from '@/types';
-import { getBills, isLoggedIn, markBillAsPaid, saveBill, updateBill } from '@/utils/localStorage';
+import { getBills, isLoggedIn, markBillAsPaid, saveBill, updateBill, deleteBill } from '@/utils/localStorage';
 import { formatCurrency, getOverdueBills, getBillsDueInNextDays } from '@/utils/dataProcessing';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -319,21 +319,11 @@ const handleMarkAsPaid = (billId: string) => {
                                 <>
                                   <BellOff className="mr-2 h-4 w-4" />
                                   <span>Desativar Notificações</span>
-                                </>
-                              ) : (
+                                </>                              ) : (
                                 <>
                                   <Bell className="mr-2 h-4 w-4" />
                                   <span>Ativar Notificações</span>
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                            {!bill.isPaid && (
-                              <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
-                                <span>Marcar como Paga</span>
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem onClick={() => handleCloneBill(bill)}>
-                              <span>Clonar Conta</span>
+                                </>                              )}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -608,8 +598,8 @@ const handleMarkAsPaid = (billId: string) => {
                 <Input
                   id="dueDate"
                   type="date"
-                  value={typeof newBill.dueDate === 'string' ? newBill.dueDate.slice(0,10) : ''}
-                  onChange={e => setNewBill({ ...newBill, dueDate: e.target.value })}
+                  value={newBill.dueDate instanceof Date ? newBill.dueDate.toISOString().slice(0,10) : typeof newBill.dueDate === 'string' ? newBill.dueDate : ''}
+                  onChange={e => setNewBill({ ...newBill, dueDate: new Date(e.target.value + 'T00:00:00') })}
                   required
                 />
               </div>
@@ -685,8 +675,8 @@ const handleMarkAsPaid = (billId: string) => {
                 <Input
                   id="edit-dueDate"
                   type="date"
-                  value={typeof editBill.dueDate === 'string' ? editBill.dueDate.slice(0,10) : ''}
-                  onChange={e => setEditBill({ ...editBill, dueDate: e.target.value })}
+                  value={editBill.dueDate instanceof Date ? editBill.dueDate.toISOString().slice(0,10) : typeof editBill.dueDate === 'string' ? editBill.dueDate : ''}
+                  onChange={e => setEditBill({ ...editBill, dueDate: new Date(e.target.value + 'T00:00:00') })}
                   required
                 />
               </div>

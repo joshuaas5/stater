@@ -6,9 +6,10 @@ import NavBar from '@/components/navigation/NavBar';
 import { isLoggedIn, getUserPreferences, saveUserPreferences } from '@/utils/localStorage';
 import { 
   Sun, Moon, Bell, Languages, DollarSign, 
-  Calendar, Paintbrush, Save
+  Calendar, Paintbrush, Save, UserCircle2
 } from 'lucide-react';
 import { CURRENCIES, suggestCurrencyByCountry } from '@/utils/currencies';
+import { getCurrentUser } from '@/utils/localStorage';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -104,6 +105,21 @@ const PreferencesPage: React.FC = () => {
   return (
     <div className="bg-galileo-background min-h-screen flex flex-col items-center pb-20">
       <div className="w-full max-w-md p-4 space-y-6">
+      <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
+        <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
+          <UserCircle2 size={18} className="mr-2" /> {t('aboutYourAccount')}
+        </h2>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-galileo-text">Nome de usuário</span>
+            <span className="text-galileo-secondaryText font-medium">{getCurrentUser()?.username}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-galileo-text">Email</span>
+            <span className="text-galileo-secondaryText font-medium">{getCurrentUser()?.email}</span>
+          </div>
+        </div>
+      </div>
         <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
           <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
             <Paintbrush size={18} className="mr-2" /> {t('theme')}

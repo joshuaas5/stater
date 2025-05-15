@@ -88,6 +88,8 @@ const Dashboard: React.FC = () => {
       return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
     });
     
+    // Sort transactions by date in descending order (most recent first)
+    filteredTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setTransactions(filteredTransactions);
     
     const currentBalance = calculateBalance(filteredTransactions);
@@ -372,7 +374,7 @@ const Dashboard: React.FC = () => {
                 value={editingTransaction ? String(editingTransaction.amount ?? '') : newTransaction.amount} 
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = e.target.value;
-                  if (editingTransaction) setEditingTransaction({...editingTransaction, amount: value === '' ? '' : Number(value)});
+                  if (editingTransaction) setEditingTransaction({...editingTransaction, amount: value === '' ? 0 : Number(value)}); // Use 0 for empty string to satisfy number type
                   else handleNewTransactionChange(e);
                 }}
                 placeholder="Ex: 1000 ou 2 mil"
@@ -432,7 +434,7 @@ const Dashboard: React.FC = () => {
           </div>
           <DialogFooter>
   {editingTransaction ? (
-    <>
+    <div className="flex flex-col sm:flex-row justify-end gap-2 w-full">
       <Button
         onClick={() => {
           // Salvar edição da transação
@@ -444,10 +446,9 @@ const Dashboard: React.FC = () => {
           const allTransactions = getTransactions();
           const idx = allTransactions.findIndex(t => t.id === editingTransaction.id);
           if (idx !== -1) {
-            // Atualizar valores corretos
             const updated = {
               ...editingTransaction,
-              amount: parseFloat(editingTransaction.amount as any),
+              amount: parseFloat(editingTransaction.amount as any), // Consider making parsing more robust like for new transactions
               recurrenceFrequency: editingTransaction.recurrenceFrequency || 'monthly',
             };
             allTransactions[idx] = updated;
@@ -471,7 +472,6 @@ const Dashboard: React.FC = () => {
       </Button>
       <Button
         variant="destructive"
-        className="ml-2"
         onClick={() => {
           const user = getCurrentUser();
           if (!user) {
@@ -493,10 +493,22 @@ const Dashboard: React.FC = () => {
       >
         Excluir
       </Button>
-    </>
+    </div>
   ) : (
     <Button
-      onClick={handleSaveTransaction}
+      onClick={() => {
+          // Garante que a conversão para número ocorra aqui também, como no onChange do input.
+          const amountAsNumber = parseFloat(newTransaction.amount.replace(/[^\.d0-9]/g, '').replace(',', '.'));
+          if (isNaN(amountAsNumber) || amountAsNumber <= 0) {
+            toast({
+              title: 'Valor Inválido',
+              description: 'Por favor, insira um valor numérico válido para a transação.',
+              variant: 'destructive',
+            });
+            return;
+          }
+          handleSaveTransaction();
+        }}
       className={
         newTransaction.type === 'income'
           ? 'bg-galileo-positive hover:bg-galileo-positive/80'
@@ -553,6 +565,9 @@ const Dashboard: React.FC = () => {
                 </p>
                 <p className="text-galileo-secondaryText text-sm font-normal leading-normal line-clamp-2">
                   {transaction.category} {transaction.isRecurring && '(Recorrente)'}
+                </p>
+                <p className="text-galileo-tertiaryText text-xs font-normal leading-normal">
+                  {new Date(transaction.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}
                 </p>
               </div>
             </div>

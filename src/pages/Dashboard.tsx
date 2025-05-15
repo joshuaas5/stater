@@ -312,19 +312,6 @@ const Dashboard: React.FC = () => {
     <MonthSelector onMonthChange={handleMonthChange} />
   </div>
 
-  <div className="px-4 mb-4 flex flex-col sm:flex-row gap-2 items-center">
-    <div className="grid w-full sm:w-auto gap-1.5">
-      <Label htmlFor="start-date" className="text-xs text-galileo-secondaryText">De:</Label>
-      <Input type="date" id="start-date" value={startDate || ''} onChange={(e) => setStartDate(e.target.value)} className="text-sm" />
-    </div>
-    <div className="grid w-full sm:w-auto gap-1.5">
-      <Label htmlFor="end-date" className="text-xs text-galileo-secondaryText">Até:</Label>
-      <Input type="date" id="end-date" value={endDate || ''} onChange={(e) => setEndDate(e.target.value)} className="text-sm" />
-    </div>
-    <Button onClick={() => loadTransactions(selectedMonth, selectedYear, true)} className="mt-4 sm:mt-auto h-9" size="sm">Filtrar Período</Button>
-    <Button onClick={() => { setStartDate(null); setEndDate(null); loadTransactions(selectedMonth, selectedYear); }} variant="ghost" className="mt-1 sm:mt-auto h-9 text-xs" size="sm">Limpar Filtro</Button>
-  </div>
-
   <div className="flex flex-wrap gap-4 px-4 mb-6">
         <div className="w-full">
           <div className="flex items-center justify-between">
@@ -571,6 +558,18 @@ const Dashboard: React.FC = () => {
       <h2 className="text-galileo-text text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-2">
         Últimas Transações
       </h2>
+      <div className="px-4 mb-4 flex flex-col sm:flex-row gap-2 items-center">
+        <div className="grid w-full sm:w-auto gap-1.5">
+          <Label htmlFor="start-date" className="text-xs text-galileo-secondaryText">De:</Label>
+          <Input type="date" id="start-date" value={startDate || ''} onChange={(e) => setStartDate(e.target.value)} className="text-sm" />
+        </div>
+        <div className="grid w-full sm:w-auto gap-1.5">
+          <Label htmlFor="end-date" className="text-xs text-galileo-secondaryText">Até:</Label>
+          <Input type="date" id="end-date" value={endDate || ''} onChange={(e) => setEndDate(e.target.value)} className="text-sm" />
+        </div>
+        <Button onClick={() => loadTransactions(selectedMonth, selectedYear, true)} className="mt-4 sm:mt-auto h-9" size="sm">Filtrar Período</Button>
+        <Button onClick={() => { setStartDate(null); setEndDate(null); loadTransactions(selectedMonth, selectedYear); }} variant="ghost" className="mt-1 sm:mt-auto h-9 text-xs" size="sm">Limpar Filtro</Button>
+      </div>
       
       {transactions.length > 0 ? (
         (showAllTransactionsInMonth ? transactions : transactions.slice(0, 5)).map((transaction: Transaction) => (

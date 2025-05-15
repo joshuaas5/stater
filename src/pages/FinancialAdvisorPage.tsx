@@ -14,6 +14,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 
 const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
+const USER_AVATAR = '/user-avatar.svg'; // Placeholder for user avatar
+
+const MAX_GEMINI_TOKENS_MONTHLY = 1000000; // Exemplo: 1 milhão de tokens por mês
+const TOKEN_WARNING_THRESHOLD_PERCENTAGE = 90;
+
+const getCurrentMonthYear = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Meses são 0-indexados
+  return `${year}-${month}`;
+};
 
 // Definir um tipo para getDataUtils para evitar erros
 type DataUtils = {
@@ -32,6 +43,11 @@ const getDataUtils = async (): Promise<DataUtils> => {
   };
 };
 
+interface PendingAction {
+  tipo: 'income' | 'expense' | 'bill' | 'generic_confirmation'; 
+  dados: any; 
+}
+
 export const FinancialAdvisorPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -49,7 +65,7 @@ export const FinancialAdvisorPage: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [pendingAction, setPendingAction] = useState<any>(null); // TODO: Tipar melhor
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [waitingConfirmation, setWaitingConfirmation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -227,217 +243,183 @@ export const FinancialAdvisorPage: React.FC = () => {
             ...prevMessages,
             { id: uuidv4(), text: `✅ ${pendingAction.tipo === 'income' ? 'Receita' : 'Despesa'} registrada com sucesso!`, sender: 'system', timestamp: new Date() }
           ]));
-        } else if (pendingAction.tipo === 'conta') {
+        } else if (pendingAction.tipo === 'bill') {
           // Exemplo para contas
           const { valor, descricao, vencimento } = pendingAction.dados;
           await supabase.from('bills').insert([
             {
               amount: valor,
               title: descricao,
-              due_date: vencimento,
+              due_date: vencimento, // Assuming vencimento is a string like 'YYYY-MM-DD' or a Date object
+              user_id: activeUserId, // Assuming you have a user_id field in your bills table
               created_at: new Date().toISOString(),
-              // Outros campos
             }
           ]);
           setMessages((prevMessages: ChatMessage[]) => ([
             ...prevMessages,
             { id: uuidv4(), text: '✅ Conta registrada com sucesso!', sender: 'system', timestamp: new Date() }
           ]));
-        }
+        } // Closes 'else if (pendingAction.tipo === 'conta')'
+        
         setPendingAction(null);
         setWaitingConfirmation(false);
-      } catch (e) {
-        setError('Erro ao registrar no banco.');
-      } finally {
+
+      } catch (e: any) { // Catch for the 'sim' block's try
+        const errorMessage = e.message || (typeof e === 'string' ? e : 'Erro desconhecido ao registrar no banco.');
+        setError('Erro ao registrar: ' + errorMessage);
+        console.error("Erro ao registrar no banco:", e);
+        setMessages(prev => [...prev, { id: uuidv4(), text: `❌ Erro ao registrar: ${errorMessage}. Tente novamente.`, sender: 'system', timestamp: new Date() }]);
+      } finally { // Finally for the 'sim' block's try
         setLoading(false);
       }
-      return;
-    }
+      return; // Crucial: return after 'sim' processing is fully handled
+    } // Closes 'if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim'))'
 
-    // Se aguardando confirmação e usuário diz não
-    if (waitingConfirmation && (lowerMsg.startsWith('não') || lowerMsg.startsWith('nao'))) {
-      setMessages((prevMessages: ChatMessage[]) => ([
-        ...prevMessages,
-        { id: uuidv4(), text: 'Registro cancelado.', sender: 'system', timestamp: new Date() }
-      ]));
-      setPendingAction(null);
-      setWaitingConfirmation(false);
-      return;
-    }
-
-    // Adicionar a mensagem do usuário ao chat
+    // Adiciona a mensagem do usuário à interface
+    const newUserMessage: ChatMessage = { id: uuidv4(), text: message, sender: 'user', timestamp: new Date(), avatarUrl: USER_AVATAR };
+    setMessages(prevMessages => [...prevMessages, newUserMessage]);
     setLoading(true);
-    setError("");
-    const userMessage: ChatMessage = { id: uuidv4(), text: message, sender: 'user', timestamp: new Date() };
-    setMessages((prevMessages: ChatMessage[]) => ([...prevMessages, userMessage]));
-    
-    // Limpar sugestões ao enviar mensagem
+    setError('');
     setShowSuggestions(false);
 
-    // Flag para controlar se uma resposta já foi enviada
-    let respostaEnviada = false;
-    
-    // Remover lógicas de padrões hardcoded para dar prioridade à Gemini para intenções de transação
-    // ... (seção de if/else com padrões hardcoded foi removida para simplificar e focar na Gemini)
-    // ...
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        setError("Erro: Usuário não identificado.");
+        setLoading(false);
+        return;
+      }
+      const activeUserId = user.id;
 
-    // Se não for um comando hardcoded, chamar Gemini
-    if (!respostaEnviada) {
-      try {
-        // FLUXO DE COLETA DE CAMPOS OBRIGATÓRIOS
-        // Se já existe pendingAction, completar os campos faltantes
-        if (pendingAction && (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense')) {
-          const dados = { ...pendingAction.dados };
-          // 1. Nome
-          if (!dados.description) {
-            dados.description = message;
-            setPendingAction({ ...pendingAction, dados });
-            setMessages((prev) => ([
-              ...prev,
-              { id: uuidv4(), text: 'Agora informe o valor (apenas número):', sender: 'system', timestamp: new Date() }
-            ]));
-            setLoading(false);
-            return;
-          }
-          // 2. Valor
-          if (!dados.amount) {
-            const parsed = parseFloat(message.replace(/[^\d,.]/g, '').replace(',', '.'));
-            if (isNaN(parsed) || parsed <= 0) {
-              setMessages((prev) => ([...prev, { id: uuidv4(), text: 'Valor inválido. Informe apenas o número, exemplo: 120.50', sender: 'system', timestamp: new Date() }]));
-              setLoading(false);
-              return;
-            }
-            dados.amount = parsed;
-            setPendingAction({ ...pendingAction, dados });
-            setMessages((prev) => ([...prev, { id: uuidv4(), text: 'Qual a categoria? (opcional, pode pular)', sender: 'system', timestamp: new Date() }]));
-            setLoading(false);
-            return;
-          }
-          // 3. Categoria (opcional)
-          if (!dados.category && message.trim().length > 0 && !['pular', 'não', 'nao', 'skip'].includes(message.trim().toLowerCase())) {
-            dados.category = message;
-            setPendingAction({ ...pendingAction, dados });
-            setMessages((prev) => ([...prev, { id: uuidv4(), text: 'Deseja informar uma data? (dd/mm/aaaa) ou digite "hoje"', sender: 'system', timestamp: new Date() }]));
-            setLoading(false);
-            return;
-          }
-          // 4. Data (opcional)
-          if (!dados.date && message.trim().length > 0 && !['hoje', 'não', 'nao', 'pular', 'skip'].includes(message.trim().toLowerCase())) {
-            // Aceita dd/mm/aaaa
-            const regex = /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/;
-            const match = message.match(regex);
-            if (match) {
-              const [_, d, m, y] = match;
-              const dataStr = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-              dados.date = dataStr;
-            } else {
-              setMessages((prev) => ([...prev, { id: uuidv4(), text: 'Formato de data inválido. Use dd/mm/aaaa ou digite "hoje".', sender: 'system', timestamp: new Date() }]));
-              setLoading(false);
-              return;
-            }
-          }
-        }
-        // FIM FLUXO DE CAMPOS OBRIGATÓRIOS
+      // Lógica de verificação de limite de tokens
+      const currentMonthYear = getCurrentMonthYear();
+      const { data: tokenUsageData, error: tokenUsageError } = await supabase
+        .from('user_token_usage')
+        .select('tokens_used')
+        .eq('user_id', activeUserId)
+        .eq('month_year', currentMonthYear)
+        .single();
 
-        // Caso não esteja preenchendo campos, segue fluxo normal Gemini
-        const geminiTextResponse = await getGeminiResponse(message);
-        let botResponseText = geminiTextResponse;
+      if (tokenUsageError && tokenUsageError.code !== 'PGRST116') { // PGRST116: no rows found
+        console.error("Erro ao buscar uso de tokens:", tokenUsageError);
+      }
+      
+      const currentTokensUsed = tokenUsageData?.tokens_used || 0;
 
-        // Extrair bloco JSON entre fences ```json e ```
-        let jsonString = "";
-        const fenceMatch = geminiTextResponse.match(/```json\s*([\s\S]*?)```/i);
-        if (fenceMatch) {
-          jsonString = fenceMatch[1].trim();
-        } else {
-          const braceMatch = geminiTextResponse.match(/\{[\s\S]*\}/);
-          jsonString = braceMatch ? braceMatch[0] : "";
-        }
-
-        if (jsonString) {
-          try {
-            // Remover vírgulas finais para JSON válido
-            const sanitizedJson = jsonString.replace(/,\s*}/g, "}").replace(/,\s*\]/g, "]");
-            const parsedResponse: GeminiTransactionIntent = JSON.parse(sanitizedJson);
-            if (parsedResponse.action === "add_transaction") {
-              const { transaction_type, description, amount, category, date } = parsedResponse;
-              const formattedDateStr = date ? new Date(date + "T00:00:00").toLocaleDateString("pt-BR") : "";
-              const confirmationText = `📝 Ok! Você quer adicionar ${transaction_type === "income" ? "uma receita 🤑" : "uma despesa 💸"} de R$${amount.toFixed(2)} para "${description}"${category ? ` na categoria "${category}"` : ""}${date ? ` em ${formattedDateStr}` : ""}.
-
-Correto? Registrar? (sim/não)`;
-              setPendingAction({ tipo: transaction_type === "income" ? "income" : "expense", dados: { description, amount, category: category || null, date: date || null } });
-              setWaitingConfirmation(true);
-              setMessages(prev => [...prev, { id: uuidv4(), text: confirmationText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR }]);
-              setLoading(false);
-              return;
-            }
-          } catch (err) {
-            console.error("Erro ao parsear JSON da IA:", err, jsonString);
-          }
-        }
-
-        // Após a tentativa de parsear JSON direto, e se não houve 'add_transaction' intent.
-        // Verificamos se a resposta da IA é uma pergunta de confirmação textual.
-        const textualConfirmationDetail = parseConfirmationIntent(botResponseText);
-
-        if (textualConfirmationDetail && !pendingAction) { // Se encontrou uma pergunta de confirmação e não há ação pendente
-          let confirmationMessageForChat = botResponseText; // Por padrão, a mensagem original da IA
-          let actionData: any = { description: textualConfirmationDetail }; // Dados base para pendingAction
-          let pendingActionType = 'generic_confirmation'; // Tipo base para pendingAction
-
-          try {
-            // Tenta parsear o detalhe extraído como JSON
-            const parsedJsonDetail = JSON.parse(textualConfirmationDetail);
-            if (parsedJsonDetail && typeof parsedJsonDetail === 'object' && !Array.isArray(parsedJsonDetail)) {
-              // É JSON! Formata mensagem amigável e estrutura os dados.
-              const transactionTypeWord = parsedJsonDetail.type === 'income' ? 'uma receita 🤑' : (parsedJsonDetail.type === 'expense' ? 'uma despesa 💸' : 'uma transação');
-              const amountValue = parsedJsonDetail.amount ? parseFloat(parsedJsonDetail.amount) : null;
-              const amountString = amountValue ? ` de R$${amountValue.toFixed(2)}` : '';
-              const descriptionString = parsedJsonDetail.description || parsedJsonDetail.category || 'esta operação';
-              // Ajuste na formatação da data para evitar 'Invalid Date' se parsedJsonDetail.date for apenas YYYY-MM-DD
-              const dateValue = parsedJsonDetail.date ? new Date(parsedJsonDetail.date.includes('T') ? parsedJsonDetail.date : parsedJsonDetail.date + 'T00:00:00') : null;
-              const dateString = dateValue ? ` em ${dateValue.toLocaleDateString('pt-BR')}` : '';
-              const categoryString = parsedJsonDetail.category ? ` na categoria \"${parsedJsonDetail.category}\"` : '';
-              
-              confirmationMessageForChat = `📝 Você confirma o registro de ${transactionTypeWord}${amountString} para \"${descriptionString}\"${categoryString}${dateString}? (sim/não)`;
-              
-              actionData = {
-                description: parsedJsonDetail.description || descriptionString,
-                amount: amountValue,
-                category: parsedJsonDetail.category || null,
-                date: parsedJsonDetail.date || null
-              };
-              pendingActionType = parsedJsonDetail.type === 'income' ? 'income' : (parsedJsonDetail.type === 'expense' ? 'expense' : 'generic_confirmation');
-            }
-          } catch (e) {
-            // Não conseguiu parsear como JSON, então textualConfirmationDetail é texto puro.
-            // confirmationMessageForChat já é botResponseText (pergunta original da IA).
-            // actionData já tem { description: textualConfirmationDetail }.
-            // pendingActionType já é 'generic_confirmation'.
-          }
-
-          setPendingAction({ tipo: pendingActionType, dados: actionData });
-          setWaitingConfirmation(true);
-          const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationMessageForChat, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
-          setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
-        
-        } else {
-          // Não é uma confirmação textual OU já existe uma ação pendente. Apenas exibe a mensagem da IA.
-          const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
-          setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
-        }
-      } catch (e: any) {
-        setError(e.message || "Erro ao obter resposta da IA.");
-        const errorResponse: ChatMessage = {
+      if (currentTokensUsed >= MAX_GEMINI_TOKENS_MONTHLY) {
+        const limitReachedMessage: ChatMessage = {
           id: uuidv4(),
-          text: "Houve um erro ao comunicar com o assistente. Tente novamente.",
-          sender: "system",
+          text: "Você atingiu seu limite mensal de interações com a IA. Você ainda pode adicionar transações manualmente ou aguardar o próximo mês.",
+          sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
         };
-        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, errorResponse]);
-      } finally {
+        setMessages(prev => [...prev, limitReachedMessage]);
         setLoading(false);
+        return;
       }
+
+      if (currentTokensUsed >= MAX_GEMINI_TOKENS_MONTHLY * (TOKEN_WARNING_THRESHOLD_PERCENTAGE / 100)) {
+        const warningMessageText = `Aviso: Você usou ${((currentTokensUsed / MAX_GEMINI_TOKENS_MONTHLY) * 100).toFixed(0)}% do seu limite de tokens mensais (${currentTokensUsed.toLocaleString('pt-BR')}/${MAX_GEMINI_TOKENS_MONTHLY.toLocaleString('pt-BR')}).`;
+        const warningMessage: ChatMessage = {
+          id: uuidv4(),
+          text: warningMessageText,
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        };
+        setMessages(prev => [...prev, warningMessage]);
+      }
+      // Fim da lógica de verificação de limite de tokens
+
+      const messagesForApi = [...messages, newUserMessage]
+        .slice(-10)
+        .map(msg => (`${msg.sender === 'user' ? 'user' : 'model'}: ${msg.text}`)).join('\n\n'); // Construct a single string prompt
+      
+      // Pass the constructed prompt string to fetchGeminiFlashLite
+      const botResponseText = await fetchGeminiFlashLite(messagesForApi);
+      let confirmationMessageForChat: string = botResponseText;
+
+      try {
+        const sanitizedFullResponse = botResponseText.replace(/,\s*}/g, "}").replace(/,\s*\]/g, "]");
+        const parsedFullResponse: GeminiTransactionIntent = JSON.parse(sanitizedFullResponse);
+        
+        if (parsedFullResponse.action === "add_transaction") {
+          const { transaction_type, description, amount, category, date } = parsedFullResponse;
+          const formattedDateStr = date ? new Date(date + "T00:00:00").toLocaleDateString("pt-BR") : "";
+          const confirmText = `📝 Ok! Você quer adicionar ${transaction_type === "income" ? "uma receita 🤑" : "uma despesa 💸"} de R$${amount.toFixed(2)} para \"${description}\"${category ? ` na categoria \"${category}\"` : ""}${date ? ` em ${formattedDateStr}` : ""}.\n\nCorreto? Registrar? (sim/não)`;
+          
+          setPendingAction({ 
+            tipo: transaction_type === "income" ? "income" : "expense", 
+            dados: { description, amount, category: category || null, date: date || null } 
+          });
+          setWaitingConfirmation(true);
+          setMessages(prev => [...prev, { id: uuidv4(), text: confirmText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR }]);
+          setLoading(false);
+          return;
+        }
+      } catch (jsonParseError) {
+        console.log("Resposta da IA não é um JSON de transação direta, tentando confirmação textual:", botResponseText);
+      }
+
+      const textualConfirmationDetail = parseConfirmationIntent(botResponseText);
+
+      if (textualConfirmationDetail && !pendingAction) { 
+        let actionData: any = { description: textualConfirmationDetail }; 
+        let pendingActionType: PendingAction['tipo'] = 'generic_confirmation';
+
+        try {
+          const sanitizedDetail = textualConfirmationDetail.replace(/,\s*}/g, "}").replace(/,\s*\]/g, "]");
+          const parsedJsonDetail = JSON.parse(sanitizedDetail);
+
+          if (parsedJsonDetail && typeof parsedJsonDetail === 'object' && !Array.isArray(parsedJsonDetail)) {
+            const transactionTypeWord = parsedJsonDetail.type === 'income' ? 'uma receita 🤑' : (parsedJsonDetail.type === 'expense' ? 'uma despesa 💸' : 'uma transação');
+            const amountValue = parsedJsonDetail.amount ? parseFloat(parsedJsonDetail.amount) : null;
+            const amountString = amountValue ? ` de R$${amountValue.toFixed(2)}` : '';
+            const descriptionString = parsedJsonDetail.description || parsedJsonDetail.category || 'esta operação';
+            const dateValue = parsedJsonDetail.date ? new Date(parsedJsonDetail.date.includes('T') ? parsedJsonDetail.date : parsedJsonDetail.date + 'T00:00:00') : null;
+            const dateString = dateValue ? ` em ${dateValue.toLocaleDateString('pt-BR')}` : '';
+            const categoryString = parsedJsonDetail.category ? ` na categoria \"${parsedJsonDetail.category}\"` : '';
+            
+            confirmationMessageForChat = `📝 Você confirma o registro de ${transactionTypeWord}${amountString} para \"${descriptionString}\"${categoryString}${dateString}? (sim/não)`;
+            
+            actionData = {
+              description: parsedJsonDetail.description || descriptionString,
+              amount: amountValue,
+              category: parsedJsonDetail.category || null,
+              date: parsedJsonDetail.date || null
+            };
+            pendingActionType = parsedJsonDetail.type === 'income' ? 'income' : (parsedJsonDetail.type === 'expense' ? 'expense' : (parsedJsonDetail.type === 'bill' ? 'bill' : 'generic_confirmation'));
+          }
+        } catch (e) {
+          // Não parseou detalhe como JSON, usa botResponseText original para confirmação.
+          confirmationMessageForChat = botResponseText; // A pergunta original da IA será usada para confirmação.
+        }
+
+        setPendingAction({ tipo: pendingActionType, dados: actionData });
+        setWaitingConfirmation(true);
+        const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationMessageForChat, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+      
+      } else if (!pendingAction) { 
+        const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+      }
+      
+    } catch (e: any) {
+      const errorMessageText = e.message || (typeof e === 'string' ? e : "Erro ao obter resposta da IA.");
+      setError(errorMessageText);
+      console.error("Erro em handleSendMessage (nova mensagem):", e);
+      const errorResponse: ChatMessage = {
+        id: uuidv4(),
+        text: `Houve um erro: ${errorMessageText}. Tente novamente.`,
+        sender: "system",
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
+      };
+      setMessages((prevMessages: ChatMessage[]) => [...prevMessages, errorResponse]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -534,21 +516,21 @@ Correto? Registrar? (sim/não)`;
                     </button>
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
+              </div> // Closes div className="mb-3 px-3" from suggestions block
+            )} {/* Closes showSuggestions && !waitingConfirmation && !loading block */}
+          </div> {/* Closes div className="flex-1 overflow-y-auto ..." - Main chat area */}
           
           {/* Input de chat */}
-          <div className="sticky bottom-0 w-full bg-galileo-card pt-2 pb-3 px-3 border-t border-galileo-border z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
-            <ChatInput onSubmit={(message: string) => handleSendMessage(message)} />
-          </div>
-        </section>
-      </main>
+          <div className="sticky bottom-0 w-full bg-galileo-card pt-2 pb-3 px-3 border-t border-galileo-border z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">            <ChatInput onSubmit={(message: string) => handleSendMessage(message)} />
+          </div> {/* Closes sticky bottom div for ChatInput */}
+        </section> {/* Closes section className="w-full max-w-xl ..." */}
+      </main> {/* Closes main className="flex-1 overflow-auto ..." */}
       
       {/* NavBar fixa na parte inferior */}
       <div className="fixed bottom-0 left-0 right-0 z-20">
         <NavBar />
       </div>
+    {/* Closes the root div className="min-h-screen ..." */}
     </div>
-  );
-};
+  ); // Closes the return statement parentheses
+}; // Closes the FinancialAdvisorPage component

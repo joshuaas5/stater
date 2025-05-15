@@ -128,7 +128,8 @@ const Dashboard: React.FC = () => {
       setLastEditedTransactionIdForBalanceSkip(null); // Resetar a flag para a próxima atualização
     } else {
       // Calcular saldo e percentChange normalmente
-      const currentBalance = calculateBalance(filteredTransactions);
+      // Passar a lista de IDs que devem pular o ajuste do saldo
+      const currentBalance = calculateBalance(filteredTransactions, [lastEditedTransactionIdForBalanceSkip || '']);
       setBalance(currentBalance);
 
       const lastMonthDate = new Date(year, month, 1);
@@ -140,7 +141,7 @@ const Dashboard: React.FC = () => {
                transactionDate.getFullYear() === lastMonthDate.getFullYear();
       });
 
-      const lastMonthBalance = calculateBalance(lastMonthTransactions);
+      const lastMonthBalance = calculateBalance(lastMonthTransactions, [lastEditedTransactionIdForBalanceSkip || '']);
       const change = calculatePercentageChange(currentBalance, lastMonthBalance);
       setPercentChange(change);
     }
@@ -462,21 +463,23 @@ const Dashboard: React.FC = () => {
                 </Select>
               </div>
             )}
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="dontAdjustBalance" 
-                checked={editingTransactionDontAdjustBalance}
-                onCheckedChange={(val: boolean) => {
-                  setEditingTransactionDontAdjustBalance(!!val);
-                }}
-              />
-              <Label 
-                htmlFor="dontAdjustBalance" 
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Não ajustar saldo
-              </Label>
-            </div>
+            {editingTransaction && (
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="dontAdjustBalance" 
+                  checked={editingTransactionDontAdjustBalance}
+                  onCheckedChange={(val: boolean) => {
+                    setEditingTransactionDontAdjustBalance(!!val);
+                  }}
+                />
+                <Label 
+                  htmlFor="dontAdjustBalance" 
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Não ajustar saldo
+                </Label>
+              </div>
+            )}
           </div>
           <DialogFooter>
   {editingTransaction ? (

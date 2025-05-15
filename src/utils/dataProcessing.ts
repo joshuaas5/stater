@@ -194,8 +194,13 @@ const parseTransactionText = (text: string): ParsedTransaction | null => {
 };
 
 // Calcular saldo total
-export const calculateBalance = (transactions: Transaction[]): number => {
+export const calculateBalance = (transactions: Transaction[], skipBalanceAdjustmentForIds: string[] = []): number => {
   return transactions.reduce((total, transaction) => {
+    // Se a transação tem dontAdjustBalanceOnSave e seu ID está na lista de IDs para pular, não ajusta o saldo
+    if (transaction.dontAdjustBalanceOnSave && skipBalanceAdjustmentForIds.includes(transaction.id)) {
+      return total; // Mantém o saldo como estava
+    }
+    
     if (transaction.type === 'income') {
       return total + transaction.amount;
     } else {

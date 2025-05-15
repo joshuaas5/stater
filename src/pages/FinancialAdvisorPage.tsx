@@ -120,9 +120,20 @@ export const FinancialAdvisorPage: React.FC = () => {
   };
 
   const handleSendMessage = async (message: string) => {
-    const activeUserId = localStorage.getItem('userId');
-    if (!activeUserId) {
+    // Obter userId usando o Supabase Auth
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
       setError("Erro: Usuário não identificado. Por favor, faça login novamente para continuar.");
+      setMessages(prev => [...prev, { id: uuidv4(), text: "❌ Erro: Usuário não identificado. Por favor, tente fazer login novamente.", sender: 'system', timestamp: new Date() }]);
+      setLoading(false);
+      setWaitingConfirmation(false);
+      setPendingAction(null);
+      return;
+    }
+
+    const activeUserId = user.id;
+
+    if (!activeUserId) {
       setMessages(prev => [...prev, { id: uuidv4(), text: "❌ Erro: Usuário não identificado. Por favor, tente fazer login novamente.", sender: 'system', timestamp: new Date() }]);
       setLoading(false);
       setWaitingConfirmation(false);

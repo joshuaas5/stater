@@ -71,7 +71,10 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, days }) => 
                 color: '#F8F9FB'
               }}
               formatter={(value: number) => [formatCurrency(value), 'Saldo']}
-              labelFormatter={(label: string) => {
+              labelFormatter={(label: any) => {
+                if (typeof label !== 'string') {
+                  return '';
+                }
                 const parts = label.split('-');
                 const year = parseInt(parts[0], 10);
                 const month = parseInt(parts[1], 10) - 1; // Mês é 0-indexado no JS (0=Jan, 11=Dez)

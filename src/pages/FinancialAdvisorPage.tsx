@@ -44,22 +44,8 @@ export const FinancialAdvisorPage: React.FC = () => {
   };
 
   // Persistência do Chat: Carregar mensagens do localStorage ou usar inicial
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    const savedMessages = localStorage.getItem('financialAdvisorChatMessages');
-    let initialMsgs = [initialSystemMessage];
-    if (savedMessages) {
-      try {
-        const parsed = JSON.parse(savedMessages) as ChatMessage[];
-        // Pega as últimas 10 mensagens ou todas se houver menos de 10
-        initialMsgs = parsed.map((msg: ChatMessage) => ({ ...msg, timestamp: new Date(msg.timestamp) })).slice(-10);
-        if (initialMsgs.length === 0) initialMsgs = [initialSystemMessage]; // Garante que sempre haja a msg inicial se o slice resultar em vazio
-      } catch (e) {
-        console.error("Erro ao parsear mensagens salvas do chat:", e);
-        // Mantém initialMsgs como [initialSystemMessage]
-      }
-    }
-    return initialMsgs;
-  });
+  // Messages will be loaded in a useEffect hook once currentUserId is known.
+  const [messages, setMessages] = useState<ChatMessage[]>([initialSystemMessage]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -67,23 +53,76 @@ export const FinancialAdvisorPage: React.FC = () => {
   const [waitingConfirmation, setWaitingConfirmation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined); // undefined: not yet checked, null: checked and no user, string: user ID
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError) {
+          console.error('FinancialAdvisorPage: Error fetching user:', authError.message);
+          setCurrentUserId(null); // Treat error as guest/logged out
+        } else if (user) {
+          setCurrentUserId(user.id);
+          console.log('FinancialAdvisorPage: User ID set on mount:', user.id);
+        } else {
+          console.log('FinancialAdvisorPage: No user session found.');
+          setCurrentUserId(null); // No user session
+        }
+      } catch (e: any) {
+        console.error('FinancialAdvisorPage: Critical exception fetching user:', e.message);
+        setCurrentUserId(null); // Critical error, treat as guest/logged out
+      }
+    };
+    fetchUser();
+  }, []); // Runs once on mount to get the user ID
+
+  // Effect to load messages once currentUserId is known
+  useEffect(() => {
+    if (currentUserId === undefined) return; // Don't load if user ID isn't determined yet
+
+    const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
+    const savedMessages = localStorage.getItem(storageKey);
+    let loadedMessages = [initialSystemMessage];
+
+    if (savedMessages) {
+      try {
+        const parsed = JSON.parse(savedMessages) as ChatMessage[];
+        loadedMessages = parsed.map((msg: ChatMessage) => ({ ...msg, timestamp: new Date(msg.timestamp) })).slice(-10);
+        if (loadedMessages.length === 0) loadedMessages = [initialSystemMessage];
+      } catch (e) {
+        console.error(`Erro ao parsear mensagens salvas do chat para ${storageKey}:`, e);
+        // Mantém loadedMessages como [initialSystemMessage]
+      }
+    }
+    setMessages(loadedMessages);
+    console.log(`FinancialAdvisorPage: Loaded messages from ${storageKey}`);
+  }, [currentUserId]); // Reload messages when currentUserId changes
+
   useEffect(() => {
     const loggedIn = isLoggedIn();
-    console.log('FinancialAdvisorPage: User logged in status on mount:', loggedIn, 'userId:', localStorage.getItem('userId')); // Log status
-    if (!loggedIn) {
-      console.log('FinancialAdvisorPage: User not logged in, redirecting to /login');
-      navigate('/login');
+    // console.log('FinancialAdvisorPage: User logged in status on mount (legacy check):', loggedIn); // Legacy check, can be removed if not needed
+    if (currentUserId === null && !loggedIn) { // Redirect if user ID is explicitly null (no session) and legacy check also confirms not logged in
+        console.log('FinancialAdvisorPage: User not logged in (currentUserId is null), redirecting to /login');
+        navigate('/login');
     }
-  }, [navigate]);
+  }, [navigate, currentUserId, isLoggedIn]); // Depend on currentUserId as well
 
   // Persistência do Chat: Salvar mensagens no localStorage
   useEffect(() => {
-    // Salva apenas as últimas 10 mensagens
+    if (currentUserId === undefined || messages.length === 1 && messages[0].id === initialSystemMessage.id && messages[0].text === initialSystemMessage.text) {
+        // Don't save if user ID isn't determined yet or if it's just the initial system message unmodified
+        return;
+    }
+
+    const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
+    
     const messagesToSave = messages.slice(-10);
-    localStorage.setItem('financialAdvisorChatMessages', JSON.stringify(
+    localStorage.setItem(storageKey, JSON.stringify(
       messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
     ));
-  }, [messages]);
+    console.log(`FinancialAdvisorPage: Saved messages to ${storageKey}`);
+  }, [messages, currentUserId, initialSystemMessage.id, initialSystemMessage.text]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

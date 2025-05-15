@@ -105,10 +105,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const dataPoint = payload[0].payload; // Acesso ao objeto completo do ponto de dado
     const dateLabel = () => {
-      if (typeof label !== 'string' || !label.includes('-')) return '';
-      const parts = label.split('-');
-      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-      return label;
+      if (!label) return '';
+      try {
+        // Tenta converter para Date e formatar
+        const date = new Date(label);
+        return date.toLocaleDateString('pt-BR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      } catch {
+        // Se falhar, retorna a string original
+        return label;
+      }
     };
 
     return (

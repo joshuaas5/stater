@@ -154,6 +154,7 @@ export const FinancialAdvisorPage: React.FC = () => {
             userId: userId,
           };
           saveTransactionUtil(transactionToSave);
+          window.dispatchEvent(new Event('transactionsUpdated'));
           setMessages((prevMessages: ChatMessage[]) => ([
             ...prevMessages,
             { id: uuidv4(), text: `✅ ${pendingAction.tipo === 'income' ? 'Receita' : 'Despesa'} registrada com sucesso!`, sender: 'system', timestamp: new Date() }

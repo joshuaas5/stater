@@ -310,6 +310,10 @@ const handleMarkAsPaid = (billId: string) => {
                             <DropdownMenuItem onClick={() => handleCloneBill(bill)}>
                               <span>Clonar Conta</span>
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDeleteBill(bill.id)}>
+                              <Trash className="mr-2 h-4 w-4 text-red-500" />
+                              <span className="text-red-500">Excluir Conta</span>
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleOpenNotificationSettings(bill)}>
                               <Bell className="mr-2 h-4 w-4" />
                               <span>Configurar Notificações</span>

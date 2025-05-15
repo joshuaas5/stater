@@ -105,22 +105,29 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const dataPoint = payload[0].payload; // Acesso ao objeto completo do ponto de dado
     const dateLabel = () => {
-      if (typeof label !== 'string' || !label.includes('-')) return label; // Retorna o label original se não for uma string de data esperada
-      try {
-        const parts = label.split('-'); // label é "AAAA-MM-DD"
-        if (parts.length === 3) {
-          const year = parseInt(parts[0], 10);
-          const month = parseInt(parts[1], 10) - 1; // Mês em JavaScript é 0-indexado
-          const day = parseInt(parts[2], 10);
-          const localDate = new Date(year, month, day);
-          // Verifica se a data é válida antes de formatar
-          if (isNaN(localDate.getTime())) return label;
-          return localDate.toLocaleDateString('pt-BR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      // O 'label' aqui é a string da data (ex: "2024-05-15") que vem do dataKey do LineChart
+      if (typeof label === 'string' && label.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        try {
+          // Adiciona 'T00:00:00' para evitar problemas de fuso horário que podem levar ao dia anterior.
+          // Isso força a interpretação da data como meia-noite no fuso horário local.
+          const dateObj = new Date(label + 'T00:00:00');
+          if (isNaN(dateObj.getTime())) {
+            // Se a data for inválida, retorna o label original para depuração
+            return label;
+          }
+          return dateObj.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          });
+        } catch (e) {
+          // Em caso de qualquer erro de formatação, retorna o label original
+          console.error('Erro ao formatar data do tooltip:', e);
+          return label;
         }
-        return label; // Retorna o label original se o formato não for AAAA-MM-DD
-      } catch {
-        return label; // Retorna o label original em caso de erro
-      }
+      }      
+      // Se o label não for uma string de data no formato esperado, retorna como está
+      return label ? String(label) : '';
     };
 
     return (

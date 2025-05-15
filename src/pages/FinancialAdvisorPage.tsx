@@ -68,7 +68,10 @@ export const FinancialAdvisorPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isLoggedIn()) {
+    const loggedIn = isLoggedIn();
+    console.log('FinancialAdvisorPage: User logged in status on mount:', loggedIn, 'userId:', localStorage.getItem('userId')); // Log status
+    if (!loggedIn) {
+      console.log('FinancialAdvisorPage: User not logged in, redirecting to /login');
       navigate('/login');
     }
   }, [navigate]);

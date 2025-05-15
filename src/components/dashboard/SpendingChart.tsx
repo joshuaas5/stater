@@ -105,14 +105,21 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const dataPoint = payload[0].payload; // Acesso ao objeto completo do ponto de dado
     const dateLabel = () => {
-      if (!label) return '';
+      if (typeof label !== 'string' || !label.includes('-')) return label; // Retorna o label original se não for uma string de data esperada
       try {
-        // Tenta converter para Date e formatar
-        const date = new Date(label);
-        return date.toLocaleDateString('pt-BR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        const parts = label.split('-'); // label é "AAAA-MM-DD"
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1; // Mês em JavaScript é 0-indexado
+          const day = parseInt(parts[2], 10);
+          const localDate = new Date(year, month, day);
+          // Verifica se a data é válida antes de formatar
+          if (isNaN(localDate.getTime())) return label;
+          return localDate.toLocaleDateString('pt-BR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        }
+        return label; // Retorna o label original se o formato não for AAAA-MM-DD
       } catch {
-        // Se falhar, retorna a string original
-        return label;
+        return label; // Retorna o label original em caso de erro
       }
     };
 

@@ -46,16 +46,19 @@ export const FinancialAdvisorPage: React.FC = () => {
   // Persistência do Chat: Carregar mensagens do localStorage ou usar inicial
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const savedMessages = localStorage.getItem('financialAdvisorChatMessages');
+    let initialMsgs = [initialSystemMessage];
     if (savedMessages) {
       try {
         const parsed = JSON.parse(savedMessages) as ChatMessage[];
-        return parsed.map((msg: ChatMessage) => ({ ...msg, timestamp: new Date(msg.timestamp) }));
+        // Pega as últimas 10 mensagens ou todas se houver menos de 10
+        initialMsgs = parsed.map((msg: ChatMessage) => ({ ...msg, timestamp: new Date(msg.timestamp) })).slice(-10);
+        if (initialMsgs.length === 0) initialMsgs = [initialSystemMessage]; // Garante que sempre haja a msg inicial se o slice resultar em vazio
       } catch (e) {
         console.error("Erro ao parsear mensagens salvas do chat:", e);
-        return [initialSystemMessage]; // Fallback para mensagem inicial
+        // Mantém initialMsgs como [initialSystemMessage]
       }
     }
-    return [initialSystemMessage];
+    return initialMsgs;
   });
 
   const [loading, setLoading] = useState(false);
@@ -72,8 +75,10 @@ export const FinancialAdvisorPage: React.FC = () => {
 
   // Persistência do Chat: Salvar mensagens no localStorage
   useEffect(() => {
+    // Salva apenas as últimas 10 mensagens
+    const messagesToSave = messages.slice(-10);
     localStorage.setItem('financialAdvisorChatMessages', JSON.stringify(
-      messages.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
+      messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
     ));
   }, [messages]);
 
@@ -135,6 +140,7 @@ export const FinancialAdvisorPage: React.FC = () => {
           // Salva no localStorage usando a função utilitária
           const userId = localStorage.getItem('userId');
           if (!userId) {
+            console.error("FinancialAdvisorPage: Tentativa de salvar transação sem userId."); // Adiciona log
             setError("Erro: Usuário não identificado. Não foi possível salvar a transação.");
             setLoading(false);
             setMessages((prevMessages: ChatMessage[]) => ([

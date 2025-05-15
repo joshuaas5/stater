@@ -120,6 +120,27 @@ export const FinancialAdvisorPage: React.FC = () => {
   };
 
   const handleSendMessage = async (message: string) => {
+    const activeUserId = localStorage.getItem('userId');
+    if (!activeUserId) {
+      setError("Erro: Usuário não identificado. Por favor, faça login novamente para continuar.");
+      setMessages(prev => [...prev, { id: uuidv4(), text: "❌ Erro: Usuário não identificado. Por favor, tente fazer login novamente.", sender: 'system', timestamp: new Date() }]);
+      setLoading(false);
+      setWaitingConfirmation(false);
+      setPendingAction(null);
+      return;
+    }
+
+    // Garante que não processa mensagem vazia, a menos que seja uma confirmação e haja uma ação pendente.
+    if (!message.trim() && !(waitingConfirmation && pendingAction)) return;
+    // Se for uma confirmação, mas não houver ação pendente (estado inesperado), exibe erro.
+    if (!message.trim() && waitingConfirmation && !pendingAction) {
+        setError("Ocorreu um erro interno. Não há ação pendente para confirmar ou cancelar.");
+        setMessages(prev => [...prev, { id: uuidv4(), text: "⚠️ Erro interno. Nenhuma ação pendente.", sender: 'system', timestamp: new Date() }]);
+        setLoading(false);
+        setWaitingConfirmation(false);
+        return;
+    }
+
     const lowerMsg = message.trim().toLowerCase();
 
     // Se aguardando confirmação e usuário diz sim
@@ -141,18 +162,6 @@ export const FinancialAdvisorPage: React.FC = () => {
             }
           ]);
           // Salva no localStorage usando a função utilitária
-          const userId = localStorage.getItem('userId');
-          if (!userId) {
-            console.error("FinancialAdvisorPage: Tentativa de salvar transação sem userId."); // Adiciona log
-            setError("Erro: Usuário não identificado. Não foi possível salvar a transação.");
-            setLoading(false);
-            setMessages((prevMessages: ChatMessage[]) => ([
-                ...prevMessages,
-                { id: uuidv4(), text: '❌ Erro: Usuário não identificado. Tente fazer login novamente.', sender: 'system', timestamp: new Date() }
-            ]));
-            return;
-          }
-
           const transactionToSave: Transaction = {
             id: uuidv4(), 
             title: description,
@@ -160,7 +169,7 @@ export const FinancialAdvisorPage: React.FC = () => {
             type: pendingAction.tipo as 'income' | 'expense',
             category: category || '',
             date: date ? new Date(date) : new Date(),
-            userId: userId,
+            userId: activeUserId, // Usa o activeUserId obtido no início da função
           };
           saveTransactionUtil(transactionToSave);
           window.dispatchEvent(new Event('transactionsUpdated'));

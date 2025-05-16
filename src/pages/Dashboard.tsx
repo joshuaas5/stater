@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import Parser from 'rss-parser';
 import './Dashboard.module.css';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
@@ -47,8 +48,12 @@ const Dashboard: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const [showAllTransactionsInMonth, setShowAllTransactionsInMonth] = useState(false);
   const [editingTransactionDontAdjustBalance, setEditingTransactionDontAdjustBalance] = useState(false);
+  const [showAllTransactionsInMonth, setShowAllTransactionsInMonth] = useState(false);
+  const [isLoadingNews, setIsLoadingNews] = useState(false);
+  const [newsError, setNewsError] = useState<string | null>(null);
+  const [marketNews, setMarketNews] = useState<Array<{title: string, description: string, source: string, url: string}>>([]);
+
   const [lastEditedTransactionIdForBalanceSkip, setLastEditedTransactionIdForBalanceSkip] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
@@ -91,7 +96,77 @@ const Dashboard: React.FC = () => {
       window.removeEventListener('transactionsUpdated', handler);
     };
   }, [navigate, selectedMonth, selectedYear]);
-  
+
+  const fetchMarketNewsFromRSS = useCallback(async () => {
+    setIsLoadingNews(true);
+    setNewsError(null);
+    setMarketNews([]); // Limpar notícias anteriores
+    const parser = new Parser();
+
+    try {
+      const isPortuguese = navigator.language.startsWith('pt');
+      let newsItems: Array<{title: string, description: string, source: string, url: string}> = [];
+
+      const queries = [
+        isPortuguese ? 'economia Brasil' : 'economy USA',
+        isPortuguese ? 'criptomoedas Brasil OR bitcoin Brasil' : 'cryptocurrency USA OR bitcoin USA'
+      ];
+
+      const lang = isPortuguese ? 'pt-BR' : 'en-US';
+      const country = isPortuguese ? 'BR' : 'US';
+
+      const feedPromises = queries.map(query => {
+        const encodedQuery = encodeURIComponent(query);
+        const url = `https://news.google.com/rss/search?q=${encodedQuery}&hl=${lang}&gl=${country}&ceid=${country}:${lang}`;
+        // Nota: O ideal seria buscar isso via um proxy no backend para evitar problemas de CORS em alguns ambientes,
+        // mas para muitos feeds públicos do Google News, o acesso direto pode funcionar.
+        return parser.parseURL(url);
+      });
+
+      const feeds = await Promise.all(feedPromises);
+
+      feeds.forEach(feed => {
+        if (feed.items) {
+          feed.items.forEach((item: any) => {
+            let description = item.contentSnippet || item.content || 'Sem descrição disponível.';
+            // Remover tags HTML da descrição, se houver
+            description = description.replace(/<[^>]*>/g, '').substring(0, 200); // Limitar e limpar
+            
+            let sourceName = "Google News";
+            try {
+              if (item.link) sourceName = new URL(item.link).hostname.replace(/^www\./, '');
+            } catch (e) { /* Ignora erro de URL inválida */ }
+
+            newsItems.push({
+              title: item.title || 'Sem título',
+              description: description + (description.length === 200 ? '...' : ''),
+              source: item.creator || sourceName,
+              url: item.link || '#',
+            });
+          });
+        }
+      });
+      
+      // Ordenar por data de publicação (mais recentes primeiro), se disponível e necessário
+      // newsItems.sort((a, b) => new Date(b.pubDate || 0).getTime() - new Date(a.pubDate || 0).getTime());
+      // Por simplicidade, vamos apenas limitar o número de notícias
+      setMarketNews(newsItems.slice(0, 10)); // Exibir até 10 notícias combinadas
+
+    } catch (error: any) {
+      console.error('Erro ao buscar notícias RSS:', error);
+      setNewsError(error.message || 'Não foi possível carregar as notícias via RSS.');
+      setMarketNews([]);
+    } finally {
+      setIsLoadingNews(false);
+    }
+  }, [setIsLoadingNews, setNewsError, setMarketNews]);
+
+  useEffect(() => {
+    if (showFinancialTips) {
+      fetchMarketNewsFromRSS(); // Chamar a nova função
+    }
+  }, [showFinancialTips, fetchMarketNewsFromRSS]); // Adicionar fetchMarketNewsFromRSS às dependências
+
   const loadTransactions = (month: number, year: number, useCustomPeriod = false) => {
     const allTransactions = getTransactions();
     let filteredTransactions = allTransactions;
@@ -303,7 +378,7 @@ const Dashboard: React.FC = () => {
       description: "Reavalie e negocie seus serviços recorrentes (internet, seguro, etc.) anualmente."
     }
   ];
-  
+
   const user = getCurrentUser();
   const userName = user ? user.username : "Usuário";
   
@@ -319,7 +394,7 @@ const Dashboard: React.FC = () => {
         className="pop-art-tips focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-galileo-accent"
         aria-label="Show Tips"
       >
-        TIPS
+        HOT 🔥
       </button>
       <ThemeToggle />
     </div>
@@ -595,24 +670,54 @@ const Dashboard: React.FC = () => {
       </Dialog>
       
       <Dialog open={showFinancialTips} onOpenChange={setShowFinancialTips}>
-        <DialogContent className="max-w-md overflow-y-auto max-h-[80vh]">
+        <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Dicas Financeiras</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <span className="text-galileo-text">Notícias do Mercado</span>
+              <span className="text-yellow-500">🔥</span>
+            </DialogTitle>
             <DialogDescription>
-              Conselhos úteis para otimizar seu orçamento
+              Últimas notícias do mercado financeiro {navigator.language.startsWith('pt') ? 'do Brasil e do mundo' : 'globais (EUA)'}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-6 pt-4">
-            {financialTips.map((tip, index) => (
-              <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0">
-                <h3 className="text-galileo-text font-bold mb-2">{tip.title}</h3>
-                <p className="text-galileo-secondaryText text-sm">{tip.description}</p>
+          <div className="space-y-4 pt-2">
+            {isLoadingNews ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-galileo-accent"></div>
               </div>
-            ))}
+            ) : newsError ? (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <strong className="font-bold">Erro ao carregar notícias: </strong>
+                <span className="block sm:inline">{newsError}</span>
+              </div>
+            ) : marketNews.length > 0 ? (
+              <div className="grid gap-4">
+                {marketNews.map((news, index) => (
+                  <a 
+                    key={index} 
+                    href={news.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block p-4 rounded-lg border border-galileo-border hover:border-galileo-accent hover:bg-galileo-card/50 transition-colors duration-200"
+                  >
+                    <h3 className="text-galileo-text font-semibold mb-1.5 text-base line-clamp-2">{news.title}</h3>
+                    <p className="text-galileo-secondaryText text-sm mb-2 line-clamp-3">
+                      {news.description}
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-galileo-tertiaryText">{news.source}</span>
+                      <span className="text-xs text-galileo-accent font-medium">Ler mais →</span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="text-galileo-secondaryText text-center py-4">Nenhuma notícia encontrada.</p>
+            )}
           </div>
         </DialogContent>
       </Dialog>
-      
+
       <div className="px-4 mb-6">
         <SpendingChart transactions={transactions} days={30} />
       </div>

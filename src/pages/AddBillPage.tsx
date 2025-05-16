@@ -372,28 +372,32 @@ const AddBillPage: React.FC = () => {
             
             {isRecurring && (
               <>
-                {/* Campo Número de Parcelas - Aparece se isRecurring e NÃO isInfiniteRecurrence */}
-                {!form.watch('isInfiniteRecurrence') && (
-                  <FormField
-                    control={form.control}
-                    name="totalInstallments"
-                    render={({ field }) => (
-                      <FormItem className="bg-galileo-card p-4 rounded-lg border shadow">
-                        <FormLabel className="text-galileo-text">Número de Parcelas</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="Ex: 12" 
-                            {...field}
-                            value={field.value || ''} // Garante que o valor é controlado e não undefined
-                            className="bg-galileo-inputField text-galileo-text placeholder:text-galileo-placeholder"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                {/* Campo Número de Parcelas - Aparece se isRecurring, mas fica desabilitado se isInfiniteRecurrence estiver marcado */}
+                <FormField
+                  control={form.control}
+                  name="totalInstallments"
+                  render={({ field }) => (
+                    <FormItem className="bg-galileo-card p-4 rounded-lg border shadow">
+                      <FormLabel className="text-galileo-text">Número de Parcelas</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder={isInfiniteRecurrence ? "Não aplicável (Sem Fim Definido)" : "Ex: 12"} 
+                          {...field}
+                          value={field.value || ''}
+                          disabled={isInfiniteRecurrence}
+                          className={`bg-galileo-inputField text-galileo-text placeholder:text-galileo-placeholder ${isInfiniteRecurrence ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        />
+                      </FormControl>
+                      {!isInfiniteRecurrence && (
+                        <FormDescription className="text-xs text-galileo-secondaryText">
+                          Deixe em branco para uma única parcela.
+                        </FormDescription>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 {/* Campo Sem Fim Definido - Aparece se isRecurring */}
                 <FormField
@@ -403,23 +407,20 @@ const AddBillPage: React.FC = () => {
                     <FormItem className="flex flex-row items-center space-x-3 py-2 rounded-md">
                       <FormControl>
                         <Checkbox
-                          id="isInfiniteRecurrenceCheckbox" // Adicionado ID para o label
+                          id="isInfiniteRecurrenceCheckbox"
                           checked={field.value}
                           onCheckedChange={(checkedState) => {
-                            const isChecked = Boolean(checkedState); // Converter CheckedState para boolean
+                            const isChecked = Boolean(checkedState);
                             field.onChange(isChecked);
                             if (isChecked) {
-                              form.setValue('totalInstallments', '', { shouldValidate: true }); // Limpar parcelas
-                            } else {
-                              // Opcional: se quiser redefinir parcelas para um valor padrão ou focar
-                              // form.setFocus('totalInstallments');
+                              form.setValue('totalInstallments', '', { shouldValidate: true });
                             }
                           }}
                         />
                       </FormControl>
                       <div className="grid gap-1.5 leading-none">
                         <FormLabel 
-                          htmlFor="isInfiniteRecurrenceCheckbox" // Associar label ao checkbox
+                          htmlFor="isInfiniteRecurrenceCheckbox"
                           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-galileo-text cursor-pointer"
                         >
                           Sem Fim Definido

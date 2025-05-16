@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -11,17 +10,25 @@ interface ChatInputProps {
 const ChatInput: React.FC<ChatInputProps> = ({ onSubmit }) => {
   const [message, setMessage] = useState('');
   const { toast } = useToast();
-  
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Desfocar o input na montagem inicial para evitar foco automático no mobile
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
+  }, []);
+
   const processMessage = (msg: string): string => {
     // Process numeric inputs with "mil" to convert to thousands
     return msg.replace(/(\d+)\s*mil/gi, (match, number) => {
       return `${number}000`;
     });
   };
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!message.trim()) {
       toast({
         title: "Mensagem vazia",
@@ -30,18 +37,19 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSubmit }) => {
       });
       return;
     }
-    
+
     // Process the message before submitting
     const processedMessage = processMessage(message);
-    
+
     onSubmit(processedMessage);
     setMessage('');
   };
-  
+
   return (
     <form onSubmit={handleSubmit} className="flex items-center gap-2">
       <div className="relative flex-1">
         <input
+          ref={inputRef}
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}

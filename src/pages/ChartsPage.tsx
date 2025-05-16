@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
@@ -277,237 +276,239 @@ const ChartsPage: React.FC = () => {
   const weeklyData = prepareIncomeVsExpenseByWeek();
 
   return (
-    <div className="bg-galileo-background min-h-screen pb-20">
+    <div className="flex flex-col min-h-screen bg-galileo-background">
       <PageHeader title="Gráficos" showSearch={false} />
       
-      <div className="px-4 mb-4">
-        <MonthSelector onMonthChange={handleMonthChange} />
-      </div>
-      
-      <div className="flex justify-between items-center px-4 mb-4">
-        <div className="flex space-x-2">
-          <Button 
-            variant={activeChart === 'pie' ? "default" : "outline"} 
-            size="sm"
-            className={activeChart === 'pie' ? "bg-galileo-accent hover:bg-galileo-accent/80 text-white" : ""} 
-            onClick={() => setActiveChart('pie')}
-          >
-            <PieChartIcon size={16} className="mr-1" /> Pizza
-          </Button>
-          <Button 
-            variant={activeChart === 'bar' ? "default" : "outline"} 
-            size="sm"
-            className={activeChart === 'bar' ? "bg-galileo-accent hover:bg-galileo-accent/80 text-white" : ""} 
-            onClick={() => setActiveChart('bar')}
-          >
-            <BarChartIcon size={16} className="mr-1" /> Barras
-          </Button>
-          <Button 
-            variant={activeChart === 'line' ? "default" : "outline"} 
-            size="sm"
-            className={activeChart === 'line' ? "bg-galileo-accent hover:bg-galileo-accent/80 text-white" : ""} 
-            onClick={() => setActiveChart('line')}
-          >
-            <LineChartIcon size={16} className="mr-1" /> Linha
-          </Button>
+      <main className="flex-grow overflow-y-auto p-4 pb-24 md:pb-20">
+        <div className="mb-6">
+          <MonthSelector onMonthChange={handleMonthChange} />
         </div>
         
-        <Select 
-          value={filterType} 
-          onValueChange={(value: 'all' | 'income' | 'expense') => setFilterType(value)}
-        >
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Filtrar por" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="income">Receitas</SelectItem>
-            <SelectItem value="expense">Despesas</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      {/* Resumo financeiro */}
-      <div className="px-4 mb-4 grid grid-cols-2 gap-3">
-        <Card className="bg-galileo-card border-galileo-border">
-          <CardContent className="p-3">
-            <div className="flex flex-col">
-              <span className="text-sm text-galileo-secondaryText">Receitas</span>
-              <div className="flex items-center">
-                <span className="text-lg font-semibold text-galileo-positive">{formatCurrency(totalIncome)}</span>
-                <ArrowUp size={16} className="ml-1 text-galileo-positive" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex space-x-2">
+            <Button 
+              variant={activeChart === 'pie' ? "default" : "outline"} 
+              size="sm"
+              className={activeChart === 'pie' ? "bg-galileo-accent hover:bg-galileo-accent/80 text-white" : ""} 
+              onClick={() => setActiveChart('pie')}
+            >
+              <PieChartIcon size={16} className="mr-1" /> Pizza
+            </Button>
+            <Button 
+              variant={activeChart === 'bar' ? "default" : "outline"} 
+              size="sm"
+              className={activeChart === 'bar' ? "bg-galileo-accent hover:bg-galileo-accent/80 text-white" : ""} 
+              onClick={() => setActiveChart('bar')}
+            >
+              <BarChartIcon size={16} className="mr-1" /> Barras
+            </Button>
+            <Button 
+              variant={activeChart === 'line' ? "default" : "outline"} 
+              size="sm"
+              className={activeChart === 'line' ? "bg-galileo-accent hover:bg-galileo-accent/80 text-white" : ""} 
+              onClick={() => setActiveChart('line')}
+            >
+              <LineChartIcon size={16} className="mr-1" /> Linha
+            </Button>
+          </div>
+          
+          <Select 
+            value={filterType} 
+            onValueChange={(value: 'all' | 'income' | 'expense') => setFilterType(value)}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Filtrar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="income">Receitas</SelectItem>
+              <SelectItem value="expense">Despesas</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         
-        <Card className="bg-galileo-card border-galileo-border">
-          <CardContent className="p-3">
-            <div className="flex flex-col">
-              <span className="text-sm text-galileo-secondaryText">Despesas</span>
-              <div className="flex items-center">
-                <span className="text-lg font-semibold text-galileo-negative">{formatCurrency(totalExpenses)}</span>
-                <ArrowDown size={16} className="ml-1 text-galileo-negative" />
+        {/* Resumo financeiro */}
+        <div className="px-4 mb-4 grid grid-cols-2 gap-3">
+          <Card className="bg-galileo-card border-galileo-border">
+            <CardContent className="p-3">
+              <div className="flex flex-col">
+                <span className="text-sm text-galileo-secondaryText">Receitas</span>
+                <div className="flex items-center">
+                  <span className="text-lg font-semibold text-galileo-positive">{formatCurrency(totalIncome)}</span>
+                  <ArrowUp size={16} className="ml-1 text-galileo-positive" />
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Gráfico principal */}
-      <Card className="mx-4 bg-galileo-card border-galileo-border mb-6">
-        {activeChart === 'pie' && (
-          <CardContent className="p-4">
-            <h3 className="font-medium mb-4">
-              {filterType === 'expense' ? 'Despesas por Categoria' : 
-               filterType === 'income' ? 'Receitas por Categoria' : 
-               'Transações por Categoria'}
-            </h3>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={getCategoryData()}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={renderCustomPieChartLabel}
-                    outerRadius={80}
-                    dataKey="value"
-                    nameKey="name"
-                  >
-                    {getCategoryData().map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={filterType === 'income' ? 
-                          INCOME_COLORS[index % INCOME_COLORS.length] : 
-                          EXPENSE_COLORS[index % EXPENSE_COLORS.length]} 
-                      />
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-galileo-card border-galileo-border">
+            <CardContent className="p-3">
+              <div className="flex flex-col">
+                <span className="text-sm text-galileo-secondaryText">Despesas</span>
+                <div className="flex items-center">
+                  <span className="text-lg font-semibold text-galileo-negative">{formatCurrency(totalExpenses)}</span>
+                  <ArrowDown size={16} className="ml-1 text-galileo-negative" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Gráfico principal */}
+        <Card className="mx-4 bg-galileo-card border-galileo-border mb-6">
+          {activeChart === 'pie' && (
+            <CardContent className="p-4">
+              <h3 className="font-medium mb-4">
+                {filterType === 'expense' ? 'Despesas por Categoria' : 
+                 filterType === 'income' ? 'Receitas por Categoria' : 
+                 'Transações por Categoria'}
+              </h3>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={getCategoryData()}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={renderCustomPieChartLabel}
+                      outerRadius={80}
+                      dataKey="value"
+                      nameKey="name"
+                    >
+                      {getCategoryData().map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={filterType === 'income' ? 
+                            INCOME_COLORS[index % INCOME_COLORS.length] : 
+                            EXPENSE_COLORS[index % EXPENSE_COLORS.length]} 
+                        />
+                      ))}
+                    </Pie>
+                    <Legend formatter={(value) => <span className="text-xs">{value}</span>} />
+                    <RechartsTooltip formatter={formatPieChartValue} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          )}
+          
+          {activeChart === 'bar' && (
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-medium">Receitas vs Despesas por Semana</h3>
+                <Tabs value={activeWeekTab} onValueChange={setActiveWeekTab} className="w-auto">
+                  <TabsList className="bg-galileo-background">
+                    <TabsTrigger value="all" className="text-xs">Todas</TabsTrigger>
+                    {getWeeksInMonth().map((week, index) => (
+                      <TabsTrigger key={index} value={index.toString()} className="text-xs">
+                        {week.label.replace('Semana ', 'S')}
+                      </TabsTrigger>
                     ))}
-                  </Pie>
-                  <Legend formatter={(value) => <span className="text-xs">{value}</span>} />
-                  <RechartsTooltip formatter={formatPieChartValue} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        )}
+                  </TabsList>
+                </Tabs>
+              </div>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={weeklyData}
+                    margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} />
+                    <Tooltip />
+                    <Bar dataKey="income" fill="#37B24D" name="Receitas" />
+                    <Bar dataKey="expense" fill="#FF6B6B" name="Despesas" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          )}
+          
+          {activeChart === 'line' && (
+            <CardContent className="p-4">
+              <h3 className="font-medium mb-4">Evolução de Receitas e Despesas</h3>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={prepareIncomeVsExpenseByDay()}
+                    margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="day" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} />
+                    <Tooltip />
+                    <Area 
+                      type="monotone" 
+                      dataKey="income" 
+                      name="Receitas"
+                      stroke="#37B24D" 
+                      fill="#37B24D" 
+                      fillOpacity={0.2} 
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="expense" 
+                      name="Despesas"
+                      stroke="#FF6B6B" 
+                      fill="#FF6B6B" 
+                      fillOpacity={0.2} 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          )}
+        </Card>
         
-        {activeChart === 'bar' && (
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-medium">Receitas vs Despesas por Semana</h3>
-              <Tabs value={activeWeekTab} onValueChange={setActiveWeekTab} className="w-auto">
-                <TabsList className="bg-galileo-background">
-                  <TabsTrigger value="all" className="text-xs">Todas</TabsTrigger>
-                  {getWeeksInMonth().map((week, index) => (
-                    <TabsTrigger key={index} value={index.toString()} className="text-xs">
-                      {week.label.replace('Semana ', 'S')}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-            </div>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={weeklyData}
-                  margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} />
-                  <Tooltip />
-                  <Bar dataKey="income" fill="#37B24D" name="Receitas" />
-                  <Bar dataKey="expense" fill="#FF6B6B" name="Despesas" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        )}
-        
-        {activeChart === 'line' && (
-          <CardContent className="p-4">
-            <h3 className="font-medium mb-4">Evolução de Receitas e Despesas</h3>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={prepareIncomeVsExpenseByDay()}
-                  margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} />
-                  <Tooltip />
-                  <Area 
-                    type="monotone" 
-                    dataKey="income" 
-                    name="Receitas"
-                    stroke="#37B24D" 
-                    fill="#37B24D" 
-                    fillOpacity={0.2} 
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="expense" 
-                    name="Despesas"
-                    stroke="#FF6B6B" 
-                    fill="#FF6B6B" 
-                    fillOpacity={0.2} 
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        )}
-      </Card>
-      
-      {/* Lista de maiores gastos/receitas */}
-      <div className="px-4 mb-16">
-        <h3 className="font-medium mb-2">{filterType === 'income' ? 'Maiores Receitas' : 'Maiores Despesas'}</h3>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[320px] overflow-y-auto pr-1">
-          {transactions
-            .filter(t => filterType === 'all' ? true : t.type === filterType)
-            .sort((a, b) => b.amount - a.amount)
-            .slice(0, 6)
-            .map((transaction, index) => (
-              <Card key={index} className="bg-galileo-card border-galileo-border h-full flex flex-col justify-between shadow-sm hover:scale-[1.02] transition-transform duration-100">
-                <CardContent className="p-3 flex flex-col gap-2">
-                  <div>
-                    <p className="font-medium truncate max-w-[160px] md:max-w-[220px]" title={transaction.title}>{transaction.title}</p>
-                    <div className="flex items-center mt-1 flex-wrap gap-1">
-                      <Badge 
-                        variant="outline" 
-                        className="text-xs bg-galileo-background"
-                      >
-                        {transaction.category}
-                      </Badge>
-                      {transaction.isRecurring && (
+        {/* Lista de maiores gastos/receitas */}
+        <div className="px-4 mb-16">
+          <h3 className="font-medium mb-2">{filterType === 'income' ? 'Maiores Receitas' : 'Maiores Despesas'}</h3>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[320px] overflow-y-auto pr-1">
+            {transactions
+              .filter(t => filterType === 'all' ? true : t.type === filterType)
+              .sort((a, b) => b.amount - a.amount)
+              .slice(0, 6)
+              .map((transaction, index) => (
+                <Card key={index} className="bg-galileo-card border-galileo-border h-full flex flex-col justify-between shadow-sm hover:scale-[1.02] transition-transform duration-100">
+                  <CardContent className="p-3 flex flex-col gap-2">
+                    <div>
+                      <p className="font-medium truncate max-w-[160px] md:max-w-[220px]" title={transaction.title}>{transaction.title}</p>
+                      <div className="flex items-center mt-1 flex-wrap gap-1">
                         <Badge 
                           variant="outline" 
                           className="text-xs bg-galileo-background"
                         >
-                          Recorrente
+                          {transaction.category}
                         </Badge>
-                      )}
+                        {transaction.isRecurring && (
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs bg-galileo-background"
+                          >
+                            Recorrente
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <span className={`font-semibold text-lg ${transaction.type === 'income' ? 'text-galileo-positive' : 'text-galileo-negative'}`}
-                    style={{wordBreak: 'break-word'}}>
-                    {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
-                  </span>
-                </CardContent>
-              </Card>
-            ))}
-          {transactions.filter(t => filterType === 'all' ? true : t.type === filterType).length === 0 && (
-            <div className="text-center py-6 text-galileo-secondaryText col-span-full">
-              <p>Nenhuma {filterType === 'income' ? 'receita' : 'despesa'} registrada neste mês</p>
-            </div>
-          )}
+                    <span className={`font-semibold text-lg ${transaction.type === 'income' ? 'text-galileo-positive' : 'text-galileo-negative'}`}
+                      style={{wordBreak: 'break-word'}}>
+                      {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
+                    </span>
+                  </CardContent>
+                </Card>
+              ))}
+            {transactions.filter(t => filterType === 'all' ? true : t.type === filterType).length === 0 && (
+              <div className="text-center py-6 text-galileo-secondaryText col-span-full">
+                <p>Nenhuma {filterType === 'income' ? 'receita' : 'despesa'} registrada neste mês</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-      
+      </main>
+
       <NavBar />
     </div>
   );

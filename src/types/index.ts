@@ -53,6 +53,7 @@ export interface Category {
 
 export interface Bill {
   id: string;
+  userId: string;
   title: string;
   amount: number;
   dueDate: Date; 
@@ -72,6 +73,8 @@ export interface Bill {
   cardItems?: CardItem[];
   originalDueDate?: Date; 
   displayInstallment?: number | null; 
+  originalBillId?: string; 
+  isInfiniteRecurrence?: boolean; 
 }
 
 export type NotificationType = 'fiveDaysBefore' | 'oneDayBefore' | 'dueDay' | 'overdue' | 'almostFinished' | 'paid';

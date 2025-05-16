@@ -5,25 +5,28 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import PageHeader from '@/components/header/PageHeader';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from "@/components/ui/checkbox";
 import { Bill, CardItem, EXPENSE_CATEGORIES } from '@/types';
 import { getCurrentUser, saveBill } from '@/utils/localStorage';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, CreditCard, Plus, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import NavBar from '@/components/navigation/NavBar';
 
 const formSchema = z.object({
-  title: z.string().min(1, "Título é obrigatório"),
-  amount: z.string().min(1, "Valor é obrigatório"),
-  category: z.string().min(1, "Categoria é obrigatória"),
-  dueDate: z.string().min(1, "Data de vencimento é obrigatória"),
+  title: z.string().min(2, { message: "Título deve ter pelo menos 2 caracteres." }),
+  amount: z.string().refine(value => /^\d+([,\.]\d{1,2})?$/.test(value.replace(',', '.')), { message: "Valor inválido." }),
+  category: z.string().min(1, { message: "Selecione uma categoria." }),
+  dueDate: z.string().refine(val => !isNaN(Date.parse(val)), { message: "Data inválida" }),
   isRecurring: z.boolean().default(false),
+  isInfiniteRecurrence: z.boolean().default(false),
   totalInstallments: z.string().optional(),
+  notificationsEnabled: z.boolean().default(true),
   isCardBill: z.boolean().default(false),
-  notificationsEnabled: z.boolean().default(true)
 });
 
 const AddBillPage: React.FC = () => {
@@ -41,13 +44,16 @@ const AddBillPage: React.FC = () => {
       category: 'outros',
       dueDate: '',
       isRecurring: false,
+      isInfiniteRecurrence: false,
       totalInstallments: '',
-      isCardBill: false,
-      notificationsEnabled: true
+      notificationsEnabled: true,
+      isCardBill: false
     }
   });
   
   const isCardBill = form.watch('isCardBill');
+  const isRecurring = form.watch('isRecurring');
+  const isInfiniteRecurrence = form.watch('isInfiniteRecurrence');
   
   const handleAddCardItem = () => {
     if (cardItemDescription && cardItemAmount) {
@@ -105,29 +111,27 @@ const AddBillPage: React.FC = () => {
       return;
     }
     
-    const originalDueDate = new Date(values.dueDate + 'T00:00:00'); // Garantir que a hora não afete a data
-    const totalInstallments = values.totalInstallments ? parseInt(values.totalInstallments) : 1;
-    const recurringDay = originalDueDate.getDate(); // Usar o dia da data de vencimento original como o dia de recorrência
+    const originalDueDate = new Date(values.dueDate + 'T00:00:00');
+    const recurringDay = originalDueDate.getDate();
+    const totalInstallments = values.isRecurring && !values.isInfiniteRecurrence && values.totalInstallments ? parseInt(values.totalInstallments) : 1;
 
-    if (values.isRecurring && totalInstallments > 1) {
-      // Lógica para criar múltiplas contas parceladas
+    if (values.isRecurring && !values.isInfiniteRecurrence && totalInstallments > 1) {
       const billsToSave: Bill[] = [];
-      const originalBillIdForAllInstallments = uuidv4(); // ID comum para agrupar as parcelas
+      const originalBillIdForAllInstallments = uuidv4();
 
       for (let i = 0; i < totalInstallments; i++) {
         const installmentDueDate = new Date(originalDueDate);
         installmentDueDate.setMonth(originalDueDate.getMonth() + i);
-        // Garante que o dia do mês seja o dia de recorrência, ajustando se necessário (ex: Fev tem menos dias)
         const lastDayOfMonth = new Date(installmentDueDate.getFullYear(), installmentDueDate.getMonth() + 1, 0).getDate();
         installmentDueDate.setDate(Math.min(recurringDay, lastDayOfMonth));
 
         const billInstallment: Bill = {
-          id: uuidv4(), // ID único para cada parcela
-          originalBillId: originalBillIdForAllInstallments, // ID para agrupar parcelas
+          id: uuidv4(),
+          originalBillId: originalBillIdForAllInstallments,
           title: `${values.title} (${i + 1}/${totalInstallments})`,
           amount,
           dueDate: installmentDueDate,
-          isRecurring: true, // Cada parcela individual não é 'mãe' de outras recorrências
+          isRecurring: true,
           category: values.category,
           userId: user.id,
           isPaid: false,
@@ -135,32 +139,30 @@ const AddBillPage: React.FC = () => {
           currentInstallment: i + 1,
           notificationsEnabled: values.notificationsEnabled,
           isCardBill: values.isCardBill,
-          cardItems: values.isCardBill && i === 0 ? cardItems : undefined, // Adicionar itens do cartão apenas à primeira parcela
-          recurringDay: recurringDay // Adicionando recurringDay para consistência
+          cardItems: values.isCardBill && i === 0 ? cardItems : undefined,
+          recurringDay: recurringDay,
+          isInfiniteRecurrence: false
         };
         billsToSave.push(billInstallment);
       }
-      // Aqui, em vez de saveBill(newBill), você chamaria uma função que salva um array de bills
-      // Por enquanto, vamos assumir que saveBill pode ser modificada ou uma nova saveMultipleBills é criada
-      billsToSave.forEach(b => saveBill(b)); // Simulação, idealmente seria uma transação ou batch save
-
+      billsToSave.forEach(b => saveBill(b));
     } else {
-      // Conta única (não recorrente, ou recorrente sem parcelas definidas, ou primeira parcela de uma futura série)
       const newBill: Bill = {
         id: uuidv4(),
-        title: values.isRecurring && totalInstallments > 1 ? `${values.title} (1/${totalInstallments})` : values.title,
+        title: values.title,
         amount,
         dueDate: originalDueDate,
         isRecurring: values.isRecurring,
         category: values.category,
         userId: user.id,
         isPaid: false,
-        totalInstallments: values.isRecurring && totalInstallments > 1 ? totalInstallments : undefined,
-        currentInstallment: values.isRecurring && totalInstallments > 1 ? 1 : undefined,
+        totalInstallments: values.isRecurring && !values.isInfiniteRecurrence && totalInstallments > 1 ? totalInstallments : undefined,
+        currentInstallment: values.isRecurring && !values.isInfiniteRecurrence && totalInstallments > 1 ? 1 : undefined,
         notificationsEnabled: values.notificationsEnabled,
         isCardBill: values.isCardBill,
         cardItems: values.isCardBill ? cardItems : undefined,
-        recurringDay: values.isRecurring ? recurringDay : undefined
+        recurringDay: values.isRecurring ? recurringDay : undefined,
+        isInfiniteRecurrence: values.isRecurring ? values.isInfiniteRecurrence : undefined
       };
       saveBill(newBill);
     }
@@ -368,25 +370,58 @@ const AddBillPage: React.FC = () => {
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="totalInstallments"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-galileo-text">Número de Parcelas (opcional)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Ex: 12"
-                      {...field}
-                      className="bg-galileo-accent text-white placeholder:text-gray-300"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
+            {isRecurring && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="isInfiniteRecurrence"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm bg-galileo-card mt-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-galileo-text">Sem Fim Definido</FormLabel>
+                        <FormDescription className="text-galileo-text/70">
+                          Marque se a conta não tem um número de parcelas (ex: assinatura mensal).
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="data-[state=checked]:bg-galileo-primary data-[state=checked]:text-white"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {!isInfiniteRecurrence && (
+                  <FormField
+                    control={form.control}
+                    name="totalInstallments"
+                    render={({ field }) => (
+                      <FormItem className="mt-4">
+                        <FormLabel className="text-galileo-text">Número de Parcelas (opcional)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number"
+                            placeholder="Ex: 12 (para 12 meses)" 
+                            {...field}
+                            value={field.value ?? ''} 
+                            className="bg-galileo-accent text-white placeholder:text-gray-300"
+                            disabled={isInfiniteRecurrence} 
+                          />
+                        </FormControl>
+                        <FormDescription className="text-galileo-text/70">
+                          Deixe em branco ou 1 se não for parcelado ou se for "Sem Fim Definido".
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </>
+            )}
+
             <FormField
               control={form.control}
               name="notificationsEnabled"
@@ -414,6 +449,7 @@ const AddBillPage: React.FC = () => {
           </form>
         </Form>
       </div>
+      <NavBar />
     </div>
   );
 };

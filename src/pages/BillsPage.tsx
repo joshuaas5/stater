@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import PageHeader from '@/components/header/PageHeader';
@@ -36,23 +35,7 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const BillsPage: React.FC = () => {
-  // ...
-  const handleDeleteBill = (billId: string) => {
-  console.log('Tentando excluir conta com id:', billId);
-  if (window.confirm('Tem certeza que deseja excluir esta conta? Esta ação não poderá ser desfeita.')) {
-    deleteBill(billId);
-    setTimeout(() => {
-      loadBills();
-      console.log('Contas recarregadas após exclusão');
-    }, 100);
-    toast({
-      title: 'Conta excluída',
-      description: 'A conta foi removida com sucesso.',
-    });
-  }
-};
-
-  const navigate = useNavigate();
+  // ... (outros estados existentes)
   const [bills, setBills] = useState<Bill[]>([]);
   const [overdueBills, setOverdueBills] = useState<Bill[]>([]);
   const [upcomingBills, setUpcomingBills] = useState<Bill[]>([]);
@@ -60,40 +43,115 @@ const BillsPage: React.FC = () => {
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const { toast } = useToast();
+
+  // Estados para o seletor de mês/ano
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth()); // 0-11
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   
+  const navigate = useNavigate();
   useEffect(() => {
     if (!isLoggedIn()) {
       navigate('/login');
       return;
     }
-    
-    // Carregar as contas do usuário
     loadBills();
-  }, [navigate]);
+  }, [navigate, selectedMonth, selectedYear]); // Adicionado selectedMonth e selectedYear às dependências
   
   const loadBills = () => {
-    const userBills = getBills();
-    setBills(userBills);
-    setOverdueBills(getOverdueBills(userBills));
-    setUpcomingBills(getBillsDueInNextDays(userBills, 30));
+    const allUserBills = getBills().map(bill => ({
+      ...bill,
+      dueDate: new Date(bill.dueDate) // Garante que dueDate é um objeto Date
+    }));
+
+    const filteredForMonthYear = allUserBills.filter(bill => {
+      const billDueDate = bill.dueDate;
+
+      if (bill.isRecurring && typeof bill.recurringDay === 'number') {
+        // Para contas recorrentes, verificar se estão ativas no mês/ano selecionado
+        const effectiveBillDateForPeriod = new Date(selectedYear, selectedMonth, bill.recurringDay);
+
+        if (bill.totalInstallments && bill.totalInstallments > 0) {
+          // Recorrência com número finito de parcelas
+          const firstInstallmentStartDate = new Date(bill.dueDate); // Data de início da primeira parcela
+          const firstInstallmentEffectiveMonthStart = new Date(firstInstallmentStartDate.getFullYear(), firstInstallmentStartDate.getMonth(), 1);
+
+          const lastInstallmentMonthOffset = bill.totalInstallments - 1;
+          const lastInstallmentDate = new Date(
+            firstInstallmentStartDate.getFullYear(),
+            firstInstallmentStartDate.getMonth() + lastInstallmentMonthOffset,
+            bill.recurringDay
+          );
+          const lastInstallmentEffectiveMonthStart = new Date(lastInstallmentDate.getFullYear(), lastInstallmentDate.getMonth(), 1);
+          
+          const selectedPeriodMonthStart = new Date(selectedYear, selectedMonth, 1);
+
+          return selectedPeriodMonthStart >= firstInstallmentEffectiveMonthStart && selectedPeriodMonthStart <= lastInstallmentEffectiveMonthStart;
+        } else {
+          // Recorrência por tempo indeterminado, sempre relevante para qualquer mês selecionado
+          return true;
+        }
+      } else {
+        // Contas não recorrentes ou sem recurringDay especificado
+        return billDueDate.getFullYear() === selectedYear && billDueDate.getMonth() === selectedMonth;
+      }
+    });
+
+    // Ajusta a dueDate das contas recorrentes para o mês/ano selecionado para cálculo correto de status
+    const billsWithAdjustedDueDate = filteredForMonthYear.map(bill => {
+      if (bill.isRecurring && typeof bill.recurringDay === 'number') {
+        return {
+          ...bill,
+          dueDate: new Date(selectedYear, selectedMonth, bill.recurringDay)
+        };
+      }
+      return bill;
+    });
+
+    setBills(billsWithAdjustedDueDate);
+    // As funções getOverdueBills e getBillsDueInNextDays usarão a dueDate ajustada
+    setOverdueBills(getOverdueBills(billsWithAdjustedDueDate));
+    setUpcomingBills(getBillsDueInNextDays(billsWithAdjustedDueDate, 30)); 
   };
   
-  const [showAddBillModal, setShowAddBillModal] = useState(false);
-const [showEditBillModal, setShowEditBillModal] = useState(false);
-const [editBill, setEditBill] = useState<Bill | null>(null);
-const [newBill, setNewBill] = useState<Bill | null>(null);
+  // ... (restante das funções existentes como handleAddBill, handleDeleteBill, etc.)
+  
+  // Funções auxiliares para gerar opções de mês/ano
+  const monthOptions = useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => ({
+      value: i,
+      label: new Date(0, i).toLocaleString('pt-BR', { month: 'long' })
+    }));
+  }, []);
 
-const handleCloneBill = (bill: Bill) => {
-  setNewBill({
-    ...bill,
-    id: uuidv4(), // Novo ID
-    title: bill.title + ' (Cópia)',
-    isPaid: false,
-  });
-  setShowAddBillModal(true);
-};
+  const yearOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let i = currentYear - 5; i <= currentYear + 2; i++) { // Ajustado range para +2 anos no futuro
+      years.push({ value: i, label: String(i) });
+    }
+    return years;
+  }, []);
 
-const handleMarkAsPaid = (billId: string) => {
+  const handleDeleteBill = (billId: string) => {
+    console.log('Tentando excluir conta com id:', billId);
+    if (window.confirm('Tem certeza que deseja excluir esta conta? Esta ação não poderá ser desfeita.')) {
+      deleteBill(billId);
+      setTimeout(() => {
+        loadBills();
+        console.log('Contas recarregadas após exclusão');
+      }, 100);
+      toast({
+        title: 'Conta excluída',
+        description: 'A conta foi removida com sucesso.',
+      });
+    }
+  };
+
+  const handleAddBill = () => {
+    navigate('/add-bill');
+  };
+
+  const handleMarkAsPaid = (billId: string) => {
     markBillAsPaid(billId, (bill) => {
       toast({
         title: `Conta paga: ${bill.title}`,
@@ -102,9 +160,15 @@ const handleMarkAsPaid = (billId: string) => {
       loadBills();
     });
   };
-  
-  const handleAddBill = () => {
-    navigate('/add-bill');
+
+  const handleCloneBill = (bill: Bill) => {
+    setNewBill({
+      ...bill,
+      id: uuidv4(), // Novo ID
+      title: bill.title + ' (Cópia)',
+      isPaid: false,
+    });
+    setShowAddBillModal(true);
   };
 
   const handleToggleNotifications = (bill: Bill) => {
@@ -124,7 +188,7 @@ const handleMarkAsPaid = (billId: string) => {
         : "Você não receberá mais notificações sobre esta conta."
     });
   };
-  
+
   const handleOpenNotificationSettings = (bill: Bill) => {
     setSelectedBill(bill);
     setShowNotificationSettings(true);
@@ -146,7 +210,7 @@ const handleMarkAsPaid = (billId: string) => {
       description: "Suas preferências de notificação foram salvas."
     });
   };
-  
+
   const getBillsToDisplay = () => {
     switch (activeTab) {
       case 'upcoming':
@@ -159,7 +223,7 @@ const handleMarkAsPaid = (billId: string) => {
         return upcomingBills;
     }
   };
-  
+
   const renderBillIcon = (category: string, isCardBill: boolean = false) => {
     if (isCardBill) {
       return <CreditCard className="text-galileo-text" size={24} />;
@@ -177,7 +241,7 @@ const handleMarkAsPaid = (billId: string) => {
         return <Clock className="text-galileo-text" size={24} />;
     }
   };
-  
+
   const formatDueDate = (date: Date) => {
     const dueDate = new Date(date);
     const today = new Date();
@@ -237,40 +301,58 @@ const handleMarkAsPaid = (billId: string) => {
     setShowAddCustomDay(false);
   };
 
+  const [showAddBillModal, setShowAddBillModal] = useState(false);
+  const [showEditBillModal, setShowEditBillModal] = useState(false);
+  const [editBill, setEditBill] = useState<Bill | null>(null);
+  const [newBill, setNewBill] = useState<Bill | null>(null);
+
   return (
-    <div className="bg-galileo-background min-h-screen pb-20">
-      <PageHeader title="Contas a Pagar" showSearch={false} />
+    <div className="flex flex-col min-h-screen bg-galileo-background pb-16">
+      <PageHeader title="Contas a Pagar" showBack={true} />
       
-      <div className="flex justify-between px-4 py-2 bg-galileo-background">
-        <div className="flex bg-galileo-card rounded-lg p-1">
-          <button
-            className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'upcoming' ? 'bg-galileo-accent text-white' : 'text-galileo-secondaryText'}`}
-            onClick={() => setActiveTab('upcoming')}
+      {/* Seletores de Mês e Ano */}
+      <div className="px-4 pt-4 pb-2 flex flex-col sm:flex-row gap-2 items-center bg-galileo-background sticky top-[calc(var(--header-height)_-_1px)] z-10 border-b border-galileo-border">
+        <div className='flex gap-2 w-full sm:w-auto'>
+          <select 
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+            className="flex-grow sm:flex-grow-0 bg-galileo-input border border-galileo-border text-galileo-text text-sm rounded-md focus:ring-galileo-primary focus:border-galileo-primary block w-full p-2.5 h-10"
           >
-            A Vencer
-          </button>
-          <button
-            className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'overdue' ? 'bg-galileo-negative text-white' : 'text-galileo-secondaryText'}`}
-            onClick={() => setActiveTab('overdue')}
+            {monthOptions.map(opt => <option key={opt.value} value={opt.value} className="bg-galileo-input text-galileo-text">{opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}</option>)}
+          </select>
+          <select 
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+            className="flex-grow sm:flex-grow-0 bg-galileo-input border border-galileo-border text-galileo-text text-sm rounded-md focus:ring-galileo-primary focus:border-galileo-primary block w-full p-2.5 h-10"
           >
-            Vencidas
-          </button>
-          <button
-            className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'all' ? 'bg-galileo-accent text-white' : 'text-galileo-secondaryText'}`}
-            onClick={() => setActiveTab('all')}
-          >
-            Todas
-          </button>
+            {yearOptions.map(opt => <option key={opt.value} value={opt.value} className="bg-galileo-input text-galileo-text">{opt.label}</option>)}
+          </select>
         </div>
-        
-        <Button 
-          size="sm" 
-          variant="default" 
-          className="bg-galileo-accent hover:bg-galileo-accent/80 text-white"
-          onClick={handleAddBill}
-        >
-          Nova
+        <Button onClick={handleAddBill} className="w-full sm:w-auto sm:ml-auto h-10">
+          <Plus size={18} className="mr-2" /> Adicionar Conta
         </Button>
+      </div>
+
+      {/* Abas de Filtro */}
+      <div className="px-4 py-3 flex justify-around border-b border-galileo-border bg-galileo-background sticky top-[calc(var(--header-height)_+_60px)] z-10 sm:top-[calc(var(--header-height)_+_60px)]">
+        <button
+          className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'upcoming' ? 'bg-galileo-accent text-white' : 'text-galileo-secondaryText'}`}
+          onClick={() => setActiveTab('upcoming')}
+        >
+          A Vencer
+        </button>
+        <button
+          className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'overdue' ? 'bg-galileo-negative text-white' : 'text-galileo-secondaryText'}`}
+          onClick={() => setActiveTab('overdue')}
+        >
+          Vencidas
+        </button>
+        <button
+          className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'all' ? 'bg-galileo-accent text-white' : 'text-galileo-secondaryText'}`}
+          onClick={() => setActiveTab('all')}
+        >
+          Todas
+        </button>
       </div>
       
       <div className="mt-4 pb-16">
@@ -538,13 +620,13 @@ const handleMarkAsPaid = (billId: string) => {
           </div>
           
           <DialogFooter>
-  <Button 
-    onClick={() => setShowNotificationSettings(false)}
-    className="bg-galileo-accent hover:bg-galileo-accent/80"
-  >
-    Fechar
-  </Button>
-</DialogFooter>
+            <Button 
+              onClick={() => setShowNotificationSettings(false)}
+              className="bg-galileo-accent hover:bg-galileo-accent/80"
+            >
+              Fechar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       
@@ -617,11 +699,11 @@ const handleMarkAsPaid = (billId: string) => {
                 />
               </div>
               <DialogFooter>
-  <div className="flex flex-col gap-2 sm:flex-row sm:gap-4 w-full">
-    <Button type="submit" className="bg-galileo-accent hover:bg-galileo-accent/80 w-full sm:w-auto">Salvar Conta Clonada</Button>
-    <Button type="button" variant="ghost" onClick={() => setShowAddBillModal(false)} className="w-full sm:w-auto">Cancelar</Button>
-  </div>
-</DialogFooter>
+                <div className="flex flex-col gap-2 sm:flex-row sm:gap-4 w-full">
+                  <Button type="submit" className="bg-galileo-accent hover:bg-galileo-accent/80 w-full sm:w-auto">Salvar Conta Clonada</Button>
+                  <Button type="button" variant="ghost" onClick={() => setShowAddBillModal(false)} className="w-full sm:w-auto">Cancelar</Button>
+                </div>
+              </DialogFooter>
             </form>
           )}
         </DialogContent>

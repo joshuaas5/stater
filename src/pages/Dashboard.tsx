@@ -52,6 +52,7 @@ const Dashboard: React.FC = () => {
   const [lastEditedTransactionIdForBalanceSkip, setLastEditedTransactionIdForBalanceSkip] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
+  const [showDateFilters, setShowDateFilters] = useState(false);
   
   const [newTransaction, setNewTransaction] = useState({
     title: '',
@@ -619,17 +620,42 @@ const Dashboard: React.FC = () => {
       <h2 className="text-galileo-text text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-2">
         Últimas Transações
       </h2>
-      <div className="px-4 mb-4 flex flex-col sm:flex-row gap-2 items-center">
-        <div className="grid w-full sm:w-auto gap-1.5">
-          <Label htmlFor="start-date" className="text-xs text-galileo-secondaryText">De:</Label>
-          <Input type="date" id="start-date" value={startDate || ''} onChange={(e) => setStartDate(e.target.value)} className="text-sm" />
-        </div>
-        <div className="grid w-full sm:w-auto gap-1.5">
-          <Label htmlFor="end-date" className="text-xs text-galileo-secondaryText">Até:</Label>
-          <Input type="date" id="end-date" value={endDate || ''} onChange={(e) => setEndDate(e.target.value)} className="text-sm" />
-        </div>
-        <Button onClick={() => loadTransactions(selectedMonth, selectedYear, true)} className="mt-4 sm:mt-auto h-9" size="sm">Filtrar Período</Button>
-        <Button onClick={() => { setStartDate(null); setEndDate(null); loadTransactions(selectedMonth, selectedYear); }} variant="ghost" className="mt-1 sm:mt-auto h-9 text-xs" size="sm">Limpar Filtro</Button>
+      <div className="px-4 mb-4 flex flex-col gap-2">
+        <Button 
+          onClick={() => setShowDateFilters(!showDateFilters)} 
+          variant="outline" 
+          size="sm"
+          className="w-full sm:w-auto"
+        >
+          {showDateFilters ? 'Ocultar Filtros de Data' : 'Filtrar por Data'}
+        </Button>
+
+        {showDateFilters && (
+          <div className="flex flex-col sm:flex-row gap-2 items-center pt-2">
+            <div className="grid w-full sm:w-auto gap-1.5">
+              <Label htmlFor="start-date" className="text-xs text-galileo-secondaryText">De:</Label>
+              <Input type="date" id="start-date" value={startDate || ''} onChange={(e) => setStartDate(e.target.value)} className="text-sm" />
+            </div>
+            <div className="grid w-full sm:w-auto gap-1.5">
+              <Label htmlFor="end-date" className="text-xs text-galileo-secondaryText">Até:</Label>
+              <Input type="date" id="end-date" value={endDate || ''} onChange={(e) => setEndDate(e.target.value)} className="text-sm" />
+            </div>
+            <Button onClick={() => loadTransactions(selectedMonth, selectedYear, true)} className="mt-4 sm:mt-auto h-9 w-full sm:w-auto" size="sm">Filtrar Período</Button>
+            <Button 
+              onClick={() => {
+                setStartDate(null); 
+                setEndDate(null); 
+                loadTransactions(selectedMonth, selectedYear); 
+                setShowDateFilters(false); // Oculta os filtros ao limpar
+              }} 
+              variant="ghost" 
+              className="mt-1 sm:mt-auto h-9 text-xs w-full sm:w-auto" 
+              size="sm"
+            >
+              Limpar Filtro
+            </Button>
+          </div>
+        )}
       </div>
       
       {transactions.length > 0 ? (

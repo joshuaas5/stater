@@ -18,7 +18,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["vite/client", "react", "react-dom", "@/types"],
+    "types": ["vite/client", "react", "react-dom"],
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "allowJs": true,
     "checkJs": true

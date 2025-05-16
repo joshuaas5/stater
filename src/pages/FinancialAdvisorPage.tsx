@@ -216,13 +216,18 @@ export const FinancialAdvisorPage: React.FC = () => {
       try {
         if (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense') {
           const { description, amount, category, date } = pendingAction.dados;
+          // Capitaliza a primeira letra da descrição
+          const capitalizedDescription = description && description.length > 0 
+            ? description.charAt(0).toUpperCase() + description.slice(1) 
+            : description;
+
           // Salva no Supabase
           await supabase.from('transactions').insert([
             {
               type: pendingAction.tipo === 'income' ? 'income' : 'expense',
               amount: amount,
               category: category || null,
-              title: description,
+              title: capitalizedDescription, // Usa a descrição capitalizada
               date: date ? new Date(date).toISOString() : new Date().toISOString(),
               created_at: new Date().toISOString(),
             }
@@ -230,7 +235,7 @@ export const FinancialAdvisorPage: React.FC = () => {
           // Salva no localStorage usando a função utilitária
           const transactionToSave: Transaction = {
             id: uuidv4(), 
-            title: description,
+            title: capitalizedDescription, // Usa a descrição capitalizada
             amount: Number(amount),
             type: pendingAction.tipo as 'income' | 'expense',
             category: category || '',

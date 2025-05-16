@@ -21,6 +21,14 @@ export interface ApiCallDetails {
   // created_at é gerado pelo DB
 }
 
+// Helper function to get YYYY-MM string
+function getCurrentYearMonthString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = (now.getMonth() + 1).toString().padStart(2, '0'); // getMonth() is 0-indexed
+  return `${year}-${month}`;
+}
+
 /**
  * Registra os detalhes de uma chamada à API no banco de dados.
  * @param details Detalhes da chamada à API.
@@ -33,19 +41,24 @@ export async function logApiCallDetails(details: Omit<ApiCallDetails, 'user_id'>
       return; // Não registrar se não houver usuário
     }
 
-    const recordToInsert: ApiCallDetails = {
-      ...details,
-      user_id: user.id,
-      api_name: details.api_name || 'gemini', // Garante que api_name tenha um valor
+    // Construct the record specifically for the 'gemini_usage' table
+    const geminiUsageRecord = {
+      period_type: 'month', // Defaulting to 'month' for aggregation
+      period_value: getCurrentYearMonthString(),
+      tokens: details.total_tokens || 0,
+      requests: 1, // This function call represents one request
+      // Outros campos de 'ApiCallDetails' como user_id, api_name, model_name, etc.,
+      // não são diretamente colunas na tabela 'gemini_usage' como definida no schema.
+      // A tabela 'gemini_usage' parece ser para agregação, não para logs detalhados individuais.
     };
 
-    const { error } = await supabase.from('gemini_usage').insert(recordToInsert);
+    const { error } = await supabase.from('gemini_usage').insert(geminiUsageRecord);
 
     if (error) {
-      console.error('Erro ao registrar detalhes da chamada da API:', error);
+      console.error('Erro ao registrar uso na tabela gemini_usage:', error);
     }
   } catch (error) {
-    console.error('Erro inesperado ao registrar detalhes da chamada da API:', error);
+    console.error('Erro inesperado ao registrar uso na tabela gemini_usage:', error);
   }
 }
 

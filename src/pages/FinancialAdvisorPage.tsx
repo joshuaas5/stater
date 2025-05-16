@@ -341,7 +341,19 @@ export const FinancialAdvisorPage: React.FC = () => {
       let confirmationMessageForChat: string = botResponseText;
 
       try {
-        const sanitizedFullResponse = botResponseText.replace(/,\s*}/g, "}").replace(/,\s*\]/g, "]");
+        let jsonStringToParse = botResponseText;
+        // Tenta extrair o conteúdo de um bloco ```json ... ```
+        const match = jsonStringToParse.match(/```json\s*([\s\S]*?)\s*```/);
+        if (match && match[1]) {
+          jsonStringToParse = match[1].trim();
+        } else {
+          // Fallback: remove marcadores ``` genéricos ou apenas faz trim se não houver marcadores.
+          // Isso é útil se a resposta for um JSON simples ou um JSON em ``` ... ``` genérico.
+          jsonStringToParse = jsonStringToParse.replace(/^```\s*([\s\S]*?)\s*```$/, '$1').trim();
+        }
+        
+        // Usa jsonStringToParse (a string limpa) para as operações seguintes
+        const sanitizedFullResponse = jsonStringToParse.replace(/,\s*}/g, "}").replace(/,\s*\]/g, "]");
         const parsedFullResponse: GeminiTransactionIntent = JSON.parse(sanitizedFullResponse);
         
         if (parsedFullResponse.action === "add_transaction") {

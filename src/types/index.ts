@@ -55,18 +55,23 @@ export interface Bill {
   id: string;
   title: string;
   amount: number;
-  dueDate: Date;
-  isRecurring: boolean;
-  recurringDay?: number; // Dia do mês para contas recorrentes
+  dueDate: Date; 
   category: string;
-  userId: string;
   isPaid: boolean;
-  totalInstallments?: number;
-  currentInstallment?: number;
-  notificationsEnabled: boolean;
-  notificationDays?: number[]; // Dias antes para notificar
+  isRecurring?: boolean;
+  recurringDay?: number; 
+  totalInstallments?: number; 
+  currentInstallment?: number; 
+  paymentMethod?: string; 
+  notes?: string;
+  paidDate?: Date;
+  cardId?: string; 
+  notificationsEnabled?: boolean;
+  notificationDays?: number[]; 
   isCardBill?: boolean;
   cardItems?: CardItem[];
+  originalDueDate?: Date; 
+  displayInstallment?: number | null; 
 }
 
 export type NotificationType = 'fiveDaysBefore' | 'oneDayBefore' | 'dueDay' | 'overdue' | 'almostFinished' | 'paid';

@@ -372,53 +372,65 @@ const AddBillPage: React.FC = () => {
             
             {isRecurring && (
               <>
-                <FormField
-                  control={form.control}
-                  name="isInfiniteRecurrence"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm bg-galileo-card mt-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-galileo-text">Sem Fim Definido</FormLabel>
-                        <FormDescription className="text-galileo-text/70">
-                          Marque se a conta não tem um número de parcelas (ex: assinatura mensal).
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="data-[state=checked]:bg-galileo-primary data-[state=checked]:text-white"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                {!isInfiniteRecurrence && (
+                {/* Campo Número de Parcelas - Aparece se isRecurring e NÃO isInfiniteRecurrence */}
+                {!form.watch('isInfiniteRecurrence') && (
                   <FormField
                     control={form.control}
                     name="totalInstallments"
                     render={({ field }) => (
-                      <FormItem className="mt-4">
-                        <FormLabel className="text-galileo-text">Número de Parcelas (opcional)</FormLabel>
+                      <FormItem className="bg-galileo-card p-4 rounded-lg border shadow">
+                        <FormLabel className="text-galileo-text">Número de Parcelas</FormLabel>
                         <FormControl>
                           <Input 
-                            type="number"
-                            placeholder="Ex: 12 (para 12 meses)" 
+                            type="number" 
+                            placeholder="Ex: 12" 
                             {...field}
-                            value={field.value ?? ''} 
-                            className="bg-galileo-accent text-white placeholder:text-gray-300"
-                            disabled={isInfiniteRecurrence} 
+                            value={field.value || ''} // Garante que o valor é controlado e não undefined
+                            className="bg-galileo-inputField text-galileo-text placeholder:text-galileo-placeholder"
                           />
                         </FormControl>
-                        <FormDescription className="text-galileo-text/70">
-                          Deixe em branco ou 1 se não for parcelado ou se for "Sem Fim Definido".
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 )}
+
+                {/* Campo Sem Fim Definido - Aparece se isRecurring */}
+                <FormField
+                  control={form.control}
+                  name="isInfiniteRecurrence"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 py-2 rounded-md">
+                      <FormControl>
+                        <Checkbox
+                          id="isInfiniteRecurrenceCheckbox" // Adicionado ID para o label
+                          checked={field.value}
+                          onCheckedChange={(checkedState) => {
+                            const isChecked = Boolean(checkedState); // Converter CheckedState para boolean
+                            field.onChange(isChecked);
+                            if (isChecked) {
+                              form.setValue('totalInstallments', '', { shouldValidate: true }); // Limpar parcelas
+                            } else {
+                              // Opcional: se quiser redefinir parcelas para um valor padrão ou focar
+                              // form.setFocus('totalInstallments');
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <div className="grid gap-1.5 leading-none">
+                        <FormLabel 
+                          htmlFor="isInfiniteRecurrenceCheckbox" // Associar label ao checkbox
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-galileo-text cursor-pointer"
+                        >
+                          Sem Fim Definido
+                        </FormLabel>
+                        <FormDescription className="text-xs text-galileo-secondaryText">
+                          Para contas sem um número fixo de parcelas (ex: assinatura).
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
               </>
             )}
 

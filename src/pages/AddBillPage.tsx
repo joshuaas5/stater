@@ -105,25 +105,65 @@ const AddBillPage: React.FC = () => {
       return;
     }
     
-    const totalInstallments = values.totalInstallments ? parseInt(values.totalInstallments) : undefined;
-    
-    const newBill: Bill = {
-      id: uuidv4(),
-      title: values.title,
-      amount,
-      dueDate: new Date(values.dueDate),
-      isRecurring: values.isRecurring,
-      category: values.category,
-      userId: user.id,
-      isPaid: false,
-      totalInstallments,
-      currentInstallment: totalInstallments ? 1 : undefined,
-      notificationsEnabled: values.notificationsEnabled,
-      isCardBill: values.isCardBill,
-      cardItems: values.isCardBill ? cardItems : undefined
-    };
-    
-    saveBill(newBill);
+    const originalDueDate = new Date(values.dueDate + 'T00:00:00'); // Garantir que a hora não afete a data
+    const totalInstallments = values.totalInstallments ? parseInt(values.totalInstallments) : 1;
+    const recurringDay = originalDueDate.getDate(); // Usar o dia da data de vencimento original como o dia de recorrência
+
+    if (values.isRecurring && totalInstallments > 1) {
+      // Lógica para criar múltiplas contas parceladas
+      const billsToSave: Bill[] = [];
+      const originalBillIdForAllInstallments = uuidv4(); // ID comum para agrupar as parcelas
+
+      for (let i = 0; i < totalInstallments; i++) {
+        const installmentDueDate = new Date(originalDueDate);
+        installmentDueDate.setMonth(originalDueDate.getMonth() + i);
+        // Garante que o dia do mês seja o dia de recorrência, ajustando se necessário (ex: Fev tem menos dias)
+        const lastDayOfMonth = new Date(installmentDueDate.getFullYear(), installmentDueDate.getMonth() + 1, 0).getDate();
+        installmentDueDate.setDate(Math.min(recurringDay, lastDayOfMonth));
+
+        const billInstallment: Bill = {
+          id: uuidv4(), // ID único para cada parcela
+          originalBillId: originalBillIdForAllInstallments, // ID para agrupar parcelas
+          title: `${values.title} (${i + 1}/${totalInstallments})`,
+          amount,
+          dueDate: installmentDueDate,
+          isRecurring: true, // Cada parcela individual não é 'mãe' de outras recorrências
+          category: values.category,
+          userId: user.id,
+          isPaid: false,
+          totalInstallments: totalInstallments, 
+          currentInstallment: i + 1,
+          notificationsEnabled: values.notificationsEnabled,
+          isCardBill: values.isCardBill,
+          cardItems: values.isCardBill && i === 0 ? cardItems : undefined, // Adicionar itens do cartão apenas à primeira parcela
+          recurringDay: recurringDay // Adicionando recurringDay para consistência
+        };
+        billsToSave.push(billInstallment);
+      }
+      // Aqui, em vez de saveBill(newBill), você chamaria uma função que salva um array de bills
+      // Por enquanto, vamos assumir que saveBill pode ser modificada ou uma nova saveMultipleBills é criada
+      billsToSave.forEach(b => saveBill(b)); // Simulação, idealmente seria uma transação ou batch save
+
+    } else {
+      // Conta única (não recorrente, ou recorrente sem parcelas definidas, ou primeira parcela de uma futura série)
+      const newBill: Bill = {
+        id: uuidv4(),
+        title: values.isRecurring && totalInstallments > 1 ? `${values.title} (1/${totalInstallments})` : values.title,
+        amount,
+        dueDate: originalDueDate,
+        isRecurring: values.isRecurring,
+        category: values.category,
+        userId: user.id,
+        isPaid: false,
+        totalInstallments: values.isRecurring && totalInstallments > 1 ? totalInstallments : undefined,
+        currentInstallment: values.isRecurring && totalInstallments > 1 ? 1 : undefined,
+        notificationsEnabled: values.notificationsEnabled,
+        isCardBill: values.isCardBill,
+        cardItems: values.isCardBill ? cardItems : undefined,
+        recurringDay: values.isRecurring ? recurringDay : undefined
+      };
+      saveBill(newBill);
+    }
     
     toast({
       title: "Conta adicionada",
@@ -150,7 +190,7 @@ const AddBillPage: React.FC = () => {
                     <Input 
                       placeholder="Ex: Aluguel, Conta de Luz..." 
                       {...field} 
-                      className="bg-galileo-accent text-galileo-text"
+                      className="bg-galileo-accent text-white placeholder:text-gray-300"
                     />
                   </FormControl>
                   <FormMessage />
@@ -187,7 +227,7 @@ const AddBillPage: React.FC = () => {
                       <Input 
                         placeholder="R$ 0,00" 
                         {...field} 
-                        className="bg-galileo-accent text-galileo-text"
+                        className="bg-galileo-accent text-white placeholder:text-gray-300"
                       />
                     </FormControl>
                     <FormMessage />
@@ -222,13 +262,13 @@ const AddBillPage: React.FC = () => {
                       placeholder="Descrição"
                       value={cardItemDescription}
                       onChange={(e) => setCardItemDescription(e.target.value)}
-                      className="bg-galileo-accent text-galileo-text flex-1"
+                      className="bg-galileo-accent text-white placeholder:text-gray-300"
                     />
                     <Input
                       placeholder="R$ 0,00"
                       value={cardItemAmount}
                       onChange={(e) => setCardItemAmount(e.target.value)}
-                      className="bg-galileo-accent text-galileo-text w-24"
+                      className="bg-galileo-accent text-white placeholder:text-gray-300"
                     />
                     <Button 
                       type="button"
@@ -272,10 +312,10 @@ const AddBillPage: React.FC = () => {
                       value={field.value}
                       onValueChange={field.onChange}
                     >
-                      <SelectTrigger className="bg-galileo-accent text-galileo-text">
-                        <SelectValue placeholder="Selecione uma categoria" />
+                      <SelectTrigger className="bg-galileo-accent text-white">
+                        <SelectValue placeholder="Selecione uma categoria" className="text-white" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-galileo-card text-galileo-text">
                         {EXPENSE_CATEGORIES.map((category) => (
                           <SelectItem key={category} value={category.toLowerCase()}>
                             {category}
@@ -300,7 +340,7 @@ const AddBillPage: React.FC = () => {
                       <Input
                         type="date"
                         {...field}
-                        className="bg-galileo-accent text-galileo-text"
+                        className="bg-galileo-accent text-white placeholder:text-gray-300 appearance-none"
                       />
                       <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
                     </div>
@@ -339,7 +379,7 @@ const AddBillPage: React.FC = () => {
                       type="number"
                       placeholder="Ex: 12"
                       {...field}
-                      className="bg-galileo-accent text-galileo-text"
+                      className="bg-galileo-accent text-white placeholder:text-gray-300"
                     />
                   </FormControl>
                   <FormMessage />

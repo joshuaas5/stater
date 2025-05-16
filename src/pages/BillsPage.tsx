@@ -40,14 +40,13 @@ const capitalizeFirstLetter = (str: string): string => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
-// Função para formatar a data de vencimento/status (restaurada e adaptada)
+// Função para formatar a data de vencimento/status (mantida como na última versão que o usuário aprovou para o status principal)
 const formatBillDisplayDateAndStatus = (bill: Bill): { text: string; className: string } => {
   if (bill.isPaid) {
     return { text: "Paga", className: "text-green-600 dark:text-green-400 font-semibold" };
   }
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  // Ensure bill.dueDate is treated as a Date object if it comes from JSON
   const dueDate = new Date(bill.dueDate);
   dueDate.setHours(0, 0, 0, 0);
 
@@ -89,62 +88,21 @@ const BillsPage: React.FC = () => {
   const loadBills = () => {
     const allUserBills = getBills().map(bill => ({
       ...bill,
-      dueDate: new Date(bill.dueDate) // This is the original start date of the bill/first installment
+      dueDate: new Date(bill.dueDate) 
     }));
 
+    // Com a nova lógica, cada parcela é uma conta individual.
+    // Filtramos diretamente pelo mês e ano da dueDate de cada conta.
     const filteredForMonthYear = allUserBills.filter(bill => {
-      const originalStartDate = bill.dueDate; // Already a Date object, represents first occurrence date
-
-      if (bill.isRecurring && typeof bill.recurringDay === 'number') {
-        const startRecurrenceYear = originalStartDate.getFullYear();
-        const startRecurrenceMonth = originalStartDate.getMonth(); // 0-11
-
-        // Calculate month offset from the absolute start of recurrence to the selected month
-        const monthOffset = (selectedYear - startRecurrenceYear) * 12 + (selectedMonth - startRecurrenceMonth);
-
-        if (monthOffset < 0) {
-          // Selected period is before the bill even started
-          return false;
-        }
-
-        if (bill.totalInstallments && bill.totalInstallments > 0) {
-          // Finite recurrence / Installments
-          // Active if 0 <= monthOffset < totalInstallments
-          return monthOffset < bill.totalInstallments;
-        } else {
-          // Indefinite recurrence: always active on or after its start period
-          return true; 
-        }
-      } else {
-        // Non-recurring: active only in its specific due month and year
-        return originalStartDate.getFullYear() === selectedYear && originalStartDate.getMonth() === selectedMonth;
-      }
+      const billDueDate = bill.dueDate; // Já é um objeto Date
+      return billDueDate.getFullYear() === selectedYear && billDueDate.getMonth() === selectedMonth;
     });
 
-    const billsWithAdjustedDueDateAndInstallment = filteredForMonthYear.map(bill => {
-      let effectiveDueDate = bill.dueDate; // For non-recurring, this is the original due date
-      let currentInstallmentNumber = null;
-      const originalStartDate = bill.dueDate; // Keep the original start date reference
-
-      if (bill.isRecurring && typeof bill.recurringDay === 'number') {
-        effectiveDueDate = new Date(selectedYear, selectedMonth, bill.recurringDay);
-        
-        if (bill.totalInstallments && bill.totalInstallments > 0) {
-          const monthOffset = (selectedYear - originalStartDate.getFullYear()) * 12 + (selectedMonth - originalStartDate.getMonth());
-          currentInstallmentNumber = monthOffset + 1;
-        }
-      }
-      return {
-        ...bill,
-        dueDate: effectiveDueDate, // dueDate for the selected month's occurrence
-        // originalDueDate: originalStartDate, // We already have bill.dueDate as the original start from the map above
-        displayInstallment: currentInstallmentNumber 
-      };
-    });
-
-    setBills(billsWithAdjustedDueDateAndInstallment);
-    setOverdueBills(getOverdueBills(billsWithAdjustedDueDateAndInstallment));
-    setUpcomingBills(getBillsDueInNextDays(billsWithAdjustedDueDateAndInstallment, 30)); 
+    // Não há mais necessidade de ajustar dueDate ou calcular displayInstallment aqui,
+    // pois isso é feito na criação da conta em AddBillPage.
+    setBills(filteredForMonthYear);
+    setOverdueBills(getOverdueBills(filteredForMonthYear));
+    setUpcomingBills(getBillsDueInNextDays(filteredForMonthYear, 30)); 
   };
   
   // ... (restante das funções existentes como handleAddBill, handleDeleteBill, etc.)
@@ -372,29 +330,30 @@ const BillsPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center flex-wrap gap-2 mt-1">
-                      {/* Status da Conta (Vencida, Paga, A Vencer) - Restaurado */}
+                      {/* Status da Conta (Vencida, Paga, A Vencer) - como o usuário preferiu */}
                       <span className={`text-sm ${formatBillDisplayDateAndStatus(bill).className}`}>
                         {formatBillDisplayDateAndStatus(bill).text}
                       </span>
 
-                      {/* Categoria */}
+                      {/* Categoria com capitalização */}
                       {bill.category && (
-                        <Badge variant="outline" className="text-xs text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600">
+                        <Badge variant="outline" className="text-xs">
                           {capitalizeFirstLetter(bill.category)}
                         </Badge>
                       )}
 
-                      {/* Recorrente */}
-                      {bill.isRecurring && (
-                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-blue-100">
+                      {/* Recorrente - Este badge pode ser condicional se uma parcela individual não deve mostrar "Recorrente" explicitamente */}
+                      {/* Se a conta faz parte de uma série de parcelas (tem totalInstallments > 1), ela é recorrente nesse sentido */}
+                      {bill.totalInstallments && bill.totalInstallments > 1 && (
+                        <Badge variant="secondary" className="text-xs">
                           Recorrente
                         </Badge>
                       )}
 
-                      {/* Parcelas */}
-                      {bill.displayInstallment && bill.totalInstallments && bill.totalInstallments > 0 && (
-                        <Badge variant="secondary" className="text-xs bg-teal-100 text-teal-700 dark:bg-teal-700 dark:text-teal-100">
-                          {`Parcela ${bill.displayInstallment}/${bill.totalInstallments}`}
+                      {/* Parcelas - agora usa currentInstallment e totalInstallments diretamente da conta */}
+                      {bill.currentInstallment && bill.totalInstallments && bill.totalInstallments > 1 && (
+                        <Badge variant="default" className="text-xs">
+                          {`Parcela ${bill.currentInstallment}/${bill.totalInstallments}`}
                         </Badge>
                       )}
                     </div>

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { Transaction } from '@/types';
@@ -90,49 +89,45 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, days }) => 
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <div className="flex justify-around">
-        <p className="text-galileo-secondaryText text-[13px] font-bold leading-normal tracking-[0.015em]">1D</p>
-        <p className="text-galileo-secondaryText text-[13px] font-bold leading-normal tracking-[0.015em]">1W</p>
-        <p className="text-galileo-secondaryText text-[13px] font-bold leading-normal tracking-[0.015em]">1M</p>
-        <p className="text-galileo-secondaryText text-[13px] font-bold leading-normal tracking-[0.015em]">3M</p>
-        <p className="text-galileo-secondaryText text-[13px] font-bold leading-normal tracking-[0.015em]">1Y</p>
-      </div>
     </div>
   );
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: any) => { // label ainda é recebido, mas não será a fonte primária para a data
   if (active && payload && payload.length) {
     const dataPoint = payload[0].payload; // Acesso ao objeto completo do ponto de dado
-    const dateLabel = () => {
-      console.log('[SpendingChart Tooltip] Received label:', label, typeof label); // Log input label
+    
+    const getDateString = () => {
+      // Usar dataPoint.date como a fonte principal para a data
+      const dateToFormat = dataPoint.date;
+      // console.log('[SpendingChart Tooltip] Using dataPoint.date:', dateToFormat, typeof dateToFormat);
 
-      if (typeof label === 'string' && label.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      if (typeof dateToFormat === 'string' && dateToFormat.match(/^\d{4}-\d{2}-\d{2}$/)) {
         try {
-          const dateStringForParsing = label + 'T00:00:00'; // Interpret as local midnight
+          const dateStringForParsing = dateToFormat + 'T00:00:00'; // Interpretar como meia-noite local
           const dateObj = new Date(dateStringForParsing);
-          console.log('[SpendingChart Tooltip] Parsed Date Object:', dateObj, 'isValid:', !isNaN(dateObj.getTime()));
+          // console.log('[SpendingChart Tooltip] Parsed Date Object from dataPoint.date:', dateObj, 'isValid:', !isNaN(dateObj.getTime()));
 
           if (isNaN(dateObj.getTime())) {
-            console.error('[SpendingChart Tooltip] Invalid date object from label:', label);
-            return label; // Return original malformed label
+            // console.error('[SpendingChart Tooltip] Invalid date object from dataPoint.date:', dateToFormat);
+            return dateToFormat; // Retornar data original malformada
           }
           
           const formattedDate = dateObj.toLocaleDateString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
-            year: 'numeric',
+            // year: 'numeric', // Removido para corresponder ao formato dd/mm
           });
-          console.log('[SpendingChart Tooltip] Formatted Date:', formattedDate);
+          // console.log('[SpendingChart Tooltip] Formatted Date from dataPoint.date:', formattedDate);
           return formattedDate;
         } catch (e) {
-          console.error('[SpendingChart Tooltip] Error formatting date for label:', label, e);
-          return label; // Return original label on error
+          // console.error('[SpendingChart Tooltip] Error formatting date from dataPoint.date:', dateToFormat, e);
+          return dateToFormat; // Retornar data original em caso de erro
         }
       }
       
-      console.log('[SpendingChart Tooltip] Label is not a YYYY-MM-DD string, returning as is:', label);
-      return label ? String(label) : ''; // Fallback for non-date string labels
+      // console.log('[SpendingChart Tooltip] dataPoint.date is not a YYYY-MM-DD string, returning as is:', dateToFormat);
+      return dateToFormat ? String(dateToFormat) : ''; // Fallback
     };
 
     return (
@@ -143,7 +138,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       )}>
         {dataPoint.hasTransactionsToday && (
           <p className="text-sm font-medium leading-none">
-            {dateLabel()}
+            {getDateString()} {/* Usar a nova função que pega de dataPoint.date */}
           </p>
         )}
         <p className={cn(

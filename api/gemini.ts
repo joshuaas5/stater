@@ -29,8 +29,8 @@ async function getAndUpdateUsage({ promptTokens, outputTokens }: { promptTokens:
     const { data, error } = await supabaseAdmin
       .from('gemini_usage')
       .select('*')
-      .eq('period_type', period_type)
-      .eq('period_value', period_value)
+      .eq('period_type', period_type.toString())
+      .eq('period_value', period_value.toString())
       .single();
     let tokens = addTokens, requests = addRequests;
     if (data) {
@@ -39,7 +39,7 @@ async function getAndUpdateUsage({ promptTokens, outputTokens }: { promptTokens:
     }
     // Atualiza (upsert)
     await supabaseAdmin.from('gemini_usage').upsert({
-      period_type, period_value, tokens, requests, updated_at: new Date().toISOString()
+      period_type: period_type.toString(), period_value: period_value.toString(), tokens, requests, updated_at: new Date().toISOString()
     }, { onConflict: ['period_type', 'period_value'] });
     return { tokens, requests };
   }

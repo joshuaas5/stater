@@ -49,10 +49,10 @@ const recommendedBooks: Book[] = [
     id: 'af016',
     title: 'A Magia da Sequência de Fibonacci',
     author: 'João Vieira de Aguiar',
-    amazonLink: 'https://amzn.to/3H4iz4n',
+    amazonLink: 'https://amzn.to/4kswks1',
     category: 'finance',
-    description: 'Descubra os segredos e aplicações da sequência de Fibonacci.',
-    coverImageUrl: ''
+    description: 'Embarque em uma fascinante aventura pelo universo da Sequência de Fibonacci, onde números simples revelam segredos profundos do cosmos! Neste livro cativante, a história de um matemático medieval chamado Fibonacci ganha vida, conectando coelhos do século XIII às espirais de galáxias, das obras-primas de Da Vinci aos algoritmos que moldam o mundo digital. Com uma narrativa envolvente e acessível, A Jornada da Sequência de Fibonacci explora como esses números aparecem na natureza, inspiram arte e arquitetura, impulsionam tecnologia moderna e até alimentam mitos e narrativas.',
+    coverImageUrl: 'https://m.media-amazon.com/images/I/51S3PtGTbJL.jpg'
   },
   {
     id: 'af006',

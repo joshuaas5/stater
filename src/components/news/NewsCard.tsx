@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NewsItem } from '@/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Newspaper } from 'lucide-react';
 
 interface NewsCardProps {
   item: NewsItem;
@@ -15,7 +15,6 @@ const NewsCard: React.FC<NewsCardProps> = ({ item }) => {
     setImageError(true);
   };
 
-  // Function to decode HTML entities
   const decodeHTMLEntities = (text: string | null | undefined): string => {
     if (!text) return '';
     const textarea = document.createElement('textarea');
@@ -23,24 +22,12 @@ const NewsCard: React.FC<NewsCardProps> = ({ item }) => {
     return textarea.value;
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Data não disponível';
-    try {
-      return new Date(dateString).toLocaleDateString('pt-BR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    } catch (e) {
-      console.error('Error formatting date:', e);
-      return dateString; // Retorna a string original se houver erro
-    }
-  };
+  const showImage = imageUrl && imageUrl.trim() !== '' && !imageError;
 
   return (
-    <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground group hover:border-primary/50 border-transparent border-2">
-      {imageUrl && imageUrl.trim() !== '' && !imageError && (
-        <div className="w-full h-40 overflow-hidden">
+    <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 bg-card text-card-foreground group border-2 border-border/40 hover:border-primary/60">
+      {showImage ? (
+        <div className="w-full h-40 overflow-hidden border-b border-border/30">
           <img 
             src={imageUrl} 
             alt={decodeHTMLEntities(title) || 'Imagem da notícia'} 
@@ -48,28 +35,32 @@ const NewsCard: React.FC<NewsCardProps> = ({ item }) => {
             onError={handleImageError}
           />
         </div>
+      ) : (
+        <div className="w-full h-40 flex items-center justify-center bg-muted/50 border-b border-border/30">
+          <Newspaper size={48} className="text-muted-foreground/50" />
+        </div>
       )}
-      <CardHeader className={(imageUrl && imageUrl.trim() !== '' && !imageError) ? "pt-3 pb-1 px-4" : "pt-4 pb-1 px-4"}>
-        <CardTitle className="text-base font-semibold leading-tight line-clamp-2">
+      <CardHeader className="pt-3 pb-1.5 px-4">
+        <CardTitle className="text-md font-semibold leading-snug line-clamp-2 hover:text-primary/90 transition-colors">
           {decodeHTMLEntities(title) || 'Título indisponível'}
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-grow pb-2 pt-1 px-4">
-        <p className="text-sm text-muted-foreground line-clamp-2">
+      <CardContent className="flex-grow py-1 px-4">
+        <p className="text-sm text-muted-foreground/90 line-clamp-3">
           {decodeHTMLEntities(contentSnippet) || 'Conteúdo indisponível.'}
         </p>
       </CardContent>
-      <CardFooter className="flex justify-between items-center text-xs text-muted-foreground pt-2 pb-3 px-4 border-t border-border/50">
-        <span className="text-muted-foreground/80">{sourceName || 'Fonte desconhecida'}</span>
+      <CardFooter className="flex justify-between items-center text-xs pt-2 pb-3 px-4 border-t border-border/30">
+        <span className="font-medium text-primary/80 hover:text-primary transition-colors cursor-default">{sourceName || 'Fonte'}</span>
         {link && (
           <a
             href={link}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center p-2 rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors duration-200"
+            className="flex items-center p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all duration-200"
             aria-label={`Ler mais sobre ${decodeHTMLEntities(title)}`}
           >
-            <ExternalLink size={18} className="mr-1" />
+            <ExternalLink size={16} className="mr-1" />
             Ler mais
           </a>
         )}

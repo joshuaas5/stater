@@ -15,9 +15,9 @@ const NavBar: React.FC = () => {
   const navItems = [
     { icon: <PieChart size={24} />, label: t('charts'), path: '/charts' },
     { icon: <FileText size={24} />, label: t('bills'), path: '/bills' },
-    { icon: <Home size={24} />, label: t('home'), path: '/dashboard' },
     { icon: <Lightbulb size={24} />, label: t('advisor'), path: '/financial-advisor' },
-    { icon: <Star size={24} />, label: t('recomendacoes'), path: '/recomendacoes' },
+    { icon: <Home size={24} />, label: t('home'), path: '/dashboard' },
+    { icon: <Star size={24} />, label: t('Recomendações'), path: '/recomendacoes' },
     { icon: <Settings size={24} />, label: t('settings'), path: '/preferences' },
   ];
   

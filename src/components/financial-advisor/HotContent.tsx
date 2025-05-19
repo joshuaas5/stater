@@ -33,7 +33,7 @@ const HotContent: React.FC = () => {
             }
             const data = await response.json();
             if (data.items && Array.isArray(data.items)) {
-              return data.items.slice(0, 3).map((item: any) => ({
+              return data.items.slice(0, 12).map((item: any) => ({
                 ...item,
                 sourceName: item.sourceName || source.key
               }));

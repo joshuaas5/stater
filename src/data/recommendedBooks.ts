@@ -165,10 +165,11 @@ function getWeekNumber(d: Date): number {
 }
 
 export function getCurrentBookOfTheWeek(): Book {
-  const now = new Date();
-  const weekOfYear = getWeekNumber(now);
-  const bookIndex = (weekOfYear - 1) % recommendedBooks.length; // -1 because week is 1-indexed
-  return recommendedBooks[bookIndex];
+  const weekOfYear = getWeekNumber(new Date());
+  // Rotate through the books list based on week number
+  const bookIndex = weekOfYear % recommendedBooks.length;
+  // Alterado para mostrar o livro 'A psicologia financeira' de Morgan Housel
+  return recommendedBooks[8]; // Alterado para o livro 'A psicologia financeira'
 }
 
 // Example: Log the current book of the week for testing

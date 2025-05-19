@@ -487,7 +487,7 @@ export const FinancialAdvisorPage: React.FC = () => {
           <TabsContent value="chat" className="flex-grow flex flex-col overflow-hidden">
             {/* Este div é o contêiner principal do chat, incluindo mensagens e input */}
             {/* Adicionado pt-2 para espaço do TabsList e pb-20 para espaço da NavBar inferior */}
-            <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden pt-2 pb-[calc(4rem+1rem)] md:pb-[calc(4.5rem+1rem)]"> 
+            <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden pt-2 mb-16"> 
               {error && (
                 <div className="p-4 bg-destructive text-destructive-foreground">
                   {error}

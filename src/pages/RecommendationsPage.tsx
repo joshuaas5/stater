@@ -1,5 +1,6 @@
 import React from 'react';
 import HotContent from '@/components/financial-advisor/HotContent';
+import NavBar from '@/components/navigation/NavBar';
 
 const RecommendationsPage: React.FC = () => {
   return (
@@ -10,6 +11,7 @@ const RecommendationsPage: React.FC = () => {
           <HotContent />
         </div>
       </main>
+      <NavBar />
     </div>
   );
 };

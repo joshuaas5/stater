@@ -1,6 +1,6 @@
 // Vercel Serverless Function: /api/gemini
 // Protege a chave da Gemini e faz controle de limite
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+// Tipagens removidas para compatibilidade local
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_ENDPOINT =
@@ -40,7 +40,7 @@ async function getAndUpdateUsage({ promptTokens, outputTokens }: { promptTokens:
     // Atualiza (upsert)
     await supabaseAdmin.from('gemini_usage').upsert({
       period_type: period_type.toString(), period_value: period_value.toString(), tokens, requests, updated_at: new Date().toISOString()
-    }, { onConflict: ['period_type', 'period_value'] });
+    }, { onConflict: 'period_type,period_value' });
     return { tokens, requests };
   }
 
@@ -61,7 +61,7 @@ async function getAndUpdateUsage({ promptTokens, outputTokens }: { promptTokens:
   };
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }

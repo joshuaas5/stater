@@ -18,7 +18,7 @@ const BalanceCard: React.FC<BalanceCardProps> = ({ balance, percentChange, visib
       <div className="flex gap-1">
         <p className="text-galileo-secondaryText text-base font-normal leading-normal">Últimos 30 Dias</p>
         <p className={`text-base font-medium leading-normal ${percentChange >= 0 ? 'text-galileo-positive' : 'text-galileo-negative'}`}>
-          {percentChange >= 0 ? '+' : ''}{percentChange.toFixed(0)}%
+          {percentChange !== undefined && percentChange !== null && !isNaN(percentChange) ? `${percentChange >= 0 ? '+' : ''}${Number(percentChange).toFixed(0)}%` : '--%'}
         </p>
       </div>
     </div>

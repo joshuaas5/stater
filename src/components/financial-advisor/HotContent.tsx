@@ -54,6 +54,7 @@ const HotContent: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <h1>Teste Hot Content Visível</h1>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* News Section */}
         <div className="lg:col-span-8 xl:col-span-9">

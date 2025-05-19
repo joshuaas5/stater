@@ -27,7 +27,7 @@ const NavBar: React.FC = () => {
   
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-galileo-card shadow-lg border-t border-galileo-border z-10">
-      <div className="flex justify-around items-center py-2">
+      <div className="flex justify-center items-center py-2 space-x-6">
         {navItems.map((item, index) => {
           const active = isActive(item.path);
           
@@ -35,7 +35,7 @@ const NavBar: React.FC = () => {
             <button
               key={index}
               onClick={() => handleNavigation(item.path)}
-              className={`flex flex-col items-center justify-center w-1/6 ${
+              className={`flex flex-col items-center justify-center px-4 ${
                 active 
                   ? 'text-galileo-accent' 
                   : 'text-galileo-secondaryText hover:text-galileo-text'

@@ -477,10 +477,10 @@ export const FinancialAdvisorPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <NavBar />
+      {/* NavBar removido do topo para exibir apenas no rodapé abaixo */}
       <div className="flex-grow container mx-auto px-0 sm:px-4 py-4 md:py-8 flex flex-col overflow-hidden">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full flex flex-col flex-grow">
-          <TabsList className="grid w-full grid-cols-1 mb-4 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <TabsList className="flex justify-center mb-4 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 space-x-6">
             <TabsTrigger value="chat">Consultor IA 🤖</TabsTrigger>
           </TabsList>
 

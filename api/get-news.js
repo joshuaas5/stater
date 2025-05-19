@@ -51,6 +51,9 @@ module.exports = async (req, res) => {
     return res.status(200).json({ items });
   } catch (error) {
     console.error(`Erro ao buscar feed de ${feedUrl}:`, error);
-    return res.status(500).json({ error: `Erro ao processar o feed RSS de ${sourceKey}. Detalhes: ${error.message}` });
+    if (error && error.stack) {
+      console.error('Stack trace:', error.stack);
+    }
+    return res.status(500).json({ error: `Erro ao processar o feed RSS de ${sourceKey}. Detalhes: ${error.message}. Stack: ${error.stack}` });
   }
 };

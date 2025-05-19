@@ -13,7 +13,6 @@ import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import HotContent from '@/components/financial-advisor/HotContent';
 
 const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
 const USER_AVATAR = '/user-avatar.svg'; // Placeholder for user avatar
@@ -496,7 +495,7 @@ export const FinancialAdvisorPage: React.FC = () => {
             </div>
           </TabsContent>
           <TabsContent value="hot" className="flex-grow overflow-y-auto">
-            <HotContent />
+            <h1>Teste Direto na Aba HOT</h1>
           </TabsContent>
         </Tabs>
       </div>

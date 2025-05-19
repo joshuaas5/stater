@@ -602,52 +602,21 @@ const Dashboard: React.FC = () => {
       </Dialog>
       
       <Dialog open={showFinancialTips} onOpenChange={setShowFinancialTips}>
-        <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <span className="text-galileo-text">Notícias do Mercado</span>
-              <span className="text-yellow-500">🔥</span>
-            </DialogTitle>
-            <DialogDescription>
-              {/* Exibe notícias financeiras ao vivo */}
-              <FinancialNewsFeed />
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <FinancialNewsFeed />
-              </div>
-            ) : newsError ? (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-                <strong className="font-bold">Erro ao carregar notícias: </strong>
-                <span className="block sm:inline">{newsError}</span>
-              </div>
-            ) : marketNews.length > 0 ? (
-              <div className="grid gap-4">
-                {marketNews.map((news, index) => (
-                  <a 
-                    key={index} 
-                    href={news.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="block p-4 rounded-lg border border-galileo-border hover:border-galileo-accent hover:bg-galileo-card/50 transition-colors duration-200"
-                  >
-                    <h3 className="text-galileo-text font-semibold mb-1.5 text-base line-clamp-2">{news.title}</h3>
-                    <p className="text-galileo-secondaryText text-sm mb-2 line-clamp-3">
-                      {news.description}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-galileo-tertiaryText">{news.source}</span>
-                      <span className="text-xs text-galileo-accent font-medium">Ler mais →</span>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            ) : (
-              <p className="text-galileo-secondaryText text-center py-4">Nenhuma notícia encontrada.</p>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+  <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle className="flex items-center gap-2">
+        <span className="text-galileo-text">Notícias do Mercado</span>
+        <span className="text-yellow-500">🔥</span>
+      </DialogTitle>
+      <DialogDescription>
+        Últimas notícias financeiras do Brasil e do mundo
+      </DialogDescription>
+    </DialogHeader>
+    <div className="space-y-4 pt-2">
+      <FinancialNewsFeed />
+    </div>
+  </DialogContent>
+</Dialog>
 
       <div className="px-4 mb-6">
         <SpendingChart transactions={transactions} days={30} />

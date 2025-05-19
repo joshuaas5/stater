@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import HotContent from '@/components/financial-advisor/HotContent';
 
 const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
 const USER_AVATAR = '/user-avatar.svg'; // Placeholder for user avatar
@@ -442,13 +443,20 @@ export const FinancialAdvisorPage: React.FC = () => {
     }
   };
 
+  const initialSuggestions = [
+    t('common.suggestions.check_balance') || 'Verificar Saldo',
+    t('common.suggestions.register_expense') || 'Registrar Despesa',
+    t('common.suggestions.register_income') || 'Registrar Receita',
+    t('common.suggestions.financial_summary') || 'Resumo Financeiro',
+  ];
+
   const suggestions = [
-    { key: "howToSaveMore", text: t("howToSaveMore") || "Como economizar mais?" },
-    { key: "biggestExpenses", text: t("biggestExpenses") || "Quais são meus maiores gastos?" },
-    { key: "createBudget", text: t("createBudget") || "Como criar um orçamento?" },
-    { key: "investOrPayDebt", text: t("investOrPayDebt") || "Devo investir ou pagar dívidas?" },
-    { key: "reduceFoodExpenses", text: t("reduceFoodExpenses") || "Como reduzir gastos com alimentação?" },
-    { key: "howMuchToSave", text: t("howMuchToSave") || "Quanto devo guardar por mês?" }
+    { key: "howToSaveMore", text: t("howToSaveMore") || 'Como economizar mais?' },
+    { key: "biggestExpenses", text: t("biggestExpenses") || 'Quais são meus maiores gastos?' },
+    { key: "createBudget", text: t("createBudget") || 'Como criar um orçamento?' },
+    { key: "investOrPayDebt", text: t("investOrPayDebt") || 'Devo investir ou pagar dívidas?' },
+    { key: "reduceFoodExpenses", text: t("reduceFoodExpenses") || 'Como reduzir gastos com alimentação?' },
+    { key: "howMuchToSave", text: t("howMuchToSave") || 'Quanto devo guardar por mês?' }
   ];
 
   const handleTabChange = (tabValue: string) => {
@@ -476,7 +484,7 @@ export const FinancialAdvisorPage: React.FC = () => {
                 <div className="p-4 border-t border-border bg-muted/40">
                   <p className="text-sm text-muted-foreground mb-2">Sugestões:</p>
                   <div className="flex flex-wrap gap-2">
-                    {[t('common.suggestions.check_balance'), t('common.suggestions.register_expense'), t('common.suggestions.register_income'), t('common.suggestions.financial_summary')].map((sug, index) => (
+                    {initialSuggestions.map((sug, index) => (
                       <Button key={index} variant="outline" size="sm" onClick={() => handleSuggestionClick(sug)}>
                         {sug}
                       </Button>
@@ -495,7 +503,7 @@ export const FinancialAdvisorPage: React.FC = () => {
             </div>
           </TabsContent>
           <TabsContent value="hot" className="flex-grow overflow-y-auto">
-            <h1>Teste Direto na Aba HOT</h1>
+            <HotContent />
           </TabsContent>
         </Tabs>
       </div>

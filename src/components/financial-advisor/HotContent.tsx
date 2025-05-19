@@ -3,46 +3,28 @@ import { NewsItem } from '@/types';
 import NewsCard from '@/components/news/NewsCard';
 import BookOfTheWeek from '@/components/news/BookOfTheWeek';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertTriangle, Globe, MapPin } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-
-interface NewsSource {
-  key: string;
-  lang: string;
-  displayName?: string;
-}
+import { Loader2, AlertTriangle } from 'lucide-react';
 
 const HotContent: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [newsScope, setNewsScope] = useState<'national' | 'international'>('national');
 
-  const nationalNewsSources: NewsSource[] = [
+  const newsSources = [
     { key: 'infomoney', lang: 'pt-BR' },
     { key: 'investnews', lang: 'pt-BR' },
     { key: 'moneytimes', lang: 'pt-BR' },
     { key: 'cointelegraph-br', lang: 'pt-BR' },
   ];
 
-  const internationalNewsSources: NewsSource[] = [
-    { key: 'reutersBusiness', lang: 'en', displayName: 'Reuters Business' },
-    { key: 'bloomberg', lang: 'en', displayName: 'Bloomberg' },
-    { key: 'wsjMarkets', lang: 'en', displayName: 'WSJ Markets' },
-    { key: 'ft', lang: 'en', displayName: 'Financial Times' },
-  ];
-
   useEffect(() => {
     const fetchNews = async () => {
       setLoading(true);
       setError(null);
-      setNewsItems([]);
       let allNews: NewsItem[] = [];
 
-      const currentSources: NewsSource[] = newsScope === 'national' ? nationalNewsSources : internationalNewsSources;
-
       try {
-        const fetchPromises = currentSources.map(async (source) => {
+        const fetchPromises = newsSources.map(async (source) => {
           try {
             const response = await fetch(`/api/get-news?sourceKey=${source.key}&lang=${source.lang}`);
             if (!response.ok) {
@@ -53,7 +35,7 @@ const HotContent: React.FC = () => {
             if (data.items && Array.isArray(data.items)) {
               return data.items.slice(0, 3).map((item: any) => ({
                 ...item,
-                sourceName: source.displayName || item.sourceName || source.key
+                sourceName: item.sourceName || source.key
               }));
             }
             return [];
@@ -82,7 +64,7 @@ const HotContent: React.FC = () => {
     };
 
     fetchNews();
-  }, [newsScope]);
+  }, []);
 
   return (
     <div className="space-y-6 p-1 md:p-2">
@@ -91,24 +73,6 @@ const HotContent: React.FC = () => {
       <div className="bg-card shadow-sm rounded-lg p-4 md:p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-card-foreground">Notícias de Finanças</h2>
-          <div className="flex space-x-2">
-            <Button
-              variant={newsScope === 'national' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setNewsScope('national')}
-              className="transition-all duration-200 ease-in-out"
-            >
-              <MapPin size={16} className="mr-2" /> Nacionais
-            </Button>
-            <Button
-              variant={newsScope === 'international' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setNewsScope('international')}
-              className="transition-all duration-200 ease-in-out"
-            >
-              <Globe size={16} className="mr-2" /> Internacionais
-            </Button>
-          </div>
         </div>
 
         {loading && (

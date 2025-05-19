@@ -80,10 +80,19 @@ export interface Bill {
 export interface NewsItem {
   title: string;
   link: string;
-  pubDate: string | null; // API might return null or ISO string
-  contentSnippet: string;
-  sourceName: string;
-  imageUrl?: string | null; // Optional image
+  pubDate?: string;
+  isoDate?: string; 
+  content?: string;
+  contentSnippet?: string;
+  guid?: string;
+  sourceName?: string; 
+  imageUrl?: string;   
+  categories?: string[]; 
+  author?: string; 
+  creator?: string | null;
+  description?: string | null; 
+  id?: string; 
+  media?: { thumbnail?: { url?: string } }; 
 }
 
 export type NotificationType = 'fiveDaysBefore' | 'oneDayBefore' | 'dueDay' | 'overdue' | 'almostFinished' | 'paid';

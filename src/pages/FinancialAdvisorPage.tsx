@@ -485,13 +485,18 @@ export const FinancialAdvisorPage: React.FC = () => {
           </TabsList>
 
           <TabsContent value="chat" className="flex-grow flex flex-col overflow-hidden">
-            <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden">
+            {/* Este div é o contêiner principal do chat, incluindo mensagens e input */}
+            {/* Adicionado pt-2 para espaço do TabsList e pb-20 para espaço da NavBar inferior */}
+            <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden pt-2 pb-[calc(4rem+1rem)] md:pb-[calc(4.5rem+1rem)]"> 
               {error && (
                 <div className="p-4 bg-destructive text-destructive-foreground">
                   {error}
                 </div>
               )}
-              <ChatMessages messages={messages} messagesEndRef={messagesEndRef} iaAvatar={IA_AVATAR} userAvatar={USER_AVATAR} />
+              {/* ChatMessages agora ocupa o espaço flexível e tem seu próprio scroll interno */}
+              <div className="flex-grow overflow-y-auto">
+                <ChatMessages messages={messages} messagesEndRef={messagesEndRef} iaAvatar={IA_AVATAR} userAvatar={USER_AVATAR} />
+              </div>
               {showSuggestions && !pendingAction && (
                 <div className="p-4 border-t border-border bg-muted/40">
                   <p className="text-sm text-muted-foreground mb-2">Sugestões:</p>
@@ -504,18 +509,22 @@ export const FinancialAdvisorPage: React.FC = () => {
                   </div>
                 </div>
               )}
+              {/* ChatInput fica aqui, abaixo das mensagens/sugestões, mas acima do padding da NavBar */}
               <ChatInput
-                onSubmit={handleSendMessage}
+                onSubmit={handleSendMessage} 
                 loading={loading}
-                waitingConfirmation={waitingConfirmation}
-                pendingActionDetails={pendingAction ? pendingAction.dados : null}
-                onConfirm={() => handleSendMessage('sim')}
-                onCancel={() => handleSendMessage('não')}
+                waitingConfirmation={waitingConfirmation} 
+                pendingActionDetails={pendingAction ? pendingAction.dados : null} 
+                onConfirm={() => handleSendMessage('sim')} 
+                onCancel={() => handleSendMessage('não')} 
               />
             </div>
           </TabsContent>
         </Tabs>
       </div>
+      {/* A NavBar que aparece no rodapé é renderizada aqui, fora do container principal do conteúdo da página, mas dentro do flex flex-col h-screen */}
+      {/* O padding no div acima garante que o ChatInput não seja coberto por esta NavBar */}
+      <NavBar /> 
     </div>
   );
 };

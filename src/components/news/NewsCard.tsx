@@ -38,32 +38,29 @@ const NewsCard: React.FC<NewsCardProps> = ({ item }) => {
   };
 
   return (
-    <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground">
+    <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground group hover:border-primary/50 border-transparent border-2">
       {imageUrl && imageUrl.trim() !== '' && !imageError && (
-        <div className="w-full h-48 overflow-hidden">
+        <div className="w-full h-40 overflow-hidden">
           <img 
             src={imageUrl} 
             alt={decodeHTMLEntities(title) || 'Imagem da notícia'} 
-            className="object-cover w-full h-full transition-transform duration-300 ease-in-out hover:scale-105"
+            className="object-cover w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
             onError={handleImageError}
           />
         </div>
       )}
-      <CardHeader className={(imageUrl && imageUrl.trim() !== '' && !imageError) ? "pt-4 pb-2" : "pt-6 pb-2"}>
-        <CardTitle className="text-lg font-semibold leading-tight line-clamp-2">
+      <CardHeader className={(imageUrl && imageUrl.trim() !== '' && !imageError) ? "pt-3 pb-1 px-4" : "pt-4 pb-1 px-4"}>
+        <CardTitle className="text-base font-semibold leading-tight line-clamp-2">
           {decodeHTMLEntities(title) || 'Título indisponível'}
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-grow pb-3 pt-1">
-        <p className="text-sm text-muted-foreground line-clamp-3">
+      <CardContent className="flex-grow pb-2 pt-1 px-4">
+        <p className="text-sm text-muted-foreground line-clamp-2">
           {decodeHTMLEntities(contentSnippet) || 'Conteúdo indisponível.'}
         </p>
       </CardContent>
-      <CardFooter className="flex justify-between items-center text-xs text-muted-foreground pt-2 pb-4 border-t border-border">
-        <div className="flex flex-col">
-          <span>{sourceName || 'Fonte desconhecida'}</span>
-          <span>{formatDate(pubDate)}</span>
-        </div>
+      <CardFooter className="flex justify-between items-center text-xs text-muted-foreground pt-2 pb-3 px-4 border-t border-border/50">
+        <span className="text-muted-foreground/80">{sourceName || 'Fonte desconhecida'}</span>
         {link && (
           <a
             href={link}

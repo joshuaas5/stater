@@ -52,6 +52,8 @@ const HotContent: React.FC = () => {
         // Filter out items that don't have a seemingly valid imageUrl
         const validNews = allNews.filter(item => typeof item.imageUrl === 'string' && item.imageUrl.trim() !== '' && item.imageUrl.startsWith('http'));
         
+        console.log('HotContent: Number of valid news items:', validNews.length); // Diagnóstico
+
         // Simple shuffle to mix news sources, and then take top 12
         validNews.sort(() => Math.random() - 0.5);
         setNewsItems(validNews.slice(0, 12)); 
@@ -88,7 +90,7 @@ const HotContent: React.FC = () => {
             <p className="text-muted-foreground">Nenhuma notícia encontrada no momento.</p>
           )}
           {!loading && !error && newsItems.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-h-[600px] overflow-y-auto p-1">
               {newsItems.map((item, index) => (
                 <NewsCard key={`${item.link}-${index}`} item={item} />
               ))}

@@ -9,97 +9,140 @@ export interface Book {
 }
 
 const recommendedBooks: Book[] = [
-  // Economics
   {
-    id: 'rb001',
-    title: 'Pai Rico, Pai Pobre',
-    author: 'Robert T. Kiyosaki',
-    amazonLink: 'https://www.amazon.com.br/dp/8550801488',
+    id: 'af001',
+    title: 'O jeito Warren Buffett de investir',
+    author: 'Robert G. Hagstrom',
+    amazonLink: 'https://amzn.to/3XzLpXq',
     category: 'finance',
-    description: 'Transforme sua mentalidade financeira e aprenda a fazer o dinheiro trabalhar para você.',
-    coverImageUrl: 'https://m.media-amazon.com/images/I/81D9bTj2wSL._SY466_.jpg'
+    description: 'Descubra os princípios de investimento do bilionário Warren Buffett e como aplicá-los.',
+    coverImageUrl: 'https://m.media-amazon.com/images/I/41i25nS8xOL._SY445_SX342_.jpg'
   },
   {
-    id: 'rb002',
-    title: 'Os Segredos da Mente Milionária',
-    author: 'T. Harv Eker',
-    amazonLink: 'https://www.amazon.com.br/dp/8575422391',
+    id: 'af002',
+    title: 'Ações comuns, lucros incomuns',
+    author: 'Philip A. Fisher',
+    amazonLink: 'https://amzn.to/4aUEXqV',
     category: 'finance',
-    description: 'Aprenda a identificar e modificar seus modelos de dinheiro para alcançar a riqueza.',
+    description: 'Um guia clássico para encontrar empresas de crescimento e investir com visão de longo prazo.',
+    coverImageUrl: 'https://m.media-amazon.com/images/I/513u5oODTgL._SY445_SX342_.jpg'
+  },
+  {
+    id: 'af003',
+    title: 'O mais importante para o investidor',
+    author: 'Howard Marks',
+    amazonLink: 'https://amzn.to/4ezN9JJ',
+    category: 'finance',
+    description: 'Lições essenciais sobre risco, ciclos de mercado e a psicologia do investimento.',
+    coverImageUrl: 'https://m.media-amazon.com/images/I/41ZLzWzXG9L._SY445_SX342_.jpg'
+  },
+  {
+    id: 'af004',
+    title: 'Os segredos da mente milionária',
+    author: 'T. Harv Eker',
+    amazonLink: 'https://amzn.to/3Xyx7xN',
+    category: 'finance',
+    description: 'Aprenda a reprogramar seu mindset financeiro para alcançar a prosperidade.',
     coverImageUrl: 'https://m.media-amazon.com/images/I/81ZnJcgjA7L._SY466_.jpg'
   },
   {
-    id: 'rb003',
-    title: 'Rápido e Devagar: Duas Formas de Pensar',
-    author: 'Daniel Kahneman',
-    amazonLink: 'https://www.amazon.com.br/dp/853900383X',
-    category: 'economics',
-    description: 'Uma exploração fascinante sobre os dois sistemas que moldam nosso julgamento e nossas decisões.',
-    coverImageUrl: 'https://m.media-amazon.com/images/I/71QUd+L2mrL._SY466_.jpg'
-  },
-  {
-    id: 'rb004',
-    title: 'O Investidor Inteligente',
-    author: 'Benjamin Graham',
-    amazonLink: 'https://www.amazon.com.br/dp/8595080801',
+    id: 'af016',
+    title: 'A Magia da Sequência de Fibonacci',
+    author: 'João Vieira de Aguiar',
+    amazonLink: 'https://amzn.to/3H4iz4n',
     category: 'finance',
-    description: 'A bíblia do investimento no valor, ensinando princípios atemporais para o sucesso financeiro.',
-    coverImageUrl: 'https://m.media-amazon.com/images/I/71XyV+aW5kL._SY466_.jpg'
+    description: 'Descubra os segredos e aplicações da sequência de Fibonacci.',
+    coverImageUrl: ''
   },
-  // Coaching & Self-Help
   {
-    id: 'rb005',
-    title: 'O Poder do Hábito',
+    id: 'af006',
+    title: 'Do mil ao milhão',
+    author: 'Thiago Nigro',
+    amazonLink: 'https://amzn.to/3Rwb0rF',
+    category: 'finance',
+    description: 'Um guia prático para quem quer sair das dívidas e começar a investir, sem cortar o cafezinho.',
+    coverImageUrl: 'https://m.media-amazon.com/images/I/71uM8nWkUrL._SY466_.jpg'
+  },
+  {
+    id: 'af007',
+    title: 'O investidor de bom senso',
+    author: 'John C. Bogle',
+    amazonLink: 'https://amzn.to/3RBi71P',
+    category: 'finance',
+    description: 'A estratégia de investimento em fundos de índice para construir riqueza a longo prazo.',
+    coverImageUrl: 'https://m.media-amazon.com/images/I/41u8nN5k+pL._SY445_SX342_.jpg'
+  },
+  {
+    id: 'af008',
+    title: 'O homem mais rico da Babilônia',
+    author: 'George S. Clason',
+    amazonLink: 'https://amzn.to/4aYx3M9',
+    category: 'finance',
+    description: 'Princípios milenares de gestão financeira e acúmulo de riqueza, contados através de parábolas.',
+    coverImageUrl: 'https://m.media-amazon.com/images/I/81tAyWa8oFL._SY466_.jpg'
+  },
+  {
+    id: 'af009',
+    title: 'A psicologia financeira',
+    author: 'Morgan Housel',
+    amazonLink: 'https://amzn.to/4aQnN6X',
+    category: 'finance',
+    description: 'Lições atemporais sobre como as emoções e o comportamento influenciam nossas decisões financeiras.',
+    coverImageUrl: 'https://m.media-amazon.com/images/I/71L05Qc1q5L._SY466_.jpg'
+  },
+  {
+    id: 'af010',
+    title: 'Quem pensa enriquece',
+    author: 'Napoleon Hill',
+    amazonLink: 'https://amzn.to/3Xz2jQj',
+    category: 'finance',
+    description: 'A filosofia clássica do sucesso, baseada nos hábitos de grandes realizadores.',
+    coverImageUrl: 'https://m.media-amazon.com/images/I/71e4kdy4L6L._SY466_.jpg'
+  },
+  {
+    id: 'af011',
+    title: 'Hackeando Tudo',
+    author: 'Raiam Santos',
+    amazonLink: 'https://amzn.to/4cjwQWR',
+    category: 'coaching',
+    description: '90 hábitos para otimizar sua vida e alcançar resultados exponenciais.',
+    coverImageUrl: 'https://m.media-amazon.com/images/I/51DBMDSYkLL._SY466_.jpg'
+  },
+  {
+    id: 'af012',
+    title: 'O poder do hábito',
     author: 'Charles Duhigg',
-    amazonLink: 'https://www.amazon.com.br/dp/8539004119',
+    amazonLink: 'https://amzn.to/4c2T2gq',
     category: 'self-help',
-    description: 'Descubra a ciência por trás da formação de hábitos e como transformá-los.',
+    description: 'Entenda a ciência por trás dos hábitos e como transformá-los para melhorar sua vida.',
     coverImageUrl: 'https://m.media-amazon.com/images/I/71KeO2tkF5L._SY466_.jpg'
   },
   {
-    id: 'rb006',
-    title: 'Mindset: A Nova Psicologia do Sucesso',
-    author: 'Carol S. Dweck',
-    amazonLink: 'https://www.amazon.com.br/dp/8547000240',
-    category: 'coaching',
-    description: 'Entenda como o mindset de crescimento pode impulsionar todas as áreas da sua vida.',
-    coverImageUrl: 'https://m.media-amazon.com/images/I/613u2s2gH-L._SY466_.jpg'
-  },
-  {
-    id: 'rb007',
-    title: 'As Armas da Persuasão',
-    author: 'Robert B. Cialdini',
-    amazonLink: 'https://www.amazon.com.br/dp/857542761X',
-    category: 'coaching',
-    description: 'Aprenda os princípios psicológicos que levam as pessoas a dizer sim.',
-    coverImageUrl: 'https://m.media-amazon.com/images/I/81q5KDHsemL._SY466_.jpg'
-  },
-  {
-    id: 'rb008',
-    title: 'Comece Pelo Porquê',
-    author: 'Simon Sinek',
-    amazonLink: 'https://www.amazon.com.br/dp/8543102919',
-    category: 'coaching',
-    description: 'Inspire pessoas e equipes a agir descobrindo o seu propósito fundamental.',
-    coverImageUrl: 'https://m.media-amazon.com/images/I/6135q77U87L._SY466_.jpg'
-  },
-  {
-    id: 'rb009',
-    title: 'Inteligência Emocional',
-    author: 'Daniel Goleman',
-    amazonLink: 'https://www.amazon.com.br/dp/8539007428',
-    category: 'coaching',
-    description: 'A teoria revolucionária que redefiniu o que é ser inteligente.',
-    coverImageUrl: 'https://m.media-amazon.com/images/I/611aD4i5zFL._SY466_.jpg'
-  },
-  {
-    id: 'rb010',
-    title: 'Quem Pensa Enriquece',
-    author: 'Napoleon Hill',
-    amazonLink: 'https://www.amazon.com.br/dp/8539004739',
+    id: 'af014',
+    title: 'Os Axiomas de Zurique',
+    author: 'Max Gunther',
+    amazonLink: 'https://amzn.to/3zq4yLC',
     category: 'finance',
-    description: 'A obra clássica sobre como alcançar o sucesso e a riqueza através do poder do pensamento.',
-    coverImageUrl: 'https://m.media-amazon.com/images/I/71j6Z0A4xNL._SY466_.jpg'
+    description: 'As regras de ouro dos banqueiros suíços para investir e especular com sucesso.',
+    coverImageUrl: 'https://m.media-amazon.com/images/I/41oX1H6dJEL._SY445_SX342_.jpg'
+  },
+  {
+    id: 'af015',
+    title: 'Cartas a um Jovem Investidor',
+    author: 'Gustavo Cerbasi',
+    amazonLink: 'https://amzn.to/3KNcWfX',
+    category: 'finance',
+    description: 'Conselhos e estratégias de um dos maiores educadores financeiros do Brasil para iniciantes.',
+    coverImageUrl: 'https://m.media-amazon.com/images/I/41n7GgF0voL._SY445_SX342_.jpg'
+  },
+  {
+    id: 'af013',
+    title: 'Oportunidades Disfarçadas',
+    author: 'Carlos Domingos',
+    amazonLink: 'https://amzn.to/4mogUqk',
+    category: 'coaching',
+    description: 'Como transformar problemas em grandes oportunidades de negócio e inovação.',
+    coverImageUrl: 'https://m.media-amazon.com/images/I/51Y9yFpQxAL._SY445_SX342_.jpg'
   }
 ];
 

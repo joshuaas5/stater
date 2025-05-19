@@ -23,25 +23,38 @@ const HotContent: React.FC = () => {
       setError(null);
       let allNews: NewsItem[] = [];
       try {
-        for (const source of newsSources) {
-          const response = await fetch(`/api/get-news?sourceKey=${source.key}&lang=${source.lang}`);
-          if (!response.ok) {
-            console.warn(`Failed to fetch news from ${source.key}: ${response.status}`);
-            continue; // Skip this source on error
+        const fetchPromises = newsSources.map(async (source) => {
+          try {
+            const response = await fetch(`/api/get-news?sourceKey=${source.key}&lang=${source.lang}`);
+            if (!response.ok) {
+              console.warn(`Failed to fetch news from ${source.key}: ${response.status}`);
+              return []; // Return empty array on individual failure
+            }
+            const data = await response.json();
+            if (data.items && Array.isArray(data.items)) {
+              return data.items.slice(0, 3).map((item: any) => ({ 
+                ...item, 
+                sourceName: item.sourceName || source.key
+              })); 
+            }
+            return []; // Return empty if no items
+          } catch (err) {
+            console.error(`Error fetching news from source ${source.key}:`, err);
+            return []; // Return empty array on individual error
           }
-          const data = await response.json();
-          if (data.items && Array.isArray(data.items)) {
-            // Take only top 2-3 news from each source to diversify, and add sourceName
-            const itemsWithSource = data.items.slice(0, 3).map((item: any) => ({ 
-              ...item, 
-              sourceName: item.sourceName || source.key // Ensure sourceName is present
-            })); 
-            allNews = [...allNews, ...itemsWithSource];
-          }
-        }
+        });
+
+        const results = await Promise.all(fetchPromises);
+        results.forEach(newsFromSource => {
+          allNews = [...allNews, ...newsFromSource];
+        });
+
+        // Filter out items that don't have a seemingly valid imageUrl
+        const validNews = allNews.filter(item => typeof item.imageUrl === 'string' && item.imageUrl.trim() !== '' && item.imageUrl.startsWith('http'));
+        
         // Simple shuffle to mix news sources, and then take top 12
-        allNews.sort(() => Math.random() - 0.5);
-        setNewsItems(allNews.slice(0, 12)); 
+        validNews.sort(() => Math.random() - 0.5);
+        setNewsItems(validNews.slice(0, 12)); 
       } catch (err) {
         console.error('Error fetching news:', err);
         setError('Falha ao carregar notícias. Tente novamente mais tarde.');

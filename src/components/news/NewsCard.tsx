@@ -15,6 +15,14 @@ const NewsCard: React.FC<NewsCardProps> = ({ item }) => {
     setImageError(true);
   };
 
+  // Function to decode HTML entities
+  const decodeHTMLEntities = (text: string | null | undefined): string => {
+    if (!text) return '';
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+  };
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Data não disponível';
     try {
@@ -31,24 +39,24 @@ const NewsCard: React.FC<NewsCardProps> = ({ item }) => {
 
   return (
     <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground">
-      {imageUrl && !imageError && (
+      {imageUrl && imageUrl.trim() !== '' && !imageError && (
         <div className="w-full h-48 overflow-hidden">
           <img 
             src={imageUrl} 
-            alt={title || 'Imagem da notícia'} 
+            alt={decodeHTMLEntities(title) || 'Imagem da notícia'} 
             className="object-cover w-full h-full transition-transform duration-300 ease-in-out hover:scale-105"
             onError={handleImageError}
           />
         </div>
       )}
-      <CardHeader className={(imageUrl && !imageError) ? "pt-4 pb-2" : "pt-6 pb-2"}>
+      <CardHeader className={(imageUrl && imageUrl.trim() !== '' && !imageError) ? "pt-4 pb-2" : "pt-6 pb-2"}>
         <CardTitle className="text-lg font-semibold leading-tight line-clamp-2">
-          {title || 'Título indisponível'}
+          {decodeHTMLEntities(title) || 'Título indisponível'}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-grow pb-3 pt-1">
         <p className="text-sm text-muted-foreground line-clamp-3">
-          {contentSnippet || 'Conteúdo indisponível.'}
+          {decodeHTMLEntities(contentSnippet) || 'Conteúdo indisponível.'}
         </p>
       </CardContent>
       <CardFooter className="flex justify-between items-center text-xs text-muted-foreground pt-2 pb-4 border-t border-border">
@@ -62,7 +70,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ item }) => {
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center p-2 rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors duration-200"
-            aria-label={`Ler mais sobre ${title}`}
+            aria-label={`Ler mais sobre ${decodeHTMLEntities(title)}`}
           >
             <ExternalLink size={18} className="mr-1" />
             Ler mais

@@ -276,11 +276,24 @@ export const FinancialAdvisorPage: React.FC = () => {
         setError('Erro ao registrar: ' + errorMessage);
         console.error("Erro ao registrar no banco:", e);
         setMessages(prev => [...prev, { id: uuidv4(), text: `❌ Erro ao registrar: ${errorMessage}. Tente novamente.`, sender: 'system', timestamp: new Date() }]);
+        setWaitingConfirmation(false); // Reset waitingConfirmation on error
+        setPendingAction(null);      // Reset pendingAction on error
       } finally { // Finally for the 'sim' block's try
         setLoading(false);
       }
       return; // Crucial: return after 'sim' processing is fully handled
     } // Closes 'if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim'))'
+    // Se aguardando confirmação e usuário diz não ou cancelar
+    else if (waitingConfirmation && pendingAction && (lowerMsg.startsWith('não') || lowerMsg.startsWith('nao') || lowerMsg.startsWith('cancelar'))) {
+      setMessages(prev => [...prev, 
+        { id: uuidv4(), text: message, sender: 'user', timestamp: new Date(), avatarUrl: USER_AVATAR },
+        { id: uuidv4(), text: 'Ok, ação cancelada.', sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR }
+      ]);
+      setWaitingConfirmation(false);
+      setPendingAction(null);
+      setLoading(false); // Certifica que o loading é desativado
+      return; // Importante sair após tratar o cancelamento
+    }
 
     // Adiciona a mensagem do usuário à interface
     const newUserMessage: ChatMessage = { id: uuidv4(), text: message, sender: 'user', timestamp: new Date(), avatarUrl: USER_AVATAR };

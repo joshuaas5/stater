@@ -1,3 +1,12 @@
 {
-  "recomendacoes": "Recomendações"
+  "recomendacoes": "Recomendações",
+  "common.suggestions.check_balance": "Verificar saldo",
+  "common.suggestions.register_expense": "Registrar despesa",
+  "common.suggestions.register_income": "Registrar receita",
+  "common.suggestions.financial_summary": "Resumo financeiro",
+  "home": "Início",
+  "charts": "Gráficos",
+  "add_bill": "Adicionar Conta",
+  "financial_advisor": "Consultor IA",
+  "settings": "Ajustes"
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NewsItem } from '@/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ExternalLink } from 'lucide-react';
@@ -9,6 +9,11 @@ interface NewsCardProps {
 
 const NewsCard: React.FC<NewsCardProps> = ({ item }) => {
   const { title, link, pubDate, contentSnippet, sourceName, imageUrl } = item;
+  const [imageError, setImageError] = useState(false);
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Data não disponível';
@@ -26,16 +31,17 @@ const NewsCard: React.FC<NewsCardProps> = ({ item }) => {
 
   return (
     <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground">
-      {imageUrl && (
+      {imageUrl && !imageError && (
         <div className="w-full h-48 overflow-hidden">
           <img 
             src={imageUrl} 
-            alt={title} 
+            alt={title || 'Imagem da notícia'} 
             className="object-cover w-full h-full transition-transform duration-300 ease-in-out hover:scale-105"
+            onError={handleImageError}
           />
         </div>
       )}
-      <CardHeader className={imageUrl ? "pt-4 pb-2" : "pt-6 pb-2"}>
+      <CardHeader className={(imageUrl && !imageError) ? "pt-4 pb-2" : "pt-6 pb-2"}>
         <CardTitle className="text-lg font-semibold leading-tight line-clamp-2">
           {title || 'Título indisponível'}
         </CardTitle>

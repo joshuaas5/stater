@@ -13,7 +13,6 @@ import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import HotContent from '@/components/financial-advisor/HotContent';
 
 const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
 const USER_AVATAR = '/user-avatar.svg'; // Placeholder for user avatar
@@ -468,10 +467,10 @@ export const FinancialAdvisorPage: React.FC = () => {
       <NavBar />
       <div className="flex-grow container mx-auto px-0 sm:px-4 py-4 md:py-8 flex flex-col overflow-hidden">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full flex flex-col flex-grow">
-          <TabsList className="grid w-full grid-cols-2 mb-4 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <TabsList className="grid w-full grid-cols-1 mb-4 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <TabsTrigger value="chat">Consultor IA 🤖</TabsTrigger>
-            <TabsTrigger value="hot">HOT 🔥</TabsTrigger>
           </TabsList>
+
           <TabsContent value="chat" className="flex-grow flex flex-col overflow-hidden">
             <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden">
               {error && (
@@ -501,9 +500,6 @@ export const FinancialAdvisorPage: React.FC = () => {
                 onCancel={() => handleSendMessage('não')}
               />
             </div>
-          </TabsContent>
-          <TabsContent value="hot" className="flex-grow overflow-y-auto">
-            <HotContent />
           </TabsContent>
         </Tabs>
       </div>

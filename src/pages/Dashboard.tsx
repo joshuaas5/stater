@@ -517,15 +517,6 @@ const Dashboard: React.FC = () => {
             finalAmount = NaN; // This will trigger the validation error below
           }
 
-          if (isNaN(finalAmount) || finalAmount <= 0) {
-            toast({
-              title: 'Valor Inválido',
-              description: 'Por favor, insira um valor numérico válido para a transação.',
-              variant: 'destructive',
-            });
-            return;
-          }
-
           const transactionToUpdate: Transaction = {
             ...editingTransaction,
             amount: finalAmount, // Use the correctly parsed numeric amount
@@ -611,6 +602,16 @@ const Dashboard: React.FC = () => {
       <DialogDescription>
         Últimas notícias financeiras do Brasil e do mundo
       </DialogDescription>
+      <Button 
+        variant="link"
+        className="text-primary p-0 h-auto justify-start"
+        onClick={() => {
+          setShowFinancialTips(false); // Close the current dialog
+          navigate('/recomendacoes');
+        }}
+      >
+        Ver mais recomendações...
+      </Button>
     </DialogHeader>
     <div className="space-y-4 pt-2">
       <FinancialNewsFeed />

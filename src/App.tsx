@@ -16,6 +16,7 @@ import PreferencesPage from "./pages/PreferencesPage";
 import SecurityPage from "./pages/SecurityPage";
 import ChartsPage from "./pages/ChartsPage";
 import { FinancialAdvisorPage } from "./pages/FinancialAdvisorPage";
+import RecommendationsPage from "./pages/RecommendationsPage";
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -111,6 +112,14 @@ const App = () => (
                 element={
                   <PrivateRoute>
                     <FinancialAdvisorPage />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/recomendacoes" 
+                element={
+                  <PrivateRoute>
+                    <RecommendationsPage />
                   </PrivateRoute>
                 } 
               />

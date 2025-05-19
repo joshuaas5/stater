@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { getCurrentBookOfTheWeek, Book } from '@/data/recommendedBooks';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,11 @@ import { BookOpen, ExternalLink } from 'lucide-react';
 
 const BookOfTheWeek: React.FC = () => {
   const book: Book = getCurrentBookOfTheWeek();
+  const [imageError, setImageError] = useState(false);
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
 
   if (!book) {
     return <p>Nenhum livro recomendado para esta semana.</p>;
@@ -24,12 +29,13 @@ const BookOfTheWeek: React.FC = () => {
         <p className="text-sm text-muted-foreground">por {book.author}</p>
       </CardHeader>
       <CardContent className="pb-4">
-        {book.coverImageUrl && (
+        {book.coverImageUrl && !imageError && (
           <div className="mb-4 overflow-hidden rounded-md aspect-[3/4] w-32 mx-auto">
             <img 
               src={book.coverImageUrl} 
               alt={`Capa do livro ${book.title}`} 
               className="object-contain w-full h-full"
+              onError={handleImageError}
             />
           </div>
         )}

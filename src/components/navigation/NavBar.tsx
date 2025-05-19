@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { PieChart, FileText, Home, Lightbulb, Settings } from 'lucide-react';
+import { PieChart, FileText, Home, Lightbulb, Settings, Star } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 
 const NavBar: React.FC = () => {
@@ -18,6 +17,7 @@ const NavBar: React.FC = () => {
     { icon: <FileText size={24} />, label: t('bills'), path: '/bills' },
     { icon: <Home size={24} />, label: t('home'), path: '/dashboard' },
     { icon: <Lightbulb size={24} />, label: t('advisor'), path: '/financial-advisor' },
+    { icon: <Star size={24} />, label: t('recomendacoes'), path: '/recomendacoes' },
     { icon: <Settings size={24} />, label: t('settings'), path: '/preferences' },
   ];
   

@@ -12,6 +12,8 @@ import { fetchGeminiFlashLite, GeminiTransactionIntent } from '@/utils/gemini';
 import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import HotContent from '@/components/financial-advisor/HotContent';
 
 const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
 const USER_AVATAR = '/user-avatar.svg'; // Placeholder for user avatar
@@ -70,6 +72,7 @@ export const FinancialAdvisorPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined); // undefined: not yet checked, null: checked and no user, string: user ID
+  const [activeTab, setActiveTab] = useState("chat"); // Novo estado para aba ativa
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -165,7 +168,7 @@ export const FinancialAdvisorPage: React.FC = () => {
   const getGeminiResponse = async (prompt: string): Promise<string> => {
     try {
       const response = await fetchGeminiFlashLite(prompt);
-      if (!response || response.length < 5) {
+      if (!response || response.length < 2) {
         return 'Desculpe, não consegui encontrar uma resposta adequada. Pode reformular sua pergunta?';
       }
       return response;
@@ -448,106 +451,55 @@ export const FinancialAdvisorPage: React.FC = () => {
     { key: "reduceFoodExpenses", text: t("reduceFoodExpenses") || "Como reduzir gastos com alimentação?" },
     { key: "howMuchToSave", text: t("howMuchToSave") || "Quanto devo guardar por mês?" }
   ];
-  
-  return (
-    <div className="min-h-screen bg-galileo-background flex flex-col pb-16">
-      {/* Header com design moderno e colorido */}
-      <header className="sticky top-0 z-10 bg-galileo-accent text-white dark:bg-galileo-card dark:text-galileo-text shadow-md px-4 py-3 flex flex-col items-center mx-auto w-full border-b border-galileo-border">
-        <div className="flex flex-row items-center gap-3 w-full max-w-xl justify-between">
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-2">
-              <span className="text-white text-sm">💡</span>
-            </div>
-            <div>
-              <span className="text-lg font-bold text-white tracking-tight">Consultor IA</span>
-              <span className="block text-xs text-blue-100">Assistente financeiro</span>
-            </div>
-          </div>
-        </div>
-      </header>
-      
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto px-4 py-6 max-w-xl mx-auto w-full">
-        <section className="w-full max-w-xl flex flex-col flex-1 bg-galileo-card rounded-xl shadow-lg overflow-hidden border border-galileo-border">
-          <div className="flex-1 overflow-y-auto px-3 pt-3 pb-20" style={{ minHeight: '60vh' }}>
-            {/* Mensagens do chat */}
-            <ChatMessages messages={messages} />
-            
-            {/* Loading animado */}
-            {loading && (
-              <div className="flex items-center gap-2 mt-2 animate-pulse">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={IA_AVATAR} alt="IA" />
-                  <AvatarFallback>IA</AvatarFallback>
-                </Avatar>
-                <span className="text-galileo-text bg-gradient-to-r from-blue-100 to-indigo-100 px-3 py-2 rounded-2xl shadow-sm text-sm">Pensando...</span>
-                <Loader2 className="animate-spin text-blue-500" size={20} />
-              </div>
-            )}
-            
-            {/* Confirmação de registro */}
-            {waitingConfirmation && pendingAction && (
-              <div className="flex flex-col items-center mt-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={IA_AVATAR} alt="IA" />
-                    <AvatarFallback>IA</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm bg-yellow-100 text-yellow-900 px-4 py-2 rounded-2xl border border-yellow-300 shadow-sm font-medium animate-fade-in">
-                    Confirma o registro de <b>{pendingAction.dados?.description || pendingAction.dados?.category || 'transação'}</b>?
-                  </span>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    className="px-4 py-2 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold shadow transition-all"
-                    onClick={() => handleSendMessage('sim')}
-                    aria-label="Confirmar registro"
-                  >Confirmar</button>
-                  <button
-                    className="px-4 py-2 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold shadow transition-all"
-                    onClick={() => handleSendMessage('não')}
-                    aria-label="Cancelar registro"
-                  >Cancelar</button>
-                </div>
-              </div>
-            )}
-            
-            {/* Mensagem de erro */}
-            {error && (
-              <div className="bg-red-100 border border-red-200 text-red-700 px-4 py-2 rounded-md mb-4">
-                {error}
-              </div>
-            )}
 
-            {/* Sugestões em botões */}
-            {showSuggestions && !waitingConfirmation && !loading && (
-              <div className="mb-3 px-3">
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {suggestions.map((suggestion, index) => (
-                    <button
-                      key={index}
-                      className="px-3 py-1.5 rounded-full bg-galileo-background hover:bg-galileo-accent text-galileo-text text-xs font-medium border border-galileo-border shadow-sm transition-all"
-                      onClick={() => handleSuggestionClick(suggestion.text)}
-                    >
-                      {suggestion.text}
-                    </button>
-                  ))}
+  const handleTabChange = (tabValue: string) => {
+    setActiveTab(tabValue);
+  };
+
+  return (
+    <div className="flex flex-col h-screen bg-background">
+      <NavBar />
+      <div className="flex-grow container mx-auto px-0 sm:px-4 py-4 md:py-8 flex flex-col overflow-hidden">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full flex flex-col flex-grow">
+          <TabsList className="grid w-full grid-cols-2 mb-4 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <TabsTrigger value="chat">Consultor IA 🤖</TabsTrigger>
+            <TabsTrigger value="hot">HOT 🔥</TabsTrigger>
+          </TabsList>
+          <TabsContent value="chat" className="flex-grow flex flex-col overflow-hidden">
+            <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden">
+              {error && (
+                <div className="p-4 bg-destructive text-destructive-foreground">
+                  {error}
                 </div>
-              </div> // Closes div className="mb-3 px-3" from suggestions block
-            )} {/* Closes showSuggestions && !waitingConfirmation && !loading block */}
-          </div> {/* Closes div className="flex-1 overflow-y-auto ..." - Main chat area */}
-          
-          {/* Input de chat */}
-          <div className="sticky bottom-0 w-full bg-galileo-card pt-2 pb-3 px-3 border-t border-galileo-border z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">            <ChatInput onSubmit={(message: string) => handleSendMessage(message)} />
-          </div> {/* Closes sticky bottom div for ChatInput */}
-        </section> {/* Closes section className="w-full max-w-xl ..." */}
-      </main> {/* Closes main className="flex-1 overflow-auto ..." */}
-      
-      {/* NavBar fixa na parte inferior */}
-      <div className="fixed bottom-0 left-0 right-0 z-20">
-        <NavBar />
+              )}
+              <ChatMessages messages={messages} messagesEndRef={messagesEndRef} iaAvatar={IA_AVATAR} userAvatar={USER_AVATAR} />
+              {showSuggestions && !pendingAction && (
+                <div className="p-4 border-t border-border bg-muted/40">
+                  <p className="text-sm text-muted-foreground mb-2">Sugestões:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[t('common.suggestions.check_balance'), t('common.suggestions.register_expense'), t('common.suggestions.register_income'), t('common.suggestions.financial_summary')].map((sug, index) => (
+                      <Button key={index} variant="outline" size="sm" onClick={() => handleSuggestionClick(sug)}>
+                        {sug}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <ChatInput
+                onSubmit={handleSendMessage}
+                loading={loading}
+                waitingConfirmation={waitingConfirmation}
+                pendingActionDetails={pendingAction ? pendingAction.dados : null}
+                onConfirm={() => handleSendMessage('sim')}
+                onCancel={() => handleSendMessage('não')}
+              />
+            </div>
+          </TabsContent>
+          <TabsContent value="hot" className="flex-grow overflow-y-auto">
+            <HotContent />
+          </TabsContent>
+        </Tabs>
       </div>
-    {/* Closes the root div className="min-h-screen ..." */}
     </div>
-  ); // Closes the return statement parentheses
-}; // Closes the FinancialAdvisorPage component
+  );
+};

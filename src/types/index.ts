@@ -77,6 +77,15 @@ export interface Bill {
   isInfiniteRecurrence?: boolean; 
 }
 
+export interface NewsItem {
+  title: string;
+  link: string;
+  pubDate: string | null; // API might return null or ISO string
+  contentSnippet: string;
+  sourceName: string;
+  imageUrl?: string | null; // Optional image
+}
+
 export type NotificationType = 'fiveDaysBefore' | 'oneDayBefore' | 'dueDay' | 'overdue' | 'almostFinished' | 'paid';
 
 export interface Notification {

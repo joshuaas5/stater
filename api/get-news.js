@@ -1,4 +1,5 @@
 const Parser = require('rss-parser');
+const fetch = require('node-fetch');
 const parser = new Parser({
   customFields: {
     item: ['media:content', 'enclosure', 'content', 'contentSnippet']
@@ -25,6 +26,19 @@ function cleanText(html) {
   return html ? html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() : '';
 }
 
+async function checkFeedAccessibility(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return true;
+  } catch (error) {
+    console.error(`Erro ao acessar o feed ${url}:`, error);
+    return false;
+  }
+}
+
 module.exports = async (req, res) => {
   const { lang = 'pt-BR', sourceKey } = req.query;
 
@@ -33,6 +47,10 @@ module.exports = async (req, res) => {
   }
 
   const feedUrl = RSS_FEEDS[lang][sourceKey];
+
+  if (!await checkFeedAccessibility(feedUrl)) {
+    return res.status(500).json({ error: `Não foi possível acessar o feed de ${sourceKey}. Verifique a URL ou a conectividade.` });
+  }
 
   try {
     const feed = await parser.parseURL(feedUrl);

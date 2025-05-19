@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import Parser from 'rss-parser';
+import FinancialNewsFeed from '@/components/FinancialNewsFeed';
 import './Dashboard.module.css';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
@@ -50,9 +50,7 @@ const Dashboard: React.FC = () => {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [editingTransactionDontAdjustBalance, setEditingTransactionDontAdjustBalance] = useState(false);
   const [showAllTransactionsInMonth, setShowAllTransactionsInMonth] = useState(false);
-  const [isLoadingNews, setIsLoadingNews] = useState(false);
-  const [newsError, setNewsError] = useState<string | null>(null);
-  const [marketNews, setMarketNews] = useState<Array<{title: string, description: string, source: string, url: string}>>([]);
+
 
   const [lastEditedTransactionIdForBalanceSkip, setLastEditedTransactionIdForBalanceSkip] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string | null>(null);
@@ -97,75 +95,9 @@ const Dashboard: React.FC = () => {
     };
   }, [navigate, selectedMonth, selectedYear]);
 
-  const fetchMarketNewsFromRSS = useCallback(async () => {
-    setIsLoadingNews(true);
-    setNewsError(null);
-    setMarketNews([]); // Limpar notícias anteriores
-    const parser = new Parser();
 
-    try {
-      const isPortuguese = navigator.language.startsWith('pt');
-      let newsItems: Array<{title: string, description: string, source: string, url: string}> = [];
 
-      const queries = [
-        isPortuguese ? 'economia Brasil' : 'economy USA',
-        isPortuguese ? 'criptomoedas Brasil OR bitcoin Brasil' : 'cryptocurrency USA OR bitcoin USA'
-      ];
 
-      const lang = isPortuguese ? 'pt-BR' : 'en-US';
-      const country = isPortuguese ? 'BR' : 'US';
-
-      const feedPromises = queries.map(query => {
-        const encodedQuery = encodeURIComponent(query);
-        const url = `https://news.google.com/rss/search?q=${encodedQuery}&hl=${lang}&gl=${country}&ceid=${country}:${lang}`;
-        // Nota: O ideal seria buscar isso via um proxy no backend para evitar problemas de CORS em alguns ambientes,
-        // mas para muitos feeds públicos do Google News, o acesso direto pode funcionar.
-        return parser.parseURL(url);
-      });
-
-      const feeds = await Promise.all(feedPromises);
-
-      feeds.forEach(feed => {
-        if (feed.items) {
-          feed.items.forEach((item: any) => {
-            let description = item.contentSnippet || item.content || 'Sem descrição disponível.';
-            // Remover tags HTML da descrição, se houver
-            description = description.replace(/<[^>]*>/g, '').substring(0, 200); // Limitar e limpar
-            
-            let sourceName = "Google News";
-            try {
-              if (item.link) sourceName = new URL(item.link).hostname.replace(/^www\./, '');
-            } catch (e) { /* Ignora erro de URL inválida */ }
-
-            newsItems.push({
-              title: item.title || 'Sem título',
-              description: description + (description.length === 200 ? '...' : ''),
-              source: item.creator || sourceName,
-              url: item.link || '#',
-            });
-          });
-        }
-      });
-      
-      // Ordenar por data de publicação (mais recentes primeiro), se disponível e necessário
-      // newsItems.sort((a, b) => new Date(b.pubDate || 0).getTime() - new Date(a.pubDate || 0).getTime());
-      // Por simplicidade, vamos apenas limitar o número de notícias
-      setMarketNews(newsItems.slice(0, 10)); // Exibir até 10 notícias combinadas
-
-    } catch (error: any) {
-      console.error('Erro ao buscar notícias RSS:', error);
-      setNewsError(error.message || 'Não foi possível carregar as notícias via RSS.');
-      setMarketNews([]);
-    } finally {
-      setIsLoadingNews(false);
-    }
-  }, [setIsLoadingNews, setNewsError, setMarketNews]);
-
-  useEffect(() => {
-    if (showFinancialTips) {
-      fetchMarketNewsFromRSS(); // Chamar a nova função
-    }
-  }, [showFinancialTips, fetchMarketNewsFromRSS]); // Adicionar fetchMarketNewsFromRSS às dependências
 
   const loadTransactions = (month: number, year: number, useCustomPeriod = false) => {
     const allTransactions = getTransactions();
@@ -677,13 +609,12 @@ const Dashboard: React.FC = () => {
               <span className="text-yellow-500">🔥</span>
             </DialogTitle>
             <DialogDescription>
-              Últimas notícias do mercado financeiro {navigator.language.startsWith('pt') ? 'do Brasil e do mundo' : 'globais (EUA)'}
+              {/* Exibe notícias financeiras ao vivo */}
+              <FinancialNewsFeed />
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
-            {isLoadingNews ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-galileo-accent"></div>
+            <FinancialNewsFeed />
               </div>
             ) : newsError ? (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">

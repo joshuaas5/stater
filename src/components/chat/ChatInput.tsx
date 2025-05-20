@@ -84,7 +84,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder={loading ? "Processando..." : "Digite uma mensagem, despesa ou receita..."}
+          placeholder={loading ? "Processando..." : "Digite uma mensagem..."}
           className="w-full py-2.5 px-4 pr-10 rounded-full bg-muted border border-border text-foreground placeholder-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent shadow-sm transition-all"
           disabled={loading || waitingConfirmation}
         />

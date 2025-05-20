@@ -95,9 +95,44 @@ const Dashboard: React.FC = () => {
     };
   }, [navigate, selectedMonth, selectedYear]);
 
-
-
-
+  const calculateTotalBalance = () => {
+    const allTransactions = getTransactions();
+    if (lastEditedTransactionIdForBalanceSkip) {
+      // Pular o recálculo do saldo se necessário
+      setLastEditedTransactionIdForBalanceSkip(null);
+      return;
+    }
+    
+    // Calcular saldo total com todas as transações
+    const totalBalance = calculateBalance(allTransactions, [lastEditedTransactionIdForBalanceSkip || '']);
+    setBalance(totalBalance);
+    
+    // Calcular variação percentual com base nos últimos 30 dias vs 30 dias anteriores
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(today.getDate() - 60);
+    
+    // Transações dos últimos 30 dias
+    const last30DaysTransactions = allTransactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return transactionDate >= thirtyDaysAgo && transactionDate <= today;
+    });
+    
+    // Transações dos 30 dias anteriores aos últimos 30 dias
+    const previous30DaysTransactions = allTransactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return transactionDate >= sixtyDaysAgo && transactionDate < thirtyDaysAgo;
+    });
+    
+    const last30DaysBalance = calculateBalance(last30DaysTransactions, [lastEditedTransactionIdForBalanceSkip || '']);
+    const previous30DaysBalance = calculateBalance(previous30DaysTransactions, [lastEditedTransactionIdForBalanceSkip || '']);
+    
+    const change = calculatePercentageChange(last30DaysBalance, previous30DaysBalance);
+    setPercentChange(change);
+  };
 
   const loadTransactions = (month: number, year: number, useCustomPeriod = false) => {
     const allTransactions = getTransactions();
@@ -120,7 +155,7 @@ const Dashboard: React.FC = () => {
     filteredTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setTransactions(filteredTransactions);
 
-    // Calcular incomes e expenses sempre, pois eles não dependem do skip de saldo
+    // Calcular incomes e expenses para o mês selecionado
     const incomes = filteredTransactions.filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
     const expenses = filteredTransactions.filter(t => t.type === 'expense')
@@ -128,31 +163,9 @@ const Dashboard: React.FC = () => {
 
     setTotalIncomes(incomes);
     setTotalExpenses(expenses);
-
-    if (lastEditedTransactionIdForBalanceSkip) {
-      // Pular o recálculo do saldo e a mudança percentual
-      // A transação foi editada com 'dontAdjustBalanceOnSave = true'
-      // O saldo atual (balance) e percentChange permanecem os mesmos de antes desta edição.
-      setLastEditedTransactionIdForBalanceSkip(null); // Resetar a flag para a próxima atualização
-    } else {
-      // Calcular saldo e percentChange normalmente
-      // Passar a lista de IDs que devem pular o ajuste do saldo
-      const currentBalance = calculateBalance(filteredTransactions, [lastEditedTransactionIdForBalanceSkip || '']);
-      setBalance(currentBalance);
-
-      const lastMonthDate = new Date(year, month, 1);
-      lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
-
-      const lastMonthTransactions = allTransactions.filter(t => {
-        const transactionDate = new Date(t.date);
-        return transactionDate.getMonth() === lastMonthDate.getMonth() &&
-               transactionDate.getFullYear() === lastMonthDate.getFullYear();
-      });
-
-      const lastMonthBalance = calculateBalance(lastMonthTransactions, [lastEditedTransactionIdForBalanceSkip || '']);
-      const change = calculatePercentageChange(currentBalance, lastMonthBalance);
-      setPercentChange(change);
-    }
+    
+    // Calcular o saldo total (independente do mês)
+    calculateTotalBalance();
   };
   
   const handleMonthChange = (month: number, year: number) => {
@@ -325,10 +338,10 @@ const Dashboard: React.FC = () => {
     <div className="flex items-center gap-2">
       <button
         onClick={() => setShowFinancialTips(true)}
-        className="pop-art-tips focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-galileo-accent flex items-center gap-1"
+        className="bg-galileo-background border-2 border-galileo-accent rounded-md px-3 py-1.5 text-galileo-text flex items-center gap-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all focus:outline-none"
         aria-label="Show Tips"
       >
-        <span>News</span>
+        <span className="font-medium">News</span>
         <span className="animate-pulse text-yellow-500">🔥</span>
       </button>
       <ThemeToggle />
@@ -359,32 +372,33 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="flex justify-center mb-4">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="bg-card/50 border-2 border-galileo-accent/30 hover:bg-galileo-accent/10 text-galileo-text flex items-center gap-2 shadow-md"
+        <button 
+          type="button"
+          className="bg-galileo-background border-2 border-galileo-accent rounded-md px-4 py-2 text-galileo-text flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all focus:outline-none"
           onClick={() => navigate('/recomendacoes')}
         >
           <Star size={16} className="text-yellow-500" />
           Recomendações Financeiras
-        </Button>
+        </button>
       </div>
 
       <div className="flex justify-center gap-4 mb-6">
-        <Button 
+        <button 
+          type="button"
           onClick={() => handleAddTransaction('income')}
-          className="bg-galileo-positive hover:bg-galileo-positive/80 text-white flex items-center gap-2"
+          className="bg-galileo-positive border-2 border-black rounded-md px-4 py-2 text-white font-medium flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all focus:outline-none"
         >
           <TrendingUp size={18} />
           Adicionar Entrada
-        </Button>
-        <Button 
+        </button>
+        <button 
+          type="button"
           onClick={() => handleAddTransaction('expense')}
-          className="bg-galileo-negative hover:bg-galileo-negative/80 text-white flex items-center gap-2"
+          className="bg-galileo-negative border-2 border-black rounded-md px-4 py-2 text-white font-medium flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all focus:outline-none"
         >
           <TrendingDown size={18} />
           Adicionar Saída
-        </Button>
+        </button>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={(open: boolean) => {

@@ -26,8 +26,8 @@ const NavBar: React.FC = () => {
   };
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-galileo-card shadow-lg border-t border-galileo-border z-50 w-full">
-      <div className="flex justify-between items-center py-2 px-1 md:px-4 max-w-screen-xl mx-auto overflow-x-auto">
+    <div className="fixed bottom-0 left-0 right-0 bg-galileo-card shadow-lg border-t border-galileo-border z-50 w-full h-16">
+      <div className="flex justify-between items-center h-full py-1 px-1 md:px-4 max-w-screen-xl mx-auto overflow-x-auto">
         {/* Primeira metade dos itens */}
         <div className="flex items-center justify-end flex-1">
           {navItems.slice(0, 2).map((item, index) => {

@@ -116,14 +116,13 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
   return (
     <div className="flex justify-center items-center w-full">
       <div className="flex items-center gap-2">
-        <Button 
-          variant="outline" 
-          size="icon" 
+        <button 
+          type="button"
           onClick={handlePrevMonth}
-          className="h-10 w-10 rounded-md bg-galileo-background border-2 border-galileo-accent shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all"
+          className="h-10 w-10 rounded-md bg-galileo-background border-2 border-galileo-accent shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all focus:outline-none"
         >
           <ChevronLeft size={18} className="text-galileo-text" />
-        </Button>
+        </button>
       
         <Popover>
           <PopoverTrigger asChild>
@@ -148,14 +147,13 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
           </PopoverContent>
         </Popover>
       
-        <Button 
-          variant="outline" 
-          size="icon" 
+        <button 
+          type="button"
           onClick={handleNextMonth}
-          className="h-10 w-10 rounded-md bg-galileo-background border-2 border-galileo-accent shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all"
+          className="h-10 w-10 rounded-md bg-galileo-background border-2 border-galileo-accent shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all focus:outline-none"
         >
           <ChevronRight size={18} className="text-galileo-text" />
-        </Button>
+        </button>
       </div>
     </div>
   );

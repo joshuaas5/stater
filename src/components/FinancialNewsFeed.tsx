@@ -1,26 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button'; 
 import { Loader2, AlertTriangle, Globe, MapPin } from 'lucide-react'; 
 import NewsCardPopup from '@/components/news/NewsCardPopup'; 
 import { NewsItem } from '@/types'; 
 
-const SOURCES_CONFIG = {
+interface SourceConfigItem {
+  key: string;
+  displayName: string;
+  lang: string;
+  logoUrl: string;
+}
+
+interface SourcesConfig {
+  'pt-BR': SourceConfigItem[];
+  'en-US': SourceConfigItem[];
+}
+
+type NewsScope = keyof SourcesConfig;
+
+const SOURCES_CONFIG: SourcesConfig = {
   'pt-BR': [
     { key: 'investnews', displayName: 'InvestNews', lang: 'pt-BR', logoUrl: 'https://media.investnews.com.br/uploads/2025/01/logo.svg' },
     { key: 'infomoney', displayName: 'InfoMoney', lang: 'pt-BR', logoUrl: 'https://www.infomoney.com.br/wp-content/uploads/2021/03/Site-thumb-de-materia.png?fit=1280%2C720&quality=50&strip=all' },
     { key: 'cointelegraph-br', displayName: 'Cointelegraph Brasil', lang: 'pt-BR', logoUrl: 'https://cointelegraph.com/assets/img/logo-blue.svg' }, 
-    { key: 'cnn-brasil', displayName: 'CNN Brasil', lang: 'pt-BR', logoUrl: 'https://www.cnn.com/media/sites/cnn/cnn-logo.svg' }, 
+    { key: 'cnn-brasil', displayName: 'CNN Brasil', lang: 'pt-BR', logoUrl: 'https://www.cnnbrasil.com.br/wp-content/themes/cnn-brasil/assets/images/logo-cnn-brasil-new.png' }, 
     { key: 'money_times', displayName: 'Money Times', lang: 'pt-BR', logoUrl: 'https://fatorialinvest.com.br/wp-content/uploads/2023/03/Logo-Money-Times.png' } 
   ],
   'en-US': [
-    { key: 'reuters', displayName: 'Reuters Business', lang: 'en-US', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e2/Reuters_logo.svg' }, 
-    { key: 'bloomberg_markets', displayName: 'Bloomberg Markets', lang: 'en-US', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5d/New_Bloomberg_Logo.svg' },
-    { key: 'wsj_markets', displayName: 'WSJ Markets', lang: 'en-US', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4a/WSJ_Logo.svg' },
-    { key: 'cointelegraph', displayName: 'Cointelegraph', lang: 'en-US', logoUrl: 'https://cointelegraph.com/assets/img/logo-blue.svg' } 
+    { key: 'reuters_business', displayName: 'Reuters Business', lang: 'en-US', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e2/Reuters_logo.svg' }, 
+    { key: 'bloomberg_markets', displayName: 'Bloomberg Markets', lang: 'en-US', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5d/New_Bloomberg_Logo.svg' }, 
+    { key: 'wsj_markets', displayName: 'WSJ Markets', lang: 'en-US', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4a/WSJ_Logo.svg' }, 
+    { key: 'cointelegraph_en', displayName: 'Cointelegraph', lang: 'en-US', logoUrl: 'https://cointelegraph.com/assets/img/logo-blue.svg' } 
   ]
 };
-
-type NewsScope = 'pt-BR' | 'en-US';
 
 const FinancialNewsFeed: React.FC = () => {
   const [currentScope, setCurrentScope] = useState<NewsScope>('pt-BR');
@@ -28,119 +40,91 @@ const FinancialNewsFeed: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchAllNewsForScope = async () => {
-      setLoading(true);
-      setError(null);
-      setAllNews([]); 
-      const sourcesForScope = SOURCES_CONFIG[currentScope];
-      
-      try {
-        // Criar um array de promessas para buscar todas as fontes em paralelo
-        const fetchPromises = sourcesForScope.map(async (source) => {
-          try {
-            const response = await fetch(`/api/get-news?lang=${source.lang}&sourceKey=${source.key}`);
-            if (!response.ok) {
-              console.warn(`Falha ao buscar notícias de ${source.displayName}: ${response.statusText}`);
-              return [];
-            }
-            const data = await response.json();
-            if (data.items && Array.isArray(data.items)) {
-              // Limitar a 3 itens por fonte para garantir diversidade
-              return data.items.slice(0, 3).map((item: any) => ({ 
-                title: item.title,
-                link: item.link,
-                pubDate: item.pubDate,
-                contentSnippet: item.contentSnippet,
-                sourceName: source.displayName, 
-                imageUrl: item.imageUrl, // Mantemos a imageUrl original aqui
-                sourceKey: source.key, // Precisamos do sourceKey para o logo
-                logoUrl: source.logoUrl // Adicionamos o logoUrl da fonte
-              }));
-            }
-            return [];
-          } catch (err) {
-            console.error(`Erro ao buscar notícias de ${source.displayName}:`, err);
-            return [];
-          }
-        });
-
-        // Aguardar todas as promessas serem resolvidas
-        const results = await Promise.all(fetchPromises);
-        
-        // Garantir diversidade: organizar notícias por fonte
-        const newsPerSource: {[key: string]: NewsItem[]} = {};
-        
-        // Agrupar notícias por fonte
-        results.forEach((items, index) => {
-          const sourceKey = sourcesForScope[index].key;
-          newsPerSource[sourceKey] = items;
-        });
-
-        // Log de diagnóstico para verificar a contagem de notícias por fonte
-        console.log('Artigos recebidos por fonte (antes do balanceamento):');
-        sourcesForScope.forEach(source => {
-          const count = newsPerSource[source.key] ? newsPerSource[source.key].length : 0;
-          console.log(`${source.displayName}: ${count} artigos`);
-        });
-        
-        // Selecionar notícias de forma equilibrada (uma de cada fonte por vez)
-        const balancedNews: NewsItem[] = [];
-        let remainingNews = true;
-        let currentIndex = 0;
-        console.log('[Balanceamento] Iniciando balanceamento. Máximo de 12 notícias.');
-        
-        while (remainingNews && balancedNews.length < 12) {
-          remainingNews = false;
-          console.log(`[Balanceamento] Início da iteração do while. currentIndex: ${currentIndex}, balancedNews.length: ${balancedNews.length}`);
-          
-          // Tentar pegar uma notícia de cada fonte em ordem
-          for (const sourceKey of Object.keys(newsPerSource)) {
-            const sourceNews = newsPerSource[sourceKey];
-            console.log(`[Balanceamento] Verificando fonte: ${sourceKey}, notícias disponíveis nesta fonte: ${sourceNews.length}`);
-            if (sourceNews.length > currentIndex) {
-              balancedNews.push(sourceNews[currentIndex]);
-              remainingNews = true;
-              console.log(`[Balanceamento] Adicionada notícia de ${sourceKey} (índice ${currentIndex}). balancedNews.length: ${balancedNews.length}`);
-              
-              // Limitar a 12 notícias no total
-              if (balancedNews.length >= 12) {
-                console.log('[Balanceamento] Limite de 12 notícias atingido.');
-                break;
-              }
-            }
-          }
-          
-          currentIndex++;
-          console.log(`[Balanceamento] Fim da iteração do while. Próximo currentIndex: ${currentIndex}, remainingNews: ${remainingNews}`);
-        }
-        console.log(`[Balanceamento] Finalizado. Total de notícias balanceadas: ${balancedNews.length}`);
-        
-        // Atribui imagem padrão para itens sem imagem
-        const validNews = balancedNews.map(item => ({
-          ...item,
-          imageUrl: (item.imageUrl && item.imageUrl.trim() !== '') 
-            ? item.imageUrl 
-            : (item.logoUrl && item.logoUrl.trim() !== '') 
-              ? item.logoUrl 
-              : '/placeholder-news.jpg' // Fallback final para placeholder genérico
-        }));
-        
-        console.log('FinancialNewsFeed: Number of news items after processing:', validNews.length);
-        setAllNews(validNews.slice(0, 12)); // Garante que não mais que 12 são setadas
-      } catch (err) {
-        console.error("Erro ao buscar todas as notícias:", err);
-        setError(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido ao buscar notícias.');
-      } finally {
-        setLoading(false);
+  const fetchNews = useCallback(async (scope: NewsScope) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const sourcesConfigForScope = SOURCES_CONFIG[scope];
+      if (!sourcesConfigForScope) {
+        throw new Error(`Configuração de fontes não encontrada para o escopo: ${scope}`);
       }
-    };
-    fetchAllNewsForScope();
-  }, [currentScope]);
+
+      const sourcesToFetch = sourcesConfigForScope.map((s: SourceConfigItem) => s.key);
+      
+      const promises = sourcesToFetch.map(async (sourceKey: string) => {
+        const sourceConfig = sourcesConfigForScope.find((s: SourceConfigItem) => s.key === sourceKey);
+        if (!sourceConfig) {
+          console.error(`Configuração não encontrada para sourceKey: ${sourceKey} no escopo ${scope}`);
+          return []; // Retorna array vazio para não quebrar Promise.all
+        }
+
+        try {
+          const response = await fetch(`/api/get-news?sourceKey=${sourceKey}&lang=${sourceConfig.lang}`);
+          if (!response.ok) {
+            let errorData;
+            try {
+              errorData = await response.json();
+            } catch (e) {
+              // Resposta não é JSON ou erro ao parsear
+              errorData = { error: `Erro HTTP ${response.status} ${response.statusText}` };
+            }
+            const errorMessage = `Falha ao buscar notícias de ${sourceConfig.displayName}: ${errorData.error || `Status ${response.status}`}`;
+            console.error(errorMessage, errorData);
+            // Não joga erro aqui para Promise.all, mas loga e retorna vazio
+            // setError(prevError => prevError ? `${prevError}\n${errorMessage}` : errorMessage); // Considere acumular erros de forma diferente se necessário
+            return [];
+          }
+          const data = await response.json();
+          // Assuming data.items is an array of objects that can be mapped to NewsItem
+          // and data.feedTitle is available.
+          if (data.items && Array.isArray(data.items)) {
+            return data.items.map((item: any): NewsItem => ({
+              ...item, // Spread original item properties
+              id: item.id || item.link || Date.now().toString() + Math.random().toString(), // Ensure ID exists
+              source: sourceKey, 
+              feedTitle: data.feedTitle || sourceConfig.displayName,
+              // Ensure other NewsItem properties are present or have defaults if needed
+              title: item.title || 'Título indisponível',
+              link: item.link || '#',
+              isoDate: item.isoDate || new Date().toISOString(),
+            }));
+          }
+          return [];
+        } catch (err: any) {
+          console.error(`Erro ao processar notícias da fonte ${sourceConfig.displayName}:`, err);
+          // setError(prevError => prevError ? `${prevError}\nErro em ${sourceConfig.displayName}: ${err.message}` : `Erro em ${sourceConfig.displayName}: ${err.message}`);
+          return []; // Retorna array vazio para esta fonte em caso de erro
+        }
+      });
+
+      const results = await Promise.all(promises);
+      const newsFromSources = results.flat().filter(item => item !== null) as NewsItem[]; // Filter out nulls if any and cast
+      
+      // Sort news by date
+      const sortedNews = newsFromSources.sort((a, b) => {
+        const dateA = a.isoDate ? new Date(a.isoDate).getTime() : 0; // Default to epoch if undefined for robust sorting
+        const dateB = b.isoDate ? new Date(b.isoDate).getTime() : 0; // Default to epoch if undefined for robust sorting
+        return dateB - dateA;
+      });
+      
+      setAllNews(sortedNews);
+      if (sortedNews.length === 0 && !error) {
+        // Se nenhuma notícia foi carregada e não houve erro global, pode ser que todas as fontes falharam individualmente
+        // ou não retornaram itens. Um erro mais específico poderia ser setado aqui.
+        console.warn("Nenhuma notícia carregada, verifique os logs das fontes individuais.");
+      }
+    } catch (err: any) {
+      console.error("Erro global ao buscar notícias:", err);
+      setError(err.message || "Ocorreu um erro desconhecido ao buscar notícias.");
+      setAllNews([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Removed 'error' from dependencies to prevent re-fetch loops if individual source errors update it
 
   useEffect(() => {
-    console.log(`FinancialNewsFeed: allNews atualizado. Número de itens: ${allNews.length}`);
-  }, [allNews]);
+    fetchNews(currentScope);
+  }, [currentScope, fetchNews]);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">

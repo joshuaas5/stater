@@ -87,24 +87,33 @@ const FinancialNewsFeed: React.FC = () => {
         const balancedNews: NewsItem[] = [];
         let remainingNews = true;
         let currentIndex = 0;
+        console.log('[Balanceamento] Iniciando balanceamento. Máximo de 12 notícias.');
         
         while (remainingNews && balancedNews.length < 12) {
           remainingNews = false;
+          console.log(`[Balanceamento] Início da iteração do while. currentIndex: ${currentIndex}, balancedNews.length: ${balancedNews.length}`);
           
           // Tentar pegar uma notícia de cada fonte em ordem
           for (const sourceKey of Object.keys(newsPerSource)) {
             const sourceNews = newsPerSource[sourceKey];
+            console.log(`[Balanceamento] Verificando fonte: ${sourceKey}, notícias disponíveis nesta fonte: ${sourceNews.length}`);
             if (sourceNews.length > currentIndex) {
               balancedNews.push(sourceNews[currentIndex]);
               remainingNews = true;
+              console.log(`[Balanceamento] Adicionada notícia de ${sourceKey} (índice ${currentIndex}). balancedNews.length: ${balancedNews.length}`);
               
               // Limitar a 12 notícias no total
-              if (balancedNews.length >= 12) break;
+              if (balancedNews.length >= 12) {
+                console.log('[Balanceamento] Limite de 12 notícias atingido.');
+                break;
+              }
             }
           }
           
           currentIndex++;
+          console.log(`[Balanceamento] Fim da iteração do while. Próximo currentIndex: ${currentIndex}, remainingNews: ${remainingNews}`);
         }
+        console.log(`[Balanceamento] Finalizado. Total de notícias balanceadas: ${balancedNews.length}`);
         
         // Filtrar itens sem imagem
         const validNews = balancedNews.filter(item => item.imageUrl && item.imageUrl.trim() !== '');
@@ -122,7 +131,7 @@ const FinancialNewsFeed: React.FC = () => {
         });
         
         console.log('FinancialNewsFeed: Number of valid news items for scope', currentScope, ':', validNews.length);
-        setAllNews(validNews); 
+        setAllNews(validNews.slice(0, 12)); // Garante que não mais que 12 são setadas
       } catch (err) {
         console.error("Erro ao buscar todas as notícias:", err);
         setError(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido ao buscar notícias.');
@@ -132,6 +141,10 @@ const FinancialNewsFeed: React.FC = () => {
     };
     fetchAllNewsForScope();
   }, [currentScope]);
+
+  useEffect(() => {
+    console.log(`FinancialNewsFeed: allNews atualizado. Número de itens: ${allNews.length}`);
+  }, [allNews]);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">

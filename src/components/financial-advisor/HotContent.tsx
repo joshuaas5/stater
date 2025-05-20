@@ -52,6 +52,13 @@ const HotContent: React.FC = () => {
         // Aguardar todas as promessas serem resolvidas
         const results = await Promise.all(fetchPromises);
         
+        // Log para verificar quantos itens foram retornados por cada fonte
+        console.log('[HotContent] Artigos recebidos por fonte (antes do processamento):');
+        results.forEach((items, index) => {
+          const source = newsSources[index];
+          console.log(`[HotContent] ${source.displayName}: ${items.length} artigos`);
+        });
+
         // Garantir diversidade: pegar até 3 notícias de cada fonte
         const newsPerSource: {[key: string]: NewsItem[]} = {};
         
@@ -80,9 +87,14 @@ const HotContent: React.FC = () => {
           currentIndex++;
         }
 
+        console.log(`[HotContent] Total de artigos coletados antes da filtragem: ${allNews.length}`);
+
         // Filtrar notícias duplicadas e sem imagem
         const uniqueNews = Array.from(new Map(allNews.map(item => [item.link, item])).values());
+        console.log(`[HotContent] Artigos após filtro de duplicatas (por link): ${uniqueNews.length}`);
+
         const validNews = uniqueNews.filter(item => item.imageUrl && item.imageUrl.trim() !== '');
+        console.log(`[HotContent] Artigos após filtro de imageUrl: ${validNews.length}`);
         
         // Embaralhar as notícias para mais aleatoriedade
         const shuffledNews = [...validNews].sort(() => Math.random() - 0.5);

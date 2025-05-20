@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { NewsItem } from '@/types';
-import NewsCard from '@/components/news/NewsCard';
 import BookOfTheWeek from '@/components/news/BookOfTheWeek';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { Loader2, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const HotContent: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
@@ -11,11 +11,11 @@ const HotContent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const newsSources = [
-    { key: 'infomoney', lang: 'pt-BR', displayName: 'InfoMoney', logoUrl: 'https://www.infomoney.com.br/wp-content/uploads/2021/03/Site-thumb-de-materia.png?fit=1280%2C720&quality=50&strip=all' }, 
-    { key: 'investnews', lang: 'pt-BR', displayName: 'InvestNews', logoUrl: 'https://media.investnews.com.br/uploads/2025/01/logo.svg' },
-    { key: 'money_times', lang: 'pt-BR', displayName: 'Money Times', logoUrl: 'https://fatorialinvest.com.br/wp-content/uploads/2023/03/Logo-Money-Times.png' }, 
-    { key: 'cointelegraph-br', lang: 'pt-BR', displayName: 'Cointelegraph Brasil', logoUrl: 'https://cointelegraph.com/assets/img/logo-blue.svg' }, 
-    { key: 'cnn-brasil', displayName: 'CNN Brasil', lang: 'pt-BR', logoUrl: 'https://www.cnnbrasil.com.br/wp-content/themes/cnn-brasil/assets/images/logo-cnn-brasil-new.png' } 
+    { key: 'infomoney', lang: 'pt-BR', displayName: 'InfoMoney' }, 
+    { key: 'investnews', lang: 'pt-BR', displayName: 'InvestNews' },
+    { key: 'money_times', lang: 'pt-BR', displayName: 'Money Times' }, 
+    { key: 'cointelegraph-br', lang: 'pt-BR', displayName: 'Cointelegraph Brasil' }, 
+    { key: 'cnn-brasil', displayName: 'CNN Brasil', lang: 'pt-BR' } 
   ];
 
   useEffect(() => {
@@ -39,8 +39,7 @@ const HotContent: React.FC = () => {
               return data.items.slice(0, 3).map((item: any) => ({
                 ...item,
                 sourceName: item.sourceName || source.displayName,
-                sourceKey: source.key,
-                logoUrl: source.logoUrl // Adiciona logoUrl da fonte
+                sourceKey: source.key
               }));
             }
             return [];
@@ -94,18 +93,8 @@ const HotContent: React.FC = () => {
         const uniqueNews = Array.from(new Map(allNews.map(item => [item.link, item])).values());
         console.log(`[HotContent] Artigos após filtro de duplicatas (por link): ${uniqueNews.length}`);
 
-        // Atribui imagem padrão para itens sem imagem
-        const validNews = uniqueNews.map(item => {
-          if (!item.imageUrl || item.imageUrl.trim() === '') {
-            return {
-              ...item,
-              imageUrl: (item.logoUrl && item.logoUrl.trim() !== '') 
-                          ? item.logoUrl 
-                          : '/placeholder-news.jpg' // Fallback final para placeholder genérico
-            };
-          }
-          return item;
-        });
+        // Não precisamos mais atribuir imagens padrão
+        const validNews = uniqueNews;
         
         console.log(`[HotContent] Total de notícias após processamento: ${validNews.length}`);
         
@@ -125,39 +114,84 @@ const HotContent: React.FC = () => {
     fetchNews();
   }, []);
 
+  // Função para formatar a data
+  const formatDate = (isoDate: string): string => {
+    try {
+      const date = new Date(isoDate);
+      return new Intl.DateTimeFormat('pt-BR', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    } catch (e) {
+      return '';
+    }
+  };
+
   return (
     <div className="space-y-6 p-1 md:p-2">
       <BookOfTheWeek />
 
-      <div className="bg-card shadow-sm rounded-lg p-4 md:p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-card-foreground">Notícias de Finanças</h2>
-        </div>
+      <Card className="bg-card/80 backdrop-blur-sm shadow-xl border-border/30">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl font-semibold text-card-foreground flex items-center">
+            <span>Notícias de Finanças</span>
+          </CardTitle>
+        </CardHeader>
 
-        {loading && (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="ml-3 text-muted-foreground">Carregando notícias...</p>
-          </div>
-        )}
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Erro</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        {!loading && !error && newsItems.length === 0 && (
-          <p className="text-muted-foreground">Nenhuma notícia encontrada no momento.</p>
-        )}
-        {!loading && !error && newsItems.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-h-[70vh] overflow-y-auto p-1">
-            {newsItems.map((item, index) => (
-              <NewsCard key={`${item.link}-${index}`} item={item} />
-            ))}
-          </div>
-        )}
-      </div>
+        <CardContent>
+          {loading && (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <p className="ml-3 text-muted-foreground">Carregando notícias...</p>
+            </div>
+          )}
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Erro</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          {!loading && !error && newsItems.length === 0 && (
+            <p className="text-muted-foreground">Nenhuma notícia encontrada no momento.</p>
+          )}
+          {!loading && !error && newsItems.length > 0 && (
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+              {newsItems.map((item, index) => (
+                <div 
+                  key={`${item.link}-${index}`} 
+                  className="p-4 bg-background/80 hover:bg-background/95 border border-border/30 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 ease-in-out"
+                >
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-xs text-muted-foreground">{item.sourceName}</span>
+                    <span className="text-xs text-muted-foreground">{item.isoDate && formatDate(item.isoDate)}</span>
+                  </div>
+                  <a 
+                    href={item.link} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block group"
+                  >
+                    <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-200 mb-2 line-clamp-2">{item.title}</h3>
+                    
+                    {item.contentSnippet && (
+                      <p className="text-sm text-muted-foreground line-clamp-3 mb-2">{item.contentSnippet}</p>
+                    )}
+                    
+                    <div className="flex items-center text-primary text-xs font-medium">
+                      <span>Ler artigo completo</span>
+                      <ExternalLink size={12} className="ml-1" />
+                    </div>
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

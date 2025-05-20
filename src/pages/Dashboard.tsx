@@ -317,16 +317,28 @@ const Dashboard: React.FC = () => {
   return (
     <div className="bg-galileo-background min-h-screen pb-20">
   <div className="flex items-center justify-between p-4">
-    <h2 className="text-galileo-text text-lg font-bold leading-tight">
-      Olá, {userName}!
-    </h2>
+    <div className="flex items-center gap-3">
+      <h2 className="text-galileo-text text-lg font-bold leading-tight">
+        Olá, {userName}!
+      </h2>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="text-galileo-secondaryText hover:text-galileo-accent flex items-center gap-1 py-1 px-2 h-auto"
+        onClick={() => navigate('/recomendacoes')}
+      >
+        <Star size={14} className="text-yellow-500" />
+        Recomendações
+      </Button>
+    </div>
     <div className="flex items-center gap-2">
       <button
         onClick={() => setShowFinancialTips(true)}
-        className="pop-art-tips focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-galileo-accent"
+        className="pop-art-tips focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-galileo-accent flex items-center gap-1"
         aria-label="Show Tips"
       >
-        HOT 🔥
+        <span>EM ALTA</span>
+        <span className="animate-pulse text-yellow-500">🔥</span>
       </button>
       <ThemeToggle />
     </div>
@@ -628,17 +640,6 @@ const Dashboard: React.FC = () => {
 
       <div className="px-4 mb-6">
         <SpendingChart transactions={transactions} days={30} />
-        <div className="flex justify-end mt-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-xs text-galileo-secondaryText hover:text-galileo-accent flex items-center gap-1"
-            onClick={() => navigate('/recomendacoes')}
-          >
-            <Star size={12} className="text-yellow-500" />
-            Ver recomendações financeiras
-          </Button>
-        </div>
       </div>
       
       <h2 className="text-galileo-text text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-2">

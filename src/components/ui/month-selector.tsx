@@ -113,88 +113,24 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
     'text-lime-800 dark:text-lime-100'
   ];
   
-  // Gerar padrões de fundo baseados no mês
-  const getMonthPattern = () => {
-    const patterns = [
-      'bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100 via-blue-50 to-white dark:from-blue-900/40 dark:via-blue-800/30 dark:to-background',
-      'bg-[conic-gradient(at_top_right,_var(--tw-gradient-stops))] from-purple-200 via-purple-100 to-purple-50 dark:from-purple-900/40 dark:via-purple-800/30 dark:to-background',
-      'bg-[linear-gradient(to_right,_var(--tw-gradient-stops))] from-green-100 to-green-50 dark:from-green-900/40 dark:to-background',
-      'bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-amber-200 via-amber-100 to-amber-50 dark:from-amber-900/40 dark:via-amber-800/30 dark:to-background',
-      'bg-[conic-gradient(at_bottom_left,_var(--tw-gradient-stops))] from-pink-200 via-pink-100 to-pink-50 dark:from-pink-900/40 dark:via-pink-800/30 dark:to-background',
-      'bg-[linear-gradient(to_left,_var(--tw-gradient-stops))] from-orange-100 to-orange-50 dark:from-orange-900/40 dark:to-background',
-      'bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-sky-200 via-sky-100 to-sky-50 dark:from-sky-900/40 dark:via-sky-800/30 dark:to-background',
-      'bg-[conic-gradient(at_top,_var(--tw-gradient-stops))] from-yellow-200 via-yellow-100 to-yellow-50 dark:from-yellow-900/40 dark:via-yellow-800/30 dark:to-background',
-      'bg-[linear-gradient(to_bottom_right,_var(--tw-gradient-stops))] from-teal-100 to-teal-50 dark:from-teal-900/40 dark:to-background',
-      'bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-rose-200 via-rose-100 to-rose-50 dark:from-rose-900/40 dark:via-rose-800/30 dark:to-background',
-      'bg-[conic-gradient(at_bottom_right,_var(--tw-gradient-stops))] from-indigo-200 via-indigo-100 to-indigo-50 dark:from-indigo-900/40 dark:via-indigo-800/30 dark:to-background',
-      'bg-[linear-gradient(to_top_left,_var(--tw-gradient-stops))] from-emerald-100 to-emerald-50 dark:from-emerald-900/40 dark:to-background'
-    ];
-    return patterns[selectedMonth];
-  };
-
-  // Gerar decorações sazonais baseadas no mês
-  const getMonthDecoration = () => {
-    // Elementos decorativos sutis para cada mês
-    const decorations = [
-      '❄️', // Janeiro - flocos de neve
-      '💕', // Fevereiro - corações
-      '🌱', // Março - brotos
-      '🌷', // Abril - flores
-      '🌿', // Maio - folhas
-      '☀️', // Junho - sol
-      '🌊', // Julho - ondas
-      '🌴', // Agosto - palmeiras
-      '📚', // Setembro - livros (volta às aulas)
-      '🍂', // Outubro - folhas caindo
-      '🌧️', // Novembro - chuva
-      '✨'  // Dezembro - estrelas
-    ];
-    return decorations[selectedMonth];
-  };
-
   return (
-    <div className={`relative overflow-hidden rounded-xl border ${borderColors[selectedMonth]} shadow-md transition-all duration-300 ${getMonthPattern()}`}>
-      {/* Botões de navegação */}
-      <div className="absolute top-0 left-0 right-0 flex justify-between px-3 py-3 z-10">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={handlePrevMonth}
-          className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm hover:bg-white/70 dark:hover:bg-gray-800/70 rounded-full h-8 w-8"
-        >
-          <ChevronLeft size={18} />
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={handleNextMonth}
-          className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm hover:bg-white/70 dark:hover:bg-gray-800/70 rounded-full h-8 w-8"
-        >
-          <ChevronRight size={18} />
-        </Button>
-      </div>
+    <div className="flex items-center gap-1.5">
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={handlePrevMonth}
+        className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/10"
+      >
+        <ChevronLeft size={16} />
+      </Button>
       
-      {/* Conteúdo principal */}
       <Popover>
         <PopoverTrigger asChild>
-          <div className="cursor-pointer py-6 px-4 flex flex-col items-center justify-center min-h-[100px]">
-            {/* Decoração sazonal */}
-            <div className="absolute top-2 right-2 text-xl opacity-50">{getMonthDecoration()}</div>
-            
-            {/* Mês em destaque */}
-            <h2 className={`text-3xl font-bold mb-1 ${textColors[selectedMonth]}`}>
-              {months[selectedMonth]}
-            </h2>
-            
-            {/* Ano em tamanho menor */}
-            <div className={`text-sm font-medium ${textColors[selectedMonth]} opacity-80`}>
-              {selectedYear}
-            </div>
-            
-            {/* Ícone de calendário */}
-            <div className="mt-2 opacity-60">
-              <CalendarIcon size={16} className={textColors[selectedMonth]} />
+          <div className="flex items-center cursor-pointer">
+            <div className={`flex items-center rounded-md border ${borderColors[selectedMonth]} bg-card shadow-sm px-3 py-1.5 hover:bg-accent/5 transition-colors`}>
+              <CalendarIcon size={14} className="mr-2 text-muted-foreground" />
+              <span className={`font-medium ${textColors[selectedMonth]}`}>{months[selectedMonth]}</span>
+              <span className="text-xs text-muted-foreground ml-1.5">{selectedYear}</span>
             </div>
           </div>
         </PopoverTrigger>
@@ -210,6 +146,15 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
           />
         </PopoverContent>
       </Popover>
+      
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={handleNextMonth}
+        className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/10"
+      >
+        <ChevronRight size={16} />
+      </Button>
     </div>
   );
 };

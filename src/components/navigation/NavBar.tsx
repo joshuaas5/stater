@@ -26,8 +26,8 @@ const NavBar: React.FC = () => {
   };
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-galileo-card shadow-lg border-t border-galileo-border z-10">
-      <div className="flex justify-center items-center py-2 space-x-6">
+    <div className="fixed bottom-0 left-0 right-0 bg-galileo-card shadow-lg border-t border-galileo-border z-50 w-full">
+      <div className="flex justify-between items-center py-2 px-1 md:px-4 max-w-screen-xl mx-auto overflow-x-auto">
         {navItems.map((item, index) => {
           const active = isActive(item.path);
           
@@ -35,7 +35,7 @@ const NavBar: React.FC = () => {
             <button
               key={index}
               onClick={() => handleNavigation(item.path)}
-              className={`flex flex-col items-center justify-center px-4 ${
+              className={`flex flex-col items-center justify-center min-w-[60px] px-2 md:px-4 ${
                 active 
                   ? 'text-galileo-accent' 
                   : 'text-galileo-secondaryText hover:text-galileo-text'
@@ -44,12 +44,14 @@ const NavBar: React.FC = () => {
               <div className="flex justify-center">
                 {item.icon}
               </div>
-              <span className="text-xs mt-1 text-center">{item.label}</span>
-              {active && <div className="h-1 w-10 bg-galileo-accent rounded-full mt-1"></div>}
+              <span className="text-xs mt-1 text-center whitespace-nowrap">{item.label}</span>
+              {active && <div className="h-1 w-8 md:w-10 bg-galileo-accent rounded-full mt-1"></div>}
             </button>
           );
         })}
       </div>
+      {/* Espaço adicional para evitar que o conteúdo fique escondido atrás da navbar */}
+      <div className="h-2"></div>
     </div>
   );
 };

@@ -167,9 +167,9 @@ const HotContent: React.FC = () => {
 
   return (
     <div className="space-y-6 p-1 md:p-2">
-      
+      <BookOfTheWeek />
 
-      <Card className="bg-card/80 backdrop-blur-sm shadow-xl border-border/30 max-w-4xl mx-auto">
+      <Card className="bg-card/80 backdrop-blur-sm shadow-xl border-border/30 max-w-full md:max-w-4xl mx-auto overflow-hidden">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-semibold text-card-foreground flex items-center">
             <span>Notícias do Mercado🔥</span>

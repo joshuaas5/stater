@@ -228,8 +228,8 @@ const FinancialNewsFeed: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <Card className="mb-6 bg-card/80 backdrop-blur-sm shadow-xl border-border/30 max-w-4xl mx-auto">
+    <div className="container mx-auto p-2 md:p-4 pb-20">
+      <Card className="mb-6 bg-card/80 backdrop-blur-sm shadow-xl border-border/30 max-w-full md:max-w-4xl mx-auto overflow-hidden">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">

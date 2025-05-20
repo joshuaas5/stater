@@ -17,7 +17,6 @@ const SOURCES_CONFIG = {
     { key: 'reutersBusiness', displayName: 'Reuters Business', lang: 'en-US' }, 
     { key: 'bloomberg', displayName: 'Bloomberg Markets', lang: 'en-US' }, 
     { key: 'wsjMarkets', displayName: 'WSJ Markets', lang: 'en-US' }, 
-    // { key: 'ft', displayName: 'Financial Times', lang: 'en-US' }, 
   ],
 };
 
@@ -75,6 +74,13 @@ const FinancialNewsFeed: React.FC = () => {
         results.forEach((items, index) => {
           const sourceKey = sourcesForScope[index].key;
           newsPerSource[sourceKey] = items;
+        });
+
+        // Log de diagnóstico para verificar a contagem de notícias por fonte
+        console.log('Artigos recebidos por fonte (antes do balanceamento):');
+        sourcesForScope.forEach(source => {
+          const count = newsPerSource[source.key] ? newsPerSource[source.key].length : 0;
+          console.log(`${source.displayName}: ${count} artigos`);
         });
         
         // Selecionar notícias de forma equilibrada (uma de cada fonte por vez)

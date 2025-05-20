@@ -115,45 +115,54 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
   
   return (
     <div className="flex justify-center items-center w-full">
-      <div className="flex items-center gap-2">
-        <button 
-          type="button"
+      <div className="flex items-center gap-2 relative">
+        <Button 
+          variant="ghost" 
+          size="icon" 
           onClick={handlePrevMonth}
-          className="h-10 w-10 rounded-md bg-galileo-background border-2 border-galileo-accent shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all focus:outline-none"
+          className="h-9 w-9 rounded-full text-muted-foreground hover:bg-accent/10 hover:text-foreground focus:outline-none focus-visible:ring-0"
         >
-          <ChevronLeft size={18} className="text-galileo-text" />
-        </button>
+          <ChevronLeft size={18} />
+        </Button>
       
         <Popover>
           <PopoverTrigger asChild>
             <div className="flex items-center cursor-pointer">
-              <div className={`flex items-center rounded-md bg-galileo-background border-2 ${borderColors[selectedMonth]} px-4 py-2.5 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all`}>
-                <CalendarIcon size={16} className="mr-2 text-galileo-accent" />
-                <span className={`font-bold ${textColors[selectedMonth]}`}>{months[selectedMonth]}</span>
-                <span className="text-sm font-medium text-galileo-text ml-2">{selectedYear}</span>
+              <div className={`flex items-center rounded-full bg-card py-1.5 px-4 shadow-md hover:shadow-lg transition-all relative overflow-hidden group`}>
+                <div className={`absolute inset-0 opacity-10 ${monthColors[selectedMonth]}`}></div>
+                <div className={`absolute bottom-0 left-0 right-0 h-1 ${monthColors[selectedMonth]}`}></div>
+                
+                <CalendarIcon size={16} className="mr-2 text-muted-foreground" />
+                <span className={`font-medium ${textColors[selectedMonth]}`}>{months[selectedMonth]}</span>
+                <span className="text-xs text-muted-foreground ml-1.5">{selectedYear}</span>
+                
+                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-card to-transparent group-hover:opacity-0 transition-opacity"></div>
               </div>
             </div>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 border-2 border-black rounded-md shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)]" align="center">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={handleCalendarSelect}
-              initialFocus
-              locale={ptBR}
-              className={cn("p-3 pointer-events-auto")}
-              weekStartsOn={getWeekStartDay()}
-            />
+          <PopoverContent className="w-auto p-0 rounded-lg shadow-lg border border-border/30" align="center">
+            <div className="p-1 bg-card">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={handleCalendarSelect}
+                initialFocus
+                locale={ptBR}
+                className={cn("rounded-md")}
+                weekStartsOn={getWeekStartDay()}
+              />
+            </div>
           </PopoverContent>
         </Popover>
       
-        <button 
-          type="button"
+        <Button 
+          variant="ghost" 
+          size="icon" 
           onClick={handleNextMonth}
-          className="h-10 w-10 rounded-md bg-galileo-background border-2 border-galileo-accent shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all focus:outline-none"
+          className="h-9 w-9 rounded-full text-muted-foreground hover:bg-accent/10 hover:text-foreground focus:outline-none focus-visible:ring-0"
         >
-          <ChevronRight size={18} className="text-galileo-text" />
-        </button>
+          <ChevronRight size={18} />
+        </Button>
       </div>
     </div>
   );

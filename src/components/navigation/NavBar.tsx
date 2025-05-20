@@ -26,82 +26,30 @@ const NavBar: React.FC = () => {
   };
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-galileo-card shadow-lg border-t border-galileo-border z-50 w-full h-16">
-      <div className="flex justify-between items-center h-full py-1 px-1 md:px-4 max-w-screen-xl mx-auto overflow-x-auto">
-        {/* Primeira metade dos itens */}
-        <div className="flex items-center justify-end flex-1">
-          {navItems.slice(0, 2).map((item, index) => {
-            const active = isActive(item.path);
-            
-            return (
-              <button
-                key={index}
-                onClick={() => handleNavigation(item.path)}
-                className={`flex flex-col items-center justify-center min-w-[60px] px-2 md:px-4 ${
-                  active 
-                    ? 'text-galileo-accent' 
-                    : 'text-galileo-secondaryText hover:text-galileo-text'
-                } transition-colors`}
-              >
-                <div className="flex justify-center">
-                  {item.icon}
-                </div>
-                <span className="text-xs mt-1 text-center whitespace-nowrap">{item.label}</span>
-                {active && <div className="h-1 w-8 md:w-10 bg-galileo-accent rounded-full mt-1"></div>}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Botão Home centralizado */}
-        <div className="flex items-center justify-center mx-2">
-          {(() => {
-            const item = navItems[2]; // O item Home
-            const active = isActive(item.path);
-            
-            return (
-              <button
-                onClick={() => handleNavigation(item.path)}
-                className={`flex flex-col items-center justify-center min-w-[70px] px-2 md:px-4 ${
-                  active 
-                    ? 'text-galileo-accent' 
-                    : 'text-galileo-secondaryText hover:text-galileo-text'
-                } transition-colors`}
-              >
-                <div className="flex justify-center">
-                  {item.icon}
-                </div>
-                <span className="text-xs font-medium mt-1 text-center whitespace-nowrap">{item.label}</span>
-                {active && <div className="h-1 w-10 md:w-12 bg-galileo-accent rounded-full mt-1"></div>}
-              </button>
-            );
-          })()}
-        </div>
-
-        {/* Segunda metade dos itens */}
-        <div className="flex items-center justify-start flex-1">
-          {navItems.slice(3).map((item, index) => {
-            const active = isActive(item.path);
-            
-            return (
-              <button
-                key={index + 3}
-                onClick={() => handleNavigation(item.path)}
-                className={`flex flex-col items-center justify-center min-w-[60px] px-2 md:px-4 ${
-                  active 
-                    ? 'text-galileo-accent' 
-                    : 'text-galileo-secondaryText hover:text-galileo-text'
-                } transition-colors`}
-              >
-                <div className="flex justify-center">
-                  {item.icon}
-                </div>
-                <span className="text-xs mt-1 text-center whitespace-nowrap">{item.label}</span>
-                {active && <div className="h-1 w-8 md:w-10 bg-galileo-accent rounded-full mt-1"></div>}
-              </button>
-            );
-          })}
-        </div>
+    <div className="fixed bottom-0 left-0 right-0 bg-galileo-card shadow-lg border-t border-galileo-border z-50 w-full">
+      <div className="flex justify-center items-center py-2 px-1 md:px-4 max-w-screen-xl mx-auto">
+        {navItems.map((item, index) => {
+          const active = isActive(item.path);
+          const isHome = item.path === '/dashboard';
+          
+          return (
+            <button
+              key={index}
+              onClick={() => handleNavigation(item.path)}
+              className={`flex flex-col items-center justify-center min-w-[60px] px-2 md:px-4 ${
+                active 
+                  ? 'text-galileo-accent' 
+                  : 'text-galileo-secondaryText hover:text-galileo-text'
+              } transition-colors`}
+            >
+              <div className="flex justify-center">
+                {item.icon}
+              </div>
+              <span className={`text-xs mt-1 text-center whitespace-nowrap ${isHome ? 'font-medium' : ''}`}>{item.label}</span>
+              {active && <div className="h-1 w-8 md:w-10 bg-galileo-accent rounded-full mt-1"></div>}
+            </button>
+          );
+        })}
       </div>
       {/* Espaço adicional para evitar que o conteúdo fique escondido atrás da navbar */}
       <div className="h-2"></div>

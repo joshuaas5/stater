@@ -338,10 +338,10 @@ const Dashboard: React.FC = () => {
     <div className="flex items-center gap-2">
       <button
         onClick={() => setShowFinancialTips(true)}
-        className="bg-galileo-background border-2 border-galileo-accent rounded-md px-3 py-1.5 text-galileo-text flex items-center gap-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all focus:outline-none"
+        className="pop-art-tips focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-galileo-accent flex items-center gap-1"
         aria-label="Show Tips"
       >
-        <span className="font-medium">News</span>
+        <span>News</span>
         <span className="animate-pulse text-yellow-500">🔥</span>
       </button>
       <ThemeToggle />
@@ -372,33 +372,32 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="flex justify-center mb-4">
-        <button 
-          type="button"
-          className="bg-galileo-background border-2 border-galileo-accent rounded-md px-4 py-2 text-galileo-text flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all focus:outline-none"
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="bg-card/50 border border-galileo-accent/30 hover:bg-galileo-accent/10 text-galileo-text flex items-center gap-2 shadow-sm"
           onClick={() => navigate('/recomendacoes')}
         >
           <Star size={16} className="text-yellow-500" />
           Recomendações Financeiras
-        </button>
+        </Button>
       </div>
 
       <div className="flex justify-center gap-4 mb-6">
-        <button 
-          type="button"
+        <Button 
           onClick={() => handleAddTransaction('income')}
-          className="bg-galileo-positive border-2 border-black rounded-md px-4 py-2 text-white font-medium flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all focus:outline-none"
+          className="bg-galileo-positive hover:bg-galileo-positive/80 text-white flex items-center gap-2"
         >
           <TrendingUp size={18} />
           Adicionar Entrada
-        </button>
-        <button 
-          type="button"
+        </Button>
+        <Button 
           onClick={() => handleAddTransaction('expense')}
-          className="bg-galileo-negative border-2 border-black rounded-md px-4 py-2 text-white font-medium flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all focus:outline-none"
+          className="bg-galileo-negative hover:bg-galileo-negative/80 text-white flex items-center gap-2"
         >
           <TrendingDown size={18} />
           Adicionar Saída
-        </button>
+        </Button>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={(open: boolean) => {

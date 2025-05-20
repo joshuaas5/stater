@@ -11,11 +11,11 @@ const HotContent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const newsSources = [
-    { key: 'infomoney', lang: 'pt-BR', displayName: 'InfoMoney', logoUrl: '/logos/infomoney.png' },
-    { key: 'investnews', lang: 'pt-BR', displayName: 'InvestNews', logoUrl: '/logos/investnews.png' },
-    { key: 'moneytimes', lang: 'pt-BR', displayName: 'Money Times', logoUrl: '/logos/moneytimes.png' },
-    { key: 'cointelegraph-br', lang: 'pt-BR', displayName: 'Cointelegraph Brasil', logoUrl: '/logos/cointelegraph-br.png' },
-    { key: 'cnn-brasil', lang: 'pt-BR', displayName: 'CNN Brasil', logoUrl: '/logos/cnn-brasil.png' },
+    { key: 'infomoney', lang: 'pt-BR', displayName: 'InfoMoney', logoUrl: '/placeholder-news.jpg' }, // Placeholder - Atualizar
+    { key: 'investnews', lang: 'pt-BR', displayName: 'InvestNews', logoUrl: 'https://media.investnews.com.br/uploads/2025/01/logo.svg' },
+    { key: 'money_times', lang: 'pt-BR', displayName: 'Money Times', logoUrl: 'https://fatorialinvest.com.br/wp-content/uploads/2023/03/Logo-Money-Times.png' }, // TODO: Save locally if desired
+    { key: 'cointelegraph_br', lang: 'pt-BR', displayName: 'Cointelegraph Brasil', logoUrl: 'https://cointelegraph.com/assets/img/logo-blue.svg' },
+    { key: 'cnn_brasil', lang: 'pt-BR', displayName: 'CNN Brasil', logoUrl: 'https://www.cnn.com/media/sites/cnn/cnn-logo.svg' } // Placeholder global
   ];
 
   useEffect(() => {

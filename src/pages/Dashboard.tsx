@@ -17,7 +17,7 @@ import {
   getTransactionsFromLastDays 
 } from '@/utils/dataProcessing';
 import { getCurrentUser, getTransactions, isLoggedIn, saveTransaction, updateTransaction, deleteTransaction } from '@/utils/localStorage';
-import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange } from 'lucide-react';
+import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -593,34 +593,52 @@ const Dashboard: React.FC = () => {
       </Dialog>
       
       <Dialog open={showFinancialTips} onOpenChange={setShowFinancialTips}>
-  <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-    <DialogHeader>
-      <DialogTitle className="flex items-center gap-2">
-        <span className="text-galileo-text">Notícias do Mercado</span>
-        <span className="text-yellow-500">🔥</span>
-      </DialogTitle>
-      <DialogDescription>
-        Últimas notícias financeiras do Brasil e do mundo
-      </DialogDescription>
+  <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto p-0 rounded-xl">
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 p-5 rounded-t-xl border-b border-blue-100 dark:border-blue-900/50">
+      <DialogHeader className="pb-2">
+        <DialogTitle className="flex items-center gap-2 text-xl">
+          <span className="text-galileo-text">Notícias do Mercado</span>
+          <span className="text-yellow-500">🔥</span>
+        </DialogTitle>
+        <DialogDescription className="text-galileo-secondaryText">
+          Últimas notícias financeiras do Brasil e do mundo
+        </DialogDescription>
+      </DialogHeader>
+    </div>
+    
+    <div className="p-5 space-y-4">
+      <FinancialNewsFeed hideHeader={true} />
+    </div>
+    
+    <div className="p-4 bg-gray-50 dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-800 rounded-b-xl flex justify-end">
       <Button 
-        variant="link"
-        className="text-primary p-0 h-auto justify-start"
+        variant="outline"
+        size="sm"
+        className="text-galileo-accent border-galileo-accent/50 hover:bg-galileo-accent/10"
         onClick={() => {
           setShowFinancialTips(false); // Close the current dialog
           navigate('/recomendacoes');
         }}
       >
-        Ver mais recomendações...
+        Ver mais recomendações
       </Button>
-    </DialogHeader>
-    <div className="space-y-4 pt-2">
-      <FinancialNewsFeed hideHeader={true} />
     </div>
   </DialogContent>
 </Dialog>
 
       <div className="px-4 mb-6">
         <SpendingChart transactions={transactions} days={30} />
+        <div className="flex justify-end mt-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-xs text-galileo-secondaryText hover:text-galileo-accent flex items-center gap-1"
+            onClick={() => navigate('/recomendacoes')}
+          >
+            <Star size={12} className="text-yellow-500" />
+            Ver recomendações financeiras
+          </Button>
+        </div>
       </div>
       
       <h2 className="text-galileo-text text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-2">

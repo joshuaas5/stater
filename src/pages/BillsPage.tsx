@@ -222,7 +222,7 @@ const BillsPage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-galileo-background pb-16">
-      <PageHeader title="Contas a Pagar" showBack={true} showSearch={false} />
+      <PageHeader title="Contas a Pagar" showBack={true} showSearch={false} showThemeToggle={false} />
       
       {/* Seletores de Mês e Ano */}
       <div className="px-4 pt-4 pb-3 bg-galileo-background sticky top-[calc(var(--header-height)_-_1px)] z-10 border-b border-galileo-border">

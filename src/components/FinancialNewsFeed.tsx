@@ -115,22 +115,13 @@ const FinancialNewsFeed: React.FC = () => {
         }
         console.log(`[Balanceamento] Finalizado. Total de notícias balanceadas: ${balancedNews.length}`);
         
-        // Filtrar itens sem imagem
-        const validNews = balancedNews.filter(item => item.imageUrl && item.imageUrl.trim() !== '');
+        // Atribui imagem padrão para itens sem imagem
+        const validNews = balancedNews.map(item => ({
+          ...item,
+          imageUrl: (item.imageUrl && item.imageUrl.trim() !== '') ? item.imageUrl : '/placeholder-news.jpg'
+        }));
         
-        // Embaralhar levemente para não ficar muito padronizado, mas manter certa ordem por data
-        validNews.sort((a, b) => {
-          // 70% chance de ordenar por data, 30% chance de ordem aleatória
-          if (Math.random() > 0.3) {
-            const dateA = a.pubDate ? new Date(a.pubDate).getTime() : 0;
-            const dateB = b.pubDate ? new Date(b.pubDate).getTime() : 0;
-            return dateB - dateA;
-          } else {
-            return Math.random() - 0.5;
-          }
-        });
-        
-        console.log('FinancialNewsFeed: Number of valid news items for scope', currentScope, ':', validNews.length);
+        console.log('FinancialNewsFeed: Number of news items after processing:', validNews.length);
         setAllNews(validNews.slice(0, 12)); // Garante que não mais que 12 são setadas
       } catch (err) {
         console.error("Erro ao buscar todas as notícias:", err);

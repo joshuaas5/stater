@@ -89,14 +89,24 @@ const HotContent: React.FC = () => {
 
         console.log(`[HotContent] Total de artigos coletados antes da filtragem: ${allNews.length}`);
 
-        // Filtrar notícias duplicadas e sem imagem
+        // Filtra duplicados por link
         const uniqueNews = Array.from(new Map(allNews.map(item => [item.link, item])).values());
         console.log(`[HotContent] Artigos após filtro de duplicatas (por link): ${uniqueNews.length}`);
 
-        const validNews = uniqueNews.filter(item => item.imageUrl && item.imageUrl.trim() !== '');
-        console.log(`[HotContent] Artigos após filtro de imageUrl: ${validNews.length}`);
+        // Atribui imagem padrão para itens sem imagem
+        const validNews = uniqueNews.map(item => {
+          if (!item.imageUrl || item.imageUrl.trim() === '') {
+            return {
+              ...item,
+              imageUrl: '/placeholder-news.jpg' // Imagem padrão
+            };
+          }
+          return item;
+        });
         
-        // Embaralhar as notícias para mais aleatoriedade
+        console.log(`[HotContent] Total de notícias após processamento: ${validNews.length}`);
+        
+        // Embaralha as notícias para mais aleatoriedade
         const shuffledNews = [...validNews].sort(() => Math.random() - 0.5);
         
         console.log('HotContent: Number of valid news items:', shuffledNews.length);

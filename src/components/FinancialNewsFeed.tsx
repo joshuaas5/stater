@@ -8,7 +8,7 @@ import { NewsItem } from '@/types';
 interface SourceConfigItem {
   key: string;
   displayName: string;
-  lang: string;
+  lang?: string; // Tornando o campo lang opcional
 }
 
 interface SourcesConfig {
@@ -18,19 +18,16 @@ interface SourcesConfig {
 
 type NewsScope = keyof SourcesConfig;
 
+// Simplificando as fontes para usar apenas as que funcionam
 const SOURCES_CONFIG: SourcesConfig = {
   'pt-BR': [
     { key: 'investnews', displayName: 'InvestNews', lang: 'pt-BR' },
     { key: 'infomoney', displayName: 'InfoMoney', lang: 'pt-BR' },
     { key: 'cointelegraph-br', displayName: 'Cointelegraph Brasil', lang: 'pt-BR' }, 
-    { key: 'cnn-brasil', displayName: 'CNN Brasil', lang: 'pt-BR' }, 
-    { key: 'money_times', displayName: 'Money Times', lang: 'pt-BR' } 
+    { key: 'cnn-brasil', displayName: 'CNN Brasil', lang: 'pt-BR' }
   ],
   'en-US': [
-    { key: 'reuters_business', displayName: 'Reuters Business', lang: 'en-US' }, 
-    { key: 'bloomberg_markets', displayName: 'Bloomberg Markets', lang: 'en-US' }, 
-    { key: 'wsj_markets', displayName: 'WSJ Markets', lang: 'en-US' }, 
-    { key: 'cointelegraph_en', displayName: 'Cointelegraph', lang: 'en-US' } 
+    // Removendo fontes internacionais que estão causando erros
   ]
 };
 
@@ -63,7 +60,8 @@ const FinancialNewsFeed: React.FC = () => {
         }
 
         try {
-          const response = await fetch(`/api/get-news?sourceKey=${sourceKey}&lang=${sourceConfig.lang}`);
+          // Simplificando a chamada da API - removendo o parâmetro lang que está causando erros
+          const response = await fetch(`/api/get-news?sourceKey=${sourceKey}`);
           if (!response.ok) {
             let errorData;
             try {
@@ -192,73 +190,16 @@ const FinancialNewsFeed: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <Card className="mb-6 bg-card/80 backdrop-blur-sm shadow-xl border-border/30">
+      <Card className="mb-6 bg-card/80 backdrop-blur-sm shadow-xl border-border/30 max-w-4xl mx-auto">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center">
             <div className="flex items-center">
               <Rss className="h-7 w-7 text-primary mr-3" />
-              <CardTitle className="text-2xl font-bold text-foreground">Feed de Notícias Financeiras</CardTitle>
-            </div>
-            <div className="flex rounded-full p-1 bg-muted/50 shadow-md border border-border/20">
-              <button
-                onClick={() => setCurrentScope('pt-BR')}
-                className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background transform hover:scale-105 active:scale-100 shadow hover:shadow-md ${currentScope === 'pt-BR' 
-                    ? 'bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white ring-emerald-400'
-                    : 'bg-card text-card-foreground hover:bg-muted ring-transparent'}`}
-              >
-                <MapPin size={16} className={`mr-2`} /> 
-                Nacionais
-              </button>
-              <button
-                onClick={() => setCurrentScope('en-US')}
-                className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background transform hover:scale-105 active:scale-100 shadow hover:shadow-md ${currentScope === 'en-US' 
-                    ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white ring-indigo-400'
-                    : 'bg-card text-card-foreground hover:bg-muted ring-transparent'}`}
-              >
-                <Globe size={16} className={`mr-2`} /> 
-                Internacionais
-              </button>
+              <CardTitle className="text-2xl font-bold text-foreground">Notícias do Mercado🔥</CardTitle>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center">
-            <div className="relative flex-grow w-full sm:w-auto">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input 
-                type="text"
-                placeholder={`Buscar em notícias ${currentScope === 'pt-BR' ? 'nacionais' : 'internacionais'}...`}
-                value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-                className="pl-10 w-full bg-background/70 border-border/50 focus:border-primary transition-all duration-300 shadow-sm hover:shadow-md focus:ring-1 focus:ring-primary rounded-full py-2 px-4"
-              />
-              {searchTerm && (
-                <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 w-7 rounded-full" onClick={() => setSearchTerm("")}>
-                  <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                </Button>
-              )}
-            </div>
-            <div className="flex items-center">
-              <Filter size={20} className="text-primary mr-2" />
-              <span className="text-sm font-medium mr-2 text-foreground">Filtrar por fonte:</span>
-            </div>
-          </div>
-          <div className="mb-6 flex flex-wrap gap-2 items-center">
-            {SOURCES_CONFIG[currentScope].map((source: SourceConfigItem) => (
-              <Button
-                key={source.key}
-                variant={selectedSources.includes(source.key) ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleSourceToggle(source.key)}
-                className={`transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md rounded-full px-3 py-1 text-xs sm:text-sm
-                  ${selectedSources.includes(source.key) 
-                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-transparent'
-                    : 'bg-background/70 border-border/50 hover:bg-muted/80 hover:border-primary/70 text-foreground'}`}
-              >
-                {source.displayName}
-              </Button>
-            ))}
-          </div>
 
           {loading && allNews.length > 0 && <div className="flex items-center justify-center p-4"><Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />Carregando mais notícias...</div>}
           {error && <p className="text-red-500 text-center p-4 whitespace-pre-line">Erro ao carregar notícias: {error}</p>}

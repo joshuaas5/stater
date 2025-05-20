@@ -10,12 +10,12 @@ const HotContent: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Fontes simplificadas - usando apenas as que funcionam
   const newsSources = [
-    { key: 'infomoney', lang: 'pt-BR', displayName: 'InfoMoney' }, 
-    { key: 'investnews', lang: 'pt-BR', displayName: 'InvestNews' },
-    { key: 'money_times', lang: 'pt-BR', displayName: 'Money Times' }, 
-    { key: 'cointelegraph-br', lang: 'pt-BR', displayName: 'Cointelegraph Brasil' }, 
-    { key: 'cnn-brasil', displayName: 'CNN Brasil', lang: 'pt-BR' } 
+    { key: 'infomoney', displayName: 'InfoMoney' }, 
+    { key: 'investnews', displayName: 'InvestNews' },
+    { key: 'cointelegraph-br', displayName: 'Cointelegraph Brasil' }, 
+    { key: 'cnn-brasil', displayName: 'CNN Brasil' } 
   ];
 
   useEffect(() => {
@@ -28,7 +28,8 @@ const HotContent: React.FC = () => {
         // Criar um array de promessas para buscar todas as fontes em paralelo
         const fetchPromises = newsSources.map(async (source) => {
           try {
-            const response = await fetch(`/api/get-news?sourceKey=${source.key}&lang=${source.lang}`);
+            // Simplificando a chamada de API - removendo o parâmetro lang que está causando erros
+            const response = await fetch(`/api/get-news?sourceKey=${source.key}`);
             if (!response.ok) {
               console.warn(`Failed to fetch news from ${source.key}: ${response.status}`);
               return [];
@@ -134,10 +135,10 @@ const HotContent: React.FC = () => {
     <div className="space-y-6 p-1 md:p-2">
       <BookOfTheWeek />
 
-      <Card className="bg-card/80 backdrop-blur-sm shadow-xl border-border/30">
+      <Card className="bg-card/80 backdrop-blur-sm shadow-xl border-border/30 max-w-4xl mx-auto">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-semibold text-card-foreground flex items-center">
-            <span>Notícias de Finanças</span>
+            <span>Notícias do Mercado🔥</span>
           </CardTitle>
         </CardHeader>
 

@@ -11,11 +11,11 @@ const HotContent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const newsSources = [
-    { key: 'infomoney', lang: 'pt-BR', displayName: 'InfoMoney' },
-    { key: 'investnews', lang: 'pt-BR', displayName: 'InvestNews' },
-    { key: 'moneytimes', lang: 'pt-BR', displayName: 'Money Times' },
-    { key: 'cointelegraph-br', lang: 'pt-BR', displayName: 'Cointelegraph Brasil' },
-    { key: 'cnn-brasil', lang: 'pt-BR', displayName: 'CNN Brasil' },
+    { key: 'infomoney', lang: 'pt-BR', displayName: 'InfoMoney', logoUrl: '/logos/infomoney.png' },
+    { key: 'investnews', lang: 'pt-BR', displayName: 'InvestNews', logoUrl: '/logos/investnews.png' },
+    { key: 'moneytimes', lang: 'pt-BR', displayName: 'Money Times', logoUrl: '/logos/moneytimes.png' },
+    { key: 'cointelegraph-br', lang: 'pt-BR', displayName: 'Cointelegraph Brasil', logoUrl: '/logos/cointelegraph-br.png' },
+    { key: 'cnn-brasil', lang: 'pt-BR', displayName: 'CNN Brasil', logoUrl: '/logos/cnn-brasil.png' },
   ];
 
   useEffect(() => {
@@ -39,7 +39,8 @@ const HotContent: React.FC = () => {
               return data.items.slice(0, 3).map((item: any) => ({
                 ...item,
                 sourceName: item.sourceName || source.displayName,
-                sourceKey: source.key
+                sourceKey: source.key,
+                logoUrl: source.logoUrl // Adiciona logoUrl da fonte
               }));
             }
             return [];
@@ -98,7 +99,9 @@ const HotContent: React.FC = () => {
           if (!item.imageUrl || item.imageUrl.trim() === '') {
             return {
               ...item,
-              imageUrl: '/placeholder-news.jpg' // Imagem padrão
+              imageUrl: (item.logoUrl && item.logoUrl.trim() !== '') 
+                          ? item.logoUrl 
+                          : '/placeholder-news.jpg' // Fallback final para placeholder genérico
             };
           }
           return item;

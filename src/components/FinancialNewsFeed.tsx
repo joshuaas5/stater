@@ -6,17 +6,17 @@ import { NewsItem } from '@/types';
 
 const SOURCES_CONFIG = {
   'pt-BR': [
-    { key: 'investnews', displayName: 'InvestNews', lang: 'pt-BR' },
-    { key: 'infomoney', displayName: 'InfoMoney', lang: 'pt-BR' },
-    { key: 'cointelegraph-br', displayName: 'Cointelegraph Brasil', lang: 'pt-BR' },
-    { key: 'cnn-brasil', displayName: 'CNN Brasil', lang: 'pt-BR' }, 
-    { key: 'moneytimes', displayName: 'Money Times', lang: 'pt-BR' },
+    { key: 'investnews', displayName: 'InvestNews', lang: 'pt-BR', logoUrl: '/logos/investnews.png' },
+    { key: 'infomoney', displayName: 'InfoMoney', lang: 'pt-BR', logoUrl: '/logos/infomoney.png' },
+    { key: 'cointelegraph-br', displayName: 'Cointelegraph Brasil', lang: 'pt-BR', logoUrl: '/logos/cointelegraph-br.png' },
+    { key: 'cnn-brasil', displayName: 'CNN Brasil', lang: 'pt-BR', logoUrl: '/logos/cnn-brasil.png' }, 
+    { key: 'moneytimes', displayName: 'Money Times', lang: 'pt-BR', logoUrl: '/logos/moneytimes.png' },
   ],
   'en-US': [
-    { key: 'cointelegraph-en', displayName: 'Cointelegraph', lang: 'en-US' }, 
-    { key: 'reutersBusiness', displayName: 'Reuters Business', lang: 'en-US' }, 
-    { key: 'bloomberg', displayName: 'Bloomberg Markets', lang: 'en-US' }, 
-    { key: 'wsjMarkets', displayName: 'WSJ Markets', lang: 'en-US' }, 
+    { key: 'cointelegraph-en', displayName: 'Cointelegraph', lang: 'en-US', logoUrl: '/logos/cointelegraph-en.png' }, 
+    { key: 'reutersBusiness', displayName: 'Reuters Business', lang: 'en-US', logoUrl: '/logos/reuters.png' }, 
+    { key: 'bloomberg', displayName: 'Bloomberg Markets', lang: 'en-US', logoUrl: '/logos/bloomberg.png' }, 
+    { key: 'wsjMarkets', displayName: 'WSJ Markets', lang: 'en-US', logoUrl: '/logos/wsj.png' }, 
   ],
 };
 
@@ -53,8 +53,9 @@ const FinancialNewsFeed: React.FC = () => {
                 pubDate: item.pubDate,
                 contentSnippet: item.contentSnippet,
                 sourceName: source.displayName, 
-                imageUrl: item.imageUrl,
-                sourceKey: source.key
+                imageUrl: item.imageUrl, // Mantemos a imageUrl original aqui
+                sourceKey: source.key, // Precisamos do sourceKey para o logo
+                logoUrl: source.logoUrl // Adicionamos o logoUrl da fonte
               }));
             }
             return [];
@@ -118,7 +119,11 @@ const FinancialNewsFeed: React.FC = () => {
         // Atribui imagem padrão para itens sem imagem
         const validNews = balancedNews.map(item => ({
           ...item,
-          imageUrl: (item.imageUrl && item.imageUrl.trim() !== '') ? item.imageUrl : '/placeholder-news.jpg'
+          imageUrl: (item.imageUrl && item.imageUrl.trim() !== '') 
+            ? item.imageUrl 
+            : (item.logoUrl && item.logoUrl.trim() !== '') 
+              ? item.logoUrl 
+              : '/placeholder-news.jpg' // Fallback final para placeholder genérico
         }));
         
         console.log('FinancialNewsFeed: Number of news items after processing:', validNews.length);

@@ -93,6 +93,7 @@ export interface NewsItem {
   description?: string | null; 
   id?: string; 
   media?: { thumbnail?: { url?: string } }; 
+  logoUrl?: string; // Adicionado para o logo da fonte
 }
 
 export type NotificationType = 'fiveDaysBefore' | 'oneDayBefore' | 'dueDay' | 'overdue' | 'almostFinished' | 'paid';

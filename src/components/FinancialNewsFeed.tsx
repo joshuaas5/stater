@@ -18,16 +18,19 @@ interface SourcesConfig {
 
 type NewsScope = keyof SourcesConfig;
 
-// Simplificando as fontes para usar apenas as que funcionam
+// Fontes atualizadas conforme solicitado
 const SOURCES_CONFIG: SourcesConfig = {
   'pt-BR': [
     { key: 'investnews', displayName: 'InvestNews', lang: 'pt-BR' },
     { key: 'infomoney', displayName: 'InfoMoney', lang: 'pt-BR' },
-    { key: 'cointelegraph-br', displayName: 'Cointelegraph Brasil', lang: 'pt-BR' }, 
-    { key: 'cnn-brasil', displayName: 'CNN Brasil', lang: 'pt-BR' }
+    { key: 'cointelegraph-br', displayName: 'Cointelegraph Brasil', lang: 'pt-BR' },
+    { key: 'investing-br', displayName: 'Investing.com Brasil', lang: 'pt-BR' },
+    { key: 'bloomberg-linea', displayName: 'Bloomberg Línea', lang: 'pt-BR' }
   ],
   'en-US': [
-    // Removendo fontes internacionais que estão causando erros
+    // Fontes internacionais simplificadas
+    { key: 'cointelegraph', displayName: 'Cointelegraph', lang: 'en-US' },
+    { key: 'investing', displayName: 'Investing.com', lang: 'en-US' }
   ]
 };
 
@@ -103,11 +106,47 @@ const FinancialNewsFeed: React.FC = () => {
       const newsFromSources = results.flat().filter(item => item !== null) as NewsItem[]; // Filter out nulls if any and cast
       
       // Sort news by date
-      const sortedNews = newsFromSources.sort((a, b) => {
+      // Ordenar por data
+      const sortedByDate = newsFromSources.sort((a, b) => {
         const dateA = a.isoDate ? new Date(a.isoDate).getTime() : 0; // Default to epoch if undefined for robust sorting
         const dateB = b.isoDate ? new Date(b.isoDate).getTime() : 0; // Default to epoch if undefined for robust sorting
         return dateB - dateA;
       });
+      
+      // Garantir que as notícias sejam misturadas (não aparecem do mesmo site uma abaixo da outra)
+      const mixedNews: NewsItem[] = [];
+      
+      // Primeiro, agrupar notícias por fonte
+      const newsBySource: Record<string, NewsItem[]> = {};
+      sortedByDate.forEach(item => {
+        // Usar sourceName como identificador da fonte
+        const sourceKey = item.sourceName || '';
+        if (!newsBySource[sourceKey]) {
+          newsBySource[sourceKey] = [];
+        }
+        newsBySource[sourceKey].push(item);
+      });
+      
+      // Pegar uma notícia de cada fonte em rodadas até acabarem todas
+      let hasMoreNews = true;
+      let roundIndex = 0;
+      
+      while (hasMoreNews) {
+        hasMoreNews = false;
+        
+        // Para cada fonte, pegar a próxima notícia disponível
+        Object.keys(newsBySource).forEach(sourceKey => {
+          const sourceNews = newsBySource[sourceKey];
+          if (sourceNews.length > roundIndex) {
+            mixedNews.push(sourceNews[roundIndex]);
+            hasMoreNews = true;
+          }
+        });
+        
+        roundIndex++;
+      }
+      
+      const sortedNews = mixedNews;
       
       setAllNews(sortedNews);
       if (sortedNews.length === 0 && !error) {
@@ -192,10 +231,30 @@ const FinancialNewsFeed: React.FC = () => {
     <div className="container mx-auto p-4">
       <Card className="mb-6 bg-card/80 backdrop-blur-sm shadow-xl border-border/30 max-w-4xl mx-auto">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-between">
             <div className="flex items-center">
               <Rss className="h-7 w-7 text-primary mr-3" />
               <CardTitle className="text-2xl font-bold text-foreground">Notícias do Mercado🔥</CardTitle>
+            </div>
+            <div className="flex rounded-full p-1 bg-muted/50 shadow-md border border-border/20">
+              <button
+                onClick={() => setCurrentScope('pt-BR')}
+                className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background transform hover:scale-105 active:scale-100 shadow hover:shadow-md ${currentScope === 'pt-BR' 
+                    ? 'bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white ring-emerald-400'
+                    : 'bg-card text-card-foreground hover:bg-muted ring-transparent'}`}
+              >
+                <MapPin size={16} className={`mr-2`} /> 
+                Nacionais
+              </button>
+              <button
+                onClick={() => setCurrentScope('en-US')}
+                className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background transform hover:scale-105 active:scale-100 shadow hover:shadow-md ${currentScope === 'en-US' 
+                    ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white ring-indigo-400'
+                    : 'bg-card text-card-foreground hover:bg-muted ring-transparent'}`}
+              >
+                <Globe size={16} className={`mr-2`} /> 
+                Internacionais
+              </button>
             </div>
           </div>
         </CardHeader>

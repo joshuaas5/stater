@@ -10,12 +10,13 @@ const HotContent: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fontes simplificadas - usando apenas as que funcionam
+  // Fontes atualizadas conforme solicitado
   const newsSources = [
     { key: 'infomoney', displayName: 'InfoMoney' }, 
     { key: 'investnews', displayName: 'InvestNews' },
-    { key: 'cointelegraph-br', displayName: 'Cointelegraph Brasil' }, 
-    { key: 'cnn-brasil', displayName: 'CNN Brasil' } 
+    { key: 'cointelegraph-br', displayName: 'Cointelegraph Brasil' },
+    { key: 'investing-br', displayName: 'Investing.com Brasil' }, // Nova fonte
+    { key: 'bloomberg-linea', displayName: 'Bloomberg Línea' } // Nova fonte
   ];
 
   useEffect(() => {
@@ -99,8 +100,41 @@ const HotContent: React.FC = () => {
         
         console.log(`[HotContent] Total de notícias após processamento: ${validNews.length}`);
         
-        // Embaralha as notícias para mais aleatoriedade
-        const shuffledNews = [...validNews].sort(() => Math.random() - 0.5);
+        // Garantir que as notícias sejam misturadas (não aparecem do mesmo site uma abaixo da outra)
+        const mixedNews: NewsItem[] = [];
+        
+        // Primeiro, agrupar notícias por fonte
+        const newsBySource: Record<string, NewsItem[]> = {};
+        validNews.forEach(item => {
+          // Usar sourceName como identificador da fonte
+          const sourceKey = item.sourceName || '';
+          if (!newsBySource[sourceKey]) {
+            newsBySource[sourceKey] = [];
+          }
+          newsBySource[sourceKey].push(item);
+        });
+        
+        // Pegar uma notícia de cada fonte em rodadas até acabarem todas
+        let hasMoreNews = true;
+        let roundIndex = 0;
+        
+        while (hasMoreNews) {
+          hasMoreNews = false;
+          
+          // Para cada fonte, pegar a próxima notícia disponível
+          Object.keys(newsBySource).forEach(sourceKey => {
+            const sourceNews = newsBySource[sourceKey];
+            if (sourceNews.length > roundIndex) {
+              mixedNews.push(sourceNews[roundIndex]);
+              hasMoreNews = true;
+            }
+          });
+          
+          roundIndex++;
+        }
+        
+        // Embaralhar ligeiramente para não ficar um padrão tão óbvio, mas mantendo a distribuição
+        const shuffledNews = mixedNews;
         
         console.log('HotContent: Number of valid news items:', shuffledNews.length);
         setNewsItems(shuffledNews);
@@ -133,7 +167,7 @@ const HotContent: React.FC = () => {
 
   return (
     <div className="space-y-6 p-1 md:p-2">
-      <BookOfTheWeek />
+      
 
       <Card className="bg-card/80 backdrop-blur-sm shadow-xl border-border/30 max-w-4xl mx-auto">
         <CardHeader className="pb-2">

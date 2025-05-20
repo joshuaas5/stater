@@ -11,10 +11,11 @@ const HotContent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const newsSources = [
-    { key: 'infomoney', lang: 'pt-BR' },
-    { key: 'investnews', lang: 'pt-BR' },
-    { key: 'moneytimes', lang: 'pt-BR' },
-    { key: 'cointelegraph-br', lang: 'pt-BR' },
+    { key: 'infomoney', lang: 'pt-BR', displayName: 'InfoMoney' },
+    { key: 'investnews', lang: 'pt-BR', displayName: 'InvestNews' },
+    { key: 'moneytimes', lang: 'pt-BR', displayName: 'Money Times' },
+    { key: 'cointelegraph-br', lang: 'pt-BR', displayName: 'Cointelegraph Brasil' },
+    { key: 'cnn-brasil', lang: 'pt-BR', displayName: 'CNN Brasil' },
   ];
 
   useEffect(() => {
@@ -24,6 +25,7 @@ const HotContent: React.FC = () => {
       let allNews: NewsItem[] = [];
 
       try {
+        // Criar um array de promessas para buscar todas as fontes em paralelo
         const fetchPromises = newsSources.map(async (source) => {
           try {
             const response = await fetch(`/api/get-news?sourceKey=${source.key}&lang=${source.lang}`);
@@ -33,9 +35,11 @@ const HotContent: React.FC = () => {
             }
             const data = await response.json();
             if (data.items && Array.isArray(data.items)) {
-              return data.items.slice(0, 12).map((item: any) => ({
+              // Limitar a 3 itens por fonte para garantir diversidade
+              return data.items.slice(0, 3).map((item: any) => ({
                 ...item,
-                sourceName: item.sourceName || source.key
+                sourceName: item.sourceName || source.displayName,
+                sourceKey: source.key
               }));
             }
             return [];
@@ -45,16 +49,46 @@ const HotContent: React.FC = () => {
           }
         });
 
+        // Aguardar todas as promessas serem resolvidas
         const results = await Promise.all(fetchPromises);
-        results.forEach(newsFromSource => {
-          allNews = [...allNews, ...newsFromSource];
+        
+        // Garantir diversidade: pegar até 3 notícias de cada fonte
+        const newsPerSource: {[key: string]: NewsItem[]} = {};
+        
+        // Agrupar notícias por fonte
+        results.forEach((items, index) => {
+          const sourceKey = newsSources[index].key;
+          newsPerSource[sourceKey] = items;
         });
+        
+        // Selecionar notícias de cada fonte de forma alternada
+        let remainingNews = true;
+        let currentIndex = 0;
+        
+        while (remainingNews && allNews.length < 15) {
+          remainingNews = false;
+          
+          // Tentar pegar uma notícia de cada fonte em ordem
+          for (const sourceKey of Object.keys(newsPerSource)) {
+            const sourceNews = newsPerSource[sourceKey];
+            if (sourceNews.length > currentIndex) {
+              allNews.push(sourceNews[currentIndex]);
+              remainingNews = true;
+            }
+          }
+          
+          currentIndex++;
+        }
 
+        // Filtrar notícias duplicadas e sem imagem
         const uniqueNews = Array.from(new Map(allNews.map(item => [item.link, item])).values());
         const validNews = uniqueNews.filter(item => item.imageUrl && item.imageUrl.trim() !== '');
-        console.log('HotContent: Number of valid news items:', validNews.length);
-
-        setNewsItems(validNews);
+        
+        // Embaralhar as notícias para mais aleatoriedade
+        const shuffledNews = [...validNews].sort(() => Math.random() - 0.5);
+        
+        console.log('HotContent: Number of valid news items:', shuffledNews.length);
+        setNewsItems(shuffledNews);
       } catch (e) {
         console.error('Failed to fetch news overall:', e);
         setError('Falha ao carregar notícias. Tente novamente mais tarde.');

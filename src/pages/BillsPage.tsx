@@ -225,26 +225,68 @@ const BillsPage: React.FC = () => {
       <PageHeader title="Contas a Pagar" showBack={true} />
       
       {/* Seletores de Mês e Ano */}
-      <div className="px-4 pt-4 pb-2 flex flex-col sm:flex-row gap-2 items-center bg-galileo-background sticky top-[calc(var(--header-height)_-_1px)] z-10 border-b border-galileo-border">
-        <div className='flex gap-2 w-full sm:w-auto'>
-          <select 
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-            className="flex-grow sm:flex-grow-0 bg-galileo-input border border-galileo-border text-galileo-text text-sm rounded-md focus:ring-galileo-primary focus:border-galileo-primary block w-full p-2.5 h-10"
+      <div className="px-4 pt-4 pb-3 bg-galileo-background sticky top-[calc(var(--header-height)_-_1px)] z-10 border-b border-galileo-border">
+        <div className="flex flex-col sm:flex-row gap-3 items-center">
+          <div className="flex items-center bg-muted/30 rounded-full p-1 border border-border/30 shadow-sm w-full sm:w-auto">
+            <div className="flex items-center flex-1 sm:flex-auto">
+              <Calendar size={18} className="ml-3 mr-2 text-muted-foreground" />
+              <div className="relative flex-1 sm:w-44">
+                <select 
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                  className="appearance-none bg-transparent border-none text-foreground text-sm font-medium py-2 pl-1 pr-8 w-full focus:outline-none focus:ring-0"
+                >
+                  {monthOptions.map(opt => (
+                    <option 
+                      key={opt.value} 
+                      value={opt.value} 
+                      className="bg-card text-foreground"
+                    >
+                      {opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                  <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            <div className="h-6 mx-1 w-px bg-border/50"></div>
+            
+            <div className="relative sm:w-24">
+              <select 
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                className="appearance-none bg-transparent border-none text-foreground text-sm font-medium py-2 pl-2 pr-8 w-full focus:outline-none focus:ring-0"
+              >
+                {yearOptions.map(opt => (
+                  <option 
+                    key={opt.value} 
+                    value={opt.value} 
+                    className="bg-card text-foreground"
+                  >
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <Button 
+            onClick={handleAddBill} 
+            className="w-full sm:w-auto sm:ml-auto bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md transition-all duration-300"
           >
-            {monthOptions.map(opt => <option key={opt.value} value={opt.value} className="bg-galileo-input text-galileo-text">{opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}</option>)}
-          </select>
-          <select 
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className="flex-grow sm:flex-grow-0 bg-galileo-input border border-galileo-border text-galileo-text text-sm rounded-md focus:ring-galileo-primary focus:border-galileo-primary block w-full p-2.5 h-10"
-          >
-            {yearOptions.map(opt => <option key={opt.value} value={opt.value} className="bg-galileo-input text-galileo-text">{opt.label}</option>)}
-          </select>
+            <Plus size={18} className="mr-2" /> Adicionar Conta
+          </Button>
         </div>
-        <Button onClick={handleAddBill} className="w-full sm:w-auto sm:ml-auto h-10">
-          <Plus size={18} className="mr-2" /> Adicionar Conta
-        </Button>
       </div>
 
       {/* Abas de Filtro */}

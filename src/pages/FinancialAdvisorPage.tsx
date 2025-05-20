@@ -456,10 +456,10 @@ export const FinancialAdvisorPage: React.FC = () => {
   };
 
   const initialSuggestions = [
-    t('common.suggestions.check_balance') || 'Verificar Saldo',
-    t('common.suggestions.register_expense') || 'Registrar Despesa',
-    t('common.suggestions.register_income') || 'Registrar Receita',
-    t('common.suggestions.financial_summary') || 'Resumo Financeiro',
+    'Verificar Saldo',
+    'Registrar Despesa',
+    'Registrar Receita',
+    'Resumo Financeiro',
   ];
 
   const suggestions = [

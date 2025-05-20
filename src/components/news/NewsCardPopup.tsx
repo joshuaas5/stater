@@ -24,49 +24,54 @@ const NewsCardPopup: React.FC<NewsCardPopupProps> = ({ item, currentLang }) => {
   const snippet = contentSnippet ? (contentSnippet.length > 100 ? contentSnippet.substring(0, 97) + '...' : contentSnippet) : '';
 
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col h-full">
-      <a href={link} target="_blank" rel="noopener noreferrer" className="block group">
+    <div className="bg-card border border-border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 flex flex-col h-full hover:border-primary/40">
+      <a href={link} target="_blank" rel="noopener noreferrer" className="block group relative">
         {imageUrl ? (
-          <img 
-            src={imageUrl} 
-            alt={title} 
-            className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }}
-          />
+          <div className="w-full h-36 overflow-hidden">
+            <img 
+              src={imageUrl} 
+              alt={title} 
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }}
+            />
+          </div>
         ) : (
-          <div className="w-full h-32 bg-muted flex items-center justify-center">
+          <div className="w-full h-36 bg-muted flex items-center justify-center">
             <ImageOff className="w-12 h-12 text-muted-foreground" />
           </div>
         )}
-         {/* Placeholder caso a imagem principal falhe e não haja URL */}
-        <div className="w-full h-32 bg-muted flex items-center justify-center hidden">
-            <ImageOff className="w-12 h-12 text-muted-foreground" />
+        {/* Placeholder caso a imagem principal falhe e não haja URL */}
+        <div className="w-full h-36 bg-muted flex items-center justify-center hidden">
+          <ImageOff className="w-12 h-12 text-muted-foreground" />
+        </div>
+        {/* Badge com o nome da fonte */}
+        <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm text-xs font-medium py-1 px-2 rounded-full shadow-sm">
+          {sourceName || 'Fonte'}
         </div>
       </a>
       <div className="p-3 flex flex-col flex-grow">
-        <a href={link} target="_blank" rel="noopener noreferrer" className="block mb-1 group">
+        <a href={link} target="_blank" rel="noopener noreferrer" className="block mb-2 group">
           <h3 className="text-sm font-semibold text-card-foreground group-hover:text-primary transition-colors duration-200 line-clamp-2 leading-tight">
             {title}
           </h3>
         </a>
         {snippet && (
-          <p className="text-xs text-muted-foreground mb-2 line-clamp-2 leading-snug">
+          <p className="text-xs text-muted-foreground mb-3 line-clamp-2 leading-snug">
             {snippet}
           </p>
         )}
-        <div className="mt-auto text-xs text-muted-foreground">
-          <p className="font-medium truncate">{sourceName || 'Fonte desconhecida'}</p>
-          <p>{formattedDate}</p>
+        <div className="mt-auto flex justify-between items-center">
+          <p className="text-xs text-muted-foreground">{formattedDate}</p>
+          <a 
+            href={link} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-xs flex items-center text-primary hover:text-primary/80 font-medium"
+          >
+            Ler mais <ExternalLink className="w-3 h-3 ml-1" />
+          </a>
         </div>
       </div>
-      <a 
-        href={link} 
-        target="_blank" 
-        rel="noopener noreferrer" 
-        className="block text-center text-xs bg-primary/10 text-primary hover:bg-primary/20 p-2 transition-colors duration-200 font-medium"
-      >
-        Ler mais <ExternalLink className="inline-block w-3 h-3 ml-1" />
-      </a>
     </div>
   );
 };

@@ -168,8 +168,8 @@ export function getCurrentBookOfTheWeek(): Book {
   const weekOfYear = getWeekNumber(new Date());
   // Rotate through the books list based on week number
   const bookIndex = weekOfYear % recommendedBooks.length;
-  // Alterado para mostrar o livro 'A psicologia financeira' de Morgan Housel
-  return recommendedBooks[8]; // Alterado para o livro 'A psicologia financeira'
+  // Alterado para mostrar o livro 'A Magia da Sequência de Fibonacci' de João Vieira de Aguiar
+  return recommendedBooks[4]; // Alterado para o livro 'A Magia da Sequência de Fibonacci'
 }
 
 // Example: Log the current book of the week for testing

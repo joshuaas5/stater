@@ -477,53 +477,48 @@ export const FinancialAdvisorPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* NavBar removido do topo para exibir apenas no rodapé abaixo */}
-      <div className="flex-grow container mx-auto px-0 sm:px-4 py-4 md:py-8 flex flex-col overflow-hidden">
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full flex flex-col flex-grow">
-          <TabsList className="flex justify-center mb-4 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 space-x-6">
-            <TabsTrigger value="chat">Consultor IA 🤖</TabsTrigger>
-          </TabsList>
+      <div className="flex-grow container mx-auto px-0 sm:px-4 pt-4 pb-20 flex flex-col overflow-hidden">
+        <div className="mb-4 text-center">
+          <h1 className="text-2xl font-bold text-foreground">Consultor IA 🤖</h1>
+        </div>
 
-          <TabsContent value="chat" className="flex-grow flex flex-col overflow-hidden">
-            {/* Este div é o contêiner principal do chat, incluindo mensagens e input */}
-            {/* Adicionado pt-2 para espaço do TabsList e pb-20 para espaço da NavBar inferior */}
-            <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden pt-2 mb-16"> 
-              {error && (
-                <div className="p-4 bg-destructive text-destructive-foreground">
-                  {error}
-                </div>
-              )}
-              {/* ChatMessages agora ocupa o espaço flexível e tem seu próprio scroll interno */}
-              <div className="flex-grow overflow-y-auto">
-                <ChatMessages messages={messages} messagesEndRef={messagesEndRef} iaAvatar={IA_AVATAR} userAvatar={USER_AVATAR} />
+        <div className="flex-grow flex flex-col overflow-hidden">
+          {/* Este div é o contêiner principal do chat, incluindo mensagens e input */}
+          <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden"> 
+            {error && (
+              <div className="p-4 bg-destructive text-destructive-foreground">
+                {error}
               </div>
-              {showSuggestions && !pendingAction && (
-                <div className="p-4 border-t border-border bg-muted/40">
-                  <p className="text-sm text-muted-foreground mb-2">Sugestões:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {initialSuggestions.map((sug, index) => (
-                      <Button key={index} variant="outline" size="sm" onClick={() => handleSuggestionClick(sug)}>
-                        {sug}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {/* ChatInput fica aqui, abaixo das mensagens/sugestões, mas acima do padding da NavBar */}
-              <ChatInput
-                onSubmit={handleSendMessage} 
-                loading={loading}
-                waitingConfirmation={waitingConfirmation} 
-                pendingActionDetails={pendingAction ? pendingAction.dados : null} 
-                onConfirm={() => handleSendMessage('sim')} 
-                onCancel={() => handleSendMessage('não')} 
-              />
+            )}
+            {/* ChatMessages agora ocupa o espaço flexível e tem seu próprio scroll interno */}
+            <div className="flex-grow overflow-y-auto">
+              <ChatMessages messages={messages} messagesEndRef={messagesEndRef} iaAvatar={IA_AVATAR} userAvatar={USER_AVATAR} />
             </div>
-          </TabsContent>
-        </Tabs>
+            {showSuggestions && !pendingAction && (
+              <div className="p-4 border-t border-border bg-muted/40">
+                <p className="text-sm text-muted-foreground mb-2">Sugestões:</p>
+                <div className="flex flex-wrap gap-2">
+                  {initialSuggestions.map((sug, index) => (
+                    <Button key={index} variant="outline" size="sm" onClick={() => handleSuggestionClick(sug)}>
+                      {sug}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* ChatInput fica aqui, abaixo das mensagens/sugestões, mas acima do padding da NavBar */}
+            <ChatInput
+              onSubmit={handleSendMessage} 
+              loading={loading}
+              waitingConfirmation={waitingConfirmation} 
+              pendingActionDetails={pendingAction ? pendingAction.dados : null} 
+              onConfirm={() => handleSendMessage('sim')} 
+              onCancel={() => handleSendMessage('não')} 
+            />
+          </div>
+        </div>
       </div>
-      {/* A NavBar que aparece no rodapé é renderizada aqui, fora do container principal do conteúdo da página, mas dentro do flex flex-col h-screen */}
-      {/* O padding no div acima garante que o ChatInput não seja coberto por esta NavBar */}
+      {/* A NavBar que aparece no rodapé é renderizada aqui */}
       <NavBar /> 
     </div>
   );

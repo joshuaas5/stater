@@ -495,15 +495,14 @@ export const FinancialAdvisorPage: React.FC = () => {
               <ChatMessages messages={messages} messagesEndRef={messagesEndRef} iaAvatar={IA_AVATAR} userAvatar={USER_AVATAR} />
             </div>
             {showSuggestions && !pendingAction && (
-              <div className="p-4 border-t border-border bg-card">
-                <p className="text-sm text-muted-foreground mb-2">Sugestões:</p>
-                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              <div className="p-2 border-t border-border bg-card">
+                <div className="flex overflow-x-auto space-x-2 py-2 scrollbar-thin scrollbar-thumb-muted-foreground/50 scrollbar-track-transparent">
                   {initialSuggestions.map((sug, index) => (
                     <Button 
                       key={index} 
                       variant="outline" 
                       size="sm" 
-                      className="text-xs sm:text-sm justify-start overflow-hidden text-ellipsis whitespace-nowrap"
+                      className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
                       onClick={() => handleSuggestionClick(sug)}
                     >
                       {sug}

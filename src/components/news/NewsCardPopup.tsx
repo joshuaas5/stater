@@ -31,7 +31,7 @@ const NewsCardPopup: React.FC<NewsCardPopupProps> = ({ item, currentLang }) => {
             <img 
               src={imageUrl} 
               alt={title} 
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className={`w-full h-full ${imageUrl.endsWith('.svg') ? 'object-contain' : 'object-cover'} transition-transform duration-300 group-hover:scale-105`}
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }}
             />
           </div>

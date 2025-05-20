@@ -31,7 +31,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ item }) => {
           <img 
             src={imageUrl} 
             alt={decodeHTMLEntities(title) || 'Imagem da notícia'} 
-            className="object-cover w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
+            className={`object-cover w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105 ${imageUrl && imageUrl.endsWith('.svg') ? 'object-contain' : 'object-cover'}`}
             onError={handleImageError}
           />
         </div>

@@ -8,16 +8,15 @@ const SOURCES_CONFIG = {
   'pt-BR': [
     { key: 'investnews', displayName: 'InvestNews', lang: 'pt-BR', logoUrl: 'https://media.investnews.com.br/uploads/2025/01/logo.svg' },
     { key: 'infomoney', displayName: 'InfoMoney', lang: 'pt-BR', logoUrl: 'https://www.infomoney.com.br/wp-content/uploads/2021/03/Site-thumb-de-materia.png?fit=1280%2C720&quality=50&strip=all' },
-    { key: 'cointelegraph_br', displayName: 'Cointelegraph Brasil', lang: 'pt-BR', logoUrl: 'https://cointelegraph.com/assets/img/logo-blue.svg' },
-    { key: 'cnn_brasil', displayName: 'CNN Brasil', lang: 'pt-BR', logoUrl: 'https://www.cnn.com/media/sites/cnn/cnn-logo.svg' }, // Placeholder global
-    { key: 'money_times', displayName: 'Money Times', lang: 'pt-BR', logoUrl: 'https://fatorialinvest.com.br/wp-content/uploads/2023/03/Logo-Money-Times.png' }, // TODO: Save locally if desired
-    { key: 'reuters_pt', displayName: 'Reuters PT', lang: 'pt-BR', logoUrl: 'data:image/png;base64,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' }
+    { key: 'cointelegraph-br', displayName: 'Cointelegraph Brasil', lang: 'pt-BR', logoUrl: 'https://cointelegraph.com/assets/img/logo-blue.svg' }, 
+    { key: 'cnn-brasil', displayName: 'CNN Brasil', lang: 'pt-BR', logoUrl: 'https://www.cnn.com/media/sites/cnn/cnn-logo.svg' }, 
+    { key: 'money_times', displayName: 'Money Times', lang: 'pt-BR', logoUrl: 'https://fatorialinvest.com.br/wp-content/uploads/2023/03/Logo-Money-Times.png' } 
   ],
   'en-US': [
-    { key: 'reuters_business', displayName: 'Reuters Business', lang: 'en-US', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e2/Reuters_logo.svg' },
+    { key: 'reuters', displayName: 'Reuters Business', lang: 'en-US', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e2/Reuters_logo.svg' }, 
     { key: 'bloomberg_markets', displayName: 'Bloomberg Markets', lang: 'en-US', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5d/New_Bloomberg_Logo.svg' },
     { key: 'wsj_markets', displayName: 'WSJ Markets', lang: 'en-US', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4a/WSJ_Logo.svg' },
-    { key: 'cointelegraph_en', displayName: 'Cointelegraph', lang: 'en-US', logoUrl: 'https://cointelegraph.com/assets/img/logo-blue.svg' }
+    { key: 'cointelegraph', displayName: 'Cointelegraph', lang: 'en-US', logoUrl: 'https://cointelegraph.com/assets/img/logo-blue.svg' } 
   ]
 };
 
@@ -149,24 +148,20 @@ const FinancialNewsFeed: React.FC = () => {
         <div className="flex rounded-full p-1 bg-muted/50 shadow-md border border-border/20">
           <button
             onClick={() => setCurrentScope('pt-BR')}
-            className={`flex items-center px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-              currentScope === 'pt-BR' 
-                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md transform scale-105' 
-                : 'bg-transparent text-muted-foreground hover:bg-muted/80'
-            }`}
+            className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background transform hover:scale-105 active:scale-100 shadow hover:shadow-md ${currentScope === 'pt-BR' 
+                ? 'bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white ring-emerald-400'
+                : 'bg-card text-card-foreground hover:bg-muted ring-transparent'}`}
           >
-            <MapPin size={16} className={`mr-2 ${currentScope === 'pt-BR' ? 'text-white' : 'text-muted-foreground'}`} /> 
+            <MapPin size={16} className={`mr-2`} /> 
             Nacionais
           </button>
           <button
             onClick={() => setCurrentScope('en-US')}
-            className={`flex items-center px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-              currentScope === 'en-US' 
-                ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md transform scale-105' 
-                : 'bg-transparent text-muted-foreground hover:bg-muted/80'
-            }`}
+            className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background transform hover:scale-105 active:scale-100 shadow hover:shadow-md ${currentScope === 'en-US' 
+                ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white ring-indigo-400'
+                : 'bg-card text-card-foreground hover:bg-muted ring-transparent'}`}
           >
-            <Globe size={16} className={`mr-2 ${currentScope === 'en-US' ? 'text-white' : 'text-muted-foreground'}`} /> 
+            <Globe size={16} className={`mr-2`} /> 
             Internacionais
           </button>
         </div>

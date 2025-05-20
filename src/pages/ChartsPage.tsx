@@ -284,8 +284,8 @@ const ChartsPage: React.FC = () => {
           <MonthSelector onMonthChange={handleMonthChange} />
         </div>
         
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex space-x-2">
+        <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:justify-between sm:items-center mb-6">
+          <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
             <Button 
               variant={activeChart === 'pie' ? "default" : "outline"} 
               size="sm"
@@ -312,19 +312,21 @@ const ChartsPage: React.FC = () => {
             </Button>
           </div>
           
-          <Select 
-            value={filterType} 
-            onValueChange={(value: 'all' | 'income' | 'expense') => setFilterType(value)}
-          >
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Filtrar por" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="income">Receitas</SelectItem>
-              <SelectItem value="expense">Despesas</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-full sm:w-auto">
+            <Select 
+              value={filterType} 
+              onValueChange={(value: 'all' | 'income' | 'expense') => setFilterType(value)}
+            >
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Filtrar por" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="income">Receitas</SelectItem>
+                <SelectItem value="expense">Despesas</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         
         {/* Resumo financeiro */}

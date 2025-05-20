@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { PieChart, FileText, Home, Lightbulb, Star, Settings } from 'lucide-react';
+import { PieChart, FileText, Home, Lightbulb, Settings } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 
 const NavBar: React.FC = () => {
@@ -15,9 +15,8 @@ const NavBar: React.FC = () => {
   const navItems = [
     { icon: <PieChart size={24} />, label: t('charts'), path: '/charts' },
     { icon: <FileText size={24} />, label: t('bills'), path: '/bills' },
-    { icon: <Lightbulb size={24} />, label: t('advisor'), path: '/financial-advisor' },
     { icon: <Home size={24} />, label: t('home'), path: '/dashboard' },
-    { icon: <Star size={24} />, label: t('Recomendações'), path: '/recomendacoes' },
+    { icon: <Lightbulb size={24} />, label: t('advisor'), path: '/financial-advisor' },
     { icon: <Settings size={24} />, label: t('settings'), path: '/preferences' },
   ];
   
@@ -27,7 +26,7 @@ const NavBar: React.FC = () => {
   
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-galileo-card shadow-lg border-t border-galileo-border z-50 w-full">
-      <div className="flex justify-between items-center py-2 px-1 md:px-4 max-w-screen-xl mx-auto overflow-x-auto">
+      <div className="flex justify-center items-center py-2 px-1 md:px-4 max-w-screen-xl mx-auto overflow-x-auto">
         {navItems.map((item, index) => {
           const active = isActive(item.path);
           

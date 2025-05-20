@@ -6,7 +6,7 @@ import NavBar from '@/components/navigation/NavBar';
 import { isLoggedIn, getUserPreferences, saveUserPreferences } from '@/utils/localStorage';
 import { 
   Sun, Moon, Bell, Languages, DollarSign, 
-  Calendar, Paintbrush, Save, UserCircle2
+  Calendar, Paintbrush, Save, UserCircle2, Star
 } from 'lucide-react';
 import { CURRENCIES, suggestCurrencyByCountry } from '@/utils/currencies';
 import { getCurrentUser } from '@/utils/localStorage';
@@ -211,6 +211,22 @@ const PreferencesPage: React.FC = () => {
           </Button>
         </div>
       </div>
+      
+      <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
+        <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
+          <Star size={18} className="mr-2" /> Recursos adicionais
+        </h2>
+        <div className="space-y-3">
+          <Button 
+            variant="outline"
+            className="w-full border border-galileo-accent text-galileo-accent hover:bg-galileo-accent/10"
+            onClick={() => navigate('/recomendacoes')}
+          >
+            <Star size={16} className="mr-2" /> Acessar recomendações financeiras
+          </Button>
+        </div>
+      </div>
+      
       <div className="pt-2 pb-4">
         <Button
           variant="outline"

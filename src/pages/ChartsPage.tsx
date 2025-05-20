@@ -277,7 +277,7 @@ const ChartsPage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-galileo-background">
-      <PageHeader title="Gráficos" showSearch={false} />
+      <PageHeader title="Gráficos" showSearch={false} showThemeToggle={false} />
       
       <main className="flex-grow overflow-y-auto p-4 pb-24 md:pb-20">
         <div className="mb-6">

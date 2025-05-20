@@ -120,21 +120,21 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
           variant="ghost" 
           size="icon" 
           onClick={handlePrevMonth}
-          className="h-9 w-9 rounded-full text-muted-foreground hover:bg-accent/10 hover:text-foreground focus:outline-none focus-visible:ring-0"
+          className="h-10 w-10 rounded-full text-muted-foreground hover:bg-accent/10 hover:text-foreground focus:outline-none focus-visible:ring-0"
         >
-          <ChevronLeft size={18} />
+          <ChevronLeft size={20} />
         </Button>
       
         <Popover>
           <PopoverTrigger asChild>
             <div className="flex items-center cursor-pointer">
-              <div className={`flex items-center rounded-full bg-card py-1.5 px-4 shadow-md hover:shadow-lg transition-all relative overflow-hidden group`}>
+              <div className={`flex items-center rounded-full bg-card py-2 px-5 shadow-md hover:shadow-lg transition-all relative overflow-hidden group`}>
                 <div className={`absolute inset-0 opacity-10 ${monthColors[selectedMonth]}`}></div>
                 <div className={`absolute bottom-0 left-0 right-0 h-1 ${monthColors[selectedMonth]}`}></div>
                 
-                <CalendarIcon size={16} className="mr-2 text-muted-foreground" />
-                <span className={`font-medium ${textColors[selectedMonth]}`}>{months[selectedMonth]}</span>
-                <span className="text-xs text-muted-foreground ml-1.5">{selectedYear}</span>
+                <CalendarIcon size={18} className="mr-2 text-muted-foreground" />
+                <span className={`font-medium text-base ${textColors[selectedMonth]}`}>{months[selectedMonth]}</span>
+                <span className="text-sm text-muted-foreground ml-2">{selectedYear}</span>
                 
                 <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-card to-transparent group-hover:opacity-0 transition-opacity"></div>
               </div>
@@ -159,9 +159,9 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
           variant="ghost" 
           size="icon" 
           onClick={handleNextMonth}
-          className="h-9 w-9 rounded-full text-muted-foreground hover:bg-accent/10 hover:text-foreground focus:outline-none focus-visible:ring-0"
+          className="h-10 w-10 rounded-full text-muted-foreground hover:bg-accent/10 hover:text-foreground focus:outline-none focus-visible:ring-0"
         >
-          <ChevronRight size={18} />
+          <ChevronRight size={20} />
         </Button>
       </div>
     </div>

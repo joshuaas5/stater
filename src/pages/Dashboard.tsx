@@ -371,15 +371,15 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-end mb-4 mr-4">
         <Button 
-          variant="outline" 
+          variant="ghost" 
           size="sm" 
-          className="bg-card/50 border border-galileo-accent/30 hover:bg-galileo-accent/10 text-galileo-text flex items-center gap-2 shadow-sm"
+          className="text-galileo-secondaryText hover:text-galileo-text flex items-center gap-1 text-xs"
           onClick={() => navigate('/recomendacoes')}
         >
-          <Star size={16} className="text-yellow-500" />
-          Recomendações Financeiras
+          <Star size={14} className="text-yellow-500" />
+          Dicas
         </Button>
       </div>
 

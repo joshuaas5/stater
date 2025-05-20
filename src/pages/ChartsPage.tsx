@@ -463,10 +463,10 @@ const ChartsPage: React.FC = () => {
         </Card>
         
         {/* Lista de maiores gastos/receitas */}
-        <div className="px-4 mb-32 pb-20">
-          <h3 className="font-medium mb-2 text-sm sm:text-base">{filterType === 'income' ? 'Maiores Receitas' : 'Maiores Gastos'}</h3>
+        <div className="px-4 mb-20 pb-16">
+          <h3 className="font-medium mb-2 text-xs sm:text-sm truncate">{filterType === 'income' ? 'Maiores Receitas' : 'Maiores Gastos'}</h3>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[450px] overflow-y-auto pr-1 pb-20">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[380px] overflow-y-auto pr-1 pb-16">
             {transactions
               .filter(t => filterType === 'all' ? true : t.type === filterType)
               .sort((a, b) => b.amount - a.amount)

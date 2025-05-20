@@ -593,7 +593,7 @@ const Dashboard: React.FC = () => {
       </Dialog>
       
       <Dialog open={showFinancialTips} onOpenChange={setShowFinancialTips}>
-  <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
+  <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
     <DialogHeader>
       <DialogTitle className="flex items-center gap-2">
         <span className="text-galileo-text">Notícias do Mercado</span>
@@ -614,7 +614,7 @@ const Dashboard: React.FC = () => {
       </Button>
     </DialogHeader>
     <div className="space-y-4 pt-2">
-      <FinancialNewsFeed />
+      <FinancialNewsFeed hideHeader={true} />
     </div>
   </DialogContent>
 </Dialog>

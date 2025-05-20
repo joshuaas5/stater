@@ -317,19 +317,10 @@ const Dashboard: React.FC = () => {
   return (
     <div className="bg-galileo-background min-h-screen pb-20">
   <div className="flex items-center justify-between p-4">
-    <div className="flex items-center gap-3">
+    <div className="flex items-center">
       <h2 className="text-galileo-text text-lg font-bold leading-tight">
         Olá, {userName}!
       </h2>
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="text-galileo-secondaryText hover:text-galileo-accent flex items-center gap-1 py-1 px-2 h-auto"
-        onClick={() => navigate('/recomendacoes')}
-      >
-        <Star size={14} className="text-yellow-500" />
-        Recomendações
-      </Button>
     </div>
     <div className="flex items-center gap-2">
       <button
@@ -337,7 +328,7 @@ const Dashboard: React.FC = () => {
         className="pop-art-tips focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-galileo-accent flex items-center gap-1"
         aria-label="Show Tips"
       >
-        <span>EM ALTA</span>
+        <span>News</span>
         <span className="animate-pulse text-yellow-500">🔥</span>
       </button>
       <ThemeToggle />
@@ -365,6 +356,18 @@ const Dashboard: React.FC = () => {
           </div>
           <BalanceCard balance={balance} percentChange={percentChange} visible={balanceVisible} />
         </div>
+      </div>
+
+      <div className="flex justify-center mb-4">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="bg-card/50 border-2 border-galileo-accent/30 hover:bg-galileo-accent/10 text-galileo-text flex items-center gap-2 shadow-md"
+          onClick={() => navigate('/recomendacoes')}
+        >
+          <Star size={16} className="text-yellow-500" />
+          Recomendações Financeiras
+        </Button>
       </div>
 
       <div className="flex justify-center gap-4 mb-6">

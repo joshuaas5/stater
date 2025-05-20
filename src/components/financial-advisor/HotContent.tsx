@@ -172,7 +172,7 @@ const HotContent: React.FC = () => {
       <Card className="bg-card/80 backdrop-blur-sm shadow-xl border-border/30 max-w-full md:max-w-4xl mx-auto overflow-hidden">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl font-semibold text-card-foreground flex items-center">
-            <span>EM ALTA</span>
+            <span>News</span>
             <span className="ml-1 animate-pulse text-yellow-500">🔥</span>
           </CardTitle>
         </CardHeader>

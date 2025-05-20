@@ -114,47 +114,49 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
   ];
   
   return (
-    <div className="flex items-center gap-1.5">
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        onClick={handlePrevMonth}
-        className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/10"
-      >
-        <ChevronLeft size={16} />
-      </Button>
+    <div className="flex justify-center items-center w-full">
+      <div className="flex items-center gap-2">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={handlePrevMonth}
+          className="h-10 w-10 rounded-md bg-galileo-background border-2 border-galileo-accent shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all"
+        >
+          <ChevronLeft size={18} className="text-galileo-text" />
+        </Button>
       
-      <Popover>
-        <PopoverTrigger asChild>
-          <div className="flex items-center cursor-pointer">
-            <div className={`flex items-center rounded-md border ${borderColors[selectedMonth]} bg-card shadow-sm px-3 py-1.5 hover:bg-accent/5 transition-colors`}>
-              <CalendarIcon size={14} className="mr-2 text-muted-foreground" />
-              <span className={`font-medium ${textColors[selectedMonth]}`}>{months[selectedMonth]}</span>
-              <span className="text-xs text-muted-foreground ml-1.5">{selectedYear}</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <div className="flex items-center cursor-pointer">
+              <div className={`flex items-center rounded-md bg-galileo-background border-2 ${borderColors[selectedMonth]} px-4 py-2.5 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all`}>
+                <CalendarIcon size={16} className="mr-2 text-galileo-accent" />
+                <span className={`font-bold ${textColors[selectedMonth]}`}>{months[selectedMonth]}</span>
+                <span className="text-sm font-medium text-galileo-text ml-2">{selectedYear}</span>
+              </div>
             </div>
-          </div>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="center">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={handleCalendarSelect}
-            initialFocus
-            locale={ptBR}
-            className={cn("p-3 pointer-events-auto")}
-            weekStartsOn={getWeekStartDay()}
-          />
-        </PopoverContent>
-      </Popover>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 border-2 border-black rounded-md shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)]" align="center">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={handleCalendarSelect}
+              initialFocus
+              locale={ptBR}
+              className={cn("p-3 pointer-events-auto")}
+              weekStartsOn={getWeekStartDay()}
+            />
+          </PopoverContent>
+        </Popover>
       
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        onClick={handleNextMonth}
-        className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/10"
-      >
-        <ChevronRight size={16} />
-      </Button>
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={handleNextMonth}
+          className="h-10 w-10 rounded-md bg-galileo-background border-2 border-galileo-accent shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] hover:translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all"
+        >
+          <ChevronRight size={18} className="text-galileo-text" />
+        </Button>
+      </div>
     </div>
   );
 };

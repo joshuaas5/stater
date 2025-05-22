@@ -1193,7 +1193,7 @@ export const saveUserPreferences = (preferences: UserPreferences): void => {
 // Obter preferências do usuário do Supabase
 export const getSupabaseUserPreferences = async (userId: string): Promise<{ data: UserPreferences | null, error: any }> => {
   try {
-    // Adicionar os headers corretos para a requisição
+    // Buscar preferências do usuário
     const { data, error } = await supabase
       .from('user_preferences')
       .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
@@ -1205,11 +1205,13 @@ export const getSupabaseUserPreferences = async (userId: string): Promise<{ data
       return { data: defaultPreferences, error: null };
     }
     
+    // Se encontrou dados, retornar
     if (data) {
       return { data: mapSupabaseToPreferences(data), error: null };
     }
     
     // Se não encontrou dados, criar um registro para este usuário
+    console.log(`Criando preferências padrão para o usuário ${userId}`);
     const newPrefs = mapPreferencesToSupabase(defaultPreferences, userId);
     const { data: insertData, error: insertError } = await supabase
       .from('user_preferences')

@@ -1193,16 +1193,32 @@ export const saveUserPreferences = (preferences: UserPreferences): void => {
 // Obter preferências do usuário do Supabase
 export const getSupabaseUserPreferences = async (userId: string): Promise<{ data: UserPreferences | null, error: any }> => {
   try {
-    // Buscar preferências do usuário
-    const { data, error } = await supabase
+    // Buscar preferências do usuário - tentativa 1 com maybeSingle
+    let { data, error } = await supabase
       .from('user_preferences')
       .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
       .eq('user_id', userId)
       .maybeSingle();
     
+    // Se houve erro, tentar novamente com .limit(1)
     if (error) {
-      console.error("Erro ao buscar preferências do Supabase:", error);
-      return { data: defaultPreferences, error: null };
+      console.log("Tentando buscar preferências com método alternativo...");
+      const response = await supabase
+        .from('user_preferences')
+        .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
+        .eq('user_id', userId)
+        .limit(1);
+      
+      if (response.error) {
+        console.error("Erro ao buscar preferências do Supabase (método alternativo):", response.error);
+        return { data: defaultPreferences, error: null };
+      }
+      
+      // Se encontrou dados, usar o primeiro resultado
+      if (response.data && response.data.length > 0) {
+        data = response.data[0];
+        error = null;
+      }
     }
     
     // Se encontrou dados, retornar
@@ -1210,21 +1226,41 @@ export const getSupabaseUserPreferences = async (userId: string): Promise<{ data
       return { data: mapSupabaseToPreferences(data), error: null };
     }
     
-    // Se não encontrou dados, criar um registro para este usuário
-    console.log(`Criando preferências padrão para o usuário ${userId}`);
-    const newPrefs = mapPreferencesToSupabase(defaultPreferences, userId);
-    const { data: insertData, error: insertError } = await supabase
-      .from('user_preferences')
-      .insert(newPrefs)
-      .select()
-      .single();
+    // Se não encontrou dados, tentar criar um registro para este usuário
+    // com tratamento para o caso de chave duplicada
+    try {
+      console.log(`Tentando criar preferências padrão para o usuário ${userId}`);
+      const newPrefs = mapPreferencesToSupabase(defaultPreferences, userId);
+      const { data: insertData, error: insertError } = await supabase
+        .from('user_preferences')
+        .insert(newPrefs)
+        .select()
+        .single();
+        
+      if (insertError) {
+        // Se o erro for de chave duplicada, tentar buscar novamente
+        if (insertError.code === '23505') {
+          console.log("Detectada chave duplicada, buscando preferências existentes...");
+          const { data: existingData } = await supabase
+            .from('user_preferences')
+            .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
+            .eq('user_id', userId)
+            .limit(1);
+            
+          if (existingData && existingData.length > 0) {
+            return { data: mapSupabaseToPreferences(existingData[0]), error: null };
+          }
+        }
+        
+        console.error("Erro ao criar preferências no Supabase:", insertError);
+        return { data: defaultPreferences, error: null };
+      }
       
-    if (insertError) {
-      console.error("Erro ao criar preferências no Supabase:", insertError);
+      return { data: mapSupabaseToPreferences(insertData), error: null };
+    } catch (insertCatchError) {
+      console.error("Erro ao inserir preferências:", insertCatchError);
       return { data: defaultPreferences, error: null };
     }
-    
-    return { data: mapSupabaseToPreferences(insertData), error: null };
   } catch (error) {
     console.error("Erro ao buscar preferências do usuário do Supabase:", error);
     return { data: defaultPreferences, error: null };

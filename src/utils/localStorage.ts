@@ -2,6 +2,9 @@ import { User, Transaction, Bill, Notification, CardItem, NotificationType } fro
 import { supabase } from "@/lib/supabase";
 import { v4 as uuidv4 } from 'uuid';
 
+// Exportar uuidv4 para uso em outros arquivos
+export { uuidv4 };
+
 // Funções de autenticação e usuário
 
 // Salvar usuário

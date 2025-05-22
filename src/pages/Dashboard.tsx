@@ -16,7 +16,7 @@ import {
   formatCurrency, 
   getTransactionsFromLastDays 
 } from '@/utils/dataProcessing';
-import { getCurrentUser, getTransactions, isLoggedIn, saveTransaction, updateTransaction, deleteTransaction } from '@/utils/localStorage';
+import { getCurrentUser, getTransactions, isLoggedIn, saveTransaction, updateTransaction, deleteTransaction, uuidv4 } from '@/utils/localStorage';
 import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -286,7 +286,7 @@ const Dashboard: React.FC = () => {
     const type = newTransaction.type;
     
     const transaction: Transaction = {
-      id: `transaction_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: uuidv4(), // Usar UUID válido para compatibilidade com o Supabase
       title: newTransaction.title,
       amount: amount,
       type: type,

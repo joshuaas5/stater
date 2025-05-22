@@ -83,19 +83,32 @@ const mapSupabaseToTransaction = (data: any): Transaction => {
 // Estas funções foram movidas para serem exportadas na linha ~335
 
 // Salvar uma transação no Supabase
-export const saveSupabaseTransaction = async (transaction: Omit<Transaction, 'id' | 'user_id' | 'created_at'>): Promise<{ data: any, error: any }> => {
+export const saveSupabaseTransaction = async (transaction: Transaction): Promise<{ data: any, error: any }> => {
   const user = getCurrentUser();
   if (!user) return { data: null, error: "Usuário não autenticado" };
   
-  // Preparar dados para o Supabase
-  const supabaseTransaction = mapTransactionToSupabase(transaction as Transaction, user.id);
-  
-  // Salvar no Supabase
-  return await supabase
-    .from('transactions')
-    .insert(supabaseTransaction)
-    .select()
-    .single();
+  try {
+    // Preparar dados para o Supabase
+    const supabaseTransaction = mapTransactionToSupabase(transaction, user.id);
+    
+    // Salvar no Supabase
+    const { data, error } = await supabase
+      .from('transactions')
+      .insert(supabaseTransaction)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Erro ao salvar transação no Supabase:", error);
+      return { data: null, error };
+    }
+    
+    console.log("Transação salva com sucesso no Supabase:", data);
+    return { data, error: null };
+  } catch (error) {
+    console.error("Erro inesperado ao salvar transação no Supabase:", error);
+    return { data: null, error };
+  }
 };
 
 // Salvar uma transação (mantém a compatibilidade com o código existente)

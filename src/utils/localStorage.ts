@@ -48,19 +48,50 @@ export const getSupabaseUser = async (): Promise<User | null> => {
 
 // Funções de mapeamento entre formatos locais e Supabase
 const mapTransactionToSupabase = (transaction: Transaction, userId: string) => {
+  // Garantir que a data seja válida
+  let dateValue: string;
+  if (transaction.date instanceof Date) {
+    dateValue = transaction.date.toISOString();
+  } else if (typeof transaction.date === 'string') {
+    try {
+      dateValue = new Date(transaction.date).toISOString();
+    } catch (err) {
+      console.error('Data inválida, usando data atual:', transaction.date);
+      dateValue = new Date().toISOString();
+    }
+  } else {
+    dateValue = new Date().toISOString();
+  }
+  
+  // Validar tipo de transação
+  const transactionType = transaction.type === 'income' || transaction.type === 'expense' 
+    ? transaction.type 
+    : 'expense';
+    
+  // Validar recorrência
+  let recurrenceFreq = null;
+  if (transaction.isRecurring && transaction.recurrenceFrequency) {
+    // Validar se o valor está dentro das opções permitidas pelo schema
+    if (['weekly', 'monthly', 'yearly'].includes(transaction.recurrenceFrequency)) {
+      recurrenceFreq = transaction.recurrenceFrequency;
+    }
+  }
+  
+  // Criar objeto compativel com o schema do Supabase
   return {
     id: transaction.id || uuidv4(),
     user_id: userId,
-    title: transaction.title,
-    amount: transaction.amount,
-    type: transaction.type,
-    category: transaction.category,
-    date: transaction.date instanceof Date ? transaction.date.toISOString() : transaction.date,
-    is_recurring: transaction.isRecurring || false,
+    title: transaction.title || 'Sem título',
+    amount: typeof transaction.amount === 'number' ? transaction.amount : parseFloat(String(transaction.amount)) || 0,
+    type: transactionType,
+    category: transaction.category || (transactionType === 'income' ? 'Receita' : 'Outros'),
+    date: dateValue,
+    is_recurring: Boolean(transaction.isRecurring),
     recurring_day: transaction.recurringDay || null,
-    recurrence_frequency: transaction.recurrenceFrequency || null,
-    is_paid: transaction.isPaid || false,
+    recurrence_frequency: recurrenceFreq,
+    is_paid: transaction.isPaid !== undefined ? Boolean(transaction.isPaid) : true,
     created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
 };
 
@@ -88,8 +119,18 @@ export const saveSupabaseTransaction = async (transaction: Transaction): Promise
   if (!user) return { data: null, error: "Usuário não autenticado" };
   
   try {
+    // Verificar se o usuário está autenticado no Supabase
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      console.warn("Usuário não está autenticado no Supabase. Salvando apenas localmente.");
+      return { data: null, error: "Usuário não autenticado no Supabase" };
+    }
+    
     // Preparar dados para o Supabase
     const supabaseTransaction = mapTransactionToSupabase(transaction, user.id);
+    
+    // Log detalhado para debugging
+    console.log("Tentando salvar transação no Supabase:", JSON.stringify(supabaseTransaction));
     
     // Salvar no Supabase
     const { data, error } = await supabase
@@ -100,6 +141,25 @@ export const saveSupabaseTransaction = async (transaction: Transaction): Promise
     
     if (error) {
       console.error("Erro ao salvar transação no Supabase:", error);
+      // Tentar determinar a causa do erro
+      if (error.code === '23505') {
+        console.log("Transação já existe, tentando atualizar...");
+        // Se for um erro de chave duplicada, tente atualizar em vez de inserir
+        const { data: updateData, error: updateError } = await supabase
+          .from('transactions')
+          .update(supabaseTransaction)
+          .eq('id', supabaseTransaction.id)
+          .select()
+          .single();
+          
+        if (updateError) {
+          console.error("Erro ao atualizar transação existente:", updateError);
+          return { data: null, error: updateError };
+        }
+        
+        console.log("Transação atualizada com sucesso:", updateData);
+        return { data: updateData, error: null };
+      }
       return { data: null, error };
     }
     
@@ -121,13 +181,38 @@ export const saveTransaction = (transaction: Transaction): void => {
     transaction.id = uuidv4();
   }
   
+  // Garantir que o usuário ID esteja definido
+  transaction.userId = user.id;
+  
+  // Garantir que a data esteja em formato correto
+  if (!(transaction.date instanceof Date)) {
+    transaction.date = new Date(transaction.date || new Date());
+  }
+  
+  console.log('Salvando transação:', JSON.stringify(transaction));
+  
   // Salvar localmente
   const transactionsStr = localStorage.getItem(`transactions_${user.id}`);
   let transactions: Transaction[] = [];
   if (transactionsStr) {
-    transactions = JSON.parse(transactionsStr);
+    try {
+      transactions = JSON.parse(transactionsStr);
+    } catch (err) {
+      console.error('Erro ao analisar transações do localStorage:', err);
+      transactions = [];
+    }
   }
-  transactions.push(transaction);
+  
+  // Verificar se a transação já existe, para não adicionar duplicatas
+  const existingIndex = transactions.findIndex(t => t.id === transaction.id);
+  if (existingIndex >= 0) {
+    // Substituir a transação existente
+    transactions[existingIndex] = transaction;
+  } else {
+    // Adicionar nova transação
+    transactions.push(transaction);
+  }
+  
   localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
   
   // Disparar evento para atualizar a UI
@@ -136,23 +221,59 @@ export const saveTransaction = (transaction: Transaction): void => {
   // Também salvar no Supabase - com retry em caso de falha
   const saveToSupabase = async () => {
     try {
+      // Primeiro, verificar a autenticação no Supabase
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        console.warn('Usuário não está autenticado no Supabase. Tentando autenticar...');
+        
+        // Forçar atualização da sessão - isso pode resolver problemas de sessão expirada
+        try {
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+          if (refreshError) {
+            console.error('Erro ao atualizar sessão:', refreshError);
+          } else if (refreshData.session) {
+            console.log('Sessão atualizada com sucesso:', refreshData.session.user?.id);
+          }
+        } catch (refreshErr) {
+          console.error('Erro ao tentar atualizar sessão:', refreshErr);
+        }
+      }
+      
+      // Tentar salvar a transação no Supabase
+      console.log('Enviando transação para o Supabase...');
       const result = await saveSupabaseTransaction(transaction);
+      
       if (result.error) {
+        console.error('Erro retornado pelo saveSupabaseTransaction:', result.error);
         throw result.error;
       }
       
+      console.log('Transação salva com sucesso no Supabase:', result.data);
+      
       // Forçar uma atualização da UI após salvar no Supabase com sucesso
-      // Isso garante que a UI seja atualizada mesmo que o evento anterior não tenha funcionado
       setTimeout(() => {
         window.dispatchEvent(new Event('transactionsUpdated'));
       }, 500);
       
     } catch (error) {
       console.error('Erro ao salvar transação no Supabase:', error);
+      
+      // Tentativa de retry após 3 segundos
+      console.log('Agendando nova tentativa em 3 segundos...');
       setTimeout(() => {
-        saveSupabaseTransaction(transaction).catch(retryError => {
-          console.error("Falha na segunda tentativa de salvar no Supabase:", retryError);
-        });
+        console.log('Executando nova tentativa de salvamento no Supabase...');
+        saveSupabaseTransaction(transaction)
+          .then(retryResult => {
+            if (retryResult.error) {
+              console.error('Falha na segunda tentativa:', retryResult.error);
+            } else {
+              console.log('Segunda tentativa bem-sucedida:', retryResult.data);
+              window.dispatchEvent(new Event('transactionsUpdated'));
+            }
+          })
+          .catch(retryError => {
+            console.error("Falha na segunda tentativa de salvar no Supabase:", retryError);
+          });
       }, 3000);
     }
   };
@@ -160,6 +281,7 @@ export const saveTransaction = (transaction: Transaction): void => {
   // Iniciar o processo de salvamento no Supabase
   saveToSupabase();
   
+  // Disparar evento personalizado (redundante com o evento normal, mas mantido por compatibilidade)
   window.dispatchEvent(new CustomEvent('transactionsUpdated'));
 };
 

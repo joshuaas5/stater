@@ -184,7 +184,7 @@ export const getTransactions = (): Transaction[] => {
   
   // Buscar do localStorage
   const transactionsStr = localStorage.getItem(`transactions_${user.id}`);
-  if (!transactionsStr) return [];
+  const localTransactions = transactionsStr ? JSON.parse(transactionsStr) : [];
   
   // Também buscar do Supabase em segundo plano para sincronizar
   getSupabaseTransactions(user.id).then(({ data, error }) => {
@@ -193,14 +193,41 @@ export const getTransactions = (): Transaction[] => {
       return;
     }
     
+    // Se temos dados no Supabase
     if (data && data.length > 0) {
-      const transactions = data.map(mapSupabaseToTransaction);
-      localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
+      const supabaseTransactions = data.map(mapSupabaseToTransaction);
+      
+      // IMPORTANTE: Mesclar transações locais com as do Supabase, não sobrescrever
+      // Verificar se temos transações locais que não estão no Supabase
+      const localIds = new Set(localTransactions.map((t: Transaction) => t.id));
+      const supabaseIds = new Set(supabaseTransactions.map((t: Transaction) => t.id));
+      
+      // Transações que estão no localStorage mas não no Supabase
+      const localOnlyTransactions = localTransactions.filter((t: Transaction) => !supabaseIds.has(t.id));
+      
+      // Mesclar as transações
+      const mergedTransactions = [...supabaseTransactions, ...localOnlyTransactions];
+      
+      // Salvar as transações mescladas no localStorage
+      localStorage.setItem(`transactions_${user.id}`, JSON.stringify(mergedTransactions));
+      
+      // Enviar as transações locais para o Supabase
+      if (localOnlyTransactions.length > 0) {
+        console.log(`Sincronizando ${localOnlyTransactions.length} transações locais com o Supabase...`);
+        localOnlyTransactions.forEach((transaction: Transaction) => {
+          saveSupabaseTransaction(transaction).catch((error: any) => {
+            console.error("Erro ao sincronizar transação local com Supabase:", error);
+          });
+        });
+      }
+      
+      // Notificar a UI para atualizar
       window.dispatchEvent(new CustomEvent('transactionsUpdated'));
     }
   });
   
-  return JSON.parse(transactionsStr);
+  // Sempre retornar as transações locais imediatamente
+  return localTransactions;
 };
 
 // Salvar várias transações de uma vez

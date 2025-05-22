@@ -205,6 +205,18 @@ const Dashboard: React.FC = () => {
   const handleNewTransactionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name === 'amount') {
+      // Processar valores em milhões (ex: 50 milhões, 1 milhão, etc)
+      if (/\d+\s*(milhões|milhão|milhoes)/i.test(value)) {
+        const numberPart = value.replace(/\s*(milhões|milhão|milhoes)/i, '').trim();
+        const numericValue = parseFloat(numberPart) * 1000000;
+        setNewTransaction({
+          ...newTransaction,
+          [name]: numericValue.toString(),
+        });
+        return;
+      }
+      
+      // Processar valores em mil (ex: 50 mil, 1 mil, etc)
       if (/\d+\s*mil/i.test(value)) {
         const numberPart = value.replace(/\s*mil/i, '').trim();
         const numericValue = parseFloat(numberPart) * 1000;
@@ -301,8 +313,17 @@ const Dashboard: React.FC = () => {
     
     toast({
       title: `${type === 'income' ? 'Entrada' : 'Saída'} adicionada`,
-      description: `${transaction.title} foi adicionada com sucesso no valor de ${formatCurrency(transaction.amount)}`
+      description: `${transaction.title} foi adicionada com sucesso no valor de ${formatCurrency(transaction.amount)}` // Corrigido aqui
     });
+    
+    // IMPORTANTE: Atualizar a lista de transações e o saldo
+    setTimeout(() => {
+      // Recarregar transações do mês atual
+      loadTransactions(selectedMonth, selectedYear);
+      
+      // Recalcular o saldo total
+      calculateTotalBalance();
+    }, 100);
   };
   
   const financialTips = [

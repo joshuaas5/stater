@@ -13,6 +13,14 @@ const Login: React.FC = () => {
   useEffect(() => {
     // Check if there's an authentication flow in progress
     const handleAuthRedirect = async () => {
+      // Verificar se o usuário acabou de fazer logout manualmente
+      const isManualLogout = localStorage.getItem('manual_logout') === 'true';
+      
+      // Se for um logout manual, não redirecionar automaticamente
+      if (isManualLogout) {
+        return;
+      }
+      
       // Check URL for auth parameters
       const params = new URLSearchParams(location.search);
       const hashParams = new URLSearchParams(window.location.hash.substring(1));

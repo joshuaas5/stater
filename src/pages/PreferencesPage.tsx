@@ -27,14 +27,18 @@ const PreferencesPage: React.FC = () => {
   const { signOut } = useAuth();
   
   const [preferences, setPreferences] = useState({
-    notificationsEnabled: true,
+    theme: 'dark' as 'light' | 'dark' | 'system',
     language: 'pt-BR',
     currency: 'BRL',
+    dateFormat: 'DD/MM/YYYY',
     weekStartsOn: 'monday',
     showCents: true,
     showRecurringBadges: true,
     showTransactionCategories: true,
-
+    notifications: {
+      billsDueSoon: true,
+      largeTransactions: true
+    }
   });
   
   useEffect(() => {
@@ -135,14 +139,38 @@ const PreferencesPage: React.FC = () => {
             <Bell size={18} className="mr-2" /> {t('notifications')}
           </h2>
           <div className="flex items-center justify-between mb-2">
-            <Label htmlFor="notifications-enabled" className="cursor-pointer">{t('enableNotifications')}</Label>
+            <Label htmlFor="notifications-bills" className="cursor-pointer">{t('enableNotifications')} - Contas a pagar</Label>
             <Switch 
-              id="notifications-enabled" 
-              checked={preferences.notificationsEnabled}
-              onCheckedChange={() => handleSwitchChange('notificationsEnabled')}
+              id="notifications-bills" 
+              checked={preferences.notifications.billsDueSoon}
+              onCheckedChange={() => {
+                setPreferences(prev => ({
+                  ...prev,
+                  notifications: {
+                    ...prev.notifications,
+                    billsDueSoon: !prev.notifications.billsDueSoon
+                  }
+                }));
+              }}
             />
           </div>
-          {preferences.notificationsEnabled && (
+          <div className="flex items-center justify-between mb-2">
+            <Label htmlFor="notifications-transactions" className="cursor-pointer">{t('enableNotifications')} - Grandes transações</Label>
+            <Switch 
+              id="notifications-transactions" 
+              checked={preferences.notifications.largeTransactions}
+              onCheckedChange={() => {
+                setPreferences(prev => ({
+                  ...prev,
+                  notifications: {
+                    ...prev.notifications,
+                    largeTransactions: !prev.notifications.largeTransactions
+                  }
+                }));
+              }}
+            />
+          </div>
+          {(preferences.notifications.billsDueSoon || preferences.notifications.largeTransactions) && (
             <div className="flex items-center justify-between">
               <Label htmlFor="show-recurring-badges" className="cursor-pointer">{t('showRecurringIndicator')}</Label>
               <Switch 
@@ -232,8 +260,21 @@ const PreferencesPage: React.FC = () => {
           variant="outline"
           className="w-full border border-red-500 text-red-500 hover:bg-red-50 font-semibold"
           onClick={async () => {
-            await signOut();
-            navigate('/login');
+            try {
+              // Desabilitar navegação automática para o dashboard no AuthContext
+              localStorage.setItem('manual_logout', 'true');
+              // Fazer logout
+              await signOut();
+              // Pequeno atraso para garantir que o logout seja processado
+              setTimeout(() => {
+                // Remover o item após o redirecionamento
+                localStorage.removeItem('manual_logout');
+                // Redirecionar para a página de login
+                window.location.href = '/login';
+              }, 500);
+            } catch (error) {
+              console.error('Erro ao fazer logout:', error);
+            }
           }}
         >
           Sair da conta

@@ -1,4 +1,4 @@
--- Script para criar a tabela transactions no Supabase
+-- Script para verificar e atualizar a tabela transactions no Supabase
 -- Execute este script no SQL Editor do Supabase
 
 -- Verificar se a tabela transactions existe
@@ -8,24 +8,60 @@ SELECT EXISTS (
    AND table_name = 'transactions'
 );
 
--- Criar a tabela transactions se ela não existir
-CREATE TABLE IF NOT EXISTS transactions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  title VARCHAR(255) NOT NULL,
-  amount DECIMAL(15, 2) NOT NULL,
-  type VARCHAR(20) NOT NULL CHECK (type IN ('income', 'expense')),
-  category VARCHAR(100),
-  date TIMESTAMP WITH TIME ZONE NOT NULL,
-  is_recurring BOOLEAN DEFAULT FALSE,
-  recurring_day INTEGER,
-  recurrence_frequency VARCHAR(20) CHECK (recurrence_frequency IN ('weekly', 'monthly', 'yearly')),
-  is_paid BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- IMPORTANTE: Este script não vai criar uma nova tabela se já existir uma
+-- Apenas vai verificar e adicionar colunas que possam estar faltando
 
--- Comentários da tabela
+-- Verificar as colunas existentes na tabela transactions
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_schema = 'public' 
+AND table_name = 'transactions';
+
+-- Adicionar colunas que podem estar faltando (só serão adicionadas se não existirem)
+DO $$ 
+BEGIN
+    -- Verificar e adicionar coluna is_recurring se não existir
+    IF NOT EXISTS (SELECT FROM information_schema.columns 
+                   WHERE table_schema = 'public' 
+                   AND table_name = 'transactions' 
+                   AND column_name = 'is_recurring') THEN
+        ALTER TABLE transactions ADD COLUMN is_recurring BOOLEAN DEFAULT FALSE;
+    END IF;
+
+    -- Verificar e adicionar coluna recurring_day se não existir
+    IF NOT EXISTS (SELECT FROM information_schema.columns 
+                   WHERE table_schema = 'public' 
+                   AND table_name = 'transactions' 
+                   AND column_name = 'recurring_day') THEN
+        ALTER TABLE transactions ADD COLUMN recurring_day INTEGER;
+    END IF;
+
+    -- Verificar e adicionar coluna recurrence_frequency se não existir
+    IF NOT EXISTS (SELECT FROM information_schema.columns 
+                   WHERE table_schema = 'public' 
+                   AND table_name = 'transactions' 
+                   AND column_name = 'recurrence_frequency') THEN
+        ALTER TABLE transactions ADD COLUMN recurrence_frequency VARCHAR(20);
+    END IF;
+
+    -- Verificar e adicionar coluna is_paid se não existir
+    IF NOT EXISTS (SELECT FROM information_schema.columns 
+                   WHERE table_schema = 'public' 
+                   AND table_name = 'transactions' 
+                   AND column_name = 'is_paid') THEN
+        ALTER TABLE transactions ADD COLUMN is_paid BOOLEAN DEFAULT TRUE;
+    END IF;
+
+    -- Verificar e adicionar coluna updated_at se não existir
+    IF NOT EXISTS (SELECT FROM information_schema.columns 
+                   WHERE table_schema = 'public' 
+                   AND table_name = 'transactions' 
+                   AND column_name = 'updated_at') THEN
+        ALTER TABLE transactions ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+    END IF;
+END $$;
+
+-- Adicionar comentários à tabela existente
 COMMENT ON TABLE transactions IS 'Tabela para armazenar as transações financeiras dos usuários';
 COMMENT ON COLUMN transactions.id IS 'ID único da transação';
 COMMENT ON COLUMN transactions.user_id IS 'ID do usuário (referência à tabela auth.users)';

@@ -231,14 +231,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    setLoading(true);
-    await supabase.auth.signOut();
-    clearUserData();
-    setLoading(false);
-    toast({
-      title: "Logout realizado",
-      description: "Você saiu da sua conta"
-    });
+    try {
+      setLoading(true);
+      // Limpar dados locais antes de fazer signOut no Supabase
+      clearUserData();
+      // Garantir que o estado do contexto seja limpo
+      setUser(null);
+      setSession(null);
+      // Fazer logout no Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Limpar qualquer cache de autenticação que possa estar persistindo
+      localStorage.removeItem('sb-auth-token');
+      localStorage.removeItem('supabase.auth.token');
+      
+      toast({
+        title: "Logout realizado",
+        description: "Você saiu da sua conta"
+      });
+    } catch (error: any) {
+      console.error("Erro ao fazer logout:", error);
+      toast({
+        title: "Erro ao fazer logout",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Função para resetar senha

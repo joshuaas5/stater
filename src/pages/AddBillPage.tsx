@@ -192,7 +192,7 @@ const AddBillPage: React.FC = () => {
                     <Input 
                       placeholder="Ex: Aluguel, Conta de Luz..." 
                       {...field} 
-                      className="bg-galileo-accent text-white placeholder:text-gray-300"
+                      className="bg-galileo-accent text-white placeholder:text-gray-300 dark:text-white dark:placeholder:text-gray-400"
                     />
                   </FormControl>
                   <FormMessage />
@@ -229,7 +229,7 @@ const AddBillPage: React.FC = () => {
                       <Input 
                         placeholder="R$ 0,00" 
                         {...field} 
-                        className="bg-galileo-accent text-white placeholder:text-gray-300"
+                        className="bg-galileo-accent text-white placeholder:text-gray-300 dark:text-white dark:placeholder:text-gray-400"
                       />
                     </FormControl>
                     <FormMessage />

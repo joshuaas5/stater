@@ -80,6 +80,15 @@ const Dashboard: React.FC = () => {
       });
     });
     
+    // Forçar o carregamento de todas as transações e recalcular o saldo total
+    const allTransactions = getTransactions();
+    if (allTransactions && allTransactions.length > 0) {
+      // Calcular o saldo total com todas as transações
+      const totalBalance = calculateBalance(allTransactions, []);
+      setBalance(totalBalance);
+    }
+    
+    // Carregar as transações do mês/ano selecionado
     loadTransactions(selectedMonth, selectedYear);
 
     // Listener para atualizar transações quando houver novas
@@ -87,6 +96,13 @@ const Dashboard: React.FC = () => {
       // Se um filtro de período estiver ativo, não recarrega automaticamente com o mês/ano
       if (!startDate || !endDate) {
         loadTransactions(selectedMonth, selectedYear);
+      }
+      
+      // Sempre recalcular o saldo total quando houver novas transações
+      const allTransactions = getTransactions();
+      if (allTransactions && allTransactions.length > 0) {
+        const totalBalance = calculateBalance(allTransactions, []);
+        setBalance(totalBalance);
       }
     };
     window.addEventListener('transactionsUpdated', handler);

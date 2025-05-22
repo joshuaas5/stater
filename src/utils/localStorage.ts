@@ -103,27 +103,40 @@ export const saveTransaction = (transaction: Transaction): void => {
   const user = getCurrentUser();
   if (!user) return;
   
+  // Gerar ID se não existir
+  if (!transaction.id) {
+    transaction.id = uuidv4();
+  }
+  
   // Salvar localmente
   const transactionsStr = localStorage.getItem(`transactions_${user.id}`);
-  let transactions: Transaction[] = transactionsStr ? JSON.parse(transactionsStr) : [];
+  let transactions: Transaction[] = [];
+  if (transactionsStr) {
+    transactions = JSON.parse(transactionsStr);
+  }
   transactions.push(transaction);
   localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
+  
+  // Disparar evento para atualizar a UI
+  window.dispatchEvent(new Event('transactionsUpdated'));
   
   // Também salvar no Supabase - com retry em caso de falha
   const saveToSupabase = async () => {
     try {
-      // Tentar salvar no Supabase
       const result = await saveSupabaseTransaction(transaction);
       if (result.error) {
         throw result.error;
       }
-      console.log("Transação salva com sucesso no Supabase:", transaction.title);
-    } catch (error) {
-      console.error("Erro ao salvar transação no Supabase:", error);
       
-      // Tentar novamente após 3 segundos
+      // Forçar uma atualização da UI após salvar no Supabase com sucesso
+      // Isso garante que a UI seja atualizada mesmo que o evento anterior não tenha funcionado
       setTimeout(() => {
-        console.log("Tentando salvar transação novamente no Supabase...");
+        window.dispatchEvent(new Event('transactionsUpdated'));
+      }, 500);
+      
+    } catch (error) {
+      console.error('Erro ao salvar transação no Supabase:', error);
+      setTimeout(() => {
         saveSupabaseTransaction(transaction).catch(retryError => {
           console.error("Falha na segunda tentativa de salvar no Supabase:", retryError);
         });

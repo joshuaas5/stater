@@ -1117,39 +1117,59 @@ export const saveSupabaseUserPreferences = async (preferences: UserPreferences):
   // Verificar se já existem preferências para este usuário
   const { data: existingPrefs, error: fetchError } = await supabase
     .from('user_preferences')
-    .select('*')
+    .select('id, user_id')
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
   
-  if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = not found, que é esperado se não existir
+  if (fetchError) {
+    console.error("Erro ao verificar preferências existentes:", fetchError);
     return { data: null, error: fetchError };
   }
   
   // Preparar dados para o Supabase
   const supabasePreferences = mapPreferencesToSupabase(preferences, user.id);
   
-  if (existingPrefs) {
-    // Atualizar preferências existentes
-    return await supabase
-      .from('user_preferences')
-      .update({
-        theme: preferences.theme,
-        currency: preferences.currency,
-        date_format: preferences.dateFormat,
-        notifications_bills_due_soon: preferences.notifications.billsDueSoon,
-        notifications_large_transactions: preferences.notifications.largeTransactions,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user.id)
-      .select()
-      .single();
-  } else {
-    // Inserir novas preferências
-    return await supabase
-      .from('user_preferences')
-      .insert(supabasePreferences)
-      .select()
-      .single();
+  try {
+    if (existingPrefs) {
+      // Atualizar preferências existentes
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .update({
+          theme: preferences.theme,
+          currency: preferences.currency,
+          date_format: preferences.dateFormat,
+          notifications_bills_due_soon: preferences.notifications.billsDueSoon,
+          notifications_large_transactions: preferences.notifications.largeTransactions,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
+        .single();
+        
+      if (error) {
+        console.error("Erro ao atualizar preferências:", error);
+        return { data: null, error };
+      }
+      
+      return { data, error: null };
+    } else {
+      // Inserir novas preferências
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .insert(supabasePreferences)
+        .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
+        .single();
+        
+      if (error) {
+        console.error("Erro ao inserir preferências:", error);
+        return { data: null, error };
+      }
+      
+      return { data, error: null };
+    }
+  } catch (error) {
+    console.error("Erro ao salvar preferências:", error);
+    return { data: null, error };
   }
 };
 
@@ -1173,28 +1193,39 @@ export const saveUserPreferences = (preferences: UserPreferences): void => {
 // Obter preferências do usuário do Supabase
 export const getSupabaseUserPreferences = async (userId: string): Promise<{ data: UserPreferences | null, error: any }> => {
   try {
+    // Adicionar os headers corretos para a requisição
     const { data, error } = await supabase
       .from('user_preferences')
-      .select('*')
+      .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
     
     if (error) {
-      // Se o erro for "no rows returned", retornar as preferências padrão
-      if (error.code === 'PGRST116') {
-        return { data: defaultPreferences, error: null };
-      }
-      throw error;
+      console.error("Erro ao buscar preferências do Supabase:", error);
+      return { data: defaultPreferences, error: null };
     }
     
     if (data) {
       return { data: mapSupabaseToPreferences(data), error: null };
     }
     
-    return { data: defaultPreferences, error: null };
+    // Se não encontrou dados, criar um registro para este usuário
+    const newPrefs = mapPreferencesToSupabase(defaultPreferences, userId);
+    const { data: insertData, error: insertError } = await supabase
+      .from('user_preferences')
+      .insert(newPrefs)
+      .select()
+      .single();
+      
+    if (insertError) {
+      console.error("Erro ao criar preferências no Supabase:", insertError);
+      return { data: defaultPreferences, error: null };
+    }
+    
+    return { data: mapSupabaseToPreferences(insertData), error: null };
   } catch (error) {
     console.error("Erro ao buscar preferências do usuário do Supabase:", error);
-    return { data: null, error };
+    return { data: defaultPreferences, error: null };
   }
 };
 

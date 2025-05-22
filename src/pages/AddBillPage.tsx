@@ -386,7 +386,7 @@ const AddBillPage: React.FC = () => {
                           {...field}
                           value={field.value || ''}
                           disabled={isInfiniteRecurrence}
-                          className={`bg-galileo-inputField text-galileo-text placeholder:text-galileo-placeholder ${isInfiniteRecurrence ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          className={`bg-galileo-inputField text-galileo-text dark:text-white placeholder:text-galileo-placeholder ${isInfiniteRecurrence ? 'opacity-50 cursor-not-allowed' : ''}`}
                         />
                       </FormControl>
                       {!isInfiniteRecurrence && (

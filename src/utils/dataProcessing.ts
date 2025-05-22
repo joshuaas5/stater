@@ -255,8 +255,20 @@ export const getBillsDueInNextDays = (bills: Bill[], days: number): Bill[] => {
   endDate.setHours(23, 59, 59, 999);
   
   return bills.filter(bill => {
+    // Garantir que estamos trabalhando com um objeto Date
     const dueDate = new Date(bill.dueDate);
-    return !bill.isPaid && dueDate >= today && dueDate <= endDate;
+    
+    // Incluir todas as contas não pagas que:
+    // 1. Vencem no período especificado
+    // 2. São parceladas (totalInstallments > 1)
+    return !bill.isPaid && (
+      // Contas que vencem no período
+      (dueDate >= today && dueDate <= endDate) ||
+      // Contas parceladas que ainda não foram pagas
+      (bill.totalInstallments && bill.currentInstallment && 
+       bill.totalInstallments > 1 && 
+       bill.currentInstallment <= bill.totalInstallments)
+    );
   });
 };
 

@@ -506,13 +506,208 @@ const BillsPage: React.FC = () => {
                   value={editBill.title} 
                   onChange={(e) => setEditBill({...editBill, title: e.target.value})} 
                   className="col-span-3" 
+                  placeholder="Ex: Aluguel, Energia, Internet"
                 />
               </div>
-              {/* Outros campos do formulário de edição ... */}
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="amount" className="text-right">
+                  Valor
+                </Label>
+                <Input 
+                  id="amount" 
+                  type="number"
+                  value={editBill.amount} 
+                  onChange={(e) => setEditBill({...editBill, amount: parseFloat(e.target.value)})} 
+                  className="col-span-3" 
+                  placeholder="Ex: 1500.00"
+                />
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="category" className="text-right">
+                  Categoria
+                </Label>
+                <Input 
+                  id="category" 
+                  value={editBill.category} 
+                  onChange={(e) => setEditBill({...editBill, category: e.target.value})} 
+                  className="col-span-3" 
+                  placeholder="Ex: Moradia, Serviços, Transporte"
+                />
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="dueDate" className="text-right">
+                  Data de Vencimento
+                </Label>
+                <Input 
+                  id="dueDate" 
+                  type="date" 
+                  value={editBill.dueDate instanceof Date ? editBill.dueDate.toISOString().split('T')[0] : new Date(editBill.dueDate).toISOString().split('T')[0]} 
+                  onChange={(e) => setEditBill({...editBill, dueDate: new Date(e.target.value)})} 
+                  className="col-span-3" 
+                />
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="text-right col-span-1">
+                  <Label htmlFor="isRecurring">
+                    Recorrente
+                  </Label>
+                </div>
+                <div className="col-span-3 flex items-center space-x-2">
+                  <Checkbox 
+                    id="isRecurring" 
+                    checked={editBill.isRecurring || false}
+                    onCheckedChange={(checked) => setEditBill({...editBill, isRecurring: !!checked})}
+                  />
+                  <Label htmlFor="isRecurring">
+                    Esta conta se repete periodicamente
+                  </Label>
+                </div>
+              </div>
+              
+              {editBill.isRecurring && (
+                <>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <div className="text-right col-span-1">
+                      <Label htmlFor="isInfiniteRecurrence">
+                        Sem Fim Definido
+                      </Label>
+                    </div>
+                    <div className="col-span-3 flex items-center space-x-2">
+                      <Checkbox 
+                        id="isInfiniteRecurrence" 
+                        checked={editBill.isInfiniteRecurrence || false}
+                        onCheckedChange={(checked) => setEditBill({...editBill, isInfiniteRecurrence: !!checked})}
+                      />
+                      <Label htmlFor="isInfiniteRecurrence">
+                        Esta conta não tem um número definido de parcelas
+                      </Label>
+                    </div>
+                  </div>
+                  
+                  {!editBill.isInfiniteRecurrence && (
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="totalInstallments" className="text-right">
+                        Total de Parcelas
+                      </Label>
+                      <Input 
+                        id="totalInstallments" 
+                        type="number" 
+                        value={editBill.totalInstallments || ''} 
+                        onChange={(e) => setEditBill({...editBill, totalInstallments: parseInt(e.target.value) || undefined})} 
+                        className="col-span-3 bg-galileo-inputField text-galileo-text placeholder:text-galileo-placeholder" 
+                        placeholder="Ex: 12" 
+                      />
+                    </div>
+                  )}
+                  
+                  {!editBill.isInfiniteRecurrence && editBill.totalInstallments && editBill.totalInstallments > 0 && (
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="currentInstallment" className="text-right">
+                        Parcela Atual
+                      </Label>
+                      <Input 
+                        id="currentInstallment" 
+                        type="number" 
+                        value={editBill.currentInstallment || 1} 
+                        onChange={(e) => setEditBill({...editBill, currentInstallment: parseInt(e.target.value) || 1})} 
+                        className="col-span-3" 
+                        min="1"
+                        max={editBill.totalInstallments}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="text-right col-span-1">
+                  <Label htmlFor="isPaid">
+                    Paga
+                  </Label>
+                </div>
+                <div className="col-span-3 flex items-center space-x-2">
+                  <Checkbox 
+                    id="isPaid" 
+                    checked={editBill.isPaid || false}
+                    onCheckedChange={(checked) => setEditBill({...editBill, isPaid: !!checked})}
+                  />
+                  <Label htmlFor="isPaid">
+                    Esta conta já foi paga
+                  </Label>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="text-right col-span-1">
+                  <Label htmlFor="notificationsEnabled">
+                    Notificações
+                  </Label>
+                </div>
+                <div className="col-span-3 flex items-center space-x-2">
+                  <Checkbox 
+                    id="notificationsEnabled" 
+                    checked={editBill.notificationsEnabled || false}
+                    onCheckedChange={(checked) => setEditBill({...editBill, notificationsEnabled: !!checked})}
+                  />
+                  <Label htmlFor="notificationsEnabled">
+                    Receber notificações sobre esta conta
+                  </Label>
+                </div>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowEditBillModal(false)}>Cancelar</Button>
-              <Button onClick={() => { 
+              <Button onClick={() => {
+                // Verificar se houve alteração no número de parcelas
+                // Usar o número atual de parcelas como valor original se não houver um valor original definido
+                const originalTotalInstallments = editBill.totalInstallments;
+                const newTotalInstallments = editBill.totalInstallments;
+                
+                // Verificar se é uma conta recorrente com parcelas
+                if (editBill.isRecurring && !editBill.isInfiniteRecurrence && 
+                    originalTotalInstallments && newTotalInstallments && 
+                    originalTotalInstallments !== newTotalInstallments) {
+                  
+                  // Confirmar com o usuário se deseja atualizar as parcelas futuras
+                  if (window.confirm(`Você alterou o número de parcelas de ${originalTotalInstallments} para ${newTotalInstallments}. Deseja atualizar todas as parcelas futuras?`)) {
+                    // Buscar todas as contas relacionadas (mesma conta original)
+                    const allBills = getBills(false);
+                    const relatedBills = allBills.filter(b => 
+                      b.originalBillId === editBill.originalBillId || 
+                      b.originalBillId === editBill.id ||
+                      b.id === editBill.originalBillId
+                    );
+                    
+                    // Atualizar cada parcela futura
+                    relatedBills.forEach(bill => {
+                      // Só atualizar parcelas futuras que ainda não foram pagas
+                      // Garantir que ambas as parcelas tenham valores definidos
+                      const currentInstallment = editBill.currentInstallment || 1;
+                      if (!bill.isPaid && bill.currentInstallment && bill.currentInstallment > currentInstallment) {
+                        const updatedBill = {
+                          ...bill,
+                          title: editBill.title,
+                          amount: editBill.amount,
+                          category: editBill.category,
+                          totalInstallments: newTotalInstallments,
+                          notificationsEnabled: editBill.notificationsEnabled
+                        };
+                        updateBill(updatedBill);
+                      }
+                    });
+                    
+                    toast({
+                      title: 'Parcelas Atualizadas',
+                      description: `Todas as parcelas futuras foram atualizadas com as novas informações.`
+                    });
+                  }
+                }
+                
+                // Salvar as alterações da conta atual
                 updateBill(editBill); 
                 setShowEditBillModal(false); 
                 loadBills(); 

@@ -17,7 +17,7 @@ import {
   getTransactionsFromLastDays 
 } from '@/utils/dataProcessing';
 import { getCurrentUser, getTransactions, isLoggedIn, saveTransaction, updateTransaction, deleteTransaction } from '@/utils/localStorage';
-import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star } from 'lucide-react';
+import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -727,18 +727,67 @@ const Dashboard: React.FC = () => {
               }`}>
                 {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
               </p>
-              <button
-                aria-label="Editar transação"
-                className="ml-2 text-galileo-secondaryText hover:text-galileo-text"
-                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                onClick={() => {
-                  setEditingTransactionDontAdjustBalance(transaction.dontAdjustBalanceOnSave || false); // Inicializar aqui
-                  setEditingTransaction(transaction);
-                  setDialogOpen(true);
-                }}
-              >
-                <Edit size={18} />
-              </button>
+              <div className="flex gap-1">
+                <button
+                  aria-label="Editar transação"
+                  className="ml-2 text-galileo-secondaryText hover:text-galileo-text"
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                  onClick={() => {
+                    setEditingTransactionDontAdjustBalance(transaction.dontAdjustBalanceOnSave || false); // Inicializar aqui
+                    setEditingTransaction(transaction);
+                    setDialogOpen(true);
+                  }}
+                >
+                  <Edit size={18} />
+                </button>
+                <button
+                  aria-label="Excluir transação"
+                  className="ml-1 text-galileo-secondaryText hover:text-galileo-negative"
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                  onClick={() => {
+                    if (window.confirm(`Tem certeza que deseja excluir a transação "${transaction.title}"?`)) {
+                      // Verificar se a transação tem a opção de não ajustar saldo
+                      const shouldAdjustBalance = !transaction.dontAdjustBalanceOnSave;
+                      
+                      // Remover a transação
+                      deleteTransaction(transaction.id);
+                      
+                      toast({
+                        title: 'Transação excluída',
+                        description: `A transação "${transaction.title}" foi excluída com sucesso.`
+                      });
+                      
+                      // Forçar a atualização da lista de transações e do saldo
+                      setTimeout(() => {
+                        // Recarregar transações
+                        loadTransactions(selectedMonth, selectedYear);
+                        
+                        // Atualizar o saldo total
+                        const allTransactions = getTransactions();
+                        const totalBalance = calculateBalance(allTransactions, []);
+                        setBalance(totalBalance);
+                        
+                        // Recalcular incomes e expenses para o mês selecionado
+                        const filteredTransactions = allTransactions.filter(t => {
+                          const transactionDate = new Date(t.date);
+                          return transactionDate.getMonth() === selectedMonth && 
+                                 transactionDate.getFullYear() === selectedYear;
+                        });
+                        
+                        const incomes = filteredTransactions.filter(t => t.type === 'income')
+                          .reduce((sum, t) => sum + t.amount, 0);
+                        const expenses = filteredTransactions.filter(t => t.type === 'expense')
+                          .reduce((sum, t) => sum + t.amount, 0);
+                        
+                        setTotalIncomes(incomes);
+                        setTotalExpenses(expenses);
+                      }, 100);
+                    }
+                  }}
+                >
+                  <Trash size={18} />
+                </button>
+              </div>
             </div>
           </div>
         ))

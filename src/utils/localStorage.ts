@@ -109,10 +109,30 @@ export const saveTransaction = (transaction: Transaction): void => {
   transactions.push(transaction);
   localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
   
-  // Também salvar no Supabase em segundo plano
-  saveSupabaseTransaction(transaction).catch(error => {
-    console.error("Erro ao salvar transação no Supabase:", error);
-  });
+  // Também salvar no Supabase - com retry em caso de falha
+  const saveToSupabase = async () => {
+    try {
+      // Tentar salvar no Supabase
+      const result = await saveSupabaseTransaction(transaction);
+      if (result.error) {
+        throw result.error;
+      }
+      console.log("Transação salva com sucesso no Supabase:", transaction.title);
+    } catch (error) {
+      console.error("Erro ao salvar transação no Supabase:", error);
+      
+      // Tentar novamente após 3 segundos
+      setTimeout(() => {
+        console.log("Tentando salvar transação novamente no Supabase...");
+        saveSupabaseTransaction(transaction).catch(retryError => {
+          console.error("Falha na segunda tentativa de salvar no Supabase:", retryError);
+        });
+      }, 3000);
+    }
+  };
+  
+  // Iniciar o processo de salvamento no Supabase
+  saveToSupabase();
   
   window.dispatchEvent(new CustomEvent('transactionsUpdated'));
 };
@@ -215,10 +235,30 @@ export const updateTransaction = (transaction: Transaction): void => {
     transactions[index] = transaction;
     localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
     
-    // Também atualizar no Supabase em segundo plano
-    updateSupabaseTransaction(transaction).catch(error => {
-      console.error("Erro ao atualizar transação no Supabase:", error);
-    });
+    // Também atualizar no Supabase - com retry em caso de falha
+    const updateInSupabase = async () => {
+      try {
+        // Tentar atualizar no Supabase
+        const result = await updateSupabaseTransaction(transaction);
+        if (result.error) {
+          throw result.error;
+        }
+        console.log("Transação atualizada com sucesso no Supabase:", transaction.title);
+      } catch (error) {
+        console.error("Erro ao atualizar transação no Supabase:", error);
+        
+        // Tentar novamente após 3 segundos
+        setTimeout(() => {
+          console.log("Tentando atualizar transação novamente no Supabase...");
+          updateSupabaseTransaction(transaction).catch(retryError => {
+            console.error("Falha na segunda tentativa de atualizar no Supabase:", retryError);
+          });
+        }, 3000);
+      }
+    };
+    
+    // Iniciar o processo de atualização no Supabase
+    updateInSupabase();
     
     window.dispatchEvent(new CustomEvent('transactionsUpdated'));
   }
@@ -243,13 +283,36 @@ export const deleteTransaction = (transactionId: string): void => {
   if (!transactionsStr) return;
   
   let transactions: Transaction[] = JSON.parse(transactionsStr);
+  // Guardar a transação antes de removê-la (para log)
+  const transactionToDelete = transactions.find(t => t.id === transactionId);
   transactions = transactions.filter(t => t.id !== transactionId);
   localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
   
-  // Também deletar do Supabase em segundo plano
-  deleteSupabaseTransaction(user.id, transactionId).catch(error => {
-    console.error("Erro ao deletar transação do Supabase:", error);
-  });
+  // Também deletar do Supabase - com retry em caso de falha
+  const deleteFromSupabase = async () => {
+    try {
+      // Tentar deletar do Supabase
+      const result = await deleteSupabaseTransaction(user.id, transactionId);
+      if (result.error) {
+        throw result.error;
+      }
+      console.log("Transação deletada com sucesso do Supabase:", 
+                  transactionToDelete ? transactionToDelete.title : transactionId);
+    } catch (error) {
+      console.error("Erro ao deletar transação do Supabase:", error);
+      
+      // Tentar novamente após 3 segundos
+      setTimeout(() => {
+        console.log("Tentando deletar transação novamente do Supabase...");
+        deleteSupabaseTransaction(user.id, transactionId).catch(retryError => {
+          console.error("Falha na segunda tentativa de deletar do Supabase:", retryError);
+        });
+      }, 3000);
+    }
+  };
+  
+  // Iniciar o processo de exclusão no Supabase
+  deleteFromSupabase();
   
   window.dispatchEvent(new CustomEvent('transactionsUpdated'));
 };
@@ -368,6 +431,41 @@ export const saveBill = (bill: Bill): void => {
   const billsStr = localStorage.getItem(`bills_${user.id}`);
   let bills: Bill[] = billsStr ? JSON.parse(billsStr) : [];
   bills.push(bill);
+  
+  // Se for uma conta recorrente sem fim definido, gerar instâncias futuras (10 anos)
+  if (bill.isRecurring && bill.isInfiniteRecurrence) {
+    const originalBillId = bill.id;
+    const dueDate = new Date(bill.dueDate);
+    const recurringDay = dueDate.getDate();
+    
+    // Gerar instâncias para 10 anos (120 meses)
+    for (let i = 1; i <= 120; i++) {
+      // Calcular próxima data de vencimento
+      const nextDueDate = new Date(dueDate);
+      nextDueDate.setMonth(nextDueDate.getMonth() + i);
+      
+      // Ajustar para o dia correto (considerando meses com menos dias)
+      nextDueDate.setDate(Math.min(recurringDay, new Date(nextDueDate.getFullYear(), nextDueDate.getMonth() + 1, 0).getDate()));
+      
+      // Criar nova instância da conta
+      const futureBill: Bill = {
+        ...bill,
+        id: uuidv4(),
+        dueDate: nextDueDate,
+        isPaid: false,
+        originalBillId: originalBillId,
+        originalDueDate: dueDate
+      };
+      
+      bills.push(futureBill);
+      
+      // Também salvar no Supabase em segundo plano
+      saveSupabaseBill(futureBill).catch(error => {
+        console.error(`Erro ao salvar instância futura (mês ${i}) no Supabase:`, error);
+      });
+    }
+  }
+  
   localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
   
   // Também salvar no Supabase em segundo plano

@@ -1355,82 +1355,134 @@ export const saveUserPreferences = (preferences: UserPreferences): void => {
   });
 };
 
+// Cache de preferências para evitar requisições repetidas
+const userPreferencesCache: { [userId: string]: { data: UserPreferences, timestamp: number } } = {};
+
 // Obter preferências do usuário do Supabase
 export const getSupabaseUserPreferences = async (userId: string): Promise<{ data: UserPreferences | null, error: any }> => {
-  try {
-    // Buscar preferências do usuário - tentativa 1 com maybeSingle
-    let { data, error } = await supabase
-      .from('user_preferences')
-      .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
-      .eq('user_id', userId)
-      .maybeSingle();
-    
-    // Se houve erro, tentar novamente com .limit(1)
-    if (error) {
-      console.log("Tentando buscar preferências com método alternativo...");
-      const response = await supabase
+  // Verificar cache primeiro
+  const cachedPrefs = userPreferencesCache[userId];
+  const cacheValidity = 5 * 60 * 1000; // 5 minutos
+  
+  if (cachedPrefs && (Date.now() - cachedPrefs.timestamp < cacheValidity)) {
+    return { data: cachedPrefs.data, error: null };
+  }
+  
+  // Função auxiliar para fazer a requisição com retry
+  const fetchWithRetry = async (retryCount = 0, maxRetries = 3): Promise<{ data: UserPreferences | null, error: any }> => {
+    try {
+      // Exponential backoff
+      if (retryCount > 0) {
+        const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 10000);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+      
+      // Buscar preferências do usuário
+      let { data, error } = await supabase
         .from('user_preferences')
         .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
         .eq('user_id', userId)
-        .limit(1);
+        .maybeSingle();
       
-      if (response.error) {
-        console.error("Erro ao buscar preferências do Supabase (método alternativo):", response.error);
-        return { data: defaultPreferences, error: null };
-      }
-      
-      // Se encontrou dados, usar o primeiro resultado
-      if (response.data && response.data.length > 0) {
-        data = response.data[0];
-        error = null;
-      }
-    }
-    
-    // Se encontrou dados, retornar
-    if (data) {
-      return { data: mapSupabaseToPreferences(data), error: null };
-    }
-    
-    // Se não encontrou dados, tentar criar um registro para este usuário
-    // com tratamento para o caso de chave duplicada
-    try {
-      console.log(`Tentando criar preferências padrão para o usuário ${userId}`);
-      const newPrefs = mapPreferencesToSupabase(defaultPreferences, userId);
-      const { data: insertData, error: insertError } = await supabase
-        .from('user_preferences')
-        .insert(newPrefs)
-        .select()
-        .single();
+      // Se houve erro, verificar se podemos tentar novamente
+      if (error) {
+        // Se for um erro de rede ou de recursos e ainda temos tentativas
+        if (retryCount < maxRetries) {
+          console.log(`Tentativa ${retryCount + 1}/${maxRetries} falhou, tentando novamente...`);
+          return fetchWithRetry(retryCount + 1, maxRetries);
+        }
         
-      if (insertError) {
-        // Se o erro for de chave duplicada, tentar buscar novamente
-        if (insertError.code === '23505') {
-          console.log("Detectada chave duplicada, buscando preferências existentes...");
-          const { data: existingData } = await supabase
+        // Se esgotamos as tentativas, tentar método alternativo
+        console.log("Tentando buscar preferências com método alternativo...");
+        try {
+          const response = await supabase
             .from('user_preferences')
             .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
             .eq('user_id', userId)
             .limit(1);
-            
-          if (existingData && existingData.length > 0) {
-            return { data: mapSupabaseToPreferences(existingData[0]), error: null };
+          
+          if (response.error) {
+            console.error("Erro ao buscar preferências do Supabase (método alternativo):", response.error);
+            return { data: defaultPreferences, error: null };
           }
+          
+          // Se encontrou dados, usar o primeiro resultado
+          if (response.data && response.data.length > 0) {
+            data = response.data[0];
+            error = null;
+          }
+        } catch (altError) {
+          console.error("Erro no método alternativo:", altError);
+          return { data: defaultPreferences, error: null };
         }
-        
-        console.error("Erro ao criar preferências no Supabase:", insertError);
-        return { data: defaultPreferences, error: null };
       }
       
-      return { data: mapSupabaseToPreferences(insertData), error: null };
-    } catch (insertCatchError) {
-      console.error("Erro ao inserir preferências:", insertCatchError);
-      return { data: defaultPreferences, error: null };
+      // Se encontrou dados, atualizar cache e retornar
+      if (data) {
+        const mappedData = mapSupabaseToPreferences(data);
+        userPreferencesCache[userId] = { data: mappedData, timestamp: Date.now() };
+        return { data: mappedData, error: null };
+      }
+      
+      // Se não encontrou dados, tentar criar um registro para este usuário
+      try {
+        console.log(`Tentando criar preferências padrão para o usuário ${userId}`);
+        const newPrefs = mapPreferencesToSupabase(defaultPreferences, userId);
+        const { data: insertData, error: insertError } = await supabase
+          .from('user_preferences')
+          .insert(newPrefs)
+          .select()
+          .single();
+          
+        if (insertError) {
+          // Se o erro for de chave duplicada, tentar buscar novamente
+          if (insertError.code === '23505') {
+            console.log("Detectada chave duplicada, buscando preferências existentes...");
+            try {
+              const { data: existingData } = await supabase
+                .from('user_preferences')
+                .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
+                .eq('user_id', userId)
+                .limit(1);
+                
+              if (existingData && existingData.length > 0) {
+                const mappedData = mapSupabaseToPreferences(existingData[0]);
+                userPreferencesCache[userId] = { data: mappedData, timestamp: Date.now() };
+                return { data: mappedData, error: null };
+              }
+            } catch (existingError) {
+              console.error("Erro ao buscar preferências existentes:", existingError);
+            }
+          }
+          
+          console.error("Erro ao criar preferências no Supabase:", insertError);
+          return { data: defaultPreferences, error: null };
+        }
+        
+        const mappedData = mapSupabaseToPreferences(insertData);
+        userPreferencesCache[userId] = { data: mappedData, timestamp: Date.now() };
+        return { data: mappedData, error: null };
+      } catch (insertCatchError) {
+        console.error("Erro ao inserir preferências:", insertCatchError);
+        return { data: defaultPreferences, error: null };
+      }
+    } catch (error) {
+      if (retryCount < maxRetries) {
+        console.log(`Erro na tentativa ${retryCount + 1}/${maxRetries}, tentando novamente...`);
+        return fetchWithRetry(retryCount + 1, maxRetries);
+      }
+      console.error("Erro ao buscar preferências do usuário do Supabase após todas as tentativas:", error);
+      return { data: defaultPreferences, error };
     }
-  } catch (error) {
-    console.error("Erro ao buscar preferências do usuário do Supabase:", error);
-    return { data: defaultPreferences, error: null };
-  }
+  };
+  
+  // Iniciar o processo de busca com retry
+  return fetchWithRetry();
 };
+
+// Variável para controlar a última vez que as preferências foram sincronizadas
+let lastPreferencesSyncTime: { [userId: string]: number } = {};
+let isSyncingPreferences: { [userId: string]: boolean } = {};
 
 // Obter preferências do usuário (mantém compatibilidade com o código existente)
 export const getUserPreferences = (): UserPreferences => {
@@ -1446,19 +1498,41 @@ export const getUserPreferences = (): UserPreferences => {
     localStorage.setItem(`preferences_${user.id}`, JSON.stringify(defaultPreferences));
   }
   
-  // Também buscar do Supabase em segundo plano para sincronizar
-  getSupabaseUserPreferences(user.id).then(({ data, error }) => {
-    if (error) {
-      console.error("Erro ao sincronizar preferências do usuário com Supabase:", error);
-      return;
-    }
+  // Verificar se devemos sincronizar com o Supabase
+  const now = Date.now();
+  const lastSync = lastPreferencesSyncTime[user.id] || 0;
+  const isSyncing = isSyncingPreferences[user.id] || false;
+  const syncInterval = 60000; // 1 minuto entre sincronizações
+  
+  // Só sincronizar se passou o intervalo E não estiver sincronizando no momento
+  if (!isSyncing && (now - lastSync > syncInterval)) {
+    // Marcar que estamos sincronizando para este usuário
+    isSyncingPreferences[user.id] = true;
+    lastPreferencesSyncTime[user.id] = now;
     
-    if (data) {
-      localStorage.setItem(`preferences_${user.id}`, JSON.stringify(data));
-      // Disparar evento para atualizar a UI se necessário
-      window.dispatchEvent(new Event('preferencesUpdated'));
-    }
-  });
+    // Buscar do Supabase em segundo plano para sincronizar
+    getSupabaseUserPreferences(user.id)
+      .then(({ data, error }) => {
+        // Marcar que terminamos a sincronização
+        isSyncingPreferences[user.id] = false;
+        
+        if (error) {
+          console.error("Erro ao sincronizar preferências do usuário com Supabase:", error);
+          return;
+        }
+        
+        if (data) {
+          localStorage.setItem(`preferences_${user.id}`, JSON.stringify(data));
+          // Disparar evento para atualizar a UI se necessário
+          window.dispatchEvent(new Event('preferencesUpdated'));
+        }
+      })
+      .catch(err => {
+        // Garantir que o flag de sincronização seja resetado mesmo em caso de erro
+        isSyncingPreferences[user.id] = false;
+        console.error("Erro inesperado ao sincronizar preferências:", err);
+      });
+  }
   
   return localPreferences;
 };

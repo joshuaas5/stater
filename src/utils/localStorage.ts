@@ -1,9 +1,13 @@
-import { User, Transaction, Bill, Notification, CardItem, NotificationType } from "@/types";
+import { User, Transaction, Bill, Notification, CardItem, NotificationType, ConsultantMessage } from "@/types";
 import { supabase } from "@/lib/supabase";
 import { v4 as uuidv4 } from 'uuid';
 
 // Exportar uuidv4 para uso em outros arquivos
 export { uuidv4 };
+
+// Variáveis para controlar a sincronização de mensagens do consultor
+let lastConsultantMessagesSyncTime: { [userId: string]: number } = {};
+let isSyncingConsultantMessages: { [userId: string]: boolean } = {};
 
 // Funções de autenticação e usuário
 
@@ -753,6 +757,10 @@ export const getSupabaseBills = async (userId: string, onlyActive: boolean = fal
   }
 };
 
+// Variável para controlar a última sincronização de contas
+let lastBillsSyncTime: { [userId: string]: number } = {};
+let isSyncingBills: { [userId: string]: boolean } = {};
+
 // Obter todas as contas a pagar do usuário atual (mantém compatibilidade com o código existente)
 export const getBills = (onlyActive: boolean = true): Bill[] => {
   const user = getCurrentUser();
@@ -760,27 +768,127 @@ export const getBills = (onlyActive: boolean = true): Bill[] => {
   
   // Buscar do localStorage
   const billsStr = localStorage.getItem(`bills_${user.id}`);
-  if (!billsStr) return [];
+  if (!billsStr) {
+    // Se não existir no localStorage, criar array vazio
+    localStorage.setItem(`bills_${user.id}`, JSON.stringify([]));
+    return [];
+  }
   
   let bills: Bill[] = JSON.parse(billsStr);
+  
+  // Converter IDs antigos para UUID válido
+  let needsUpdate = false;
+  bills.forEach((bill: Bill) => {
+    // Verificar se o ID está no formato antigo (não é um UUID válido)
+    if (bill.id && (bill.id.startsWith('bill_') || bill.id.includes('-') === false)) {
+      // Gerar um novo UUID para substituir o ID antigo
+      const oldId = bill.id;
+      bill.id = uuidv4();
+      console.log(`Convertendo ID antigo de conta ${oldId} para UUID válido ${bill.id}`);
+      needsUpdate = true;
+    }
+  });
+  
+  // Se algum ID foi convertido, atualizar o localStorage
+  if (needsUpdate) {
+    localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
+  }
+  
+  // Verificar se devemos sincronizar com o Supabase
+  const now = Date.now();
+  const lastSync = lastBillsSyncTime[user.id] || 0;
+  const isSyncing = isSyncingBills[user.id] || false;
+  const syncInterval = 30000; // 30 segundos entre sincronizações
+  
+  // Só sincronizar se passou o intervalo E não estiver sincronizando no momento
+  if (!isSyncing && (now - lastSync > syncInterval)) {
+    // Marcar que estamos sincronizando para este usuário
+    isSyncingBills[user.id] = true;
+    lastBillsSyncTime[user.id] = now;
+    
+    // Também buscar do Supabase em segundo plano para sincronizar
+    getSupabaseBills(user.id, false).then(({ data, error }) => {
+      // Marcar que terminamos a sincronização
+      isSyncingBills[user.id] = false;
+      
+      if (error) {
+        console.error("Erro ao sincronizar contas a pagar com Supabase:", error);
+        return;
+      }
+      
+      // Se temos dados no Supabase
+      if (data && data.length > 0) {
+        const supabaseBills = data;
+        
+        // IMPORTANTE: Mesclar contas locais com as do Supabase, não sobrescrever
+        // Verificar se temos contas locais que não estão no Supabase
+        const localIds = new Set(bills.map((b: Bill) => b.id));
+        const supabaseIds = new Set(supabaseBills.map((b: Bill) => b.id));
+        
+        // Contas que estão no localStorage mas não no Supabase
+        const localOnlyBills = bills.filter((b: Bill) => !supabaseIds.has(b.id));
+        
+        // Mesclar as contas
+        const mergedBills = [...supabaseBills, ...localOnlyBills];
+        
+        // Salvar as contas mescladas no localStorage
+        localStorage.setItem(`bills_${user.id}`, JSON.stringify(mergedBills));
+        
+        // Enviar as contas locais para o Supabase, com limite de frequência
+        if (localOnlyBills.length > 0) {
+          console.log(`Sincronizando ${localOnlyBills.length} contas locais com o Supabase...`);
+          
+          // Processar uma conta por vez com intervalo para evitar sobrecarga
+          let index = 0;
+          const processNextBill = () => {
+            if (index < localOnlyBills.length) {
+              const bill = localOnlyBills[index];
+              console.log(`Tentando salvar conta no Supabase:`, JSON.stringify(bill));
+              
+              saveSupabaseBill(bill)
+                .then(result => {
+                  if (result.error) {
+                    console.error("Erro ao salvar conta no Supabase:", result.error);
+                  } else {
+                    console.log("Conta sincronizada com sucesso:", result.data);
+                  }
+                  
+                  // Processar a próxima conta após um pequeno intervalo
+                  index++;
+                  setTimeout(processNextBill, 1000); // 1 segundo entre cada conta
+                })
+                .catch(error => {
+                  console.error("Erro ao sincronizar conta local com Supabase:", error);
+                  // Continuar mesmo com erro
+                  index++;
+                  setTimeout(processNextBill, 1000);
+                });
+            } else {
+              // Todas as contas foram processadas
+              console.log("Sincronização de contas concluída");
+              // Notificar a UI para atualizar
+              window.dispatchEvent(new CustomEvent('billsUpdated'));
+            }
+          };
+          
+          // Iniciar o processamento sequencial
+          processNextBill();
+        } else {
+          // Notificar a UI para atualizar
+          window.dispatchEvent(new CustomEvent('billsUpdated'));
+        }
+      }
+    }).catch(err => {
+      // Garantir que o flag de sincronização seja resetado mesmo em caso de erro
+      isSyncingBills[user.id] = false;
+      console.error("Erro inesperado ao sincronizar contas:", err);
+    });
+  }
   
   // Filtrar apenas contas ativas, se solicitado
   if (onlyActive) {
     bills = bills.filter(bill => !bill.isPaid);
   }
-  
-  // Também buscar do Supabase em segundo plano para sincronizar
-  getSupabaseBills(user.id, false).then(({ data, error }) => {
-    if (error) {
-      console.error("Erro ao sincronizar contas a pagar com Supabase:", error);
-      return;
-    }
-    
-    if (data && data.length > 0) {
-      localStorage.setItem(`bills_${user.id}`, JSON.stringify(data));
-      window.dispatchEvent(new CustomEvent('billsUpdated'));
-    }
-  });
   
   return bills;
 };
@@ -830,11 +938,18 @@ export const updateBill = (bill: Bill): void => {
 
 // Deletar uma conta a pagar do Supabase
 export const deleteSupabaseBill = async (userId: string, billId: string): Promise<{ error: any }> => {
-  return await supabase
-    .from('bills')
-    .delete()
-    .eq('id', billId)
-    .eq('user_id', userId);
+  try {
+    const { error } = await supabase
+      .from('bills')
+      .delete()
+      .eq('user_id', userId)
+      .eq('id', billId);
+    
+    return { error };
+  } catch (error) {
+    console.error("Erro ao deletar conta a pagar do Supabase:", error);
+    return { error };
+  }
 };
 
 // Deletar uma conta a pagar específica (mantém compatibilidade com o código existente)
@@ -1611,3 +1726,323 @@ export const getUserPreferences = (): UserPreferences => {
 };
 
 // Esta função já está definida acima
+
+// Funções para mensagens do consultor financeiro
+
+// Mapear mensagem do consultor para formato do Supabase
+const mapConsultantMessageToSupabase = (message: ConsultantMessage) => {
+  return {
+    id: message.id || uuidv4(),
+    user_id: message.userId,
+    text: message.text,
+    sender: message.sender,
+    timestamp: message.timestamp instanceof Date ? message.timestamp.toISOString() : message.timestamp,
+    read: message.read,
+    category: message.category || 'geral'
+  };
+};
+
+// Mapear mensagem do Supabase para formato local
+const mapSupabaseToConsultantMessage = (data: any): ConsultantMessage => {
+  return {
+    id: data.id,
+    userId: data.user_id,
+    text: data.text,
+    sender: data.sender,
+    timestamp: new Date(data.timestamp),
+    read: data.read,
+    category: data.category
+  };
+};
+
+// Salvar mensagem do consultor no Supabase
+export const saveSupabaseConsultantMessage = async (message: ConsultantMessage): Promise<{ data: any, error: any }> => {
+  const user = getCurrentUser();
+  if (!user) return { data: null, error: "Usuário não autenticado" };
+  
+  try {
+    // Verificar se o usuário está autenticado no Supabase
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      console.warn('Usuário não está autenticado no Supabase. Tentando atualizar sessão...');
+      
+      // Tentar atualizar a sessão
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error('Erro ao atualizar sessão:', refreshError);
+        return { data: null, error: refreshError };
+      }
+    }
+    
+    // Mapear a mensagem para o formato do Supabase
+    const supabaseMessage = mapConsultantMessageToSupabase(message);
+    
+    // Inserir a mensagem no Supabase
+    const { data, error } = await supabase
+      .from('consultant_messages')
+      .insert(supabaseMessage)
+      .select();
+    
+    if (error) {
+      console.error("Erro ao salvar mensagem do consultor no Supabase:", error);
+      return { data: null, error };
+    }
+    
+    return { data: data[0], error: null };
+  } catch (error) {
+    console.error("Erro ao salvar mensagem do consultor no Supabase:", error);
+    return { data: null, error };
+  }
+};
+
+// Obter mensagens do consultor do Supabase
+export const getSupabaseConsultantMessages = async (userId: string): Promise<{ data: ConsultantMessage[], error: any }> => {
+  try {
+    // Verificar se o usuário está autenticado no Supabase
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      console.warn('Usuário não está autenticado no Supabase. Tentando atualizar sessão...');
+      
+      // Tentar atualizar a sessão
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error('Erro ao atualizar sessão:', refreshError);
+        return { data: [], error: refreshError };
+      }
+    }
+    
+    // Buscar mensagens do consultor do Supabase
+    const { data, error } = await supabase
+      .from('consultant_messages')
+      .select('*')
+      .eq('user_id', userId)
+      .order('timestamp', { ascending: false });
+    
+    if (error) {
+      console.error("Erro ao buscar mensagens do consultor do Supabase:", error);
+      return { data: [], error };
+    }
+    
+    // Mapear as mensagens para o formato local
+    const messages = data.map(mapSupabaseToConsultantMessage);
+    
+    return { data: messages, error: null };
+  } catch (error) {
+    console.error("Erro ao buscar mensagens do consultor do Supabase:", error);
+    return { data: [], error };
+  }
+};
+
+// Obter mensagens do consultor (mantém compatibilidade com o código existente)
+export const getConsultantMessages = (): ConsultantMessage[] => {
+  const user = getCurrentUser();
+  if (!user) return [];
+  
+  // Buscar do localStorage
+  const messagesStr = localStorage.getItem(`consultant_messages_${user.id}`);
+  const localMessages = messagesStr ? JSON.parse(messagesStr) : [];
+  
+  // Converter IDs antigos para UUID válido
+  let needsUpdate = false;
+  localMessages.forEach((message: ConsultantMessage) => {
+    // Verificar se o ID está no formato antigo (não é um UUID válido)
+    if (message.id && message.id.includes('-') === false) {
+      // Gerar um novo UUID para substituir o ID antigo
+      const oldId = message.id;
+      message.id = uuidv4();
+      console.log(`Convertendo ID antigo de mensagem ${oldId} para UUID válido ${message.id}`);
+      needsUpdate = true;
+    }
+  });
+  
+  // Se algum ID foi convertido, atualizar o localStorage
+  if (needsUpdate) {
+    localStorage.setItem(`consultant_messages_${user.id}`, JSON.stringify(localMessages));
+  }
+  
+  // Verificar se devemos sincronizar com o Supabase
+  const now = Date.now();
+  const lastSync = lastConsultantMessagesSyncTime[user.id] || 0;
+  const isSyncing = isSyncingConsultantMessages[user.id] || false;
+  const syncInterval = 30000; // 30 segundos entre sincronizações
+  
+  // Só sincronizar se passou o intervalo E não estiver sincronizando no momento
+  if (!isSyncing && (now - lastSync > syncInterval)) {
+    // Marcar que estamos sincronizando para este usuário
+    isSyncingConsultantMessages[user.id] = true;
+    lastConsultantMessagesSyncTime[user.id] = now;
+    
+    // Buscar mensagens do Supabase em segundo plano para sincronizar
+    getSupabaseConsultantMessages(user.id).then(({ data, error }) => {
+      // Marcar que terminamos a sincronização
+      isSyncingConsultantMessages[user.id] = false;
+      
+      if (error) {
+        console.error("Erro ao sincronizar mensagens do consultor com Supabase:", error);
+        return;
+      }
+      
+      // Se temos dados no Supabase
+      if (data && data.length > 0) {
+        const supabaseMessages = data;
+        
+        // IMPORTANTE: Mesclar mensagens locais com as do Supabase, não sobrescrever
+        // Verificar se temos mensagens locais que não estão no Supabase
+        const localIds = new Set(localMessages.map((m: ConsultantMessage) => m.id));
+        const supabaseIds = new Set(supabaseMessages.map((m: ConsultantMessage) => m.id));
+        
+        // Mensagens que estão no localStorage mas não no Supabase
+        const localOnlyMessages = localMessages.filter((m: ConsultantMessage) => !supabaseIds.has(m.id));
+        
+        // Mesclar as mensagens
+        const mergedMessages = [...supabaseMessages, ...localOnlyMessages];
+        
+        // Salvar as mensagens mescladas no localStorage
+        localStorage.setItem(`consultant_messages_${user.id}`, JSON.stringify(mergedMessages));
+        
+        // Enviar as mensagens locais para o Supabase, com limite de frequência
+        if (localOnlyMessages.length > 0) {
+          console.log(`Sincronizando ${localOnlyMessages.length} mensagens locais com o Supabase...`);
+          
+          // Processar uma mensagem por vez com intervalo para evitar sobrecarga
+          let index = 0;
+          const processNextMessage = () => {
+            if (index < localOnlyMessages.length) {
+              const message = localOnlyMessages[index];
+              console.log(`Tentando salvar mensagem no Supabase:`, JSON.stringify(message));
+              
+              saveSupabaseConsultantMessage(message)
+                .then(result => {
+                  if (result.error) {
+                    console.error("Erro ao salvar mensagem no Supabase:", result.error);
+                  } else {
+                    console.log("Mensagem sincronizada com sucesso:", result.data);
+                  }
+                  
+                  // Processar a próxima mensagem após um pequeno intervalo
+                  index++;
+                  setTimeout(processNextMessage, 1000); // 1 segundo entre cada mensagem
+                })
+                .catch(error => {
+                  console.error("Erro ao sincronizar mensagem local com Supabase:", error);
+                  // Continuar mesmo com erro
+                  index++;
+                  setTimeout(processNextMessage, 1000);
+                });
+            } else {
+              // Todas as mensagens foram processadas
+              console.log("Sincronização de mensagens concluída");
+              // Notificar a UI para atualizar
+              window.dispatchEvent(new CustomEvent('consultantMessagesUpdated'));
+            }
+          };
+          
+          // Iniciar o processamento sequencial
+          processNextMessage();
+        } else {
+          // Notificar a UI para atualizar
+          window.dispatchEvent(new CustomEvent('consultantMessagesUpdated'));
+        }
+      }
+    }).catch(err => {
+      // Garantir que o flag de sincronização seja resetado mesmo em caso de erro
+      isSyncingConsultantMessages[user.id] = false;
+      console.error("Erro inesperado ao sincronizar mensagens do consultor:", err);
+    });
+  }
+  
+  return localMessages;
+};
+
+// Salvar mensagem do consultor (mantém a compatibilidade com o código existente)
+export const saveConsultantMessage = (message: ConsultantMessage): void => {
+  const user = getCurrentUser();
+  if (!user) return;
+  
+  // Gerar ID se não existir
+  if (!message.id) {
+    message.id = uuidv4();
+  }
+  
+  // Garantir que o usuário ID esteja definido
+  message.userId = user.id;
+  
+  // Garantir que a data esteja em formato correto
+  if (!(message.timestamp instanceof Date)) {
+    message.timestamp = new Date(message.timestamp || new Date());
+  }
+  
+  console.log('Salvando mensagem do consultor:', JSON.stringify(message));
+  
+  // Salvar localmente
+  const messagesStr = localStorage.getItem(`consultant_messages_${user.id}`);
+  let messages: ConsultantMessage[] = [];
+  if (messagesStr) {
+    try {
+      messages = JSON.parse(messagesStr);
+    } catch (err) {
+      console.error('Erro ao analisar mensagens do localStorage:', err);
+      messages = [];
+    }
+  }
+  
+  // Verificar se a mensagem já existe, para não adicionar duplicatas
+  const existingIndex = messages.findIndex(m => m.id === message.id);
+  if (existingIndex >= 0) {
+    // Substituir a mensagem existente
+    messages[existingIndex] = message;
+  } else {
+    // Adicionar nova mensagem
+    messages.push(message);
+  }
+  
+  localStorage.setItem(`consultant_messages_${user.id}`, JSON.stringify(messages));
+  
+  // Disparar evento para atualizar a UI
+  window.dispatchEvent(new Event('consultantMessagesUpdated'));
+  
+  // Também salvar no Supabase
+  saveSupabaseConsultantMessage(message).catch(error => {
+    console.error("Erro ao salvar mensagem do consultor no Supabase:", error);
+  });
+};
+
+// Marcar mensagem do consultor como lida
+export const markConsultantMessageAsRead = (messageId: string): void => {
+  const user = getCurrentUser();
+  if (!user) return;
+  
+  // Buscar do localStorage
+  const messagesStr = localStorage.getItem(`consultant_messages_${user.id}`);
+  if (!messagesStr) return;
+  
+  let messages: ConsultantMessage[] = JSON.parse(messagesStr);
+  
+  // Encontrar a mensagem e marcar como lida
+  const messageIndex = messages.findIndex(m => m.id === messageId);
+  if (messageIndex >= 0) {
+    messages[messageIndex].read = true;
+    
+    // Atualizar no localStorage
+    localStorage.setItem(`consultant_messages_${user.id}`, JSON.stringify(messages));
+    
+    // Disparar evento para atualizar a UI
+    window.dispatchEvent(new Event('consultantMessagesUpdated'));
+    
+    // Atualizar no Supabase
+    try {
+      supabase
+        .from('consultant_messages')
+        .update({ read: true })
+        .eq('id', messageId)
+        .eq('user_id', user.id)
+        .then(({ error }) => {
+          if (error) {
+            console.error("Erro ao atualizar mensagem do consultor no Supabase:", error);
+          }
+        });
+    } catch (error) {
+      console.error("Erro ao atualizar mensagem do consultor no Supabase:", error);
+    }
+  }
+};

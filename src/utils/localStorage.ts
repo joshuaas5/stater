@@ -1161,7 +1161,10 @@ export const saveUserPreferences = (preferences: UserPreferences): void => {
   // Salvar localmente
   localStorage.setItem(`preferences_${user.id}`, JSON.stringify(preferences));
   
-  // Também salvar no Supabase em segundo plano
+  // Disparar evento para atualizar a UI
+  window.dispatchEvent(new Event('preferencesUpdated'));
+  
+  // Também salvar no Supabase
   saveSupabaseUserPreferences(preferences).catch(error => {
     console.error("Erro ao salvar preferências do usuário no Supabase:", error);
   });
@@ -1176,7 +1179,13 @@ export const getSupabaseUserPreferences = async (userId: string): Promise<{ data
       .eq('user_id', userId)
       .single();
     
-    if (error) throw error;
+    if (error) {
+      // Se o erro for "no rows returned", retornar as preferências padrão
+      if (error.code === 'PGRST116') {
+        return { data: defaultPreferences, error: null };
+      }
+      throw error;
+    }
     
     if (data) {
       return { data: mapSupabaseToPreferences(data), error: null };
@@ -1198,6 +1207,11 @@ export const getUserPreferences = (): UserPreferences => {
   const preferencesStr = localStorage.getItem(`preferences_${user.id}`);
   const localPreferences = preferencesStr ? JSON.parse(preferencesStr) : defaultPreferences;
   
+  // Salvar as preferências padrão no localStorage se não existirem
+  if (!preferencesStr) {
+    localStorage.setItem(`preferences_${user.id}`, JSON.stringify(defaultPreferences));
+  }
+  
   // Também buscar do Supabase em segundo plano para sincronizar
   getSupabaseUserPreferences(user.id).then(({ data, error }) => {
     if (error) {
@@ -1207,8 +1221,12 @@ export const getUserPreferences = (): UserPreferences => {
     
     if (data) {
       localStorage.setItem(`preferences_${user.id}`, JSON.stringify(data));
+      // Disparar evento para atualizar a UI se necessário
+      window.dispatchEvent(new Event('preferencesUpdated'));
     }
   });
   
   return localPreferences;
 };
+
+// Esta função já está definida acima

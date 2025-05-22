@@ -315,6 +315,10 @@ export const getSupabaseTransactions = async (userId: string, month?: number, ye
   }
 };
 
+// Variável para controlar a última sincronização de transações
+let lastTransactionsSyncTime: { [userId: string]: number } = {};
+let isSyncingTransactions: { [userId: string]: boolean } = {};
+
 // Obter todas as transações do usuário atual (mantém compatibilidade com o código existente)
 export const getTransactions = (): Transaction[] => {
   const user = getCurrentUser();
@@ -324,45 +328,114 @@ export const getTransactions = (): Transaction[] => {
   const transactionsStr = localStorage.getItem(`transactions_${user.id}`);
   const localTransactions = transactionsStr ? JSON.parse(transactionsStr) : [];
   
-  // Também buscar do Supabase em segundo plano para sincronizar
-  getSupabaseTransactions(user.id).then(({ data, error }) => {
-    if (error) {
-      console.error("Erro ao sincronizar transações com Supabase:", error);
-      return;
-    }
-    
-    // Se temos dados no Supabase
-    if (data && data.length > 0) {
-      const supabaseTransactions = data.map(mapSupabaseToTransaction);
-      
-      // IMPORTANTE: Mesclar transações locais com as do Supabase, não sobrescrever
-      // Verificar se temos transações locais que não estão no Supabase
-      const localIds = new Set(localTransactions.map((t: Transaction) => t.id));
-      const supabaseIds = new Set(supabaseTransactions.map((t: Transaction) => t.id));
-      
-      // Transações que estão no localStorage mas não no Supabase
-      const localOnlyTransactions = localTransactions.filter((t: Transaction) => !supabaseIds.has(t.id));
-      
-      // Mesclar as transações
-      const mergedTransactions = [...supabaseTransactions, ...localOnlyTransactions];
-      
-      // Salvar as transações mescladas no localStorage
-      localStorage.setItem(`transactions_${user.id}`, JSON.stringify(mergedTransactions));
-      
-      // Enviar as transações locais para o Supabase
-      if (localOnlyTransactions.length > 0) {
-        console.log(`Sincronizando ${localOnlyTransactions.length} transações locais com o Supabase...`);
-        localOnlyTransactions.forEach((transaction: Transaction) => {
-          saveSupabaseTransaction(transaction).catch((error: any) => {
-            console.error("Erro ao sincronizar transação local com Supabase:", error);
-          });
-        });
-      }
-      
-      // Notificar a UI para atualizar
-      window.dispatchEvent(new CustomEvent('transactionsUpdated'));
+  // Converter IDs antigos para UUID válido
+  let needsUpdate = false;
+  localTransactions.forEach((transaction: Transaction) => {
+    // Verificar se o ID está no formato antigo (não é um UUID válido)
+    if (transaction.id && transaction.id.startsWith('transaction_')) {
+      // Gerar um novo UUID para substituir o ID antigo
+      const oldId = transaction.id;
+      transaction.id = uuidv4();
+      console.log(`Convertendo ID antigo ${oldId} para UUID válido ${transaction.id}`);
+      needsUpdate = true;
     }
   });
+  
+  // Se algum ID foi convertido, atualizar o localStorage
+  if (needsUpdate) {
+    localStorage.setItem(`transactions_${user.id}`, JSON.stringify(localTransactions));
+  }
+  
+  // Verificar se devemos sincronizar com o Supabase
+  const now = Date.now();
+  const lastSync = lastTransactionsSyncTime[user.id] || 0;
+  const isSyncing = isSyncingTransactions[user.id] || false;
+  const syncInterval = 30000; // 30 segundos entre sincronizações
+  
+  // Só sincronizar se passou o intervalo E não estiver sincronizando no momento
+  if (!isSyncing && (now - lastSync > syncInterval)) {
+    // Marcar que estamos sincronizando para este usuário
+    isSyncingTransactions[user.id] = true;
+    lastTransactionsSyncTime[user.id] = now;
+    
+    // Também buscar do Supabase em segundo plano para sincronizar
+    getSupabaseTransactions(user.id).then(({ data, error }) => {
+      // Marcar que terminamos a sincronização
+      isSyncingTransactions[user.id] = false;
+      
+      if (error) {
+        console.error("Erro ao sincronizar transações com Supabase:", error);
+        return;
+      }
+      
+      // Se temos dados no Supabase
+      if (data && data.length > 0) {
+        const supabaseTransactions = data.map(mapSupabaseToTransaction);
+        
+        // IMPORTANTE: Mesclar transações locais com as do Supabase, não sobrescrever
+        // Verificar se temos transações locais que não estão no Supabase
+        const localIds = new Set(localTransactions.map((t: Transaction) => t.id));
+        const supabaseIds = new Set(supabaseTransactions.map((t: Transaction) => t.id));
+        
+        // Transações que estão no localStorage mas não no Supabase
+        const localOnlyTransactions = localTransactions.filter((t: Transaction) => !supabaseIds.has(t.id));
+        
+        // Mesclar as transações
+        const mergedTransactions = [...supabaseTransactions, ...localOnlyTransactions];
+        
+        // Salvar as transações mescladas no localStorage
+        localStorage.setItem(`transactions_${user.id}`, JSON.stringify(mergedTransactions));
+        
+        // Enviar as transações locais para o Supabase, com limite de frequência
+        if (localOnlyTransactions.length > 0) {
+          console.log(`Sincronizando ${localOnlyTransactions.length} transações locais com o Supabase...`);
+          
+          // Processar uma transação por vez com intervalo para evitar sobrecarga
+          let index = 0;
+          const processNextTransaction = () => {
+            if (index < localOnlyTransactions.length) {
+              const transaction = localOnlyTransactions[index];
+              console.log(`Tentando salvar transação no Supabase:`, JSON.stringify(transaction));
+              
+              saveSupabaseTransaction(transaction)
+                .then(result => {
+                  if (result.error) {
+                    console.error("Erro ao salvar transação no Supabase:", result.error);
+                  } else {
+                    console.log("Transação sincronizada com sucesso:", result.data);
+                  }
+                  
+                  // Processar a próxima transação após um pequeno intervalo
+                  index++;
+                  setTimeout(processNextTransaction, 1000); // 1 segundo entre cada transação
+                })
+                .catch(error => {
+                  console.error("Erro ao sincronizar transação local com Supabase:", error);
+                  // Continuar mesmo com erro
+                  index++;
+                  setTimeout(processNextTransaction, 1000);
+                });
+            } else {
+              // Todas as transações foram processadas
+              console.log("Sincronização de transações concluída");
+              // Notificar a UI para atualizar
+              window.dispatchEvent(new CustomEvent('transactionsUpdated'));
+            }
+          };
+          
+          // Iniciar o processamento sequencial
+          processNextTransaction();
+        } else {
+          // Notificar a UI para atualizar
+          window.dispatchEvent(new CustomEvent('transactionsUpdated'));
+        }
+      }
+    }).catch(err => {
+      // Garantir que o flag de sincronização seja resetado mesmo em caso de erro
+      isSyncingTransactions[user.id] = false;
+      console.error("Erro inesperado ao sincronizar transações:", err);
+    });
+  }
   
   // Sempre retornar as transações locais imediatamente
   return localTransactions;

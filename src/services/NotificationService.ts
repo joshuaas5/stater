@@ -113,10 +113,15 @@ class NotificationServiceClass {
       const { getUserPreferences } = await import('@/utils/localStorage');
       const userPreferences = getUserPreferences();
       
-      // Se notificações push estiverem desativadas, não agendar
-      if (!userPreferences.notifications.pushNotifications) {
+      // Verificação mais segura das preferências de notificações
+      // Tratar casos onde a estrutura de preferências pode estar incompleta
+      if (userPreferences.notifications && userPreferences.notifications.pushNotifications === false) {
+        console.log('Notificações push estão desativadas nas preferências do usuário');
         return;
       }
+      
+      // Para fins de segurança, sempre mostrar no console as preferências atuais
+      console.log('Preferências de notificação do usuário:', JSON.stringify(userPreferences.notifications || 'padrão'));
       
       const hasPermission = await this.checkPermissions(); // Reutiliza a lógica que já usa o plugin
       if (!hasPermission) {

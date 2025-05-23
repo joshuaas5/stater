@@ -1,7 +1,10 @@
 import { getCurrentUser } from './localStorage';
+import { getTransactions } from './localStorage';
+import { formatCurrency } from './dataProcessing';
 
 /**
  * Envia um email com o resumo semanal para o usuário
+ * Versão exclusivamente local para evitar problemas de CORS
  * @returns Promise<{success: boolean, message: string}>
  */
 export const sendWeeklySummaryEmail = async (): Promise<{success: boolean, message: string}> => {
@@ -11,24 +14,37 @@ export const sendWeeklySummaryEmail = async (): Promise<{success: boolean, messa
   }
 
   try {
-    // Simulação de envio de email - em produção, isso chamaria uma edge function do Supabase
-    console.log(`Enviando resumo semanal para ${user.email}`);
+    // Simulação de envio de email - usamos apenas processamento local
+    console.log(`Gerando resumo semanal para ${user.email}`);
     
-    // Em um ambiente real, você chamaria a edge function assim:
-    // const { data, error } = await supabase.functions.invoke('send-weekly-summary', {
-    //   body: { userId: user.id, email: user.email }
-    // });
+    // Gerar um resumo baseado nos dados locais
+    const transactions = getTransactions();
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
     
-    // Simulação de sucesso
+    // Filtrar transações da última semana
+    const recentTransactions = transactions.filter(t => {
+      const transDate = new Date(t.date);
+      return transDate >= sevenDaysAgo && transDate <= now;
+    });
+    
+    // Calcular receitas e despesas da semana
+    const incomes = recentTransactions.filter(t => t.type === 'income');
+    const expenses = recentTransactions.filter(t => t.type === 'expense');
+    
+    const totalIncome = incomes.reduce((sum, t) => sum + t.amount, 0);
+    const totalExpense = expenses.reduce((sum, t) => sum + t.amount, 0);
+    
+    // Simular sucesso com detalhes do resumo
     return { 
       success: true, 
-      message: 'Email de resumo enviado com sucesso! Verifique sua caixa de entrada.'
+      message: `Resumo gerado com sucesso! Na última semana você teve ${incomes.length} receitas (${formatCurrency(totalIncome)}) e ${expenses.length} despesas (${formatCurrency(totalExpense)}).`
     };
   } catch (error) {
-    console.error('Erro ao enviar email:', error);
+    console.error('Erro ao gerar resumo semanal:', error);
     return { 
       success: false, 
-      message: 'Não foi possível enviar o email. Tente novamente mais tarde.'
+      message: 'Não foi possível gerar o resumo. Tente novamente mais tarde.'
     };
   }
 };

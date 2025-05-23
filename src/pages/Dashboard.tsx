@@ -371,21 +371,17 @@ const Dashboard: React.FC = () => {
     showBack={false}
     showSearch={false}
     showNotifications={true}
+    showThemeToggle={true}
   />
-  <div className="flex items-center justify-between p-4">
-    <div className="flex items-center">
-    </div>
-    <div className="flex items-center gap-2">
-      <button
-        onClick={() => setShowFinancialTips(true)}
-        className="pop-art-tips focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-galileo-accent flex items-center gap-1"
-        aria-label="Show Tips"
-      >
-        <span>News</span>
-        <span className="animate-pulse text-yellow-500">🔥</span>
-      </button>
-      <ThemeToggle />
-    </div>
+  <div className="px-4 text-right">
+    <button
+      onClick={() => setShowFinancialTips(true)}
+      className="pop-art-tips focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-galileo-accent flex items-center gap-1 ml-auto mt-2"
+      aria-label="Show Tips"
+    >
+      <span>News</span>
+      <span className="animate-pulse text-yellow-500">🔥</span>
+    </button>
   </div>
 
   <div className="px-4 mb-4">

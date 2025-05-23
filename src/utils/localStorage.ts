@@ -619,40 +619,81 @@ export const loginUser = (username: string, password: string): User | null => {
 
 // Funções de mapeamento entre formatos locais e Supabase para contas a pagar
 export const mapBillToSupabase = (bill: Bill, userId: string) => {
+  // Garantir que a data esteja em formato correto
+  let dueDateValue: string;
+  if (bill.dueDate instanceof Date) {
+    dueDateValue = bill.dueDate.toISOString();
+  } else if (typeof bill.dueDate === 'string') {
+    try {
+      dueDateValue = new Date(bill.dueDate).toISOString();
+    } catch (err) {
+      console.error('Data inválida, usando data atual:', bill.dueDate);
+      dueDateValue = new Date().toISOString();
+    }
+  } else {
+    dueDateValue = new Date().toISOString();
+  }
+
+  // Criar objeto com todas as propriedades necessárias
   return {
     id: bill.id || uuidv4(),
     user_id: userId,
-    title: bill.title,
-    amount: bill.amount,
-    due_date: bill.dueDate instanceof Date ? bill.dueDate.toISOString() : bill.dueDate,
-    category: bill.category,
-    is_paid: bill.isPaid || false,
-    is_recurring: bill.isRecurring || false,
+    title: bill.title || 'Conta sem título',
+    amount: typeof bill.amount === 'number' ? bill.amount : parseFloat(String(bill.amount)) || 0,
+    due_date: dueDateValue,
+    category: bill.category || 'Outros',
+    is_paid: bill.isPaid !== undefined ? Boolean(bill.isPaid) : false,
+    is_recurring: bill.isRecurring !== undefined ? Boolean(bill.isRecurring) : false,
+    is_infinite_recurrence: bill.isInfiniteRecurrence !== undefined ? Boolean(bill.isInfiniteRecurrence) : false,
     recurring_day: bill.recurringDay || null,
     total_installments: bill.totalInstallments || null,
     current_installment: bill.currentInstallment || null,
-    notifications_enabled: bill.notificationsEnabled || false,
-    notification_days: bill.notificationDays || [],
+    notifications_enabled: bill.notificationsEnabled !== undefined ? Boolean(bill.notificationsEnabled) : false,
+    notification_days: Array.isArray(bill.notificationDays) ? bill.notificationDays : [],
+    original_bill_id: bill.originalBillId || null,
+    original_due_date: bill.originalDueDate instanceof Date ? bill.originalDueDate.toISOString() : bill.originalDueDate || null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
 };
 
 export const mapSupabaseToBill = (data: any): Bill => {
+  // Tratar datas
+  let dueDate: Date;
+  try {
+    dueDate = new Date(data.due_date);
+  } catch (err) {
+    console.error('Erro ao converter data de vencimento:', err);
+    dueDate = new Date();
+  }
+  
+  // Tratar data original (pode ser undefined, não null)
+  let originalDueDate: Date | undefined = undefined;
+  if (data.original_due_date) {
+    try {
+      originalDueDate = new Date(data.original_due_date);
+    } catch (err) {
+      console.error('Erro ao converter data original de vencimento:', err);
+    }
+  }
+  
   return {
     id: data.id,
     userId: data.user_id,
-    title: data.title,
-    amount: data.amount,
-    dueDate: new Date(data.due_date),
-    category: data.category,
-    isPaid: data.is_paid || false,
-    isRecurring: data.is_recurring || false,
+    title: data.title || 'Conta sem título',
+    amount: typeof data.amount === 'number' ? data.amount : parseFloat(String(data.amount)) || 0,
+    dueDate: dueDate,
+    category: data.category || 'Outros',
+    isPaid: Boolean(data.is_paid),
+    isRecurring: Boolean(data.is_recurring),
+    isInfiniteRecurrence: Boolean(data.is_infinite_recurrence),
     recurringDay: data.recurring_day || null,
     totalInstallments: data.total_installments || null,
     currentInstallment: data.current_installment || null,
-    notificationsEnabled: data.notifications_enabled || false,
-    notificationDays: data.notification_days || []
+    notificationsEnabled: Boolean(data.notifications_enabled),
+    notificationDays: Array.isArray(data.notification_days) ? data.notification_days : [],
+    originalBillId: data.original_bill_id || undefined,
+    originalDueDate: originalDueDate
   };
 };
 
@@ -661,15 +702,66 @@ export const saveSupabaseBill = async (bill: Bill): Promise<{ data: any, error: 
   const user = getCurrentUser();
   if (!user) return { data: null, error: "Usuário não autenticado" };
   
-  // Preparar dados para o Supabase
-  const supabaseBill = mapBillToSupabase(bill, user.id);
-  
-  // Salvar no Supabase
-  return await supabase
-    .from('bills')
-    .insert(supabaseBill)
-    .select()
-    .single();
+  try {
+    // Verificar se o usuário está autenticado no Supabase
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      console.warn('Usuário não está autenticado no Supabase. Tentando atualizar sessão...');
+      
+      // Tentar atualizar a sessão
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error('Erro ao atualizar sessão:', refreshError);
+        return { data: null, error: refreshError };
+      }
+    }
+    
+    // Preparar dados para o Supabase
+    const supabaseBill = mapBillToSupabase(bill, user.id);
+    
+    // Registrar a tentativa de salvamento
+    console.log(`Tentando salvar conta no Supabase: ${bill.title} (ID: ${bill.id})`);
+    console.log('Dados enviados:', JSON.stringify(supabaseBill));
+    
+    // Salvar no Supabase
+    const { data, error } = await supabase
+      .from('bills')
+      .insert(supabaseBill)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Erro ao salvar conta no Supabase:", error);
+      
+      // Verificar se é um erro de conflito (conta já existe)
+      if (error.code === '23505') { // Código para conflito de chave única
+        console.log('Conta já existe, tentando atualizar...');
+        // Tentar atualizar em vez de inserir
+        const { data: updateData, error: updateError } = await supabase
+          .from('bills')
+          .update(supabaseBill)
+          .eq('id', bill.id)
+          .eq('user_id', user.id)
+          .select()
+          .single();
+        
+        if (updateError) {
+          console.error("Erro ao atualizar conta existente:", updateError);
+          return { data: null, error: updateError };
+        }
+        
+        return { data: updateData, error: null };
+      }
+      
+      return { data: null, error };
+    }
+    
+    console.log('Conta salva com sucesso no Supabase:', data);
+    return { data, error: null };
+  } catch (error) {
+    console.error("Erro ao salvar conta no Supabase:", error);
+    return { data: null, error };
+  }
 };
 
 // Salvar uma conta a pagar (mantém a compatibilidade com o código existente)
@@ -734,20 +826,56 @@ export const saveBill = (bill: Bill): void => {
 // Obter contas a pagar do Supabase
 export const getSupabaseBills = async (userId: string, onlyActive: boolean = false): Promise<{ data: Bill[], error: any }> => {
   try {
+    // Verificar se o usuário está autenticado no Supabase
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      console.warn('Usuário não está autenticado no Supabase. Tentando atualizar sessão...');
+      
+      // Tentar atualizar a sessão
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error('Erro ao atualizar sessão:', refreshError);
+        return { data: [], error: refreshError };
+      }
+    }
+    
+    console.log(`Buscando contas do usuário ${userId} no Supabase...`);
+    
+    // Buscar todas as contas do usuário
     let query = supabase
       .from('bills')
       .select('*')
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .order('due_date', { ascending: false });
     
     const { data, error } = await query;
     
-    if (error) throw error;
+    if (error) {
+      console.error("Erro ao buscar contas do Supabase:", error);
+      return { data: [], error };
+    }
     
-    let bills = data ? data.map(mapSupabaseToBill) : [];
+    if (!data || data.length === 0) {
+      console.log('Nenhuma conta encontrada no Supabase');
+      return { data: [], error: null };
+    }
+    
+    console.log(`${data.length} contas encontradas no Supabase`);
+    
+    // Mapear para o formato local
+    let bills = data.map(item => {
+      try {
+        return mapSupabaseToBill(item);
+      } catch (err) {
+        console.error('Erro ao mapear conta do Supabase:', err, item);
+        return null;
+      }
+    }).filter(bill => bill !== null) as Bill[];
     
     // Filtrar apenas contas ativas, se solicitado
     if (onlyActive) {
       bills = bills.filter(bill => !bill.isPaid);
+      console.log(`${bills.length} contas ativas após filtragem`);
     }
     
     return { data: bills, error: null };

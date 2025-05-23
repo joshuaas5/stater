@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bell, X, Check } from 'lucide-react';
 import { useNotifications } from '@/contexts/NotificationContext';
-import { requestWeeklySummary } from '@/utils/emailNotifications';
+import { sendWeeklySummaryEmail } from '@/utils/emailService';
 import { toast } from '@/hooks/use-toast';
 
 const NotificationBell: React.FC = () => {
@@ -28,7 +28,7 @@ const NotificationBell: React.FC = () => {
   }, []);
   
   const handleRequestSummary = async (notificationId: string) => {
-    const result = await requestWeeklySummary();
+    const result = await sendWeeklySummaryEmail();
     
     if (result.success) {
       // Marcar notificação como lida

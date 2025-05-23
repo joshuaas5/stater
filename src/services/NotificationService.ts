@@ -49,6 +49,21 @@ const getLocalNotificationsPlugin = (): LocalNotificationsPlugin | undefined => 
 };
 
 class NotificationServiceClass {
+  constructor() {
+    // Solicitar permissões de notificação automaticamente ao iniciar
+    setTimeout(() => {
+      this.requestPermissions().then(granted => {
+        if (granted) {
+          console.log('Permissões de notificação concedidas automaticamente');
+          // Agendar notificações pendentes
+          this.triggerDailyCheck();
+        } else {
+          console.warn('Permissões de notificação não foram concedidas');
+        }
+      });
+    }, 2000); // Pequeno atraso para garantir que a UI esteja carregada
+  }
+
   private async isSupported(): Promise<boolean> {
     const plugin = getLocalNotificationsPlugin();
     if (!plugin) {

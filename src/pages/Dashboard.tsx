@@ -366,11 +366,14 @@ const Dashboard: React.FC = () => {
   
   return (
     <div className="bg-galileo-background min-h-screen pb-20">
+  <PageHeader
+    title={`Olá, ${userName}!`}
+    showBack={false}
+    showSearch={false}
+    showNotifications={true}
+  />
   <div className="flex items-center justify-between p-4">
     <div className="flex items-center">
-      <h2 className="text-galileo-text text-lg font-bold leading-tight">
-        Olá, {userName}!
-      </h2>
     </div>
     <div className="flex items-center gap-2">
       <button

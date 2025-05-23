@@ -4,6 +4,7 @@ import './Dashboard.module.css';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
+import NotificationSummary from '@/components/dashboard/NotificationSummary';
 import BalanceCard from '@/components/dashboard/BalanceCard';
 import { Eye, EyeOff, Edit } from 'lucide-react';
 import SpendingChart from '@/components/dashboard/SpendingChart';
@@ -692,7 +693,14 @@ const Dashboard: React.FC = () => {
 </Dialog>
 
       <div className="px-4 mb-6">
-        <SpendingChart transactions={transactions} days={30} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div className="lg:col-span-2">
+            <SpendingChart transactions={transactions} days={30} />
+          </div>
+          <div className="lg:col-span-1">
+            <NotificationSummary maxItems={3} />
+          </div>
+        </div>
       </div>
       
       <h2 className="text-galileo-text text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-2">

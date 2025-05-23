@@ -1570,14 +1570,20 @@ export const getUnreadNotificationsCount = (): number => {
   return notifications.filter(n => !n.read).length;
 };
 
-// Estas funções já estão definidas anteriormente no arquivo
-
 // Gerar notificações para contas a vencer
 export const generateBillNotifications = async (): Promise<void> => {
   const user = getCurrentUser();
   if (!user) return;
   
   try {
+    // Buscar preferências do usuário
+    const userPreferences = getUserPreferences();
+    
+    // Verificar se as notificações estão habilitadas
+    if (!userPreferences.notifications.inAppNotifications) {
+      return; // Notificações no app estão desativadas
+    }
+    
     // Buscar contas do Supabase
     const { data: bills, error: billsError } = await getSupabaseBills(user.id);
     if (billsError) {
@@ -1614,7 +1620,7 @@ export const generateBillNotifications = async (): Promise<void> => {
       
       let newNotification: Notification | null = null;
       
-      if (diffDays === 5) {
+      if (diffDays === 5 && userPreferences.notifications.billsDueSoon) {
         // Conta a vencer em 5 dias
         newNotification = {
           id: uuidv4(),
@@ -1625,7 +1631,7 @@ export const generateBillNotifications = async (): Promise<void> => {
           date: new Date(),
           read: false
         };
-      } else if (diffDays === 1) {
+      } else if (diffDays === 1 && userPreferences.notifications.billsDueSoon) {
         // Conta a vencer em 1 dia
         newNotification = {
           id: uuidv4(),
@@ -1636,7 +1642,7 @@ export const generateBillNotifications = async (): Promise<void> => {
           date: new Date(),
           read: false
         };
-      } else if (diffDays === 0) {
+      } else if (diffDays === 0 && userPreferences.notifications.billsDueSoon) {
         // Conta vence hoje
         newNotification = {
           id: uuidv4(),
@@ -1647,7 +1653,7 @@ export const generateBillNotifications = async (): Promise<void> => {
           date: new Date(),
           read: false
         };
-      } else if (diffDays < 0) {
+      } else if (diffDays < 0 && userPreferences.notifications.billsOverdue) {
         // Conta vencida
         newNotification = {
           id: uuidv4(),
@@ -1661,7 +1667,7 @@ export const generateBillNotifications = async (): Promise<void> => {
       }
       
       // Quase terminando de pagar (faltando 1 ou 2 parcelas)
-      if (bill.totalInstallments && bill.currentInstallment) {
+      if (bill.totalInstallments && bill.currentInstallment && userPreferences.notifications.billsDueSoon) {
         const remaining = bill.totalInstallments - bill.currentInstallment;
         if (remaining <= 2 && remaining > 0 && !newNotification) {
           newNotification = {
@@ -1698,7 +1704,12 @@ export interface UserPreferences {
   dateFormat: string;
   notifications: {
     billsDueSoon: boolean;
+    billsOverdue: boolean;
     largeTransactions: boolean;
+    weeklyEmailSummary: boolean;
+    pushNotifications: boolean;
+    inAppNotifications: boolean;
+    emailNotifications: boolean;
   };
 }
 
@@ -1709,7 +1720,12 @@ const defaultPreferences: UserPreferences = {
   dateFormat: 'dd/MM/yyyy',
   notifications: {
     billsDueSoon: true,
-    largeTransactions: false
+    billsOverdue: true,
+    largeTransactions: false,
+    weeklyEmailSummary: true,
+    pushNotifications: true,
+    inAppNotifications: true,
+    emailNotifications: true
   }
 };
 
@@ -1722,7 +1738,12 @@ const mapPreferencesToSupabase = (preferences: UserPreferences, userId: string) 
     currency: preferences.currency,
     date_format: preferences.dateFormat,
     notifications_bills_due_soon: preferences.notifications.billsDueSoon,
+    notifications_bills_overdue: preferences.notifications.billsOverdue,
     notifications_large_transactions: preferences.notifications.largeTransactions,
+    notifications_weekly_email: preferences.notifications.weeklyEmailSummary,
+    notifications_push: preferences.notifications.pushNotifications,
+    notifications_in_app: preferences.notifications.inAppNotifications,
+    notifications_email: preferences.notifications.emailNotifications,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
@@ -1734,8 +1755,13 @@ const mapSupabaseToPreferences = (data: any): UserPreferences => {
     currency: data.currency,
     dateFormat: data.date_format,
     notifications: {
-      billsDueSoon: data.notifications_bills_due_soon,
-      largeTransactions: data.notifications_large_transactions
+      billsDueSoon: data.notifications_bills_due_soon ?? true,
+      billsOverdue: data.notifications_bills_overdue ?? true,
+      largeTransactions: data.notifications_large_transactions ?? false,
+      weeklyEmailSummary: data.notifications_weekly_email ?? true,
+      pushNotifications: data.notifications_push ?? true,
+      inAppNotifications: data.notifications_in_app ?? true,
+      emailNotifications: data.notifications_email ?? true
     }
   };
 };
@@ -1770,7 +1796,12 @@ export const saveSupabaseUserPreferences = async (preferences: UserPreferences):
           currency: preferences.currency,
           date_format: preferences.dateFormat,
           notifications_bills_due_soon: preferences.notifications.billsDueSoon,
+          notifications_bills_overdue: preferences.notifications.billsOverdue,
           notifications_large_transactions: preferences.notifications.largeTransactions,
+          notifications_weekly_email: preferences.notifications.weeklyEmailSummary,
+          notifications_push: preferences.notifications.pushNotifications,
+          notifications_in_app: preferences.notifications.inAppNotifications,
+          notifications_email: preferences.notifications.emailNotifications,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id)
@@ -1846,7 +1877,7 @@ export const getSupabaseUserPreferences = async (userId: string): Promise<{ data
       // Buscar preferências do usuário
       let { data, error } = await supabase
         .from('user_preferences')
-        .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
+        .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_bills_overdue, notifications_large_transactions, notifications_weekly_email, notifications_push, notifications_in_app, notifications_email, created_at, updated_at')
         .eq('user_id', userId)
         .maybeSingle();
       
@@ -1863,7 +1894,7 @@ export const getSupabaseUserPreferences = async (userId: string): Promise<{ data
         try {
           const response = await supabase
             .from('user_preferences')
-            .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
+            .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_bills_overdue, notifications_large_transactions, notifications_weekly_email, notifications_push, notifications_in_app, notifications_email, created_at, updated_at')
             .eq('user_id', userId)
             .limit(1);
           

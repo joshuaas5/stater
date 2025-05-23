@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import NotificationManager from "@/components/notifications/NotificationManager";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Transactions from "./pages/Transactions";
@@ -29,9 +31,12 @@ const App = () => (
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
+          <NotificationProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <NotificationManager />
+            </TooltipProvider>
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/login" element={<Login />} />
@@ -134,7 +139,7 @@ const App = () => (
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </TooltipProvider>
+          </NotificationProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

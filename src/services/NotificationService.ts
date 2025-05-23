@@ -94,6 +94,15 @@ class NotificationServiceClass {
     if (!plugin) return;
 
     try {
+      // Verificar preferências do usuário
+      const { getUserPreferences } = await import('@/utils/localStorage');
+      const userPreferences = getUserPreferences();
+      
+      // Se notificações push estiverem desativadas, não agendar
+      if (!userPreferences.notifications.pushNotifications) {
+        return;
+      }
+      
       const hasPermission = await this.checkPermissions(); // Reutiliza a lógica que já usa o plugin
       if (!hasPermission) {
         const granted = await this.requestPermissions();

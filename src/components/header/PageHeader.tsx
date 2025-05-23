@@ -3,12 +3,14 @@ import React from 'react';
 import { Search, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 interface PageHeaderProps {
   title: string;
   showBack?: boolean;
   showSearch?: boolean;
   showThemeToggle?: boolean;
+  showNotifications?: boolean;
   onSearch?: () => void;
 }
 
@@ -17,6 +19,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   showBack = false,
   showSearch = true,
   showThemeToggle = true,
+  showNotifications = true,
   onSearch 
 }) => {
   const navigate = useNavigate();
@@ -42,6 +45,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
       </div>
       
       <div className="flex items-center gap-2">
+        {showNotifications && <NotificationBell />}
         {showThemeToggle && <ThemeToggle />}
         
         {showSearch && (

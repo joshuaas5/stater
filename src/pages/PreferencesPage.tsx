@@ -1,12 +1,13 @@
 
 import React, { useEffect, useState } from 'react';
+import { requestWeeklySummary } from '@/utils/emailNotifications';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
-import { isLoggedIn, getUserPreferences, saveUserPreferences } from '@/utils/localStorage';
+import { isLoggedIn, getUserPreferences, saveUserPreferences, saveSupabaseUserPreferences } from '@/utils/localStorage';
 import { 
   Sun, Moon, Bell, Languages, DollarSign, 
-  Calendar, Paintbrush, Save, UserCircle2, Star
+  Calendar, Paintbrush, Save, UserCircle2, Star, Mail
 } from 'lucide-react';
 import { CURRENCIES, suggestCurrencyByCountry } from '@/utils/currencies';
 import { getCurrentUser } from '@/utils/localStorage';
@@ -37,7 +38,12 @@ const PreferencesPage: React.FC = () => {
     showTransactionCategories: true,
     notifications: {
       billsDueSoon: true,
-      largeTransactions: true
+      billsOverdue: true,
+      largeTransactions: true,
+      weeklyEmailSummary: true,
+      pushNotifications: true,
+      inAppNotifications: true,
+      emailNotifications: true
     }
   });
   
@@ -90,13 +96,25 @@ const PreferencesPage: React.FC = () => {
     window.location.reload();
   };
   
-  const handleSavePreferences = () => {
+  const handleSavePreferences = async () => {
+    // Salvar localmente
     saveUserPreferences(preferences);
     
-    toast({
-      title: t('preferencesUpdated'),
-      description: ""
-    });
+    // Salvar no Supabase
+    try {
+      await saveSupabaseUserPreferences(preferences);
+      toast({
+        title: t('preferencesUpdated'),
+        description: "Suas preferências foram atualizadas com sucesso."
+      });
+    } catch (error) {
+      console.error('Erro ao salvar preferências:', error);
+      toast({
+        title: 'Erro ao salvar preferências',
+        description: 'Ocorreu um erro ao salvar suas preferências. Tente novamente.',
+        variant: 'destructive'
+      });
+    }
   };
   
   const handleSwitchChange = (key: keyof typeof preferences) => {
@@ -138,48 +156,189 @@ const PreferencesPage: React.FC = () => {
           <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
             <Bell size={18} className="mr-2" /> {t('notifications')}
           </h2>
-          <div className="flex items-center justify-between mb-2">
-            <Label htmlFor="notifications-bills" className="cursor-pointer">{t('enableNotifications')} - Contas a pagar</Label>
-            <Switch 
-              id="notifications-bills" 
-              checked={preferences.notifications.billsDueSoon}
-              onCheckedChange={() => {
-                setPreferences(prev => ({
-                  ...prev,
-                  notifications: {
-                    ...prev.notifications,
-                    billsDueSoon: !prev.notifications.billsDueSoon
-                  }
-                }));
-              }}
-            />
-          </div>
-          <div className="flex items-center justify-between mb-2">
-            <Label htmlFor="notifications-transactions" className="cursor-pointer">{t('enableNotifications')} - Grandes transações</Label>
-            <Switch 
-              id="notifications-transactions" 
-              checked={preferences.notifications.largeTransactions}
-              onCheckedChange={() => {
-                setPreferences(prev => ({
-                  ...prev,
-                  notifications: {
-                    ...prev.notifications,
-                    largeTransactions: !prev.notifications.largeTransactions
-                  }
-                }));
-              }}
-            />
-          </div>
-          {(preferences.notifications.billsDueSoon || preferences.notifications.largeTransactions) && (
-            <div className="flex items-center justify-between">
-              <Label htmlFor="show-recurring-badges" className="cursor-pointer">{t('showRecurringIndicator')}</Label>
-              <Switch 
-                id="show-recurring-badges" 
-                checked={preferences.showRecurringBadges}
-                onCheckedChange={() => handleSwitchChange('showRecurringBadges')}
-              />
+          
+          <div className="mb-4">
+            <h3 className="text-sm font-medium text-galileo-text mb-2">Canais de notificação</h3>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="push-notifications" className="cursor-pointer">Notificações push</Label>
+                <Switch 
+                  id="push-notifications" 
+                  checked={preferences.notifications.pushNotifications}
+                  onCheckedChange={() => {
+                    setPreferences(prev => ({
+                      ...prev,
+                      notifications: {
+                        ...prev.notifications,
+                        pushNotifications: !prev.notifications.pushNotifications
+                      }
+                    }));
+                  }}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <Label htmlFor="in-app-notifications" className="cursor-pointer">Notificações no aplicativo</Label>
+                <Switch 
+                  id="in-app-notifications" 
+                  checked={preferences.notifications.inAppNotifications}
+                  onCheckedChange={() => {
+                    setPreferences(prev => ({
+                      ...prev,
+                      notifications: {
+                        ...prev.notifications,
+                        inAppNotifications: !prev.notifications.inAppNotifications
+                      }
+                    }));
+                  }}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <Label htmlFor="email-notifications" className="cursor-pointer">Notificações por email</Label>
+                <Switch 
+                  id="email-notifications" 
+                  checked={preferences.notifications.emailNotifications}
+                  onCheckedChange={() => {
+                    setPreferences(prev => ({
+                      ...prev,
+                      notifications: {
+                        ...prev.notifications,
+                        emailNotifications: !prev.notifications.emailNotifications
+                      }
+                    }));
+                  }}
+                />
+              </div>
+              
+              {preferences.notifications.emailNotifications && (
+                <div className="mt-2 ml-6">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        toast({
+                          title: "Enviando email de teste...",
+                          description: "Aguarde enquanto enviamos um resumo semanal para seu email.",
+                        });
+                        
+                        const result = await requestWeeklySummary();
+                        
+                        toast({
+                          title: result.success ? "Email enviado!" : "Erro ao enviar email",
+                          description: result.message,
+                          variant: result.success ? "default" : "destructive",
+                        });
+                      } catch (error) {
+                        toast({
+                          title: "Erro ao enviar email",
+                          description: "Ocorreu um erro ao tentar enviar o email de teste.",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                  >
+                    Testar email semanal
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+          
+          <div className="mb-4">
+            <h3 className="text-sm font-medium text-galileo-text mb-2">Tipos de notificação</h3>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="notifications-bills" className="cursor-pointer">Contas a vencer em breve</Label>
+                <Switch 
+                  id="notifications-bills" 
+                  checked={preferences.notifications.billsDueSoon}
+                  onCheckedChange={() => {
+                    setPreferences(prev => ({
+                      ...prev,
+                      notifications: {
+                        ...prev.notifications,
+                        billsDueSoon: !prev.notifications.billsDueSoon
+                      }
+                    }));
+                  }}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <Label htmlFor="notifications-overdue" className="cursor-pointer">Contas vencidas</Label>
+                <Switch 
+                  id="notifications-overdue" 
+                  checked={preferences.notifications.billsOverdue}
+                  onCheckedChange={() => {
+                    setPreferences(prev => ({
+                      ...prev,
+                      notifications: {
+                        ...prev.notifications,
+                        billsOverdue: !prev.notifications.billsOverdue
+                      }
+                    }));
+                  }}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <Label htmlFor="notifications-transactions" className="cursor-pointer">Grandes transações</Label>
+                <Switch 
+                  id="notifications-transactions" 
+                  checked={preferences.notifications.largeTransactions}
+                  onCheckedChange={() => {
+                    setPreferences(prev => ({
+                      ...prev,
+                      notifications: {
+                        ...prev.notifications,
+                        largeTransactions: !prev.notifications.largeTransactions
+                      }
+                    }));
+                  }}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <Label htmlFor="notifications-weekly" className="cursor-pointer">Resumo semanal por email</Label>
+                <Switch 
+                  id="notifications-weekly" 
+                  checked={preferences.notifications.weeklyEmailSummary}
+                  onCheckedChange={() => {
+                    setPreferences(prev => ({
+                      ...prev,
+                      notifications: {
+                        ...prev.notifications,
+                        weeklyEmailSummary: !prev.notifications.weeklyEmailSummary
+                      }
+                    }));
+                  }}
+                />
+              </div>
+              
+              {preferences.notifications.weeklyEmailSummary && preferences.notifications.emailNotifications && (
+                <div className="mt-1 ml-6 text-xs text-galileo-secondaryText">
+                  <p>Vocu00ea receberu00e1 um resumo semanal com suas transau00e7u00f5es e contas a vencer.</p>
+                </div>
+              )}
+              
+              {preferences.notifications.weeklyEmailSummary && !preferences.notifications.emailNotifications && (
+                <div className="mt-1 ml-6 text-xs text-galileo-negative">
+                  <p>Ative as notificau00e7u00f5es por email acima para receber o resumo semanal.</p>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="show-recurring-badges" className="cursor-pointer">{t('showRecurringIndicator')}</Label>
+            <Switch 
+              id="show-recurring-badges" 
+              checked={preferences.showRecurringBadges}
+              onCheckedChange={() => handleSwitchChange('showRecurringBadges')}
+            />
+          </div>
         </div>
           
         <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
@@ -237,6 +396,54 @@ const PreferencesPage: React.FC = () => {
           >
             <Save size={16} className="mr-2" /> {t('savePreferences')}
           </Button>
+        </div>
+      </div>
+      
+      <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
+        <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
+          <Bell size={18} className="mr-2" /> Notificações por Email
+        </h2>
+        <div className="space-y-3">
+          <p className="text-sm text-galileo-text mb-2">
+            Teste o envio de emails ou solicite um resumo semanal das suas finanças.
+          </p>
+          <div className="flex flex-col space-y-2">
+            <Button 
+              variant="outline"
+              className="w-full border border-galileo-accent text-galileo-accent hover:bg-galileo-accent/10"
+              onClick={async () => {
+                try {
+                  toast({
+                    title: 'Enviando email de teste...',
+                    description: 'Aguarde enquanto processamos sua solicitação.'
+                  });
+                  
+                  const { success, message } = await requestWeeklySummary();
+                  
+                  toast({
+                    title: success ? 'Email enviado!' : 'Erro ao enviar email',
+                    description: message,
+                    variant: success ? 'default' : 'destructive'
+                  });
+                } catch (error) {
+                  console.error('Erro ao solicitar email:', error);
+                  toast({
+                    title: 'Erro ao enviar email',
+                    description: 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
+                    variant: 'destructive'
+                  });
+                }
+              }}
+              disabled={!preferences.notifications.emailNotifications || !preferences.notifications.weeklyEmailSummary}
+            >
+              <Mail size={16} className="mr-2" /> Solicitar resumo semanal agora
+            </Button>
+            {(!preferences.notifications.emailNotifications || !preferences.notifications.weeklyEmailSummary) && (
+              <p className="text-xs text-red-500 italic">
+                Para solicitar emails, ative as notificações por email e resumos semanais nas configurações acima.
+              </p>
+            )}
+          </div>
         </div>
       </div>
       

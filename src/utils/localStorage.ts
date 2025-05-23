@@ -779,14 +779,14 @@ export const saveBill = (bill: Bill): void => {
   let bills: Bill[] = billsStr ? JSON.parse(billsStr) : [];
   bills.push(bill);
   
-  // Se for uma conta recorrente sem fim definido, gerar instâncias futuras (1 ano)
+  // Se for uma conta recorrente sem fim definido, gerar instâncias futuras (6 meses)
   if (bill.isRecurring && bill.isInfiniteRecurrence) {
     const originalBillId = bill.id;
     const dueDate = new Date(bill.dueDate);
     const recurringDay = dueDate.getDate();
     
-    // Gerar instâncias para 1 ano (12 meses)
-    for (let i = 1; i <= 12; i++) {
+    // Gerar instâncias para 6 meses iniciais
+    for (let i = 1; i <= 6; i++) {
       // Calcular próxima data de vencimento
       const nextDueDate = new Date(dueDate);
       nextDueDate.setMonth(nextDueDate.getMonth() + i);
@@ -811,6 +811,19 @@ export const saveBill = (bill: Bill): void => {
         console.error(`Erro ao salvar instância futura (mês ${i}) no Supabase:`, error);
       });
     }
+    
+    // Mostrar notificação para o usuário sobre a geração sob demanda
+    const notification: Notification = {
+      id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      userId: user.id,
+      billId: bill.id, // Adicionar o ID da conta
+      type: 'info' as NotificationType,
+      message: `A conta recorrente "${bill.title}" foi configurada. Inicialmente, foram geradas parcelas para os próximos 6 meses. Novas parcelas serão adicionadas automaticamente conforme necessário.`,
+      date: new Date(),
+      read: false
+    };
+    
+    saveNotification(notification);
   }
   
   localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
@@ -916,6 +929,143 @@ export const getBills = (onlyActive: boolean = true): Bill[] => {
       needsUpdate = true;
     }
   });
+  
+  // Verificar se precisamos gerar mais parcelas futuras para contas recorrentes infinitas
+  const checkAndGenerateFutureBills = () => {
+    const currentDate = new Date();
+    const sixMonthsFromNow = new Date(currentDate);
+    sixMonthsFromNow.setMonth(currentDate.getMonth() + 6); // Data limite (6 meses a partir de hoje)
+    
+    // Agrupar contas recorrentes por originalBillId
+    const recurringBillsGroups: Record<string, Bill[]> = {};
+    
+    // Identificar contas recorrentes infinitas e agrupar por originalBillId
+    bills.forEach(bill => {
+      if (bill.isRecurring && bill.isInfiniteRecurrence) {
+        // Se é uma conta original (não tem originalBillId)
+        if (!bill.originalBillId) {
+          // Usar o ID da própria conta como chave
+          if (!recurringBillsGroups[bill.id]) {
+            recurringBillsGroups[bill.id] = [];
+          }
+        } 
+        // Se é uma instância futura
+        else if (bill.originalBillId) {
+          if (!recurringBillsGroups[bill.originalBillId]) {
+            recurringBillsGroups[bill.originalBillId] = [];
+          }
+          recurringBillsGroups[bill.originalBillId].push(bill);
+        }
+      }
+    });
+    
+    // Para cada grupo de contas recorrentes, verificar se precisamos gerar mais parcelas
+    let newBillsAdded = false;
+    
+    Object.keys(recurringBillsGroups).forEach(originalBillId => {
+      const instances = recurringBillsGroups[originalBillId];
+      
+      // Encontrar a conta original
+      const originalBill = bills.find(b => b.id === originalBillId);
+      if (!originalBill) return;
+      
+      // Encontrar a data de vencimento mais distante entre as instâncias existentes
+      let latestDueDate: Date | null = null;
+      instances.forEach(bill => {
+        try {
+          const dueDate = new Date(bill.dueDate);
+          if (!latestDueDate || dueDate > latestDueDate) {
+            latestDueDate = dueDate;
+          }
+        } catch (err) {
+          console.error('Erro ao converter data de vencimento:', err);
+        }
+      });
+      
+      // Se não há instâncias ou a data mais distante está a menos de 3 meses da data limite
+      const shouldGenerateMoreInstances = !latestDueDate || 
+                                          (latestDueDate.getTime() < sixMonthsFromNow.getTime());
+      
+      if (shouldGenerateMoreInstances) {
+        console.log(`Gerando mais parcelas para a conta recorrente "${originalBill.title}"`);
+        
+        // Determinar a data de início para novas parcelas
+        const startDate = latestDueDate || new Date(originalBill.dueDate);
+        const recurringDay = startDate.getDate();
+        
+        // Determinar quantas parcelas precisamos adicionar (até ter 6 meses a partir de hoje)
+        const monthsToAdd = latestDueDate ? 3 : 6; // Se já temos parcelas, adicionar 3 meses, senão 6
+        
+        // Gerar novas instâncias
+        for (let i = 1; i <= monthsToAdd; i++) {
+          // Calcular próxima data de vencimento a partir da última conhecida
+          const nextDueDate = new Date(startDate);
+          nextDueDate.setMonth(nextDueDate.getMonth() + i);
+          
+          // Ajustar para o dia correto (considerando meses com menos dias)
+          const lastDayOfMonth = new Date(nextDueDate.getFullYear(), nextDueDate.getMonth() + 1, 0).getDate();
+          nextDueDate.setDate(Math.min(recurringDay, lastDayOfMonth));
+          
+          // Verificar se já existe uma instância com esta data de vencimento
+          const existingBill = bills.find(b => {
+            if (!b.originalBillId || b.originalBillId !== originalBillId) return false;
+            
+            try {
+              const bDueDate = new Date(b.dueDate);
+              return bDueDate.getMonth() === nextDueDate.getMonth() && 
+                     bDueDate.getFullYear() === nextDueDate.getFullYear();
+            } catch (err) {
+              return false;
+            }
+          });
+          
+          if (!existingBill) {
+            // Criar nova instância da conta
+            const futureBill: Bill = {
+              ...originalBill,
+              id: uuidv4(),
+              dueDate: nextDueDate,
+              isPaid: false,
+              originalBillId: originalBillId,
+              originalDueDate: new Date(originalBill.dueDate)
+            };
+            
+            bills.push(futureBill);
+            newBillsAdded = true;
+            
+            // Também salvar no Supabase em segundo plano
+            saveSupabaseBill(futureBill).catch(error => {
+              console.error(`Erro ao salvar nova instância futura no Supabase:`, error);
+            });
+          }
+        }
+      }
+    });
+    
+    return newBillsAdded;
+  };
+  
+  // Executar a verificação e geração de parcelas futuras
+  const newBillsAdded = checkAndGenerateFutureBills();
+  
+  // Se foram adicionadas novas contas, atualizar o localStorage
+  if (newBillsAdded) {
+    localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
+    console.log('Novas parcelas futuras foram adicionadas');
+    
+    // Notificar o usuário que novas parcelas foram adicionadas
+    const notification: Notification = {
+      id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      userId: user.id,
+      billId: "", // String vazia em vez de null
+      type: 'info' as NotificationType,
+      message: `Novas parcelas futuras foram adicionadas para suas contas recorrentes.`,
+      date: new Date(),
+      read: false
+    };
+    
+    saveNotification(notification);
+  }
   
   // Se algum ID foi convertido, atualizar o localStorage
   if (needsUpdate) {

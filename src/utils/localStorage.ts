@@ -779,14 +779,14 @@ export const saveBill = (bill: Bill): void => {
   let bills: Bill[] = billsStr ? JSON.parse(billsStr) : [];
   bills.push(bill);
   
-  // Se for uma conta recorrente sem fim definido, gerar instâncias futuras (10 anos)
+  // Se for uma conta recorrente sem fim definido, gerar instâncias futuras (1 ano)
   if (bill.isRecurring && bill.isInfiniteRecurrence) {
     const originalBillId = bill.id;
     const dueDate = new Date(bill.dueDate);
     const recurringDay = dueDate.getDate();
     
-    // Gerar instâncias para 10 anos (120 meses)
-    for (let i = 1; i <= 120; i++) {
+    // Gerar instâncias para 1 ano (12 meses)
+    for (let i = 1; i <= 12; i++) {
       // Calcular próxima data de vencimento
       const nextDueDate = new Date(dueDate);
       nextDueDate.setMonth(nextDueDate.getMonth() + i);

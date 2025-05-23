@@ -44,6 +44,16 @@ export interface ChatMessage {
   avatarUrl?: string; // Adicionado para permitir avatares personalizados para a IA
 }
 
+export interface ConsultantMessage {
+  id: string;
+  userId: string;
+  text: string;
+  sender: 'user' | 'consultant';
+  timestamp: Date;
+  read: boolean;
+  category?: string; // Categoria da mensagem (ex: investimentos, economia, planejamento)
+}
+
 export interface Category {
   id: string;
   name: string;

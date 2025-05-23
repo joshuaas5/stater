@@ -106,7 +106,7 @@ export interface NewsItem {
   logoUrl?: string; // Adicionado para o logo da fonte
 }
 
-export type NotificationType = 'fiveDaysBefore' | 'oneDayBefore' | 'dueDay' | 'overdue' | 'almostFinished' | 'paid';
+export type NotificationType = 'fiveDaysBefore' | 'oneDayBefore' | 'dueDay' | 'overdue' | 'almostFinished' | 'paid' | 'weekly_summary';
 
 export interface Notification {
   id: string;

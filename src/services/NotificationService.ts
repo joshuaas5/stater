@@ -1,5 +1,5 @@
 import { Bill, Notification as AppNotification } from '@/types';
-import { getBills, saveNotification } from '@/utils/localStorage';
+import { getBills, saveNotification, getCurrentUser, getUserPreferences, getNotifications } from '@/utils/localStorage';
 
 // Definições de tipo mínimas para emular partes do @capacitor/local-notifications
 // Isso evita o erro 'Cannot find module' se o pacote não estiver instalado
@@ -177,7 +177,77 @@ class NotificationServiceClass {
       // scheduleBillReminders internamente já verifica o suporte e as permissões
       await this.scheduleBillReminders(bills);
     }
+    
+    // Verificar se é segunda-feira para agendar lembrete de resumo semanal
+    const today = new Date();
+    if (today.getDay() === 1) { // 1 = Segunda-feira
+      scheduleWeeklySummaryReminder();
+    }
   }
 }
 
 export const NotificationService = new NotificationServiceClass();
+
+/**
+ * Agenda uma notificação semanal para lembrar o usuário de solicitar o resumo
+ * Esta função deve ser chamada quando o usuário faz login
+ */
+export const scheduleWeeklySummaryReminder = () => {
+  const user = getCurrentUser();
+  if (!user) return;
+  
+  const userPreferences = getUserPreferences();
+  if (!userPreferences.notifications.weeklyEmailSummary) return;
+  
+  // Verificar se já existe uma notificação agendada
+  const existingNotifications = getNotifications();
+  const hasReminder = existingNotifications.some(
+    n => n.type === 'weekly_summary' && !n.read
+  );
+  
+  if (hasReminder) return;
+  
+  // Calcular a próxima segunda-feira às 9:00
+  const now = new Date();
+  const daysUntilMonday = 1 - now.getDay();
+  const nextMonday = new Date();
+  
+  if (daysUntilMonday <= 0) {
+    nextMonday.setDate(now.getDate() + 7 + daysUntilMonday);
+  } else {
+    nextMonday.setDate(now.getDate() + daysUntilMonday);
+  }
+  
+  nextMonday.setHours(9, 0, 0, 0);
+  
+  // Criar a notificação
+  const notification: AppNotification = {
+    id: `weekly-summary-${Date.now()}`,
+    billId: '',
+    userId: user.id,
+    message: 'Solicite seu resumo semanal de finanças para acompanhar seus gastos e economias.',
+    type: 'weekly_summary',
+    date: nextMonday,
+    read: false
+  };
+  
+  // Adicionar à lista de notificações
+  saveNotification(notification);
+  
+  // Registrar para notificação push se disponível
+  const localNotifications = getLocalNotificationsPlugin();
+  if (userPreferences.notifications.pushNotifications && localNotifications) {
+    try {
+      localNotifications.schedule({
+        notifications: [{
+          id: parseInt(notification.id.replace(/\D/g, '').substring(0, 8) || '12345'),
+          title: 'Resumo Semanal Disponível',
+          body: notification.message,
+          schedule: { at: nextMonday }
+        }]
+      });
+    } catch (error) {
+      console.error('Erro ao agendar notificação push para resumo semanal:', error);
+    }
+  }
+};

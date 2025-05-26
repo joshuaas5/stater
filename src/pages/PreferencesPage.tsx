@@ -399,53 +399,8 @@ const PreferencesPage: React.FC = () => {
         </div>
       </div>
       
-      <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
-        <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
-          <Bell size={18} className="mr-2" /> Notificações por Email
-        </h2>
-        <div className="space-y-3">
-          <p className="text-sm text-galileo-text mb-2">
-            Teste o envio de emails ou solicite um resumo semanal das suas finanças.
-          </p>
-          <div className="flex flex-col space-y-2">
-            <Button 
-              variant="outline"
-              className="w-full border border-galileo-accent text-galileo-accent hover:bg-galileo-accent/10"
-              onClick={async () => {
-                try {
-                  toast({
-                    title: 'Enviando email de teste...',
-                    description: 'Aguarde enquanto processamos sua solicitação.'
-                  });
-                  
-                  const { success, message } = await requestWeeklySummary();
-                  
-                  toast({
-                    title: success ? 'Email enviado!' : 'Erro ao enviar email',
-                    description: message,
-                    variant: success ? 'default' : 'destructive'
-                  });
-                } catch (error) {
-                  console.error('Erro ao solicitar email:', error);
-                  toast({
-                    title: 'Erro ao enviar email',
-                    description: 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
-                    variant: 'destructive'
-                  });
-                }
-              }}
-              disabled={!preferences.notifications.emailNotifications || !preferences.notifications.weeklyEmailSummary}
-            >
-              <Mail size={16} className="mr-2" /> Solicitar resumo semanal agora
-            </Button>
-            {(!preferences.notifications.emailNotifications || !preferences.notifications.weeklyEmailSummary) && (
-              <p className="text-xs text-red-500 italic">
-                Para solicitar emails, ative as notificações por email e resumos semanais nas configurações acima.
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* A seu00e7u00e3o de solicitau00e7u00e3o de resumo semanal foi removida para evitar duplicidade */}
+      {/* Agora essa funcionalidade estu00e1 disponu00edvel exclusivamente pelo sino de notificau00e7u00f5es */}
       
       <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
         <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">

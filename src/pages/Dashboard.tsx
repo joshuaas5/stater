@@ -7,6 +7,7 @@ import NavBar from '@/components/navigation/NavBar';
 import BalanceCard from '@/components/dashboard/BalanceCard';
 import { Eye, EyeOff, Edit } from 'lucide-react';
 import SpendingChart from '@/components/dashboard/SpendingChart';
+import NotificationBell from '@/components/notifications/NotificationBell';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { Transaction } from '@/types';
@@ -366,22 +367,24 @@ const Dashboard: React.FC = () => {
   
   return (
     <div className="bg-galileo-background min-h-screen pb-20">
-  <PageHeader
-    title={`Olá, ${userName}!`}
-    showBack={false}
-    showSearch={false}
-    showNotifications={true}
-    showThemeToggle={true}
-  />
-  <div className="px-4 text-right">
-    <button
-      onClick={() => setShowFinancialTips(true)}
-      className="pop-art-tips focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-galileo-accent flex items-center gap-1 ml-auto mt-2"
-      aria-label="Show Tips"
-    >
-      <span>News</span>
-      <span className="animate-pulse text-yellow-500">🔥</span>
-    </button>
+  <div className="flex items-center justify-between p-4">
+    <div className="flex items-center">
+      <h2 className="text-galileo-text text-lg font-bold leading-tight">
+        Olá, {userName}!
+      </h2>
+    </div>
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => setShowFinancialTips(true)}
+        className="pop-art-tips focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-galileo-accent flex items-center gap-1"
+        aria-label="Show Tips"
+      >
+        <span>News</span>
+        <span className="animate-pulse text-yellow-500">🔥</span>
+      </button>
+      <NotificationBell />
+      <ThemeToggle />
+    </div>
   </div>
 
   <div className="px-4 mb-4">

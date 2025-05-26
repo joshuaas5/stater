@@ -28,21 +28,38 @@ const NotificationBell: React.FC = () => {
   }, []);
   
   const handleRequestSummary = async (notificationId: string) => {
-    const result = await sendWeeklySummaryEmail();
-    
-    if (result.success) {
-      // Marcar notificação como lida
-      markAsRead(notificationId);
-      
-      // Mostrar toast de sucesso
+    try {
+      // Mostrar toast de carregamento
       toast({
-        title: 'Resumo Semanal',
-        description: result.message
+        title: 'Processando',
+        description: 'Gerando seu resumo semanal...'
       });
-    } else {
+      
+      // Usar try/catch para capturar qualquer erro na chamada
+      const result = await sendWeeklySummaryEmail();
+      
+      if (result.success) {
+        // Marcar notificação como lida
+        markAsRead(notificationId);
+        
+        // Mostrar toast de sucesso
+        toast({
+          title: 'Resumo Semanal',
+          description: result.message
+        });
+      } else {
+        console.error('Erro ao enviar resumo semanal:', result.message);
+        toast({
+          title: 'Erro',
+          description: result.message,
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao processar resumo semanal:', error);
       toast({
-        title: 'Erro',
-        description: result.message,
+        title: 'Erro Inesperado',
+        description: 'Não foi possível gerar o resumo semanal. Tente novamente mais tarde.',
         variant: 'destructive'
       });
     }

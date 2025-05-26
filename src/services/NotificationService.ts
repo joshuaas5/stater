@@ -144,21 +144,24 @@ class NotificationServiceClass {
         const notificationDays = bill.notificationDays || [5, 1, 0];
         
         for (const days of notificationDays) {
+          // Mostrar notificações para contas que vencem hoje, amanhã ou em 5 dias
           if (diffDays === days) {
-            const scheduleTime = new Date();
-            scheduleTime.setHours(9, 0, 0, 0); // 9:00 AM
+            console.log(`Agendando notificação para conta ${bill.title} que vence em ${diffDays} dias`);
             
-            // Se a hora agendada para hoje já passou, agenda para amanhã (ou não, dependendo da lógica desejada)
-            // if (scheduleTime < new Date()) {
-            //   scheduleTime.setDate(scheduleTime.getDate() + 1);
-            // }
+            // Agendar para o momento atual + 5 segundos para garantir que a notificação seja exibida imediatamente
+            const scheduleTime = new Date(Date.now() + 5000);
             
+            // Também agendar para 9:00 da manhã se ainda não passou das 9:00
+            const morningTime = new Date();
+            morningTime.setHours(9, 0, 0, 0);
+            
+            // Usar o tempo atual para garantir que a notificação seja exibida imediatamente
             notificationsToSchedule.push({
-              id: parseInt(`${bill.id.replace(/\D/g, '').substring(0, 8)}${days}`), // Garante um ID numérico único
+              id: parseInt(`${bill.id.replace(/\D/g, '').substring(0, 8)}${days}1`), // Garante um ID numérico único
               title: 'Lembrete de Conta',
               body: `A conta "${bill.title}" vence em ${days === 0 ? 'hoje' : days === 1 ? 'amanhã' : `${days} dias`}!`,
               schedule: { at: scheduleTime },
-              sound: null
+              sound: 'default'
             });
           }
         }
@@ -190,6 +193,42 @@ class NotificationServiceClass {
     }
   }
   
+  async initialize(): Promise<void> {
+    console.log('Inicializando serviço de notificações...');
+    
+    // Atrasar a inicialização para garantir que a UI esteja carregada
+    setTimeout(async () => {
+      try {
+        // Verificar se as permissões já foram concedidas
+        const hasPermission = await this.checkPermissions();
+        console.log('Permissões de notificação já concedidas?', hasPermission);
+        
+        // Se não tiver permissão, solicitar
+        if (!hasPermission) {
+          console.log('Solicitando permissões de notificação...');
+          const granted = await this.requestPermissions();
+          console.log('Permissões concedidas?', granted);
+          if (!granted) {
+            console.log('Permissões não concedidas, notificações não serão agendadas');
+            return;
+          }
+        }
+        
+        // Agendar notificações após obter permissões
+        console.log('Agendando notificações...');
+        await this.scheduleNotifications();
+        
+        // Forçar uma verificação imediata de contas a vencer
+        console.log('Verificando contas a vencer...');
+        const { getBills } = await import('@/utils/localStorage');
+        const bills = getBills();
+        await this.scheduleBillReminders(bills);
+      } catch (error) {
+        console.error('Erro ao inicializar notificações:', error);
+      }
+    }, 2000); // Atraso de 2 segundos para garantir que a UI esteja carregada
+  }
+  
   async triggerDailyCheck(): Promise<void> {
     const bills = getBills();
     
@@ -203,6 +242,11 @@ class NotificationServiceClass {
     if (today.getDay() === 1) { // 1 = Segunda-feira
       scheduleWeeklySummaryReminder();
     }
+  }
+  
+  async scheduleNotifications(): Promise<void> {
+    // Agendar notificações pendentes
+    await this.triggerDailyCheck();
   }
 }
 

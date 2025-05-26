@@ -9,6 +9,14 @@ export { uuidv4 };
 let lastConsultantMessagesSyncTime: { [userId: string]: number } = {};
 let isSyncingConsultantMessages: { [userId: string]: boolean } = {};
 
+// Variáveis para controlar a sincronização de transações
+let lastTransactionsSyncTime: { [userId: string]: number } = {};
+let isSyncingTransactions: { [userId: string]: boolean } = {};
+
+// Variáveis para controlar a sincronização de contas
+let lastBillsSyncTime: { [userId: string]: number } = {};
+let isSyncingBills: { [userId: string]: boolean } = {};
+
 // Funções de autenticação e usuário
 
 // Salvar usuário
@@ -172,7 +180,7 @@ export const saveSupabaseTransaction = async (transaction: Transaction): Promise
     
     console.log("Transação salva com sucesso no Supabase:", data);
     return { data, error: null };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro inesperado ao salvar transação no Supabase:", error);
     return { data: null, error };
   }
@@ -262,7 +270,7 @@ export const saveTransaction = (transaction: Transaction): void => {
         window.dispatchEvent(new Event('transactionsUpdated'));
       }, 500);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar transação no Supabase:', error);
       
       // Tentativa de retry após 3 segundos
@@ -313,15 +321,11 @@ export const getSupabaseTransactions = async (userId: string, month?: number, ye
     
     const { data, error } = await query.order('date', { ascending: false });
     return { data: data || [], error };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao buscar transações do Supabase:", error);
     return { data: [], error };
   }
 };
-
-// Variável para controlar a última sincronização de transações
-let lastTransactionsSyncTime: { [userId: string]: number } = {};
-let isSyncingTransactions: { [userId: string]: boolean } = {};
 
 // Obter todas as transações do usuário atual (mantém compatibilidade com o código existente)
 export const getTransactions = (): Transaction[] => {
@@ -423,7 +427,7 @@ export const getTransactions = (): Transaction[] => {
               // Todas as transações foram processadas
               console.log("Sincronização de transações concluída");
               // Notificar a UI para atualizar
-              window.dispatchEvent(new CustomEvent('transactionsUpdated'));
+              window.dispatchEvent(new Event('transactionsUpdated'));
             }
           };
           
@@ -431,7 +435,7 @@ export const getTransactions = (): Transaction[] => {
           processNextTransaction();
         } else {
           // Notificar a UI para atualizar
-          window.dispatchEvent(new CustomEvent('transactionsUpdated'));
+          window.dispatchEvent(new Event('transactionsUpdated'));
         }
       }
     }).catch(err => {
@@ -499,7 +503,7 @@ export const updateTransaction = (transaction: Transaction): void => {
           throw result.error;
         }
         console.log("Transação atualizada com sucesso no Supabase:", transaction.title);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Erro ao atualizar transação no Supabase:", error);
         
         // Tentar novamente após 3 segundos
@@ -553,7 +557,7 @@ export const deleteTransaction = (transactionId: string): void => {
       }
       console.log("Transação deletada com sucesso do Supabase:", 
                   transactionToDelete ? transactionToDelete.title : transactionId);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao deletar transação do Supabase:", error);
       
       // Tentar novamente após 3 segundos
@@ -758,7 +762,7 @@ export const saveSupabaseBill = async (bill: Bill): Promise<{ data: any, error: 
     
     console.log('Conta salva com sucesso no Supabase:', data);
     return { data, error: null };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao salvar conta no Supabase:", error);
     return { data: null, error };
   }
@@ -876,14 +880,14 @@ export const getSupabaseBills = async (userId: string, onlyActive: boolean = fal
     console.log(`${data.length} contas encontradas no Supabase`);
     
     // Mapear para o formato local
-    let bills = data.map(item => {
+    let bills = data.map((item: Record<string, any>) => {
       try {
         return mapSupabaseToBill(item);
       } catch (err) {
         console.error('Erro ao mapear conta do Supabase:', err, item);
         return null;
       }
-    }).filter(bill => bill !== null) as Bill[];
+    }).filter((bill: Bill | null) => bill !== null) as Bill[];
     
     // Filtrar apenas contas ativas, se solicitado
     if (onlyActive) {
@@ -892,15 +896,11 @@ export const getSupabaseBills = async (userId: string, onlyActive: boolean = fal
     }
     
     return { data: bills, error: null };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao buscar contas do Supabase:", error);
     return { data: [], error };
   }
 };
-
-// Variável para controlar a última sincronização de contas
-let lastBillsSyncTime: { [userId: string]: number } = {};
-let isSyncingBills: { [userId: string]: boolean } = {};
 
 // Obter todas as contas a pagar do usuário atual (mantém compatibilidade com o código existente)
 export const getBills = (onlyActive: boolean = true): Bill[] => {
@@ -931,122 +931,67 @@ export const getBills = (onlyActive: boolean = true): Bill[] => {
   });
   
   // Verificar se precisamos gerar mais parcelas futuras para contas recorrentes infinitas
-  const checkAndGenerateFutureBills = () => {
+  const checkAndGenerateFutureBillInstances = (): boolean => {
     const currentDate = new Date();
     const sixMonthsFromNow = new Date(currentDate);
     sixMonthsFromNow.setMonth(currentDate.getMonth() + 6); // Data limite (6 meses a partir de hoje)
     
-    // Agrupar contas recorrentes por originalBillId
-    const recurringBillsGroups: Record<string, Bill[]> = {};
-    
-    // Identificar contas recorrentes infinitas e agrupar por originalBillId
-    bills.forEach(bill => {
-      if (bill.isRecurring && bill.isInfiniteRecurrence) {
-        // Se é uma conta original (não tem originalBillId)
-        if (!bill.originalBillId) {
-          // Usar o ID da própria conta como chave
-          if (!recurringBillsGroups[bill.id]) {
-            recurringBillsGroups[bill.id] = [];
-          }
-        } 
-        // Se é uma instância futura
-        else if (bill.originalBillId) {
-          if (!recurringBillsGroups[bill.originalBillId]) {
-            recurringBillsGroups[bill.originalBillId] = [];
-          }
-          recurringBillsGroups[bill.originalBillId].push(bill);
-        }
-      }
-    });
-    
-    // Para cada grupo de contas recorrentes, verificar se precisamos gerar mais parcelas
     let newBillsAdded = false;
     
-    Object.keys(recurringBillsGroups).forEach(originalBillId => {
-      const instances = recurringBillsGroups[originalBillId];
-      
-      // Encontrar a conta original
-      const originalBill = bills.find(b => b.id === originalBillId);
-      if (!originalBill) return;
-      
-      // Encontrar a data de vencimento mais distante entre as instâncias existentes
-      let latestDueDate: Date | null = null;
-      instances.forEach(bill => {
-        try {
-          const dueDate = new Date(bill.dueDate);
-          if (!latestDueDate || dueDate > latestDueDate) {
-            latestDueDate = dueDate;
+    // Gerar instâncias para 6 meses iniciais
+    for (const bill of bills) {
+      if (bill.isRecurring && bill.isInfiniteRecurrence) {
+        // Calcular próxima data de vencimento
+        const dueDate = new Date(bill.dueDate);
+        const recurringDay = dueDate.getDate();
+        
+        // Calcular próxima data de vencimento a partir da última conhecida
+        const nextDueDate = new Date(dueDate);
+        nextDueDate.setMonth(nextDueDate.getMonth() + 6);
+        
+        // Ajustar para o dia correto (considerando meses com menos dias)
+        nextDueDate.setDate(Math.min(recurringDay, new Date(nextDueDate.getFullYear(), nextDueDate.getMonth() + 1, 0).getDate()));
+        
+        // Verificar se já existe uma instância com esta data de vencimento
+        const existingBill = bills.find(b => {
+          if (!b.originalBillId || b.originalBillId !== bill.id) return false;
+          
+          try {
+            const bDueDate = new Date(b.dueDate);
+            return bDueDate.getMonth() === nextDueDate.getMonth() && 
+                   bDueDate.getFullYear() === nextDueDate.getFullYear();
+          } catch (err) {
+            return false;
           }
-        } catch (err) {
-          console.error('Erro ao converter data de vencimento:', err);
-        }
-      });
-      
-      // Se não há instâncias ou a data mais distante está a menos de 3 meses da data limite
-      const shouldGenerateMoreInstances = !latestDueDate || 
-                                          (latestDueDate.getTime() < sixMonthsFromNow.getTime());
-      
-      if (shouldGenerateMoreInstances) {
-        console.log(`Gerando mais parcelas para a conta recorrente "${originalBill.title}"`);
+        });
         
-        // Determinar a data de início para novas parcelas
-        const startDate = latestDueDate || new Date(originalBill.dueDate);
-        const recurringDay = startDate.getDate();
-        
-        // Determinar quantas parcelas precisamos adicionar (até ter 6 meses a partir de hoje)
-        const monthsToAdd = latestDueDate ? 3 : 6; // Se já temos parcelas, adicionar 3 meses, senão 6
-        
-        // Gerar novas instâncias
-        for (let i = 1; i <= monthsToAdd; i++) {
-          // Calcular próxima data de vencimento a partir da última conhecida
-          const nextDueDate = new Date(startDate);
-          nextDueDate.setMonth(nextDueDate.getMonth() + i);
+        if (!existingBill) {
+          // Criar nova instância da conta
+          const futureBill: Bill = {
+            ...bill,
+            id: uuidv4(),
+            dueDate: nextDueDate,
+            isPaid: false,
+            originalBillId: bill.id,
+            originalDueDate: dueDate
+          };
           
-          // Ajustar para o dia correto (considerando meses com menos dias)
-          const lastDayOfMonth = new Date(nextDueDate.getFullYear(), nextDueDate.getMonth() + 1, 0).getDate();
-          nextDueDate.setDate(Math.min(recurringDay, lastDayOfMonth));
+          bills.push(futureBill);
+          newBillsAdded = true;
           
-          // Verificar se já existe uma instância com esta data de vencimento
-          const existingBill = bills.find(b => {
-            if (!b.originalBillId || b.originalBillId !== originalBillId) return false;
-            
-            try {
-              const bDueDate = new Date(b.dueDate);
-              return bDueDate.getMonth() === nextDueDate.getMonth() && 
-                     bDueDate.getFullYear() === nextDueDate.getFullYear();
-            } catch (err) {
-              return false;
-            }
+          // Também salvar no Supabase em segundo plano
+          saveSupabaseBill(futureBill).catch(error => {
+            console.error(`Erro ao salvar instância futura no Supabase:`, error);
           });
-          
-          if (!existingBill) {
-            // Criar nova instância da conta
-            const futureBill: Bill = {
-              ...originalBill,
-              id: uuidv4(),
-              dueDate: nextDueDate,
-              isPaid: false,
-              originalBillId: originalBillId,
-              originalDueDate: new Date(originalBill.dueDate)
-            };
-            
-            bills.push(futureBill);
-            newBillsAdded = true;
-            
-            // Também salvar no Supabase em segundo plano
-            saveSupabaseBill(futureBill).catch(error => {
-              console.error(`Erro ao salvar nova instância futura no Supabase:`, error);
-            });
-          }
         }
       }
-    });
+    }
     
     return newBillsAdded;
   };
   
   // Executar a verificação e geração de parcelas futuras
-  const newBillsAdded = checkAndGenerateFutureBills();
+  const newBillsAdded = checkAndGenerateFutureBillInstances();
   
   // Se foram adicionadas novas contas, atualizar o localStorage
   if (newBillsAdded) {
@@ -1224,7 +1169,7 @@ export const deleteSupabaseBill = async (userId: string, billId: string): Promis
       .eq('id', billId);
     
     return { error };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao deletar conta a pagar do Supabase:", error);
     return { error };
   }
@@ -1265,6 +1210,8 @@ export const markBillAsPaid = (billId: string, onPaid?: (bill: Bill) => void): v
   
   if (index !== -1) {
     bills[index].isPaid = true;
+    
+    // Atualizar no localStorage
     localStorage.setItem(`bills_${user.id}`, JSON.stringify(bills));
     
     // Também atualizar no Supabase em segundo plano
@@ -1343,15 +1290,15 @@ const mapNotificationToSupabase = (notification: Notification, userId: string) =
   };
 };
 
-const mapSupabaseToNotification = (data: any): Notification => {
+const mapSupabaseToNotification = (data: Record<string, any>): Notification => {
   return {
     id: data.id,
     userId: data.user_id,
-    billId: data.bill_id || null,
+    billId: data.entity_id || null,
     type: data.type as NotificationType,
     message: data.message,
-    date: new Date(data.date),
-    read: data.read || false,
+    date: new Date(data.created_at),
+    read: data.is_read || false,
   };
 };
 
@@ -1396,19 +1343,19 @@ export const saveNotification = (notification: Notification): void => {
 };
 
 // Obter notificações do Supabase
-export const getSupabaseNotifications = async (userId: string): Promise<{ data: Notification[], error: any }> => {
+export const getSupabaseNotifications = async (userId: string): Promise<{ data: Notification[], error: Error | null }> => {
   try {
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
       .eq('user_id', userId)
-      .order('date', { ascending: false });
+      .order('created_at', { ascending: false });
     
     if (error) throw error;
     
     const notifications = data ? data.map(mapSupabaseToNotification) : [];
     return { data: notifications, error: null };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao buscar notificações do Supabase:", error);
     return { data: [], error };
   }
@@ -1692,7 +1639,7 @@ export const generateBillNotifications = async (): Promise<void> => {
         localStorage.setItem(`notifications_${user.id}`, JSON.stringify(localNotifications));
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao gerar notificações para contas:", error);
   }
 };
@@ -1829,7 +1776,7 @@ export const saveSupabaseUserPreferences = async (preferences: UserPreferences):
       
       return { data, error: null };
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao salvar preferências:", error);
     return { data: null, error };
   }
@@ -1877,7 +1824,7 @@ export const getSupabaseUserPreferences = async (userId: string): Promise<{ data
       // Buscar preferências do usuário
       let { data, error } = await supabase
         .from('user_preferences')
-        .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_bills_overdue, notifications_large_transactions, notifications_weekly_email, notifications_push, notifications_in_app, notifications_email, created_at, updated_at')
+        .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
         .eq('user_id', userId)
         .maybeSingle();
       
@@ -1894,7 +1841,7 @@ export const getSupabaseUserPreferences = async (userId: string): Promise<{ data
         try {
           const response = await supabase
             .from('user_preferences')
-            .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_bills_overdue, notifications_large_transactions, notifications_weekly_email, notifications_push, notifications_in_app, notifications_email, created_at, updated_at')
+            .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
             .eq('user_id', userId)
             .limit(1);
           
@@ -1910,7 +1857,7 @@ export const getSupabaseUserPreferences = async (userId: string): Promise<{ data
           }
         } catch (altError) {
           console.error("Erro no método alternativo:", altError);
-          return { data: defaultPreferences, error: null };
+          return { data: defaultPreferences, error };
         }
       }
       
@@ -1928,8 +1875,7 @@ export const getSupabaseUserPreferences = async (userId: string): Promise<{ data
         const { data: insertData, error: insertError } = await supabase
           .from('user_preferences')
           .insert(newPrefs)
-          .select()
-          .single();
+          .select();
           
         if (insertError) {
           // Se o erro for de chave duplicada, tentar buscar novamente
@@ -1961,9 +1907,9 @@ export const getSupabaseUserPreferences = async (userId: string): Promise<{ data
         return { data: mappedData, error: null };
       } catch (insertCatchError) {
         console.error("Erro ao inserir preferências:", insertCatchError);
-        return { data: defaultPreferences, error: null };
+        return { data: defaultPreferences, error };
       }
-    } catch (error) {
+    } catch (error: any) {
       if (retryCount < maxRetries) {
         console.log(`Erro na tentativa ${retryCount + 1}/${maxRetries}, tentando novamente...`);
         return fetchWithRetry(retryCount + 1, maxRetries);
@@ -2098,7 +2044,7 @@ export const saveSupabaseConsultantMessage = async (message: ConsultantMessage):
     }
     
     return { data: data[0], error: null };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao salvar mensagem do consultor no Supabase:", error);
     return { data: null, error };
   }
@@ -2136,7 +2082,7 @@ export const getSupabaseConsultantMessages = async (userId: string): Promise<{ d
     const messages = data.map(mapSupabaseToConsultantMessage);
     
     return { data: messages, error: null };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao buscar mensagens do consultor do Supabase:", error);
     return { data: [], error };
   }
@@ -2350,7 +2296,7 @@ export const markConsultantMessageAsRead = (messageId: string): void => {
             console.error("Erro ao atualizar mensagem do consultor no Supabase:", error);
           }
         });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao atualizar mensagem do consultor no Supabase:", error);
     }
   }

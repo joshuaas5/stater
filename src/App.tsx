@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotificationManager from "@/components/notifications/NotificationManager";
+import NotificationToastManager from "@/components/notifications/NotificationToastManager";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Transactions from "./pages/Transactions";
@@ -36,6 +37,7 @@ const App = () => (
               <Toaster />
               <Sonner />
               <NotificationManager />
+              <NotificationToastManager />
             </TooltipProvider>
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />

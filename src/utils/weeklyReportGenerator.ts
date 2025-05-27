@@ -34,31 +34,28 @@ export const generateWeeklyDueReport = async (): Promise<{ success: boolean; mes
     // Calcular valor total
     const totalAmount = upcomingBills.reduce((sum, bill) => sum + bill.amount, 0);
     
-    // Chamar a função Edge do Supabase para enviar o relatório
-    // Usando a função existente 'send-weekly-summary' em vez de 'send-due-bills-report'
-    const { data, error } = await supabase.functions.invoke('send-weekly-summary', {
-      body: { 
-        userId: user.id,
-        email: user.email,
-        upcomingBills,
-        totalAmount,
-        startDate: today.toISOString(),
-        endDate: nextWeek.toISOString(),
-        reportType: 'due-bills'
-      }
-    });
-
-    if (error) {
-      console.error('Erro ao enviar relatório de vencimentos:', error);
-      return { success: false, message: `Erro ao enviar relatório: ${error.message}` };
+    // Como a função Edge está com problemas de CORS, vamos gerar uma notificação local
+    // e mostrar o relatório diretamente na interface
+    
+    // Gerar uma mensagem detalhada com as contas a vencer
+    let detailedMessage = `Relatório de vencimentos da semana: ${upcomingBills.length} contas a vencer no valor total de R$ ${totalAmount.toFixed(2)}.`;
+    
+    if (upcomingBills.length > 0) {
+      detailedMessage += "\n\nContas a vencer:";
+      upcomingBills.forEach(bill => {
+        const dueDate = new Date(bill.dueDate);
+        detailedMessage += `\n- ${bill.title}: R$ ${bill.amount.toFixed(2)} - Vence em ${dueDate.toLocaleDateString()}`;
+      });
+    } else {
+      detailedMessage += "\n\nVocê não tem contas a vencer nos próximos 7 dias.";
     }
 
-    // Criar uma notificação local sobre o relatório enviado
+    // Criar uma notificação local sobre o relatório
     const notification = {
       id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       userId: user.id,
       type: 'weeklyReport',
-      message: `Relatório de vencimentos da semana enviado para seu email (${upcomingBills.length} contas a vencer no valor total de R$ ${totalAmount.toFixed(2)}).`,
+      message: detailedMessage,
       date: new Date(),
       read: false
     };
@@ -68,7 +65,7 @@ export const generateWeeklyDueReport = async (): Promise<{ success: boolean; mes
 
     return { 
       success: true, 
-      message: `Relatório de vencimentos enviado com sucesso! Você tem ${upcomingBills.length} contas a vencer nos próximos 7 dias.` 
+      message: `Relatório de vencimentos gerado com sucesso! Você tem ${upcomingBills.length} contas a vencer nos próximos 7 dias.` 
     };
   } catch (error) {
     console.error('Erro ao gerar relatório de vencimentos:', error);

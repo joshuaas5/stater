@@ -45,7 +45,7 @@ export const sendTestEmail = async (): Promise<{ success: boolean; message: stri
 
 /**
  * Solicita o envio do resumo semanal para o usuário atual
- * Versão local que não usa a edge function do Supabase para evitar erros CORS
+ * Versão local que usa a função generateWeeklyDueReport para evitar erros CORS
  * @returns Promise com o resultado do envio
  */
 export const requestWeeklySummary = async (): Promise<{ success: boolean; message: string }> => {
@@ -62,20 +62,22 @@ export const requestWeeklySummary = async (): Promise<{ success: boolean; messag
         message: 'Resumos semanais por email estão desativados. Ative-os nas preferências para receber.' 
       };
     }
-
-    // Chamar a função Edge do Supabase
-    const { data, error } = await supabase.functions.invoke('send-weekly-summary', {
-      body: { userId: user.id }
-    });
-
-    if (error) {
-      console.error('Erro ao solicitar resumo semanal:', error);
-      return { success: false, message: `Erro ao enviar resumo: ${error.message}` };
+    
+    // Usar a abordagem local em vez da função Edge do Supabase
+    // Importar a função de geração de relatório semanal
+    const { generateWeeklyDueReport } = await import('./weeklyReportGenerator');
+    
+    // Gerar o relatório localmente
+    const result = await generateWeeklyDueReport();
+    
+    if (!result.success) {
+      console.error('Erro ao gerar relatório semanal:', result.message);
+      return { success: false, message: result.message };
     }
 
     return { 
       success: true, 
-      message: 'Resumo semanal solicitado com sucesso! Verifique sua caixa de entrada.' 
+      message: 'Relatório semanal gerado com sucesso! Verifique suas notificações.' 
     };
   } catch (error) {
     console.error('Erro ao solicitar resumo semanal:', error);

@@ -38,17 +38,44 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     }
   };
 
+  // Flag para evitar chamadas recursivas
+  const [isProcessingNotifications, setIsProcessingNotifications] = useState(false);
+
+  // Versão modificada do loadNotifications que verifica o flag
+  const safeLoadNotifications = async () => {
+    if (isProcessingNotifications) {
+      console.log('Já está processando notificações, ignorando chamada');
+      return;
+    }
+    
+    try {
+      setIsProcessingNotifications(true);
+      setLoading(true);
+      
+      // Buscar notificações existentes sem gerar novas
+      const allNotifications = getNotifications();
+      setNotifications(allNotifications);
+      setUnreadCount(getUnreadNotificationsCount());
+    } catch (error) {
+      console.error('Erro ao carregar notificações:', error);
+    } finally {
+      setLoading(false);
+      setIsProcessingNotifications(false);
+    }
+  };
+
   useEffect(() => {
-    loadNotifications();
+    // Carregar notificações iniciais
+    safeLoadNotifications();
     
     // Verificar notificações a cada 5 minutos
     const interval = setInterval(() => {
-      loadNotifications();
+      safeLoadNotifications();
     }, 5 * 60 * 1000);
 
     // Adicionar listener para atualizar notificações quando houver mudanças
     const handleNotificationsUpdated = () => {
-      loadNotifications();
+      safeLoadNotifications();
     };
 
     window.addEventListener('notificationsUpdated', handleNotificationsUpdated);
@@ -59,24 +86,24 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     };
   }, []);
 
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
     markNotificationAsRead(id);
-    loadNotifications();
+    await safeLoadNotifications();
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     markAllNotificationsAsRead();
-    loadNotifications();
+    await safeLoadNotifications();
   };
 
-  const removeNotification = (id: string) => {
+  const removeNotification = async (id: string) => {
     deleteNotification(id);
-    loadNotifications();
+    await safeLoadNotifications();
   };
 
-  const clearAll = () => {
+  const clearAll = async () => {
     clearAllNotifications();
-    loadNotifications();
+    await safeLoadNotifications();
   };
 
   // Verificar contas a vencer e agendar notificações locais
@@ -102,7 +129,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         markAllAsRead,
         removeNotification,
         clearAll,
-        refreshNotifications: loadNotifications,
+        refreshNotifications: safeLoadNotifications,
       }}
     >
       {children}

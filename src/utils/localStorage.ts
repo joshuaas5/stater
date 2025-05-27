@@ -1574,17 +1574,30 @@ export const getUnreadNotificationsCount = (): number => {
   return notifications.filter(n => !n.read).length;
 };
 
+// Flag para evitar chamadas recursivas
+let isGeneratingNotifications = false;
+
 // Gerar notificações para contas a vencer
 export const generateBillNotifications = async (): Promise<void> => {
+  // Verificar se já está gerando notificações para evitar loops
+  if (isGeneratingNotifications) {
+    console.log('Já está gerando notificações, ignorando chamada');
+    return;
+  }
+  
   const user = getCurrentUser();
   if (!user) return;
   
   try {
+    // Definir flag para evitar chamadas recursivas
+    isGeneratingNotifications = true;
+    
     // Buscar preferências do usuário
     const userPreferences = getUserPreferences();
     
     // Verificar se as notificações estão habilitadas
     if (!userPreferences.notifications.inAppNotifications) {
+      isGeneratingNotifications = false; // Resetar flag
       return; // Notificações no app estão desativadas
     }
     
@@ -1592,6 +1605,7 @@ export const generateBillNotifications = async (): Promise<void> => {
     const { data: bills, error: billsError } = await getSupabaseBills(user.id);
     if (billsError) {
       console.error("Erro ao buscar contas para gerar notificações:", billsError);
+      isGeneratingNotifications = false; // Resetar flag
       return;
     }
     
@@ -1599,6 +1613,7 @@ export const generateBillNotifications = async (): Promise<void> => {
     const { data: existingNotifications, error: notificationsError } = await getSupabaseNotifications(user.id);
     if (notificationsError) {
       console.error("Erro ao buscar notificações existentes:", notificationsError);
+      isGeneratingNotifications = false; // Resetar flag
       return;
     }
     
@@ -1698,6 +1713,9 @@ export const generateBillNotifications = async (): Promise<void> => {
     }
   } catch (error: any) {
     console.error("Erro ao gerar notificações para contas:", error);
+  } finally {
+    // Garantir que a flag seja resetada mesmo em caso de erro
+    isGeneratingNotifications = false;
   }
 };
 

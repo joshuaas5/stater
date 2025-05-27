@@ -50,18 +50,30 @@ const getLocalNotificationsPlugin = (): LocalNotificationsPlugin | undefined => 
 
 class NotificationServiceClass {
   constructor() {
-    // Solicitar permissões de notificação automaticamente ao iniciar
-    setTimeout(() => {
-      this.requestPermissions().then(granted => {
-        if (granted) {
-          console.log('Permissões de notificação concedidas automaticamente');
-          // Agendar notificações pendentes
-          this.triggerDailyCheck();
-        } else {
-          console.warn('Permissões de notificação não foram concedidas');
-        }
-      });
-    }, 2000); // Pequeno atraso para garantir que a UI esteja carregada
+    // Verificar se estamos em um ambiente que suporta notificações
+    this.isSupported().then(supported => {
+      if (!supported) {
+        console.log('Notificações locais não são suportadas neste ambiente');
+        return;
+      }
+      
+      // Solicitar permissões de notificação automaticamente ao iniciar
+      setTimeout(() => {
+        this.requestPermissions().then(granted => {
+          if (granted) {
+            console.log('Permissões de notificação concedidas automaticamente');
+            // Agendar notificações pendentes
+            this.triggerDailyCheck();
+          } else {
+            console.log('Permissões de notificação não foram concedidas');
+          }
+        }).catch(err => {
+          console.log('Erro ao solicitar permissões de notificação:', err);
+        });
+      }, 2000); // Pequeno atraso para garantir que a UI esteja carregada
+    }).catch(err => {
+      console.log('Erro ao verificar suporte a notificações:', err);
+    });
   }
 
   private async isSupported(): Promise<boolean> {
@@ -105,8 +117,12 @@ class NotificationServiceClass {
   }
   
   async scheduleBillReminders(bills: Bill[]): Promise<void> {
+    // Verificar se o plugin está disponível
     const plugin = getLocalNotificationsPlugin();
-    if (!plugin) return;
+    if (!plugin) {
+      console.log('Plugin de notificações locais não disponível, pulando agendamento');
+      return;
+    }
 
     try {
       // Verificar preferências do usuário
@@ -115,7 +131,9 @@ class NotificationServiceClass {
       
       // Verificação mais segura das preferências de notificações
       // Tratar casos onde a estrutura de preferências pode estar incompleta
-      if (userPreferences.notifications && userPreferences.notifications.pushNotifications === false) {
+      if (!userPreferences.notifications) {
+        console.log('Preferências de notificações não definidas, usando padrões');
+      } else if (userPreferences.notifications.pushNotifications === false) {
         console.log('Notificações push estão desativadas nas preferências do usuário');
         return;
       }
@@ -123,10 +141,26 @@ class NotificationServiceClass {
       // Para fins de segurança, sempre mostrar no console as preferências atuais
       console.log('Preferências de notificação do usuário:', JSON.stringify(userPreferences.notifications || 'padrão'));
       
-      const hasPermission = await this.checkPermissions(); // Reutiliza a lógica que já usa o plugin
+      // Verificar permissões de forma segura
+      let hasPermission = false;
+      try {
+        hasPermission = await this.checkPermissions();
+      } catch (err) {
+        console.log('Erro ao verificar permissões:', err);
+        return;
+      }
+      
       if (!hasPermission) {
-        const granted = await this.requestPermissions();
-        if (!granted) return;
+        try {
+          const granted = await this.requestPermissions();
+          if (!granted) {
+            console.log('Permissões não concedidas, pulando agendamento');
+            return;
+          }
+        } catch (err) {
+          console.log('Erro ao solicitar permissões:', err);
+          return;
+        }
       }
       
       const notificationsToSchedule: Partial<NotificationSchema>[] = [];

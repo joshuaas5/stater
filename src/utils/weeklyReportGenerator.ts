@@ -35,13 +35,16 @@ export const generateWeeklyDueReport = async (): Promise<{ success: boolean; mes
     const totalAmount = upcomingBills.reduce((sum, bill) => sum + bill.amount, 0);
     
     // Chamar a função Edge do Supabase para enviar o relatório
-    const { data, error } = await supabase.functions.invoke('send-due-bills-report', {
+    // Usando a função existente 'send-weekly-summary' em vez de 'send-due-bills-report'
+    const { data, error } = await supabase.functions.invoke('send-weekly-summary', {
       body: { 
         userId: user.id,
+        email: user.email,
         upcomingBills,
         totalAmount,
         startDate: today.toISOString(),
-        endDate: nextWeek.toISOString()
+        endDate: nextWeek.toISOString(),
+        reportType: 'due-bills'
       }
     });
 

@@ -1281,12 +1281,13 @@ const mapNotificationToSupabase = (notification: Notification, userId: string) =
   return {
     id: notification.id || uuidv4(),
     user_id: userId,
-    bill_id: notification.billId || null,
+    entity_id: notification.billId || null,
+    entity_type: notification.billId ? 'bill' : null,
+    title: notification.type.charAt(0).toUpperCase() + notification.type.slice(1),
     type: notification.type,
     message: notification.message,
-    date: notification.date instanceof Date ? notification.date.toISOString() : notification.date,
-    read: notification.read || false,
-    created_at: new Date().toISOString(),
+    is_read: notification.read || false,
+    created_at: notification.date instanceof Date ? notification.date.toISOString() : new Date().toISOString(),
   };
 };
 
@@ -1304,18 +1305,26 @@ const mapSupabaseToNotification = (data: Record<string, any>): Notification => {
 
 // Salvar uma notificação no Supabase
 export const saveSupabaseNotification = async (notification: Notification): Promise<{ data: any, error: any }> => {
-  const user = getCurrentUser();
-  if (!user) return { data: null, error: "Usuário não autenticado" };
-  
-  // Preparar dados para o Supabase
-  const supabaseNotification = mapNotificationToSupabase(notification, user.id);
-  
-  // Salvar no Supabase
-  return await supabase
-    .from('notifications')
-    .insert(supabaseNotification)
-    .select()
-    .single();
+  try {
+    const user = getCurrentUser();
+    if (!user) return { data: null, error: "Usuário não autenticado" };
+    
+    // Preparar dados para o Supabase
+    const supabaseNotification = mapNotificationToSupabase(notification, user.id);
+    
+    // Salvar no Supabase
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert(supabaseNotification)
+      .select();
+      
+    if (error) throw error;
+    
+    return { data, error: null };
+  } catch (error: any) {
+    console.error("Erro ao salvar notificação no Supabase:", error);
+    return { data: null, error };
+  }
 };
 
 // Salvar uma notificação (mantém a compatibilidade com o código existente)

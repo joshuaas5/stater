@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { requestWeeklySummary } from '@/utils/emailNotifications';
 import { useNavigate } from 'react-router-dom';
@@ -209,40 +208,39 @@ const PreferencesPage: React.FC = () => {
                     }));
                   }}
                 />
+                {preferences.notifications.emailNotifications && (
+                  <div className="mt-2 ml-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          toast({
+                            title: "Enviando email de teste...",
+                            description: "Aguarde enquanto enviamos um resumo semanal para seu email.",
+                          });
+                          
+                          const result = await requestWeeklySummary();
+                          
+                          toast({
+                            title: result.success ? "Email enviado!" : "Erro ao enviar email",
+                            description: result.message,
+                            variant: result.success ? "default" : "destructive",
+                          });
+                        } catch (error) {
+                          toast({
+                            title: "Erro ao enviar email",
+                            description: "Ocorreu um erro ao tentar enviar o email de teste.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
+                      Testar email semanal
+                    </Button>
+                  </div>
+                )}
               </div>
-              
-              {preferences.notifications.emailNotifications && (
-                <div className="mt-2 ml-6">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        toast({
-                          title: "Enviando email de teste...",
-                          description: "Aguarde enquanto enviamos um resumo semanal para seu email.",
-                        });
-                        
-                        const result = await requestWeeklySummary();
-                        
-                        toast({
-                          title: result.success ? "Email enviado!" : "Erro ao enviar email",
-                          description: result.message,
-                          variant: result.success ? "default" : "destructive",
-                        });
-                      } catch (error) {
-                        toast({
-                          title: "Erro ao enviar email",
-                          description: "Ocorreu um erro ao tentar enviar o email de teste.",
-                          variant: "destructive",
-                        });
-                      }
-                    }}
-                  >
-                    Testar email semanal
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
           
@@ -300,32 +298,36 @@ const PreferencesPage: React.FC = () => {
                 />
               </div>
               
-              <div className="flex items-center justify-between">
-                <Label htmlFor="notifications-weekly" className="cursor-pointer">Resumo semanal por email</Label>
-                <Switch 
-                  id="notifications-weekly" 
-                  checked={preferences.notifications.weeklyEmailSummary}
-                  onCheckedChange={() => {
-                    setPreferences(prev => ({
-                      ...prev,
-                      notifications: {
-                        ...prev.notifications,
-                        weeklyEmailSummary: !prev.notifications.weeklyEmailSummary
-                      }
-                    }));
-                  }}
-                />
+              <div className="flex items-start justify-between p-1 rounded-md hover:bg-galileo-hover transition-colors duration-150">
+                <div className="flex-1">
+                  <label htmlFor="weeklyEmailSummary" className="block text-sm font-medium text-galileo-text cursor-pointer">
+                    Resumo semanal por email
+                  </label>
+                  <p className="text-xs text-galileo-secondaryText">
+                    Receba um resumo das suas contas a vencer e transações recentes toda semana.
+                  </p>
+                </div>
+                <div className="ml-2 pt-0.5">
+                  <Switch
+                    id="weeklyEmailSummary"
+                    checked={preferences.notifications.weeklyEmailSummary}
+                    onCheckedChange={(checked) => {
+                      setPreferences((prev) => ({
+                        ...prev,
+                        notifications: { ...prev.notifications, weeklyEmailSummary: checked },
+                      }));
+                    }}
+                  />
+                </div>
               </div>
-              
               {preferences.notifications.weeklyEmailSummary && preferences.notifications.emailNotifications && (
                 <div className="mt-1 ml-6 text-xs text-galileo-secondaryText">
-                  <p>Vocu00ea receberu00e1 um resumo semanal com suas transau00e7u00f5es e contas a vencer.</p>
+                  <p>Você receberá um resumo semanal com suas transações e contas a vencer.</p>
                 </div>
               )}
-              
               {preferences.notifications.weeklyEmailSummary && !preferences.notifications.emailNotifications && (
                 <div className="mt-1 ml-6 text-xs text-galileo-negative">
-                  <p>Ative as notificau00e7u00f5es por email acima para receber o resumo semanal.</p>
+                  <p>Ative as notificações por email acima para receber o resumo semanal.</p>
                 </div>
               )}
             </div>
@@ -389,6 +391,54 @@ const PreferencesPage: React.FC = () => {
           </div>
         </div>
           
+        <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
+          <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
+            <Bell size={18} className="mr-2" /> Notificações por Email
+          </h2>
+          <div className="space-y-3">
+            <p className="text-sm text-galileo-text mb-2">
+              Teste o envio de emails ou solicite um resumo semanal das suas finanças.
+            </p>
+            <div className="flex flex-col space-y-2">
+              <Button 
+                variant="outline"
+                className="w-full border border-galileo-accent text-galileo-accent hover:bg-galileo-accent/10"
+                onClick={async () => {
+                  try {
+                    toast({
+                      title: 'Enviando email de teste...',
+                      description: 'Aguarde enquanto processamos sua solicitação.'
+                    });
+                    
+                    const { success, message } = await requestWeeklySummary();
+                    
+                    toast({
+                      title: success ? 'Email enviado!' : 'Erro ao enviar email',
+                      description: message,
+                      variant: success ? 'default' : 'destructive'
+                    });
+                  } catch (error) {
+                    console.error('Erro ao solicitar email:', error);
+                    toast({
+                      title: 'Erro ao enviar email',
+                      description: 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
+                      variant: 'destructive'
+                    });
+                  }
+                }}
+                disabled={!preferences.notifications.emailNotifications || !preferences.notifications.weeklyEmailSummary}
+              >
+                <Mail size={16} className="mr-2" /> Solicitar resumo semanal agora
+              </Button>
+              {(!preferences.notifications.emailNotifications || !preferences.notifications.weeklyEmailSummary) && (
+                <p className="text-xs text-red-500 italic">
+                  Para solicitar emails, ative as notificações por email e resumos semanais nas configurações acima.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+          
         <div className="pt-2 pb-2">
           <Button 
             onClick={handleSavePreferences}
@@ -398,9 +448,6 @@ const PreferencesPage: React.FC = () => {
           </Button>
         </div>
       </div>
-      
-      {/* A seu00e7u00e3o de solicitau00e7u00e3o de resumo semanal foi removida para evitar duplicidade */}
-      {/* Agora essa funcionalidade estu00e1 disponu00edvel exclusivamente pelo sino de notificau00e7u00f5es */}
       
       <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
         <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">

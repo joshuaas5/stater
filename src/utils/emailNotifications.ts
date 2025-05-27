@@ -63,14 +63,19 @@ export const requestWeeklySummary = async (): Promise<{ success: boolean; messag
       };
     }
 
-    // Versão local - não chama a função Edge do Supabase
-    console.log(`Gerando resumo semanal para ${user.email}`);
-    
-    // Simulamos o processamento de email
-    // Em uma implementação real, isso chamaria um serviço de email
+    // Chamar a função Edge do Supabase
+    const { data, error } = await supabase.functions.invoke('send-weekly-summary', {
+      body: { userId: user.id }
+    });
+
+    if (error) {
+      console.error('Erro ao solicitar resumo semanal:', error);
+      return { success: false, message: `Erro ao enviar resumo: ${error.message}` };
+    }
+
     return { 
       success: true, 
-      message: 'Resumo semanal gerado com sucesso! Em um ambiente de produção, isso seria enviado por email.' 
+      message: 'Resumo semanal solicitado com sucesso! Verifique sua caixa de entrada.' 
     };
   } catch (error) {
     console.error('Erro ao solicitar resumo semanal:', error);

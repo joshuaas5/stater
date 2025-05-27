@@ -36,29 +36,39 @@
   align-items: center;
   padding: 16px;
   border-bottom: 1px solid var(--galileo-border);
+  background-color: var(--galileo-accent);
+  color: white;
 }
 
 .notification-center-header h2 {
   margin: 0;
   font-size: 1.25rem;
-  color: var(--galileo-text);
+  color: white;
+  font-weight: 600;
 }
 
-.close-button {
+.notification-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.close-button, .clear-all-button {
   background: none;
   border: none;
-  color: var(--galileo-secondaryText);
+  color: white;
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.2s;
 }
 
-.close-button:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  color: var(--galileo-text);
+.close-button:hover, .clear-all-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .notification-center-filters {
@@ -108,16 +118,34 @@
   padding: 8px 0;
 }
 
+.notification-group {
+  margin-bottom: 16px;
+}
+
+.notification-date-header {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--galileo-secondaryText);
+  background-color: var(--galileo-background-alt, #f5f5f5);
+  border-bottom: 1px solid var(--galileo-border);
+}
+
 .notification-item {
   display: flex;
   padding: 12px 16px;
   border-bottom: 1px solid var(--galileo-border);
   position: relative;
   gap: 12px;
+  transition: background-color 0.2s;
+}
+
+.notification-item:hover {
+  background-color: rgba(var(--galileo-accent-rgb), 0.03);
 }
 
 .notification-item.unread {
-  background-color: rgba(var(--galileo-accent-rgb), 0.05);
+  background-color: rgba(var(--galileo-accent-rgb), 0.07);
 }
 
 .notification-item.unread::before {
@@ -156,6 +184,13 @@
   margin: 0;
   font-size: 0.75rem;
   color: var(--galileo-secondaryText);
+}
+
+.notification-time {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--galileo-secondaryText);
+  font-weight: 500;
 }
 
 .notification-actions {
@@ -202,6 +237,26 @@
   margin-top: 16px;
 }
 
+.load-more-container {
+  padding: 12px 16px;
+  text-align: center;
+}
+
+.load-more-button {
+  background: none;
+  border: none;
+  color: var(--galileo-accent);
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.load-more-button:hover {
+  background-color: rgba(var(--galileo-accent-rgb), 0.1);
+}
+
 .notification-center-footer {
   padding: 16px;
   border-top: 1px solid var(--galileo-border);
@@ -209,7 +264,7 @@
 
 .view-all-button {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   background-color: var(--galileo-accent);
   color: white;
   border: none;
@@ -217,6 +272,8 @@
   cursor: pointer;
   font-size: 0.9375rem;
   font-weight: 500;
+  transition: background-color 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .view-all-button:hover {

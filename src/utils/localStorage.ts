@@ -1309,6 +1309,21 @@ export const saveSupabaseNotification = async (notification: Notification): Prom
     const user = getCurrentUser();
     if (!user) return { data: null, error: "Usuário não autenticado" };
     
+    // Verificar se a notificação já existe para evitar duplicatas
+    const { data: existingNotifications, error: fetchError } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('entity_id', notification.billId || null)
+      .eq('type', notification.type);
+      
+    if (fetchError) {
+      console.warn("Erro ao verificar notificações existentes:", fetchError);
+    } else if (existingNotifications && existingNotifications.length > 0) {
+      // Notificação similar já existe, não criar duplicata
+      return { data: existingNotifications[0], error: null };
+    }
+    
     // Preparar dados para o Supabase
     const supabaseNotification = mapNotificationToSupabase(notification, user.id);
     
@@ -1318,7 +1333,16 @@ export const saveSupabaseNotification = async (notification: Notification): Prom
       .insert(supabaseNotification)
       .select();
       
-    if (error) throw error;
+    if (error) {
+      // Se o erro for relacionado a RLS, registrar informações para depuração
+      if (error.code === '42501' || error.message.includes('permission denied')) {
+        console.error("Erro de permissão ao salvar notificação. Dados:", {
+          userId: user.id,
+          notificationType: notification.type
+        });
+      }
+      throw error;
+    }
     
     return { data, error: null };
   } catch (error: any) {
@@ -1340,10 +1364,34 @@ export const saveNotification = (notification: Notification): void => {
   // Salvar localmente
   const notificationsStr = localStorage.getItem(`notifications_${user.id}`);
   let notifications: Notification[] = notificationsStr ? JSON.parse(notificationsStr) : [];
-  notifications.push(notification);
+  
+  // Limitar o número de notificações para evitar excesso
+  // Verificar se já existe uma notificação similar (mesmo tipo e billId)
+  const similarNotification = notifications.find(
+    n => n.type === notification.type && n.billId === notification.billId
+  );
+  
+  if (similarNotification) {
+    // Atualizar a notificação existente em vez de criar uma nova
+    similarNotification.message = notification.message;
+    similarNotification.date = notification.date;
+    similarNotification.read = false; // Marcar como não lida novamente
+  } else {
+    // Adicionar nova notificação
+    notifications.push(notification);
+    
+    // Limitar a 50 notificações, removendo as mais antigas primeiro
+    if (notifications.length > 50) {
+      // Ordenar por data (mais antigas primeiro)
+      notifications.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      // Remover as mais antigas
+      notifications = notifications.slice(notifications.length - 50);
+    }
+  }
+  
   localStorage.setItem(`notifications_${user.id}`, JSON.stringify(notifications));
   
-  // Também salvar no Supabase em segundo plano
+  // Reativando o salvamento no Supabase
   saveSupabaseNotification(notification).catch(error => {
     console.error("Erro ao salvar notificação no Supabase:", error);
   });

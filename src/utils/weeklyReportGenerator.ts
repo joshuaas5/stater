@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { getCurrentUser, getBills } from './localStorage';
-import { Bill } from '@/types';
+import { Bill, Notification, NotificationType } from '@/types';
 
 /**
  * Gera e envia um relatório de vencimentos da semana para o email do usuário
@@ -50,18 +50,22 @@ export const generateWeeklyDueReport = async (): Promise<{ success: boolean; mes
       detailedMessage += "\n\nVocê não tem contas a vencer nos próximos 7 dias.";
     }
 
+    // Importar a função saveNotification
+    const { saveNotification } = await import('./localStorage');
+    
     // Criar uma notificação local sobre o relatório
-    const notification = {
+    const notification: Notification = {
       id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       userId: user.id,
-      type: 'weeklyReport',
+      billId: '', // Valor vazio, mas necessário para o tipo Notification
+      type: 'weekly_summary' as NotificationType,  // Usar um tipo válido com type assertion
       message: detailedMessage,
       date: new Date(),
       read: false
     };
     
-    // Salvar notificação (usando o evento customizado para atualizar a interface)
-    window.dispatchEvent(new CustomEvent('saveNotification', { detail: notification }));
+    // Salvar notificação diretamente usando a função do localStorage
+    saveNotification(notification);
 
     return { 
       success: true, 

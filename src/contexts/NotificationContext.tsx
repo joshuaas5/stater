@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { Notification } from '@/types';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, deleteNotification, clearAllNotifications, hasUnreadNotifications, getUnreadNotificationsCount, generateBillNotifications } from '@/utils/localStorage';
 import { NotificationService } from '@/services/NotificationService';
@@ -40,12 +40,38 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   // Flag para evitar chamadas recursivas
   const [isProcessingNotifications, setIsProcessingNotifications] = useState(false);
+  
+  // Contadores para limitar tentativas e registrar falhas
+  const failedAttemptsRef = useRef(0);
+  const lastErrorTimeRef = useRef(0);
+  const backoffTimeRef = useRef(1000); // Inicia com 1 segundo e aumenta exponencialmente
+  const MAX_FAILED_ATTEMPTS = 3; // Máximo de falhas consecutivas antes de parar por um período maior
+  const ERROR_COOLDOWN = 60 * 1000; // 1 minuto de espera após múltiplas falhas
 
-  // Versão modificada do loadNotifications que verifica o flag
+  // Versão melhorada do loadNotifications com controle de falhas
   const safeLoadNotifications = async () => {
+    // Verificar se já está processando notificações
     if (isProcessingNotifications) {
       console.log('Já está processando notificações, ignorando chamada');
       return;
+    }
+    
+    // Verificar se está no período de espera após múltiplas falhas
+    const now = Date.now();
+    if (failedAttemptsRef.current >= MAX_FAILED_ATTEMPTS) {
+      const timeElapsed = now - lastErrorTimeRef.current;
+      if (timeElapsed < ERROR_COOLDOWN) {
+        console.log(`Muitas falhas consecutivas. Aguardando ${Math.ceil((ERROR_COOLDOWN - timeElapsed)/1000)}s antes de tentar novamente.`);
+        // Usar apenas notificações locais temporariamente
+        const localNotifications = getNotifications(true); // Parâmetro true para forcçar apenas local
+        setNotifications(localNotifications);
+        setUnreadCount(getUnreadNotificationsCount());
+        return;
+      } else {
+        // Resetar contadores após período de espera
+        failedAttemptsRef.current = 0;
+        backoffTimeRef.current = 1000;
+      }
     }
     
     try {
@@ -56,8 +82,24 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       const allNotifications = getNotifications();
       setNotifications(allNotifications);
       setUnreadCount(getUnreadNotificationsCount());
+      
+      // Sucesso na operação, resetar contadores
+      failedAttemptsRef.current = 0;
+      backoffTimeRef.current = 1000;
     } catch (error) {
       console.error('Erro ao carregar notificações:', error);
+      
+      // Registrar a falha e implementar backoff exponencial
+      failedAttemptsRef.current++;
+      lastErrorTimeRef.current = Date.now();
+      
+      // Usar notificações locais em caso de falha
+      const localNotifications = getNotifications(true);
+      setNotifications(localNotifications);
+      setUnreadCount(getUnreadNotificationsCount());
+      
+      // Aumentar o tempo de backoff (limitar a 30 segundos)
+      backoffTimeRef.current = Math.min(backoffTimeRef.current * 2, 30000);
     } finally {
       setLoading(false);
       setIsProcessingNotifications(false);

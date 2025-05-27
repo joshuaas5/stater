@@ -1399,27 +1399,71 @@ export const saveNotification = (notification: Notification): void => {
   window.dispatchEvent(new CustomEvent('notificationsUpdated'));
 };
 
-// Obter notificações do Supabase
+// Função auxiliar para criar uma promessa com timeout
+const promiseWithTimeout = <T>(promise: Promise<T>, timeoutMs: number, errorMsg: string): Promise<T> => {
+  let timeoutId: NodeJS.Timeout;
+  
+  // Criar uma promessa de timeout que será rejeitada após o tempo especificado
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(errorMsg));
+    }, timeoutMs);
+  });
+  
+  // Retorna a primeira promessa a ser resolvida/rejeitada entre a original e o timeout
+  return Promise.race([
+    promise,
+    timeoutPromise
+  ]).then((result) => {
+    clearTimeout(timeoutId);
+    return result;
+  }).catch((error) => {
+    clearTimeout(timeoutId);
+    throw error;
+  });
+};
+
+// Obter notificações do Supabase com timeout e melhor tratamento de erros
 export const getSupabaseNotifications = async (userId: string): Promise<{ data: Notification[], error: Error | null }> => {
   try {
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+    // Usar a função de timeout para limitar o tempo de espera da requisição
+    const result = await promiseWithTimeout(
+      supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false }),
+      8000, // 8 segundos de timeout
+      'Timeout ao buscar notificações do Supabase'
+    );
     
-    if (error) throw error;
+    if (result.error) {
+      console.error("Erro na resposta do Supabase:", result.error);
+      throw result.error;
+    }
     
-    const notifications = data ? data.map(mapSupabaseToNotification) : [];
+    // Limitar o número de notificações para evitar sobrecarga de memória
+    const limitedData = result.data?.slice(0, 100) || [];
+    const notifications = limitedData.map(mapSupabaseToNotification);
+    
+    // Registrar sucesso no localStorage para fins de diagnóstico
+    localStorage.setItem('last_successful_notification_sync', new Date().toISOString());
+    
     return { data: notifications, error: null };
   } catch (error: any) {
     console.error("Erro ao buscar notificações do Supabase:", error);
+    
+    // Registrar falha no localStorage para fins de diagnóstico
+    const failCountKey = `notification_fetch_fail_count`;
+    const currentFailCount = parseInt(localStorage.getItem(failCountKey) || '0');
+    localStorage.setItem(failCountKey, (currentFailCount + 1).toString());
+    
     return { data: [], error };
   }
 };
 
 // Obter todas as notificações do usuário atual (mantém compatibilidade com o código existente)
-export const getNotifications = (): Notification[] => {
+export const getNotifications = (localOnly: boolean = false): Notification[] => {
   const user = getCurrentUser();
   if (!user) return [];
   
@@ -1427,18 +1471,43 @@ export const getNotifications = (): Notification[] => {
   const notificationsStr = localStorage.getItem(`notifications_${user.id}`);
   if (!notificationsStr) return [];
   
-  // Também buscar do Supabase em segundo plano para sincronizar
-  getSupabaseNotifications(user.id).then(({ data, error }) => {
-    if (error) {
-      console.error("Erro ao sincronizar notificações com Supabase:", error);
-      return;
-    }
+  // Se não estamos em modo local apenas, buscar do Supabase em segundo plano para sincronizar
+  if (!localOnly) {
+    // Limitar taxa de requisições com cache de última solicitação
+    const now = Date.now();
+    const lastSyncKey = `last_notification_sync_${user.id}`;
+    const lastSync = parseInt(localStorage.getItem(lastSyncKey) || '0');
+    const SYNC_INTERVAL = 30000; // 30 segundos entre sincronizações
     
-    if (data && data.length > 0) {
-      localStorage.setItem(`notifications_${user.id}`, JSON.stringify(data));
-      window.dispatchEvent(new CustomEvent('notificationsUpdated'));
+    if (now - lastSync > SYNC_INTERVAL) {
+      // Atualizar timestamp da última sincronização antes de iniciar a requisição
+      localStorage.setItem(lastSyncKey, now.toString());
+      
+      getSupabaseNotifications(user.id).then(({ data, error }) => {
+        if (error) {
+          console.error("Erro ao sincronizar notificações com Supabase:", error);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          // Mesclar com notificações locais em vez de substituir completamente
+          const localNotifications = JSON.parse(notificationsStr);
+          const supabaseIds = new Set(data.map((n: Notification) => n.id));
+          
+          // Manter notificações locais que não estão no Supabase
+          const localOnlyNotifications = localNotifications.filter((n: Notification) => !supabaseIds.has(n.id));
+          
+          // Combinar notificações do Supabase com as locais únicas
+          const mergedNotifications = [...data, ...localOnlyNotifications];
+          
+          localStorage.setItem(`notifications_${user.id}`, JSON.stringify(mergedNotifications));
+          window.dispatchEvent(new CustomEvent('notificationsUpdated'));
+        }
+      }).catch(error => {
+        console.error("Erro ao buscar notificações do Supabase:", error);
+      });
     }
-  });
+  }
   
   return JSON.parse(notificationsStr);
 };

@@ -1799,6 +1799,15 @@ export interface UserPreferences {
   showRecurringBadges: boolean;
   showTransactionCategories: boolean;
   enableNotifications: boolean;
+  notifications: {
+    pushNotifications: boolean;
+    inAppNotifications: boolean;
+    emailNotifications: boolean;
+    billsDueSoon: boolean;
+    billsOverdue: boolean;
+    largeTransactions: boolean;
+    weeklyEmailSummary: boolean;
+  };
 }
 
 // Valores padrão para preferências do usuário
@@ -1811,7 +1820,16 @@ const defaultPreferences: UserPreferences = {
   showCents: true,
   showRecurringBadges: true,
   showTransactionCategories: true,
-  enableNotifications: true
+  enableNotifications: true,
+  notifications: {
+    pushNotifications: true,
+    inAppNotifications: true,
+    emailNotifications: true,
+    billsDueSoon: true,
+    billsOverdue: true,
+    largeTransactions: true,
+    weeklyEmailSummary: true
+  }
 };
 
 // Mapeamento entre formatos locais e Supabase para preferências

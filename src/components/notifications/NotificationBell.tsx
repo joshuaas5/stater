@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, X, Check } from 'lucide-react';
+import { Bell, X, Check, Trash2 } from 'lucide-react';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { sendWeeklySummaryEmail } from '@/utils/emailService';
 import { toast } from '@/hooks/use-toast';
+import { clearAllNotifications } from '@/utils/clearAllNotifications';
 
 const NotificationBell: React.FC = () => {
   const { notifications, unreadCount, markAsRead, removeNotification } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
 
   const toggleNotificationCenter = () => {
@@ -64,6 +66,46 @@ const NotificationBell: React.FC = () => {
       });
     }
   };
+  
+  const handleClearAllNotifications = async () => {
+    if (notifications.length === 0 || isClearing) return;
+    
+    try {
+      setIsClearing(true);
+      
+      // Mostrar toast de carregamento
+      toast({
+        title: 'Processando',
+        description: 'Limpando todas as notificações...'
+      });
+      
+      const success = await clearAllNotifications();
+      
+      if (success) {
+        // Atualizar a interface (o evento notificationsUpdated já deve fazer isso)
+        // Mostrar toast de sucesso
+        toast({
+          title: 'Notificações Limpas',
+          description: 'Todas as notificações foram removidas com sucesso.'
+        });
+      } else {
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível limpar todas as notificações.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao limpar notificações:', error);
+      toast({
+        title: 'Erro Inesperado',
+        description: 'Ocorreu um erro ao limpar as notificações. Tente novamente mais tarde.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsClearing(false);
+    }
+  };
 
   return (
     <div className="relative">
@@ -87,12 +129,25 @@ const NotificationBell: React.FC = () => {
         >
           <div className="sticky top-0 bg-card p-3 border-b border-border flex justify-between items-center">
             <h3 className="font-medium">Notificações</h3>
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X size={18} />
-            </button>
+            <div className="flex items-center space-x-2">
+              {notifications.length > 0 && (
+                <button
+                  onClick={handleClearAllNotifications}
+                  disabled={isClearing}
+                  className="text-muted-foreground hover:text-destructive flex items-center text-xs"
+                  title="Limpar todas as notificações"
+                >
+                  <Trash2 size={16} className="mr-1" />
+                  <span>Limpar tudo</span>
+                </button>
+              )}
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
           
           <div className="p-0">

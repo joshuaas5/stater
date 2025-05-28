@@ -7,202 +7,124 @@ import 'jspdf-autotable';
 
 // Interface para a configuração de exportação
 export interface ExportConfig {
-  startDate: Date;
-  endDate: Date;
-  includeTransactions: boolean;
-  includeBills: boolean;
-  includeCharts?: boolean;
+  startDate?: string;
+  endDate?: string;
+  includeTransactions?: boolean;
+  includeBills?: boolean;
+  includeCharts?: boolean; // Embora não usado diretamente na exportação de tabela, mantido para consistência
+  format: 'csv' | 'xlsx' | 'pdf';
 }
 
-// Funções auxiliares de formatação para não depender de bibliotecas externas
-const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
-};
-
-const formatCurrencyPlain = (value: number): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(value);
-};
-
-const formatDate = (date: Date): string => {
-  return new Intl.DateTimeFormat('pt-BR').format(date);
-};
-
-const formatDateShort = (date: Date): string => {
-  return `${date.getDate().toString().padStart(2, '0')}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getFullYear()}`;
-};
-
-// Tipo para o formato de exportação
-export type ExportFormat = 'csv' | 'xlsx' | 'pdf';
-
-// Função principal para exportar dados
-export const exportFinancialReport = async (config: ExportConfig, format: ExportFormat = 'csv'): Promise<{ data: string | Blob | null; filename: string }> => {
-  const user = getCurrentUser();
-  if (!user) {
-    throw new Error('Usuário não autenticado');
-  }
-
-  // Obter os dados do relatório
-  const reportData = await getReportData(config);
-  const dateRange = `${formatDateShort(config.startDate)}_${formatDateShort(config.endDate)}`;
-  
-  // Exportar no formato solicitado
-  switch (format) {
-    case 'xlsx':
-      return {
-        data: await exportToXLSX(reportData),
-        filename: `ICTUS_Financeiro_${dateRange}.xlsx`
-      };
-    case 'pdf':
-      return {
-        data: await exportToPDF(reportData),
-        filename: `ICTUS_Financeiro_${dateRange}.pdf`
-      };
-    case 'csv':
-    default:
-      return {
-        data: exportToCSV(reportData),
-        filename: `ICTUS_Financeiro_${dateRange}.csv`
-      };
-  }
-};
-
-// Interface para os dados do relatu00f3rio
+// Interface para os dados do relatório
 interface ReportData {
+  summary: Array<{ description: string; value: number }>;
   transactions: Transaction[];
   bills: Bill[];
-  summary: {
-    totalIncome: number;
-    totalExpenses: number;
-    balance: number;
-    pendingBills: number;
-    paidBills: number;
-    periodStart: Date;
-    periodEnd: Date;
-  };
-  user: {
-    name: string;
-    email: string;
-  };
+  user: { name?: string; email?: string } | null;
+  period: string;
 }
 
-// Obter os dados para o relatório
+// Função para formatar valores monetários
+const formatCurrency = (value: number): string => {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+};
+
+// Função para formatar datas (dd/mm/yyyy)
+const formatDate = (dateInput: Date | string | undefined): string => {
+  if (!dateInput) return '';
+  let date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  
+  // Adiciona o fuso horário para evitar problemas com datas UTC
+  const userTimezoneOffset = date.getTimezoneOffset() * 60000;
+  const correctedDate = new Date(date.getTime() + userTimezoneOffset);
+  return correctedDate.toLocaleDateString('pt-BR');
+};
+
+// Função principal para buscar e preparar os dados do relatório
 const getReportData = async (config: ExportConfig): Promise<ReportData> => {
-  // Obter transau00e7u00f5es e contas no peru00edodo especificado
-  const allTransactions = getTransactions();
-  const allBills = getBills();
-  const user = getCurrentUser()!;
+  const currentUser = getCurrentUser();
+  const transactions = getTransactions();
+  const bills = getBills();
 
-  // Filtrar por data
-  const transactions = config.includeTransactions 
-    ? allTransactions.filter(t => {
-        const date = new Date(t.date);
-        return date >= config.startDate && date <= config.endDate;
-      })
-    : [];
+  let filteredTransactions = transactions;
+  let filteredBills = bills;
 
-  const bills = config.includeBills 
-    ? allBills.filter(b => {
-        const date = new Date(b.dueDate);
-        return date >= config.startDate && date <= config.endDate;
-      })
-    : [];
+  if (config.startDate) {
+    const startDate = new Date(config.startDate);
+    // Ajusta a data de início para o começo do dia
+    startDate.setHours(0, 0, 0, 0);
+    filteredTransactions = filteredTransactions.filter(t => new Date(t.date) >= startDate);
+    filteredBills = filteredBills.filter(b => new Date(b.dueDate) >= startDate);
+  }
+  if (config.endDate) {
+    const endDate = new Date(config.endDate);
+    // Ajusta a data final para incluir todo o dia
+    endDate.setHours(23, 59, 59, 999);
+    filteredTransactions = filteredTransactions.filter(t => new Date(t.date) <= endDate);
+    filteredBills = filteredBills.filter(b => new Date(b.dueDate) <= endDate);
+  }
 
-  // Calcular resumo
-  const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
+  const income = filteredTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+  const expenses = filteredTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  const balance = income - expenses;
 
-  const totalExpenses = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const balance = totalIncome - totalExpenses;
-
-  const pendingBills = bills
-    .filter(b => !b.isPaid)
-    .reduce((sum, b) => sum + b.amount, 0);
-
-  const paidBills = bills
-    .filter(b => b.isPaid)
-    .reduce((sum, b) => sum + b.amount, 0);
+  const summary = [
+    { description: 'Total de Receitas', value: income },
+    { description: 'Total de Despesas', value: expenses },
+    { description: 'Saldo Final', value: balance },
+  ];
+  
+  let period = 'Completo';
+  if (config.startDate && config.endDate) {
+    period = `${formatDate(config.startDate)} - ${formatDate(config.endDate)}`;
+  } else if (config.startDate) {
+    period = `A partir de ${formatDate(config.startDate)}`;
+  } else if (config.endDate) {
+    period = `Até ${formatDate(config.endDate)}`;
+  }
 
   return {
-    transactions,
-    bills,
-    summary: {
-      totalIncome,
-      totalExpenses,
-      balance,
-      pendingBills,
-      paidBills,
-      periodStart: config.startDate,
-      periodEnd: config.endDate
-    },
-    user: {
-      name: user.username,
-      email: user.email
-    }
+    summary,
+    transactions: config.includeTransactions ? filteredTransactions : [],
+    bills: config.includeBills ? filteredBills : [],
+    user: currentUser ? { name: currentUser.username, email: currentUser.email } : null,
+    period,
   };
 };
 
 // Exportar para CSV
-const exportToCSV = (data: ReportData): string => {
-  // Criar container para as linhas do CSV
-  const csvContent: string[] = [];
+const exportToCSV = (data: ReportData): Blob => {
+  let csvContent = "data:text/csv;charset=utf-8,";
+  csvContent += `Relatório Financeiro - Usuário: ${data.user?.name || 'N/A'} - Período: ${data.period}\n\n`;
 
-  // Cabeçalho do relatório
-  csvContent.push('"RELATÓRIO FINANCEIRO ICTUS"');
-  csvContent.push(`"Usuário: ${data.user.name} (${data.user.email})"`);
-  csvContent.push(`"Período: ${formatDate(data.summary.periodStart)} a ${formatDate(data.summary.periodEnd)}"`);
-  csvContent.push('""');
-
-  // Resumo financeiro
-  csvContent.push('"RESUMO FINANCEIRO"');
-  csvContent.push(`"Total de Receitas","${formatCurrency(data.summary.totalIncome)}"`);
-  csvContent.push(`"Total de Despesas","${formatCurrency(data.summary.totalExpenses)}"`);
-  csvContent.push(`"Saldo","${formatCurrency(data.summary.balance)}"`);
-  csvContent.push(`"Contas a Pagar","${formatCurrency(data.summary.pendingBills)}"`);
-  csvContent.push(`"Contas Pagas","${formatCurrency(data.summary.paidBills)}"`);
-  csvContent.push('""');
+  // Resumo
+  csvContent += 'Resumo Financeiro\n';
+  csvContent += 'Descrição,Valor\n';
+  data.summary.forEach(item => {
+    csvContent += `${item.description},${item.value.toFixed(2)}\n`;
+  });
+  csvContent += '\n';
 
   // Transações
   if (data.transactions.length > 0) {
-    csvContent.push('"TRANSAÇÕES"');
-    csvContent.push('"Data","Descrição","Categoria","Tipo","Valor"');
-    
-    data.transactions.forEach(transaction => {
-      const date = formatDate(new Date(transaction.date));
-      const type = transaction.type === 'income' ? 'Receita' : 'Despesa';
-      csvContent.push(
-        `"${date}","${transaction.title}","${transaction.category}","${type}","${formatCurrency(transaction.amount)}"`
-      );
+    csvContent += 'Transações\n';
+    csvContent += 'Data,Descrição,Categoria,Tipo,Valor\n';
+    data.transactions.forEach(t => {
+      csvContent += `${formatDate(t.date)},${t.title},${t.category},${t.type === 'income' ? 'Receita' : 'Despesa'},${t.amount.toFixed(2)}\n`;
     });
-    
-    csvContent.push('""');
+    csvContent += '\n';
   }
 
   // Contas
   if (data.bills.length > 0) {
-    csvContent.push('"CONTAS"');
-    csvContent.push('"Vencimento","Descrição","Categoria","Status","Valor"');
-    
-    data.bills.forEach(bill => {
-      const dueDate = formatDate(new Date(bill.dueDate));
-      const status = bill.isPaid ? 'Paga' : 'Pendente';
-      csvContent.push(
-        `"${dueDate}","${bill.title}","${bill.category}","${status}","${formatCurrency(bill.amount)}"`
-      );
+    csvContent += 'Contas\n';
+    csvContent += 'Vencimento,Descrição,Categoria,Status,Valor\n';
+    data.bills.forEach(b => {
+      csvContent += `${formatDate(b.dueDate)},${b.title},${b.category},${b.isPaid ? 'Paga' : 'Pendente'},${b.amount.toFixed(2)}\n`;
     });
   }
 
-  // Juntar todas as linhas com quebras de linha
-  return csvContent.join('\n');
+  return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 };
 
 // Exportar para XLSX
@@ -212,77 +134,103 @@ const exportToXLSX = async (data: ReportData): Promise<Blob | null> => {
     return null;
   }
 
-  // Criar folhas de trabalho
-  const workbook = XLSX.utils.book_new();
-  
-  // Dados de cabeçalho
-  const headerData = [
-    ['PLANILHA DE CONTROLE FINANCEIRO PESSOAL | ICTUS'],
-    [],
-    [`Usuário: ${data.user.name} (${data.user.email})`],
-    [`Período: ${formatDate(data.summary.periodStart)} a ${formatDate(data.summary.periodEnd)}`],
-    []
-  ];
-  
-  // Dados do resumo
+  const wb = XLSX.utils.book_new();
+
+  // Estilo para cabeçalhos
+  const headerStyle = { font: { bold: true } };
+
+  // Função para adicionar uma planilha
+  const addSheet = (sheetName: string, sheetData: any[][], columnWidths: {wch:number}[]) => {
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    ws['!cols'] = columnWidths;
+    // Aplicar estilo aos cabeçalhos (primeira linha)
+    if (sheetData.length > 0) {
+        Object.keys(sheetData[0]).forEach((key, index) => {
+            const cellRef = XLSX.utils.encode_cell({c:index, r:0});
+            if(ws[cellRef]) {
+                ws[cellRef].s = headerStyle;
+            }
+        });
+    }
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  };
+
+  // 1. Planilha de Resumo
   const summaryData = [
-    ['RESUMO FINANCEIRO'],
+    ['Resumo Financeiro - Período:', data.period],
+    ['Usuário:', data.user?.name || 'N/A'],
+    [], // Linha em branco
     ['Descrição', 'Valor'],
-    ['Total de Receitas', formatCurrencyPlain(data.summary.totalIncome)],
-    ['Total de Despesas', formatCurrencyPlain(data.summary.totalExpenses)],
-    ['Saldo', formatCurrencyPlain(data.summary.balance)],
-    ['Contas a Pagar', formatCurrencyPlain(data.summary.pendingBills)],
-    ['Contas Pagas', formatCurrencyPlain(data.summary.paidBills)],
-    []
+    ...data.summary.map(item => [item.description, item.value]),
   ];
-  
-  // Dados de transações
-  const transactionsData = data.transactions.length > 0 ? [
-    ['TRANSAÇÕES'],
-    ['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor'],
-    ...data.transactions.map(t => [
-      formatDate(new Date(t.date)),
+  addSheet('Resumo', summaryData, [{wch: 30}, {wch: 20}]);
+  // Formatar células de valor como moeda na planilha de resumo
+  const summaryWs = wb.Sheets['Resumo'];
+  data.summary.forEach((_item, index) => {
+    const cellRef = XLSX.utils.encode_cell({ c: 1, r: index + 4 }); // +4 por causa dos cabeçalhos e linha em branco
+    if (summaryWs[cellRef]) {
+      summaryWs[cellRef].t = 'n'; // number type
+      summaryWs[cellRef].z = 'R$ #,##0.00'; // currency format
+    }
+  });
+
+  // 2. Planilha de Transações
+  if (data.transactions.length > 0) {
+    const transactionsHeader = ['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor'];
+    const transactionsBody = data.transactions.map(t => [
+      formatDate(t.date),
       t.title,
       t.category,
       t.type === 'income' ? 'Receita' : 'Despesa',
-      formatCurrencyPlain(t.amount)
-    ]),
-    []
-  ] : [];
-  
-  // Dados de contas
-  const billsData = data.bills.length > 0 ? [
-    ['CONTAS'],
-    ['Vencimento', 'Descrição', 'Categoria', 'Status', 'Valor'],
-    ...data.bills.map(b => [
-      formatDate(new Date(b.dueDate)),
+      t.amount,
+    ]);
+    addSheet('Transações', [transactionsHeader, ...transactionsBody], [{wch: 12}, {wch: 30}, {wch: 20}, {wch: 15}, {wch: 15}]);
+    // Formatar células de valor como moeda e data
+    const transactionsWs = wb.Sheets['Transações'];
+    data.transactions.forEach((_t, index) => {
+        const dateCellRef = XLSX.utils.encode_cell({ c: 0, r: index + 1 });
+        if (transactionsWs[dateCellRef]) {
+            // A data já está formatada como string, se precisar como tipo data do Excel:
+            // transactionsWs[dateCellRef].t = 'd'; 
+            // transactionsWs[dateCellRef].z = 'dd/mm/yyyy';
+        }
+        const amountCellRef = XLSX.utils.encode_cell({ c: 4, r: index + 1 });
+        if (transactionsWs[amountCellRef]) {
+            transactionsWs[amountCellRef].t = 'n';
+            transactionsWs[amountCellRef].z = 'R$ #,##0.00';
+        }
+    });
+  }
+
+  // 3. Planilha de Contas
+  if (data.bills.length > 0) {
+    const billsHeader = ['Vencimento', 'Descrição', 'Categoria', 'Status', 'Valor'];
+    const billsBody = data.bills.map(b => [
+      formatDate(b.dueDate),
       b.title,
       b.category,
       b.isPaid ? 'Paga' : 'Pendente',
-      formatCurrencyPlain(b.amount)
-    ])
-  ] : [];
-  
-  // Combinar todos os dados
-  const combinedData = [...headerData, ...summaryData, ...transactionsData, ...billsData];
-  
-  // Criar planilha
-  const worksheet = XLSX.utils.aoa_to_sheet(combinedData);
-  
-  // Estilização da planilha (básica)
-  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
-  for (let C = range.s.c; C <= range.e.c; ++C) {
-    const address = XLSX.utils.encode_col(C) + '1';
-    if (!worksheet[address]) continue;
-    worksheet[address].s = { font: { bold: true } };
+      b.amount,
+    ]);
+    addSheet('Contas', [billsHeader, ...billsBody], [{wch: 12}, {wch: 30}, {wch: 20}, {wch: 15}, {wch: 15}]);
+    // Formatar células de valor como moeda e data
+    const billsWs = wb.Sheets['Contas'];
+    data.bills.forEach((_b, index) => {
+        const dateCellRef = XLSX.utils.encode_cell({ c: 0, r: index + 1 });
+        if (billsWs[dateCellRef]) {
+            // billsWs[dateCellRef].t = 'd';
+            // billsWs[dateCellRef].z = 'dd/mm/yyyy';
+        }
+        const amountCellRef = XLSX.utils.encode_cell({ c: 4, r: index + 1 });
+        if (billsWs[amountCellRef]) {
+            billsWs[amountCellRef].t = 'n';
+            billsWs[amountCellRef].z = 'R$ #,##0.00';
+        }
+    });
   }
-  
-  // Adicionar planilha ao workbook
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Relatório Financeiro');
-  
-  // Gerar arquivo XLSX
-  const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  return new Blob([wbout], { type: 'application/octet-stream' });
+
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  return new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 };
 
 // Exportar para PDF
@@ -292,96 +240,112 @@ const exportToPDF = async (data: ReportData): Promise<Blob | null> => {
     return null;
   }
 
-  // Criar documento PDF
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
-  
-  // Configurar fontes
-  doc.setFont('helvetica', 'bold');
+  const doc = new jsPDF();
+  let finalY = 20; // Posição Y inicial para o conteúdo
+
+  // Título do Relatório
   doc.setFontSize(18);
-  
-  // Adicionar cabeçalho
-  doc.setTextColor(76, 29, 149); // Cor roxa similar ao tema
-  doc.text('PLANILHA DE CONTROLE FINANCEIRO PESSOAL | ICTUS', 10, 15, { align: 'left' });
-  
-  // Informações do usuário e período
-  doc.setFontSize(12);
-  doc.setTextColor(0, 0, 0);
-  doc.text(`Usuário: ${data.user.name} (${data.user.email})`, 10, 25);
-  doc.text(`Período: ${formatDate(data.summary.periodStart)} a ${formatDate(data.summary.periodEnd)}`, 10, 32);
-  
-  // Resumo financeiro
+  doc.setTextColor(40, 40, 40);
+  doc.text(`Relatório Financeiro - ${data.user?.name || 'N/A'}`, 14, finalY);
+  finalY += 8;
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Período: ${data.period}`, 14, finalY);
+  finalY += 15;
+
+  const tableConfig = {
+    theme: 'striped' as const, // 'striped', 'grid', 'plain'
+    headStyles: { fillColor: [76, 29, 149] as [number, number, number], textColor: 255, fontStyle: 'bold' as const },
+    bodyStyles: { textColor: 50 },
+    alternateRowStyles: { fillColor: [245, 245, 245] as [number, number, number] },
+    startY: 0, // Será definido antes de cada tabela
+    margin: { top: 10, right: 14, bottom: 10, left: 14 },
+    tableWidth: 'auto' as const, // 'auto', 'wrap' or a number
+  };
+
+  // 1. Resumo Financeiro
   doc.setFontSize(14);
   doc.setTextColor(76, 29, 149);
-  doc.text('RESUMO FINANCEIRO', 10, 45);
-  
+  doc.text('Resumo Financeiro', 14, finalY);
+  finalY += 8;
   (doc as any).autoTable({
-    startY: 50,
+    ...tableConfig,
+    startY: finalY,
     head: [['Descrição', 'Valor']],
-    body: [
-      ['Total de Receitas', formatCurrency(data.summary.totalIncome)],
-      ['Total de Despesas', formatCurrency(data.summary.totalExpenses)],
-      ['Saldo', formatCurrency(data.summary.balance)],
-      ['Contas a Pagar', formatCurrency(data.summary.pendingBills)],
-      ['Contas Pagas', formatCurrency(data.summary.paidBills)]
-    ],
-    theme: 'grid',
-    headStyles: { fillColor: [76, 29, 149], textColor: 255 },
-    styles: { overflow: 'linebreak' },
-    columnStyles: { 0: { cellWidth: 100 } }
+    body: data.summary.map(item => [item.description, formatCurrency(item.value)]),
+    didDrawPage: (hookData: any) => { finalY = hookData.cursor.y; }
   });
-  
-  // Seção de transações
-  let finalY = (doc as any).lastAutoTable.finalY || 100;
-  
+  finalY += 10; // Espaço após a tabela
+
+  // 2. Transações
   if (data.transactions.length > 0) {
     doc.setFontSize(14);
     doc.setTextColor(76, 29, 149);
-    doc.text('TRANSAÇÕES', 10, finalY + 15);
-    
+    doc.text('Transações', 14, finalY);
+    finalY += 8;
     (doc as any).autoTable({
-      startY: finalY + 20,
+      ...tableConfig,
+      startY: finalY,
       head: [['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor']],
       body: data.transactions.map(t => [
-        formatDate(new Date(t.date)),
+        formatDate(t.date),
         t.title,
         t.category,
         t.type === 'income' ? 'Receita' : 'Despesa',
-        formatCurrency(t.amount)
+        formatCurrency(t.amount),
       ]),
-      theme: 'grid',
-      headStyles: { fillColor: [76, 29, 149], textColor: 255 },
-      styles: { overflow: 'linebreak' }
+      didDrawPage: (hookData: any) => { finalY = hookData.cursor.y; }
     });
-    
-    finalY = (doc as any).lastAutoTable.finalY || finalY + 40;
+    finalY += 10;
   }
-  
-  // Seção de contas
+
+  // 3. Contas
   if (data.bills.length > 0) {
     doc.setFontSize(14);
     doc.setTextColor(76, 29, 149);
-    doc.text('CONTAS', 10, finalY + 15);
-    
+    doc.text('Contas', 14, finalY);
+    finalY += 8;
     (doc as any).autoTable({
-      startY: finalY + 20,
+      ...tableConfig,
+      startY: finalY,
       head: [['Vencimento', 'Descrição', 'Categoria', 'Status', 'Valor']],
       body: data.bills.map(b => [
-        formatDate(new Date(b.dueDate)),
+        formatDate(b.dueDate),
         b.title,
         b.category,
         b.isPaid ? 'Paga' : 'Pendente',
-        formatCurrency(b.amount)
+        formatCurrency(b.amount),
       ]),
-      theme: 'grid',
-      headStyles: { fillColor: [76, 29, 149], textColor: 255 },
-      styles: { overflow: 'linebreak' }
+      didDrawPage: (hookData: any) => { finalY = hookData.cursor.y; }
     });
+    // finalY += 10; // Não precisa de espaço extra se for a última tabela
   }
   
-  // Gerar o PDF como blob
-  return doc.output('blob');
+  try {
+    return doc.output('blob');
+  } catch (error) {
+    console.error("Erro ao gerar PDF blob:", error);
+    return null;
+  }
+};
+
+// Função principal de exportação
+export const exportFinancialReport = async (config: ExportConfig): Promise<Blob | null> => {
+  try {
+    const reportData = await getReportData(config);
+
+    if (config.format === 'csv') {
+      return exportToCSV(reportData);
+    } else if (config.format === 'xlsx') {
+      return await exportToXLSX(reportData);
+    } else if (config.format === 'pdf') {
+      return await exportToPDF(reportData);
+    }
+    return null;
+  } catch (error) {
+    console.error('Erro ao exportar relatório financeiro:', error);
+    // Adicionar um alerta para o usuário pode ser útil aqui, dependendo da UI
+    // alert('Ocorreu um erro ao gerar o relatório. Tente novamente.');
+    return null;
+  }
 };

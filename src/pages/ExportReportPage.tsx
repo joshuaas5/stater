@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarIcon, Download, FileText, ChevronLeft } from 'lucide-react';
+import { CalendarIcon, Download, FileText, ChevronLeft, FileType2, FileOutput } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import PageHeader from '@/components/header/PageHeader';
@@ -12,7 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { exportFinancialReport } from '@/utils/reportExporter';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { exportFinancialReport, ExportFormat } from '@/utils/reportExporter';
 
 const ExportReportPage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const ExportReportPage: React.FC = () => {
   const [includeTransactions, setIncludeTransactions] = useState<boolean>(true);
   const [includeBills, setIncludeBills] = useState<boolean>(true);
   const [includeCharts, setIncludeCharts] = useState<boolean>(true);
+  const [exportFormat, setExportFormat] = useState<ExportFormat>('pdf');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   
   const handleExport = async () => {
@@ -39,32 +41,38 @@ const ExportReportPage: React.FC = () => {
         includeTransactions,
         includeBills,
         includeCharts,
-      });
+      }, exportFormat);
       
-      const formattedDate = format(startDate, 'yyyy-MM-dd', { locale: ptBR });
-      const filename = `relatorio-financeiro-${formattedDate}`;
-      const blob = new Blob([result], { type: 'text/csv;charset=utf-8' });
-      
-      const url = window.URL.createObjectURL(blob);
+      if (!result.data) {
+        throw new Error(`Não foi possível gerar o relatório no formato ${exportFormat.toUpperCase()}`);
+      }
+
+      // Criamos o URL do objeto e o link para download
+      const url = typeof result.data === 'string' 
+        ? `data:text/csv;charset=utf-8,${encodeURIComponent(result.data)}`
+        : window.URL.createObjectURL(result.data);
+        
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${filename}.csv`);
+      link.setAttribute('download', result.filename);
       document.body.appendChild(link);
       link.click();
       
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      if (typeof result.data !== 'string') {
+        window.URL.revokeObjectURL(url);
+      }
       
       toast({
         title: 'Relatório gerado com sucesso!',
-        description: 'Seu relatório financeiro foi gerado e está sendo baixado.',
+        description: `Seu relatório financeiro em ${exportFormat.toUpperCase()} foi gerado e está sendo baixado.`,
         variant: 'default',
       });
     } catch (error) {
       console.error('Erro ao gerar relatório:', error);
       toast({
         title: 'Erro ao gerar relatório',
-        description: 'Ocorreu um erro ao gerar seu relatório. Por favor, tente novamente.',
+        description: error instanceof Error ? error.message : 'Ocorreu um erro ao gerar seu relatório. Por favor, tente novamente.',
         variant: 'destructive',
       });
     } finally {
@@ -181,20 +189,50 @@ const ExportReportPage: React.FC = () => {
               </div>
             </div>
             
-            {/* Informação sobre o formato */}
+            {/* Seleção de formato */}
             <div className="grid grid-cols-1 gap-4 mt-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Formato de exportação</CardTitle>
                   <CardDescription>
-                    Seu relatório financeiro será exportado em formato CSV.
+                    Selecione o formato para exportar seu relatório financeiro.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center space-x-2">
-                    <FileText className="h-5 w-5" />
-                    <span>Arquivo CSV (compatível com Excel e outras planilhas)</span>
-                  </div>
+                  <RadioGroup value={exportFormat} onValueChange={(value) => setExportFormat(value as ExportFormat)} className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="csv" id="format-csv" />
+                      <Label htmlFor="format-csv" className="flex items-center cursor-pointer">
+                        <FileText className="h-5 w-5 mr-2 text-blue-500" />
+                        <div>
+                          <p className="font-medium">CSV</p>
+                          <p className="text-sm text-muted-foreground">Arquivo de texto com valores separados por vírgula</p>
+                        </div>
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="xlsx" id="format-xlsx" />
+                      <Label htmlFor="format-xlsx" className="flex items-center cursor-pointer">
+                        <FileType2 className="h-5 w-5 mr-2 text-green-500" />
+                        <div>
+                          <p className="font-medium">Excel (XLSX)</p>
+                          <p className="text-sm text-muted-foreground">Planilha formatada compatível com Microsoft Excel</p>
+                        </div>
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="pdf" id="format-pdf" />
+                      <Label htmlFor="format-pdf" className="flex items-center cursor-pointer">
+                        <FileOutput className="h-5 w-5 mr-2 text-red-500" />
+                        <div>
+                          <p className="font-medium">PDF</p>
+                          <p className="text-sm text-muted-foreground">Documento formatado com layout profissional</p>
+                        </div>
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </CardContent>
               </Card>
             </div>

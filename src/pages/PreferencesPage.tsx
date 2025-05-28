@@ -7,7 +7,7 @@ import { clearAllNotifications } from '@/utils/clearAllNotifications';
 import { sendWeeklySummaryEmail } from '@/utils/emailService';
 import { 
   Sun, Moon, Bell, Languages, DollarSign, 
-  Calendar, Paintbrush, Save, UserCircle2, Star, Trash2, Mail
+  Calendar, Paintbrush, Save, UserCircle2, Star, Trash2, Mail, FileText
 } from 'lucide-react';
 import { CURRENCIES, suggestCurrencyByCountry } from '@/utils/currencies';
 import { getCurrentUser } from '@/utils/localStorage';
@@ -119,15 +119,16 @@ const PreferencesPage: React.FC = () => {
     try {
       await saveSupabaseUserPreferences(preferences);
       toast({
-        title: t('preferencesUpdated'),
-        description: "Suas preferências foram atualizadas com sucesso."
+        title: 'Preferências salvas!',
+        description: 'Suas preferências foram salvas com sucesso.',
+        variant: 'default',
       });
     } catch (error) {
       console.error('Erro ao salvar preferências:', error);
       toast({
         title: 'Erro ao salvar preferências',
-        description: 'Ocorreu um erro ao salvar suas preferências. Tente novamente.',
-        variant: 'destructive'
+        description: 'Ocorreu um erro ao salvar suas preferências. Tente novamente mais tarde.',
+        variant: 'destructive',
       });
     }
   };
@@ -310,7 +311,7 @@ const PreferencesPage: React.FC = () => {
               >
                 <Mail size={16} className="mr-2" /> Solicitar resumo semanal agora
               </Button>
-              {(!preferences.notifications.emailNotifications || !preferences.notifications.weeklyEmailSummary) && (
+              {(!preferences.notifications?.emailNotifications || !preferences.notifications?.weeklyEmailSummary) && (
                 <p className="text-xs text-red-500 italic">
                   Para solicitar emails, ative as notificações por email e resumos semanais nas configurações acima.
                 </p>
@@ -340,6 +341,14 @@ const PreferencesPage: React.FC = () => {
             onClick={() => navigate('/recomendacoes')}
           >
             <Star size={16} className="mr-2" /> Acessar recomendações financeiras
+          </Button>
+          
+          <Button 
+            variant="outline"
+            className="w-full border border-galileo-accent text-galileo-accent hover:bg-galileo-accent/10"
+            onClick={() => navigate('/export-report')}
+          >
+            <FileText size={16} className="mr-2" /> Exportar relatório financeiro
           </Button>
         </div>
       </div>

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { requestWeeklySummary } from '@/utils/emailNotifications';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
 import { isLoggedIn, getUserPreferences, saveUserPreferences, saveSupabaseUserPreferences } from '@/utils/localStorage';
+import { clearAllNotifications } from '@/utils/clearAllNotifications';
 import { 
   Sun, Moon, Bell, Languages, DollarSign, 
-  Calendar, Paintbrush, Save, UserCircle2, Star, Mail
+  Calendar, Paintbrush, Save, UserCircle2, Star, Trash2
 } from 'lucide-react';
 import { CURRENCIES, suggestCurrencyByCountry } from '@/utils/currencies';
 import { getCurrentUser } from '@/utils/localStorage';
@@ -35,15 +35,7 @@ const PreferencesPage: React.FC = () => {
     showCents: true,
     showRecurringBadges: true,
     showTransactionCategories: true,
-    notifications: {
-      billsDueSoon: true,
-      billsOverdue: true,
-      largeTransactions: true,
-      weeklyEmailSummary: true,
-      pushNotifications: true,
-      inAppNotifications: true,
-      emailNotifications: true
-    }
+    enableNotifications: true
   });
   
   useEffect(() => {
@@ -156,190 +148,54 @@ const PreferencesPage: React.FC = () => {
             <Bell size={18} className="mr-2" /> {t('notifications')}
           </h2>
           
-          <div className="mb-4">
-            <h3 className="text-sm font-medium text-galileo-text mb-2">Canais de notificação</h3>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="push-notifications" className="cursor-pointer">Notificações push</Label>
-                <Switch 
-                  id="push-notifications" 
-                  checked={preferences.notifications.pushNotifications}
-                  onCheckedChange={() => {
-                    setPreferences(prev => ({
-                      ...prev,
-                      notifications: {
-                        ...prev.notifications,
-                        pushNotifications: !prev.notifications.pushNotifications
-                      }
-                    }));
-                  }}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <Label htmlFor="in-app-notifications" className="cursor-pointer">Notificações no aplicativo</Label>
-                <Switch 
-                  id="in-app-notifications" 
-                  checked={preferences.notifications.inAppNotifications}
-                  onCheckedChange={() => {
-                    setPreferences(prev => ({
-                      ...prev,
-                      notifications: {
-                        ...prev.notifications,
-                        inAppNotifications: !prev.notifications.inAppNotifications
-                      }
-                    }));
-                  }}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <Label htmlFor="email-notifications" className="cursor-pointer">Notificações por email</Label>
-                <Switch 
-                  id="email-notifications" 
-                  checked={preferences.notifications.emailNotifications}
-                  onCheckedChange={() => {
-                    setPreferences(prev => ({
-                      ...prev,
-                      notifications: {
-                        ...prev.notifications,
-                        emailNotifications: !prev.notifications.emailNotifications
-                      }
-                    }));
-                  }}
-                />
-                {preferences.notifications.emailNotifications && (
-                  <div className="mt-2 ml-6">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          toast({
-                            title: "Enviando email de teste...",
-                            description: "Aguarde enquanto enviamos um resumo semanal para seu email.",
-                          });
-                          
-                          const result = await requestWeeklySummary();
-                          
-                          toast({
-                            title: result.success ? "Email enviado!" : "Erro ao enviar email",
-                            description: result.message,
-                            variant: result.success ? "default" : "destructive",
-                          });
-                        } catch (error) {
-                          toast({
-                            title: "Erro ao enviar email",
-                            description: "Ocorreu um erro ao tentar enviar o email de teste.",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                    >
-                      Testar email semanal
-                    </Button>
-                  </div>
-                )}
-              </div>
+          <div className="space-y-4">
+            {/* Switch simples para permitir notificações */}
+            <div className="flex items-center justify-between">
+              <Label htmlFor="enable-notifications" className="cursor-pointer">Permitir notificações</Label>
+              <Switch 
+                id="enable-notifications" 
+                checked={preferences.enableNotifications}
+                onCheckedChange={() => {
+                  setPreferences(prev => ({
+                    ...prev,
+                    enableNotifications: !prev.enableNotifications
+                  }));
+                }}
+              />
             </div>
-          </div>
-          
-          <div className="mb-4">
-            <h3 className="text-sm font-medium text-galileo-text mb-2">Tipos de notificação</h3>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="notifications-bills" className="cursor-pointer">Contas a vencer em breve</Label>
-                <Switch 
-                  id="notifications-bills" 
-                  checked={preferences.notifications.billsDueSoon}
-                  onCheckedChange={() => {
-                    setPreferences(prev => ({
-                      ...prev,
-                      notifications: {
-                        ...prev.notifications,
-                        billsDueSoon: !prev.notifications.billsDueSoon
-                      }
-                    }));
-                  }}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <Label htmlFor="notifications-overdue" className="cursor-pointer">Contas vencidas</Label>
-                <Switch 
-                  id="notifications-overdue" 
-                  checked={preferences.notifications.billsOverdue}
-                  onCheckedChange={() => {
-                    setPreferences(prev => ({
-                      ...prev,
-                      notifications: {
-                        ...prev.notifications,
-                        billsOverdue: !prev.notifications.billsOverdue
-                      }
-                    }));
-                  }}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <Label htmlFor="notifications-transactions" className="cursor-pointer">Grandes transações</Label>
-                <Switch 
-                  id="notifications-transactions" 
-                  checked={preferences.notifications.largeTransactions}
-                  onCheckedChange={() => {
-                    setPreferences(prev => ({
-                      ...prev,
-                      notifications: {
-                        ...prev.notifications,
-                        largeTransactions: !prev.notifications.largeTransactions
-                      }
-                    }));
-                  }}
-                />
-              </div>
-              
-              <div className="flex items-start justify-between p-1 rounded-md hover:bg-galileo-hover transition-colors duration-150">
-                <div className="flex-1">
-                  <label htmlFor="weeklyEmailSummary" className="block text-sm font-medium text-galileo-text cursor-pointer">
-                    Resumo semanal por email
-                  </label>
-                  <p className="text-xs text-galileo-secondaryText">
-                    Receba um resumo das suas contas a vencer e transações recentes toda semana.
-                  </p>
-                </div>
-                <div className="ml-2 pt-0.5">
-                  <Switch
-                    id="weeklyEmailSummary"
-                    checked={preferences.notifications.weeklyEmailSummary}
-                    onCheckedChange={(checked) => {
-                      setPreferences((prev) => ({
-                        ...prev,
-                        notifications: { ...prev.notifications, weeklyEmailSummary: checked },
-                      }));
-                    }}
-                  />
-                </div>
-              </div>
-              {preferences.notifications.weeklyEmailSummary && preferences.notifications.emailNotifications && (
-                <div className="mt-1 ml-6 text-xs text-galileo-secondaryText">
-                  <p>Você receberá um resumo semanal com suas transações e contas a vencer.</p>
-                </div>
-              )}
-              {preferences.notifications.weeklyEmailSummary && !preferences.notifications.emailNotifications && (
-                <div className="mt-1 ml-6 text-xs text-galileo-negative">
-                  <p>Ative as notificações por email acima para receber o resumo semanal.</p>
-                </div>
-              )}
+            
+            {/* Botão para limpar todas as notificações */}
+            <div className="pt-2">
+              <Button
+                variant="outline"
+                className="w-full border border-red-400 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center"
+                onClick={async () => {
+                  try {
+                    toast({
+                      title: 'Limpando notificações...',
+                      description: 'Aguarde enquanto excluímos todas as suas notificações.'
+                    });
+                    
+                    const success = await clearAllNotifications();
+                    
+                    toast({
+                      title: success ? 'Notificações excluídas!' : 'Erro ao excluir notificações',
+                      description: success ? 'Todas as suas notificações foram excluídas com sucesso.' : 'Ocorreu um erro ao tentar excluir suas notificações.',
+                      variant: success ? 'default' : 'destructive'
+                    });
+                  } catch (error) {
+                    console.error('Erro ao limpar notificações:', error);
+                    toast({
+                      title: 'Erro ao excluir notificações',
+                      description: 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
+                      variant: 'destructive'
+                    });
+                  }
+                }}
+              >
+                <Trash2 size={16} className="mr-2" /> Limpar todas as notificações
+              </Button>
             </div>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <Label htmlFor="show-recurring-badges" className="cursor-pointer">{t('showRecurringIndicator')}</Label>
-            <Switch 
-              id="show-recurring-badges" 
-              checked={preferences.showRecurringBadges}
-              onCheckedChange={() => handleSwitchChange('showRecurringBadges')}
-            />
           </div>
         </div>
           

@@ -20,6 +20,7 @@ import ChartsPage from "./pages/ChartsPage";
 import { FinancialAdvisorPage } from "./pages/FinancialAdvisorPage";
 import RecommendationsPage from "./pages/RecommendationsPage";
 import SettingsPage from "./pages/SettingsPage";
+import ExportReportPage from "./pages/ExportReportPage";
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -134,6 +135,14 @@ const App = () => (
                 element={
                   <PrivateRoute>
                     <SettingsPage />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/export-report" 
+                element={
+                  <PrivateRoute>
+                    <ExportReportPage />
                   </PrivateRoute>
                 } 
               />

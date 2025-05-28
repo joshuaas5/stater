@@ -1793,15 +1793,12 @@ export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   currency: string;
   dateFormat: string;
-  notifications: {
-    billsDueSoon: boolean;
-    billsOverdue: boolean;
-    largeTransactions: boolean;
-    weeklyEmailSummary: boolean;
-    pushNotifications: boolean;
-    inAppNotifications: boolean;
-    emailNotifications: boolean;
-  };
+  language: string;
+  weekStartsOn: string;
+  showCents: boolean;
+  showRecurringBadges: boolean;
+  showTransactionCategories: boolean;
+  enableNotifications: boolean;
 }
 
 // Valores padrão para preferências do usuário
@@ -1809,15 +1806,12 @@ const defaultPreferences: UserPreferences = {
   theme: 'system',
   currency: 'BRL',
   dateFormat: 'dd/MM/yyyy',
-  notifications: {
-    billsDueSoon: true,
-    billsOverdue: true,
-    largeTransactions: false,
-    weeklyEmailSummary: true,
-    pushNotifications: true,
-    inAppNotifications: true,
-    emailNotifications: true
-  }
+  language: 'pt-BR',
+  weekStartsOn: 'monday',
+  showCents: true,
+  showRecurringBadges: true,
+  showTransactionCategories: true,
+  enableNotifications: true
 };
 
 // Mapeamento entre formatos locais e Supabase para preferências

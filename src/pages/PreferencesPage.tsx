@@ -4,9 +4,10 @@ import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
 import { isLoggedIn, getUserPreferences, saveUserPreferences, saveSupabaseUserPreferences } from '@/utils/localStorage';
 import { clearAllNotifications } from '@/utils/clearAllNotifications';
+import { sendWeeklySummaryEmail } from '@/utils/emailService';
 import { 
   Sun, Moon, Bell, Languages, DollarSign, 
-  Calendar, Paintbrush, Save, UserCircle2, Star, Trash2
+  Calendar, Paintbrush, Save, UserCircle2, Star, Trash2, Mail
 } from 'lucide-react';
 import { CURRENCIES, suggestCurrencyByCountry } from '@/utils/currencies';
 import { getCurrentUser } from '@/utils/localStorage';
@@ -35,7 +36,16 @@ const PreferencesPage: React.FC = () => {
     showCents: true,
     showRecurringBadges: true,
     showTransactionCategories: true,
-    enableNotifications: true
+    enableNotifications: true,
+    notifications: {
+      pushNotifications: true,
+      inAppNotifications: true,
+      emailNotifications: true,
+      billsDueSoon: true,
+      billsOverdue: true,
+      largeTransactions: true,
+      weeklyEmailSummary: true
+    }
   });
   
   useEffect(() => {
@@ -58,9 +68,23 @@ const PreferencesPage: React.FC = () => {
     // Carregar preferências salvas
     const savedPreferences = getUserPreferences();
     if (Object.keys(savedPreferences).length > 0) {
+      // Garantir que o objeto notifications exista
+      const updatedPreferences = {
+        ...savedPreferences,
+        notifications: savedPreferences.notifications || {
+          pushNotifications: true,
+          inAppNotifications: true,
+          emailNotifications: true,
+          billsDueSoon: true,
+          billsOverdue: true,
+          largeTransactions: true,
+          weeklyEmailSummary: true
+        }
+      };
+      
       setPreferences(prev => ({
         ...prev,
-        ...savedPreferences
+        ...updatedPreferences
       }));
     }
   }, [navigate]);
@@ -266,12 +290,12 @@ const PreferencesPage: React.FC = () => {
                       description: 'Aguarde enquanto processamos sua solicitação.'
                     });
                     
-                    const { success, message } = await requestWeeklySummary();
+                    const result = await sendWeeklySummaryEmail();
                     
                     toast({
-                      title: success ? 'Email enviado!' : 'Erro ao enviar email',
-                      description: message,
-                      variant: success ? 'default' : 'destructive'
+                      title: result.success ? 'Email enviado!' : 'Erro ao enviar email',
+                      description: result.message,
+                      variant: result.success ? 'default' : 'destructive'
                     });
                   } catch (error) {
                     console.error('Erro ao solicitar email:', error);
@@ -282,7 +306,7 @@ const PreferencesPage: React.FC = () => {
                     });
                   }
                 }}
-                disabled={!preferences.notifications.emailNotifications || !preferences.notifications.weeklyEmailSummary}
+                disabled={!(preferences.notifications?.emailNotifications) || !(preferences.notifications?.weeklyEmailSummary)}
               >
                 <Mail size={16} className="mr-2" /> Solicitar resumo semanal agora
               </Button>

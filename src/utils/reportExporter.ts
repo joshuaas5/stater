@@ -1,26 +1,9 @@
 import { Transaction, Bill } from '@/types';
 import { getTransactions, getBills, getCurrentUser } from './localStorage';
-
-// Importamos as bibliotecas dinamicamente para não quebrar a build
-const loadXLSX = async () => {
-  try {
-    return await import('xlsx');
-  } catch (error) {
-    console.error('Erro ao carregar XLSX:', error);
-    return null;
-  }
-};
-
-const loadJsPDF = async () => {
-  try {
-    const jsPDF = await import('jspdf');
-    await import('jspdf-autotable');
-    return jsPDF.default;
-  } catch (error) {
-    console.error('Erro ao carregar jsPDF:', error);
-    return null;
-  }
-};
+import * as XLSX from 'xlsx';
+// @ts-ignore
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 // Interface para a configuração de exportação
 export interface ExportConfig {
@@ -224,7 +207,6 @@ const exportToCSV = (data: ReportData): string => {
 
 // Exportar para XLSX
 const exportToXLSX = async (data: ReportData): Promise<Blob | null> => {
-  const XLSX = await loadXLSX();
   if (!XLSX) {
     console.error('XLSX não está disponível');
     return null;
@@ -305,7 +287,6 @@ const exportToXLSX = async (data: ReportData): Promise<Blob | null> => {
 
 // Exportar para PDF
 const exportToPDF = async (data: ReportData): Promise<Blob | null> => {
-  const jsPDF = await loadJsPDF();
   if (!jsPDF) {
     console.error('jsPDF não está disponível');
     return null;
@@ -337,7 +318,7 @@ const exportToPDF = async (data: ReportData): Promise<Blob | null> => {
   doc.setTextColor(76, 29, 149);
   doc.text('RESUMO FINANCEIRO', 10, 45);
   
-  doc.autoTable({
+  (doc as any).autoTable({
     startY: 50,
     head: [['Descrição', 'Valor']],
     body: [
@@ -361,7 +342,7 @@ const exportToPDF = async (data: ReportData): Promise<Blob | null> => {
     doc.setTextColor(76, 29, 149);
     doc.text('TRANSAÇÕES', 10, finalY + 15);
     
-    doc.autoTable({
+    (doc as any).autoTable({
       startY: finalY + 20,
       head: [['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor']],
       body: data.transactions.map(t => [
@@ -385,7 +366,7 @@ const exportToPDF = async (data: ReportData): Promise<Blob | null> => {
     doc.setTextColor(76, 29, 149);
     doc.text('CONTAS', 10, finalY + 15);
     
-    doc.autoTable({
+    (doc as any).autoTable({
       startY: finalY + 20,
       head: [['Vencimento', 'Descrição', 'Categoria', 'Status', 'Valor']],
       body: data.bills.map(b => [

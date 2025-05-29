@@ -1142,8 +1142,9 @@ export const exportReport = async (config: ExportConfig): Promise<Blob> => {
       case 'xlsx':
         return exportToXLSX(reportData);
       case 'pdf':
-        // Usar a implementação ultra simples de PDF (sem nenhuma dependência)
-        return generateUltraSimplePDF(reportData);
+        // Temporariamente redirecionando para XLSX devido a problemas com a geração de PDF
+        console.log('PDF export requested but redirected to XLSX due to compatibility issues');
+        return exportToXLSX(reportData);
       case 'ofx':
         // Exportar para OFX - apenas as transações
         const allTransactions = [...reportData.incomeTransactions, ...reportData.expenseTransactions];

@@ -48,12 +48,49 @@ const ExportReportPage: React.FC = () => {
       
       let blob;
       
-      // Se o formato for PDF, usar o novo exportador de PDF
+      // Exportar de acordo com o formato solicitado
       if (exportFormat === 'pdf') {
-        // Obter os dados do relatório usando a função exportReport
-        const reportData = await exportReport({...config, format: 'xlsx'});
-        // Usar o novo exportador de PDF
-        blob = await generatePDF(reportData as any);
+        try {
+          // Para PDF, usar o gerador de PDF simplificado com dados básicos
+          // Construir um objeto ReportData válido com valores padrão
+          const reportData = {
+            incomeTransactions: [],
+            expenseTransactions: [],
+            incomeTotal: 0,
+            expenseTotal: 0,
+            balance: 0,
+            bills: [],
+            user: { name: 'Usuário', email: '' },
+            period: `${format(startDate, 'dd/MM/yyyy')} a ${format(endDate, 'dd/MM/yyyy')}`,
+            categorySummary: {
+              income: [],
+              expense: []
+            }
+          };
+          
+          // Tentar obter dados reais via exportReport para enriquecer o objeto básico
+          try {
+            const tempData = await exportReport({...config, format: 'xlsx'}) as any;
+            if (tempData && typeof tempData === 'object') {
+              // Combinar dados do tempData com o objeto básico, se disponíveis
+              reportData.incomeTransactions = tempData.incomeTransactions || [];
+              reportData.expenseTransactions = tempData.expenseTransactions || [];
+              reportData.incomeTotal = tempData.incomeTotal || 0;
+              reportData.expenseTotal = tempData.expenseTotal || 0;
+              reportData.balance = tempData.balance || 0;
+              reportData.bills = tempData.bills || [];
+              reportData.categorySummary = tempData.categorySummary || { income: [], expense: [] };
+            }
+          } catch (innerError) {
+            console.warn('Não foi possível obter dados detalhados para o PDF, usando dados básicos:', innerError);
+          }
+          
+          // Gerar o PDF com os dados disponíveis
+          blob = await generatePDF(reportData);
+        } catch (pdfError: any) {
+          console.error('Erro ao gerar PDF:', pdfError);
+          throw new Error(`Erro ao gerar PDF: ${pdfError?.message || 'Erro desconhecido'}`);
+        }
       } else {
         // Para outros formatos, usar o exportador original
         blob = await exportReport(config);

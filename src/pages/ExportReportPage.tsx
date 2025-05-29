@@ -14,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { exportReport, ExportConfig } from '@/utils/reportExporter';
+import { generatePDF } from '@/utils/simplePdfExporter';
 
 const ExportReportPage: React.FC = () => {
   const navigate = useNavigate();
@@ -45,8 +46,18 @@ const ExportReportPage: React.FC = () => {
         format: exportFormat
       };
       
-      // Gerar o blob do relatório
-      const blob = await exportReport(config);
+      let blob;
+      
+      // Se o formato for PDF, usar o novo exportador de PDF
+      if (exportFormat === 'pdf') {
+        // Obter os dados do relatório usando a função exportReport
+        const reportData = await exportReport({...config, format: 'xlsx'});
+        // Usar o novo exportador de PDF
+        blob = await generatePDF(reportData as any);
+      } else {
+        // Para outros formatos, usar o exportador original
+        blob = await exportReport(config);
+      }
       
       // Definir o nome do arquivo baseado no formato
       const filename = `relatorio_financeiro_${format(new Date(), 'yyyy-MM-dd')}.${exportFormat}`;

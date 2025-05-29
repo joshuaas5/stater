@@ -1,10 +1,10 @@
-import { Transaction, Bill, CardItem } from '@/types';
+import { Transaction, Bill, CardItem, EXPENSE_CATEGORIES } from '@/types';
 import { getTransactions, getBills, getCurrentUser } from './localStorage';
 import * as XLSX from 'xlsx';
-// Importar jsPDF e o plugin autoTable
-import jsPDF from 'jspdf';
-// Importar o plugin jspdf-autotable para habilitar a função autoTable
-import 'jspdf-autotable';
+// Importar o jsPDF configurado com autoTable
+import { createPdf } from './pdfUtils';
+// Importar a nova implementau00e7u00e3o de exportau00e7u00e3o de PDF
+import { exportToPDF as exportToPDFNew } from './pdfExporter';
 
 // Interface para a configurau00e7u00e3o de exportau00e7u00e3o
 export interface ExportConfig {
@@ -13,7 +13,7 @@ export interface ExportConfig {
   includeTransactions?: boolean;
   includeBills?: boolean;
   includeCharts?: boolean;
-  format: 'csv' | 'xlsx' | 'pdf';
+  format: 'xlsx' | 'pdf' | 'ofx' | 'csv';
 }
 
 // Interface para os dados do relatu00f3rio
@@ -1128,6 +1128,8 @@ const exportToPDF = (data: ReportData): Blob => {
   return new Blob([doc.output('arraybuffer')], { type: 'application/pdf' });
 };
 
+import { exportToOFX } from './ofxExporter';
+
 // Função principal para exportar relatório - unifica todas as outras
 export const exportReport = async (config: ExportConfig): Promise<Blob> => {
   try {
@@ -1136,12 +1138,17 @@ export const exportReport = async (config: ExportConfig): Promise<Blob> => {
     
     // Exportar de acordo com o formato solicitado
     switch (config.format) {
-      case 'csv':
-        return exportToCSV(reportData);
       case 'xlsx':
         return exportToXLSX(reportData);
       case 'pdf':
-        return exportToPDF(reportData);
+        // Usar a nova implementação de exportação de PDF
+        return exportToPDFNew(reportData);
+      case 'ofx':
+        // Exportar para OFX - apenas as transações
+        const allTransactions = [...reportData.incomeTransactions, ...reportData.expenseTransactions];
+        return exportToOFX(allTransactions, reportData.user);
+      case 'csv':
+        return exportToCSV(reportData);
       default:
         throw new Error(`Formato não suportado: ${config.format}`);
     }
@@ -1150,4 +1157,3 @@ export const exportReport = async (config: ExportConfig): Promise<Blob> => {
     throw error;
   }
 };
-

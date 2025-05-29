@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { exportReport, ExportConfig } from '@/utils/reportExporter';
 import { generateSimplePDF } from '@/utils/basicPdfExporter';
+import { generateExcelLikePDF } from '@/utils/simpleExcelPdfExporter';
 import { getCurrentUser, getTransactions, getBills } from '@/utils/localStorage';
 
 const ExportReportPage: React.FC = () => {
@@ -26,7 +27,7 @@ const ExportReportPage: React.FC = () => {
   const [includeTransactions, setIncludeTransactions] = useState<boolean>(true);
   const [includeBills, setIncludeBills] = useState<boolean>(true);
   const [includeCharts, setIncludeCharts] = useState<boolean>(true);
-  const [exportFormat, setExportFormat] = useState<'csv' | 'xlsx' | 'pdf'>('pdf');
+  const [exportFormat, setExportFormat] = useState<'xlsx' | 'pdf' | 'ofx' | 'csv'>('xlsx');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   
   const handleExport = async () => {
@@ -137,8 +138,8 @@ const ExportReportPage: React.FC = () => {
           
           console.log('Gerando PDF com dados:', reportData);
           
-          // Gerar o PDF com os dados completos
-          blob = await generateSimplePDF(reportData);
+          // Gerar o PDF com o layout da planilha Excel
+          blob = await generateExcelLikePDF(reportData);
         } catch (pdfError: any) {
           console.error('Erro ao gerar PDF:', pdfError);
           throw new Error(`Erro ao gerar PDF: ${pdfError?.message || 'Erro desconhecido'}`);
@@ -303,18 +304,7 @@ const ExportReportPage: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <RadioGroup value={exportFormat} onValueChange={(value) => setExportFormat(value as 'csv' | 'xlsx' | 'pdf')} className="space-y-3">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="csv" id="format-csv" />
-                      <Label htmlFor="format-csv" className="flex items-center cursor-pointer">
-                        <FileText className="h-5 w-5 mr-2 text-blue-500" />
-                        <div>
-                          <p className="font-medium">CSV</p>
-                          <p className="text-sm text-muted-foreground">Arquivo de texto com valores separados por vírgula</p>
-                        </div>
-                      </Label>
-                    </div>
-                    
+                  <RadioGroup value={exportFormat} onValueChange={(value) => setExportFormat(value as 'xlsx' | 'pdf' | 'ofx' | 'csv')} className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="xlsx" id="format-xlsx" />
                       <Label htmlFor="format-xlsx" className="flex items-center cursor-pointer">
@@ -333,6 +323,28 @@ const ExportReportPage: React.FC = () => {
                         <div>
                           <p className="font-medium">PDF</p>
                           <p className="text-sm text-muted-foreground">Documento formatado com layout profissional</p>
+                        </div>
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="ofx" id="format-ofx" />
+                      <Label htmlFor="format-ofx" className="flex items-center cursor-pointer">
+                        <FileType2 className="h-5 w-5 mr-2 text-blue-500" />
+                        <div>
+                          <p className="font-medium">OFX</p>
+                          <p className="text-sm text-muted-foreground">Formato para importação em softwares financeiros e bancos</p>
+                        </div>
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="csv" id="format-csv" />
+                      <Label htmlFor="format-csv" className="flex items-center cursor-pointer">
+                        <FileText className="h-5 w-5 mr-2 text-gray-500" />
+                        <div>
+                          <p className="font-medium">CSV</p>
+                          <p className="text-sm text-muted-foreground">Arquivo de texto com valores separados por vírgula</p>
                         </div>
                       </Label>
                     </div>

@@ -809,25 +809,14 @@ const exportToPDF = (data: ReportData): Blob => {
       0: { cellWidth: 80 },
       1: { halign: 'right', cellWidth: 'auto' }
     },
-    didDrawCell: (data: { section: string; column: { index: number }; row: { index: number } }) => {
-        // Colorir valores positivos e negativos
-        if (data.section === 'body' && data.column.index === 1) {
+    didDrawCell: (data: { section: string; column: { index: number }; row: { index: number }; cell?: { x: number; y: number; width: number; height: number } }) => {
+      // Colorir valores positivos e negativos
+      if (data.section === 'body' && data.column.index === 1) {
         const row = data.row.index;
         if (row === 0) { // Entradas
           doc.setTextColor(colorPositive);
         } else if (row === 1) { // Saídas
           doc.setTextColor(colorNegative);
-{{ ... }}
-    },
-    columnStyles: {
-      0: { cellWidth: 80 },
-      1: { halign: 'right', cellWidth: 'auto' }
-    },
-      didDrawCell: (data: { section: string; column: { index: number }; row: { index: number } }) => {
-        // Colorir valores positivos e negativos
-        if (data.section === 'body' && data.column.index === 1) {
-        const row = data.row.index;
-        if (row === 0) { // Entradas
         } else if (row === 2) { // Saldo
           if (tableData[row][1].includes('-')) {
             doc.setTextColor(colorNegative);
@@ -836,12 +825,15 @@ const exportToPDF = (data: ReportData): Blob => {
           }
         }
         
-        doc.text(
-          tableData[row][1],
-          data.cell.x + data.cell.width - 2,
-          data.cell.y + data.cell.height / 2 + 1,
-          { align: 'right', baseline: 'middle' }
-        );
+        // Verificar se data.cell existe antes de acessar suas propriedades
+        if (data.cell) {
+          doc.text(
+            tableData[row][1],
+            data.cell.x + data.cell.width - 2,
+            data.cell.y + data.cell.height / 2 + 1,
+            { align: 'right', baseline: 'middle' }
+          );
+        }
       }
     }
   });

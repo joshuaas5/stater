@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { exportReport, ExportConfig } from '@/utils/reportExporter';
-import { generatePDF } from '@/utils/simplePdfExporter';
+import { generateSimplePDF } from '@/utils/basicPdfExporter';
 
 const ExportReportPage: React.FC = () => {
   const navigate = useNavigate();
@@ -86,7 +86,7 @@ const ExportReportPage: React.FC = () => {
           }
           
           // Gerar o PDF com os dados disponíveis
-          blob = await generatePDF(reportData);
+          blob = await generateSimplePDF(reportData);
         } catch (pdfError: any) {
           console.error('Erro ao gerar PDF:', pdfError);
           throw new Error(`Erro ao gerar PDF: ${pdfError?.message || 'Erro desconhecido'}`);

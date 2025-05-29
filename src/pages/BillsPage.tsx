@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
-import { Bill, CardItem } from '@/types';
+import { Bill, CardItem, EXPENSE_CATEGORIES } from '@/types';
 import { getBills, isLoggedIn, markBillAsPaid, saveBill, updateBill, deleteBill } from '@/utils/localStorage';
 import { formatCurrency, getOverdueBills, getBillsDueInNextDays } from '@/utils/dataProcessing';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +33,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Helper function for capitalizing strings
 const capitalizeFirstLetter = (str: string): string => {
@@ -528,13 +535,23 @@ const BillsPage: React.FC = () => {
                 <Label htmlFor="category" className="text-right">
                   Categoria
                 </Label>
-                <Input 
-                  id="category" 
-                  value={editBill.category} 
-                  onChange={(e) => setEditBill({...editBill, category: e.target.value})} 
-                  className="col-span-3" 
-                  placeholder="Ex: Moradia, Serviços, Transporte"
-                />
+                <div className="col-span-3">
+                  <Select
+                    value={editBill.category}
+                    onValueChange={(value) => setEditBill({...editBill, category: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EXPENSE_CATEGORIES.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
               <div className="grid grid-cols-4 items-center gap-4">

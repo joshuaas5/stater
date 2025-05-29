@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { exportFinancialReport, ExportFormat } from '@/utils/reportExporter';
+import { exportReport, ExportConfig } from '@/utils/reportExporter';
 
 const ExportReportPage: React.FC = () => {
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ const ExportReportPage: React.FC = () => {
   const [includeTransactions, setIncludeTransactions] = useState<boolean>(true);
   const [includeBills, setIncludeBills] = useState<boolean>(true);
   const [includeCharts, setIncludeCharts] = useState<boolean>(true);
-  const [exportFormat, setExportFormat] = useState<ExportFormat>('pdf');
+  const [exportFormat, setExportFormat] = useState<'csv' | 'xlsx' | 'pdf'>('pdf');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   
   const handleExport = async () => {
@@ -35,33 +35,37 @@ const ExportReportPage: React.FC = () => {
         description: 'Por favor, aguarde enquanto geramos seu relatório...',
       });
       
-      const result = await exportFinancialReport({
+      // Configurar a exportação
+      const config: ExportConfig = {
         startDate,
         endDate,
         includeTransactions,
         includeBills,
         includeCharts,
-      }, exportFormat);
+        format: exportFormat
+      };
       
-      if (!result.data) {
+      // Gerar o blob do relatório
+      const blob = await exportReport(config);
+      
+      // Definir o nome do arquivo baseado no formato
+      const filename = `relatorio_financeiro_${format(new Date(), 'yyyy-MM-dd')}.${exportFormat}`;
+      
+      if (!blob) {
         throw new Error(`Não foi possível gerar o relatório no formato ${exportFormat.toUpperCase()}`);
       }
 
       // Criamos o URL do objeto e o link para download
-      const url = typeof result.data === 'string' 
-        ? `data:text/csv;charset=utf-8,${encodeURIComponent(result.data)}`
-        : window.URL.createObjectURL(result.data);
+      const url = window.URL.createObjectURL(blob);
         
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', result.filename);
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       
       document.body.removeChild(link);
-      if (typeof result.data !== 'string') {
-        window.URL.revokeObjectURL(url);
-      }
+      window.URL.revokeObjectURL(url);
       
       toast({
         title: 'Relatório gerado com sucesso!',
@@ -199,7 +203,7 @@ const ExportReportPage: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <RadioGroup value={exportFormat} onValueChange={(value) => setExportFormat(value as ExportFormat)} className="space-y-3">
+                  <RadioGroup value={exportFormat} onValueChange={(value) => setExportFormat(value as 'csv' | 'xlsx' | 'pdf')} className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="csv" id="format-csv" />
                       <Label htmlFor="format-csv" className="flex items-center cursor-pointer">

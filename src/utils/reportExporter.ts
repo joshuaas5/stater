@@ -1,7 +1,9 @@
 import { Transaction, Bill, CardItem } from '@/types';
 import { getTransactions, getBills, getCurrentUser } from './localStorage';
 import * as XLSX from 'xlsx';
+// Importar jsPDF e o plugin autoTable
 import jsPDF from 'jspdf';
+// Importar o plugin jspdf-autotable para habilitar a função autoTable
 import 'jspdf-autotable';
 
 // Interface para a configurau00e7u00e3o de exportau00e7u00e3o
@@ -807,14 +809,25 @@ const exportToPDF = (data: ReportData): Blob => {
       0: { cellWidth: 80 },
       1: { halign: 'right', cellWidth: 'auto' }
     },
-    didDrawCell: (data) => {
-      // Colorir valores positivos e negativos
-      if (data.section === 'body' && data.column.index === 1) {
+    didDrawCell: (data: { section: string; column: { index: number }; row: { index: number } }) => {
+        // Colorir valores positivos e negativos
+        if (data.section === 'body' && data.column.index === 1) {
         const row = data.row.index;
         if (row === 0) { // Entradas
           doc.setTextColor(colorPositive);
         } else if (row === 1) { // Saídas
           doc.setTextColor(colorNegative);
+{{ ... }}
+    },
+    columnStyles: {
+      0: { cellWidth: 80 },
+      1: { halign: 'right', cellWidth: 'auto' }
+    },
+      didDrawCell: (data: { section: string; column: { index: number }; row: { index: number } }) => {
+        // Colorir valores positivos e negativos
+        if (data.section === 'body' && data.column.index === 1) {
+        const row = data.row.index;
+        if (row === 0) { // Entradas
         } else if (row === 2) { // Saldo
           if (tableData[row][1].includes('-')) {
             doc.setTextColor(colorNegative);
@@ -946,7 +959,7 @@ const exportToPDF = (data: ReportData): Blob => {
         0: { cellWidth: 25 },
         3: { halign: 'right' }
       },
-      didDrawCell: (data) => {
+      didDrawCell: (data: any) => {
         // Colorir valores de receitas
         if (data.section === 'body' && data.column.index === 3) {
           doc.setTextColor(colorPositive);
@@ -1002,7 +1015,7 @@ const exportToPDF = (data: ReportData): Blob => {
         0: { cellWidth: 25 },
         3: { halign: 'right' }
       },
-      didDrawCell: (data) => {
+      didDrawCell: (data: any) => {
         // Colorir valores de despesas
         if (data.section === 'body' && data.column.index === 3) {
           doc.setTextColor(colorNegative);
@@ -1063,7 +1076,7 @@ const exportToPDF = (data: ReportData): Blob => {
         4: { halign: 'center' },
         5: { halign: 'right' }
       },
-      didDrawCell: (data) => {
+      didDrawCell: (data: any) => {
         if (data.section === 'body') {
           // Colorir status
           if (data.column.index === 3) {

@@ -66,18 +66,6 @@ const ExportReportPage: React.FC = () => {
         description: 'Por favor, aguarde enquanto geramos seu relatório...',
       });
       
-      // Verificar se o formato é PDF e redirecionar para XLSX
-      let actualFormat = exportFormat;
-      if (exportFormat === 'pdf') {
-        // Temporariamente redirecionando PDF para XLSX devido a problemas de compatibilidade
-        toast({
-          title: 'PDF temporariamente indisponível',
-          description: 'Estamos gerando seu relatório em formato Excel (XLSX) enquanto o PDF está em manutenção.',
-          variant: 'default'
-        });
-        actualFormat = 'xlsx';
-      }
-      
       // Configurar a exportação
       const config: ExportConfig = {
         startDate,
@@ -85,7 +73,7 @@ const ExportReportPage: React.FC = () => {
         includeTransactions,
         includeBills,
         includeCharts,
-        format: actualFormat
+        format: exportFormat
       };
       
       // Obter dados diretamente das fontes para garantir que temos tudo
@@ -153,7 +141,7 @@ const ExportReportPage: React.FC = () => {
       let blob = await exportReport(config);
       
       // Definir o nome do arquivo baseado no formato
-      const filename = `relatorio_financeiro_${format(new Date(), 'yyyy-MM-dd')}.${actualFormat}`;
+      const filename = `relatorio_financeiro_${format(new Date(), 'yyyy-MM-dd')}.${exportFormat}`;
       
       if (!blob) {
         throw new Error('Não foi possível gerar o relatório.');
@@ -317,14 +305,13 @@ const ExportReportPage: React.FC = () => {
                       </Label>
                     </div>
                     
-                    {/* Opção de PDF temporariamente desativada devido a problemas de compatibilidade */}
-                    <div className="flex items-center space-x-2 opacity-50">
-                      <RadioGroupItem value="xlsx" id="format-pdf" disabled />
-                      <Label htmlFor="format-pdf" className="flex items-center cursor-not-allowed">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="pdf" id="format-pdf" />
+                      <Label htmlFor="format-pdf" className="flex items-center cursor-pointer">
                         <FileOutput className="h-5 w-5 mr-2 text-red-500" />
                         <div>
-                          <p className="font-medium">PDF (Em manutenção)</p>
-                          <p className="text-sm text-muted-foreground">Temporariamente indisponível</p>
+                          <p className="font-medium">PDF</p>
+                          <p className="text-sm text-muted-foreground">Documento formatado com layout profissional</p>
                         </div>
                       </Label>
                     </div>

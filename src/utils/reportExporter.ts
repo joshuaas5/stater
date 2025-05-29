@@ -6,8 +6,12 @@ import jsPDF from 'jspdf';
 import { createPdf } from './pdfUtils';
 // Importar o exportador de PDF ultra simples (nenhuma dependência)
 import { generateUltraSimplePDF } from './ultraSimplePdf';
+// Importar o exportador de PDF com gráfico
+import { generatePDFWithChart } from './pdfExporterWithChart';
+// Importar o novo exportador de PDF puro (sem dependências de autoTable)
+import { generatePurePDF } from './purePdfExporter';
 
-// Interface para a configurau00e7u00e3o de exportau00e7u00e3o
+// Interface para a configuração de exportação
 export interface ExportConfig {
   startDate?: string | Date;
   endDate?: string | Date;
@@ -1142,9 +1146,9 @@ export const exportReport = async (config: ExportConfig): Promise<Blob> => {
       case 'xlsx':
         return exportToXLSX(reportData);
       case 'pdf':
-        // Temporariamente redirecionando para XLSX devido a problemas com a geração de PDF
-        console.log('PDF export requested but redirected to XLSX due to compatibility issues');
-        return exportToXLSX(reportData);
+        // Usar o novo exportador de PDF puro que não depende de autoTable
+        console.log('Gerando PDF com o exportador puro...');
+        return generatePurePDF(reportData);
       case 'ofx':
         // Exportar para OFX - apenas as transações
         const allTransactions = [...reportData.incomeTransactions, ...reportData.expenseTransactions];

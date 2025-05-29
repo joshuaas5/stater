@@ -1,8 +1,18 @@
 import { Transaction, Bill } from '@/types';
 import { getTransactions, getBills, getCurrentUser } from './localStorage';
 import * as XLSX from 'xlsx';
-// @ts-ignore
+
+// Importamos as bibliotecas diretamente
 import jsPDF from 'jspdf';
+
+// Adicionamos a declaração de módulo para estender o jsPDF com autoTable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => void;
+  }
+}
+
+// Importamos o jspdf-autotable para registrar o plugin
 import 'jspdf-autotable';
 
 // Interface para a configuração de exportação
@@ -235,96 +245,93 @@ const exportToXLSX = async (data: ReportData): Promise<Blob | null> => {
 
 // Exportar para PDF
 const exportToPDF = async (data: ReportData): Promise<Blob | null> => {
-  if (!jsPDF) {
-    console.error('jsPDF não está disponível');
-    return null;
-  }
-
-  const doc = new jsPDF();
-  let finalY = 20; // Posição Y inicial para o conteúdo
-
-  // Título do Relatório
-  doc.setFontSize(18);
-  doc.setTextColor(40, 40, 40);
-  doc.text(`Relatório Financeiro - ${data.user?.name || 'N/A'}`, 14, finalY);
-  finalY += 8;
-  doc.setFontSize(10);
-  doc.setTextColor(100, 100, 100);
-  doc.text(`Período: ${data.period}`, 14, finalY);
-  finalY += 15;
-
-  const tableConfig = {
-    theme: 'striped' as const, // 'striped', 'grid', 'plain'
-    headStyles: { fillColor: [76, 29, 149] as [number, number, number], textColor: 255, fontStyle: 'bold' as const },
-    bodyStyles: { textColor: 50 },
-    alternateRowStyles: { fillColor: [245, 245, 245] as [number, number, number] },
-    startY: 0, // Será definido antes de cada tabela
-    margin: { top: 10, right: 14, bottom: 10, left: 14 },
-    tableWidth: 'auto' as const, // 'auto', 'wrap' or a number
-  };
-
-  // 1. Resumo Financeiro
-  doc.setFontSize(14);
-  doc.setTextColor(76, 29, 149);
-  doc.text('Resumo Financeiro', 14, finalY);
-  finalY += 8;
-  (doc as any).autoTable({
-    ...tableConfig,
-    startY: finalY,
-    head: [['Descrição', 'Valor']],
-    body: data.summary.map(item => [item.description, formatCurrency(item.value)]),
-    didDrawPage: (hookData: any) => { finalY = hookData.cursor.y; }
-  });
-  finalY += 10; // Espaço após a tabela
-
-  // 2. Transações
-  if (data.transactions.length > 0) {
-    doc.setFontSize(14);
-    doc.setTextColor(76, 29, 149);
-    doc.text('Transações', 14, finalY);
-    finalY += 8;
-    (doc as any).autoTable({
-      ...tableConfig,
-      startY: finalY,
-      head: [['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor']],
-      body: data.transactions.map(t => [
-        formatDate(t.date),
-        t.title,
-        t.category,
-        t.type === 'income' ? 'Receita' : 'Despesa',
-        formatCurrency(t.amount),
-      ]),
-      didDrawPage: (hookData: any) => { finalY = hookData.cursor.y; }
-    });
-    finalY += 10;
-  }
-
-  // 3. Contas
-  if (data.bills.length > 0) {
-    doc.setFontSize(14);
-    doc.setTextColor(76, 29, 149);
-    doc.text('Contas', 14, finalY);
-    finalY += 8;
-    (doc as any).autoTable({
-      ...tableConfig,
-      startY: finalY,
-      head: [['Vencimento', 'Descrição', 'Categoria', 'Status', 'Valor']],
-      body: data.bills.map(b => [
-        formatDate(b.dueDate),
-        b.title,
-        b.category,
-        b.isPaid ? 'Paga' : 'Pendente',
-        formatCurrency(b.amount),
-      ]),
-      didDrawPage: (hookData: any) => { finalY = hookData.cursor.y; }
-    });
-    // finalY += 10; // Não precisa de espaço extra se for a última tabela
-  }
-  
   try {
+    // Criar documento PDF
+    const doc = new jsPDF();
+    let finalY = 20; // Posição Y inicial para o conteúdo
+
+    // Título do Relatório
+    doc.setFontSize(18);
+    doc.setTextColor(40, 40, 40);
+    doc.text(`Relatório Financeiro - ${data.user?.name || 'N/A'}`, 14, finalY);
+    finalY += 8;
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Período: ${data.period}`, 14, finalY);
+    finalY += 15;
+
+    const tableConfig = {
+      theme: 'striped' as const, // 'striped', 'grid', 'plain'
+      headStyles: { fillColor: [76, 29, 149] as [number, number, number], textColor: 255, fontStyle: 'bold' as const },
+      bodyStyles: { textColor: 50 },
+      alternateRowStyles: { fillColor: [245, 245, 245] as [number, number, number] },
+      startY: 0, // Será definido antes de cada tabela
+      margin: { top: 10, right: 14, bottom: 10, left: 14 },
+      tableWidth: 'auto' as const, // 'auto', 'wrap' or a number
+    };
+
+    // 1. Resumo Financeiro
+    doc.setFontSize(14);
+    doc.setTextColor(76, 29, 149);
+    doc.text('Resumo Financeiro', 14, finalY);
+    finalY += 8;
+
+    doc.autoTable({
+      ...tableConfig,
+      startY: finalY,
+      head: [['Descrição', 'Valor']],
+      body: data.summary.map(item => [item.description, formatCurrency(item.value)]),
+      didDrawPage: (hookData: any) => { finalY = hookData.cursor.y; }
+    });
+    finalY += 10; // Espaço após a tabela
+
+    // 2. Transações
+    if (data.transactions.length > 0) {
+      doc.setFontSize(14);
+      doc.setTextColor(76, 29, 149);
+      doc.text('Transações', 14, finalY);
+      finalY += 8;
+      doc.autoTable({
+        ...tableConfig,
+        startY: finalY,
+        head: [['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor']],
+        body: data.transactions.map(t => [
+          formatDate(t.date),
+          t.title,
+          t.category,
+          t.type === 'income' ? 'Receita' : 'Despesa',
+          formatCurrency(t.amount),
+        ]),
+        didDrawPage: (hookData: any) => { finalY = hookData.cursor.y; }
+      });
+      finalY += 10;
+    }
+
+    // 3. Contas
+    if (data.bills.length > 0) {
+      doc.setFontSize(14);
+      doc.setTextColor(76, 29, 149);
+      doc.text('Contas', 14, finalY);
+      finalY += 8;
+      doc.autoTable({
+        ...tableConfig,
+        startY: finalY,
+        head: [['Vencimento', 'Descrição', 'Categoria', 'Status', 'Valor']],
+        body: data.bills.map(b => [
+          formatDate(b.dueDate),
+          b.title,
+          b.category,
+          b.isPaid ? 'Paga' : 'Pendente',
+          formatCurrency(b.amount),
+        ]),
+        didDrawPage: (hookData: any) => { finalY = hookData.cursor.y; }
+      });
+    }
+    
+    // Gerar o blob do PDF
     return doc.output('blob');
   } catch (error) {
-    console.error("Erro ao gerar PDF blob:", error);
+    console.error("Erro ao gerar PDF:", error);
     return null;
   }
 };

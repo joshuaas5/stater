@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { exportReport, ExportConfig } from '@/utils/reportExporter';
 import { generateSimplePDF } from '@/utils/basicPdfExporter';
+import { getCurrentUser, getTransactions, getBills } from '@/utils/localStorage';
 
 const ExportReportPage: React.FC = () => {
   const navigate = useNavigate();
@@ -51,41 +52,92 @@ const ExportReportPage: React.FC = () => {
       // Exportar de acordo com o formato solicitado
       if (exportFormat === 'pdf') {
         try {
-          // Para PDF, usar o gerador de PDF simplificado com dados básicos
-          // Construir um objeto ReportData válido com valores padrão
+          // Obter dados diretamente das fontes para garantir que temos tudo
+          const currentUser = getCurrentUser();
+          const allTransactions = getTransactions();
+          const allBills = getBills();
+          
+          // Filtrar transações e contas pelo período selecionado
+          let filteredTransactions = [...allTransactions];
+          let filteredBills = [...allBills];
+          
+          // Ajusta a data de início para o começo do dia
+          const filterStartDate = new Date(startDate);
+          filterStartDate.setHours(0, 0, 0, 0);
+          
+          // Ajusta a data final para incluir todo o dia
+          const filterEndDate = new Date(endDate);
+          filterEndDate.setHours(23, 59, 59, 999);
+          
+          // Aplicar filtros de data
+          filteredTransactions = filteredTransactions.filter(t => {
+            const transactionDate = new Date(t.date);
+            return transactionDate >= filterStartDate && transactionDate <= filterEndDate;
+          });
+          
+          filteredBills = filteredBills.filter(b => {
+            const billDate = new Date(b.dueDate);
+            return billDate >= filterStartDate && billDate <= filterEndDate;
+          });
+          
+          // Separar transações entre entradas e saídas
+          const incomeTransactions = filteredTransactions.filter(t => t.type === 'income');
+          const expenseTransactions = filteredTransactions.filter(t => t.type === 'expense');
+          
+          // Calcular totais
+          const incomeTotal = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+          const expenseTotal = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
+          const balance = incomeTotal - expenseTotal;
+          
+          // Criar resumo por categorias - DESPESAS
+          const expenseByCategory = expenseTransactions.reduce((acc: Record<string, number>, transaction) => {
+            const category = transaction.category || 'Sem categoria';
+            acc[category] = (acc[category] || 0) + transaction.amount;
+            return acc;
+          }, {});
+          
+          const totalExpense = Object.values(expenseByCategory).reduce((sum: number, amount: number) => sum + amount, 0);
+          
+          const expenseCategorySummary = Object.entries(expenseByCategory).map(([category, amount]) => ({
+            category,
+            amount,
+            percentage: totalExpense ? (amount / totalExpense) * 100 : 0,
+          })).sort((a, b) => b.amount - a.amount);
+          
+          // Criar resumo por categorias - RECEITAS
+          const incomeByCategory = incomeTransactions.reduce((acc: Record<string, number>, transaction) => {
+            const category = transaction.category || 'Sem categoria';
+            acc[category] = (acc[category] || 0) + transaction.amount;
+            return acc;
+          }, {});
+          
+          const totalIncome = Object.values(incomeByCategory).reduce((sum: number, amount: number) => sum + amount, 0);
+          
+          const incomeCategorySummary = Object.entries(incomeByCategory).map(([category, amount]) => ({
+            category,
+            amount,
+            percentage: totalIncome ? (amount / totalIncome) * 100 : 0,
+          })).sort((a, b) => b.amount - a.amount);
+          
+          // Construir o objeto ReportData com dados reais do usuário
           const reportData = {
-            incomeTransactions: [],
-            expenseTransactions: [],
-            incomeTotal: 0,
-            expenseTotal: 0,
-            balance: 0,
-            bills: [],
-            user: { name: 'Usuário', email: '' },
+            incomeTransactions: includeTransactions ? incomeTransactions : [],
+            expenseTransactions: includeTransactions ? expenseTransactions : [],
+            incomeTotal,
+            expenseTotal,
+            balance,
+            bills: includeBills ? filteredBills : [],
+            user: currentUser ? { name: currentUser.username, email: currentUser.email } : null,
             period: `${format(startDate, 'dd/MM/yyyy')} a ${format(endDate, 'dd/MM/yyyy')}`,
             categorySummary: {
-              income: [],
-              expense: []
+              income: incomeCategorySummary,
+              expense: expenseCategorySummary
             }
           };
           
-          // Tentar obter dados reais via exportReport para enriquecer o objeto básico
-          try {
-            const tempData = await exportReport({...config, format: 'xlsx'}) as any;
-            if (tempData && typeof tempData === 'object') {
-              // Combinar dados do tempData com o objeto básico, se disponíveis
-              reportData.incomeTransactions = tempData.incomeTransactions || [];
-              reportData.expenseTransactions = tempData.expenseTransactions || [];
-              reportData.incomeTotal = tempData.incomeTotal || 0;
-              reportData.expenseTotal = tempData.expenseTotal || 0;
-              reportData.balance = tempData.balance || 0;
-              reportData.bills = tempData.bills || [];
-              reportData.categorySummary = tempData.categorySummary || { income: [], expense: [] };
-            }
-          } catch (innerError) {
-            console.warn('Não foi possível obter dados detalhados para o PDF, usando dados básicos:', innerError);
-          }
+          console.log('Gerando PDF com dados:', reportData);
           
-          // Gerar o PDF com os dados disponíveis
+          // Gerar o PDF com os dados completos
           blob = await generateSimplePDF(reportData);
         } catch (pdfError: any) {
           console.error('Erro ao gerar PDF:', pdfError);

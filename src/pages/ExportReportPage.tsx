@@ -30,6 +30,34 @@ const ExportReportPage: React.FC = () => {
   const [exportFormat, setExportFormat] = useState<'xlsx' | 'pdf' | 'ofx' | 'csv'>('xlsx');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   
+  // Função para gerar uma dica financeira baseada nos dados
+  const getFinancialTip = (income: number, expense: number, expensesByCategory: Record<string, number>) => {
+    // Se as despesas forem maiores que 90% da receita
+    if (expense > income * 0.9) {
+      return "Atenção! Suas despesas estão muito próximas da sua receita. Considere reduzir gastos não essenciais.";
+    }
+    
+    // Se houver uma categoria que consome mais de 40% do total de despesas
+    const categories = Object.entries(expensesByCategory);
+    if (categories.length > 0) {
+      const [largestCategory, largestAmount] = categories.reduce((max, current) => {
+        return current[1] > max[1] ? current : max;
+      });
+      
+      if (largestAmount > expense * 0.4) {
+        return `A categoria '${largestCategory}' representa mais de 40% dos seus gastos. Considere revisar esses gastos para um orçamento mais equilibrado.`;
+      }
+    }
+    
+    // Se a economia for superior a 30% da receita
+    if (income - expense > income * 0.3) {
+      return "Parabéns! Você está economizando mais de 30% da sua receita. Considere investir esse valor para fazer seu dinheiro trabalhar por você.";
+    }
+    
+    // Dica padrão
+    return "Dica: Estabeleça metas financeiras claras e revise seu orçamento regularmente para manter suas finanças saudáveis.";
+  };
+  
   const handleExport = async () => {
     try {
       setIsGenerating(true);
@@ -60,126 +88,90 @@ const ExportReportPage: React.FC = () => {
         format: actualFormat
       };
       
-      let blob;
-      
       // Obter dados diretamente das fontes para garantir que temos tudo
       const currentUser = getCurrentUser();
       const allTransactions = getTransactions();
       const allBills = getBills();
-          
-          // Filtrar transações e contas pelo período selecionado
-          let filteredTransactions = [...allTransactions];
-          let filteredBills = [...allBills];
-          
-          // Ajusta a data de início para o começo do dia
-          const filterStartDate = new Date(startDate);
-          filterStartDate.setHours(0, 0, 0, 0);
-          
-          // Ajusta a data final para incluir todo o dia
-          const filterEndDate = new Date(endDate);
-          filterEndDate.setHours(23, 59, 59, 999);
-          
-          // Aplicar filtros de data
-          filteredTransactions = filteredTransactions.filter(t => {
-            const transactionDate = new Date(t.date);
-            return transactionDate >= filterStartDate && transactionDate <= filterEndDate;
-          });
-          
-          filteredBills = filteredBills.filter(b => {
-            const billDate = new Date(b.dueDate);
-            return billDate >= filterStartDate && billDate <= filterEndDate;
-          });
-          
-          // Separar transações entre entradas e saídas
-          const incomeTransactions = filteredTransactions.filter(t => t.type === 'income');
-          const expenseTransactions = filteredTransactions.filter(t => t.type === 'expense');
-          
-          // Calcular totais
-          const incomeTotal = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
-          const expenseTotal = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
-          const balance = incomeTotal - expenseTotal;
-          
-          // Criar resumo por categorias - DESPESAS
-          const expenseByCategory = expenseTransactions.reduce((acc: Record<string, number>, transaction) => {
-            const category = transaction.category || 'Sem categoria';
-            acc[category] = (acc[category] || 0) + transaction.amount;
-            return acc;
-          }, {});
-          
-          const totalExpense = Object.values(expenseByCategory).reduce((sum: number, amount: number) => sum + amount, 0);
-          
-          const expenseCategorySummary = Object.entries(expenseByCategory).map(([category, amount]) => ({
-            category,
-            amount,
-            percentage: totalExpense ? (amount / totalExpense) * 100 : 0,
-          })).sort((a, b) => b.amount - a.amount);
-          
-          // Criar resumo por categorias - RECEITAS
-          const incomeByCategory = incomeTransactions.reduce((acc: Record<string, number>, transaction) => {
-            const category = transaction.category || 'Sem categoria';
-            acc[category] = (acc[category] || 0) + transaction.amount;
-            return acc;
-          }, {});
-          
-          const totalIncome = Object.values(incomeByCategory).reduce((sum: number, amount: number) => sum + amount, 0);
-          
-          const incomeCategorySummary = Object.entries(incomeByCategory).map(([category, amount]) => ({
-            category,
-            amount,
-            percentage: totalIncome ? (amount / totalIncome) * 100 : 0,
-          })).sort((a, b) => b.amount - a.amount);
-          
-          // Construir o objeto ReportData com dados reais do usuário
-          const reportData = {
-            incomeTransactions: includeTransactions ? incomeTransactions : [],
-            expenseTransactions: includeTransactions ? expenseTransactions : [],
-            incomeTotal,
-            expenseTotal,
-            balance,
-            bills: includeBills ? filteredBills : [],
-            user: currentUser ? { name: currentUser.username, email: currentUser.email } : null,
-            period: `${format(startDate, 'dd/MM/yyyy')} a ${format(endDate, 'dd/MM/yyyy')}`,
-            categorySummary: {
-              income: incomeCategorySummary,
-              expense: expenseCategorySummary
-            }
-          };
-          
-          console.log('Gerando PDF com dados:', reportData);
-          
-          // Gerar o PDF com o layout da planilha Excel
-          blob = await generateExcelLikePDF(reportData);
-        } catch (pdfError: any) {
-          console.error('Erro ao gerar PDF:', pdfError);
-          throw new Error(`Erro ao gerar PDF: ${pdfError?.message || 'Erro desconhecido'}`);
-        }
-      } else {
-        // Para outros formatos, usar o exportador original
-        blob = await exportReport(config);
-      }
+      
+      // Filtrar transações e contas pelo período selecionado
+      let filteredTransactions = [...allTransactions];
+      let filteredBills = [...allBills];
+      
+      // Ajusta a data de início para o começo do dia
+      const filterStartDate = new Date(startDate);
+      filterStartDate.setHours(0, 0, 0, 0);
+      
+      // Ajusta a data final para incluir todo o dia
+      const filterEndDate = new Date(endDate);
+      filterEndDate.setHours(23, 59, 59, 999);
+      
+      // Aplicar filtros de data
+      filteredTransactions = filteredTransactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate >= filterStartDate && transactionDate <= filterEndDate;
+      });
+      
+      filteredBills = filteredBills.filter(b => {
+        const billDate = new Date(b.dueDate);
+        return billDate >= filterStartDate && billDate <= filterEndDate;
+      });
+      
+      // Separar transações entre entradas e saídas
+      const incomeTransactions = filteredTransactions.filter(t => t.type === 'income');
+      const expenseTransactions = filteredTransactions.filter(t => t.type === 'expense');
+      
+      // Calcular totais
+      const incomeTotal = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+      const expenseTotal = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
+      const balance = incomeTotal - expenseTotal;
+      
+      // Calcular distribuição de gastos por categoria
+      const expensesByCategory: { [category: string]: number } = {};
+      expenseTransactions.forEach(t => {
+        const category = t.category || 'Sem categoria';
+        expensesByCategory[category] = (expensesByCategory[category] || 0) + t.amount;
+      });
+      
+      // Preparar dados para o relatório
+      const reportData = {
+        userName: currentUser?.name || currentUser?.email || 'Usuário',
+        startDate: filterStartDate,
+        endDate: filterEndDate,
+        incomeTotal,
+        expenseTotal,
+        balance,
+        incomeTransactions,
+        expenseTransactions,
+        bills: filteredBills,
+        expensesByCategory,
+        includeCharts,
+        // Dica financeira baseada nos dados
+        financialTip: getFinancialTip(incomeTotal, expenseTotal, expensesByCategory),
+      };
+      
+      // Gerar o blob do relatório usando o exportador
+      let blob = await exportReport(config);
       
       // Definir o nome do arquivo baseado no formato
-      const filename = `relatorio_financeiro_${format(new Date(), 'yyyy-MM-dd')}.${exportFormat}`;
+      const filename = `relatorio_financeiro_${format(new Date(), 'yyyy-MM-dd')}.${actualFormat}`;
       
       if (!blob) {
-        throw new Error(`Não foi possível gerar o relatório no formato ${exportFormat.toUpperCase()}`);
+        throw new Error('Não foi possível gerar o relatório.');
       }
-
-      // Criamos o URL do objeto e o link para download
-      const url = window.URL.createObjectURL(blob);
-        
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
       
-      document.body.removeChild(link);
+      // Criar um URL para o blob e fazer o download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
       window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
       
       toast({
-        title: 'Relatório gerado com sucesso!',
-        description: `Seu relatório financeiro em ${exportFormat.toUpperCase()} foi gerado e está sendo baixado.`,
+        title: 'Relatório gerado com sucesso',
+        description: `Seu relatório foi baixado como ${filename}`,
         variant: 'default',
       });
     } catch (error) {
@@ -231,7 +223,7 @@ const ExportReportPage: React.FC = () => {
                       className="w-full justify-start text-left font-normal"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, 'PPP', { locale: ptBR }) : 'Selecione uma data'}
+                      {startDate ? format(startDate, 'PPP', { locale: ptBR }) : <span>Selecione uma data</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -254,7 +246,7 @@ const ExportReportPage: React.FC = () => {
                       className="w-full justify-start text-left font-normal"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, 'PPP', { locale: ptBR }) : 'Selecione uma data'}
+                      {endDate ? format(endDate, 'PPP', { locale: ptBR }) : <span>Selecione uma data</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -273,14 +265,14 @@ const ExportReportPage: React.FC = () => {
             <div className="space-y-4">
               <h3 className="text-sm font-medium">Conteúdo do relatório</h3>
               
-              <div className="flex flex-col gap-3">
+              <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox 
                     id="transactions" 
                     checked={includeTransactions}
                     onCheckedChange={(checked) => setIncludeTransactions(checked === true)}
                   />
-                  <Label htmlFor="transactions">Incluir transações (receitas e despesas)</Label>
+                  <Label htmlFor="transactions">Incluir transações</Label>
                 </div>
                 
                 <div className="flex items-center space-x-2">
@@ -325,7 +317,7 @@ const ExportReportPage: React.FC = () => {
                       </Label>
                     </div>
                     
-                    {/* Opu00e7u00e3o de PDF temporariamente desativada devido a problemas de compatibilidade */}
+                    {/* Opção de PDF temporariamente desativada devido a problemas de compatibilidade */}
                     <div className="flex items-center space-x-2 opacity-50">
                       <RadioGroupItem value="xlsx" id="format-pdf" disabled />
                       <Label htmlFor="format-pdf" className="flex items-center cursor-not-allowed">

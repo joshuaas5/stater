@@ -2,6 +2,7 @@ import { Transaction, Bill, CardItem } from '@/types';
 import { getTransactions, getBills, getCurrentUser } from './localStorage';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 // Interface para a configurau00e7u00e3o de exportau00e7u00e3o
 export interface ExportConfig {

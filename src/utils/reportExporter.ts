@@ -1,10 +1,12 @@
 import { Transaction, Bill, CardItem, EXPENSE_CATEGORIES } from '@/types';
 import { getTransactions, getBills, getCurrentUser } from './localStorage';
 import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
 // Importar o jsPDF configurado com autoTable
 import { createPdf } from './pdfUtils';
-// Importar a nova implementau00e7u00e3o de exportau00e7u00e3o de PDF
-import { exportToPDF as exportToPDFNew } from './pdfExporter';
+// Importar os novos exportadores de PDF
+import { generateSimplePDF } from './basicPdfExporter';
+import { generateExcelLikePDF } from './simpleExcelPdfExporter';
 
 // Interface para a configurau00e7u00e3o de exportau00e7u00e3o
 export interface ExportConfig {
@@ -1142,7 +1144,7 @@ export const exportReport = async (config: ExportConfig): Promise<Blob> => {
         return exportToXLSX(reportData);
       case 'pdf':
         // Usar a nova implementação de exportação de PDF
-        return exportToPDFNew(reportData);
+        return generateExcelLikePDF(reportData);
       case 'ofx':
         // Exportar para OFX - apenas as transações
         const allTransactions = [...reportData.incomeTransactions, ...reportData.expenseTransactions];

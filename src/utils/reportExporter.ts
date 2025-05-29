@@ -7,8 +7,8 @@ import 'jspdf-autotable';
 
 // Interface para a configuração de exportação
 export interface ExportConfig {
-  startDate?: string;
-  endDate?: string;
+  startDate?: string | Date;
+  endDate?: string | Date;
   includeTransactions?: boolean;
   includeBills?: boolean;
   includeCharts?: boolean; // Embora não usado diretamente na exportação de tabela, mantido para consistência
@@ -329,23 +329,56 @@ const exportToPDF = async (data: ReportData): Promise<Blob | null> => {
   }
 };
 
-// Função principal de exportação
-export const exportFinancialReport = async (config: ExportConfig): Promise<Blob | null> => {
-  try {
-    const reportData = await getReportData(config);
+// Exportar tipo de formato para uso externo
+export type ExportFormat = 'csv' | 'xlsx' | 'pdf';
 
-    if (config.format === 'csv') {
-      return exportToCSV(reportData);
-    } else if (config.format === 'xlsx') {
-      return await exportToXLSX(reportData);
-    } else if (config.format === 'pdf') {
-      return await exportToPDF(reportData);
+// Função auxiliar para formatar data para nome de arquivo (yyyymmdd)
+const formatDateForFilename = (dateInput: Date | string): string => {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+};
+
+// Função principal de exportação
+export const exportFinancialReport = async (
+  config: Omit<ExportConfig, 'format'>, 
+  format: ExportFormat = 'csv'
+): Promise<{ data: string | Blob | null; filename: string }> => {
+  try {
+    // Combinar os parâmetros em um único objeto de configuração
+    const fullConfig: ExportConfig = {
+      ...config,
+      format,
+      // Converter datas para strings se necessário
+      startDate: config.startDate instanceof Date ? config.startDate.toISOString() : config.startDate,
+      endDate: config.endDate instanceof Date ? config.endDate.toISOString() : config.endDate,
+    };
+
+    const reportData = await getReportData(fullConfig);
+    
+    // Gerar nome do arquivo com base nas datas
+    const startDateStr = config.startDate ? formatDateForFilename(config.startDate) : 'inicio';
+    const endDateStr = config.endDate ? formatDateForFilename(config.endDate) : 'atual';
+    const dateRange = `${startDateStr}_${endDateStr}`;
+    
+    let result: Blob | null = null;
+    
+    if (format === 'csv') {
+      result = exportToCSV(reportData);
+    } else if (format === 'xlsx') {
+      result = await exportToXLSX(reportData);
+    } else if (format === 'pdf') {
+      result = await exportToPDF(reportData);
     }
-    return null;
+    
+    return {
+      data: result,
+      filename: `ICTUS_Financeiro_${dateRange}.${format}`
+    };
   } catch (error) {
     console.error('Erro ao exportar relatório financeiro:', error);
-    // Adicionar um alerta para o usuário pode ser útil aqui, dependendo da UI
-    // alert('Ocorreu um erro ao gerar o relatório. Tente novamente.');
-    return null;
+    throw error; // Propagar o erro para ser tratado pelo chamador
   }
 };

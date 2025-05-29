@@ -61,7 +61,23 @@ export const generateSimplePDF = (data: ReportData): Blob => {
     doc.setFontSize(12);
     doc.setTextColor(colorText);
     doc.text(`Período: ${data.period}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 15;
+    yPos += 10;
+    
+    // Informações do usuário
+    if (data.user) {
+      const userName = data.user.name || data.user.email || 'Usuário';
+      doc.setFontSize(10);
+      doc.setTextColor(colorText);
+      doc.text(`Usuário: ${userName}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 5;
+      
+      if (data.user.email) {
+        doc.text(`Email: ${data.user.email}`, pageWidth / 2, yPos, { align: 'center' });
+        yPos += 5;
+      }
+    }
+    
+    yPos += 10;
     
     // Resumo financeiro - SEM USAR AUTOTABLE
     doc.setFontSize(14);
@@ -171,6 +187,197 @@ export const generateSimplePDF = (data: ReportData): Blob => {
       doc.setFontSize(10);
       doc.setTextColor(colorText);
       doc.text('Nenhuma conta no período.', margin, yPos + 7);
+    }
+    
+    // Adicionar transações se houver e tiver espaço na página
+    if (data.incomeTransactions && data.incomeTransactions.length > 0 && yPos < doc.internal.pageSize.height - 60) {
+      // Adicionar nova página se estiver perto do fim
+      if (yPos > doc.internal.pageSize.height - 100) {
+        doc.addPage();
+        yPos = margin;
+      } else {
+        yPos += 20;
+      }
+      
+      // Título das transações
+      doc.setFontSize(14);
+      doc.setTextColor(colorPrimary);
+      doc.text('Transações - Receitas', margin, yPos);
+      yPos += 10;
+      
+      // Cabeçalho da tabela de transações
+      doc.setDrawColor(200, 200, 200);
+      doc.setFillColor(248, 250, 252);
+      doc.rect(margin, yPos, pageWidth - margin * 2, 10, 'FD');
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(colorText);
+      
+      // Colunas para transações
+      const transColWidth = (pageWidth - margin * 2) / 4;
+      doc.text('Data', margin + 5, yPos + 7);
+      doc.text('Descrição', margin + transColWidth, yPos + 7);
+      doc.text('Categoria', margin + transColWidth * 2, yPos + 7);
+      doc.text('Valor', margin + transColWidth * 3, yPos + 7);
+      yPos += 10;
+      
+      // Limitar o número de transações para evitar estourar a página
+      const maxTransactions = Math.min(data.incomeTransactions.length, 5);
+      
+      // Desenhar linhas de dados das transações
+      doc.setFont('helvetica', 'normal');
+      for (let i = 0; i < maxTransactions; i++) {
+        const transaction = data.incomeTransactions[i];
+        
+        doc.rect(margin, yPos, pageWidth - margin * 2, 10, 'S');
+        doc.setTextColor(colorText);
+        doc.text(formatDate(transaction.date), margin + 5, yPos + 7);
+        
+        // Limitar o comprimento do título
+        const title = transaction.title.length > 15 ? transaction.title.substring(0, 15) + '...' : transaction.title;
+        doc.text(title, margin + transColWidth, yPos + 7);
+        
+        // Categoria
+        doc.text(transaction.category || '-', margin + transColWidth * 2, yPos + 7);
+        
+        // Valor com cor verde para receitas
+        doc.setTextColor('#2DE370');
+        doc.text(formatCurrency(transaction.amount), margin + transColWidth * 3, yPos + 7);
+        
+        yPos += 10;
+      }
+      
+      // Indicar se há mais transações
+      if (data.incomeTransactions.length > maxTransactions) {
+        doc.setTextColor(colorText);
+        doc.text(`... e mais ${data.incomeTransactions.length - maxTransactions} transação(ões).`, margin, yPos + 7);
+        yPos += 15;
+      } else {
+        yPos += 10;
+      }
+    }
+    
+    // Adicionar transações de despesa se houver e tiver espaço na página
+    if (data.expenseTransactions && data.expenseTransactions.length > 0 && yPos < doc.internal.pageSize.height - 60) {
+      // Adicionar nova página se estiver perto do fim
+      if (yPos > doc.internal.pageSize.height - 100) {
+        doc.addPage();
+        yPos = margin;
+      } else {
+        yPos += 10;
+      }
+      
+      // Título das transações de despesa
+      doc.setFontSize(14);
+      doc.setTextColor(colorPrimary);
+      doc.text('Transações - Despesas', margin, yPos);
+      yPos += 10;
+      
+      // Cabeçalho da tabela
+      doc.setDrawColor(200, 200, 200);
+      doc.setFillColor(248, 250, 252);
+      doc.rect(margin, yPos, pageWidth - margin * 2, 10, 'FD');
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(colorText);
+      
+      // Colunas para transações
+      const transColWidth = (pageWidth - margin * 2) / 4;
+      doc.text('Data', margin + 5, yPos + 7);
+      doc.text('Descrição', margin + transColWidth, yPos + 7);
+      doc.text('Categoria', margin + transColWidth * 2, yPos + 7);
+      doc.text('Valor', margin + transColWidth * 3, yPos + 7);
+      yPos += 10;
+      
+      // Limitar o número de transações
+      const maxTransactions = Math.min(data.expenseTransactions.length, 5);
+      
+      // Desenhar linhas de dados das transações
+      doc.setFont('helvetica', 'normal');
+      for (let i = 0; i < maxTransactions; i++) {
+        const transaction = data.expenseTransactions[i];
+        
+        doc.rect(margin, yPos, pageWidth - margin * 2, 10, 'S');
+        doc.setTextColor(colorText);
+        doc.text(formatDate(transaction.date), margin + 5, yPos + 7);
+        
+        // Limitar o comprimento do título
+        const title = transaction.title.length > 15 ? transaction.title.substring(0, 15) + '...' : transaction.title;
+        doc.text(title, margin + transColWidth, yPos + 7);
+        
+        // Categoria
+        doc.text(transaction.category || '-', margin + transColWidth * 2, yPos + 7);
+        
+        // Valor com cor vermelha para despesas
+        doc.setTextColor('#FF4F56');
+        doc.text(formatCurrency(transaction.amount), margin + transColWidth * 3, yPos + 7);
+        
+        yPos += 10;
+      }
+      
+      // Indicar se há mais transações
+      if (data.expenseTransactions.length > maxTransactions) {
+        doc.setTextColor(colorText);
+        doc.text(`... e mais ${data.expenseTransactions.length - maxTransactions} transação(ões).`, margin, yPos + 7);
+        yPos += 15;
+      } else {
+        yPos += 10;
+      }
+    }
+    
+    // Adicionar categorias mais representativas se houver
+    if ((data.categorySummary.income.length > 0 || data.categorySummary.expense.length > 0) && yPos < doc.internal.pageSize.height - 60) {
+      // Adicionar nova página se estiver perto do fim
+      if (yPos > doc.internal.pageSize.height - 100) {
+        doc.addPage();
+        yPos = margin;
+      } else {
+        yPos += 10;
+      }
+      
+      // Título das categorias
+      doc.setFontSize(14);
+      doc.setTextColor(colorPrimary);
+      doc.text('Resumo por Categorias', margin, yPos);
+      yPos += 10;
+      
+      if (data.categorySummary.expense.length > 0) {
+        // Cabeçalho da tabela de categorias de despesa
+        doc.setDrawColor(200, 200, 200);
+        doc.setFillColor(248, 250, 252);
+        doc.rect(margin, yPos, pageWidth - margin * 2, 10, 'FD');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(colorText);
+        doc.text('Categorias de Despesa', margin + 5, yPos + 7);
+        doc.text('Percentual', pageWidth - margin - 60, yPos + 7);
+        doc.text('Valor', pageWidth - margin - 20, yPos + 7, { align: 'right' });
+        yPos += 10;
+        
+        // Limitar o número de categorias
+        const maxCategories = Math.min(data.categorySummary.expense.length, 5);
+        
+        // Desenhar linhas de dados das categorias
+        doc.setFont('helvetica', 'normal');
+        for (let i = 0; i < maxCategories; i++) {
+          const category = data.categorySummary.expense[i];
+          
+          doc.rect(margin, yPos, pageWidth - margin * 2, 10, 'S');
+          doc.setTextColor(colorText);
+          doc.text(category.category, margin + 5, yPos + 7);
+          
+          // Percentual
+          doc.text(`${category.percentage.toFixed(1)}%`, pageWidth - margin - 60, yPos + 7);
+          
+          // Valor
+          doc.setTextColor('#FF4F56');
+          doc.text(formatCurrency(category.amount), pageWidth - margin - 20, yPos + 7, { align: 'right' });
+          
+          yPos += 10;
+        }
+        
+        yPos += 5;
+      }
     }
     
     // Rodapé

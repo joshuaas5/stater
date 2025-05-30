@@ -11,7 +11,7 @@ import { generatePDFWithChart } from './pdfExporterWithChart';
 // Importar o novo exportador de PDF puro (sem dependências de autoTable)
 import { generatePurePDF } from './purePdfExporter';
 import { generateExtremelySafePDF } from './extremelySimplePdfExporter';
-import { generateStyledPDF } from './styledPdfExporter';
+import { generateXlsxLikePDF } from './pdfXlsxLikeExporter';
 
 // Interface para a configuração de exportação
 export interface ExportConfig {
@@ -37,6 +37,10 @@ interface ReportData {
     income: { category: string; amount: number; percentage: number }[];
     expense: { category: string; amount: number; percentage: number }[];
   };
+  // Campos extras para PDF tipo XLSX
+  userName?: string;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 // Frases motivacionais sobre economia
@@ -185,7 +189,11 @@ const getReportData = async (config: ExportConfig): Promise<ReportData> => {
     categorySummary: {
       income: incomeByCategoryData,
       expense: expenseByCategoryData
-    }
+    },
+    // Campos extras para compatibilidade com PDF tipo XLSX
+    userName: currentUser ? currentUser.username : '',
+    startDate: config.startDate ? new Date(config.startDate) : new Date(0),
+    endDate: config.endDate ? new Date(config.endDate) : new Date(0)
   };
 };
 
@@ -1148,9 +1156,9 @@ export const exportReport = async (config: ExportConfig): Promise<Blob> => {
       case 'xlsx':
         return exportToXLSX(reportData);
       case 'pdf':
-        // Usar o exportador estilizado com visual profissional e tratamento seguro de datas
-        console.log('Gerando PDF com o exportador estilizado e seguro...');
-        return generateStyledPDF(reportData);
+        // Usar o exportador que replica o layout do XLSX para PDF
+        console.log('Gerando PDF com o exportador similar ao XLSX...');
+        return generateXlsxLikePDF(reportData);
       case 'ofx':
         // Exportar para OFX - apenas as transações
         const allTransactions = [...reportData.incomeTransactions, ...reportData.expenseTransactions];

@@ -72,8 +72,8 @@ function drawTable(doc: any, headers: string[], data: string[][], startY: number
   onCellDraw?: (doc: any, rowIndex: number, colIndex: number, text: string) => boolean
 }) {
   const {
-    headerBgColor = [65, 105, 225], // Azul harmonioso
-    headerTextColor = [255, 255, 255], // Branco
+    headerBgColor = [41, 84, 155], // Azul harmonioso
+    headerTextColor = headerBgColor, // Texto azul
     columnWidths,
     cellHeight = 10,
     fontSize = 10,
@@ -92,7 +92,7 @@ function drawTable(doc: any, headers: string[], data: string[][], startY: number
   
   // Desenhar cabeçalho
   doc.setFillColor(headerBgColor[0], headerBgColor[1], headerBgColor[2]);
-  doc.setDrawColor(0);
+  doc.setDrawColor(headerBgColor[0], headerBgColor[1], headerBgColor[2]); // Borda azul
   doc.setTextColor(headerTextColor[0], headerTextColor[1], headerTextColor[2]);
   doc.setFont('helvetica', 'bold');
   
@@ -111,7 +111,7 @@ function drawTable(doc: any, headers: string[], data: string[][], startY: number
   
   // Desenhar linhas de dados
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(0, 0, 0);
+  doc.setTextColor(headerBgColor[0], headerBgColor[1], headerBgColor[2]); // Texto azul para todas as células
   
   data.forEach((row, rowIndex) => {
     // Verificar se precisa adicionar uma nova página
@@ -136,8 +136,19 @@ function drawTable(doc: any, headers: string[], data: string[][], startY: number
     
     // Fundo zebrado para linhas alternadas
     if (rowIndex % 2 === 1) {
-      doc.setFillColor(240, 240, 240);
+      doc.setFillColor(235, 241, 250); // Azul muito claro
       doc.rect(margin, y, tableWidth, cellHeight, 'F');
+    }
+    
+    // Desenhar bordas da linha
+    doc.setDrawColor(200, 215, 240); // Azul claro para bordas
+    doc.rect(margin, y, tableWidth, cellHeight, 'S');
+    
+    // Desenhar linhas verticais para separar as colunas
+    let xCol = margin;
+    for (let i = 0; i < colWidths.length - 1; i++) {
+      xCol += colWidths[i];
+      doc.line(xCol, y, xCol, y + cellHeight);
     }
     
     x = margin;
@@ -154,7 +165,7 @@ function drawTable(doc: any, headers: string[], data: string[][], startY: number
           const color = highlightCols[j];
           doc.setTextColor(color[0], color[1], color[2]);
         } else {
-          doc.setTextColor(0, 0, 0);
+          doc.setTextColor(headerBgColor[0], headerBgColor[1], headerBgColor[2]);
         }
       }
       
@@ -181,11 +192,11 @@ export function generateEnhancedPDF(data: ReportData): Blob {
 
   // Cores
   const primaryColor: [number, number, number] = [41, 84, 155]; // Azul mais moderno
-  const positiveColor: [number, number, number] = [46, 125, 50]; // Verde
-  const negativeColor: [number, number, number] = [198, 40, 40]; // Vermelho menos agressivo
-  const textColor: [number, number, number] = [33, 33, 33]; // Quase preto
+  const positiveColor: [number, number, number] = primaryColor;
+  const negativeColor: [number, number, number] = primaryColor;
+  const textColor: [number, number, number] = primaryColor;
   const headerBgColor: [number, number, number] = [65, 105, 225]; // Azul harmonioso para cabeçalhos
-  const headerTextColor: [number, number, number] = [255, 255, 255]; // Branco para texto no cabeçalho
+  const headerTextColor: [number, number, number] = primaryColor;
 
   // Cabeçalho
   doc.setFont('helvetica', 'bold');
@@ -220,7 +231,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   
   // Criar cores destacadas para valores
   const resumoHighlightCols: {[key: number]: [number, number, number]} = {
-    1: [0, 128, 0] // Verde para valores positivos (coluna 1)
+    1: primaryColor // Azul para valores positivos (coluna 1)
   };
   
   // Iterar pelos dados para desenhar a tabela manualmente
@@ -228,22 +239,10 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   
   resumoData.forEach((row, idx) => {
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.text(row[0], margin, resumoY + 6);
     
-    // Ajustar a cor com base no tipo de valor
-    if (idx === 0) { // Entradas
-      doc.setTextColor(positiveColor[0], positiveColor[1], positiveColor[2]);
-    } else if (idx === 1) { // Saídas
-      doc.setTextColor(negativeColor[0], negativeColor[1], negativeColor[2]);
-    } else { // Saldo
-      if (row[1].includes('-')) {
-        doc.setTextColor(negativeColor[0], negativeColor[1], negativeColor[2]);
-      } else {
-        doc.setTextColor(positiveColor[0], positiveColor[1], positiveColor[2]);
-      }
-    }
-    
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.text(row[1], margin + resumoColWidths[0] + resumoColWidths[1] - 2, resumoY + 6, { align: 'right' });
     resumoY += 10;
   });
@@ -276,7 +275,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   
   // Definir cores destacadas para valores
   const entradasHighlightCols: {[key: number]: [number, number, number]} = {
-    3: [0, 128, 0] // Verde para valores na coluna 3 (Valor)
+    3: primaryColor // Azul para valores na coluna 3 (Valor)
   };
   
   // Renderizar tabela de entradas usando nossa função personalizada
@@ -379,7 +378,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   
   // Definir cores destacadas para valores
   const saidasHighlightCols: {[key: number]: [number, number, number]} = {
-    3: [255, 0, 0] // Vermelho para valores na coluna 3 (Valor)
+    3: primaryColor // Azul para valores na coluna 3 (Valor)
   };
   
   // Renderizar tabela de saídas usando nossa função personalizada
@@ -488,16 +487,9 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   
   // Função para personalizar cores (será usada durante o desenho)
   const colorizeStatusCell = (doc: any, rowIndex: number, colIndex: number, text: string) => {
-    if (colIndex === 3) { // Coluna Status
-      const isPaid = text === 'Paga';
-      doc.setTextColor(
-        isPaid ? positiveColor[0] : negativeColor[0],
-        isPaid ? positiveColor[1] : negativeColor[1],
-        isPaid ? positiveColor[2] : negativeColor[2]
-      );
-      return true; // Indica que aplicamos uma cor personalizada
-    }
-    return false; // Não aplicamos cor personalizada
+    // Sempre aplicar texto azul nas células de status
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    return true;
   };
   
   // Renderizar tabela de contas - sempre mostrar, nunca exibir "nenhuma conta no período"

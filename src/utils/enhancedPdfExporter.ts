@@ -71,9 +71,14 @@ function drawTable(doc: any, headers: string[], data: string[][], startY: number
   highlightCols?: {[key: number]: [number, number, number]},
   onCellDraw?: (doc: any, rowIndex: number, colIndex: number, text: string) => boolean
 }) {
+  // Tons pastéis/neutros para tabelas
+  const pastelHeader = [235, 236, 240]; // cinza azulado claro
+  const pastelZebra = [247, 246, 242]; // bege claro
+  const pastelBorder = [220, 220, 220]; // cinza claro
+
   const {
-    headerBgColor = [41, 84, 155], // Azul harmonioso
-    headerTextColor = headerBgColor, // Texto azul
+    headerBgColor = pastelHeader,
+    headerTextColor = [0, 0, 0], // Preto
     columnWidths,
     cellHeight = 10,
     fontSize = 10,
@@ -92,7 +97,7 @@ function drawTable(doc: any, headers: string[], data: string[][], startY: number
   
   // Desenhar cabeçalho
   doc.setFillColor(headerBgColor[0], headerBgColor[1], headerBgColor[2]);
-  doc.setDrawColor(headerBgColor[0], headerBgColor[1], headerBgColor[2]); // Borda azul
+  doc.setDrawColor(pastelBorder[0], pastelBorder[1], pastelBorder[2]); // Borda neutra
   doc.setTextColor(headerTextColor[0], headerTextColor[1], headerTextColor[2]);
   doc.setFont('helvetica', 'bold');
   
@@ -111,7 +116,7 @@ function drawTable(doc: any, headers: string[], data: string[][], startY: number
   
   // Desenhar linhas de dados
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(headerBgColor[0], headerBgColor[1], headerBgColor[2]); // Texto azul para todas as células
+  doc.setTextColor(0,0,0); // Texto preto para todas as células
   
   data.forEach((row, rowIndex) => {
     // Verificar se precisa adicionar uma nova página
@@ -136,12 +141,12 @@ function drawTable(doc: any, headers: string[], data: string[][], startY: number
     
     // Fundo zebrado para linhas alternadas
     if (rowIndex % 2 === 1) {
-      doc.setFillColor(235, 241, 250); // Azul muito claro
+      doc.setFillColor(pastelZebra[0], pastelZebra[1], pastelZebra[2]); // Bege claro
       doc.rect(margin, y, tableWidth, cellHeight, 'F');
     }
     
     // Desenhar bordas da linha
-    doc.setDrawColor(200, 215, 240); // Azul claro para bordas
+    doc.setDrawColor(pastelBorder[0], pastelBorder[1], pastelBorder[2]); // Cinza claro para bordas
     doc.rect(margin, y, tableWidth, cellHeight, 'S');
     
     // Desenhar linhas verticais para separar as colunas
@@ -165,7 +170,7 @@ function drawTable(doc: any, headers: string[], data: string[][], startY: number
           const color = highlightCols[j];
           doc.setTextColor(color[0], color[1], color[2]);
         } else {
-          doc.setTextColor(headerBgColor[0], headerBgColor[1], headerBgColor[2]);
+          doc.setTextColor(0,0,0); // Preto
         }
       }
       
@@ -446,61 +451,6 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     doc.text('Nenhuma saída no período.', margin, y + 10);
     y += 20;
   }
-  
-  y += 15;
-
-  // 6. Seção: Contas
-  // Verificar se precisa adicionar nova página
-  if (y > 240) {
-    doc.addPage();
-    y = 20;
-  }
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-  doc.text('CONTAS', margin, y);
-  y += 10;
-
-  // Tabela de contas
-  const contasHeaders = ['Vencimento', 'Descrição', 'Categoria', 'Status', 'Parcelas', 'Valor'];
-  
-  // Dados da tabela de contas
-  const contasData = data.bills.map(b => {
-    // Formatar informação de parcelas
-    const installmentInfo = b.totalInstallments && b.currentInstallment 
-      ? `${b.currentInstallment}/${b.totalInstallments}` 
-      : b.isRecurring ? 'Recorrente' : '-';
-    
-    return [
-      formatDateBR(b.dueDate),
-      b.title,
-      b.category || 'Sem categoria',
-      b.isPaid ? 'Paga' : 'Pendente',
-      installmentInfo,
-      formatCurrency(b.amount)
-    ];
-  });
-
-  // Definir larguras das colunas para contas - ajustadas para evitar sobreposição
-  const contasColWidths = [45, (pageWidth - 2 * margin - 45 - 60 - 60 - 50 - 60), 60, 60, 50, 60];
-  
-  // Função para personalizar cores (será usada durante o desenho)
-  const colorizeStatusCell = (doc: any, rowIndex: number, colIndex: number, text: string) => {
-    // Sempre aplicar texto azul nas células de status
-    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    return true;
-  };
-  
-  // Renderizar tabela de contas - sempre mostrar, nunca exibir "nenhuma conta no período"
-  y = drawTable(doc, contasHeaders, contasData.length > 0 ? contasData : [['-', '-', '-', '-', '-', '-']], y, margin, {
-    columnWidths: contasColWidths,
-    cellHeight: 10,
-    fontSize: 10,
-    headerBgColor: headerBgColor,
-    headerTextColor: headerTextColor,
-    onCellDraw: colorizeStatusCell
-  });
   
   y += 15;
 

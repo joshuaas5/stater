@@ -71,8 +71,8 @@ function drawTable(doc: any, headers: string[], data: string[][], startY: number
   highlightCols?: {[key: number]: [number, number, number]},
   onCellDraw?: (doc: any, rowIndex: number, colIndex: number, text: string) => boolean
 }) {
-  // Tons pastéis/neutros para tabelas
-  const pastelHeader = [235, 236, 240]; // cinza azulado claro
+  // Tons pastéis/neutros para tabelas (sem azul)
+  const pastelHeader = [240, 240, 240]; // cinza claro
   const pastelZebra = [247, 246, 242]; // bege claro
   const pastelBorder = [220, 220, 220]; // cinza claro
 
@@ -196,12 +196,12 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   let y = 20;
 
   // Cores
-  const primaryColor: [number, number, number] = [41, 84, 155]; // Azul mais moderno
-  const positiveColor: [number, number, number] = primaryColor;
-  const negativeColor: [number, number, number] = primaryColor;
-  const textColor: [number, number, number] = primaryColor;
-  const headerBgColor: [number, number, number] = [65, 105, 225]; // Azul harmonioso para cabeçalhos
-  const headerTextColor: [number, number, number] = primaryColor;
+  const primaryColor: [number, number, number] = [0, 0, 0]; // Preto para títulos
+  const positiveColor: [number, number, number] = [0, 0, 0]; // Preto
+  const negativeColor: [number, number, number] = [0, 0, 0]; // Preto
+  const textColor: [number, number, number] = [0, 0, 0]; // Preto
+  const headerBgColor: [number, number, number] = [240, 240, 240]; // Cinza claro para cabeçalhos
+  const headerTextColor: [number, number, number] = [0, 0, 0]; // Preto
 
   // Cabeçalho
   doc.setFont('helvetica', 'bold');
@@ -454,26 +454,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   
   y += 15;
 
-  // 7. Seção: Dica Financeira
-  // Verificar se precisa adicionar nova página
-  if (y > 260) {
-    doc.addPage();
-    y = 20;
-  }
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-  doc.text('DICA FINANCEIRA', margin, y);
-  y += 10;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(11);
-  doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-  
-  // Quebrar texto da dica financeira em múltiplas linhas se necessário
-  const splitText = doc.splitTextToSize(data.financialTip, pageWidth - 2 * margin);
-  doc.text(splitText, margin, y);
+  // A seção de dica financeira foi removida
 
   // Rodapé
   const pageCount = doc.getNumberOfPages();

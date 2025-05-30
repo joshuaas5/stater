@@ -12,6 +12,8 @@ import { generatePDFWithChart } from './pdfExporterWithChart';
 import { generatePurePDF } from './purePdfExporter';
 import { generateExtremelySafePDF } from './extremelySimplePdfExporter';
 import { generateXlsxLikePDF } from './pdfXlsxLikeExporter';
+// Importar o novo exportador de PDF aprimorado com layout similar ao Excel
+import { generateEnhancedPDF } from './enhancedPdfExporter';
 
 // Interface para a configuração de exportação
 export interface ExportConfig {
@@ -1156,9 +1158,20 @@ export const exportReport = async (config: ExportConfig): Promise<Blob> => {
       case 'xlsx':
         return exportToXLSX(reportData);
       case 'pdf':
-        // Usar o exportador que replica o layout do XLSX para PDF
-        console.log('Gerando PDF com o exportador similar ao XLSX...');
-        return generateXlsxLikePDF(reportData);
+        // Usar o exportador aprimorado que replica o layout do XLSX para PDF
+        console.log('Gerando PDF com o exportador aprimorado...');
+        return generateEnhancedPDF({
+          userName: reportData.user?.name || reportData.user?.email || 'Usuário',
+          startDate: reportData.startDate || new Date(),
+          endDate: reportData.endDate || new Date(),
+          incomeTotal: reportData.incomeTotal,
+          expenseTotal: reportData.expenseTotal,
+          balance: reportData.balance,
+          incomeTransactions: reportData.incomeTransactions,
+          expenseTransactions: reportData.expenseTransactions,
+          bills: reportData.bills,
+          financialTip: getRandomFinancialTip()
+        });
       case 'ofx':
         // Exportar para OFX - apenas as transações
         const allTransactions = [...reportData.incomeTransactions, ...reportData.expenseTransactions];

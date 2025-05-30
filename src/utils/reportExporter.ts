@@ -21,7 +21,6 @@ export interface ExportConfig {
   endDate?: string | Date;
   includeTransactions?: boolean;
   includeBills?: boolean;
-  includeCharts?: boolean;
   format: 'xlsx' | 'pdf' | 'ofx' | 'csv';
 }
 

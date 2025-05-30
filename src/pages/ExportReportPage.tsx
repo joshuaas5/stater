@@ -130,7 +130,6 @@ const ExportReportPage: React.FC = () => {
         expenseTransactions,
         bills: filteredBills,
         expensesByCategory,
-        includeCharts,
         // Dica financeira baseada nos dados
         financialTip: getFinancialTip(incomeTotal, expenseTotal, expensesByCategory),
       };

@@ -102,6 +102,7 @@ function drawTable(doc: any, headers: string[], data: string[][], startY: number
   // Desenhar células de cabeçalho
   headers.forEach((header, i) => {
     doc.rect(x, y, colWidths[i], cellHeight, 'FD');
+    // Ajuste a posição do texto para evitar sobreposição
     doc.text(header, x + colWidths[i]/2, y + cellHeight/2, { align: 'center', baseline: 'middle' });
     x += colWidths[i];
   });
@@ -283,6 +284,8 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     y = drawTable(doc, entradasHeaders, entradasData, y, margin, {
       columnWidths: entradasColWidths,
       highlightCols: entradasHighlightCols,
+      headerBgColor: headerBgColor,
+      headerTextColor: headerTextColor,
       cellHeight: 10,
       fontSize: 10
     });
@@ -329,6 +332,8 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   if (incomeCategoryData.length > 0) {
     y = drawTable(doc, incomeCategoryHeaders, incomeCategoryData, y, margin, {
       columnWidths: distributionColWidths,
+      headerBgColor: headerBgColor,
+      headerTextColor: headerTextColor,
       cellHeight: 10,
       fontSize: 10
     });
@@ -382,6 +387,8 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     y = drawTable(doc, saidasHeaders, saidasData, y, margin, {
       columnWidths: saidasColWidths,
       highlightCols: saidasHighlightCols,
+      headerBgColor: headerBgColor,
+      headerTextColor: headerTextColor,
       cellHeight: 10,
       fontSize: 10
     });
@@ -428,6 +435,8 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   if (expenseCategoryData.length > 0) {
     y = drawTable(doc, expenseCategoryHeaders, expenseCategoryData, y, margin, {
       columnWidths: expenseDistributionColWidths,
+      headerBgColor: headerBgColor,
+      headerTextColor: headerTextColor,
       cellHeight: 10,
       fontSize: 10
     });
@@ -491,21 +500,15 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     return false; // Não aplicamos cor personalizada
   };
   
-  // Renderizar tabela de contas
-  if (contasData.length > 0) {
-    y = drawTable(doc, contasHeaders, contasData, y, margin, {
-      columnWidths: contasColWidths,
-      cellHeight: 10,
-      fontSize: 10,
-      onCellDraw: colorizeStatusCell
-    });
-  } else {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-    doc.text('Nenhuma conta no período.', margin, y + 10);
-    y += 20;
-  }
+  // Renderizar tabela de contas - sempre mostrar, nunca exibir "nenhuma conta no período"
+  y = drawTable(doc, contasHeaders, contasData.length > 0 ? contasData : [['-', '-', '-', '-', '-', '-']], y, margin, {
+    columnWidths: contasColWidths,
+    cellHeight: 10,
+    fontSize: 10,
+    headerBgColor: headerBgColor,
+    headerTextColor: headerTextColor,
+    onCellDraw: colorizeStatusCell
+  });
   
   y += 15;
 

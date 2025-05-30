@@ -26,7 +26,6 @@ const ExportReportPage: React.FC = () => {
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [includeTransactions, setIncludeTransactions] = useState<boolean>(true);
   const [includeBills, setIncludeBills] = useState<boolean>(true);
-  const [includeCharts, setIncludeCharts] = useState<boolean>(true);
   const [exportFormat, setExportFormat] = useState<'xlsx' | 'pdf' | 'ofx' | 'csv'>('xlsx');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   
@@ -72,7 +71,6 @@ const ExportReportPage: React.FC = () => {
         endDate,
         includeTransactions,
         includeBills,
-        includeCharts,
         format: exportFormat
       };
       
@@ -270,15 +268,6 @@ const ExportReportPage: React.FC = () => {
                     onCheckedChange={(checked) => setIncludeBills(checked === true)}
                   />
                   <Label htmlFor="bills">Incluir contas a pagar/receber</Label>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="charts" 
-                    checked={includeCharts}
-                    onCheckedChange={(checked) => setIncludeCharts(checked === true)}
-                  />
-                  <Label htmlFor="charts">Incluir gráficos</Label>
                 </div>
               </div>
             </div>

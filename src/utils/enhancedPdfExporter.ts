@@ -91,16 +91,19 @@ function drawSimpleTable(
   const pageHeight = doc.internal.pageSize.getHeight();
 
   const drawPageHeader = () => {
-    doc.setFontSize(fontSize);
-    doc.setFont('helvetica', 'bold');
-    doc.setFillColor(...headerFillColor);
-    doc.setTextColor(...headerFontColor);
-    doc.setDrawColor(...borderColor);
-    doc.setLineWidth(0.1);
-
     let currentX = margin;
     headers.forEach((header, i) => {
+      doc.setFontSize(fontSize);
+      doc.setFont('helvetica', 'bold');
+
+      // Define explicitamente as cores para o preenchimento do retângulo do cabeçalho
+      doc.setFillColor(headerFillColor[0], headerFillColor[1], headerFillColor[2]);
+      doc.setDrawColor(borderColor[0], borderColor[1], borderColor[2]);
+      doc.setLineWidth(0.1);
       doc.rect(currentX, currentY, columnWidths[i], rowHeight, 'FD');
+
+      // Define explicitamente a cor para o texto do cabeçalho
+      doc.setTextColor(headerFontColor[0], headerFontColor[1], headerFontColor[2]);
       doc.text(header, currentX + columnWidths[i] / 2, currentY + rowHeight / 2, { align: 'center', baseline: 'middle' });
       currentX += columnWidths[i];
     });
@@ -305,41 +308,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   }
   y += 10;
 
-  // 6. Seção: Contas
-  y = drawSectionTitle('CONTAS', y);
-  const contasHeaders = ['Vencimento', 'Descrição', 'Categoria', 'Status', 'Parcelas', 'Valor'];
-  const contasData = data.bills.map(b => {
-    const installmentInfo = b.totalInstallments && b.currentInstallment
-      ? `${b.currentInstallment}/${b.totalInstallments}`
-      : b.isRecurring ? 'Recorrente' : '-';
-    return [
-      formatDateBR(b.dueDate),
-      b.title,
-      b.category || 'Sem categoria',
-      b.isPaid ? 'Paga' : 'Pendente',
-      installmentInfo,
-      formatCurrency(b.amount)
-    ];
-  });
-  const contasColWidths = [25, pageWidth - margin*2 - 25 - 40 - 30 - 25 - 30, 40, 30, 25, 30];
-  const contasAlignments: Array<'left' | 'center' | 'right'> = ['left', 'left', 'left', 'left', 'center', 'right'];
-  if (contasData.length > 0) {
-    y = drawSimpleTable(doc, contasHeaders, contasData, y, contasColWidths, { ...tableOptions, columnAlignments: contasAlignments });
-  } else {
-    y = checkAndAddPage(y, 8);
-    doc.setFont('helvetica', 'italic').setFontSize(defaultFontSize).text('Nenhuma conta no período.', margin, y); y+=8;
-  }
-  y += 10;
-
-  // 7. Seção: Dica Financeira
-  y = drawSectionTitle('DICA FINANCEIRA', y);
-  y = checkAndAddPage(y, 20); // Espaço para a dica
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(defaultFontSize);
-  const financialTipText = data.financialTip || 'Mantenha suas finanças organizadas e planeje seus gastos!';
-  const splitTip = doc.splitTextToSize(financialTipText, pageWidth - 2 * margin);
-  doc.text(splitTip, margin, y);
-  y += (splitTip.length * 5) + 5; // Ajustar y com base no número de linhas da dica
+  // As seções Contas e Dica Financeira foram removidas conforme solicitado.
 
   // Rodapé em todas as páginas
   const pageCount = doc.getNumberOfPages();

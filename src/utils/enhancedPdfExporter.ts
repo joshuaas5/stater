@@ -1,5 +1,4 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { Transaction, Bill } from '@/types';
 
 // Função para formatar moeda
@@ -62,6 +61,117 @@ function calculateCategoryDistribution(transactions: Transaction[]) {
   return distribution.sort((a, b) => b.amount - a.amount);
 }
 
+// Função auxiliar para desenhar tabela simples
+function drawTable(doc: any, headers: string[], data: string[][], startY: number, margin: number, options: {
+  headerBgColor?: [number, number, number],
+  headerTextColor?: [number, number, number],
+  columnWidths?: number[],
+  cellHeight?: number,
+  fontSize?: number,
+  highlightCols?: {[key: number]: [number, number, number]},
+  onCellDraw?: (doc: any, rowIndex: number, colIndex: number, text: string) => boolean
+}) {
+  const {
+    headerBgColor = [220, 220, 220],
+    headerTextColor = [0, 0, 0],
+    columnWidths,
+    cellHeight = 10,
+    fontSize = 10,
+    highlightCols = {},
+    onCellDraw
+  } = options;
+  
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const tableWidth = pageWidth - 2 * margin;
+  
+  // Calcular larguras das colunas se não forem fornecidas
+  const colWidths = columnWidths || headers.map(() => tableWidth / headers.length);
+  
+  // Configurar fonte
+  doc.setFontSize(fontSize);
+  
+  // Desenhar cabeçalho
+  doc.setFillColor(headerBgColor[0], headerBgColor[1], headerBgColor[2]);
+  doc.setDrawColor(0);
+  doc.setTextColor(headerTextColor[0], headerTextColor[1], headerTextColor[2]);
+  doc.setFont('helvetica', 'bold');
+  
+  let x = margin;
+  let y = startY;
+  
+  // Desenhar células de cabeçalho
+  headers.forEach((header, i) => {
+    doc.rect(x, y, colWidths[i], cellHeight, 'FD');
+    doc.text(header, x + colWidths[i]/2, y + cellHeight/2, { align: 'center', baseline: 'middle' });
+    x += colWidths[i];
+  });
+  
+  y += cellHeight;
+  
+  // Desenhar linhas de dados
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
+  
+  data.forEach((row, rowIndex) => {
+    // Verificar se precisa adicionar uma nova página
+    if (y > doc.internal.pageSize.getHeight() - 20) {
+      doc.addPage();
+      y = 20;
+      
+      // Redesenhar cabeçalho na nova página
+      x = margin;
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(headerBgColor[0], headerBgColor[1], headerBgColor[2]);
+      
+      headers.forEach((header, i) => {
+        doc.rect(x, y, colWidths[i], cellHeight, 'FD');
+        doc.text(header, x + colWidths[i]/2, y + cellHeight/2, { align: 'center', baseline: 'middle' });
+        x += colWidths[i];
+      });
+      
+      y += cellHeight;
+      doc.setFont('helvetica', 'normal');
+    }
+    
+    // Fundo zebrado para linhas alternadas
+    if (rowIndex % 2 === 1) {
+      doc.setFillColor(240, 240, 240);
+      doc.rect(margin, y, tableWidth, cellHeight, 'F');
+    }
+    
+    x = margin;
+    row.forEach((cell, j) => {
+      // Verificar se temos callback para colorização personalizada
+      let customColorApplied = false;
+      if (onCellDraw) {
+        customColorApplied = onCellDraw(doc, rowIndex, j, cell);
+      }
+      
+      // Se não tiver aplicado cor personalizada, verificar se a coluna tem cor destacada
+      if (!customColorApplied) {
+        if (highlightCols[j]) {
+          const color = highlightCols[j];
+          doc.setTextColor(color[0], color[1], color[2]);
+        } else {
+          doc.setTextColor(0, 0, 0);
+        }
+      }
+      
+      // Alinhar texto à direita para colunas numéricas (como valores)
+      const align = j === row.length - 1 ? 'right' : 'left';
+      const xPos = align === 'right' ? x + colWidths[j] - 2 : x + 2;
+      
+      doc.text(cell, xPos, y + cellHeight/2, { align, baseline: 'middle' });
+      x += colWidths[j];
+    });
+    
+    y += cellHeight;
+  });
+  
+  // Retornar a posição Y final
+  return y;
+}
+
 export function generateEnhancedPDF(data: ReportData): Blob {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -95,13 +205,6 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   doc.text('RESUMO', margin, y);
   y += 10;
 
-  // Tabela de resumo
-  doc.setFontSize(11);
-  doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-  
-  // Cabeçalho da tabela de resumo (invisível)
-  const resumoHeaders = [['', '']];
-  
   // Dados da tabela de resumo
   const resumoData = [
     ['Total Entradas', formatCurrency(data.incomeTotal)],
@@ -109,40 +212,40 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     ['Saldo Final', formatCurrency(data.balance)]
   ];
 
-  // Renderizar tabela de resumo
-  (doc as any).autoTable({
-    startY: y,
-    head: resumoHeaders,
-    body: resumoData,
-    theme: 'plain',
-    styles: {
-      fontSize: 11,
-      cellPadding: 5
-    },
-    columnStyles: {
-      0: { fontStyle: 'bold', cellWidth: 80 },
-      1: { halign: 'right', cellWidth: 'auto' }
-    },
-    didDrawCell: (data: any) => {
-      if (data.section === 'body' && data.column.index === 1) {
-        const row = data.row.index;
-        if (row === 0) { // Entradas
-          doc.setTextColor(positiveColor[0], positiveColor[1], positiveColor[2]);
-        } else if (row === 1) { // Saídas
-          doc.setTextColor(negativeColor[0], negativeColor[1], negativeColor[2]);
-        } else if (row === 2) { // Saldo
-          const value = resumoData[row][1];
-          if (value.includes('-')) {
-            doc.setTextColor(negativeColor[0], negativeColor[1], negativeColor[2]);
-          } else {
-            doc.setTextColor(positiveColor[0], positiveColor[1], positiveColor[2]);
-          }
-        }
+  // Configurar colunas para tabela de resumo
+  const resumoColWidths = [80, 60];
+  
+  // Criar cores destacadas para valores
+  const resumoHighlightCols: {[key: number]: [number, number, number]} = {
+    1: [0, 128, 0] // Verde para valores positivos (coluna 1)
+  };
+  
+  // Iterar pelos dados para desenhar a tabela manualmente
+  let resumoY = y;
+  
+  resumoData.forEach((row, idx) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text(row[0], margin, resumoY + 6);
+    
+    // Ajustar a cor com base no tipo de valor
+    if (idx === 0) { // Entradas
+      doc.setTextColor(positiveColor[0], positiveColor[1], positiveColor[2]);
+    } else if (idx === 1) { // Saídas
+      doc.setTextColor(negativeColor[0], negativeColor[1], negativeColor[2]);
+    } else { // Saldo
+      if (row[1].includes('-')) {
+        doc.setTextColor(negativeColor[0], negativeColor[1], negativeColor[2]);
+      } else {
+        doc.setTextColor(positiveColor[0], positiveColor[1], positiveColor[2]);
       }
     }
+    
+    doc.text(row[1], margin + resumoColWidths[0] + resumoColWidths[1] - 2, resumoY + 6, { align: 'right' });
+    resumoY += 10;
   });
-
-  y = (doc as any).lastAutoTable.finalY + 15;
+  
+  y = resumoY + 5;
 
   // 2. Seção: Entradas
   doc.setFont('helvetica', 'bold');
@@ -152,7 +255,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   y += 10;
 
   // Tabela de entradas
-  const entradasHeaders = [['Data', 'Descrição', 'Categoria', 'Valor']];
+  const entradasHeaders = ['Data', 'Descrição', 'Categoria', 'Valor'];
   
   // Dados da tabela de entradas
   const entradasData = data.incomeTransactions.map(t => [
@@ -163,38 +266,33 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   ]);
 
   // Adicionar linha de total
-  const totalRow = ['', '', 'TOTAL', formatCurrency(data.incomeTotal)];
+  entradasData.push(['', '', 'TOTAL', formatCurrency(data.incomeTotal)]);
 
-  // Renderizar tabela de entradas
-  (doc as any).autoTable({
-    startY: y,
-    head: entradasHeaders,
-    body: entradasData,
-    foot: [totalRow],
-    theme: 'striped',
-    headStyles: {
-      fillColor: [220, 220, 220],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold'
-    },
-    footStyles: {
-      fillColor: [240, 240, 240],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold'
-    },
-    columnStyles: {
-      0: { cellWidth: 25 },
-      3: { halign: 'right' }
-    },
-    didDrawCell: (data: any) => {
-      // Colorir valores de entradas
-      if (data.section === 'body' && data.column.index === 3) {
-        doc.setTextColor(positiveColor[0], positiveColor[1], positiveColor[2]);
-      }
-    }
-  });
-
-  y = (doc as any).lastAutoTable.finalY + 15;
+  // Definir larguras das colunas
+  const entradasColWidths = [25, pageWidth - 2 * margin - 25 - 60 - 45, 60, 45];
+  
+  // Definir cores destacadas para valores
+  const entradasHighlightCols: {[key: number]: [number, number, number]} = {
+    3: [0, 128, 0] // Verde para valores na coluna 3 (Valor)
+  };
+  
+  // Renderizar tabela de entradas usando nossa função personalizada
+  if (entradasData.length > 0) {
+    y = drawTable(doc, entradasHeaders, entradasData, y, margin, {
+      columnWidths: entradasColWidths,
+      highlightCols: entradasHighlightCols,
+      cellHeight: 10,
+      fontSize: 10
+    });
+  } else {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.text('Nenhuma entrada no período.', margin, y + 10);
+    y += 20;
+  }
+  
+  y += 15;
 
   // 3. Seção: Distribuição de Entradas por Categoria
   // Verificar se precisa adicionar nova página
@@ -213,7 +311,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   const incomeDistribution = calculateCategoryDistribution(data.incomeTransactions);
   
   // Tabela de distribuição de entradas
-  const incomeCategoryHeaders = [['Categoria', 'Valor', '% do Total']];
+  const incomeCategoryHeaders = ['Categoria', 'Valor', '% do Total'];
   
   // Dados da tabela de distribuição de entradas
   const incomeCategoryData = incomeDistribution.map(item => [
@@ -222,24 +320,25 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     formatPercentage(item.percentage)
   ]);
 
+  // Definir larguras das colunas para distribuição
+  const distributionColWidths = [(pageWidth - 2 * margin) * 0.6, (pageWidth - 2 * margin) * 0.2, (pageWidth - 2 * margin) * 0.2];
+  
   // Renderizar tabela de distribuição de entradas
-  (doc as any).autoTable({
-    startY: y,
-    head: incomeCategoryHeaders,
-    body: incomeCategoryData,
-    theme: 'striped',
-    headStyles: {
-      fillColor: [220, 220, 220],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold'
-    },
-    columnStyles: {
-      1: { halign: 'right' },
-      2: { halign: 'right' }
-    }
-  });
-
-  y = (doc as any).lastAutoTable.finalY + 15;
+  if (incomeCategoryData.length > 0) {
+    y = drawTable(doc, incomeCategoryHeaders, incomeCategoryData, y, margin, {
+      columnWidths: distributionColWidths,
+      cellHeight: 10,
+      fontSize: 10
+    });
+  } else {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.text('Nenhuma entrada no período.', margin, y + 10);
+    y += 20;
+  }
+  
+  y += 15;
 
   // 4. Seção: Saídas
   // Verificar se precisa adicionar nova página
@@ -255,7 +354,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   y += 10;
 
   // Tabela de saídas
-  const saidasHeaders = [['Data', 'Descrição', 'Categoria', 'Valor']];
+  const saidasHeaders = ['Data', 'Descrição', 'Categoria', 'Valor'];
   
   // Dados da tabela de saídas
   const saidasData = data.expenseTransactions.map(t => [
@@ -266,38 +365,33 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   ]);
 
   // Adicionar linha de total
-  const totalSaidasRow = ['', '', 'TOTAL', formatCurrency(data.expenseTotal)];
+  saidasData.push(['', '', 'TOTAL', formatCurrency(data.expenseTotal)]);
 
-  // Renderizar tabela de saídas
-  (doc as any).autoTable({
-    startY: y,
-    head: saidasHeaders,
-    body: saidasData,
-    foot: [totalSaidasRow],
-    theme: 'striped',
-    headStyles: {
-      fillColor: [220, 220, 220],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold'
-    },
-    footStyles: {
-      fillColor: [240, 240, 240],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold'
-    },
-    columnStyles: {
-      0: { cellWidth: 25 },
-      3: { halign: 'right' }
-    },
-    didDrawCell: (data: any) => {
-      // Colorir valores de saídas
-      if (data.section === 'body' && data.column.index === 3) {
-        doc.setTextColor(negativeColor[0], negativeColor[1], negativeColor[2]);
-      }
-    }
-  });
-
-  y = (doc as any).lastAutoTable.finalY + 15;
+  // Definir larguras das colunas (mesmas do que para entradas)
+  const saidasColWidths = [25, pageWidth - 2 * margin - 25 - 60 - 45, 60, 45];
+  
+  // Definir cores destacadas para valores
+  const saidasHighlightCols: {[key: number]: [number, number, number]} = {
+    3: [255, 0, 0] // Vermelho para valores na coluna 3 (Valor)
+  };
+  
+  // Renderizar tabela de saídas usando nossa função personalizada
+  if (saidasData.length > 0) {
+    y = drawTable(doc, saidasHeaders, saidasData, y, margin, {
+      columnWidths: saidasColWidths,
+      highlightCols: saidasHighlightCols,
+      cellHeight: 10,
+      fontSize: 10
+    });
+  } else {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.text('Nenhuma saída no período.', margin, y + 10);
+    y += 20;
+  }
+  
+  y += 15;
 
   // 5. Seção: Distribuição de Saídas por Categoria
   // Verificar se precisa adicionar nova página
@@ -316,7 +410,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   const expenseDistribution = calculateCategoryDistribution(data.expenseTransactions);
   
   // Tabela de distribuição de saídas
-  const expenseCategoryHeaders = [['Categoria', 'Valor', '% do Total']];
+  const expenseCategoryHeaders = ['Categoria', 'Valor', '% do Total'];
   
   // Dados da tabela de distribuição de saídas
   const expenseCategoryData = expenseDistribution.map(item => [
@@ -325,24 +419,25 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     formatPercentage(item.percentage)
   ]);
 
+  // Definir larguras das colunas para distribuição (mesmas de antes)
+  const expenseDistributionColWidths = [(pageWidth - 2 * margin) * 0.6, (pageWidth - 2 * margin) * 0.2, (pageWidth - 2 * margin) * 0.2];
+  
   // Renderizar tabela de distribuição de saídas
-  (doc as any).autoTable({
-    startY: y,
-    head: expenseCategoryHeaders,
-    body: expenseCategoryData,
-    theme: 'striped',
-    headStyles: {
-      fillColor: [220, 220, 220],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold'
-    },
-    columnStyles: {
-      1: { halign: 'right' },
-      2: { halign: 'right' }
-    }
-  });
-
-  y = (doc as any).lastAutoTable.finalY + 15;
+  if (expenseCategoryData.length > 0) {
+    y = drawTable(doc, expenseCategoryHeaders, expenseCategoryData, y, margin, {
+      columnWidths: expenseDistributionColWidths,
+      cellHeight: 10,
+      fontSize: 10
+    });
+  } else {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.text('Nenhuma saída no período.', margin, y + 10);
+    y += 20;
+  }
+  
+  y += 15;
 
   // 6. Seção: Contas
   // Verificar se precisa adicionar nova página
@@ -358,7 +453,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   y += 10;
 
   // Tabela de contas
-  const contasHeaders = [['Vencimento', 'Descrição', 'Categoria', 'Status', 'Parcelas', 'Valor']];
+  const contasHeaders = ['Vencimento', 'Descrição', 'Categoria', 'Status', 'Parcelas', 'Valor'];
   
   // Dados da tabela de contas
   const contasData = data.bills.map(b => {
@@ -377,37 +472,40 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     ];
   });
 
-  // Renderizar tabela de contas
-  (doc as any).autoTable({
-    startY: y,
-    head: contasHeaders,
-    body: contasData,
-    theme: 'striped',
-    headStyles: {
-      fillColor: [220, 220, 220],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold'
-    },
-    columnStyles: {
-      0: { cellWidth: 25 },
-      3: { halign: 'center' },
-      4: { halign: 'center' },
-      5: { halign: 'right' }
-    },
-    didDrawCell: (data: any) => {
-      if (data.section === 'body') {
-        // Colorir status
-        if (data.column.index === 3) {
-          const isPaid = contasData[data.row.index][3] === 'Paga';
-          doc.setTextColor(isPaid ? positiveColor[0] : negativeColor[0], 
-                          isPaid ? positiveColor[1] : negativeColor[1], 
-                          isPaid ? positiveColor[2] : negativeColor[2]);
-        }
-      }
+  // Definir larguras das colunas para contas
+  const contasColWidths = [25, (pageWidth - 2 * margin - 25 - 50 - 50 - 40 - 50), 50, 50, 40, 50];
+  
+  // Função para personalizar cores (será usada durante o desenho)
+  const colorizeStatusCell = (doc: any, rowIndex: number, colIndex: number, text: string) => {
+    if (colIndex === 3) { // Coluna Status
+      const isPaid = text === 'Paga';
+      doc.setTextColor(
+        isPaid ? positiveColor[0] : negativeColor[0],
+        isPaid ? positiveColor[1] : negativeColor[1],
+        isPaid ? positiveColor[2] : negativeColor[2]
+      );
+      return true; // Indica que aplicamos uma cor personalizada
     }
-  });
-
-  y = (doc as any).lastAutoTable.finalY + 15;
+    return false; // Não aplicamos cor personalizada
+  };
+  
+  // Renderizar tabela de contas
+  if (contasData.length > 0) {
+    y = drawTable(doc, contasHeaders, contasData, y, margin, {
+      columnWidths: contasColWidths,
+      cellHeight: 10,
+      fontSize: 10,
+      onCellDraw: colorizeStatusCell
+    });
+  } else {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.text('Nenhuma conta no período.', margin, y + 10);
+    y += 20;
+  }
+  
+  y += 15;
 
   // 7. Seção: Dica Financeira
   // Verificar se precisa adicionar nova página

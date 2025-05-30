@@ -72,8 +72,8 @@ function drawTable(doc: any, headers: string[], data: string[][], startY: number
   onCellDraw?: (doc: any, rowIndex: number, colIndex: number, text: string) => boolean
 }) {
   const {
-    headerBgColor = [220, 220, 220],
-    headerTextColor = [0, 0, 0],
+    headerBgColor = [65, 105, 225], // Azul harmonioso
+    headerTextColor = [255, 255, 255], // Branco
     columnWidths,
     cellHeight = 10,
     fontSize = 10,
@@ -179,10 +179,12 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   let y = 20;
 
   // Cores
-  const primaryColor = [65, 105, 225]; // Azul
-  const textColor = [0, 0, 0]; // Preto
-  const positiveColor = [0, 128, 0]; // Verde
-  const negativeColor = [255, 0, 0]; // Vermelho
+  const primaryColor: [number, number, number] = [41, 84, 155]; // Azul mais moderno
+  const positiveColor: [number, number, number] = [46, 125, 50]; // Verde
+  const negativeColor: [number, number, number] = [198, 40, 40]; // Vermelho menos agressivo
+  const textColor: [number, number, number] = [33, 33, 33]; // Quase preto
+  const headerBgColor: [number, number, number] = [65, 105, 225]; // Azul harmonioso para cabeçalhos
+  const headerTextColor: [number, number, number] = [255, 255, 255]; // Branco para texto no cabeçalho
 
   // Cabeçalho
   doc.setFont('helvetica', 'bold');
@@ -200,7 +202,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
 
   // 1. Seção: Resumo
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(18);
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.text('RESUMO', margin, y);
   y += 10;
@@ -249,7 +251,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
 
   // 2. Seção: Entradas
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(18);
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.text('ENTRADAS', margin, y);
   y += 10;
@@ -302,7 +304,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   }
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(18);
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.text('DISTRIBUIÇÃO DE ENTRADAS POR CATEGORIA', margin, y);
   y += 10;
@@ -348,7 +350,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   }
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(18);
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.text('SAÍDAS', margin, y);
   y += 10;
@@ -401,7 +403,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   }
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(18);
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.text('DISTRIBUIÇÃO DE SAÍDAS POR CATEGORIA', margin, y);
   y += 10;
@@ -447,7 +449,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   }
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(18);
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.text('CONTAS', margin, y);
   y += 10;
@@ -472,8 +474,8 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     ];
   });
 
-  // Definir larguras das colunas para contas
-  const contasColWidths = [25, (pageWidth - 2 * margin - 25 - 50 - 50 - 40 - 50), 50, 50, 40, 50];
+  // Definir larguras das colunas para contas - ajustadas para evitar sobreposição
+  const contasColWidths = [45, (pageWidth - 2 * margin - 45 - 60 - 60 - 50 - 60), 60, 60, 50, 60];
   
   // Função para personalizar cores (será usada durante o desenho)
   const colorizeStatusCell = (doc: any, rowIndex: number, colIndex: number, text: string) => {
@@ -515,7 +517,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   }
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(18);
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.text('DICA FINANCEIRA', margin, y);
   y += 10;

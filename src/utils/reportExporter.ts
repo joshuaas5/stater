@@ -11,6 +11,7 @@ import { generatePDFWithChart } from './pdfExporterWithChart';
 // Importar o novo exportador de PDF puro (sem dependências de autoTable)
 import { generatePurePDF } from './purePdfExporter';
 import { generateExtremelySafePDF } from './extremelySimplePdfExporter';
+import { generateStyledPDF } from './styledPdfExporter';
 
 // Interface para a configuração de exportação
 export interface ExportConfig {
@@ -1147,9 +1148,9 @@ export const exportReport = async (config: ExportConfig): Promise<Blob> => {
       case 'xlsx':
         return exportToXLSX(reportData);
       case 'pdf':
-        // Usar o exportador extremamente simples que não faz nenhuma formatação de data
-        console.log('Gerando PDF com o exportador extremamente simples e seguro...');
-        return generateExtremelySafePDF(reportData);
+        // Usar o exportador estilizado com visual profissional e tratamento seguro de datas
+        console.log('Gerando PDF com o exportador estilizado e seguro...');
+        return generateStyledPDF(reportData);
       case 'ofx':
         // Exportar para OFX - apenas as transações
         const allTransactions = [...reportData.incomeTransactions, ...reportData.expenseTransactions];

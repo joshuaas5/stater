@@ -2,7 +2,7 @@
 // Protege a chave da Gemini, faz controle de limite E AGORA ACESSA DADOS DO USUÁRIO
 // Tipagens podem ser necessárias para o objeto 'req' e 'res' em um ambiente TS completo.
 
-import { supabaseAdmin } from './supabase-admin'; // Assuming this correctly initializes supabase admin client
+import { supabaseAdmin } from './supabase-admin.mjs'; // Assuming this correctly initializes supabase admin client
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 // Updated to gemini-1.5-flash-latest
@@ -64,6 +64,7 @@ function formatDate(dateString: string | Date): string {
 }
 
 const handler = async (req: any, res: any) => {
+  console.log('API /api/gemini - Received method:', req.method);
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }

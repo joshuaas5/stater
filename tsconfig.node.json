@@ -10,7 +10,7 @@
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "noEmit": true,
+    
 
     /* Linting */
     "strict": true,
@@ -18,5 +18,6 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts"]
+  "include": ["api/**/*.ts", "src/env.d.ts", "src/globals.d.ts"],
+  "exclude": ["node_modules", "dist", "src"]
 }

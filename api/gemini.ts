@@ -1,8 +1,50 @@
 // Vercel Serverless Function: /api/gemini
+
+// TypeScript Interfaces for Gemini API Response
+interface GeminiUsageMetadata {
+  promptTokenCount: number;
+  candidatesTokenCount: number;
+  totalTokenCount: number;
+}
+
+interface GeminiSafetyRating {
+  category: string;
+  probability: string; // e.g., NEGLIGIBLE, LOW, MEDIUM, HIGH
+  blocked?: boolean;
+}
+
+interface GeminiPromptFeedback {
+  blockReason?: string;
+  safetyRatings?: GeminiSafetyRating[];
+  blockReasonMessage?: string; 
+}
+
+interface GeminiContentPart {
+  text: string;
+}
+
+interface GeminiContent {
+  parts: GeminiContentPart[];
+  role: string; // e.g., 'model'
+}
+
+interface GeminiCandidate {
+  content: GeminiContent;
+  finishReason: string; // e.g., STOP, MAX_TOKENS, SAFETY, RECITATION, OTHER
+  index: number;
+  safetyRatings: GeminiSafetyRating[];
+  tokenCount?: number; // Optional, as usageMetadata is preferred for aggregate
+}
+
+interface GeminiResponse {
+  candidates?: GeminiCandidate[];
+  promptFeedback?: GeminiPromptFeedback;
+  usageMetadata: GeminiUsageMetadata; // Made non-optional as we rely on it
+}
 // Protege a chave da Gemini, faz controle de limite E AGORA ACESSA DADOS DO USUÁRIO
 // Tipagens podem ser necessárias para o objeto 'req' e 'res' em um ambiente TS completo.
 
-import { supabaseAdmin } from './supabase-admin'; // Assuming this correctly initializes supabase admin client
+import { supabaseAdmin } from './supabase-admin.js'; // Assuming this correctly initializes supabase admin client
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 // Updated to gemini-1.5-flash-latest
@@ -18,12 +60,14 @@ const SOFT_MINUTE_REQUEST_LIMIT = Math.floor(MINUTE_REQUEST_LIMIT * 0.9);
 
 // Helper para controle de uso (mantido como está)
 async function getAndUpdateUsage({ promptTokens, outputTokens }: { promptTokens: number, outputTokens: number }) {
+  console.log('[GEMINI_API] Initializing getAndUpdateUsage...');
   const now = new Date();
   const month = now.toISOString().slice(0, 7);
   const hour = now.toISOString().slice(0, 13);
   const minute = now.toISOString().slice(0, 16);
 
   async function upsertUsage(period_type: string, period_value: string, addTokens: number, addRequests: number) {
+    console.log('[GEMINI_API] Updating token usage in Supabase...');
     const { data, error } = await supabaseAdmin
       .from('gemini_usage')
       .select('*')
@@ -32,6 +76,7 @@ async function getAndUpdateUsage({ promptTokens, outputTokens }: { promptTokens:
       .single();
     let tokens = addTokens, requests = addRequests;
     if (data) {
+      console.log('[GEMINI_API] Token usage fetched. UsageData:', data);
       tokens += data.tokens;
       requests += data.requests;
     }
@@ -47,6 +92,7 @@ async function getAndUpdateUsage({ promptTokens, outputTokens }: { promptTokens:
     upsertUsage('minute', minute, 0, 1)
   ]);
 
+  console.log('[GEMINI_API] Token usage updated. MonthUsage:', monthUsage, 'HourUsage:', hourUsage, 'MinuteUsage:', minuteUsage);
   return {
     monthTokens: monthUsage.tokens,
     hourRequests: hourUsage.requests,
@@ -56,6 +102,7 @@ async function getAndUpdateUsage({ promptTokens, outputTokens }: { promptTokens:
 
 // Helper para formatar data (DD/MM/YYYY)
 function formatDate(dateString: string | Date): string {
+  console.log('[GEMINI_API] Formatting date...');
   const date = new Date(dateString);
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
@@ -64,32 +111,46 @@ function formatDate(dateString: string | Date): string {
 }
 
 const handler = async (req: any, res: any) => {
-  console.log('API /api/gemini - Received method:', req.method);
+  console.log('[GEMINI_API_HANDLER_START]');
+  console.log('[GEMINI_API] Received method:', req.method);
   if (req.method !== 'POST') {
+    console.error('[GEMINI_API] Method not allowed:', req.method);
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
+    console.log('[GEMINI_API] Method is POST. Checking GEMINI_API_KEY...');
   if (!GEMINI_API_KEY) {
+        console.error('[GEMINI_API] GEMINI_API_KEY is not configured.');
     return res.status(500).json({ error: 'GEMINI_API_KEY não configurada' });
   }
 
   // 1. Autenticação do Usuário
+  console.log('[GEMINI_API] GEMINI_API_KEY is present. Processing auth header...');
   const authHeader = req.headers.authorization;
+  console.log('[GEMINI_API] Validating auth header format...');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Token de autenticação não fornecido ou mal formatado.' });
+    console.error('[GEMINI_API] Invalid authorization header:', authHeader);
+    console.error('[GEMINI_API] Invalid or missing Bearer token in auth header.');
+    return res.status(401).json({ error: 'Token de autorização ausente ou mal formatado.' });
   }
-  const token = authHeader.split(' ')[1];
+  console.log('[GEMINI_API] Auth header format OK. Extracting token...');
+  const token = authHeader.substring(7);
 
   let userId = '';
   let userName = 'Usuário'; // Default name
   let userEmail = '';
 
   try {
+    console.log('[GEMINI_API] Attempting to get user from Supabase via token...');
+    console.log('[GEMINI_API] Calling supabaseAdmin.auth.getUser with token...');
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    console.log('[GEMINI_API] supabaseAdmin.auth.getUser response. AuthError:', authError, 'User present:', !!user);
     if (authError || !user) {
       console.error('Erro de autenticação Supabase:', authError);
+      console.error('[GEMINI_API] Supabase auth.getUser failed or user not found. Details:', authError?.message);
       return res.status(401).json({ error: 'Token inválido ou usuário não encontrado.' });
     }
+    console.log('[GEMINI_API] Supabase user authenticated. User ID:', user.id);
     userId = user.id;
     userEmail = user.email || 'Email não disponível';
     userName = user.user_metadata?.full_name || user.user_metadata?.name || userEmail.split('@')[0] || 'Usuário';
@@ -99,16 +160,22 @@ const handler = async (req: any, res: any) => {
     return res.status(500).json({ error: 'Erro interno ao autenticar usuário: ' + e.message });
   }
 
+  console.log('[GEMINI_API] Extracting originalPrompt from body...');
   const { originalPrompt } = req.body; // Espera 'originalPrompt' do frontend
+  console.log('[GEMINI_API] Validating originalPrompt...');
   if (!originalPrompt || typeof originalPrompt !== 'string') {
+    console.error('[GEMINI_API] Invalid prompt:', originalPrompt);
+    console.error('[GEMINI_API] originalPrompt is invalid or missing.');
     return res.status(400).json({ error: 'Prompt original inválido (esperado em originalPrompt)' });
   }
 
   // 2. Busca de Dados Financeiros
+  console.log('[GEMINI_API] originalPrompt is valid. Initializing financialContextText...');
   let financialContextText = `Nome do Usuário: ${userName}\n\n`;
 
   try {
     // Transações Recentes (últimas 10)
+    console.log('[GEMINI_API] Fetching recent transactions for user:', userId);
     const { data: recentTransactions, error: transactionsError } = await supabaseAdmin
       .from('transactions')
       .select('title, amount, type, category, date')
@@ -116,7 +183,12 @@ const handler = async (req: any, res: any) => {
       .order('date', { ascending: false })
       .limit(10);
 
-    if (transactionsError) throw new Error(`Erro ao buscar transações: ${transactionsError.message}`);
+    console.log('[GEMINI_API] Recent transactions query response. TransactionsError:', transactionsError, 'RecentTransactions count:', recentTransactions?.length);
+    if (transactionsError) {
+      console.error('Erro ao buscar transações:', transactionsError);
+      console.error('[GEMINI_API] Error fetching recent transactions:', transactionsError.message);
+      throw new Error(`Erro ao buscar transações: ${transactionsError.message}`);
+    }
 
     if (recentTransactions && recentTransactions.length > 0) {
       financialContextText += "Últimas Transações:\n";
@@ -129,9 +201,11 @@ const handler = async (req: any, res: any) => {
     }
 
     // Principais Categorias de Gastos (últimos 30 dias)
+    console.log('[GEMINI_API] Processing recent transactions. Calculating thirtyDaysAgo...');
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+    console.log('[GEMINI_API] Fetching expenses from last 30 days for user:', userId);
     const { data: expensesLast30Days, error: expensesError } = await supabaseAdmin
       .from('transactions')
       .select('category, amount')
@@ -139,7 +213,12 @@ const handler = async (req: any, res: any) => {
       .eq('type', 'expense')
       .gte('date', thirtyDaysAgo.toISOString());
 
-    if (expensesError) throw new Error(`Erro ao buscar despesas: ${expensesError.message}`);
+    console.log('[GEMINI_API] ExpensesLast30Days query response. ExpensesError:', expensesError, 'ExpensesLast30Days count:', expensesLast30Days?.length);
+    if (expensesError) {
+      console.error('Erro ao buscar despesas:', expensesError);
+      console.error('[GEMINI_API] Error fetching expenses from last 30 days:', expensesError.message);
+      throw new Error(`Erro ao buscar despesas: ${expensesError.message}`);
+    }
 
     if (expensesLast30Days && expensesLast30Days.length > 0) {
       const spendingByCategory: { [key: string]: number } = {};
@@ -160,10 +239,11 @@ const handler = async (req: any, res: any) => {
         financialContextText += "Nenhuma despesa encontrada nos últimos 30 dias para análise de categorias.\n\n";
       }
     } else {
-        financialContextText += "Nenhuma despesa encontrada nos últimos 30 dias.\n\n";
+      financialContextText += "Nenhuma despesa encontrada nos últimos 30 dias.\n\n";
     }
 
     // Contas a Pagar Próximas (não parceladas, próximas 3)
+    console.log('[GEMINI_API] Processing expenses. Fetching upcoming bills for user:', userId);
     const { data: upcomingBills, error: billsError } = await supabaseAdmin
       .from('bills')
       .select('title, amount, due_date, category')
@@ -174,7 +254,12 @@ const handler = async (req: any, res: any) => {
       .order('due_date', { ascending: true })
       .limit(3);
 
-    if (billsError) throw new Error(`Erro ao buscar contas a pagar: ${billsError.message}`);
+    console.log('[GEMINI_API] UpcomingBills query response. BillsError:', billsError, 'UpcomingBills count:', upcomingBills?.length);
+    if (billsError) {
+      console.error('Erro ao buscar contas a pagar:', billsError);
+      console.error('[GEMINI_API] Error fetching upcoming bills:', billsError.message);
+      throw new Error(`Erro ao buscar contas a pagar: ${billsError.message}`);
+    }
 
     if (upcomingBills && upcomingBills.length > 0) {
       financialContextText += "Contas a Pagar Próximas (não parceladas):\n";
@@ -187,6 +272,7 @@ const handler = async (req: any, res: any) => {
     }
 
     // Parcelamentos Ativos (próximos 3 vencimentos)
+    console.log('[GEMINI_API] Processing upcoming bills. Fetching active installments for user:', userId);
     const { data: activeInstallments, error: installmentsError } = await supabaseAdmin
       .from('bills')
       .select('title, amount, due_date, category, current_installment, total_installments')
@@ -197,7 +283,12 @@ const handler = async (req: any, res: any) => {
       .order('due_date', { ascending: true })
       .limit(3);
 
-    if (installmentsError) throw new Error(`Erro ao buscar parcelamentos: ${installmentsError.message}`);
+    console.log('[GEMINI_API] ActiveInstallments query response. InstallmentsError:', installmentsError, 'ActiveInstallments count:', activeInstallments?.length);
+    if (installmentsError) {
+      console.error('Erro ao buscar parcelamentos:', installmentsError);
+      console.error('[GEMINI_API] Error fetching active installments:', installmentsError.message);
+      throw new Error(`Erro ao buscar parcelamentos: ${installmentsError.message}`);
+    }
 
     if (activeInstallments && activeInstallments.length > 0) {
       financialContextText += "Parcelamentos Ativos (próximos vencimentos):\n";
@@ -215,20 +306,14 @@ const handler = async (req: any, res: any) => {
   }
 
   // 3. Construção do Contexto para a API Gemini
-  const systemInstructionForGemini = `Você é o Consultor IA do aplicativo de finanças pessoais ICTUS. Você está aqui para ajudar o usuário a entender melhor suas finanças e oferecer conselhos práticos, personalizados e acionáveis. Use os dados financeiros fornecidos sobre as transações, contas a pagar e o perfil do usuário para gerar suas recomendações. Seja amigável, objetivo, encorajador e evite linguagem excessivamente técnica. O nome do usuário é ${userName}.`;
-
-  const finalUserPromptForGemini = `
-Aqui estão alguns dos meus dados recentes para análise:
-${financialContextText}
-Considerando estes dados e minha pergunta original abaixo, como posso organizar melhor meus gastos, onde posso economizar e quais estratégias posso adotar para atingir meus objetivos financeiros?
-
-Minha pergunta: "${originalPrompt}"
-  `.trim();
+  console.log('[GEMINI_API] Financial data context built. Constructing fullPrompt...');
+  const fullPrompt = `Você é um consultor financeiro especialista em finanças pessoais e contabilidade. Use o seguinte contexto financeiro para responder à pergunta do usuário. Contexto: ${financialContextText}. Pergunta: ${originalPrompt}. Seja direto e claro nas suas respostas, utilizando preferencialmente listas e tabelas para melhor visualização quando apropriado. Se a pergunta do usuário for para registrar uma nova transação (receita ou despesa), você deve extrair as seguintes informações da pergunta: tipo (receita ou despesa), descrição, valor, data (se informada, senão usar data atual YYYY-MM-DD), categoria (se informada, senão 'Outros'). Responda APENAS com um objeto JSON contendo esses campos. Exemplo de resposta para registrar transação: {"type": "receita", "description": "Salário mensal", "amount": 5000, "date": "2024-05-20", "category": "Salário"}. Para outras perguntas, responda normalmente como um consultor.`;
+  console.log('[GEMINI_API] Full prompt constructed. Length:', fullPrompt.length);
 
   const geminiPayload = {
     contents: [{ 
       role: "user", 
-      parts: [{text: systemInstructionForGemini + "\n\n" + finalUserPromptForGemini}] 
+      parts: [{text: fullPrompt}] 
     }],
     generationConfig: {
       temperature: 0.7,
@@ -239,50 +324,71 @@ Minha pergunta: "${originalPrompt}"
     }
   };
 
-  const promptTokensForUsage = (systemInstructionForGemini + finalUserPromptForGemini).split(/\s+/).length;
+  console.log('[GEMINI_API] Usage limits OK. Initializing outputText...');
   let outputText = '';
 
   try {
+    console.log('[GEMINI_API] Sending prompt to Gemini API...');
+    console.log('[GEMINI_API] Calling fetch to GEMINI_ENDPOINT...');
     const response = await fetch(GEMINI_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(geminiPayload)
     });
 
+    console.log('[GEMINI_API] Fetch to GEMINI_ENDPOINT response status:', response.status);
     if (!response.ok) {
       const errText = await response.text();
       console.error('Gemini API error response:', errText);
       return res.status(response.status).json({ error: 'Gemini API error: ' + errText });
     }
 
-    const data = await response.json();
+    console.log('[GEMINI_API] Gemini API call successful. Parsing JSON response...');
+    const data = await response.json() as GeminiResponse;
+
+    // Ensure usageMetadata is present before proceeding
+    if (!data.usageMetadata) {
+      console.error('Gemini response missing usageMetadata:', data);
+      return res.status(500).json({ error: 'Resposta da API Gemini inválida: metadados de uso ausentes.' });
+    }
+
+    const promptTokenCount = data.usageMetadata.promptTokenCount;
+    const outputTokenCount = data.usageMetadata.candidatesTokenCount;
 
     if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts.length > 0) {
-        outputText = data.candidates[0].content.parts[0].text;
+      outputText = data.candidates[0]?.content?.parts[0]?.text || "";
+      console.log('[GEMINI_API] Extracted outputText from Gemini response. Length:', outputText.length);
     } else if (data.promptFeedback && data.promptFeedback.blockReason) {
-        console.error('Gemini prompt blocked:', data.promptFeedback.blockReason, data.promptFeedback.safetyRatings);
-        outputText = `Desculpe, sua solicitação não pôde ser processada devido a restrições de conteúdo (${data.promptFeedback.blockReason}). Por favor, reformule sua pergunta.`;
-        return res.status(400).json({ error: 'Prompt bloqueado pela IA.', details: outputText, blockReason: data.promptFeedback.blockReason });
+      console.error('Gemini prompt blocked:', data.promptFeedback.blockReason, data.promptFeedback.safetyRatings);
+      outputText = `Desculpe, sua solicitação não pôde ser processada devido a restrições de conteúdo (${data.promptFeedback.blockReason}). Por favor, reformule sua pergunta.`;
+      // Log token usage even for blocked prompts as Gemini might still count them
+      console.log(`[GEMINI_API] Tokens for blocked prompt: Prompt=${promptTokenCount}, Output (blocked)=${outputTokenCount}`);
+      await getAndUpdateUsage({ promptTokens: promptTokenCount, outputTokens: outputTokenCount });
+      return res.status(400).json({ error: 'Prompt bloqueado pela IA.', details: outputText, blockReason: data.promptFeedback.blockReason });
     } else {
-        console.error('Gemini response format unexpected:', data);
-        outputText = 'Desculpe, não consegui obter uma resposta da IA no momento.';
+      console.error('Gemini response format unexpected or no candidates:', data);
+      outputText = 'Desculpe, não consegui obter uma resposta da IA no momento.';
+      // Log token usage even for unexpected format if metadata is available
+      console.log(`[GEMINI_API] Tokens for unexpected response: Prompt=${promptTokenCount}, Output (error)=${outputTokenCount}`);
+      await getAndUpdateUsage({ promptTokens: promptTokenCount, outputTokens: outputTokenCount });
+      return res.status(500).json({ error: 'Resposta inesperada da IA.'});
     }
 
-    const outputTokensForUsage = outputText.split(/\s+/).length;
+    console.log(`[GEMINI_API] Actual tokens from API: Prompt=${promptTokenCount}, Output=${outputTokenCount}, Total=${data.usageMetadata.totalTokenCount}`);
 
-    const usage = await getAndUpdateUsage({ promptTokens: promptTokensForUsage, outputTokens: outputTokensForUsage });
-    if (
-      usage.monthTokens >= SOFT_MONTHLY_TOKEN_LIMIT ||
-      usage.hourRequests >= SOFT_HOURLY_REQUEST_LIMIT ||
-      usage.minuteRequests >= SOFT_MINUTE_REQUEST_LIMIT
-    ) {
+    console.log('[GEMINI_API] Calling getAndUpdateUsage with API token counts...');
+    const usage = await getAndUpdateUsage({ promptTokens: promptTokenCount, outputTokens: outputTokenCount });
+    console.log('[GEMINI_API] Usage limits check. MonthTokens:', usage.monthTokens, 'HourRequests:', usage.hourRequests, 'MinuteRequests:', usage.minuteRequests);
+    if (usage.monthTokens >= MONTHLY_TOKEN_LIMIT || usage.hourRequests >= HOURLY_REQUEST_LIMIT || usage.minuteRequests >= MINUTE_REQUEST_LIMIT) {
       console.warn("Limite da API Gemini próximo ou atingido:", usage);
     }
-    return res.status(200).json({ resposta: outputText });
+    console.log('[GEMINI_API] Successfully processed request. Sending 200 response to client.');
+    return res.status(200).json({ response: outputText });
+    console.log('[GEMINI_API_HANDLER_END]');
 
   } catch (e: any) {
     console.error('Erro ao acessar Gemini ou processar dados:', e);
-    return res.status(500).json({ error: 'Erro interno no servidor: ' + e.message });
+    return res.status(500).json({ error: 'Erro ao buscar dados financeiros: ' + e.message });
   }
 }
 

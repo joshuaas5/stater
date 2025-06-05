@@ -352,12 +352,44 @@ export const FinancialAdvisorPage: React.FC = () => {
       }
       // Fim da lógica de verificação de limite de tokens
 
-      const messagesForApi = [...messages, newUserMessage]
-        .slice(-10)
-        .map(msg => (`${msg.sender === 'user' ? 'user' : 'model'}: ${msg.text}`)).join('\n\n'); // Construct a single string prompt
+      // Get session token
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData?.session) {
+        setMessages(prev => [...prev, { id: uuidv4(), text: "❌ Erro: Não foi possível obter a sessão. Faça login novamente.", sender: 'system', timestamp: new Date() }]);
+        setLoading(false);
+        return;
+      }
+      const accessToken = sessionData.session.accessToken;
+
+      // Call our backend API
+      console.log(`FinancialAdvisorPage: Calling backend /api/gemini with prompt: "${message}"`);
+      const backendApiResponse = await fetch('/api/gemini', { // Assuming API route is /api/gemini
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ originalPrompt: message }), // Send the current user's message
+      });
+
+      if (!backendApiResponse.ok) {
+        const errorData = await backendApiResponse.json().catch(() => ({ error: 'Erro desconhecido ao chamar a API do consultor.' }));
+        console.error("Backend API error status:", backendApiResponse.status, "Response:", errorData);
+        const userErrorMessage = errorData.details || errorData.error || `Erro ${backendApiResponse.status} ao conectar com o Consultor IA.`;
+        setMessages(prev => [...prev, { id: uuidv4(), text: `❌ ${userErrorMessage}`, sender: 'system', timestamp: new Date() }]);
+        setLoading(false);
+        return; // Return early on API error
+      }
+
+      const backendData = await backendApiResponse.json();
+      const botResponseText = backendData.resposta;
       
-      // Pass the constructed prompt string to fetchGeminiFlashLite
-      const botResponseText = await fetchGeminiFlashLite(messagesForApi);
+      if (typeof botResponseText !== 'string') {
+        console.error("Resposta inesperada do backend:", backendData);
+        setMessages(prev => [...prev, { id: uuidv4(), text: "❌ Resposta inesperada do Consultor IA.", sender: 'system', timestamp: new Date() }]);
+        setLoading(false);
+        return; // Return early if response format is wrong
+      }
       let confirmationMessageForChat: string = botResponseText;
 
       try {

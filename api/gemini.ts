@@ -63,7 +63,7 @@ function formatDate(dateString: string | Date): string {
   return `${day}/${month}/${year}`;
 }
 
-export default async function handler(req: any, res: any) {
+const handler = async (req: any, res: any) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
@@ -284,3 +284,5 @@ Minha pergunta: "${originalPrompt}"
     return res.status(500).json({ error: 'Erro interno no servidor: ' + e.message });
   }
 }
+
+export default handler;

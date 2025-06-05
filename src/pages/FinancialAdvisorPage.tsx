@@ -359,7 +359,7 @@ export const FinancialAdvisorPage: React.FC = () => {
         setLoading(false);
         return;
       }
-      const accessToken = sessionData.session.accessToken;
+      const accessToken = sessionData.session.access_token;
 
       // Call our backend API
       console.log(`FinancialAdvisorPage: Calling backend /api/gemini with prompt: "${message}"`);

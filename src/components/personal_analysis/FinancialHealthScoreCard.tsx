@@ -180,7 +180,7 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
 
         {financialTips.length > 0 && (
           <div className="mt-6 pt-4 border-t border-purple-300/30">
-            <h3 className="text-md font-semibold mb-3 text-purple-200">Insights da I.A. para Você:</h3>
+            <h3 className="text-md font-semibold mb-3 text-purple-200">Insights 💡</h3>
             <ul className="space-y-2 list-inside list-disc pl-2">
               {financialTips.map((tip, index) => (
                 <li key={index} className="text-sm text-purple-300/90">

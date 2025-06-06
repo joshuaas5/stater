@@ -18,8 +18,11 @@ import AddBillModal from '@/components/bills/AddBillModal';
 const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
 const USER_AVATAR = '/user-avatar.svg'; // Placeholder for user avatar
 
-const MAX_GEMINI_TOKENS_MONTHLY = 1000000; // Exemplo: 1 milhão de tokens por mês
-const TOKEN_WARNING_THRESHOLD_PERCENTAGE = 90;
+// Limites prudentes sugeridos
+const MAX_GEMINI_TOKENS_MONTHLY = 50000; // 50 mil tokens por usuário/mês
+const MAX_GEMINI_REQUESTS_DAILY = 15;    // 15 requisições por usuário/dia
+const LIMIT_BLOCK_PERCENTAGE = 95;       // Bloqueia ao atingir 95% do limite
+const TOKEN_WARNING_THRESHOLD_PERCENTAGE = 90; // Aviso em 90% do limite
 
 const getCurrentMonthYear = () => {
   const now = new Date();
@@ -353,25 +356,36 @@ const handleSendMessage = async (message: string) => {
       }
       const activeUserId = user.id;
 
-      // Lógica de verificação de limite de tokens
+      // Lógica de verificação de limites de tokens e requisições
       const currentMonthYear = getCurrentMonthYear();
+      const todayDate = new Date().toISOString().slice(0, 10); // yyyy-mm-dd
+      // Buscar tokens usados no mês
       const { data: tokenUsageData, error: tokenUsageError } = await supabase
         .from('user_token_usage')
         .select('tokens_used')
         .eq('user_id', activeUserId)
         .eq('month_year', currentMonthYear)
         .maybeSingle();
-
-      if (tokenUsageError && tokenUsageError.code !== 'PGRST116') { // PGRST116: no rows found
+      // Buscar requisições feitas no dia
+      const { data: dailyUsageData, error: dailyUsageError } = await supabase
+        .from('user_ai_daily_usage')
+        .select('requests_count')
+        .eq('user_id', activeUserId)
+        .eq('date', todayDate)
+        .maybeSingle();
+      if (tokenUsageError && tokenUsageError.code !== 'PGRST116') {
         console.error("Erro ao buscar uso de tokens:", tokenUsageError);
       }
-      
+      if (dailyUsageError && dailyUsageError.code !== 'PGRST116') {
+        console.error("Erro ao buscar uso diário de IA:", dailyUsageError);
+      }
       const currentTokensUsed = tokenUsageData?.tokens_used || 0;
-
-      if (currentTokensUsed >= MAX_GEMINI_TOKENS_MONTHLY) {
+      const currentRequestsToday = dailyUsageData?.requests_count || 0;
+      // Bloqueio por tokens
+      if (currentTokensUsed >= MAX_GEMINI_TOKENS_MONTHLY * (LIMIT_BLOCK_PERCENTAGE / 100)) {
         const limitReachedMessage: ChatMessage = {
           id: uuidv4(),
-          text: "Você atingiu seu limite mensal de interações com a IA. Você ainda pode adicionar transações manualmente ou aguardar o próximo mês.",
+          text: `Você atingiu 95% do seu limite mensal de tokens para IA. Aguarde o próximo mês ou entre em contato para liberar mais acesso.`,
           sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
@@ -380,7 +394,20 @@ const handleSendMessage = async (message: string) => {
         setLoading(false);
         return;
       }
-
+      // Bloqueio por requisições diárias
+      if (currentRequestsToday >= MAX_GEMINI_REQUESTS_DAILY * (LIMIT_BLOCK_PERCENTAGE / 100)) {
+        const limitReachedMessage: ChatMessage = {
+          id: uuidv4(),
+          text: `Você atingiu 95% do seu limite diário de perguntas para a IA. Tente novamente amanhã ou aguarde a liberação do limite.`,
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        };
+        setMessages(prev => [...prev, limitReachedMessage]);
+        setLoading(false);
+        return;
+      }
+      // Aviso de tokens
       if (currentTokensUsed >= MAX_GEMINI_TOKENS_MONTHLY * (TOKEN_WARNING_THRESHOLD_PERCENTAGE / 100)) {
         const warningMessageText = `Aviso: Você usou ${((currentTokensUsed / MAX_GEMINI_TOKENS_MONTHLY) * 100).toFixed(0)}% do seu limite de tokens mensais (${currentTokensUsed.toLocaleString('pt-BR')}/${MAX_GEMINI_TOKENS_MONTHLY.toLocaleString('pt-BR')}).`;
         const warningMessage: ChatMessage = {
@@ -392,7 +419,19 @@ const handleSendMessage = async (message: string) => {
         };
         setMessages(prev => [...prev, warningMessage]);
       }
-      // Fim da lógica de verificação de limite de tokens
+      // Aviso de requisições diárias
+      if (currentRequestsToday >= MAX_GEMINI_REQUESTS_DAILY * (TOKEN_WARNING_THRESHOLD_PERCENTAGE / 100)) {
+        const warningMessageText = `Aviso: Você usou ${((currentRequestsToday / MAX_GEMINI_REQUESTS_DAILY) * 100).toFixed(0)}% do seu limite diário de perguntas (${currentRequestsToday}/${MAX_GEMINI_REQUESTS_DAILY}).`;
+        const warningMessage: ChatMessage = {
+          id: uuidv4(),
+          text: warningMessageText,
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        };
+        setMessages(prev => [...prev, warningMessage]);
+      }
+      // Fim da lógica de verificação de limite de tokens e requisições
 
       // Get session token
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -454,38 +493,51 @@ const handleSendMessage = async (message: string) => {
 
       const backendData = await backendApiResponse.json();
       const botResponseText = backendData.resposta;
-      // --- NOVO: Atualizar uso de tokens do usuário ---
+      // --- NOVO: Atualizar uso de tokens e requisições do usuário ---
       try {
         // O backend pode retornar o número de tokens usados na resposta
         const tokensUsedThisCall = backendData.tokens_used || 1000; // fallback: 1000 tokens por interação
+        // Atualizar tokens do mês
         const { data: usageRow, error: usageError } = await supabase
           .from('user_token_usage')
           .select('tokens_used')
           .eq('user_id', activeUserId)
           .eq('month_year', currentMonthYear)
           .maybeSingle();
-        if (usageError && usageError.code !== 'PGRST116') {
-          console.error('Erro ao consultar uso de tokens:', usageError);
-        }
         if (!usageRow) {
-          // Inserir novo registro
-          const { error: insertError } = await supabase
+          await supabase
             .from('user_token_usage')
             .insert([{ user_id: activeUserId, month_year: currentMonthYear, tokens_used: tokensUsedThisCall }]);
-          if (insertError) console.error('Erro ao inserir uso de tokens:', insertError);
         } else {
-          // Atualizar registro existente
-          const { error: updateError } = await supabase
+          await supabase
             .from('user_token_usage')
             .update({ tokens_used: (usageRow.tokens_used || 0) + tokensUsedThisCall })
             .eq('user_id', activeUserId)
             .eq('month_year', currentMonthYear);
-          if (updateError) console.error('Erro ao atualizar uso de tokens:', updateError);
+        }
+        // Atualizar requisições do dia
+        const todayDate = new Date().toISOString().slice(0, 10);
+        const { data: dailyRow } = await supabase
+          .from('user_ai_daily_usage')
+          .select('requests_count')
+          .eq('user_id', activeUserId)
+          .eq('date', todayDate)
+          .maybeSingle();
+        if (!dailyRow) {
+          await supabase
+            .from('user_ai_daily_usage')
+            .insert([{ user_id: activeUserId, date: todayDate, requests_count: 1 }]);
+        } else {
+          await supabase
+            .from('user_ai_daily_usage')
+            .update({ requests_count: (dailyRow.requests_count || 0) + 1 })
+            .eq('user_id', activeUserId)
+            .eq('date', todayDate);
         }
       } catch (tokenUpdateErr) {
-        console.error('Falha ao atualizar contador de tokens:', tokenUpdateErr);
+        console.error('Falha ao atualizar contador de tokens ou requisições:', tokenUpdateErr);
       }
-      // --- FIM NOVO USO DE TOKENS ---
+      // --- FIM NOVO USO DE TOKENS E REQUISIÇÕES ---
       
       if (typeof botResponseText !== 'string') {
         console.error("Resposta inesperada do backend:", backendData);

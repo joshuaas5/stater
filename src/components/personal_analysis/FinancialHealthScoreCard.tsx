@@ -43,6 +43,35 @@ const getScoreDescription = (score: number): string => {
   return 'Excelente';
 };
 
+// Custom Tick for Radar Chart Axis Labels
+const CustomAngleTick = (props: any) => {
+  const { x, y, payload } = props;
+  const tickFill = 'hsl(var(--foreground))';
+  let textAnchor = "middle";
+  let finalX = x;
+  let finalY = y;
+
+  // Adjustments based on typical radar chart point positions
+  if (payload.value === 'Reserva Estratégica') { // Top point
+    textAnchor = "middle";
+    finalY -= 10; // Move text up from the tip
+  } else if (payload.value === 'Alavancagem Consciente') { // Bottom-left point
+    textAnchor = "end";    // Anchor text to its end (flows left)
+    finalX -= 8;       // Move anchor point slightly left
+    finalY += 12;      // Move anchor point down towards base
+  } else if (payload.value === 'Fluxo Vital') { // Bottom-right point
+    textAnchor = "start";  // Anchor text to its start (flows right)
+    finalX += 8;       // Move anchor point slightly right
+    finalY += 12;      // Move anchor point down towards base
+  }
+
+  return (
+    <text x={finalX} y={finalY} textAnchor={textAnchor} fill={tickFill} fontSize={9}>
+      {payload.value}
+    </text>
+  );
+};
+
 const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => {
   const [scoreData, setScoreData] = useState<ScoreData | null>(null);
   const [financialTips, setFinancialTips] = useState<string[]>([]);
@@ -119,7 +148,7 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
         </div>
         {/* Right side: Title and Info Button */} 
         <div className="flex flex-col items-end"> 
-            <CardTitle className="text-sm font-medium text-muted-foreground mb-1">
+            <CardTitle className="text-xs font-medium text-muted-foreground mb-1">
                 Análise Financeira
             </CardTitle>
             <AlertDialog>
@@ -143,11 +172,11 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
         </div>
       </CardHeader>
       <CardContent className="pt-4">
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={400}>
           <RadarChart 
             cx="50%" 
             cy="50%" 
-            outerRadius="70%" 
+            outerRadius="85%" 
             data={[
               { subject: 'Reserva Estratégica', score: scoreData.savingsScore, fullMark: 100 },
               { subject: 'Alavancagem Consciente', score: scoreData.debtScore, fullMark: 100 },
@@ -155,7 +184,7 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
             ]}
           >
             <PolarGrid stroke="#5B21B6" /> {/* Grid roxo mais escuro */}
-            <PolarAngleAxis dataKey="subject" stroke="#D8B4FE" tick={{ fill: 'hsl(var(--foreground))', fontSize: 8 }} /> {/* Reduzido ainda mais o fontSize para mobile */}
+            <PolarAngleAxis dataKey="subject" stroke="#D8B4FE" tick={<CustomAngleTick />} />
             <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#7E22CE" tick={{ fill: 'hsl(var(--muted-foreground))' }} /> {/* Eixo radial roxo, ticks adaptáveis ao tema */}
             <Radar 
               name="Sua Performance"

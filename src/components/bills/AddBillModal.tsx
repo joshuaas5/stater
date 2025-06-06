@@ -154,14 +154,14 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white dark:bg-gray-900 rounded-lg p-4 sm:p-6 w-full max-w-md sm:max-w-lg shadow-lg relative mx-2 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-900 rounded-lg p-4 sm:p-6 w-full max-w-[400px] w-full shadow-lg relative mx-2 max-h-[90vh] flex flex-col overflow-hidden" style={{width: '100vw', maxWidth: 400, maxHeight: '90vh'}}>
         <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={handleClose}>
           <X size={20} />
         </button>
         <h2 className="text-xl font-semibold mb-4 text-galileo-text">Adicionar Conta</h2>
         {/* Formulário completo migrado de AddBillPage */}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 flex flex-col flex-1 overflow-y-auto pb-24">
             <FormField control={form.control} name="title" render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-galileo-text">Título</FormLabel>
@@ -300,7 +300,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
                 </FormControl>
               </FormItem>
             )} />
-            <div className="flex justify-end sticky bottom-0 bg-white dark:bg-gray-900 pt-4 pb-2 z-10">
+            <div className="flex justify-end fixed left-0 right-0 bottom-0 px-4 pb-4 bg-white dark:bg-gray-900 z-50" style={{maxWidth: 400, margin: '0 auto'}}>
               <Button type="submit" className="bg-galileo-primary text-white w-full sm:w-auto">Adicionar Conta</Button>
             </div>
           </form>

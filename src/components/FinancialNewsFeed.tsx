@@ -24,13 +24,14 @@ const SOURCES_CONFIG: SourcesConfig = {
     { key: 'investnews', displayName: 'InvestNews', lang: 'pt-BR' },
     { key: 'infomoney', displayName: 'InfoMoney', lang: 'pt-BR' },
     { key: 'cointelegraph-br', displayName: 'Cointelegraph Brasil', lang: 'pt-BR' },
-    { key: 'investing-br', displayName: 'Investing.com Brasil', lang: 'pt-BR' },
-    { key: 'bloomberg-linea', displayName: 'Bloomberg Línea', lang: 'pt-BR' }
+    { key: 'cnn-brasil', displayName: 'CNN Brasil', lang: 'pt-BR' },
+    { key: 'moneytimes', displayName: 'MoneyTimes', lang: 'pt-BR' }
   ],
   'en-US': [
-    // Fontes internacionais simplificadas
-    { key: 'cointelegraph', displayName: 'Cointelegraph', lang: 'en-US' },
-    { key: 'investing', displayName: 'Investing.com', lang: 'en-US' }
+    { key: 'cointelegraph-en', displayName: 'Cointelegraph', lang: 'en-US' },
+    { key: 'reuters-business', displayName: 'Reuters Business', lang: 'en-US' },
+    { key: 'bloomberg', displayName: 'Bloomberg', lang: 'en-US' },
+    { key: 'wsj-markets', displayName: 'WSJ Markets', lang: 'en-US' }
   ]
 };
 

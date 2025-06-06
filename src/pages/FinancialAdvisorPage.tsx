@@ -683,63 +683,32 @@ const handleSendMessage = async (message: string) => {
     { key: "howToSaveMore", text: t("howToSaveMore") || 'Como economizar mais?' },
     { key: "biggestExpenses", text: t("biggestExpenses") || 'Quais são meus maiores gastos?' },
     { key: "createBudget", text: t("createBudget") || 'Como criar um orçamento?' },
-    { key: "investOrPayDebt", text: t("investOrPayDebt") || 'Devo investir ou pagar dívidas?' },
-    { key: "reduceFoodExpenses", text: t("reduceFoodExpenses") || 'Como reduzir gastos com alimentação?' },
-    { key: "howMuchToSave", text: t("howMuchToSave") || 'Quanto devo guardar por mês?' }
+    { key: "investOrPayDebt", text: t("investOrPayDebt") || 'Devo investir ou pagar dívidas?' }
   ];
 
-  const handleTabChange = (tabValue: string) => {
-    setActiveTab(tabValue);
-  }
-      <div className="flex flex-col h-screen bg-background">
-        <div className="flex-grow container mx-auto px-0 sm:px-4 pt-4 pb-20 flex flex-col overflow-hidden">
-          <div className="mb-4 text-center">
-            <h1 className="text-2xl font-bold text-foreground">Consultor IA 🤖</h1>
-          </div>
+const handleTabChange = (tabValue: string) => {
+  setActiveTab(tabValue);
+}
 
-          <div className="flex-grow flex flex-col overflow-hidden">
-            {/* Este div é o contêiner principal do chat, incluindo mensagens e input */}
-            <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden"> 
-              {error && (
-                <div className="p-4 bg-destructive text-destructive-foreground">
-                  {error}
-                </div>
-              )}
-              {/* ChatMessages agora ocupa o espaço flexível e tem seu próprio scroll interno */}
-              <div className="flex-grow overflow-y-auto">
-                <ChatMessages messages={messages} messagesEndRef={messagesEndRef} iaAvatar={IA_AVATAR} userAvatar={USER_AVATAR} />
+return (
+  <>
+    <div className="flex flex-col h-screen bg-background">
+      <div className="flex-grow container mx-auto px-0 sm:px-4 pt-4 pb-20 flex flex-col overflow-hidden">
+        <div className="mb-4 text-center">
+          <h1 className="text-2xl font-bold text-foreground">Consultor IA 🤖</h1>
+        </div>
+
+        <div className="flex-grow flex flex-col overflow-hidden">
+          {/* Este div é o contêiner principal do chat, incluindo mensagens e input */}
+          <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden"> 
+            {error && (
+              <div className="p-4 bg-destructive text-destructive-foreground">
+                {error}
               </div>
-              {loading && (
-                <div className="flex items-center gap-2 px-4 py-2 text-gray-500 animate-pulse">
-                  <Loader2 className="animate-spin mr-2" size={18} /> Pensando...
-                </div>
-              )}
-              {showSuggestions && !pendingAction && typeof initialSuggestions !== 'undefined' && (
-  <div className="p-2 border-t border-border bg-card">
-    <div className="flex overflow-x-auto space-x-2 py-2 scrollbar-thin scrollbar-thumb-muted-foreground/50 scrollbar-track-transparent">
-      {initialSuggestions.map((sug: string, index: number) => (
-        <Button
-          key={index}
-          variant="outline"
-          size="sm"
-          className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
-          onClick={() => handleSuggestionClick(sug)}
-        >
-          {sug}
-        </Button>
-      ))}
-    </div>
-  </div>
-)}
-              {/* ChatInput fica aqui, abaixo das mensagens/sugestões, mas acima do padding da NavBar */}
-              <ChatInput
-                onSubmit={handleSendMessage} 
-                loading={loading}
-                waitingConfirmation={waitingConfirmation} 
-                pendingActionDetails={pendingAction ? pendingAction.dados : null} 
-                onConfirm={() => handleSendMessage('sim')} 
-                onCancel={() => handleSendMessage('não')} 
-              />
+            )}
+            {/* ChatMessages agora ocupa o espaço flexível e tem seu próprio scroll interno */}
+            <div className="flex-grow overflow-y-auto">
+              <ChatMessages messages={messages} messagesEndRef={messagesEndRef} iaAvatar={IA_AVATAR} userAvatar={USER_AVATAR} />
             </div>
             {loading && (
               <div className="flex items-center gap-2 px-4 py-2 text-gray-500 animate-pulse">

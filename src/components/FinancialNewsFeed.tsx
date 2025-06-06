@@ -50,6 +50,7 @@ const FinancialNewsFeed: React.FC<FinancialNewsFeedProps> = ({ hideHeader = fals
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchNews = useCallback(async (scope: NewsScope) => {
+    console.log('FinancialNewsFeed.tsx - V_MODAL_FIX_ATTEMPT - Running fetchNews with scope:', scope);
     setLoading(true);
     setError(null);
     try {

@@ -154,7 +154,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg relative mx-2 flex flex-col" style={{ width: '95vw', maxWidth: 400, maxHeight: '90vh' }}>
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg relative mx-2 flex flex-col max-h-[90vh]" style={{ width: '95vw', maxWidth: 400 }}>
         {/* Header Section (Not scrollable) */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <h2 className="text-xl font-semibold text-galileo-text">Adicionar Nova Conta</h2>

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Info, TrendingUp, TrendingDown, ShieldCheck, AlertTriangle } from 'lucide-react';
-import { ResponsiveContainer, RadialBarChart, RadialBar, PolarAngleAxis, Label } from 'recharts';
+import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend, Tooltip } from 'recharts';
 import { calculateFinancialHealthScore } from '@/services/financialHealthService';
 import { getTransactions, getBills } from '@/utils/localStorage';
 import { Transaction, Bill as Debt } from '@/types';
@@ -25,45 +25,19 @@ interface ScoreData {
   currentTotalBalance: number;
 }
 
-// Funções auxiliares movidas para o escopo do módulo
+// Funções auxiliares ajustadas para escala 0-100
 const getScoreColor = (score: number): string => {
-  if (score < 4) return 'hsl(var(--destructive))'; // Vermelho para Ruim
-  if (score < 7) return 'hsl(var(--warning))'; // Amarelo para Regular
-  if (score < 9) return 'hsl(var(--info))'; // Azul para Bom
-  return 'hsl(var(--success))'; // Verde para Excelente
+  if (score < 40) return 'hsl(var(--destructive))'; // Vermelho para Ruim (0-39.9)
+  if (score < 70) return 'hsl(var(--warning))';   // Amarelo para Regular (40-69.9)
+  if (score < 90) return 'hsl(var(--info))';      // Azul para Bom (70-89.9)
+  return 'hsl(var(--success))';                   // Verde para Excelente (90-100)
 };
 
 const getScoreDescription = (score: number): string => {
-  if (score < 4) return 'Ruim';
-  if (score < 7) return 'Regular';
-  if (score < 9) return 'Bom';
+  if (score < 40) return 'Ruim';
+  if (score < 70) return 'Regular';
+  if (score < 90) return 'Bom';
   return 'Excelente';
-};
-
-// Componente funcional para o conteúdo customizado do Label central
-interface CentralLabelProps {
-  viewBox?: { cx?: number; cy?: number };
-  value?: number; // Este valor virá das props injetadas pela função label do RadialBar
-}
-
-const CentralLabelContent: React.FC<CentralLabelProps> = ({ viewBox, value }) => {
-  const { cx, cy } = viewBox || {};
-  // value é a pontuação final, ex: 7.5
-  if (cx === undefined || cy === undefined || value === undefined) return null;
-
-  const descriptionText = getScoreDescription(value);
-  const fillColor = getScoreColor(value);
-
-  return (
-    <g>
-      <text x={cx} y={cy - 5} textAnchor="middle" dominantBaseline="central" className="text-3xl font-bold" style={{ fill: fillColor }}>
-        {value.toFixed(1)}
-      </text>
-      <text x={cx} y={cy + 15} textAnchor="middle" dominantBaseline="central" className="text-xs fill-muted-foreground">
-        {descriptionText}
-      </text>
-    </g>
-  );
 };
 
 const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => {
@@ -104,10 +78,10 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
     return (
       <Card className="shadow-lg bg-card text-card-foreground">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Nota de Saúde Financeira</CardTitle>
+          <CardTitle className="text-lg font-semibold">Carregando Análise...</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>Calculando sua nota...</p>
+          <p>Aguarde enquanto nossa I.A. processa seus dados...</p>
         </CardContent>
       </Card>
     );
@@ -117,10 +91,10 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
     return (
       <Card className="shadow-lg bg-card text-card-foreground">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Nota de Saúde Financeira</CardTitle>
+          <CardTitle className="text-lg font-semibold">Erro ao Calcular Análise</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>Não foi possível calcular sua nota. Verifique se há transações e dívidas registradas.</p>
+          <p>Não foi possível calcular sua análise. Verifique se há transações e contas registradas ou tente novamente mais tarde.</p>
         </CardContent>
       </Card>
     );
@@ -130,82 +104,54 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
     <Card className="shadow-lg bg-card text-card-foreground">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center justify-between">
-            Nota de Saúde Financeira
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="ml-2">
-                  <Info size={18} />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Sobre a Nota de Saúde Financeira</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta nota (0-10) avalia sua saúde financeira com base em Poupança (30%), Endividamento (40%) e Liquidez (30%).
-                    <br /><br />
-                    <strong>Poupança:</strong> Capacidade de guardar dinheiro mensalmente.
-                    <br />
-                    <strong>Endividamento:</strong> Nível de dívidas em relação à sua renda.
-                    <br />
-                    <strong>Liquidez:</strong> Capacidade de cobrir despesas com seus ativos líquidos.
-                    <br /><br />
-                    <em>Disclaimer: Esta é uma análise simplificada e não substitui o aconselhamento financeiro profissional.</em>
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogAction>Entendi</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+          <CardTitle className="text-xl font-bold">
+            Sua Saúde Financeira: <span style={{ color: getScoreColor(scoreData.finalScore) }}>{scoreData.finalScore}/100</span>
           </CardTitle>
-        </div>
-        {/* Gráfico RadialBarChart para a nota final - Movido para baixo do título */}
-        <div style={{ width: '100%', height: 200 }} className="mt-2 mb-2 flex justify-center items-center">
-          <ResponsiveContainer width="50%" height="100%"> {/* Ajustado para ocupar menos largura e centralizar */}
-            <RadialBarChart 
-              cx="50%" 
-              cy="50%" 
-              innerRadius="60%" 
-              outerRadius="100%" 
-              barSize={20} 
-              data={[{ name: 'Score', value: scoreData.finalScore, fill: getScoreColor(scoreData.finalScore) }]}
-              startAngle={90}
-              endAngle={-270}
-            >
-              <PolarAngleAxis type="number" domain={[0, 10]} angleAxisId={0} tick={false} />
-              <RadialBar
-                background
-                dataKey='value' // Garante que props.value na função label seja scoreData.finalScore
-                angleAxisId={0}
-                cornerRadius={10}
-                label={(props) => { // Usar uma função de renderização para o label
-                  // props aqui incluirá viewBox, value (do dataKey), etc.
-                  return (
-                    <CentralLabelContent 
-                      viewBox={props.viewBox} 
-                      value={props.value} // Passa o valor do segmento da barra
-                    />
-                  );
-                }}
-              />
-            </RadialBarChart>
-          </ResponsiveContainer>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Info size={18} />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Análise de Saúde Financeira por I.A.</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Nossa Inteligência Artificial analisa sua situação financeira com base em três pilares principais, gerando uma pontuação de 0 a 100 para cada um:
+                  <br /><br />
+                  <strong>Poupança:</strong> Sua capacidade de acumular recursos e construir patrimônio.
+                  <br />
+                  <strong>Endividamento:</strong> O quão gerenciável é o seu nível de dívidas em relação à sua renda.
+                  <br />
+                  <strong>Liquidez:</strong> Sua capacidade de cobrir despesas inesperadas com seus ativos disponíveis.
+                  <br /><br />
+                  A nota final é uma média ponderada dessas três áreas, refletindo sua saúde financeira global.
+                  <br /><br />
+                  <em>Disclaimer: Esta é uma análise gerada por IA para fins informativos e não substitui o aconselhamento financeiro profissional. Os cálculos são baseados nos dados fornecidos.</em>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction>Entendi</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center">
-          {getScoreIcon('savings', scoreData.savingsScore)}
-          <span>Poupança: <span className={`font-semibold ${getScoreColor(scoreData.savingsScore)}`}>{scoreData.savingsScore}/10</span></span>
-        </div>
-        <div className="flex items-center">
-          {getScoreIcon('debt', scoreData.debtScore)}
-          <span>Endividamento: <span className={`font-semibold ${getScoreColor(scoreData.debtScore)}`}>{scoreData.debtScore}/10</span></span>
-        </div>
-        <div className="flex items-center">
-          {getScoreIcon('liquidity', scoreData.liquidityScore)}
-          <span>Liquidez: <span className={`font-semibold ${getScoreColor(scoreData.liquidityScore)}`}>{scoreData.liquidityScore}/10</span></span>
-        </div>
+      <CardContent className="pt-4">
+        <ResponsiveContainer width="100%" height={300}>
+          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={[
+            { subject: 'Poupança', score: scoreData.savingsScore, fullMark: 100 },
+            { subject: 'Endividamento', score: scoreData.debtScore, fullMark: 100 },
+            { subject: 'Liquidez', score: scoreData.liquidityScore, fullMark: 100 },
+          ]}>
+            <PolarGrid />
+            <PolarAngleAxis dataKey="subject" />
+            <PolarRadiusAxis angle={30} domain={[0, 100]} tickFormatter={(value) => `${value}`} />
+            <Radar name="Saúde Financeira" dataKey="score" stroke="#16a34a" fill="#16a34a" fillOpacity={0.6} />
+            <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} formatter={(value: number) => [`${value}/100`, 'Pontuação']} />
+            <Legend />
+          </RadarChart>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
   );

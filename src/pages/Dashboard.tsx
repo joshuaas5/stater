@@ -370,24 +370,9 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Link para Análise Financeira Pessoal Section */}
-      <div className="px-4 mb-6">
-        <Link to="/analise-financeira" className="block hover:no-underline">
-          <Card className="hover:shadow-lg transition-shadow duration-200 cursor-pointer bg-card text-card-foreground">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-lg font-semibold">
-                💰 Análise Financeira
-              </CardTitle>
-              <DollarSign className="h-5 w-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Veja sua nota de saúde financeira, dicas e o livro da semana.
-              </p>
-              <div className="flex items-center pt-2 text-primary">
-                Acessar Análise <ArrowRight className="h-4 w-4 ml-1" />
-              </div>
-            </CardContent>
-          </Card>
+      <div className="px-4 mb-6 flex justify-end">
+        <Link to="/analise-financeira" className="text-sm text-primary hover:underline flex items-center">
+          <DollarSign className="h-4 w-4 mr-1" /> Análise das suas finanças
         </Link>
       </div>
 

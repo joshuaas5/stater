@@ -88,37 +88,71 @@ const calculateCurrentTotalBalance = (transactions: Transaction[]): number => {
 // Funções para calcular as pontuações parciais (Poupança, Endividamento, Liquidez)
 
 const calculateSavingsScore = (monthlySavingsAmount: number, netMonthlyIncome: number): number => {
-  if (netMonthlyIncome <= 0) return 0; // Evita divisão por zero e poupança negativa não faz sentido aqui
-  const savingsCapacity = (monthlySavingsAmount / netMonthlyIncome) * 100;
+  if (netMonthlyIncome <= 0) return 5.0; // Se não há renda, mas não poupa negativamente, uma base mínima.
+  
+  const savingsRate = monthlySavingsAmount / netMonthlyIncome; // ex: 0.1 para 10%
 
-  if (savingsCapacity >= 20) return 10;
-  if (savingsCapacity >= 10) return 5;
-  return 0;
+  let score = 0;
+  if (savingsRate < -0.1) { // Gasta 10% a mais do que ganha
+    score = 5.0;
+  } else if (savingsRate < 0) { // Gasta um pouco a mais do que ganha
+    score = 15.0 + (savingsRate / -0.1) * 10.0; // entre 15 e 25
+  } else if (savingsRate < 0.05) { // Poupa 0-5%
+    score = 25.0 + (savingsRate / 0.05) * 20.0; // entre 25 e 45
+  } else if (savingsRate < 0.10) { // Poupa 5-10%
+    score = 45.0 + ((savingsRate - 0.05) / 0.05) * 20.0; // entre 45 e 65
+  } else if (savingsRate < 0.15) { // Poupa 10-15%
+    score = 65.0 + ((savingsRate - 0.10) / 0.05) * 15.0; // entre 65 e 80
+  } else if (savingsRate < 0.25) { // Poupa 15-25%
+    score = 80.0 + ((savingsRate - 0.15) / 0.10) * 15.0; // entre 80 e 95
+  } else { // Poupa >= 25%
+    score = Math.min(100.0, 95.0 + ((savingsRate - 0.25) / 0.15) * 5.0); // Tende a 100, máximo em 100
+  }
+  return parseFloat(score.toFixed(1));
 };
 
 const calculateDebtScore = (totalDebt: number, netMonthlyIncome: number): number => {
   if (netMonthlyIncome <= 0) {
-    // Se não há renda, qualquer dívida é problemática, a menos que a dívida seja zero.
-    return totalDebt > 0 ? 0 : 10; 
+    return totalDebt > 0 ? 5.0 : 95.0; // Se não há renda, dívida é ruim, sem dívida é bom.
   }
-  const dti = totalDebt / netMonthlyIncome;
+  const dtiRatio = totalDebt / netMonthlyIncome; // ex: 0.3 para 30%
 
-  if (dti <= 0.2) return 10;
-  if (dti <= 0.4) return 5;
-  return 0;
+  let score = 0;
+  if (dtiRatio >= 0.6) { // DTI >= 60%
+    score = 5.0;
+  } else if (dtiRatio >= 0.5) { // DTI 50-60%
+    score = 15.0 - ((dtiRatio - 0.5) / 0.1) * 10.0; // entre 5 e 15 (invertido)
+  } else if (dtiRatio >= 0.4) { // DTI 40-50%
+    score = 35.0 - ((dtiRatio - 0.4) / 0.1) * 20.0; // entre 15 e 35 (invertido)
+  } else if (dtiRatio >= 0.3) { // DTI 30-40%
+    score = 60.0 - ((dtiRatio - 0.3) / 0.1) * 25.0; // entre 35 e 60 (invertido)
+  } else if (dtiRatio >= 0.15) { // DTI 15-30%
+    score = 85.0 - ((dtiRatio - 0.15) / 0.15) * 25.0; // entre 60 e 85 (invertido)
+  } else { // DTI < 15%
+    score = Math.min(100.0, 95.0 + ((0.15 - dtiRatio) / 0.15) * 5.0); // Tende a 100, máximo em 100
+  }
+  return parseFloat(score.toFixed(1));
 };
 
 const calculateLiquidityScore = (currentTotalBalance: number, totalMonthlyExpenses: number): number => {
   if (totalMonthlyExpenses <= 0) {
-    // Se não há despesas, qualquer saldo positivo é boa liquidez.
-    // Se o saldo também for zero ou negativo, a liquidez é baixa.
-    return currentTotalBalance > 0 ? 10 : 0;
+    return currentTotalBalance > 0 ? 95.0 : 5.0;
   }
-  const ilgAdapted = currentTotalBalance / totalMonthlyExpenses;
+  const monthsCovered = currentTotalBalance / totalMonthlyExpenses; // Meses de despesas cobertos
 
-  if (ilgAdapted >= 3) return 10;
-  if (ilgAdapted >= 1) return 5;
-  return 0;
+  let score = 0;
+  if (monthsCovered < 0.5) { // Menos de 0.5 mês
+    score = 5.0 + (monthsCovered / 0.5) * 15.0; // entre 5 e 20
+  } else if (monthsCovered < 1) { // 0.5-1 mês
+    score = 20.0 + ((monthsCovered - 0.5) / 0.5) * 20.0; // entre 20 e 40
+  } else if (monthsCovered < 2) { // 1-2 meses
+    score = 40.0 + ((monthsCovered - 1) / 1) * 25.0; // entre 40 e 65
+  } else if (monthsCovered < 4) { // 2-4 meses
+    score = 65.0 + ((monthsCovered - 2) / 2) * 25.0; // entre 65 e 90
+  } else { // >= 4 meses
+    score = Math.min(100.0, 90.0 + ((monthsCovered - 4) / 2) * 10.0); // Tende a 100, máximo em 100 para 6 meses
+  }
+  return parseFloat(score.toFixed(1));
 };
 
 /**
@@ -140,18 +174,16 @@ export const calculateFinancialHealthScore = (transactions: Transaction[], debts
   const debtScore = calculateDebtScore(totalDebt, netMonthlyIncome);
   const liquidityScore = calculateLiquidityScore(currentTotalBalance, totalMonthlyExpenses);
 
-  // Aplicar pesos e calcular a nota final
-  // Pesos: Poupança (3), Endividamento (4), Liquidez (3)
-  const totalWeight = 3 + 4 + 3;
-  const finalScore = (savingsScore * 3 + debtScore * 4 + liquidityScore * 3) / totalWeight;
-
+  // Aplicar pesos e calcular a nota final (escala 0-100)
+  // Pesos: Poupança (30%), Endividamento (40%), Liquidez (30%)
+  const finalScore = (savingsScore * 0.3 + debtScore * 0.4 + liquidityScore * 0.3);
 
   return {
-    finalScore: parseFloat(finalScore.toFixed(1)), // Arredondar para 1 casa decimal
-    savingsScore,
-    debtScore,
-    liquidityScore,
-    // Poderíamos retornar os valores base também para exibição/detalhes
+    finalScore: parseFloat(finalScore.toFixed(1)),
+    savingsScore: parseFloat(savingsScore.toFixed(1)),
+    debtScore: parseFloat(debtScore.toFixed(1)),
+    liquidityScore: parseFloat(liquidityScore.toFixed(1)),
+    // Adicionar os valores brutos para possível exibição ou depuração
     netMonthlyIncome,
     totalMonthlyExpenses,
     monthlySavingsAmount,

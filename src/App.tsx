@@ -21,6 +21,7 @@ import { FinancialAdvisorPage } from "./pages/FinancialAdvisorPage";
 import RecommendationsPage from "./pages/RecommendationsPage";
 import SettingsPage from "./pages/SettingsPage";
 import ExportReportPage from "./pages/ExportReportPage";
+import FinancialAnalysisPage from "./pages/FinancialAnalysisPage"; // Nova página
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -89,6 +90,14 @@ const App = () => (
                     <NotificationsPage />
                   </PrivateRoute>
                 } 
+              />
+              <Route 
+                path="/analise-financeira"
+                element={ 
+                  <PrivateRoute>
+                    <FinancialAnalysisPage />
+                  </PrivateRoute>
+                }
               />
               <Route 
                 path="/preferences" 

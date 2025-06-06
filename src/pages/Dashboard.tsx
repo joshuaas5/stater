@@ -9,8 +9,9 @@ import NavBar from '@/components/navigation/NavBar';
 import BalanceCard from '@/components/dashboard/BalanceCard';
 import { Eye, EyeOff, Edit } from 'lucide-react';
 import SpendingChart from '@/components/dashboard/SpendingChart';
-import BookOfTheWeek from '@/components/personal_analysis/BookOfTheWeek';
-import FinancialHealthScoreCard from '@/components/personal_analysis/FinancialHealthScoreCard';
+import { Link } from 'react-router-dom';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { DollarSign, ArrowRight } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { MonthSelector } from '@/components/ui/month-selector';
@@ -368,17 +369,26 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Análise Financeira Pessoal Section */}
+      {/* Link para Análise Financeira Pessoal Section */}
       <div className="px-4 mb-6">
-        <h2 className="text-xl font-semibold mb-4 text-galileo-text">Análise Financeira Pessoal</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <BookOfTheWeek />
-          </div>
-          <div>
-            <FinancialHealthScoreCard />
-          </div>
-        </div>
+        <Link to="/analise-financeira" className="block hover:no-underline">
+          <Card className="hover:shadow-lg transition-shadow duration-200 cursor-pointer bg-card text-card-foreground">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-semibold">
+                💰 Análise Financeira
+              </CardTitle>
+              <DollarSign className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Veja sua nota de saúde financeira, dicas e o livro da semana.
+              </p>
+              <div className="flex items-center pt-2 text-primary">
+                Acessar Análise <ArrowRight className="h-4 w-4 ml-1" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       <div className="flex justify-center gap-4 mb-6">

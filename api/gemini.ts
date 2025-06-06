@@ -344,7 +344,16 @@ const handler = async (req: any, res: any) => {
     }
 
     console.log('[GEMINI_API] Gemini API call successful. Parsing JSON response...');
-    const data = await response.json() as GeminiResponse;
+    let data: GeminiResponse | null = null;
+let rawGeminiResponse = '';
+try {
+  rawGeminiResponse = await response.text();
+  console.log('[GEMINI_API] Raw Gemini response:', rawGeminiResponse);
+  data = JSON.parse(rawGeminiResponse);
+} catch (jsonError) {
+  console.error('[GEMINI_API] Erro ao fazer parse do JSON da Gemini:', jsonError, 'Resposta bruta:', rawGeminiResponse);
+  return res.status(500).json({ error: 'Erro ao interpretar resposta da IA Gemini', details: rawGeminiResponse });
+}
 
     // Ensure usageMetadata is present before proceeding
     if (!data.usageMetadata) {
@@ -383,7 +392,11 @@ const handler = async (req: any, res: any) => {
       console.warn("Limite da API Gemini próximo ou atingido:", usage);
     }
     console.log('[GEMINI_API] Successfully processed request. Sending 200 response to client.');
-    return res.status(200).json({ response: outputText });
+    // Garante que nunca retorna JSON vazio
+if (!outputText || outputText.trim() === '{}' || outputText.trim() === '```json\n{}\n```') {
+  outputText = 'Desculpe, não consegui obter uma resposta útil da IA no momento. Tente reformular sua pergunta ou tente novamente mais tarde.';
+}
+return res.status(200).json({ resposta: outputText });
     console.log('[GEMINI_API_HANDLER_END]');
 
   } catch (e: any) {

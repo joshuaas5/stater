@@ -153,7 +153,7 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
             ]}
           >
             <PolarGrid stroke="#5B21B6" /> {/* Grid roxo mais escuro */}
-            <PolarAngleAxis dataKey="subject" stroke="#D8B4FE" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} /> {/* Eixos angulares e ticks adaptáveis ao tema */}
+            <PolarAngleAxis dataKey="subject" stroke="#D8B4FE" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} /> {/* Eixos angulares (Reserva Estratégica, etc) com cor principal do tema */}
             <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#7E22CE" tick={{ fill: 'hsl(var(--muted-foreground))' }} /> {/* Eixo radial roxo, ticks adaptáveis ao tema */}
             <Radar 
               name="Sua Performance"
@@ -180,10 +180,10 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
 
         {financialTips.length > 0 && (
           <div className="mt-6 pt-4 border-t border-purple-300/30">
-            <h3 className="text-md font-semibold mb-3 text-purple-200">Insights 💡</h3>
+            <h3 className="text-md font-semibold mb-3 text-foreground">Insights 💡</h3>
             <ul className="space-y-2 list-inside list-disc pl-2">
               {financialTips.map((tip, index) => (
-                <li key={index} className="text-sm text-purple-300/90">
+                <li key={index} className="text-sm text-muted-foreground">
                   {tip}
                 </li>
               ))}

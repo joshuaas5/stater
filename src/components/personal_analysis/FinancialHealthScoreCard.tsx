@@ -18,6 +18,9 @@ interface ScoreData {
   savingsScore: number;
   debtScore: number;
   liquidityScore: number;
+  billsOnTimeScore: number;
+  appUsageScore: number;
+  iaInteractionScore: number;
   netMonthlyIncome: number;
   totalMonthlyExpenses: number;
   monthlySavingsAmount: number;
@@ -117,18 +120,24 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
               <AlertDialogHeader>
                 <AlertDialogTitle>Análise de Saúde Financeira por I.A.</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Nossa Inteligência Artificial analisa sua situação financeira com base em três pilares principais, gerando uma pontuação de 0 a 100 para cada um:
-                  <br /><br />
-                  <strong>Poupança:</strong> Sua capacidade de acumular recursos e construir patrimônio.
-                  <br />
-                  <strong>Endividamento:</strong> O quão gerenciável é o seu nível de dívidas em relação à sua renda.
-                  <br />
-                  <strong>Liquidez:</strong> Sua capacidade de cobrir despesas inesperadas com seus ativos disponíveis.
-                  <br /><br />
-                  A nota final é uma média ponderada dessas três áreas, refletindo sua saúde financeira global.
-                  <br /><br />
-                  <em>Disclaimer: Esta é uma análise gerada por IA para fins informativos e não substitui o aconselhamento financeiro profissional. Os cálculos são baseados nos dados fornecidos.</em>
-                </AlertDialogDescription>
+                Nossa Inteligência Artificial analisa sua situação financeira considerando múltiplos fatores, cada um com um peso na nota final (de 0 a 100):
+                <br /><br />
+                <strong>Poupança (40%):</strong> Quanto você já acumulou em patrimônio em relação à sua renda mensal.
+                <br />
+                <strong>Endividamento (30%):</strong> O quão saudável está seu nível de dívidas em relação à renda.
+                <br />
+                <strong>Liquidez (20%):</strong> Sua capacidade de cobrir despesas inesperadas com o saldo disponível.
+                <br />
+                <strong>Contas em dia (5%):</strong> Se você mantém suas contas pagas sem atrasos.
+                <br />
+                <strong>Uso do app (2,5%):</strong> Frequência de acesso ao aplicativo.
+                <br />
+                <strong>Interação IA (2,5%):</strong> O quanto você busca dicas e conselhos do consultor inteligente.
+                <br /><br />
+                A nota final é uma média ponderada desses fatores, refletindo sua saúde financeira global e seu engajamento com o app.
+                <br /><br />
+                <em>Disclaimer: Esta é uma análise gerada por IA para fins informativos e não substitui o aconselhamento financeiro profissional. Os cálculos são baseados nos dados fornecidos.</em>
+              </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogAction>Entendi</AlertDialogAction>
@@ -152,6 +161,14 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
             <Legend />
           </RadarChart>
         </ResponsiveContainer>
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+          <div className="flex items-center"><span className="font-semibold mr-1">Poupança (40%):</span> {scoreData.savingsScore}/100</div>
+          <div className="flex items-center"><span className="font-semibold mr-1">Endividamento (30%):</span> {scoreData.debtScore}/100</div>
+          <div className="flex items-center"><span className="font-semibold mr-1">Liquidez (20%):</span> {scoreData.liquidityScore}/100</div>
+          <div className="flex items-center"><span className="font-semibold mr-1">Contas em dia (5%):</span> {scoreData.billsOnTimeScore ?? '--'}/100</div>
+          <div className="flex items-center"><span className="font-semibold mr-1">Uso do app (2,5%):</span> {scoreData.appUsageScore ?? '--'}/100</div>
+          <div className="flex items-center"><span className="font-semibold mr-1">Interação IA (2,5%):</span> {scoreData.iaInteractionScore ?? '--'}/100</div>
+        </div>
       </CardContent>
     </Card>
   );

@@ -89,10 +89,19 @@ const calculateCurrentTotalBalance = (transactions: Transaction[]): number => {
 
 // Nota de poupança: 100% baseada no patrimônio acumulado
 const calculateSavingsScore = (netMonthlyIncome: number, currentTotalBalance: number): number => {
-  if (netMonthlyIncome <= 0) return 0;
+  if (netMonthlyIncome <= 0) {
+    // Nova lógica para quando a renda mensal é zero ou negativa
+    if (currentTotalBalance >= 30000) return 100; // Acima de 30k = Excelente
+    if (currentTotalBalance >= 15000) return 75;  // Entre 15k e 30k = Bom
+    if (currentTotalBalance >= 5000) return 50;   // Entre 5k e 15k = Regular
+    if (currentTotalBalance > 0) return 25;       // Algum saldo positivo = Ruim, mas não zero
+    return 0; // Sem saldo e sem renda = Zero
+  }
+
+  // Lógica original para quando há renda mensal positiva
   const patrimonioMultiplo = currentTotalBalance / netMonthlyIncome;
-  if (patrimonioMultiplo <= 0) return 0;
-  if (patrimonioMultiplo >= 12) return 100;
+  if (patrimonioMultiplo <= 0) return 0; // Se o saldo for negativo ou zero, mesmo com renda.
+  if (patrimonioMultiplo >= 12) return 100; // Acumulou 12x a renda mensal = Excelente
   return parseFloat(((patrimonioMultiplo / 12) * 100).toFixed(1));
 };
 

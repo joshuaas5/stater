@@ -120,24 +120,14 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
               <AlertDialogHeader>
                 <AlertDialogTitle>Análise de Saúde Financeira por I.A.</AlertDialogTitle>
                 <AlertDialogDescription>
-                Nossa Inteligência Artificial analisa sua situação financeira considerando múltiplos fatores, cada um com um peso na nota final (de 0 a 100):
-                <br /><br />
-                <strong>Poupança (40%):</strong> Quanto você já acumulou em patrimônio em relação à sua renda mensal.
-                <br />
-                <strong>Endividamento (30%):</strong> O quão saudável está seu nível de dívidas em relação à renda.
-                <br />
-                <strong>Liquidez (20%):</strong> Sua capacidade de cobrir despesas inesperadas com o saldo disponível.
-                <br />
-                <strong>Contas em dia (5%):</strong> Se você mantém suas contas pagas sem atrasos.
-                <br />
-                <strong>Uso do app (2,5%):</strong> Frequência de acesso ao aplicativo.
-                <br />
-                <strong>Interação IA (2,5%):</strong> O quanto você busca dicas e conselhos do consultor inteligente.
-                <br /><br />
-                A nota final é uma média ponderada desses fatores, refletindo sua saúde financeira global e seu engajamento com o app.
-                <br /><br />
-                <em>Disclaimer: Esta é uma análise gerada por IA para fins informativos e não substitui o aconselhamento financeiro profissional. Os cálculos são baseados nos dados fornecidos.</em>
-              </AlertDialogDescription>
+                  Nossa Inteligência Artificial realiza uma varredura completa em sua vida financeira, analisando um vasto conjunto de dados e comportamentos para gerar sua pontuação.
+                  <br /><br />
+                  Consideramos, por exemplo, seus hábitos de poupança, a forma como gerencia suas dívidas, sua liquidez para imprevistos, e até mesmo seu engajamento e busca por conhecimento financeiro através de nossa plataforma.
+                  <br /><br />
+                  A nota final é o resultado dessa complexa análise multidimensional, oferecendo um panorama da sua saúde financeira atual.
+                  <br /><br />
+                  <em>Disclaimer: Esta é uma análise gerada por IA para fins informativos e não substitui o aconselhamento financeiro profissional. Os cálculos são baseados nos dados fornecidos.</em>
+                </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogAction>Entendi</AlertDialogAction>
@@ -148,27 +138,39 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
       </CardHeader>
       <CardContent className="pt-4">
         <ResponsiveContainer width="100%" height={300}>
-          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={[
-            { subject: 'Poupança', score: scoreData.savingsScore, fullMark: 100 },
-            { subject: 'Endividamento', score: scoreData.debtScore, fullMark: 100 },
-            { subject: 'Liquidez', score: scoreData.liquidityScore, fullMark: 100 },
-          ]}>
-            <PolarGrid />
-            <PolarAngleAxis dataKey="subject" />
-            <PolarRadiusAxis angle={30} domain={[0, 100]} tickFormatter={(value) => `${value}`} />
-            <Radar name="Saúde Financeira" dataKey="score" stroke="#16a34a" fill="#16a34a" fillOpacity={0.6} />
-            <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} formatter={(value: number) => [`${value}/100`, 'Pontuação']} />
-            <Legend />
+          <RadarChart 
+            cx="50%" 
+            cy="50%" 
+            outerRadius="80%" 
+            data={[
+              { subject: 'Poupança', score: scoreData.savingsScore, fullMark: 100 },
+              { subject: 'Endividamento', score: scoreData.debtScore, fullMark: 100 },
+              { subject: 'Liquidez', score: scoreData.liquidityScore, fullMark: 100 },
+            ]}
+          >
+            <PolarGrid stroke="#4A5568" /> {/* Grid cinza escuro */}
+            <PolarAngleAxis dataKey="subject" stroke="#E2E8F0" /> {/* Eixos angulares brancos/cinza claro */}
+            <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#718096" tick={{ fill: '#A0AEC0' }} /> {/* Eixo radial cinza, ticks cinza claro */}
+            <Radar 
+              name="Sua Performance"
+              dataKey="score" 
+              stroke="#3B82F6"  /* Azul neon */
+              fill="#EC4899"    /* Rosa/Magenta neon */
+              fillOpacity={0.5}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'rgba(31, 41, 55, 0.8)', /* Fundo do tooltip escuro semi-transparente */
+                borderColor: '#4A5568', 
+                color: '#E2E8F0' 
+              }} 
+              formatter={(value: number) => [`${value.toFixed(1)} / 100`, 'Performance']}
+              labelStyle={{ color: '#00A9FF' }} /* Cor do label (Poupança, etc) no tooltip */
+            />
+            {/* <Legend /> Removida para um visual mais limpo e misterioso */}
           </RadarChart>
         </ResponsiveContainer>
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-          <div className="flex items-center"><span className="font-semibold mr-1">Poupança (40%):</span> {scoreData.savingsScore}/100</div>
-          <div className="flex items-center"><span className="font-semibold mr-1">Endividamento (30%):</span> {scoreData.debtScore}/100</div>
-          <div className="flex items-center"><span className="font-semibold mr-1">Liquidez (20%):</span> {scoreData.liquidityScore}/100</div>
-          <div className="flex items-center"><span className="font-semibold mr-1">Contas em dia (5%):</span> {scoreData.billsOnTimeScore ?? '--'}/100</div>
-          <div className="flex items-center"><span className="font-semibold mr-1">Uso do app (2,5%):</span> {scoreData.appUsageScore ?? '--'}/100</div>
-          <div className="flex items-center"><span className="font-semibold mr-1">Interação IA (2,5%):</span> {scoreData.iaInteractionScore ?? '--'}/100</div>
-        </div>
+        {/* A exibição detalhada dos scores individuais foi removida para um design mais 'misterioso' */}
       </CardContent>
     </Card>
   );

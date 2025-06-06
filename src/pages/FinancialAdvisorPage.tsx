@@ -392,58 +392,63 @@ export const FinancialAdvisorPage: React.FC = () => {
       }
       let confirmationMessageForChat: string = botResponseText;
 
+      // Attempt to parse AI response for transaction JSON
+      let isTransactionJson = false;
       try {
         let jsonStringToParse = botResponseText;
-        // Tenta extrair o conteúdo de um bloco ```json ... ```
-        const match = jsonStringToParse.match(/```json\s*([\s\S]*?)\s*```/);
-        if (match && match[1]) {
-          jsonStringToParse = match[1].trim();
-        } else {
-          // Fallback: remove marcadores ``` genéricos ou apenas faz trim se não houver marcadores.
-          // Isso é útil se a resposta for um JSON simples ou um JSON em ``` ... ``` genérico.
-          jsonStringToParse = jsonStringToParse.replace(/^```\s*([\s\S]*?)\s*```$/, '$1').trim();
-        }
-        
-        // Usa jsonStringToParse (a string limpa) para as operações seguintes
-        const sanitizedFullResponse = jsonStringToParse.replace(/,\s*}/g, "}").replace(/,\s*\]/g, "]");
-        const parsedFullResponse: GeminiTransactionIntent = JSON.parse(sanitizedFullResponse);
-        
-        if (parsedFullResponse.action === "add_transaction") {
-          const { transaction_type, description, amount, category, date } = parsedFullResponse;
-          const formattedDateStr = date ? new Date(date + "T00:00:00").toLocaleDateString("pt-BR") : "";
-          const confirmText = `📝 Ok! Você quer adicionar ${transaction_type === "income" ? "uma receita 🤑" : "uma despesa 💸"} de R$${amount.toFixed(2)} para \"${description}\"${category ? ` na categoria \"${category}\"` : ""}${date ? ` em ${formattedDateStr}` : ""}.\n\nCorreto? Registrar? (sim/não)`;
-          try {
-            // Tenta extrair JSON válido da resposta da IA
-            const jsonStart = botResponseText.indexOf('{');
-            const jsonEnd = botResponseText.lastIndexOf('}');
-            if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-              const jsonString = botResponseText.substring(jsonStart, jsonEnd + 1);
-              const parsed = JSON.parse(jsonString);
-              // Se for um objeto com os campos esperados
-              if (parsed && typeof parsed === 'object' && (parsed.type === 'income' || parsed.type === 'expense')) {
-                setPendingAction({ tipo: parsed.type, dados: parsed });
-                setWaitingConfirmation(true);
-                setLoading(false);
-                // NÃO adiciona mensagem de confirmação textual ao chat, só ativa os botões
-                return;
-              }
-            }
-          } catch (jsonParseError) {
-            console.log("Resposta da IA não é um JSON de transação direta, tentando confirmação textual:", botResponseText);
-          }
+        const jsonBlockMatch = botResponseText.match(/```json\s*([\s\S]*?)\s*```/);
 
-          setPendingAction({ 
-            tipo: transaction_type === "income" ? "income" : "expense", 
-            dados: { description, amount, category: category || null, date: date || null } 
-          });
-          setWaitingConfirmation(true);
-          setMessages(prev => [...prev, { id: uuidv4(), text: confirmText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR }]);
-          setLoading(false);
-          return;
+        if (jsonBlockMatch && jsonBlockMatch[1]) {
+          jsonStringToParse = jsonBlockMatch[1].trim();
+        } else {
+          const firstBrace = botResponseText.indexOf('{');
+          const lastBrace = botResponseText.lastIndexOf('}');
+          if (firstBrace !== -1 && lastBrace > firstBrace) {
+            jsonStringToParse = botResponseText.substring(firstBrace, lastBrace + 1);
+          } else {
+            throw new Error("No clear JSON structure found in AI response for transaction parsing.");
+          }
         }
-      } catch (jsonParseError) {
-        console.log("Resposta da IA não é um JSON de transação direta, tentando confirmação textual:", botResponseText);
+        
+        const sanitizedJsonString = jsonStringToParse.replace(/,\s*([}\]])/g, '$1');
+        const parsed = JSON.parse(sanitizedJsonString);
+
+        if (parsed && typeof parsed === 'object') {
+          if ((parsed.tipo === 'receita' || parsed.tipo === 'despesa') &&
+              parsed.hasOwnProperty('descrição') &&
+              parsed.hasOwnProperty('valor')
+          ) {
+            setPendingAction({
+              tipo: parsed.tipo === 'receita' ? 'income' : 'expense',
+              dados: {
+                description: parsed.descrição,
+                amount: parseFloat(parsed.valor),
+                category: parsed.categoria || null,
+                date: parsed.data || null
+              }
+            });
+            setWaitingConfirmation(true);
+            isTransactionJson = true;
+          } else if (parsed.action === "add_transaction" && parsed.transaction_type && parsed.description && parsed.amount) {
+             const { transaction_type, description, amount, category, date } = parsed as GeminiTransactionIntent;
+             setPendingAction({
+               tipo: transaction_type === "income" ? "income" : "expense",
+               dados: { description, amount, category: category || null, date: date || null }
+             });
+             setWaitingConfirmation(true);
+             isTransactionJson = true;
+          }
+        }
+      } catch (e: any) {
+        console.log("AI response not a transaction JSON or parse failed: ", e.message, "\nResponse: ", botResponseText);
+        isTransactionJson = false;
       }
+
+      if (isTransactionJson) {
+        setLoading(false);
+        return; 
+      }
+      // If not a transaction JSON, confirmationMessageForChat (which is botResponseText) will be used by subsequent logic.
 
       const textualConfirmationDetail = parseConfirmationIntent(botResponseText);
 

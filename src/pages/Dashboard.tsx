@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import FinancialNewsFeed from '@/components/FinancialNewsFeed';
+
 import './Dashboard.module.css';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
@@ -35,7 +35,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -686,7 +686,7 @@ const Dashboard: React.FC = () => {
     </div>
     
     <div className="p-5 space-y-4">
-      <FinancialNewsFeed hideHeader={true} />
+
     </div>
     
     <div className="p-4 bg-gray-50 dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-800 rounded-b-xl flex justify-end">

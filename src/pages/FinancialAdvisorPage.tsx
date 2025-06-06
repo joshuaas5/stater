@@ -13,7 +13,7 @@ import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AddBillModal from '@/components/bills/AddBillModal';
+
 
 const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
 const USER_AVATAR = '/user-avatar.svg'; // Placeholder for user avatar
@@ -54,7 +54,7 @@ interface PendingAction {
 }
 
 export const FinancialAdvisorPage: React.FC = () => {
-  const [showAddBillModal, setShowAddBillModal] = useState(false);
+  // const [showAddBillModal, setShowAddBillModal] = useState(false);
 
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -195,17 +195,23 @@ const isAddBillIntent = (msg: string) => {
 
 const handleSendMessage = async (message: string) => {
   if (isAddBillIntent(message)) {
-    setShowAddBillModal(true);
     setMessages(prev => [
       ...prev,
       {
         id: uuidv4(),
-        text: 'Abrindo formulário para adicionar conta. Preencha os dados abaixo:',
+        text: message,
+        sender: 'user',
+        timestamp: new Date(),
+        avatarUrl: USER_AVATAR
+      },
+      {
+        id: uuidv4(),
+        text: "📝 Para adicionar uma nova conta, basta clicar no menu **Contas** ou no botão ➕ ‘Adicionar Conta’ na tela principal do ICTUS! Assim você pode registrar e organizar todas as suas contas de forma fácil e rápida. 😃",
         sender: 'system',
-        timestamp: new Date()
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
       }
     ]);
-    setShowSuggestions(false);
     return;
   }
 
@@ -683,23 +689,6 @@ const handleSendMessage = async (message: string) => {
   ];
 
   const handleTabChange = (tabValue: string) => {
-    setActiveTab(tabValue);
-  };
-
-  return (
-    <>
-      <AddBillModal
-        isOpen={showAddBillModal}
-        onClose={() => setShowAddBillModal(false)}
-        onSuccess={(bill) => {
-          setShowAddBillModal(false);
-          setMessages(prev => [
-            ...prev,
-            {
-              id: uuidv4(),
-              text: `✅ Conta "${bill.title}" adicionada com sucesso!`,
-              sender: 'system',
-              timestamp: new Date()
             }
           ]);
         }}
@@ -761,4 +750,6 @@ const handleSendMessage = async (message: string) => {
       <NavBar />
     </>
   );
-};
+}
+
+export default FinancialAdvisorPage;

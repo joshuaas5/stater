@@ -749,5 +749,6 @@ return (
     </div>
   </>
 );
+};
 
 export default FinancialAdvisorPage;

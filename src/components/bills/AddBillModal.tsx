@@ -154,7 +154,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white dark:bg-gray-900 rounded-lg p-4 sm:p-6 w-full max-w-[400px] w-full shadow-lg relative mx-2 max-h-[90vh] flex flex-col overflow-hidden" style={{width: '100vw', maxWidth: 400, maxHeight: '90vh'}}>
+      <div className="bg-white dark:bg-gray-900 rounded-lg p-4 sm:p-6 w-full max-w-[400px] shadow-lg relative mx-2" style={{ width: '95vw', maxWidth: 400, maxHeight: '90vh', overflowY: 'auto' }}>
         <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={handleClose}>
           <X size={20} />
         </button>
@@ -300,7 +300,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
                 </FormControl>
               </FormItem>
             )} />
-            <div className="flex justify-end fixed left-0 right-0 bottom-0 px-4 pb-4 bg-white dark:bg-gray-900 z-50" style={{maxWidth: 400, margin: '0 auto'}}>
+            <div className="flex justify-end sticky bottom-0 bg-white dark:bg-gray-900 pt-4 pb-2 z-10">
               <Button type="submit" className="bg-galileo-primary text-white w-full sm:w-auto">Adicionar Conta</Button>
             </div>
           </form>

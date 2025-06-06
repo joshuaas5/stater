@@ -39,7 +39,14 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, transactions, mes
               }
             `}
           >
-            <p className="text-sm leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: (message.text || '').replace(/\*\*\*(.*?)\*\*\*/g, '<b>$1</b>') }} />
+            <p
+              className={`text-sm leading-relaxed whitespace-pre-wrap ${message.sender === 'system' ? 'mb-4 space-y-2' : ''}`}
+              dangerouslySetInnerHTML={{
+                __html: (message.text || '')
+                  .replace(/\*\*\*(.*?)\*\*\*/g, '<b>$1</b>') // negrito
+                  .replace(/\*{3}/g, '') // remove asteriscos extras
+              }}
+            />
             {message.sender === 'system' && transactions && transactions.length > 0 && (
               <div className="mt-2 pt-2 space-y-1.5 border-t border-primary-foreground/30">
                 <p className="font-medium text-xs opacity-90">Transações identificadas:</p>

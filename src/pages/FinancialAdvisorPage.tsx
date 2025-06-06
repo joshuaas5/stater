@@ -646,7 +646,6 @@ const handleSendMessage = async (message: string) => {
       </div>
       {/* A NavBar que aparece no rodapé é renderizada aqui */}
       <NavBar />
-    </div>
-  </>
-);
+    </>
+  );
 };

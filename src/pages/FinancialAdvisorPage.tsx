@@ -643,10 +643,9 @@ const handleSendMessage = async (message: string) => {
             </div>
           </div>
         </div>
-      </div>
-      {/* A NavBar que aparece no rodapé é renderizada aqui */}
-      <NavBar /> 
-    </div>
-    </>
-  );
-};
+645:       {/* A NavBar que aparece no rodapé é renderizada aqui */}
+646:       <NavBar />
+647:     </div>
+648:     </>
+649:   );
+650: };

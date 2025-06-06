@@ -109,35 +109,37 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
 
   return (
     <Card className="shadow-lg bg-card text-card-foreground">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl font-bold">
-            Sua Saúde Financeira: <span style={{ color: getScoreColor(scoreData.finalScore) }}>{scoreData.finalScore}/100</span>
-          </CardTitle>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Info size={18} />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Análise de Saúde Financeira por I.A.</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Nossa Inteligência Artificial realiza uma varredura completa em sua vida financeira, analisando um vasto conjunto de dados e comportamentos para gerar sua pontuação.
-                  <br /><br />
-                  Consideramos, por exemplo, seus hábitos de poupança, a forma como gerencia suas dívidas, sua liquidez para imprevistos, e até mesmo seu engajamento e busca por conhecimento financeiro através de nossa plataforma.
-                  <br /><br />
-                  A nota final é o resultado dessa complexa análise multidimensional, oferecendo um panorama da sua saúde financeira atual.
-                  <br /><br />
-                  <em>Disclaimer: Esta é uma análise gerada por IA para fins informativos e não substitui o aconselhamento financeiro profissional. Os cálculos são baseados nos dados fornecidos.</em>
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogAction>Entendi</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+      <CardHeader className="flex flex-row items-start justify-between pb-3">
+        {/* Left side: Score */} 
+        <div> 
+            <p className="text-3xl font-bold" style={{ color: getScoreColor(scoreData.finalScore) }}>
+                {scoreData.finalScore}<span className="text-lg text-muted-foreground">/100</span>
+            </p>
+            <p className="text-xs text-muted-foreground">Saúde Financeira Geral</p>
+        </div>
+        {/* Right side: Title and Info Button */} 
+        <div className="flex flex-col items-end"> 
+            <CardTitle className="text-sm font-medium text-muted-foreground mb-1">
+                Análise Financeira
+            </CardTitle>
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="w-6 h-6">
+                        <Info className="h-4 w-4" />
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-gray-800 text-gray-200 border-purple-500">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-purple-300">Entendendo sua Pontuação de Saúde Financeira</AlertDialogTitle>
+                    <AlertDialogDescription className="text-gray-400">
+                      Sua pontuação é calculada por uma I.A. avançada que analisa um vasto conjunto de dados e comportamentos financeiros, incluindo seus hábitos de poupança, endividamento, liquidez, pagamento de contas, uso do app e interações com nossas ferramentas de IA. O objetivo é fornecer uma visão holística e misteriosamente precisa da sua vitalidade financeira.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogAction className="bg-purple-600 hover:bg-purple-700 text-white">Entendi!</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
       </CardHeader>
       <CardContent className="pt-4">
@@ -145,7 +147,7 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
           <RadarChart 
             cx="50%" 
             cy="50%" 
-            outerRadius="80%" 
+            outerRadius="70%" 
             data={[
               { subject: 'Reserva Estratégica', score: scoreData.savingsScore, fullMark: 100 },
               { subject: 'Alavancagem Consciente', score: scoreData.debtScore, fullMark: 100 },
@@ -153,7 +155,7 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
             ]}
           >
             <PolarGrid stroke="#5B21B6" /> {/* Grid roxo mais escuro */}
-            <PolarAngleAxis dataKey="subject" stroke="#D8B4FE" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} /> {/* Eixos angulares (Reserva Estratégica, etc) com cor principal do tema */}
+            <PolarAngleAxis dataKey="subject" stroke="#D8B4FE" tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }} /> {/* Ajustado fontSize para mobile e removida duplicata */}
             <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#7E22CE" tick={{ fill: 'hsl(var(--muted-foreground))' }} /> {/* Eixo radial roxo, ticks adaptáveis ao tema */}
             <Radar 
               name="Sua Performance"
@@ -182,7 +184,7 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
           <div className="mt-6 pt-4 border-t border-purple-300/30">
             <h3 className="text-md font-semibold mb-3 text-foreground">Insights 💡</h3>
             <ul className="space-y-2 list-inside list-disc pl-2">
-              {financialTips.map((tip, index) => (
+              {financialTips.map((tip: string, index: number) => (
                 <li key={index} className="text-sm text-muted-foreground">
                   {tip}
                 </li>

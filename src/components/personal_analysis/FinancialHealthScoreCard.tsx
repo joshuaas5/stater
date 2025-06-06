@@ -153,8 +153,8 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
             ]}
           >
             <PolarGrid stroke="#5B21B6" /> {/* Grid roxo mais escuro */}
-            <PolarAngleAxis dataKey="subject" stroke="#D8B4FE" tick={{ fill: '#E9D5FF', fontSize: 12 }} /> {/* Eixos angulares e ticks em tons de lavanda/roxo claro */}
-            <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#7E22CE" tick={{ fill: '#A78BFA' }} /> {/* Eixo radial roxo, ticks em lavanda */}
+            <PolarAngleAxis dataKey="subject" stroke="#D8B4FE" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} /> {/* Eixos angulares e ticks adaptáveis ao tema */}
+            <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#7E22CE" tick={{ fill: 'hsl(var(--muted-foreground))' }} /> {/* Eixo radial roxo, ticks adaptáveis ao tema */}
             <Radar 
               name="Sua Performance"
               dataKey="score" 

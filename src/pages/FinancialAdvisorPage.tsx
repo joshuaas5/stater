@@ -689,10 +689,8 @@ const handleSendMessage = async (message: string) => {
   ];
 
   const handleTabChange = (tabValue: string) => {
-            }
-          ]);
-        }}
-      />
+    setActiveTab(tabValue);
+  }
       <div className="flex flex-col h-screen bg-background">
         <div className="flex-grow container mx-auto px-0 sm:px-4 pt-4 pb-20 flex flex-col overflow-hidden">
           <div className="mb-4 text-center">
@@ -750,6 +748,6 @@ const handleSendMessage = async (message: string) => {
       <NavBar />
     </>
   );
-}
+};
 
 export default FinancialAdvisorPage;

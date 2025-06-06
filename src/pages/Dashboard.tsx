@@ -9,6 +9,8 @@ import NavBar from '@/components/navigation/NavBar';
 import BalanceCard from '@/components/dashboard/BalanceCard';
 import { Eye, EyeOff, Edit } from 'lucide-react';
 import SpendingChart from '@/components/dashboard/SpendingChart';
+import BookOfTheWeek from '@/components/personal_analysis/BookOfTheWeek';
+import FinancialHealthScoreCard from '@/components/personal_analysis/FinancialHealthScoreCard';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { MonthSelector } from '@/components/ui/month-selector';
@@ -363,6 +365,19 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           <BalanceCard balance={balance} percentChange={percentChange} visible={balanceVisible} />
+        </div>
+      </div>
+
+      {/* Análise Financeira Pessoal Section */}
+      <div className="px-4 mb-6">
+        <h2 className="text-xl font-semibold mb-4 text-galileo-text">Análise Financeira Pessoal</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <BookOfTheWeek />
+          </div>
+          <div>
+            <FinancialHealthScoreCard />
+          </div>
         </div>
       </div>
 

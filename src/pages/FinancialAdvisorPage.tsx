@@ -360,7 +360,7 @@ const handleSendMessage = async (message: string) => {
         .select('tokens_used')
         .eq('user_id', activeUserId)
         .eq('month_year', currentMonthYear)
-        .single();
+        .maybeSingle();
 
       if (tokenUsageError && tokenUsageError.code !== 'PGRST116') { // PGRST116: no rows found
         console.error("Erro ao buscar uso de tokens:", tokenUsageError);

@@ -67,8 +67,8 @@ const FinancialNewsFeed: React.FC<FinancialNewsFeedProps> = ({ hideHeader = fals
         }
 
         try {
-          // Simplificando a chamada da API - removendo o parâmetro lang que está causando erros
-          const response = await fetch(`/api/get-news?sourceKey=${sourceKey}`);
+          // Corrigindo chamada da API para enviar também o parâmetro 'lang' correto
+          const response = await fetch(`/api/get-news?sourceKey=${sourceKey}&lang=${sourceConfig.lang || scope}`);
           if (!response.ok) {
             let errorData;
             try {

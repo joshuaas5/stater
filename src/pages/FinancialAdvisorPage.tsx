@@ -403,15 +403,44 @@ const handleSendMessage = async (message: string) => {
       }
       const accessToken = sessionData.session.access_token;
 
+      // --- NOVO: Montar prompt detalhado com dados reais do usuário ---
+      let userPrompt = message;
+      try {
+        // Buscar transações recentes do usuário
+        const { data: recentTransactions, error: txError } = await supabase
+          .from('transactions')
+          .select('title, amount, type, category, date')
+          .eq('user_id', activeUserId)
+          .order('date', { ascending: false })
+          .limit(5);
+        let balance = 0;
+        if (recentTransactions && recentTransactions.length > 0) {
+          // Calcular saldo simples
+          balance = recentTransactions.reduce((acc, tx) => acc + (tx.type === 'income' ? tx.amount : -tx.amount), 0);
+        }
+        // Montar prompt rico
+        userPrompt = `Você é um consultor financeiro realista e responsável. Analise a situação abaixo e responda de forma personalizada, citando números, regras de saúde financeira e sugerindo ações realistas.\n\n` +
+          `Saldo atual: R$ ${balance.toFixed(2)}\n` +
+          `Transações recentes:\n` +
+          (recentTransactions && recentTransactions.length > 0
+            ? recentTransactions.map(tx => `- ${tx.type === 'income' ? 'Receita' : 'Despesa'}: ${tx.title} (${tx.category || 'Sem categoria'}) R$ ${tx.amount} em ${new Date(tx.date).toLocaleDateString('pt-BR')}`).join('\n')
+            : 'Nenhuma transação encontrada.') +
+          `\n\nPergunta do usuário: ${message}\n` +
+          `Sempre cite exemplos reais, recomende ações práticas e nunca sugira nada impossível ou ilegal. Seja claro e didático.`;
+      } catch (promptErr) {
+        console.warn('Erro ao montar prompt personalizado, usando mensagem original.', promptErr);
+      }
+      // --- FIM NOVO PROMPT ---
+
       // Call our backend API
-      console.log(`FinancialAdvisorPage: Calling backend /api/gemini with prompt: "${message}"`);
-      const backendApiResponse = await fetch('/api/gemini', { // Assuming API route is /api/gemini
+      console.log(`FinancialAdvisorPage: Calling backend /api/gemini with prompt: "${userPrompt}"`);
+      const backendApiResponse = await fetch('/api/gemini', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ originalPrompt: message }), // Send the current user's message
+        body: JSON.stringify({ originalPrompt: userPrompt }),
       });
 
       if (!backendApiResponse.ok) {
@@ -425,6 +454,38 @@ const handleSendMessage = async (message: string) => {
 
       const backendData = await backendApiResponse.json();
       const botResponseText = backendData.resposta;
+      // --- NOVO: Atualizar uso de tokens do usuário ---
+      try {
+        // O backend pode retornar o número de tokens usados na resposta
+        const tokensUsedThisCall = backendData.tokens_used || 1000; // fallback: 1000 tokens por interação
+        const { data: usageRow, error: usageError } = await supabase
+          .from('user_token_usage')
+          .select('tokens_used')
+          .eq('user_id', activeUserId)
+          .eq('month_year', currentMonthYear)
+          .maybeSingle();
+        if (usageError && usageError.code !== 'PGRST116') {
+          console.error('Erro ao consultar uso de tokens:', usageError);
+        }
+        if (!usageRow) {
+          // Inserir novo registro
+          const { error: insertError } = await supabase
+            .from('user_token_usage')
+            .insert([{ user_id: activeUserId, month_year: currentMonthYear, tokens_used: tokensUsedThisCall }]);
+          if (insertError) console.error('Erro ao inserir uso de tokens:', insertError);
+        } else {
+          // Atualizar registro existente
+          const { error: updateError } = await supabase
+            .from('user_token_usage')
+            .update({ tokens_used: (usageRow.tokens_used || 0) + tokensUsedThisCall })
+            .eq('user_id', activeUserId)
+            .eq('month_year', currentMonthYear);
+          if (updateError) console.error('Erro ao atualizar uso de tokens:', updateError);
+        }
+      } catch (tokenUpdateErr) {
+        console.error('Falha ao atualizar contador de tokens:', tokenUpdateErr);
+      }
+      // --- FIM NOVO USO DE TOKENS ---
       
       if (typeof botResponseText !== 'string') {
         console.error("Resposta inesperada do backend:", backendData);

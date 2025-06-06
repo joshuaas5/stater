@@ -19,7 +19,7 @@ interface ChatMessagesProps {
 
 const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, transactions, messagesEndRef, iaAvatar, userAvatar }) => {
   return (
-    <div className="flex-1 overflow-y-auto p-3 space-y-4" ref={messagesEndRef}>
+    <div className="flex-1 overflow-y-auto p-3 space-y-4">
       {messages.map((message) => (
         <div
           key={message.id}
@@ -66,7 +66,8 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, transactions, mes
           </span>
         </div>
       ))}
-    </div>
+        <div ref={messagesEndRef} />
+      </div>
   );
 };
 

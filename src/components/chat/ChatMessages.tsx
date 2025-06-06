@@ -42,9 +42,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, transactions, mes
             <p
               className={`text-sm leading-relaxed whitespace-pre-wrap ${message.sender === 'system' ? 'mb-4 space-y-2' : ''}`}
               dangerouslySetInnerHTML={{
-                __html: (message.text || '')
-                  .replace(/\*\*\*(.*?)\*\*\*/g, '<b>$1</b>') // negrito
-                  .replace(/\*{3}/g, '') // remove asteriscos extras
+                __html: (message.text || '').replace(/\*{3}(.*?)\*{3}/g, '<b>$1</b>')
               }}
             />
             {message.sender === 'system' && transactions && transactions.length > 0 && (

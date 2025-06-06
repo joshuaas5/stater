@@ -118,7 +118,7 @@ const mapSupabaseToTransaction = (data: any): Transaction => {
     type: data.type,
     category: data.category,
     date: new Date(data.date),
-    userId: data.user_id,
+    user_id: data.user_id,
     isRecurring: data.is_recurring || false,
     recurringDay: data.recurring_day || null,
     recurrenceFrequency: data.recurrence_frequency || null,
@@ -197,7 +197,7 @@ export const saveTransaction = (transaction: Transaction): void => {
   }
   
   // Garantir que o usuário ID esteja definido
-  transaction.userId = user.id;
+  transaction.user_id = user.id;
   
   // Garantir que a data esteja em formato correto
   if (!(transaction.date instanceof Date)) {
@@ -683,7 +683,7 @@ export const mapSupabaseToBill = (data: any): Bill => {
   
   return {
     id: data.id,
-    userId: data.user_id,
+    user_id: data.user_id,
     title: data.title || 'Conta sem título',
     amount: typeof data.amount === 'number' ? data.amount : parseFloat(String(data.amount)) || 0,
     dueDate: dueDate,
@@ -819,7 +819,7 @@ export const saveBill = (bill: Bill): void => {
     // Mostrar notificação para o usuário sobre a geração sob demanda
     const notification: Notification = {
       id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      userId: user.id,
+      user_id: user.id,
       billId: bill.id, // Adicionar o ID da conta
       type: 'info' as NotificationType,
       message: `A conta recorrente "${bill.title}" foi configurada. Inicialmente, foram geradas parcelas para os próximos 6 meses. Novas parcelas serão adicionadas automaticamente conforme necessário.`,
@@ -1001,7 +1001,7 @@ export const getBills = (onlyActive: boolean = true): Bill[] => {
     // Notificar o usuário que novas parcelas foram adicionadas
     const notification: Notification = {
       id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      userId: user.id,
+      user_id: user.id,
       billId: "", // String vazia em vez de null
       type: 'info' as NotificationType,
       message: `Novas parcelas futuras foram adicionadas para suas contas recorrentes.`,
@@ -1223,7 +1223,7 @@ export const markBillAsPaid = (billId: string, onPaid?: (bill: Bill) => void): v
     const notification: Notification = {
       id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       billId: billId,
-      userId: user.id,
+      user_id: user.id,
       type: 'paid' as NotificationType,
       message: `Conta "${bills[index].title}" marcada como paga!`,
       date: new Date(),
@@ -1294,7 +1294,7 @@ const mapNotificationToSupabase = (notification: Notification, userId: string) =
 const mapSupabaseToNotification = (data: Record<string, any>): Notification => {
   return {
     id: data.id,
-    userId: data.user_id,
+    user_id: data.user_id,
     billId: data.entity_id || null,
     type: data.type as NotificationType,
     message: data.message,
@@ -1337,7 +1337,7 @@ export const saveSupabaseNotification = async (notification: Notification): Prom
       // Se o erro for relacionado a RLS, registrar informações para depuração
       if (error.code === '42501' || error.message.includes('permission denied')) {
         console.error("Erro de permissão ao salvar notificação. Dados:", {
-          userId: user.id,
+          user_id: user.id,
           notificationType: notification.type
         });
       }
@@ -1713,7 +1713,7 @@ export const generateBillNotifications = async (): Promise<void> => {
         newNotification = {
           id: uuidv4(),
           billId: bill.id,
-          userId: user.id,
+          user_id: user.id,
           type: 'fiveDaysBefore',
           message: `A conta "${bill.title}" de R$ ${bill.amount.toFixed(2)} vence em 5 dias.`,
           date: new Date(),
@@ -1724,7 +1724,7 @@ export const generateBillNotifications = async (): Promise<void> => {
         newNotification = {
           id: uuidv4(),
           billId: bill.id,
-          userId: user.id,
+          user_id: user.id,
           type: 'oneDayBefore',
           message: `A conta "${bill.title}" de R$ ${bill.amount.toFixed(2)} vence amanhã.`,
           date: new Date(),
@@ -1735,7 +1735,7 @@ export const generateBillNotifications = async (): Promise<void> => {
         newNotification = {
           id: uuidv4(),
           billId: bill.id,
-          userId: user.id,
+          user_id: user.id,
           type: 'dueDay',
           message: `A conta "${bill.title}" de R$ ${bill.amount.toFixed(2)} vence hoje!`,
           date: new Date(),
@@ -1746,7 +1746,7 @@ export const generateBillNotifications = async (): Promise<void> => {
         newNotification = {
           id: uuidv4(),
           billId: bill.id,
-          userId: user.id,
+          user_id: user.id,
           type: 'overdue',
           message: `A conta "${bill.title}" de R$ ${bill.amount.toFixed(2)} está vencida há ${Math.abs(diffDays)} ${Math.abs(diffDays) === 1 ? 'dia' : 'dias'}.`,
           date: new Date(),
@@ -1761,7 +1761,7 @@ export const generateBillNotifications = async (): Promise<void> => {
           newNotification = {
             id: uuidv4(),
             billId: bill.id,
-            userId: user.id,
+            user_id: user.id,
             type: 'paid', // Usando 'paid' como o tipo mais próximo para quase finalizado
             message: `Você está quase terminando de pagar "${bill.title}"! Faltam apenas ${remaining} ${remaining === 1 ? 'parcela' : 'parcelas'}.`,
             date: new Date(),
@@ -2157,7 +2157,7 @@ const mapConsultantMessageToSupabase = (message: ConsultantMessage) => {
 const mapSupabaseToConsultantMessage = (data: any): ConsultantMessage => {
   return {
     id: data.id,
-    userId: data.user_id,
+    user_id: data.user_id,
     text: data.text,
     sender: data.sender,
     timestamp: new Date(data.timestamp),

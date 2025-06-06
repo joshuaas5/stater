@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AddBillModal from '@/components/bills/AddBillModal';
 
 const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
 const USER_AVATAR = '/user-avatar.svg'; // Placeholder for user avatar
@@ -50,6 +51,8 @@ interface PendingAction {
 }
 
 export const FinancialAdvisorPage: React.FC = () => {
+  const [showAddBillModal, setShowAddBillModal] = useState(false);
+
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -143,7 +146,9 @@ export const FinancialAdvisorPage: React.FC = () => {
   }, [messages, currentUserId, initialSystemMessage.id, initialSystemMessage.text]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
   }, [messages]);
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -176,7 +181,31 @@ export const FinancialAdvisorPage: React.FC = () => {
     }
   };
 
-  const handleSendMessage = async (message: string) => {
+  // Detecta intenção de adicionar conta (usuário ou IA)
+const isAddBillIntent = (msg: string) => {
+  const triggers = [
+    'adicionar conta', 'nova conta a pagar', 'nova fatura', 'nova cobrança', 'novo boleto',
+    'add bill', 'add account', 'new bill', 'new account', 'add payment', 'nova despesa fixa', 'nova mensalidade'
+  ];
+  return triggers.some(trigger => msg.toLowerCase().includes(trigger));
+};
+
+const handleSendMessage = async (message: string) => {
+  if (isAddBillIntent(message)) {
+    setShowAddBillModal(true);
+    setMessages(prev => [
+      ...prev,
+      {
+        id: uuidv4(),
+        text: 'Abrindo formulário para adicionar conta. Preencha os dados abaixo:',
+        sender: 'system',
+        timestamp: new Date()
+      }
+    ]);
+    setShowSuggestions(false);
+    return;
+  }
+
     // Obter userId usando o Supabase Auth
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) {
@@ -285,9 +314,22 @@ export const FinancialAdvisorPage: React.FC = () => {
     } // Closes 'if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim'))'
     // Se aguardando confirmação e usuário diz não ou cancelar
     else if (waitingConfirmation && pendingAction && (lowerMsg.startsWith('não') || lowerMsg.startsWith('nao') || lowerMsg.startsWith('cancelar'))) {
-      setMessages(prev => [...prev, 
-        { id: uuidv4(), text: message, sender: 'user', timestamp: new Date(), avatarUrl: USER_AVATAR },
-        { id: uuidv4(), text: 'Ok, ação cancelada.', sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR }
+      setMessages(prev => [
+        ...prev,
+        {
+          id: uuidv4(),
+          text: message,
+          sender: 'user',
+          timestamp: new Date(),
+          avatarUrl: USER_AVATAR
+        },
+        {
+          id: uuidv4(),
+          text: 'Ok, ação cancelada.',
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }
       ]);
       setWaitingConfirmation(false);
       setPendingAction(null);
@@ -532,55 +574,79 @@ export const FinancialAdvisorPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <div className="flex-grow container mx-auto px-0 sm:px-4 pt-4 pb-20 flex flex-col overflow-hidden">
-        <div className="mb-4 text-center">
-          <h1 className="text-2xl font-bold text-foreground">Consultor IA 🤖</h1>
-        </div>
+    <>
+      <AddBillModal
+        isOpen={showAddBillModal}
+        onClose={() => setShowAddBillModal(false)}
+        onSuccess={(bill) => {
+          setShowAddBillModal(false);
+          setMessages(prev => [
+            ...prev,
+            {
+              id: uuidv4(),
+              text: `✅ Conta "${bill.title}" adicionada com sucesso!`,
+              sender: 'system',
+              timestamp: new Date()
+            }
+          ]);
+        }}
+      />
+      <div className="flex flex-col h-screen bg-background">
+        <div className="flex-grow container mx-auto px-0 sm:px-4 pt-4 pb-20 flex flex-col overflow-hidden">
+          <div className="mb-4 text-center">
+            <h1 className="text-2xl font-bold text-foreground">Consultor IA 🤖</h1>
+          </div>
 
-        <div className="flex-grow flex flex-col overflow-hidden">
-          {/* Este div é o contêiner principal do chat, incluindo mensagens e input */}
-          <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden"> 
-            {error && (
-              <div className="p-4 bg-destructive text-destructive-foreground">
-                {error}
-              </div>
-            )}
-            {/* ChatMessages agora ocupa o espaço flexível e tem seu próprio scroll interno */}
-            <div className="flex-grow overflow-y-auto">
-              <ChatMessages messages={messages} messagesEndRef={messagesEndRef} iaAvatar={IA_AVATAR} userAvatar={USER_AVATAR} />
-            </div>
-            {showSuggestions && !pendingAction && (
-              <div className="p-2 border-t border-border bg-card">
-                <div className="flex overflow-x-auto space-x-2 py-2 scrollbar-thin scrollbar-thumb-muted-foreground/50 scrollbar-track-transparent">
-                  {initialSuggestions.map((sug, index) => (
-                    <Button 
-                      key={index} 
-                      variant="outline" 
-                      size="sm" 
-                      className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
-                      onClick={() => handleSuggestionClick(sug)}
-                    >
-                      {sug}
-                    </Button>
-                  ))}
+          <div className="flex-grow flex flex-col overflow-hidden">
+            {/* Este div é o contêiner principal do chat, incluindo mensagens e input */}
+            <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden"> 
+              {error && (
+                <div className="p-4 bg-destructive text-destructive-foreground">
+                  {error}
                 </div>
+              )}
+              {/* ChatMessages agora ocupa o espaço flexível e tem seu próprio scroll interno */}
+              <div className="flex-grow overflow-y-auto">
+                <ChatMessages messages={messages} messagesEndRef={messagesEndRef} iaAvatar={IA_AVATAR} userAvatar={USER_AVATAR} />
               </div>
-            )}
-            {/* ChatInput fica aqui, abaixo das mensagens/sugestões, mas acima do padding da NavBar */}
-            <ChatInput
-              onSubmit={handleSendMessage} 
-              loading={loading}
-              waitingConfirmation={waitingConfirmation} 
-              pendingActionDetails={pendingAction ? pendingAction.dados : null} 
-              onConfirm={() => handleSendMessage('sim')} 
-              onCancel={() => handleSendMessage('não')} 
-            />
+              {loading && (
+                <div className="flex items-center gap-2 px-4 py-2 text-gray-500 animate-pulse">
+                  <Loader2 className="animate-spin mr-2" size={18} /> Pensando...
+                </div>
+              )}
+              {showSuggestions && !pendingAction && typeof initialSuggestions !== 'undefined' && (
+  <div className="p-2 border-t border-border bg-card">
+    <div className="flex overflow-x-auto space-x-2 py-2 scrollbar-thin scrollbar-thumb-muted-foreground/50 scrollbar-track-transparent">
+      {initialSuggestions.map((sug: string, index: number) => (
+        <Button
+          key={index}
+          variant="outline"
+          size="sm"
+          className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
+          onClick={() => handleSuggestionClick(sug)}
+        >
+          {sug}
+        </Button>
+      ))}
+    </div>
+  </div>
+)}
+              {/* ChatInput fica aqui, abaixo das mensagens/sugestões, mas acima do padding da NavBar */}
+              <ChatInput
+                onSubmit={handleSendMessage} 
+                loading={loading}
+                waitingConfirmation={waitingConfirmation} 
+                pendingActionDetails={pendingAction ? pendingAction.dados : null} 
+                onConfirm={() => handleSendMessage('sim')} 
+                onCancel={() => handleSendMessage('não')} 
+              />
+            </div>
           </div>
         </div>
       </div>
       {/* A NavBar que aparece no rodapé é renderizada aqui */}
       <NavBar /> 
     </div>
+    </>
   );
 };

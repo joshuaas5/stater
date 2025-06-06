@@ -412,7 +412,26 @@ export const FinancialAdvisorPage: React.FC = () => {
           const { transaction_type, description, amount, category, date } = parsedFullResponse;
           const formattedDateStr = date ? new Date(date + "T00:00:00").toLocaleDateString("pt-BR") : "";
           const confirmText = `📝 Ok! Você quer adicionar ${transaction_type === "income" ? "uma receita 🤑" : "uma despesa 💸"} de R$${amount.toFixed(2)} para \"${description}\"${category ? ` na categoria \"${category}\"` : ""}${date ? ` em ${formattedDateStr}` : ""}.\n\nCorreto? Registrar? (sim/não)`;
-          
+          try {
+            // Tenta extrair JSON válido da resposta da IA
+            const jsonStart = botResponseText.indexOf('{');
+            const jsonEnd = botResponseText.lastIndexOf('}');
+            if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+              const jsonString = botResponseText.substring(jsonStart, jsonEnd + 1);
+              const parsed = JSON.parse(jsonString);
+              // Se for um objeto com os campos esperados
+              if (parsed && typeof parsed === 'object' && (parsed.type === 'income' || parsed.type === 'expense')) {
+                setPendingAction({ tipo: parsed.type, dados: parsed });
+                setWaitingConfirmation(true);
+                setLoading(false);
+                // NÃO adiciona mensagem de confirmação textual ao chat, só ativa os botões
+                return;
+              }
+            }
+          } catch (jsonParseError) {
+            console.log("Resposta da IA não é um JSON de transação direta, tentando confirmação textual:", botResponseText);
+          }
+
           setPendingAction({ 
             tipo: transaction_type === "income" ? "income" : "expense", 
             dados: { description, amount, category: category || null, date: date || null } 

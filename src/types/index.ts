@@ -142,5 +142,5 @@ export const EXPENSE_CATEGORIES = [
   'Poupança e Investimentos',
   'Impostos',
   'Presentes e Doações',
-  'Outras Saídas'
+  'Outros'
 ];

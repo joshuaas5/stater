@@ -3,6 +3,8 @@ import FinancialNewsFeed from '@/components/FinancialNewsFeed';
 import './Dashboard.module.css';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
 import NavBar from '@/components/navigation/NavBar';
 import BalanceCard from '@/components/dashboard/BalanceCard';
 import { Eye, EyeOff, Edit } from 'lucide-react';
@@ -489,16 +491,26 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="category">Categoria</Label>
-              <Input 
-                id="category" 
-                name="category"
-                value={editingTransaction ? editingTransaction.category : newTransaction.category} 
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  if (editingTransaction) setEditingTransaction({...editingTransaction, category: e.target.value});
-                  else handleNewTransactionChange(e);
-                }}
-                placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Investimentos' : 'Moradia, Alimentação'}`}
-              />
+              <Select
+  value={editingTransaction ? editingTransaction.category : newTransaction.category}
+  onValueChange={value => {
+    if (editingTransaction) setEditingTransaction({ ...editingTransaction, category: value });
+    else setNewTransaction((prev: any) => ({ ...prev, category: value }));
+  }}
+>
+  <SelectTrigger id="category" name="category" className="bg-galileo-accent text-white">
+    <SelectValue placeholder="Selecione uma categoria" />
+  </SelectTrigger>
+  <SelectContent className="bg-galileo-card text-galileo-text">
+    {((editingTransaction ? editingTransaction.type : newTransaction.type) === 'income'
+      ? INCOME_CATEGORIES
+      : EXPENSE_CATEGORIES).map((category: string) => (
+        <SelectItem key={category} value={category}>
+          {category}
+        </SelectItem>
+      ))}
+  </SelectContent>
+</Select>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox 

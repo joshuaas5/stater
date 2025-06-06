@@ -172,11 +172,11 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
         </div>
       </CardHeader>
       <CardContent className="pt-4">
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height={450}>
           <RadarChart 
             cx="50%" 
             cy="50%" 
-            outerRadius="85%" 
+            outerRadius="90%" 
             data={[
               { subject: 'Reserva Estratégica', score: scoreData.savingsScore, fullMark: 100 },
               { subject: 'Alavancagem Consciente', score: scoreData.debtScore, fullMark: 100 },

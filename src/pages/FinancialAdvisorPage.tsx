@@ -741,13 +741,44 @@ const handleSendMessage = async (message: string) => {
                 onCancel={() => handleSendMessage('não')} 
               />
             </div>
+            {loading && (
+              <div className="flex items-center gap-2 px-4 py-2 text-gray-500 animate-pulse">
+                <Loader2 className="animate-spin mr-2" size={18} /> Pensando...
+              </div>
+            )}
+            {showSuggestions && !pendingAction && typeof initialSuggestions !== 'undefined' && (
+              <div className="p-2 border-t border-border bg-card">
+                <div className="flex overflow-x-auto space-x-2 py-2 scrollbar-thin scrollbar-thumb-muted-foreground/50 scrollbar-track-transparent">
+                  {initialSuggestions.map((sug: string, index: number) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
+                      onClick={() => handleSuggestionClick(sug)}
+                    >
+                      {sug}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* ChatInput fica aqui, abaixo das mensagens/sugestões, mas acima do padding da NavBar */}
+            <ChatInput
+              onSubmit={handleSendMessage} 
+              loading={loading}
+              waitingConfirmation={waitingConfirmation} 
+              pendingActionDetails={pendingAction ? pendingAction.dados : null} 
+              onConfirm={() => handleSendMessage('sim')} 
+              onCancel={() => handleSendMessage('não')} 
+            />
           </div>
         </div>
       </div>
       {/* A NavBar que aparece no rodapé é renderizada aqui */}
       <NavBar />
-    </>
-  );
-};
+    </div>
+  </>
+);
 
 export default FinancialAdvisorPage;

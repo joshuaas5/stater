@@ -231,6 +231,59 @@ export const calculateFinancialHealthScore = (transactions: Transaction[], debts
   };
 };
 
+export interface HealthScores {
+  savingsScore: number;
+  debtScore: number;
+  liquidityScore: number;
+  billsOnTimeScore: number;
+}
+
+export const generateFinancialHealthTips = (scores: HealthScores): string[] => {
+  const tips: string[] = [];
+  const lowScoreThreshold = 60; 
+  const veryLowScoreThreshold = 40;
+
+  // Dicas para Reserva Estratégica (savingsScore)
+  if (scores.savingsScore < veryLowScoreThreshold) {
+    tips.push("Sua Reserva Estratégica é um ponto crítico. Priorize a criação de um fundo de emergência, mesmo que com pequenos valores mensais.");
+  } else if (scores.savingsScore < lowScoreThreshold) {
+    tips.push("Fortalecer sua Reserva Estratégica trará mais segurança. Considere definir metas de poupança e automatizar transferências.");
+  }
+
+  // Dicas para Alavancagem Consciente (debtScore)
+  if (scores.debtScore < veryLowScoreThreshold) {
+    tips.push("Sua Alavancagem Consciente (gestão de dívidas) requer atenção urgente. Avalie suas dívidas e foque em quitar as de juros mais altos primeiro.");
+  } else if (scores.debtScore < lowScoreThreshold) {
+    tips.push("Otimizar sua Alavancagem Consciente pode liberar recursos. Revise suas dívidas e explore opções de renegociação ou consolidação.");
+  }
+
+  // Dicas para Fluxo Vital (liquidityScore)
+  if (scores.liquidityScore < veryLowScoreThreshold) {
+    tips.push("Seu Fluxo Vital (liquidez) está baixo, o que pode trazer riscos. Busque formas de aumentar seu saldo disponível para despesas imediatas.");
+  } else if (scores.liquidityScore < lowScoreThreshold) {
+    tips.push("Um Fluxo Vital mais robusto te prepara para imprevistos. Analise seus gastos e veja onde é possível economizar para aumentar sua liquidez.");
+  }
+  
+  // Dicas para Contas em Dia (billsOnTimeScore)
+  if (scores.billsOnTimeScore < 80 && scores.billsOnTimeScore > 0) { // Se não for perfeito e não for 0 (que indica sem contas lançadas)
+    tips.push("Manter as contas em dia é essencial. Utilize lembretes ou débito automático para evitar esquecimentos e encargos desnecessários.");
+  }
+
+  let selectedTips = [...tips];
+  if (selectedTips.length > 3) {
+    selectedTips = selectedTips.slice(0, 3); // Manter conciso, 3 dicas no máximo
+  }
+  
+  // Se nenhuma dica específica foi gerada, mas as pontuações principais estão boas
+  if (selectedTips.length === 0 && scores.savingsScore >= lowScoreThreshold && scores.debtScore >= lowScoreThreshold && scores.liquidityScore >= lowScoreThreshold) {
+    selectedTips.push("Sua performance nos pilares chave (Reserva, Alavancagem, Fluxo) está sólida! Continue assim e explore otimizações avançadas.");
+  } else if (selectedTips.length === 0) { // Se ainda não há dicas (ex: todas as pontuações são médias)
+    selectedTips.push("Sua análise indica um perfil equilibrado. Explore nossos recursos para refinar ainda mais sua estratégia financeira.");
+  }
+
+  return selectedTips;
+};
+
 // Exemplo de como os tipos podem ser (ajustar conforme sua estrutura real em @/types/finance)
 // export interface Transaction {
 //   id: string;

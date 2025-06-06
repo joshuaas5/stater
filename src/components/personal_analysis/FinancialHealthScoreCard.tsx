@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Info, TrendingUp, TrendingDown, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend, Tooltip } from 'recharts';
-import { calculateFinancialHealthScore } from '@/services/financialHealthService';
+import { calculateFinancialHealthScore, generateFinancialHealthTips } from '@/services/financialHealthService';
 import { getTransactions, getBills } from '@/utils/localStorage';
 import { Transaction, Bill as Debt } from '@/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -45,6 +45,7 @@ const getScoreDescription = (score: number): string => {
 
 const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => {
   const [scoreData, setScoreData] = useState<ScoreData | null>(null);
+  const [financialTips, setFinancialTips] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -54,6 +55,9 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
     if (transactions && debts) {
       const result = calculateFinancialHealthScore(transactions, debts);
       setScoreData(result);
+      if (result) {
+        setFinancialTips(generateFinancialHealthTips(result));
+      }
     }
     setIsLoading(false);
   }, []);
@@ -143,34 +147,49 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
             cy="50%" 
             outerRadius="80%" 
             data={[
-              { subject: 'Poupança', score: scoreData.savingsScore, fullMark: 100 },
-              { subject: 'Endividamento', score: scoreData.debtScore, fullMark: 100 },
-              { subject: 'Liquidez', score: scoreData.liquidityScore, fullMark: 100 },
+              { subject: 'Reserva Estratégica', score: scoreData.savingsScore, fullMark: 100 },
+              { subject: 'Alavancagem Consciente', score: scoreData.debtScore, fullMark: 100 },
+              { subject: 'Fluxo Vital', score: scoreData.liquidityScore, fullMark: 100 },
             ]}
           >
-            <PolarGrid stroke="#4A5568" /> {/* Grid cinza escuro */}
-            <PolarAngleAxis dataKey="subject" stroke="#E2E8F0" /> {/* Eixos angulares brancos/cinza claro */}
-            <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#718096" tick={{ fill: '#A0AEC0' }} /> {/* Eixo radial cinza, ticks cinza claro */}
+            <PolarGrid stroke="#5B21B6" /> {/* Grid roxo mais escuro */}
+            <PolarAngleAxis dataKey="subject" stroke="#D8B4FE" tick={{ fill: '#E9D5FF', fontSize: 12 }} /> {/* Eixos angulares e ticks em tons de lavanda/roxo claro */}
+            <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#7E22CE" tick={{ fill: '#A78BFA' }} /> {/* Eixo radial roxo, ticks em lavanda */}
             <Radar 
               name="Sua Performance"
               dataKey="score" 
-              stroke="#3B82F6"  /* Azul neon */
-              fill="#EC4899"    /* Rosa/Magenta neon */
-              fillOpacity={0.5}
+              stroke="#FACC15"  /* Dourado para o contorno do radar */
+              fill="#8B5CF6"    /* Roxo vibrante para o preenchimento */
+              fillOpacity={0.6}
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'rgba(31, 41, 55, 0.8)', /* Fundo do tooltip escuro semi-transparente */
-                borderColor: '#4A5568', 
-                color: '#E2E8F0' 
+                backgroundColor: 'rgba(49, 24, 92, 0.85)', /* Fundo do tooltip roxo escuro semi-transparente */
+                borderColor: '#7E22CE', 
+                color: '#E9D5FF', /* Texto do tooltip em lavanda claro */
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
               }} 
               formatter={(value: number) => [`${value.toFixed(1)} / 100`, 'Performance']}
-              labelStyle={{ color: '#00A9FF' }} /* Cor do label (Poupança, etc) no tooltip */
+              labelStyle={{ color: '#FACC15', fontWeight: 'bold' }} /* Cor do label (Reserva Estratégica, etc) no tooltip em dourado */
             />
             {/* <Legend /> Removida para um visual mais limpo e misterioso */}
           </RadarChart>
         </ResponsiveContainer>
         {/* A exibição detalhada dos scores individuais foi removida para um design mais 'misterioso' */}
+
+        {financialTips.length > 0 && (
+          <div className="mt-6 pt-4 border-t border-purple-300/30">
+            <h3 className="text-md font-semibold mb-3 text-purple-200">Insights da I.A. para Você:</h3>
+            <ul className="space-y-2 list-inside list-disc pl-2">
+              {financialTips.map((tip, index) => (
+                <li key={index} className="text-sm text-purple-300/90">
+                  {tip}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

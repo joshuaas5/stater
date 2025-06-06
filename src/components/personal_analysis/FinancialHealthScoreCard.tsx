@@ -155,7 +155,7 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
             ]}
           >
             <PolarGrid stroke="#5B21B6" /> {/* Grid roxo mais escuro */}
-            <PolarAngleAxis dataKey="subject" stroke="#D8B4FE" tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }} /> {/* Ajustado fontSize para mobile e removida duplicata */}
+            <PolarAngleAxis dataKey="subject" stroke="#D8B4FE" tick={{ fill: 'hsl(var(--foreground))', fontSize: 8 }} /> {/* Reduzido ainda mais o fontSize para mobile */}
             <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#7E22CE" tick={{ fill: 'hsl(var(--muted-foreground))' }} /> {/* Eixo radial roxo, ticks adaptáveis ao tema */}
             <Radar 
               name="Sua Performance"

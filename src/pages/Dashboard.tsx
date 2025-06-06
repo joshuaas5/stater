@@ -371,8 +371,13 @@ const Dashboard: React.FC = () => {
 
       {/* Link para Análise Financeira Pessoal Section */}
       <div className="px-4 mb-6 flex justify-end">
-        <Link to="/analise-financeira" className="text-sm text-primary hover:underline flex items-center">
-          <DollarSign className="h-4 w-4 mr-1" /> Análise das suas finanças
+        <Link
+          to="/analise-financeira"
+          className="flex items-center gap-1 px-3 py-1 rounded-md border border-green-200 bg-green-50 hover:bg-green-100 shadow-sm text-base font-semibold text-green-700 transition-all duration-150"
+          style={{ textDecoration: 'none' }}
+        >
+          <DollarSign className="h-5 w-5 text-green-600" />
+          <span>$ Análise das suas finanças</span>
         </Link>
       </div>
 

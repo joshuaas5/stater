@@ -87,28 +87,46 @@ const calculateCurrentTotalBalance = (transactions: Transaction[]): number => {
 
 // Funções para calcular as pontuações parciais (Poupança, Endividamento, Liquidez)
 
-const calculateSavingsScore = (monthlySavingsAmount: number, netMonthlyIncome: number): number => {
-  if (netMonthlyIncome <= 0) return 5.0; // Se não há renda, mas não poupa negativamente, uma base mínima.
-  
-  const savingsRate = monthlySavingsAmount / netMonthlyIncome; // ex: 0.1 para 10%
+// Nota de poupança: 100% baseada no patrimônio acumulado
+const calculateSavingsScore = (netMonthlyIncome: number, currentTotalBalance: number): number => {
+  if (netMonthlyIncome <= 0) return 0;
+  const patrimonioMultiplo = currentTotalBalance / netMonthlyIncome;
+  if (patrimonioMultiplo <= 0) return 0;
+  if (patrimonioMultiplo >= 12) return 100;
+  return parseFloat(((patrimonioMultiplo / 12) * 100).toFixed(1));
+};
 
-  let score = 0;
-  if (savingsRate < -0.1) { // Gasta 10% a mais do que ganha
-    score = 5.0;
-  } else if (savingsRate < 0) { // Gasta um pouco a mais do que ganha
-    score = 15.0 + (savingsRate / -0.1) * 10.0; // entre 15 e 25
-  } else if (savingsRate < 0.05) { // Poupa 0-5%
-    score = 25.0 + (savingsRate / 0.05) * 20.0; // entre 25 e 45
-  } else if (savingsRate < 0.10) { // Poupa 5-10%
-    score = 45.0 + ((savingsRate - 0.05) / 0.05) * 20.0; // entre 45 e 65
-  } else if (savingsRate < 0.15) { // Poupa 10-15%
-    score = 65.0 + ((savingsRate - 0.10) / 0.05) * 15.0; // entre 65 e 80
-  } else if (savingsRate < 0.25) { // Poupa 15-25%
-    score = 80.0 + ((savingsRate - 0.15) / 0.10) * 15.0; // entre 80 e 95
-  } else { // Poupa >= 25%
-    score = Math.min(100.0, 95.0 + ((savingsRate - 0.25) / 0.15) * 5.0); // Tende a 100, máximo em 100
+// Nota de contas em dia: 100 se nenhuma vencida, decresce conforme número/valor de contas vencidas
+const calculateBillsOnTimeScore = (debts: Debt[]): number => {
+  const now = new Date();
+  const overdue = debts.filter(bill => !bill.isPaid && bill.dueDate && new Date(bill.dueDate) < now);
+  if (debts.length === 0) return 100; // Nenhuma conta lançada
+  if (overdue.length === 0) return 100;
+  // Penaliza de acordo com % de contas vencidas
+  const percentOverdue = overdue.length / debts.length;
+  return parseFloat((100 - percentOverdue * 100).toFixed(1));
+};
+
+// Nota de uso do app: baseado em contador salvo no localStorage (0 a 100, máximo em 30 acessos/mês)
+const calculateAppUsageScore = (): number => {
+  try {
+    const raw = localStorage.getItem('appAccessCount');
+    const count = raw ? parseInt(raw, 10) : 0;
+    return Math.min(100, (count / 30) * 100);
+  } catch {
+    return 0;
   }
-  return parseFloat(score.toFixed(1));
+};
+
+// Nota de interação com IA: baseado em contador salvo no localStorage (0 a 100, máximo em 15 interações/mês)
+const calculateIAInteractionScore = (): number => {
+  try {
+    const raw = localStorage.getItem('iaInteractionCount');
+    const count = raw ? parseInt(raw, 10) : 0;
+    return Math.min(100, (count / 15) * 100);
+  } catch {
+    return 0;
+  }
 };
 
 const calculateDebtScore = (totalDebt: number, netMonthlyIncome: number): number => {
@@ -170,19 +188,31 @@ export const calculateFinancialHealthScore = (transactions: Transaction[], debts
   const totalDebt = calculateTotalDebt(debts);
   const currentTotalBalance = calculateCurrentTotalBalance(transactions);
 
-  const savingsScore = calculateSavingsScore(monthlySavingsAmount, netMonthlyIncome);
+  const savingsScore = calculateSavingsScore(netMonthlyIncome, currentTotalBalance);
   const debtScore = calculateDebtScore(totalDebt, netMonthlyIncome);
   const liquidityScore = calculateLiquidityScore(currentTotalBalance, totalMonthlyExpenses);
+  const billsOnTimeScore = calculateBillsOnTimeScore(debts);
+  const appUsageScore = typeof window !== 'undefined' ? calculateAppUsageScore() : 50; // fallback SSR
+  const iaInteractionScore = typeof window !== 'undefined' ? calculateIAInteractionScore() : 50;
 
-  // Aplicar pesos e calcular a nota final (escala 0-100)
-  // Pesos: Poupança (30%), Endividamento (40%), Liquidez (30%)
-  const finalScore = (savingsScore * 0.3 + debtScore * 0.4 + liquidityScore * 0.3);
+  // Pesos: Poupança (40%), Endividamento (30%), Liquidez (20%), Contas em dia (5%), Uso app (2.5%), IA (2.5%)
+  const finalScore = (
+    savingsScore * 0.4 +
+    debtScore * 0.3 +
+    liquidityScore * 0.2 +
+    billsOnTimeScore * 0.05 +
+    appUsageScore * 0.025 +
+    iaInteractionScore * 0.025
+  );
 
   return {
     finalScore: parseFloat(finalScore.toFixed(1)),
     savingsScore: parseFloat(savingsScore.toFixed(1)),
     debtScore: parseFloat(debtScore.toFixed(1)),
     liquidityScore: parseFloat(liquidityScore.toFixed(1)),
+    billsOnTimeScore: parseFloat(billsOnTimeScore.toFixed(1)),
+    appUsageScore: parseFloat(appUsageScore.toFixed(1)),
+    iaInteractionScore: parseFloat(iaInteractionScore.toFixed(1)),
     // Adicionar os valores brutos para possível exibição ou depuração
     netMonthlyIncome,
     totalMonthlyExpenses,

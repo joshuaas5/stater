@@ -206,7 +206,7 @@ const handleSendMessage = async (message: string) => {
       },
       {
         id: uuidv4(),
-        text: "📝 Para adicionar uma nova conta, basta clicar no menu **Contas** ou no botão ➕ ‘Adicionar Conta’ na tela principal do ICTUS! Assim você pode registrar e organizar todas as suas contas de forma fácil e rápida. 😃",
+        text: "📝 Para adicionar uma nova conta, basta clicar no menu **Contas** no ICTUS! Assim você pode registrar e organizar todas as suas contas de forma fácil e rápida. 😃",
         sender: 'system',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR

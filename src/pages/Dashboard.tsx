@@ -36,7 +36,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 
-
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -47,13 +46,11 @@ const Dashboard: React.FC = () => {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [showFinancialTips, setShowFinancialTips] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [editingTransactionDontAdjustBalance, setEditingTransactionDontAdjustBalance] = useState(false);
   const [showAllTransactionsInMonth, setShowAllTransactionsInMonth] = useState(false);
-
 
   const [lastEditedTransactionIdForBalanceSkip, setLastEditedTransactionIdForBalanceSkip] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string | null>(null);
@@ -329,71 +326,28 @@ const Dashboard: React.FC = () => {
     }, 100);
   };
   
-  const financialTips = [
-    {
-      title: "Regra 50/30/20",
-      description: "Destine 50% da sua renda para necessidades, 30% para desejos e 20% para poupança/investimentos."
-    },
-    {
-      title: "Fundo de Emergência",
-      description: "Economize o suficiente para cobrir 3 a 6 meses de despesas essenciais."
-    },
-    {
-      title: "Estabeleça Metas",
-      description: "Defina metas específicas e mensuráveis para suas finanças."
-    },
-    {
-      title: "Evite Dívidas de Alto Juros",
-      description: "Priorize o pagamento de dívidas com juros altos, como cartão de crédito."
-    },
-    {
-      title: "Automatize as Economias",
-      description: "Configure transferências automáticas para sua conta poupança no dia do pagamento."
-    },
-    {
-      title: "Compare Preços",
-      description: "Pesquise preços de produtos e serviços antes de comprar."
-    },
-    {
-      title: "Evite Compras por Impulso",
-      description: "Espere 24 horas antes de fazer compras não planejadas."
-    },
-    {
-      title: "Renegocie Serviços",
-      description: "Reavalie e negocie seus serviços recorrentes (internet, seguro, etc.) anualmente."
-    }
-  ];
-
   const user = getCurrentUser();
   const userName = user ? user.username : "Usuário";
   
   return (
     <div className="bg-galileo-background min-h-screen pb-20">
-  <div className="flex items-center justify-between p-4">
-    <div className="flex items-center">
-      <h2 className="text-galileo-text text-lg font-bold leading-tight">
-        Olá, {userName}!
-      </h2>
-    </div>
-    <div className="flex items-center gap-2">
-      <button
-        onClick={() => setShowFinancialTips(true)}
-        className="pop-art-tips focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-galileo-accent flex items-center gap-1"
-        aria-label="Show Tips"
-      >
-        <span>News</span>
-        <span className="animate-pulse text-yellow-500">🔥</span>
-      </button>
-      <NotificationBell />
-      <ThemeToggle />
-    </div>
-  </div>
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center">
+          <h2 className="text-galileo-text text-lg font-bold leading-tight">
+            Olá, {userName}!
+          </h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <ThemeToggle />
+        </div>
+      </div>
 
-  <div className="px-4 mb-4">
-    <MonthSelector onMonthChange={handleMonthChange} />
-  </div>
+      <div className="px-4 mb-4">
+        <MonthSelector onMonthChange={handleMonthChange} />
+      </div>
 
-  <div className="flex flex-wrap gap-4 px-4 mb-6">
+      <div className="flex flex-wrap gap-4 px-4 mb-6">
         <div className="w-full">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -410,18 +364,6 @@ const Dashboard: React.FC = () => {
           </div>
           <BalanceCard balance={balance} percentChange={percentChange} visible={balanceVisible} />
         </div>
-      </div>
-
-      <div className="flex justify-end mb-4 mr-4">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="text-galileo-secondaryText hover:text-galileo-text flex items-center gap-1 text-xs"
-          onClick={() => navigate('/recomendacoes')}
-        >
-          <Star size={14} className="text-yellow-500" />
-          Dicas
-        </Button>
       </div>
 
       <div className="flex justify-center gap-4 mb-6">
@@ -463,18 +405,18 @@ const Dashboard: React.FC = () => {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-  <Label htmlFor="title">Descrição</Label>
-  <Input 
-    id="title" 
-    name="title"
-    value={editingTransaction ? editingTransaction.title : newTransaction.title} 
-    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-      if (editingTransaction) setEditingTransaction({...editingTransaction, title: e.target.value});
-      else handleNewTransactionChange(e);
-    }}
-    placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
-  />
-</div>
+              <Label htmlFor="title">Descrição</Label>
+              <Input 
+                id="title" 
+                name="title"
+                value={editingTransaction ? editingTransaction.title : newTransaction.title} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  if (editingTransaction) setEditingTransaction({...editingTransaction, title: e.target.value});
+                  else handleNewTransactionChange(e);
+                }}
+                placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
+              />
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="amount">Valor</Label>
               <Input 
@@ -492,25 +434,25 @@ const Dashboard: React.FC = () => {
             <div className="grid gap-2">
               <Label htmlFor="category">Categoria</Label>
               <Select
-  value={editingTransaction ? editingTransaction.category : newTransaction.category}
-  onValueChange={value => {
-    if (editingTransaction) setEditingTransaction({ ...editingTransaction, category: value });
-    else setNewTransaction((prev: any) => ({ ...prev, category: value }));
-  }}
->
-  <SelectTrigger id="category" name="category" className="bg-galileo-accent text-white">
-    <SelectValue placeholder="Selecione uma categoria" />
-  </SelectTrigger>
-  <SelectContent className="bg-galileo-card text-galileo-text">
-    {((editingTransaction ? editingTransaction.type : newTransaction.type) === 'income'
-      ? INCOME_CATEGORIES
-      : EXPENSE_CATEGORIES).map((category: string) => (
-        <SelectItem key={category} value={category}>
-          {category}
-        </SelectItem>
-      ))}
-  </SelectContent>
-</Select>
+                value={editingTransaction ? editingTransaction.category : newTransaction.category}
+                onValueChange={value => {
+                  if (editingTransaction) setEditingTransaction({ ...editingTransaction, category: value });
+                  else setNewTransaction((prev: any) => ({ ...prev, category: value }));
+                }}
+              >
+                <SelectTrigger id="category" name="category" className="bg-galileo-accent text-white">
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent className="bg-galileo-card text-galileo-text">
+                  {((editingTransaction ? editingTransaction.type : newTransaction.type) === 'income'
+                    ? INCOME_CATEGORIES
+                    : EXPENSE_CATEGORIES).map((category: string) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox 
@@ -671,40 +613,7 @@ const Dashboard: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      <Dialog open={showFinancialTips} onOpenChange={setShowFinancialTips}>
-  <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto p-0 rounded-xl">
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 p-5 rounded-t-xl border-b border-blue-100 dark:border-blue-900/50">
-      <DialogHeader className="pb-2">
-        <DialogTitle className="flex items-center gap-2 text-xl">
-          <span className="text-galileo-text">Notícias do Mercado</span>
-          <span className="text-yellow-500">🔥</span>
-        </DialogTitle>
-        <DialogDescription className="text-galileo-secondaryText">
-          Últimas notícias financeiras do Brasil e do mundo
-        </DialogDescription>
-      </DialogHeader>
-    </div>
-    
-    <div className="p-5 space-y-4">
-
-    </div>
-    
-    <div className="p-4 bg-gray-50 dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-800 rounded-b-xl flex justify-end">
-      <Button 
-        variant="outline"
-        size="sm"
-        className="text-galileo-accent border-galileo-accent/50 hover:bg-galileo-accent/10"
-        onClick={() => {
-          setShowFinancialTips(false); // Close the current dialog
-          navigate('/recomendacoes');
-        }}
-      >
-        Ver mais recomendações
-      </Button>
-    </div>
-  </DialogContent>
-</Dialog>
-
+      
       <div className="px-4 mb-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
           <div className="lg:col-span-3">

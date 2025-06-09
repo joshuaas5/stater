@@ -253,13 +253,47 @@ const handleSendMessage = async (message: string) => {
     if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim')) {
       setLoading(true);
       setError("");
-      try {
-        if (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense') {
+      try {        if (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense') {
           const { description, amount, category, date } = pendingAction.dados;
           // Capitaliza a primeira letra da descrição
           const capitalizedDescription = description && description.length > 0 
             ? description.charAt(0).toUpperCase() + description.slice(1) 
             : description;
+
+          // Função para garantir que a data seja sempre a de hoje se não especificada
+          const getValidDate = (dateInput: string | null): Date => {
+            if (!dateInput) {
+              // Se não há data especificada, usar a data de hoje (sem horário)
+              const today = new Date();
+              return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            }
+            
+            // Se há data especificada, processar corretamente
+            try {
+              // Se está no formato YYYY-MM-DD, processar diretamente
+              if (dateInput.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const [year, month, day] = dateInput.split('-').map(Number);
+                return new Date(year, month - 1, day); // month - 1 porque Date usa índice baseado em 0
+              }
+              
+              // Caso contrário, tentar converter normalmente mas garantir que seja apenas a data
+              const parsedDate = new Date(dateInput);
+              if (isNaN(parsedDate.getTime())) {
+                // Se a data for inválida, usar hoje
+                const today = new Date();
+                return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+              }
+              
+              // Garantir que seja apenas a data (sem horário)
+              return new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate());
+            } catch (error) {
+              // Em caso de erro, usar hoje
+              const today = new Date();
+              return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            }
+          };
+
+          const transactionDate = getValidDate(date);
 
           // Salva no Supabase
           await supabase.from('transactions').insert([
@@ -268,7 +302,7 @@ const handleSendMessage = async (message: string) => {
               amount: amount,
               category: category || null,
               title: capitalizedDescription, // Usa a descrição capitalizada
-              date: date ? new Date(date).toISOString() : new Date().toISOString(),
+              date: transactionDate.toISOString(),
               created_at: new Date().toISOString(),
             }
           ]);
@@ -279,7 +313,7 @@ const handleSendMessage = async (message: string) => {
             amount: Number(amount),
             type: pendingAction.tipo as 'income' | 'expense',
             category: category || '',
-            date: date ? new Date(date) : new Date(),
+            date: transactionDate,
             userId: activeUserId, // Usa o activeUserId obtido no início da função
           };
           saveTransactionUtil(transactionToSave);

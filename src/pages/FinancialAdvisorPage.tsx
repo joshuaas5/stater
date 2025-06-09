@@ -247,13 +247,12 @@ const handleSendMessage = async (message: string) => {
         return;
     }
 
-    const lowerMsg = message.trim().toLowerCase();
-
-    // Se aguardando confirmação e usuário diz sim
+    const lowerMsg = message.trim().toLowerCase();    // Se aguardando confirmação e usuário diz sim
     if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim')) {
       setLoading(true);
       setError("");
-      try {        if (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense') {
+      try {
+        if (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense') {
           const { description, amount, category, date } = pendingAction.dados;
           // Capitaliza a primeira letra da descrição
           const capitalizedDescription = description && description.length > 0 

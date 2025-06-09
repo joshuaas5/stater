@@ -377,7 +377,7 @@ const Dashboard: React.FC = () => {
           style={{ textDecoration: 'none' }}
         >
           <DollarSign className="h-5 w-5 text-green-600" />
-          <span>$ Análise das suas finanças</span>
+          <span className="text-xs">Análise Financeira</span>
         </Link>
       </div>
 

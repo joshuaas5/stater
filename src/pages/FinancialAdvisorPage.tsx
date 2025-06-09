@@ -61,7 +61,7 @@ export const FinancialAdvisorPage: React.FC = () => {
   const [showSuggestions, setShowSuggestions] = useState(true);
   const initialSystemMessage: ChatMessage = {
     id: uuidv4(),
-    text: `Olá! Eu sou o Consultor IA 🤖. Pergunte sobre finanças ou registre receitas/despesas. Tudo será confirmado antes de registrar!`,
+    text: `Olá! Eu sou o Consultor IA 🤖 do ICTUS. Estou aqui para ajudar com suas finanças.\n**Como posso te ajudar hoje?**\n\n**Lembre-se ao me responder:**\n*   **Seja claro e conciso:** Vá direto ao ponto.\n*   **Evite repetições:** Não reitere informações desnecessariamente.\n*   **Formate com Markdown:** Use negrito (\`**texto**\`) para ênfase e listas para clareza.\n*   **Use emojis com moderação:** Para tornar a conversa mais amigável (ex: 💡, ✅, 📊).\n*   Eu sempre pedirei confirmação antes de registrar qualquer transação.`,
     sender: "system",
     timestamp: new Date()
   };

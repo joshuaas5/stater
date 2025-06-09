@@ -58,10 +58,9 @@ export const FinancialAdvisorPage: React.FC = () => {
 
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [showSuggestions, setShowSuggestions] = useState(true);
-  const initialSystemMessage: ChatMessage = {
+  const [showSuggestions, setShowSuggestions] = useState(true);  const initialSystemMessage: ChatMessage = {
     id: uuidv4(),
-    text: `Olá! Eu sou o Consultor IA 🤖 do ICTUS. Estou aqui para ajudar com suas finanças.\n**Como posso te ajudar hoje?**\n\n**Lembre-se ao me responder:**\n*   **Seja claro e conciso:** Vá direto ao ponto.\n*   **Evite repetições:** Não reitere informações desnecessariamente.\n*   **Formate com Markdown:** Use negrito (\`**texto**\`) para ênfase e listas para clareza.\n*   **Use emojis com moderação:** Para tornar a conversa mais amigável (ex: 💡, ✅, 📊).\n*   Eu sempre pedirei confirmação antes de registrar qualquer transação.`,
+    text: `Olá! Eu sou o Consultor IA 🤖 do ICTUS. Estou aqui para ajudar com suas finanças.\n\n**Como posso te ajudar hoje?**\n\nPosso ajudá-lo a:\n• **Registrar receitas e despesas**\n• **Analisar seus gastos**\n• **Criar orçamentos**\n• **Dar dicas de economia**\n• **Gerenciar suas contas**\n\nSempre pedirei confirmação antes de registrar qualquer transação.`,
     sender: "system",
     timestamp: new Date()
   };
@@ -153,9 +152,14 @@ export const FinancialAdvisorPage: React.FC = () => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 50);
   }, [messages]);
-
   const handleSuggestionClick = (suggestion: string) => {
-    handleSendMessage(suggestion);
+    // Validar se é uma solicitação de registro de transação sem valor
+    if (suggestion === 'Registrar Despesa' || suggestion === 'Registrar Receita') {
+      const transactionType = suggestion === 'Registrar Despesa' ? 'despesa' : 'receita';
+      handleSendMessage(`Quero registrar uma ${transactionType}. Preciso informar o valor e a descrição.`);
+    } else {
+      handleSendMessage(suggestion);
+    }
     setShowSuggestions(false);
   };
 
@@ -257,38 +261,36 @@ const handleSendMessage = async (message: string) => {
           // Capitaliza a primeira letra da descrição
           const capitalizedDescription = description && description.length > 0 
             ? description.charAt(0).toUpperCase() + description.slice(1) 
-            : description;
-
-          // Função para garantir que a data seja sempre a de hoje se não especificada
+            : description;          // Função para garantir que a data seja sempre a de hoje se não especificada
           const getValidDate = (dateInput: string | null): Date => {
             if (!dateInput) {
-              // Se não há data especificada, usar a data de hoje (sem horário)
-              const today = new Date();
-              return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+              // Se não há data especificada, usar a data e hora atual
+              return new Date();
             }
             
             // Se há data especificada, processar corretamente
             try {
-              // Se está no formato YYYY-MM-DD, processar diretamente
+              // Se está no formato YYYY-MM-DD, processar diretamente mantendo o horário atual
               if (dateInput.match(/^\d{4}-\d{2}-\d{2}$/)) {
                 const [year, month, day] = dateInput.split('-').map(Number);
-                return new Date(year, month - 1, day); // month - 1 porque Date usa índice baseado em 0
+                const currentTime = new Date();
+                return new Date(year, month - 1, day, currentTime.getHours(), currentTime.getMinutes(), currentTime.getSeconds(), currentTime.getMilliseconds());
               }
               
-              // Caso contrário, tentar converter normalmente mas garantir que seja apenas a data
+              // Caso contrário, tentar converter normalmente
               const parsedDate = new Date(dateInput);
               if (isNaN(parsedDate.getTime())) {
-                // Se a data for inválida, usar hoje
-                const today = new Date();
-                return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                // Se a data for inválida, usar agora
+                return new Date();
               }
               
-              // Garantir que seja apenas a data (sem horário)
-              return new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate());
+              // Se a data foi fornecida sem horário, manter o horário atual
+              const currentTime = new Date();
+              return new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate(), 
+                             currentTime.getHours(), currentTime.getMinutes(), currentTime.getSeconds(), currentTime.getMilliseconds());
             } catch (error) {
-              // Em caso de erro, usar hoje
-              const today = new Date();
-              return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+              // Em caso de erro, usar agora
+              return new Date();
             }
           };
 

@@ -46,7 +46,7 @@ interface GeminiResponse {
 
 import { supabaseAdmin } from './supabase-admin'; // ES Module padrão para TypeScript no Vercel
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyDTTPO0otruHVzh7bXsi7MCyG674P03758";
 // Updated to gemini-1.5-flash-latest
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
 

@@ -105,11 +105,49 @@ const FinancialGoals: React.FC = () => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
-
   const getProgressColor = (progress: number) => {
     if (progress >= 80) return 'text-green-400';
     if (progress >= 50) return 'text-yellow-400';
     return 'text-red-400';
+  };
+
+  const getGoalGradient = (colorString: string) => {
+    if (!colorString || typeof colorString !== 'string') {
+      return 'linear-gradient(90deg, #3b82f6, #1d4ed8)'; // Fallback azul
+    }
+    
+    try {
+      const parts = colorString.split(' ');
+      if (parts.length >= 3) {
+        const fromColor = parts[0]?.replace('from-', '') || 'blue-400';
+        const toColor = parts[2]?.replace('to-', '') || 'blue-600';
+        
+        // Mapeamento de cores Tailwind para CSS
+        const colorMap: { [key: string]: string } = {
+          'red-400': '#f87171',
+          'red-600': '#dc2626',
+          'green-400': '#4ade80',
+          'green-600': '#16a34a',
+          'blue-400': '#60a5fa',
+          'blue-600': '#2563eb',
+          'purple-400': '#c084fc',
+          'purple-600': '#9333ea',
+          'teal-400': '#2dd4bf',
+          'teal-600': '#0d9488',
+          'cyan-400': '#22d3ee',
+          'cyan-600': '#0891b2'
+        };
+        
+        const fromHex = colorMap[fromColor] || '#3b82f6';
+        const toHex = colorMap[toColor] || '#1d4ed8';
+        
+        return `linear-gradient(90deg, ${fromHex}, ${toHex})`;
+      }
+    } catch (error) {
+      console.warn('Erro ao processar cor:', error);
+    }
+    
+    return 'linear-gradient(90deg, #3b82f6, #1d4ed8)'; // Fallback
   };
 
   return (
@@ -194,12 +232,11 @@ const FinancialGoals: React.FC = () => {
                   <Progress 
                     value={progress} 
                     className="h-3 bg-white/20"
-                  />
-                  <div 
+                  />                  <div 
                     className="absolute top-0 left-0 h-3 rounded-full bg-gradient-to-r transition-all duration-500"
                     style={{ 
                       width: `${progress}%`,
-                      background: `linear-gradient(90deg, ${goal.color.split(' ')[0].replace('from-', '')}, ${goal.color.split(' ')[2].replace('to-', '')})`
+                      background: getGoalGradient(goal.color)
                     }}
                   />
                 </div>

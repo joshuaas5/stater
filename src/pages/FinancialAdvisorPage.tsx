@@ -702,10 +702,25 @@ const handleSendMessage = async (message: string) => {
         setWaitingConfirmation(true);
         const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationMessageForChat, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
         setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
-      
-      } else if (!pendingAction) { 
-        const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
-        setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+        } else if (!pendingAction) { 
+        // Tentar detectar transação como fallback se a IA não retornou JSON
+        const detectedTransaction = detectTransactionInText(botResponseText, message);
+        
+        if (detectedTransaction) {
+          // Se detectamos uma transação, criar confirmação
+          const transactionTypeWord = detectedTransaction.tipo === 'income' ? 'receita 🤑' : 'despesa 💸';
+          const confirmationText = `📝 Detectei que você mencionou uma ${transactionTypeWord} de R$${detectedTransaction.dados.amount.toFixed(2)}${detectedTransaction.dados.description ? ` - ${detectedTransaction.dados.description}` : ''}.\n\nVocê confirma o registro desta transação? (sim/não)`;
+          
+          setPendingAction(detectedTransaction);
+          setWaitingConfirmation(true);
+          
+          const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+          setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+        } else {
+          // Resposta normal se não detectou transação
+          const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+          setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+        }
       }
       
     } catch (e: any) {
@@ -723,6 +738,91 @@ const handleSendMessage = async (message: string) => {
     } finally {
       setLoading(false);
     }
+  };
+  // Função de fallback para detectar transações que a IA pode ter perdido
+  const detectTransactionInText = (text: string, userMessage: string) => {
+    const originalMessage = userMessage.toLowerCase();
+    
+    // Padrões para receitas
+    const incomePatterns = [
+      /(?:ganhei|recebi|entrou|lucrei|vendi\s+por|salário\s+de|freelance\s+de|veio)\s+(?:r\$\s*)?(\d+(?:[,.]\d{2})?)/i,
+      /(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:que\s+)?(?:ganhei|recebi|da\s+vovó|do\s+trabalho|de\s+salário|que\s+veio)/i,
+      /adicione?\s+(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:que\s+)?(?:ganhei|recebi)/i
+    ];
+    
+    // Padrões para despesas
+    const expensePatterns = [
+      /(?:gastei|perdi|paguei|comprei\s+por|saiu|custou|joguei)\s+(?:r\$\s*)?(\d+(?:[,.]\d{2})?)/i,
+      /(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:no|na|do|da|em|para)\s+([^,.!?]+)/i,
+      /perdi\s+(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:no|na|em|do|da)\s+([^,.!?]+)/i
+    ];
+    
+    let transactionType: 'income' | 'expense' | null = null;
+    let amount: number = 0;
+    let description = '';
+    
+    // Verificar receitas
+    for (const pattern of incomePatterns) {
+      const match = originalMessage.match(pattern);
+      if (match) {
+        transactionType = 'income';
+        amount = parseFloat(match[1].replace(',', '.'));
+        
+        // Extrair descrição do contexto
+        if (originalMessage.includes('vovó')) {
+          const vovMatch = originalMessage.match(/(?:da|de)\s+(vovó\s+\w+|vovó)/i);
+          description = vovMatch ? `Receita da ${vovMatch[1]}` : 'Receita da vovó';
+        } else if (originalMessage.includes('trabalho')) {
+          description = 'Receita do trabalho';
+        } else if (originalMessage.includes('salário')) {
+          description = 'Salário';
+        } else if (originalMessage.includes('freelance')) {
+          description = 'Freelance';
+        } else {
+          description = `Receita de R$${amount.toFixed(2)}`;
+        }
+        break;
+      }
+    }
+    
+    // Verificar despesas se não encontrou receita
+    if (!transactionType) {
+      for (const pattern of expensePatterns) {
+        const match = originalMessage.match(pattern);
+        if (match) {
+          transactionType = 'expense';
+          amount = parseFloat(match[1].replace(',', '.'));
+          
+          // Extrair descrição
+          if (originalMessage.includes('jogo do bicho')) {
+            description = 'Jogo do bicho';
+          } else if (originalMessage.includes('mercado')) {
+            description = 'Supermercado';
+          } else if (match[2]) {
+            description = match[2].trim();
+          } else {
+            // Tentar extrair contexto da frase
+            const contextMatch = originalMessage.match(/(?:no|na|em|do|da|para)\s+([^,.!?]+)/i);
+            description = contextMatch ? contextMatch[1].trim() : `Despesa de R$${amount.toFixed(2)}`;
+          }
+          break;
+        }
+      }
+    }
+    
+    if (transactionType && amount > 0) {
+      return {
+        tipo: transactionType,
+        dados: {
+          description: description,
+          amount: amount,
+          category: null,
+          date: null
+        }
+      };
+    }
+    
+    return null;
   };
 
   const initialSuggestions = [

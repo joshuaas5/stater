@@ -151,12 +151,30 @@ export const FinancialAdvisorPage: React.FC = () => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 50);
-  }, [messages]);
-  const handleSuggestionClick = (suggestion: string) => {
-    // Validar se é uma solicitação de registro de transação sem valor
+  }, [messages]);  const handleSuggestionClick = (suggestion: string) => {
+    // Para botões de registro de transação, fazer a IA perguntar pelos detalhes
     if (suggestion === 'Registrar Despesa' || suggestion === 'Registrar Receita') {
       const transactionType = suggestion === 'Registrar Despesa' ? 'despesa' : 'receita';
-      handleSendMessage(`Quero registrar uma ${transactionType}. Preciso informar o valor e a descrição.`);
+      
+      // Adicionar mensagem do usuário
+      const userMessage: ChatMessage = {
+        id: uuidv4(),
+        text: suggestion,
+        sender: 'user',
+        timestamp: new Date(),
+        avatarUrl: USER_AVATAR
+      };
+      
+      // Resposta da IA perguntando pelos detalhes
+      const aiResponse: ChatMessage = {
+        id: uuidv4(),
+        text: `Perfeito! Vou te ajudar a registrar uma ${transactionType}. 📝\n\n**Por favor, me informe:**\n• Qual o valor da ${transactionType}?\n• Qual a descrição/motivo?\n• (Opcional) Qual a categoria?\n\nPor exemplo: "R$ 50,00 para supermercado na categoria alimentação"`,
+        sender: 'system',
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
+      };
+      
+      setMessages(prev => [...prev, userMessage, aiResponse]);
     } else {
       handleSendMessage(suggestion);
     }

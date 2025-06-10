@@ -738,30 +738,31 @@ const handleSendMessage = async (message: string) => {
     } finally {
       setLoading(false);
     }
-  };
-  // Função de fallback para detectar transações que a IA pode ter perdido
+  };  // Função de fallback para detectar transações que a IA pode ter perdido
   const detectTransactionInText = (text: string, userMessage: string) => {
     const originalMessage = userMessage.toLowerCase();
     
-    // Padrões para receitas
+    // Padrões para receitas - incluindo "achar", "encontrar", etc.
     const incomePatterns = [
       /(?:ganhei|recebi|entrou|lucrei|vendi\s+por|salário\s+de|freelance\s+de|veio)\s+(?:r\$\s*)?(\d+(?:[,.]\d{2})?)/i,
-      /(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:que\s+)?(?:ganhei|recebi|da\s+vovó|do\s+trabalho|de\s+salário|que\s+veio)/i,
-      /adicione?\s+(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:que\s+)?(?:ganhei|recebi)/i
+      /(?:achei|encontrei|apareceu|surgiu|chegou)\s+(?:r\$\s*)?(\d+(?:[,.]\d{2})?)/i,
+      /(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:que\s+)?(?:ganhei|recebi|da\s+vovó|do\s+trabalho|de\s+salário|que\s+veio|no\s+chão|na\s+rua)/i,
+      /adicione?\s+(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:que\s+)?(?:ganhei|recebi|achei|encontrei)/i
     ];
     
-    // Padrões para despesas
+    // Padrões para despesas - mais específicos para evitar confusão
     const expensePatterns = [
-      /(?:gastei|perdi|paguei|comprei\s+por|saiu|custou|joguei)\s+(?:r\$\s*)?(\d+(?:[,.]\d{2})?)/i,
-      /(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:no|na|do|da|em|para)\s+([^,.!?]+)/i,
-      /perdi\s+(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:no|na|em|do|da)\s+([^,.!?]+)/i
+      /(?:gastei|paguei|comprei\s+por|saiu|custou)\s+(?:r\$\s*)?(\d+(?:[,.]\d{2})?)/i,
+      /(?:perdi)\s+(?:r\$\s*)?(\d+(?:[,.]\d{2})?)\s+(?:no|na|em|do|da)\s+(jogo|aposta|loteria|cassino|bingo)/i,
+      /(?:joguei|apostei)\s+(?:r\$\s*)?(\d+(?:[,.]\d{2})?)/i,
+      /(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:no|na|do|da|para)\s+(?:mercado|supermercado|farmácia|conta|boleto)/i
     ];
     
     let transactionType: 'income' | 'expense' | null = null;
     let amount: number = 0;
     let description = '';
     
-    // Verificar receitas
+    // Verificar receitas PRIMEIRO (prioridade para casos ambíguos)
     for (const pattern of incomePatterns) {
       const match = originalMessage.match(pattern);
       if (match) {
@@ -772,12 +773,16 @@ const handleSendMessage = async (message: string) => {
         if (originalMessage.includes('vovó')) {
           const vovMatch = originalMessage.match(/(?:da|de)\s+(vovó\s+\w+|vovó)/i);
           description = vovMatch ? `Receita da ${vovMatch[1]}` : 'Receita da vovó';
+        } else if (originalMessage.includes('chão') || originalMessage.includes('rua')) {
+          description = 'Dinheiro encontrado';
         } else if (originalMessage.includes('trabalho')) {
           description = 'Receita do trabalho';
         } else if (originalMessage.includes('salário')) {
           description = 'Salário';
         } else if (originalMessage.includes('freelance')) {
           description = 'Freelance';
+        } else if (originalMessage.includes('achei') || originalMessage.includes('encontrei')) {
+          description = 'Dinheiro encontrado';
         } else {
           description = `Receita de R$${amount.toFixed(2)}`;
         }
@@ -785,7 +790,7 @@ const handleSendMessage = async (message: string) => {
       }
     }
     
-    // Verificar despesas se não encontrou receita
+    // Verificar despesas APENAS se não encontrou receita
     if (!transactionType) {
       for (const pattern of expensePatterns) {
         const match = originalMessage.match(pattern);
@@ -796,8 +801,12 @@ const handleSendMessage = async (message: string) => {
           // Extrair descrição
           if (originalMessage.includes('jogo do bicho')) {
             description = 'Jogo do bicho';
-          } else if (originalMessage.includes('mercado')) {
+          } else if (originalMessage.includes('mercado') || originalMessage.includes('supermercado')) {
             description = 'Supermercado';
+          } else if (originalMessage.includes('farmácia')) {
+            description = 'Farmácia';
+          } else if (originalMessage.includes('conta') || originalMessage.includes('boleto')) {
+            description = 'Pagamento de conta';
           } else if (match[2]) {
             description = match[2].trim();
           } else {

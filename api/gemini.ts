@@ -327,11 +327,14 @@ IMPORTANTE - DETECÇÃO DE TRANSAÇÕES:
 Se o usuário mencionar qualquer valor em dinheiro junto com contexto de transação, responda APENAS com JSON:
 
 RECEITAS (responda JSON se detectar):
-- "ganhei X reais", "recebi X", "entrou X", "lucrei X", "vendi por X", "salário de X", "freelance de X", etc.
-- Exemplos: "ganhei 50 reais", "recebi 100 da vovó", "entrou 200 do trabalho"
+- "ganhei X reais", "recebi X", "entrou X", "lucrei X", "vendi por X", "salário de X", "freelance de X"
+- "achei X reais", "encontrei X", "apareceu X", "veio X", "surgiu X", "chegou X"
+- "presente de X", "prêmio de X", "sorteio de X", "restituição de X"
+- Exemplos: "ganhei 50 reais", "recebi 100 da vovó", "achei 10 no chão", "encontrei 20 reais"
 
 DESPESAS (responda JSON se detectar):
-- "gastei X", "perdi X", "paguei X", "comprei por X", "saiu X", "custou X", "joguei X", etc.
+- "gastei X", "paguei X", "comprei por X", "saiu X", "custou X"
+- "perdi X" (APENAS quando for em jogos/apostas), "joguei X", "apostei X"
 - Exemplos: "gastei 30 no mercado", "perdi 78 no jogo do bicho", "paguei 150 de conta"
 
 FORMATO JSON OBRIGATÓRIO para transações:

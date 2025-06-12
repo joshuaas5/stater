@@ -26,11 +26,10 @@ const FinancialAnalysisPage: React.FC = () => {
           hsl(var(--background))
         `
       }}
-    >      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/3 to-purple-500/3 dark:from-blue-500/8 dark:to-purple-500/8 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-3/4 right-1/4 w-80 h-80 bg-gradient-to-r from-emerald-500/3 to-teal-500/3 dark:from-emerald-500/8 dark:to-teal-500/8 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-gradient-to-r from-amber-500/3 to-orange-500/3 dark:from-amber-500/8 dark:to-orange-500/8 rounded-full blur-3xl animate-pulse delay-2000" />
+    >      {/* Animated background elements */}      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/8 to-purple-500/8 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-3/4 right-1/4 w-80 h-80 bg-gradient-to-r from-emerald-500/8 to-teal-500/8 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-gradient-to-r from-amber-500/8 to-orange-500/8 rounded-full blur-3xl animate-pulse delay-2000" />
       </div><div className="relative z-10 container mx-auto p-4 md:p-6 lg:p-8 space-y-8">
         {/* Botão voltar posicionado no canto */}        <div className="absolute top-4 left-4 z-20">
           <Button 

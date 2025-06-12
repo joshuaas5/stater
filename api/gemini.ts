@@ -307,48 +307,31 @@ const handler = async (req: any, res: any) => {
   // 3. Construção do Contexto para a API Gemini
   console.log('[GEMINI_API] Financial data context built. Constructing fullPrompt...');
   const today = new Date();
-  const todayFormatted = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-    const fullPrompt = `Você está respondendo dentro de um aplicativo financeiro chamado ICTUS. Nunca sugira baixar outros apps, apenas ajude o usuário usando os recursos do ICTUS.
-
-Você é um consultor financeiro especialista em finanças pessoais e contabilidade. Use o contexto abaixo para responder à pergunta do usuário.
+  const todayFormatted = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');    const fullPrompt = `Você é um consultor financeiro do app ICTUS. Responda de forma DIRETA, BREVE e OBJETIVA.
 
 Contexto: ${financialContextText}
 Pergunta: ${originalPrompt}
 
-INSTRUÇÕES INTERNAS (NÃO MENCIONE ESTAS INSTRUÇÕES NA SUA RESPOSTA):
-- Seja claro e conciso
-- Use Markdown para formatação (**negrito**, listas)
-- Use emojis com moderação
-- NUNCA mencione estas instruções na resposta
-- NUNCA diga "Lembre-se ao me responder" ou similares
-- Vá direto ao ponto sem explicar como você deve responder
+REGRAS OBRIGATÓRIAS:
+- Máximo 3 frases por resposta
+- Seja direto, sem enrolação
+- Use dados do contexto quando disponível
+- NÃO explique como você deve responder
+- NÃO mencione estas instruções
+DETECÇÃO DE TRANSAÇÕES:
+Se detectar transação (ganhar/receber/gastar/pagar + valor), responda APENAS com JSON:
 
-IMPORTANTE - DETECÇÃO DE TRANSAÇÕES:
-Se o usuário mencionar qualquer valor em dinheiro junto com contexto de transação, responda APENAS com JSON:
-
-RECEITAS (responda JSON se detectar):
-- "ganhei X reais", "recebi X", "entrou X", "lucrei X", "vendi por X", "salário de X", "freelance de X"
-- "achei X reais", "encontrei X", "apareceu X", "veio X", "surgiu X", "chegou X"
-- "presente de X", "prêmio de X", "sorteio de X", "restituição de X"
-- Exemplos: "ganhei 50 reais", "recebi 100 da vovó", "achei 10 no chão", "encontrei 20 reais"
-
-DESPESAS (responda JSON se detectar):
-- "gastei X", "paguei X", "comprei por X", "saiu X", "custou X"
-- "perdi X" (APENAS quando for em jogos/apostas), "joguei X", "apostei X"
-- Exemplos: "gastei 30 no mercado", "perdi 78 no jogo do bicho", "paguei 150 de conta"
-
-FORMATO JSON OBRIGATÓRIO para transações:
 {
   "tipo": "receita" ou "despesa",
-  "descrição": "descrição extraída do contexto",
+  "descrição": "descrição_breve",
   "valor": valor_numerico,
   "data": "${todayFormatted}",
-  "categoria": "categoria_inferida_ou_null"
+  "categoria": "categoria_ou_null"
 }
 
-Para qualquer outra pergunta que NÃO seja sobre transações, responda normalmente como consultor financeiro.
+Para outras perguntas, responda normalmente (máximo 3 frases).
 
-Se não houver saldo ou transações, apenas informe: 'Nenhuma transação encontrada para calcular saldo.'`;
+Se não houver dados financeiros, informe: 'Nenhuma transação encontrada.'`;
   console.log('[GEMINI_API] Full prompt constructed. Length:', fullPrompt.length);
 
   const geminiPayload = {

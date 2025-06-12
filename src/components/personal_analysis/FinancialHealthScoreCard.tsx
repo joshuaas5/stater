@@ -204,23 +204,9 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
               formatter={(value: number) => [`${value.toFixed(1)} / 100`, 'Performance']}
               labelStyle={{ color: '#FACC15', fontWeight: 'bold' }} /* Cor do label (Reserva Estratégica, etc) no tooltip em dourado */
             />
-            {/* <Legend /> Removida para um visual mais limpo e misterioso */}
-          </RadarChart>
+            {/* <Legend /> Removida para um visual mais limpo e misterioso */}          </RadarChart>
         </ResponsiveContainer>
-        {/* A exibição detalhada dos scores individuais foi removida para um design mais 'misterioso' */}
-
-        {financialTips.length > 0 && (
-          <div className="mt-6 pt-4 border-t border-purple-300/30">
-            <h3 className="text-md font-semibold mb-3 text-foreground">Insights 💡</h3>
-            <ul className="space-y-2 list-inside list-disc pl-2">
-              {financialTips.map((tip: string, index: number) => (
-                <li key={index} className="text-sm text-muted-foreground">
-                  {tip}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {/* Insights removidos para evitar duplicação - estão agora na seção de Insights IA */}
       </CardContent>
     </Card>
   );

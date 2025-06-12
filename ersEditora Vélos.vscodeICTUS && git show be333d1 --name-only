@@ -1,0 +1,10 @@
+[33m94fa29f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix: resolve Gemini API 500 error by adding environment variable configuration
+[33maea13d8[m fix: resolve TypeScript errors in Gemini API causing 500 errors
+[33mbe333d1[m fix: resolve runtime error in FinancialGoals component
+[33m710a654[m fix: resolve TypeScript errors and replace undefined issues
+[33mbb03ebe[m feat: redesign financial dashboard with glassmorphism UI
+[33mb0a5f95[m Fix transaction detection: 'achei/encontrei' now correctly detected as income, not expense
+[33m675311a[m Improve transaction detection: add better AI prompts and fallback detection for natural language transactions
+[33madc7fe6[m Fix AI conversation flow: improve transaction button logic and remove internal instructions from user responses
+[33m571f52f[m Fix date handling issues: timestamps now use current time, clean system message, add transaction validation
+[33mbbdd07c[m Fix: Corrige problema de data no Consultor IA

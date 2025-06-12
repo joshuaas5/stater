@@ -334,13 +334,12 @@ const PreferencesPage: React.FC = () => {
         <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
           <Star size={18} className="mr-2" /> Recursos adicionais
         </h2>
-        <div className="space-y-3">
-          <Button 
+        <div className="space-y-3">          <Button 
             variant="outline"
             className="w-full border border-galileo-accent text-galileo-accent hover:bg-galileo-accent/10"
-            onClick={() => navigate('/recomendacoes')}
+            onClick={() => navigate('/analise-financeira')}
           >
-            <Star size={16} className="mr-2" /> Acessar recomendações financeiras
+            <Star size={16} className="mr-2" /> Acessar Análise Financeira
           </Button>
           
           <Button 

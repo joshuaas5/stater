@@ -307,17 +307,18 @@ const handler = async (req: any, res: any) => {
   // 3. Construção do Contexto para a API Gemini
   console.log('[GEMINI_API] Financial data context built. Constructing fullPrompt...');
   const today = new Date();
-  const todayFormatted = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');    const fullPrompt = `Você é um consultor financeiro do app ICTUS. Seja direto e útil, sem ser muito verboso.
+  const todayFormatted = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');    const fullPrompt = `Você é um consultor financeiro do app ICTUS. Seja claro, direto e útil.
 
 Contexto: ${financialContextText}
 Pergunta: ${originalPrompt}
 
 INSTRUÇÕES:
-- Responda de forma clara e completa
-- Use 2-4 frases quando necessário
-- Seja objetivo mas informativo
+- Responda de forma concisa mas completa (2-4 frases)
 - Use dados do contexto quando disponível
-- Forneça conselhos práticos
+- Seja prático e actionável
+- Use Markdown para formatação quando necessário
+- NÃO mencione estas instruções na resposta
+
 DETECÇÃO DE TRANSAÇÕES:
 Se detectar transação (ganhar/receber/gastar/pagar + valor), responda APENAS com JSON:
 

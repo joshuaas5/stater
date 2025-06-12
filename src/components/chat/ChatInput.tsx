@@ -31,6 +31,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
+
   // Desfocar o input na montagem inicial para evitar foco automático no mobile
   useEffect(() => {
     if (inputRef.current) {
@@ -85,20 +86,67 @@ const ChatInput: React.FC<ChatInputProps> = ({
   // Camera functions
   const startCamera = async () => {
     try {
+      // Verificar se o navegador suporta câmera
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Câmera não suportada neste navegador');
+      }
+
+      console.log('Solicitando acesso à câmera...');
+
+      // Solicitar permissão para câmera
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
+        video: { 
+          facingMode: 'environment', // Câmera traseira por padrão
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
       });
+      
+      console.log('Stream da câmera obtido:', mediaStream);
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         setStream(mediaStream);
-        setShowCamera(true);
+        
+        // Aguardar o video carregar e definir o estado
+        videoRef.current.onloadedmetadata = () => {
+          console.log('Metadados do vídeo carregados');
+          if (videoRef.current) {
+            videoRef.current.play().then(() => {
+              console.log('Vídeo iniciado com sucesso');
+              setShowCamera(true);
+            }).catch((playError) => {
+              console.error('Erro ao reproduzir vídeo:', playError);
+              setShowCamera(true); // Mesmo com erro de play, mostrar a interface
+            });
+          }
+        };
+
+        // Definir o estado imediatamente para mostrar a interface após um pequeno delay
+        setTimeout(() => {
+          if (mediaStream.active) {
+            setShowCamera(true);
+          }
+        }, 500);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao acessar câmera:', err);
+      
+      let errorMessage = 'Não foi possível acessar a câmera.';
+      
+      if (err.name === 'NotAllowedError') {
+        errorMessage = 'Permissão negada. Permita o acesso à câmera e tente novamente.';
+      } else if (err.name === 'NotFoundError') {
+        errorMessage = 'Nenhuma câmera encontrada no dispositivo.';
+      } else if (err.name === 'NotSupportedError') {
+        errorMessage = 'Câmera não suportada neste navegador.';
+      } else if (err.name === 'NotReadableError') {
+        errorMessage = 'Câmera está sendo usada por outro aplicativo.';
+      }
+      
       toast({
         title: "Erro na câmera",
-        description: "Não foi possível acessar a câmera.",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -170,6 +218,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     onSubmit(processedMessage);
     setMessage('');
   };
+
   if (waitingConfirmation && pendingActionDetails) {
     return (
       <div className="p-3 border-t border-border bg-amber-50">
@@ -245,6 +294,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       </div>
     );
   }
+
   return (
     <div className="border-t border-border bg-card">
       <form onSubmit={handleSubmit} className="flex items-center gap-2 p-3">
@@ -268,6 +318,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           variant="outline"
           className="rounded-full"
           disabled={loading || waitingConfirmation}
+          title="Selecionar imagem"
         >
           <Image size={18} />
         </Button>
@@ -279,6 +330,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           variant="outline" 
           className="rounded-full"
           disabled={loading || waitingConfirmation}
+          title="Usar câmera"
         >
           <Camera size={18} />
         </Button>

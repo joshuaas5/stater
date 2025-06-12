@@ -1,5 +1,7 @@
 // API para processamento de documentos financeiros com Gemini 2.5 Flash Vision
 
+import { supabaseAdmin } from './supabase-admin';
+
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyDTTPO0otruHVzh7bXsi7MCyG674P03758";
 
 interface GeminiVisionResponse {
@@ -103,9 +105,33 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
-  const { imageBase64, userId } = req.body;
+  // Verificar autenticação
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.error('[GEMINI_VISION] Token de autorização ausente');
+    return res.status(401).json({ error: 'Token de autorização ausente' });
+  }
+
+  const token = authHeader.substring(7);
+  let userId = '';
+
+  try {
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !user) {
+      console.error('[GEMINI_VISION] Erro de autenticação:', authError);
+      return res.status(401).json({ error: 'Token inválido' });
+    }
+    userId = user.id;
+    console.log('[GEMINI_VISION] Usuário autenticado:', userId);
+  } catch (e: any) {
+    console.error('[GEMINI_VISION] Exceção na autenticação:', e);
+    return res.status(500).json({ error: 'Erro na autenticação' });
+  }
+
+  const { imageBase64 } = req.body;
 
   if (!imageBase64) {
+    console.error('[GEMINI_VISION] Imagem não fornecida');
     return res.status(400).json({ error: 'Imagem não fornecida' });
   }
 
@@ -117,6 +143,18 @@ export default async function handler(req: any, res: any) {
   try {
     console.log('[GEMINI_VISION] Processando imagem com Gemini 2.5 Flash...');
     
+    // Detectar tipo MIME da imagem
+    let mimeType = "image/jpeg";
+    if (imageBase64.startsWith('/9j/')) {
+      mimeType = "image/jpeg";
+    } else if (imageBase64.startsWith('iVBORw0KGgo')) {
+      mimeType = "image/png";
+    } else if (imageBase64.startsWith('R0lGODlh')) {
+      mimeType = "image/gif";
+    }
+    
+    console.log('[GEMINI_VISION] Tipo MIME detectado:', mimeType);
+    
     // Preparar payload para Gemini Vision
     const payload = {
       contents: [{
@@ -126,7 +164,7 @@ export default async function handler(req: any, res: any) {
           },
           {
             inline_data: {
-              mime_type: "image/jpeg",
+              mime_type: mimeType,
               data: imageBase64
             }
           }

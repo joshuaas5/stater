@@ -30,34 +30,28 @@ const MetricCard: React.FC<MetricCardProps> = ({
     if (trend === 'down') return <TrendingDown className="w-4 h-4 text-red-400" />;
     return null;
   };
-
   return (
-    <Card className="relative overflow-hidden border-0 bg-gradient-to-br backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105"
-          style={{
-            background: `linear-gradient(135deg, ${gradientFrom}20, ${gradientTo}20)`,
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}>
-      <div className="absolute inset-0 bg-gradient-to-br opacity-10"
+    <Card className="relative overflow-hidden border border-border bg-card/90 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+      <div className="absolute inset-0 bg-gradient-to-br opacity-5 dark:opacity-10"
            style={{ background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})` }} />
       
       <CardContent className="relative p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-3">
-              <div className={`p-2 rounded-xl bg-gradient-to-r shadow-lg ${iconColor}`}
+              <div className={`p-2 rounded-xl shadow-lg text-white`}
                    style={{ background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})` }}>
                 {icon}
               </div>
-              <h3 className="text-sm font-medium text-white/80">{title}</h3>
+              <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
             </div>
             
             <div className="space-y-1">
-              <p className="text-2xl font-bold text-white">{value}</p>
+              <p className="text-2xl font-bold text-foreground">{value}</p>
               {subtitle && (
                 <div className="flex items-center gap-1">
                   {getTrendIcon()}
-                  <p className="text-xs text-white/60">{subtitle}</p>
+                  <p className="text-xs text-muted-foreground">{subtitle}</p>
                 </div>
               )}
             </div>
@@ -128,13 +122,12 @@ const FinancialMetrics: React.FC = () => {
       currency: 'BRL'
     }).format(value);
   };
-
-  const metricsData = [
+  const metricsData: MetricCardProps[] = [
     {
       title: 'Saldo Total',
       value: formatCurrency(metrics.totalBalance),
       subtitle: metrics.totalBalance >= 0 ? 'Situação positiva' : 'Atenção necessária',
-      trend: metrics.totalBalance >= 0 ? 'up' : 'down' as const,
+      trend: (metrics.totalBalance >= 0 ? 'up' : 'down') as 'up' | 'down',
       icon: <Wallet className="w-5 h-5" />,
       gradientFrom: '#667eea',
       gradientTo: '#764ba2'
@@ -156,7 +149,8 @@ const FinancialMetrics: React.FC = () => {
       icon: <CreditCard className="w-5 h-5" />,
       gradientFrom: '#4facfe',
       gradientTo: '#00f2fe'
-    },    {
+    },
+    {
       title: 'Economia Mensal',
       value: formatCurrency(metrics.savings),
       subtitle: `${metrics.savingsRate.toFixed(1)}% da receita`,
@@ -169,7 +163,7 @@ const FinancialMetrics: React.FC = () => {
       title: 'Dívidas Pendentes',
       value: formatCurrency(metrics.totalDebt),
       subtitle: 'A pagar',
-      trend: 'neutral' as 'neutral',
+      trend: 'neutral' as const,
       icon: <Target className="w-5 h-5" />,
       gradientFrom: '#fa709a',
       gradientTo: '#fee140'

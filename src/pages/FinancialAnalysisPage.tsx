@@ -6,7 +6,7 @@ import FinancialMetrics from '@/components/dashboard/FinancialMetrics';
 import ModernCharts from '@/components/dashboard/ModernCharts';
 import FinancialInsights from '@/components/dashboard/FinancialInsights';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, TrendingUp } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const FinancialAnalysisPage: React.FC = () => {

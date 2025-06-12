@@ -9,7 +9,7 @@ dotenv.config({ path: path.join(__dirname, '.env.local') });
 console.log('GEMINI_API_KEY configurada:', !!process.env.GEMINI_API_KEY);
 
 // URL da API
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
 const API_KEY = process.env.GEMINI_API_KEY;
 
 // Função para testar a API

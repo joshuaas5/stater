@@ -13,8 +13,8 @@ import { checkUserMonthlyTokenLimit, logApiCallDetails, ApiCallDetails } from '.
 // Nome da API para controle de uso
 const API_NAME = 'gemini';
 
-// Usando o modelo Gemini Flash mais recente e otimizado, que é o 'gemini-1.5-flash-latest'
-const GEMINI_MODEL_NAME = 'gemini-1.5-flash-latest'; // Updated to use the specific 1.5 Flash Latest model
+// Usando o modelo Gemini 2.5 Flash Preview mais recente e otimizado
+const GEMINI_MODEL_NAME = 'gemini-2.5-flash-preview-05-20'; // Updated to use the latest 2.5 Flash Preview model
 
 // URL base da API Gemini
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
@@ -104,9 +104,8 @@ export async function fetchGeminiFlashLite(
 
   const apiKey = getApiKey();
   const apiKeySource = getApiKeySource();
-
   const defaultSystemInstruction = `
-Você é um assistente financeiro amigável e prestativo chamado Sprout Spending Hub IA.
+Você é uma IA chamada VOYB IA e atua em um aplicativo de organização e controle financeiro, deve responder de forma inteligente e correta, como um consultor financeiro, mas que também não é enrolado, mas que fala o necessário e essencial de maneira que inspire e dê ótimas ideias para o usuário. Responde utilizando listas, emojis, use negrito para títulos e dê espaçamento entre tópicos de fala.
 Seu objetivo é ajudar o usuário a gerenciar suas finanças.
 Responda de forma concisa, prática e motivadora.
 

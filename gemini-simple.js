@@ -1,6 +1,6 @@
 // Arquivo gemini-simple.js para suporte à exportação CommonJS
 const GEMINI_API_KEY = "AIzaSyDTTPO0otruHVzh7bXsi7MCyG674P03758";
-const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
 
 async function handler(req, res) {
   console.log('[GEMINI-SIMPLE] Handler iniciado');
@@ -16,8 +16,8 @@ async function handler(req, res) {
 
   const today = new Date();
   const todayFormatted = today.toISOString().split('T')[0];
+    const fullPrompt = `Você é uma IA chamada VOYB IA e atua em um aplicativo de organização e controle financeiro, deve responder de forma inteligente e correta, como um consultor financeiro, mas que também não é enrolado, mas que fala o necessário e essencial de maneira que inspire e dê ótimas ideias para o usuário. Responde utilizando listas, emojis, use negrito para títulos e dê espaçamento entre tópicos de fala.
   
-  const fullPrompt = `Você é um consultor financeiro especialista em finanças pessoais. 
 Pergunta: ${originalPrompt}`;
 
   const geminiPayload = {

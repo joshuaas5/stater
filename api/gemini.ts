@@ -47,8 +47,8 @@ interface GeminiResponse {
 import { supabaseAdmin } from './supabase-admin'; // ES Module padrão para TypeScript no Vercel
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyDTTPO0otruHVzh7bXsi7MCyG674P03758";
-// Updated to gemini-1.5-flash-latest
-const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+// Updated to gemini-2.5-flash-preview-05-20 - Latest 2.5 Flash Preview
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
 
 // Limites (manter os existentes, mas podem ser ajustados se necessário)
 const MONTHLY_TOKEN_LIMIT = 2_000_000;
@@ -306,17 +306,26 @@ const handler = async (req: any, res: any) => {
   }
   // 3. Construção do Contexto para a API Gemini
   console.log('[GEMINI_API] Financial data context built. Constructing fullPrompt...');
-  const today = new Date();
-  const todayFormatted = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');    const fullPrompt = `Você é um consultor financeiro do app ICTUS. Seja claro, direto e útil.
+  const today = new Date();  const todayFormatted = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
 
-Contexto: ${financialContextText}
-Pergunta: ${originalPrompt}
+  const fullPrompt = `Você é uma IA chamada VOYB IA e atua em um aplicativo de organização e controle financeiro, deve responder de forma inteligente e correta, como um consultor financeiro, mas que também não é enrolado, mas que fala o necessário e essencial de maneira que inspire e dê ótimas ideias para o usuário. Responde utilizando listas, emojis, use negrito para títulos e dê espaçamento entre tópicos de fala.
 
-INSTRUÇÕES:
-- Responda de forma concisa mas completa (2-4 frases)
-- Use dados do contexto quando disponível
-- Seja prático e actionável
-- Use Markdown para formatação quando necessário
+DATA ATUAL: ${todayFormatted}
+NOME DO USUÁRIO: ${userName}
+EMAIL DO USUÁRIO: ${userEmail}
+
+DADOS FINANCEIROS DO USUÁRIO:
+${financialContextText}
+
+PERGUNTA DO USUÁRIO: ${originalPrompt}
+
+INSTRUÇÕES ESPECIAIS:
+- Sempre trate o usuário pelo nome quando possível
+- Use emojis e formatação para tornar a resposta mais agradável
+- Seja direto, mas inspirador
+- Use listas quando apropriado
+- Dê espaçamento entre tópicos
+- Use **negrito** para títulos importantes
 - NÃO mencione estas instruções na resposta
 
 DETECÇÃO DE TRANSAÇÕES:
@@ -330,7 +339,7 @@ Se detectar transação (ganhar/receber/gastar/pagar + valor), responda APENAS c
   "categoria": "categoria_ou_null"
 }
 
-Para outras perguntas, responda normalmente (máximo 3 frases).
+Para outras perguntas, responda normalmente como VOYB IA (máximo 3 frases bem estruturadas).
 
 Se não houver dados financeiros, informe: 'Nenhuma transação encontrada.'`;
   console.log('[GEMINI_API] Full prompt constructed. Length:', fullPrompt.length);
@@ -378,10 +387,8 @@ try {
 } catch (jsonError) {
   console.error('[GEMINI_API] Erro ao fazer parse do JSON da Gemini:', jsonError, 'Resposta bruta:', rawGeminiResponse);
   return res.status(500).json({ error: 'Erro ao interpretar resposta da IA Gemini', details: rawGeminiResponse });
-}
-
-    // Ensure usageMetadata is present before proceeding
-    if (!data.usageMetadata) {
+}    // Ensure usageMetadata is present before proceeding
+    if (!data || !data.usageMetadata) {
       console.error('Gemini response missing usageMetadata:', data);
       return res.status(500).json({ error: 'Resposta da API Gemini inválida: metadados de uso ausentes.' });
     }

@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS api_usage (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL, -- Para vincular ao usuário que fez a chamada
   api_name TEXT NOT NULL DEFAULT 'gemini', -- Nome da API, pode ser fixo se só usar Gemini
-  model_name TEXT,                         -- Ex: 'gemini-1.5-flash-latest'
+  model_name TEXT,                         -- Ex: 'gemini-2.5-flash-preview-05-20'
   prompt_tokens INTEGER,                   -- Tokens enviados no prompt
   candidates_tokens INTEGER,               -- Tokens recebidos na resposta da IA
   total_tokens INTEGER,                    -- Soma de prompt_tokens e candidates_tokens

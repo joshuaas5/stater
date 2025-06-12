@@ -307,8 +307,9 @@ const handler = async (req: any, res: any) => {
   // 3. Construção do Contexto para a API Gemini
   console.log('[GEMINI_API] Financial data context built. Constructing fullPrompt...');
   const today = new Date();  const todayFormatted = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+  const fullPrompt = `Você é uma IA chamada VOYB IA e atua em um aplicativo de organização e controle financeiro. Responda de forma inteligente, objetiva e prática como um consultor financeiro.
 
-  const fullPrompt = `Você é uma IA chamada VOYB IA e atua em um aplicativo de organização e controle financeiro, deve responder de forma inteligente e correta, como um consultor financeiro, mas que também não é enrolado, mas que fala o necessário e essencial de maneira que inspire e dê ótimas ideias para o usuário. Responde utilizando listas, emojis, use negrito para títulos e dê espaçamento entre tópicos de fala.
+**IMPORTANTE: Seja conciso mas completo. Máximo 200-300 palavras por resposta.**
 
 DATA ATUAL: ${todayFormatted}
 NOME DO USUÁRIO: ${userName}
@@ -319,14 +320,13 @@ ${financialContextText}
 
 PERGUNTA DO USUÁRIO: ${originalPrompt}
 
-INSTRUÇÕES ESPECIAIS:
-- Sempre trate o usuário pelo nome quando possível
-- Use emojis e formatação para tornar a resposta mais agradável
-- Seja direto, mas inspirador
-- Use listas quando apropriado
-- Dê espaçamento entre tópicos
+INSTRUÇÕES:
 - Use **negrito** para títulos importantes
-- NÃO mencione estas instruções na resposta
+- Use emojis para tornar mais agradável
+- Seja direto e prático
+- Respostas concisas mas completas
+- Use listas quando apropriado
+- Não seja prolixo
 
 DETECÇÃO DE TRANSAÇÕES:
 Se detectar transação (ganhar/receber/gastar/pagar + valor), responda APENAS com JSON:
@@ -339,21 +339,18 @@ Se detectar transação (ganhar/receber/gastar/pagar + valor), responda APENAS c
   "categoria": "categoria_ou_null"
 }
 
-Para outras perguntas, responda normalmente como VOYB IA (máximo 3 frases bem estruturadas).
-
-Se não houver dados financeiros, informe: 'Nenhuma transação encontrada.'`;
+Responda de forma direta e útil:`;
   console.log('[GEMINI_API] Full prompt constructed. Length:', fullPrompt.length);
 
   const geminiPayload = {
     contents: [{ 
       role: "user", 
       parts: [{text: fullPrompt}] 
-    }],
-    generationConfig: {
+    }],    generationConfig: {
       temperature: 0.7,
       topK: 32,
       topP: 1,
-      maxOutputTokens: 2048,
+      maxOutputTokens: 8192, // Aumentado para permitir respostas mais completas
       // responseMimeType: "text/plain", // Para Gemini 1.5, se necessário
     }
   };
@@ -394,12 +391,19 @@ try {
     }
 
     const promptTokenCount = data.usageMetadata.promptTokenCount;
-    const outputTokenCount = data.usageMetadata.candidatesTokenCount;
-
-    if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts.length > 0) {
+    const outputTokenCount = data.usageMetadata.candidatesTokenCount;    if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts.length > 0) {
       outputText = data.candidates[0]?.content?.parts[0]?.text || "";
       console.log('[GEMINI_API] Extracted outputText from Gemini response. Length:', outputText.length);
-    } else if (data.promptFeedback && data.promptFeedback.blockReason) {
+      console.log('[GEMINI_API] finishReason:', data.candidates[0].finishReason);
+      
+      // Log se a resposta foi truncada por limite de tokens
+      if (data.candidates[0].finishReason === 'MAX_TOKENS') {
+        console.warn('[GEMINI_API] Resposta truncada por limite de tokens!');
+        outputText += '\n\n[Resposta foi cortada por limite de tokens - considere aumentar maxOutputTokens]';
+      } else if (data.candidates[0].finishReason !== 'STOP') {
+        console.warn('[GEMINI_API] Resposta não finalizou normalmente. Reason:', data.candidates[0].finishReason);
+      }
+    }else if (data.promptFeedback && data.promptFeedback.blockReason) {
       console.error('Gemini prompt blocked:', data.promptFeedback.blockReason, data.promptFeedback.safetyRatings);
       outputText = `Desculpe, sua solicitação não pôde ser processada devido a restrições de conteúdo (${data.promptFeedback.blockReason}). Por favor, reformule sua pergunta.`;
       // Log token usage even for blocked prompts as Gemini might still count them

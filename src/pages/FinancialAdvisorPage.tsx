@@ -274,7 +274,76 @@ const handleSendMessage = async (message: string) => {
       setLoading(true);
       setError("");
       try {
-        if (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense') {
+        // Processar transações OCR
+        if (pendingAction.tipo === 'generic_confirmation' && pendingAction.dados.ocrTransactions) {
+          const ocrTransactions = pendingAction.dados.ocrTransactions;
+          let successCount = 0;
+          let errorCount = 0;
+
+          // Processar cada transação
+          for (const transaction of ocrTransactions) {
+            try {
+              // Preparar data da transação
+              const transactionDate = transaction.date 
+                ? new Date(transaction.date) 
+                : new Date();
+
+              // Salvar no Supabase
+              await supabase.from('transactions').insert([
+                {
+                  type: transaction.type,
+                  amount: transaction.amount,
+                  category: transaction.category || null,
+                  title: transaction.description,
+                  date: transactionDate.toISOString(),
+                  created_at: new Date().toISOString(),
+                  user_id: activeUserId
+                }
+              ]);
+
+              // Salvar no localStorage
+              const transactionToSave: Transaction = {
+                id: uuidv4(),
+                title: transaction.description,
+                amount: Number(transaction.amount),
+                type: transaction.type,
+                category: transaction.category || '',
+                date: transactionDate,
+                userId: activeUserId,
+              };
+              saveTransactionUtil(transactionToSave);
+              successCount++;
+            } catch (transactionError) {
+              console.error('Erro ao salvar transação OCR:', transactionError);
+              errorCount++;
+            }
+          }
+
+          // Atualizar interface
+          window.dispatchEvent(new Event('transactionsUpdated'));
+          
+          // Mensagem de resultado
+          let resultMessage = '';
+          if (successCount > 0) {
+            resultMessage += `✅ ${successCount} transações salvas com sucesso!`;
+          }
+          if (errorCount > 0) {
+            resultMessage += `${successCount > 0 ? '\n' : ''}❌ ${errorCount} transações falharam ao salvar.`;
+          }
+
+          setMessages((prevMessages: ChatMessage[]) => ([
+            ...prevMessages,
+            { 
+              id: uuidv4(), 
+              text: resultMessage, 
+              sender: 'system', 
+              timestamp: new Date(),
+              avatarUrl: IA_AVATAR
+            }
+          ]));
+        }
+        // Processar transações normais
+        else if (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense') {
           const { description, amount, category, date } = pendingAction.dados;
           // Capitaliza a primeira letra da descrição
           const capitalizedDescription = description && description.length > 0 
@@ -852,6 +921,120 @@ const handleTabChange = (tabValue: string) => {
   setActiveTab(tabValue);
 }
 
+// Função para processar imagem OCR
+const handleImageUpload = async (imageBase64: string) => {
+  if (!imageBase64) return;
+
+  setLoading(true);
+  setError("");
+
+  try {
+    // Obter usuário atual
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error("Usuário não autenticado");
+    }
+
+    // Obter token de sessão
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData?.session) {
+      throw new Error("Erro ao obter sessão");
+    }
+
+    // Adicionar mensagem de upload
+    setMessages(prev => [...prev, {
+      id: uuidv4(),
+      text: "📄 Processando documento...",
+      sender: 'system',
+      timestamp: new Date(),
+      avatarUrl: IA_AVATAR
+    }]);
+
+    // Chamar API de OCR
+    const response = await fetch('/api/gemini-vision', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionData.session.access_token}`
+      },
+      body: JSON.stringify({
+        imageBase64: imageBase64.split(',')[1], // Remover data:image/...;base64,
+        userId: user.id
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao processar documento');
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error('Falha no processamento do documento');
+    }
+
+    const ocrData = result.data;
+    const transactions = ocrData.transactions;
+
+    // Criar mensagem com resultados
+    let resultMessage = `🤖 **Documento processado com sucesso!**\n\n`;
+    resultMessage += `📋 **Tipo:** ${ocrData.documentType.replace('_', ' ')}\n`;
+    resultMessage += `📊 **Confiança:** ${Math.round(ocrData.confidence * 100)}%\n`;
+    resultMessage += `💰 **Total:** R$ ${ocrData.summary.totalAmount.toFixed(2)}\n`;
+    
+    if (ocrData.summary.establishment) {
+      resultMessage += `🏪 **Local:** ${ocrData.summary.establishment}\n`;
+    }
+    
+    resultMessage += `\n**${transactions.length} transações encontradas:**\n\n`;
+
+    // Processar cada transação
+    for (let i = 0; i < transactions.length; i++) {
+      const transaction = transactions[i];
+      resultMessage += `${i + 1}. **${transaction.description}**\n`;
+      resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
+      resultMessage += `   📁 Categoria: ${transaction.category}\n`;
+      resultMessage += `   📅 Data: ${transaction.date || 'Hoje'}\n`;
+      resultMessage += `   ✅ Confiança: ${Math.round(transaction.confidence * 100)}%\n\n`;
+    }
+
+    resultMessage += `Deseja que eu adicione essas transações ao seu sistema? Digite "**sim**" para confirmar todas ou "**não**" para cancelar.`;
+
+    // Adicionar mensagem com resultados
+    setMessages(prev => [...prev, {
+      id: uuidv4(),
+      text: resultMessage,
+      sender: 'system',
+      timestamp: new Date(),
+      avatarUrl: IA_AVATAR
+    }]);
+
+    // Preparar ação pendente para confirmação
+    setPendingAction({
+      tipo: 'generic_confirmation',
+      dados: {
+        ocrTransactions: transactions,
+        documentType: ocrData.documentType,
+        establishment: ocrData.summary.establishment
+      }
+    });
+    setWaitingConfirmation(true);
+
+  } catch (err: any) {
+    console.error('Erro ao processar imagem:', err);
+    setError(err.message || 'Erro ao processar documento');
+    setMessages(prev => [...prev, {
+      id: uuidv4(),
+      text: `❌ Erro ao processar documento: ${err.message || 'Erro desconhecido'}`,
+      sender: 'system',
+      timestamp: new Date(),
+      avatarUrl: IA_AVATAR
+    }]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 return (
   <>
     <div className="flex flex-col h-screen bg-background">
@@ -894,9 +1077,9 @@ return (
                 </div>
               </div>
             )}
-            {/* ChatInput fica aqui, abaixo das mensagens/sugestões, mas acima do padding da NavBar */}
-            <ChatInput
+            {/* ChatInput fica aqui, abaixo das mensagens/sugestões, mas acima do padding da NavBar */}            <ChatInput
               onSubmit={handleSendMessage} 
+              onImageUpload={handleImageUpload}
               loading={loading}
               waitingConfirmation={waitingConfirmation} 
               pendingActionDetails={pendingAction ? pendingAction.dados : null} 

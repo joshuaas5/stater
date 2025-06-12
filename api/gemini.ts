@@ -306,28 +306,36 @@ const handler = async (req: any, res: any) => {
   }
   // 3. Construção do Contexto para a API Gemini
   console.log('[GEMINI_API] Financial data context built. Constructing fullPrompt...');
-  const today = new Date();  const todayFormatted = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');  const fullPrompt = `Você é uma IA chamada VOYB IA e atua em um aplicativo de organização e controle financeiro. Responda de forma inteligente, objetiva e prática como um consultor financeiro.
+  const today = new Date();  const todayFormatted = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');  // Detectar se a pergunta requer análise financeira
+  const needsFinancialContext = originalPrompt.toLowerCase().includes('análise') || 
+                               originalPrompt.toLowerCase().includes('situação') ||
+                               originalPrompt.toLowerCase().includes('gastos') ||
+                               originalPrompt.toLowerCase().includes('receitas') ||
+                               originalPrompt.toLowerCase().includes('contas') ||
+                               originalPrompt.toLowerCase().includes('orçamento') ||
+                               originalPrompt.toLowerCase().includes('dinheiro') ||
+                               originalPrompt.toLowerCase().includes('financeira');
 
-DATA ATUAL: ${todayFormatted}
-NOME DO USUÁRIO: ${userName}
-EMAIL DO USUÁRIO: ${userEmail}
+  const contextToUse = needsFinancialContext ? financialContextText : "Dados financeiros disponíveis mediante solicitação.";
 
-DADOS FINANCEIROS DO USUÁRIO:
-${financialContextText}
+  const fullPrompt = `Você é VOYB IA, consultor financeiro direto e conciso.
 
-PERGUNTA DO USUÁRIO: ${originalPrompt}
+DATA: ${todayFormatted}
+USUÁRIO: ${userName}
+
+${needsFinancialContext ? `DADOS FINANCEIROS:\n${contextToUse}\n` : ''}
+PERGUNTA: ${originalPrompt}
 
 INSTRUÇÕES:
-- Use **negrito** para títulos importantes
-- Use emojis para tornar mais agradável
-- Seja detalhado e completo em suas respostas
-- Use listas quando apropriado
-- Forneça exemplos práticos e ações concretas
-- Complete suas respostas totalmente - não corte no meio
+- Seja DIRETO e CONCISO
+- Responda apenas o que foi perguntado
+- Use emojis moderadamente
+- NÃO faça análise financeira automática
+- SÓ analise finanças se explicitamente solicitado
+- Complete suas respostas - não corte no meio
 
 DETECÇÃO DE TRANSAÇÕES:
 Se detectar transação (ganhar/receber/gastar/pagar + valor), responda APENAS com JSON:
-
 {
   "tipo": "receita" ou "despesa",
   "descrição": "descrição_breve",
@@ -336,7 +344,7 @@ Se detectar transação (ganhar/receber/gastar/pagar + valor), responda APENAS c
   "categoria": "categoria_ou_null"
 }
 
-Responda de forma completa e detalhada:`;
+Resposta direta:`;
   console.log('[GEMINI_API] Full prompt constructed. Length:', fullPrompt.length);
 
   const geminiPayload = {

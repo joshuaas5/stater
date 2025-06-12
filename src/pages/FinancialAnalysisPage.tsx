@@ -35,28 +35,28 @@ const FinancialAnalysisPage: React.FC = () => {
         {/* Botão voltar posicionado no canto */}        <div className="absolute top-4 left-4 z-20">
           <Button 
             variant="outline" 
-            className="backdrop-blur-md bg-white/95 border-gray-200 text-gray-900 hover:bg-gray-50 dark:bg-gray-800/95 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-700 transition-all duration-300 shadow-sm"
+            className="backdrop-blur-md bg-gray-800/95 border-gray-700 text-gray-100 hover:bg-gray-700 transition-all duration-300 shadow-sm"
             onClick={() => navigate(-1)}
           >
             <ArrowLeft size={18} className="mr-2" />
             Voltar
           </Button>
-        </div>        {/* Header centralizado */}
+        </div>{/* Header centralizado */}
         <div className="text-center mb-8 pt-16">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
             Análise Financeira
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">Sua análise financeira completa e personalizada</p>
+          <p className="text-gray-300">Sua análise financeira completa e personalizada</p>
           
-          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border border-gray-200 dark:border-gray-700 shadow-sm">
-            <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-            <span className="text-gray-900 dark:text-gray-100 text-sm font-medium">Análise em tempo real</span>
+          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-800/95 backdrop-blur-md border border-gray-700 shadow-sm">
+            <TrendingUp className="w-5 h-5 text-green-400" />
+            <span className="text-gray-100 text-sm font-medium">Análise em tempo real</span>
           </div>
         </div>        {/* Métricas Financeiras - Cards Principais */}
         <section>
-          <div className="mb-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">📊 Visão Geral</h2>
-            <p className="text-gray-600 dark:text-gray-300">Suas principais métricas financeiras do mês</p>
+          <div className="mb-6 bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border border-gray-700 shadow-sm">
+            <h2 className="text-2xl font-semibold text-white mb-2">📊 Visão Geral</h2>
+            <p className="text-gray-300">Suas principais métricas financeiras do mês</p>
           </div>
           <FinancialMetrics />
         </section>
@@ -66,20 +66,20 @@ const FinancialAnalysisPage: React.FC = () => {
           {/* Coluna Esquerda - Gráficos e Score */}
           <div className="xl:col-span-2 space-y-8">            {/* Gráficos Modernos */}
             <section>
-              <div className="mb-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">📈 Análise Temporal</h2>
-                <p className="text-gray-600 dark:text-gray-300">Evolução das suas finanças ao longo do tempo</p>
+              <div className="mb-6 bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border border-gray-700 shadow-sm">
+                <h2 className="text-2xl font-semibold text-white mb-2">📈 Análise Temporal</h2>
+                <p className="text-gray-300">Evolução das suas finanças ao longo do tempo</p>
               </div>
               <ModernCharts />
             </section>
 
             {/* Score de Saúde Financeira */}
             <section>
-              <div className="mb-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">🎯 Pontuação de Saúde Financeira</h2>
-                <p className="text-gray-600 dark:text-gray-300">Análise detalhada do seu perfil financeiro</p>
+              <div className="mb-6 bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border border-gray-700 shadow-sm">
+                <h2 className="text-2xl font-semibold text-white mb-2">🎯 Pontuação de Saúde Financeira</h2>
+                <p className="text-gray-300">Análise detalhada do seu perfil financeiro</p>
               </div>
-              <div className="p-1 rounded-xl bg-gradient-to-r from-blue-500/5 to-green-500/5 dark:from-blue-500/15 dark:to-green-500/15 backdrop-blur-md border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="p-1 rounded-xl bg-gradient-to-r from-blue-500/15 to-green-500/15 backdrop-blur-md border border-gray-700 shadow-sm">
                 <FinancialHealthScoreCard />
               </div>
             </section>
@@ -88,20 +88,20 @@ const FinancialAnalysisPage: React.FC = () => {
           {/* Coluna Direita - Insights e Dicas */}
           <div className="xl:col-span-1 space-y-8">            {/* Insights da IA */}
             <section>
-              <div className="mb-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">🤖 Insights IA</h2>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">Análises personalizadas</p>
+              <div className="mb-6 bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border border-gray-700 shadow-sm">
+                <h2 className="text-xl font-semibold text-white mb-2">🤖 Insights IA</h2>
+                <p className="text-gray-300 text-sm">Análises personalizadas</p>
               </div>
               <FinancialInsights />
             </section>
 
             {/* Livro da Semana */}
             <section>
-              <div className="mb-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">📚 Dica da Semana</h2>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">Conhecimento para crescer</p>
+              <div className="mb-4 bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border border-gray-700 shadow-sm">
+                <h2 className="text-xl font-semibold text-white mb-2">📚 Dica da Semana</h2>
+                <p className="text-gray-300 text-sm">Conhecimento para crescer</p>
               </div>
-              <div className="p-1 rounded-xl bg-gradient-to-r from-purple-500/5 to-blue-500/5 dark:from-purple-500/15 dark:to-blue-500/15 backdrop-blur-md border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="p-1 rounded-xl bg-gradient-to-r from-purple-500/15 to-blue-500/15 backdrop-blur-md border border-gray-700 shadow-sm">
                 <BookOfTheWeek />
               </div>
             </section></div>        </div>

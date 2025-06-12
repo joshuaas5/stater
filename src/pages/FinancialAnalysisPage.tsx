@@ -5,9 +5,8 @@ import BookOfTheWeek from '@/components/personal_analysis/BookOfTheWeek';
 import FinancialMetrics from '@/components/dashboard/FinancialMetrics';
 import ModernCharts from '@/components/dashboard/ModernCharts';
 import FinancialInsights from '@/components/dashboard/FinancialInsights';
-import FinancialGoals from '@/components/dashboard/FinancialGoals';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Sparkles, TrendingUp } from 'lucide-react';
+import { ArrowLeft, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const FinancialAnalysisPage: React.FC = () => {
@@ -39,10 +38,9 @@ const FinancialAnalysisPage: React.FC = () => {
         <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-gradient-to-r from-green-400/20 to-teal-400/20 rounded-full blur-3xl animate-pulse delay-2000" />
       </div>
 
-      <div className="relative z-10 container mx-auto p-4 md:p-6 lg:p-8 space-y-8">
-        {/* Header com botão voltar e título */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
+      <div className="relative z-10 container mx-auto p-4 md:p-6 lg:p-8 space-y-8">        {/* Header com botão voltar e título */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
             <Button 
               variant="outline" 
               className="backdrop-blur-md bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all duration-300"
@@ -52,18 +50,17 @@ const FinancialAnalysisPage: React.FC = () => {
               Voltar
             </Button>
             
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-white flex items-center gap-3">
-                <Sparkles className="w-8 h-8 text-yellow-400" />
-                Dashboard Financeiro
-              </h1>
-              <p className="text-white/70 mt-2">Sua análise financeira completa e personalizada</p>
+            <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
+              <TrendingUp className="w-5 h-5 text-green-400" />
+              <span className="text-white/80 text-sm">Análise em tempo real</span>
             </div>
           </div>
           
-          <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
-            <TrendingUp className="w-5 h-5 text-green-400" />
-            <span className="text-white/80 text-sm">Análise em tempo real</span>
+          <div className="text-center">
+            <h1 className="text-3xl md:text-4xl font-bold text-white">
+              Análise Financeira
+            </h1>
+            <p className="text-white/70 mt-2">Sua análise financeira completa e personalizada</p>
           </div>
         </div>
 
@@ -122,25 +119,7 @@ const FinancialAnalysisPage: React.FC = () => {
                 <BookOfTheWeek />
               </div>
             </section>
-          </div>
-        </div>
-
-        {/* Metas Financeiras - Seção Completa */}
-        <section>
-          <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-white mb-2">🎯 Metas Financeiras</h2>
-            <p className="text-white/70">Acompanhe o progresso dos seus objetivos</p>
-          </div>
-          <FinancialGoals />
-        </section>
-
-        {/* Footer decorativo */}
-        <div className="mt-16 text-center">
-          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
-            <Sparkles className="w-5 h-5 text-yellow-400" />
-            <span className="text-white/80">Powered by ICTUS IA</span>
-          </div>
-        </div>
+          </div>        </div>
       </div>
     </div>
   );

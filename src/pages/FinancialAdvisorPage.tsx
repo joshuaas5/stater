@@ -60,7 +60,7 @@ export const FinancialAdvisorPage: React.FC = () => {
   const { t } = useTranslation();
   const [showSuggestions, setShowSuggestions] = useState(true);  const initialSystemMessage: ChatMessage = {
     id: uuidv4(),
-    text: `Olá! Eu sou o Consultor IA 🤖 do ICTUS. Estou aqui para ajudar com suas finanças.\n\n**Como posso te ajudar hoje?**\n\nPosso ajudá-lo a:\n• **Registrar receitas e despesas**\n• **Analisar seus gastos**\n• **Criar orçamentos**\n• **Dar dicas de economia**\n• **Gerenciar suas contas**\n\nSempre pedirei confirmação antes de registrar qualquer transação.`,
+    text: `Olá! Eu sou a VOYB IA 🤖 do ICTUS. Estou aqui para ajudar com suas finanças.\n\n**Como posso te ajudar hoje?**\n\nPosso ajudá-lo a:\n• **Registrar receitas e despesas**\n• **Analisar seus gastos**\n• **Criar orçamentos**\n• **Dar dicas de economia**\n• **Gerenciar suas contas**\n\nSempre pedirei confirmação antes de registrar qualquer transação.`,
     sender: "system",
     timestamp: new Date()
   };
@@ -857,7 +857,7 @@ return (
     <div className="flex flex-col h-screen bg-background">
       <div className="flex-grow container mx-auto px-0 sm:px-4 pt-4 pb-20 flex flex-col overflow-hidden">
         <div className="mb-4 text-center">
-          <h1 className="text-2xl font-bold text-foreground">Consultor IA 🤖</h1>
+          <h1 className="text-2xl font-bold text-foreground">VOYB IA 🤖</h1>
         </div>
 
         <div className="flex-grow flex flex-col overflow-hidden">

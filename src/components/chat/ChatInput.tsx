@@ -81,8 +81,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       setSelectedImage(imageData);
     };
     reader.readAsDataURL(file);
-  };
-  // Camera functions
+  };  // Camera functions
   const startCamera = async () => {
     try {
       // Verificar se o navegador suporta câmera
@@ -106,31 +105,29 @@ const ChatInput: React.FC<ChatInputProps> = ({
       
       console.log('Stream da câmera obtido:', mediaStream);
       
-      if (videoRef.current) {
-        console.log('Configurando vídeo...');
-        const video = videoRef.current;
-        
-        // Definir propriedades do vídeo
-        video.srcObject = mediaStream;
-        video.setAttribute('playsinline', 'true'); // Importante para iOS
-        video.muted = true; // Necessário para autoplay em alguns navegadores
-        
-        setStream(mediaStream);
-        setShowCamera(true);
-        
-        // Tentar reproduzir o vídeo após um pequeno delay
-        setTimeout(async () => {
-          try {
-            if (video && video.srcObject) {
-              await video.play();
-              console.log('Vídeo reproduzindo com sucesso');
-            }
-          } catch (playError) {
+      // Primeiro definir o estado para mostrar a interface
+      setShowCamera(true);
+      setStream(mediaStream);
+      
+      // Depois configurar o vídeo
+      setTimeout(() => {
+        if (videoRef.current && mediaStream) {
+          console.log('Configurando vídeo...');
+          const video = videoRef.current;
+          
+          // Definir propriedades do vídeo
+          video.srcObject = mediaStream;
+          video.setAttribute('playsinline', 'true'); // Importante para iOS
+          video.muted = true; // Necessário para autoplay em alguns navegadores
+          
+          // Tentar reproduzir o vídeo
+          video.play().catch((playError) => {
             console.warn('Erro ao reproduzir vídeo automaticamente:', playError);
             // Não é crítico, o usuário pode clicar para reproduzir
-          }
-        }, 100);
-      }
+          });
+        }
+      }, 100);
+      
     } catch (err: any) {
       console.error('Erro ao acessar câmera:', err);
       
@@ -274,41 +271,62 @@ const ChatInput: React.FC<ChatInputProps> = ({
         </div>
       </div>
     );
-  }
-  // Camera view
+  }  // Camera view
   if (showCamera) {
     return (
-      <div className="p-3 border-t border-border bg-card">
-        <div className="mb-3">
-          <video 
-            ref={videoRef} 
-            autoPlay 
-            playsInline
-            muted
-            style={{ 
-              width: '100%', 
-              maxWidth: '400px', 
-              height: 'auto',
-              backgroundColor: '#000',
-              borderRadius: '8px',
-              margin: '0 auto',
-              display: 'block'
-            }}
-          />
+      <div className="p-4 border-t border-border bg-card">
+        <div className="text-center mb-3">
+          <h3 className="text-lg font-semibold">📷 Câmera Ativa</h3>
+          <p className="text-sm text-muted-foreground">Posicione o documento e capture a foto</p>
+        </div>
+        
+        <div className="mb-4 flex justify-center">
+          <div className="relative border-2 border-primary rounded-lg overflow-hidden">
+            <video 
+              ref={videoRef} 
+              autoPlay 
+              playsInline
+              muted
+              style={{ 
+                width: '100%', 
+                maxWidth: '400px',
+                minHeight: '300px',
+                height: 'auto',
+                backgroundColor: '#000',
+                display: 'block'
+              }}
+            />
+            {!stream && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <p className="text-white">Carregando câmera...</p>
+              </div>
+            )}
+          </div>
           <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
+        
         <div className="flex justify-center gap-3">
-          <Button onClick={capturePhoto} variant="default" size="sm" disabled={!stream}>
+          <Button 
+            onClick={capturePhoto} 
+            variant="default" 
+            size="lg"
+            disabled={!stream}
+            className="bg-green-600 hover:bg-green-700"
+          >
             📸 Capturar Foto
           </Button>
-          <Button onClick={stopCamera} variant="outline" size="sm">
+          <Button onClick={stopCamera} variant="outline" size="lg">
             ❌ Cancelar
           </Button>
         </div>
+        
         {stream && (
-          <p className="text-center text-sm text-muted-foreground mt-2">
-            Câmera ativa - posicione o documento e clique em capturar
-          </p>
+          <div className="text-center mt-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              Câmera conectada
+            </div>
+          </div>
         )}
       </div>
     );

@@ -910,7 +910,7 @@ const handleTabChange = (tabValue: string) => {
 }
 
 // Função para processar imagem OCR
-const handleImageUpload = async (imageBase64: string) => {
+const handleImageUpload = async (imageBase64: string, pdfPassword?: string) => {
   if (!imageBase64) return;
 
   setLoading(true);
@@ -930,24 +930,41 @@ const handleImageUpload = async (imageBase64: string) => {
     }
 
     // Adicionar mensagem de upload
+    const isPdf = imageBase64.startsWith('data:application/pdf');
     setMessages(prev => [...prev, {
       id: uuidv4(),
-      text: "📄 Processando documento...",
+      text: isPdf ? "📄 Processando PDF..." : "📄 Processando imagem...",
       sender: 'system',
       timestamp: new Date(),
       avatarUrl: IA_AVATAR
-    }]);    // Chamar API de OCR funcional
+    }]);
+
+    // Chamar API de OCR funcional
     const response = await fetch('/api/gemini-ocr', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        imageBase64: imageBase64.split(',')[1] // Remover data:image/...;base64,
+        imageBase64: imageBase64.split(',')[1], // Remover data:image/...;base64,
+        pdfPassword: pdfPassword // Incluir senha se fornecida
       })
     });    if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
       console.error('Erro da API OCR:', errorData);
+        // Verificar se é erro de PDF com senha
+      if (errorData.needsPassword) {
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          text: "🔒 Este PDF está protegido por senha. Por favor, forneça a senha do documento e tente novamente.",
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }]);
+        setLoading(false);
+        return;
+      }
+      
       throw new Error(errorData.error || `Erro HTTP ${response.status}`);
     }
 

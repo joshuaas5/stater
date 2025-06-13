@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Image, Camera, X, Scissors } from 'lucide-react';
+import { Send, Image, Camera, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import ImageCropper from '@/components/ui/ImageCropper';
 
 interface ChatInputProps {
   onSubmit: (message: string) => void;
-  onImageUpload?: (imageBase64: string) => void;
+  onImageUpload?: (imageBase64: string, pdfPassword?: string) => void;
   loading: boolean;
   waitingConfirmation: boolean;
   pendingActionDetails: { description?: string; category?: string; type?: string; amount?: number; date?: string; ocrTransactions?: any[] } | null;
@@ -25,8 +24,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
 }) => {  const [message, setMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
-  const [showCropper, setShowCropper] = useState(false);
-  const [imageToProcess, setImageToProcess] = useState<string | null>(null);
+  const [showPasswordInput, setShowPasswordInput] = useState(false);
+  const [pdfPassword, setPdfPassword] = useState('');
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -80,15 +79,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }    const reader = new FileReader();
     reader.onload = (e) => {
       const fileData = e.target?.result as string;
-      
-      // Se for imagem, mostrar cropper primeiro
-      if (isValidImage) {
-        setImageToProcess(fileData);
-        setShowCropper(true);
-      } else {
-        // Se for PDF, usar diretamente
-        setSelectedImage(fileData);
-      }
+      setSelectedImage(fileData);
     };
     reader.readAsDataURL(file);
   };// Camera functions - Detectar se é mobile para usar câmera nativa
@@ -111,11 +102,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
         if (file) {          const reader = new FileReader();
           reader.onload = (event) => {
             const imageData = event.target?.result as string;
-            setImageToProcess(imageData);
-            setShowCropper(true);
+            setSelectedImage(imageData);
             toast({
               title: "Foto capturada!",
-              description: "Agora você pode cortar a imagem.",
+              description: "Agora você pode processar o documento.",
             });
           };
           reader.readAsDataURL(file);
@@ -241,13 +231,12 @@ const ChatInput: React.FC<ChatInputProps> = ({
       // Capturar a imagem do vídeo
       context.drawImage(video, 0, 0);      // Converter para JPEG com alta qualidade (0.95 = 95% de qualidade)
       const imageData = canvas.toDataURL('image/jpeg', 0.95);
-      setImageToProcess(imageData);
-      setShowCropper(true);
+      setSelectedImage(imageData);
       stopCamera();
 
       toast({
         title: "Foto capturada com alta qualidade!",
-        description: "Agora você pode cortar a imagem.",
+        description: "Agora você pode processar o documento.",
       });
     } catch (error) {
       console.error('Erro ao capturar foto:', error);
@@ -266,32 +255,28 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
     setShowCamera(false);
   };
-
   // Process selected image
   const processSelectedImage = () => {
     if (selectedImage && onImageUpload) {
-      onImageUpload(selectedImage);
+      const isPdf = selectedImage.startsWith('data:application/pdf');
+      if (isPdf && showPasswordInput) {
+        onImageUpload(selectedImage, pdfPassword);
+      } else {
+        onImageUpload(selectedImage);
+      }
       setSelectedImage(null);
+      setPdfPassword('');
+      setShowPasswordInput(false);
     }
   };
+
   const clearSelectedImage = () => {
     setSelectedImage(null);
-    setImageToProcess(null);
-    setShowCropper(false);
+    setPdfPassword('');
+    setShowPasswordInput(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
-
-  const handleCropComplete = (croppedImage: string) => {
-    setSelectedImage(croppedImage);
-    setShowCropper(false);
-    setImageToProcess(null);
-  };
-
-  const handleCropCancel = () => {
-    setShowCropper(false);
-    setImageToProcess(null);
   };
 
   const processMessage = (msg: string): string => {
@@ -416,22 +401,12 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                 Câmera conectada e pronta
               </div>
-            </div>
-          )}
+            </div>          )}
         </div>
-      </div>    );
-  }
-
-  // Image Cropper
-  if (showCropper && imageToProcess) {
-    return (
-      <ImageCropper
-        imageSrc={imageToProcess}
-        onCropComplete={handleCropComplete}
-        onCancel={handleCropCancel}
-      />
+      </div>
     );
   }
+
   // Selected image preview
   if (selectedImage) {
     const isPdf = selectedImage.startsWith('data:application/pdf');
@@ -452,8 +427,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   src={selectedImage} 
                   alt="Documento selecionado" 
                   className="w-full h-auto max-h-64 object-contain rounded-lg border shadow-md"
-                />
-                <Button
+                />                <Button
                   onClick={clearSelectedImage}
                   variant="destructive"
                   size="sm"
@@ -461,24 +435,41 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 >
                   <X size={14} />
                 </Button>
-                
-                {/* Botão para re-cropar */}
-                <Button
-                  onClick={() => {
-                    setImageToProcess(selectedImage);
-                    setShowCropper(true);
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="absolute top-2 left-2 h-8 px-3 rounded-full shadow-lg bg-white/90 hover:bg-white"
-                >
-                  <Scissors size={14} className="mr-1" />
-                  Cortar
-                </Button>
               </div>
             )}
           </div>
         </div>
+        
+        {/* Input de senha para PDF */}
+        {selectedImage && selectedImage.startsWith('data:application/pdf') && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-yellow-600 text-sm font-medium">🔒 PDF Protegido?</span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="password"
+                placeholder="Digite a senha do PDF (se houver)"
+                value={pdfPassword}
+                onChange={(e) => setPdfPassword(e.target.value)}
+                className="flex-1 px-3 py-2 border border-yellow-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              />
+              <Button
+                onClick={() => setShowPasswordInput(!showPasswordInput)}
+                variant="outline"
+                size="sm"
+                className="text-yellow-600 border-yellow-300"
+              >
+                {showPasswordInput ? 'Cancelar' : 'Usar Senha'}
+              </Button>
+            </div>
+            {pdfPassword && (
+              <p className="text-xs text-yellow-600 mt-1">
+                Senha será usada para desbloquear o PDF
+              </p>
+            )}
+          </div>
+        )}
         
         <div className="flex justify-center gap-3">
           <Button 

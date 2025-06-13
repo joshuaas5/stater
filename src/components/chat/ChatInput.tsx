@@ -54,10 +54,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;    // Aceitar apenas imagens por enquanto
-    if (!file.type.startsWith('image/')) {      toast({
+    if (!file) return;    // Aceitar imagens e PDFs
+    const isValidImage = file.type.startsWith('image/') || 
+                        file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)$/);
+    const isValidPDF = file.type === 'application/pdf' || 
+                      file.name.toLowerCase().endsWith('.pdf');
+    
+    if (!isValidImage && !isValidPDF) {toast({
         title: "Arquivo inválido",
-        description: "Por favor, selecione apenas arquivos de imagem ou PDF.",
+        description: "Por favor, selecione apenas arquivos de imagem (JPG, PNG, etc.) ou PDF.",
         variant: "destructive"
       });
       return;
@@ -78,8 +83,43 @@ const ChatInput: React.FC<ChatInputProps> = ({
       setSelectedImage(fileData);
     };
     reader.readAsDataURL(file);
-  };// Camera functions
+  };  // Camera functions - Detectar se é mobile para usar câmera nativa
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
   const startCamera = async () => {
+    console.log('🔍 Iniciando câmera... isMobile:', isMobile);
+    
+    // Se for mobile, usar input file com capture
+    if (isMobile) {
+      console.log('📱 Usando câmera nativa do mobile');
+      // Criar input temporário para câmera nativa
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment'; // Usar câmera traseira
+      
+      input.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const imageData = event.target?.result as string;
+            setSelectedImage(imageData);
+            toast({
+              title: "Foto capturada!",
+              description: "Agora você pode processar o documento.",
+            });
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      
+      input.click();
+      return;
+    }
+    
+    console.log('💻 Usando interface de câmera customizada para desktop');
+    // Para desktop, manter a interface customizada
     try {
       // Verificar se o navegador suporta câmera
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {

@@ -16,11 +16,11 @@ export default async function handler(req: any, res: any) {
     if (!imageBase64) {
       console.log('[OCR] Erro: Imagem não fornecida');
       return res.status(400).json({ error: 'Imagem não fornecida' });
-    }
-
-    // Detectar tipo de arquivo pelo cabeçalho base64
+    }    // Detectar tipo de arquivo pelo cabeçalho base64
     let mimeType = "image/jpeg"; // padrão
     let modelToUse = "gemini-2.0-flash-exp"; // padrão para imagens
+    
+    console.log('[OCR] Primeiros 20 chars do base64:', imageBase64.substring(0, 20));
     
     if (imageBase64.startsWith('/9j/') || imageBase64.startsWith('iVBOR') || imageBase64.startsWith('R0lGOD')) {
       // É uma imagem (JPEG, PNG, GIF)
@@ -35,6 +35,7 @@ export default async function handler(req: any, res: any) {
       console.log('[OCR] Detectado: PDF');
     } else {
       console.log('[OCR] Tipo de arquivo não reconhecido, assumindo imagem JPEG');
+      console.log('[OCR] Base64 começa com:', imageBase64.substring(0, 10));
     }
 
     console.log('[OCR] Usando modelo:', modelToUse);

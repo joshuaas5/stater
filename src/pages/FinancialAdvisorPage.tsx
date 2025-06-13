@@ -948,8 +948,8 @@ const handleImageUpload = async (imageBase64: string) => {
       sender: 'system',
       timestamp: new Date(),
       avatarUrl: IA_AVATAR
-    }]);    // Chamar API de OCR (temporariamente usando versão simplificada)
-    const response = await fetch('/api/gemini-vision-simple', {
+    }]);    // Chamar API de OCR (versão de teste para debug)
+    const response = await fetch('/api/ocr-test', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

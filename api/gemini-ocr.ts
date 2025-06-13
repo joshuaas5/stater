@@ -18,7 +18,7 @@ export default async function handler(req: any, res: any) {
       return res.status(400).json({ error: 'Imagem não fornecida' });
     }    // Detectar tipo de arquivo pelo cabeçalho base64
     let mimeType = "image/jpeg"; // padrão
-    let modelToUse = "gemini-2.0-flash-exp"; // padrão para imagens
+    let modelToUse = "gemini-2.0-flash-exp"; // usar sempre o mesmo modelo que funciona
     
     console.log('[OCR] Primeiros 20 chars do base64:', imageBase64.substring(0, 20));
     
@@ -26,12 +26,10 @@ export default async function handler(req: any, res: any) {
       // É uma imagem (JPEG, PNG, GIF)
       mimeType = imageBase64.startsWith('/9j/') ? "image/jpeg" : 
                  imageBase64.startsWith('iVBOR') ? "image/png" : "image/gif";
-      modelToUse = "gemini-2.0-flash-exp"; // Melhor para imagens
       console.log('[OCR] Detectado: Imagem', mimeType);
-    } else if (imageBase64.startsWith('JVBERi0')) {
-      // É um PDF
+    } else if (imageBase64.startsWith('JVBERi0') || imageBase64.startsWith('data:application/pdf')) {
+      // É um PDF - usar como imagem (OCR vai processar visualmente)
       mimeType = "application/pdf";
-      modelToUse = "gemini-2.5-flash"; // Testar se 2.5 Flash lê PDFs
       console.log('[OCR] Detectado: PDF');
     } else {
       console.log('[OCR] Tipo de arquivo não reconhecido, assumindo imagem JPEG');
@@ -40,15 +38,6 @@ export default async function handler(req: any, res: any) {
 
     console.log('[OCR] Usando modelo:', modelToUse);
     console.log('[OCR] MIME type:', mimeType);
-
-    // Detectar se é PDF
-    if (imageBase64.startsWith('data:application/pdf')) {
-      console.log('[OCR] PDF detectado - não suportado no momento');
-      return res.status(400).json({ 
-        error: 'PDFs ainda não são suportados. Por favor, tire uma foto ou faça upload de uma imagem (JPG, PNG).',
-        isPdf: true
-      });
-    }
 
     console.log('[OCR] API Key presente:', !!GEMINI_API_KEY);
     if (!GEMINI_API_KEY) {

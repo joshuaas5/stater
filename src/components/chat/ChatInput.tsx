@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Image, Camera, X } from 'lucide-react';
+import { Send, Image, Camera, X, Scissors } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import ImageCropper from '@/components/ui/ImageCropper';
 
 interface ChatInputProps {
   onSubmit: (message: string) => void;
@@ -21,10 +22,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
   pendingActionDetails,
   onConfirm,
   onCancel 
-}) => {
-  const [message, setMessage] = useState('');
+}) => {  const [message, setMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [imageToProcess, setImageToProcess] = useState<string | null>(null);
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -75,15 +77,21 @@ const ChatInput: React.FC<ChatInputProps> = ({
         variant: "destructive"
       });
       return;
-    }
-
-    const reader = new FileReader();
+    }    const reader = new FileReader();
     reader.onload = (e) => {
       const fileData = e.target?.result as string;
-      setSelectedImage(fileData);
+      
+      // Se for imagem, mostrar cropper primeiro
+      if (isValidImage) {
+        setImageToProcess(fileData);
+        setShowCropper(true);
+      } else {
+        // Se for PDF, usar diretamente
+        setSelectedImage(fileData);
+      }
     };
     reader.readAsDataURL(file);
-  };  // Camera functions - Detectar se é mobile para usar câmera nativa
+  };// Camera functions - Detectar se é mobile para usar câmera nativa
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   
   const startCamera = async () => {
@@ -100,14 +108,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
       
       input.onchange = (e) => {
         const file = (e.target as HTMLInputElement).files?.[0];
-        if (file) {
-          const reader = new FileReader();
+        if (file) {          const reader = new FileReader();
           reader.onload = (event) => {
             const imageData = event.target?.result as string;
-            setSelectedImage(imageData);
+            setImageToProcess(imageData);
+            setShowCropper(true);
             toast({
               title: "Foto capturada!",
-              description: "Agora você pode processar o documento.",
+              description: "Agora você pode cortar a imagem.",
             });
           };
           reader.readAsDataURL(file);
@@ -231,16 +239,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
       context.imageSmoothingQuality = 'high';
       
       // Capturar a imagem do vídeo
-      context.drawImage(video, 0, 0);
-
-      // Converter para JPEG com alta qualidade (0.95 = 95% de qualidade)
+      context.drawImage(video, 0, 0);      // Converter para JPEG com alta qualidade (0.95 = 95% de qualidade)
       const imageData = canvas.toDataURL('image/jpeg', 0.95);
-      setSelectedImage(imageData);
+      setImageToProcess(imageData);
+      setShowCropper(true);
       stopCamera();
 
       toast({
         title: "Foto capturada com alta qualidade!",
-        description: "Agora você pode processar o documento.",
+        description: "Agora você pode cortar a imagem.",
       });
     } catch (error) {
       console.error('Erro ao capturar foto:', error);
@@ -267,12 +274,24 @@ const ChatInput: React.FC<ChatInputProps> = ({
       setSelectedImage(null);
     }
   };
-
   const clearSelectedImage = () => {
     setSelectedImage(null);
+    setImageToProcess(null);
+    setShowCropper(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleCropComplete = (croppedImage: string) => {
+    setSelectedImage(croppedImage);
+    setShowCropper(false);
+    setImageToProcess(null);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setImageToProcess(null);
   };
 
   const processMessage = (msg: string): string => {
@@ -331,15 +350,21 @@ const ChatInput: React.FC<ChatInputProps> = ({
           </p>
         </div>
         
-        {/* Camera area */}
+        {/* Camera area - vertical orientation for PC */}
         <div className="flex-1 flex items-center justify-center p-4">
-          <div className="relative max-w-lg w-full">
+          <div className="relative">
             <video 
               ref={videoRef} 
               autoPlay 
               playsInline
               muted
-              className="w-full h-auto max-h-[60vh] rounded-lg shadow-lg bg-black object-cover"
+              className="rounded-lg shadow-lg bg-black object-cover"
+              style={{
+                width: '350px',
+                height: '500px',
+                maxWidth: '90vw',
+                maxHeight: '60vh'
+              }}
             />
             
             {/* Overlay de guia para posicionamento */}
@@ -394,36 +419,92 @@ const ChatInput: React.FC<ChatInputProps> = ({
             </div>
           )}
         </div>
-      </div>
-    );
+      </div>    );
   }
 
+  // Image Cropper
+  if (showCropper && imageToProcess) {
+    return (
+      <ImageCropper
+        imageSrc={imageToProcess}
+        onCropComplete={handleCropComplete}
+        onCancel={handleCropCancel}
+      />
+    );
+  }
   // Selected image preview
   if (selectedImage) {
+    const isPdf = selectedImage.startsWith('data:application/pdf');
+    
     return (
-      <div className="p-3 border-t border-border bg-card">
-        <div className="mb-3 flex justify-center">
-          <div className="relative">
-            <img 
-              src={selectedImage} 
-              alt="Documento selecionado" 
-              className="max-w-sm max-h-48 object-contain rounded-lg border"
-            />
-            <Button
-              onClick={clearSelectedImage}
-              variant="destructive"
-              size="sm"
-              className="absolute top-2 right-2 h-6 w-6 p-0"
-            >
-              <X size={12} />
-            </Button>
+      <div className="p-4 border-t border-border bg-card">
+        <div className="mb-4 flex justify-center">
+          <div className="relative max-w-md w-full">
+            {isPdf ? (
+              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-8 text-center">
+                <div className="text-red-600 text-4xl mb-2">📄</div>
+                <p className="font-semibold text-red-800">Documento PDF</p>
+                <p className="text-sm text-red-600 mt-1">Pronto para processar</p>
+              </div>
+            ) : (
+              <div className="relative">
+                <img 
+                  src={selectedImage} 
+                  alt="Documento selecionado" 
+                  className="w-full h-auto max-h-64 object-contain rounded-lg border shadow-md"
+                />
+                <Button
+                  onClick={clearSelectedImage}
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full shadow-lg"
+                >
+                  <X size={14} />
+                </Button>
+                
+                {/* Botão para re-cropar */}
+                <Button
+                  onClick={() => {
+                    setImageToProcess(selectedImage);
+                    setShowCropper(true);
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="absolute top-2 left-2 h-8 px-3 rounded-full shadow-lg bg-white/90 hover:bg-white"
+                >
+                  <Scissors size={14} className="mr-1" />
+                  Cortar
+                </Button>
+              </div>
+            )}
           </div>
         </div>
+        
         <div className="flex justify-center gap-3">
-          <Button onClick={processSelectedImage} variant="default" size="sm" disabled={loading}>
-            {loading ? '🔄 Processando...' : '🤖 Extrair Transações'}
+          <Button 
+            onClick={processSelectedImage} 
+            variant="default" 
+            size="lg"
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 shadow-lg"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                Processando...
+              </>
+            ) : (
+              <>
+                🤖 Extrair Transações
+              </>
+            )}
           </Button>
-          <Button onClick={clearSelectedImage} variant="outline" size="sm">
+          <Button 
+            onClick={clearSelectedImage} 
+            variant="outline" 
+            size="lg"
+            className="font-semibold px-6 py-3 shadow-lg"
+          >
             🗑️ Remover
           </Button>
         </div>

@@ -948,18 +948,14 @@ const handleImageUpload = async (imageBase64: string) => {
       sender: 'system',
       timestamp: new Date(),
       avatarUrl: IA_AVATAR
-    }]);
-
-    // Chamar API de OCR
-    const response = await fetch('/api/gemini-vision', {
+    }]);    // Chamar API de OCR (temporariamente usando versão simplificada)
+    const response = await fetch('/api/gemini-vision-simple', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${sessionData.session.access_token}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        imageBase64: imageBase64.split(',')[1], // Remover data:image/...;base64,
-        userId: user.id
+        imageBase64: imageBase64.split(',')[1] // Remover data:image/...;base64,
       })
     });
 

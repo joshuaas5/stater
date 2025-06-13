@@ -1,13 +1,87 @@
 // API OCR funcional - baseada no teste que funcionou
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyDTTPO0otruHVzh7bXsi7MCyG674P03758";
 
+// Função para processar PDF com senha
+async function processPdfWithPassword(pdfBase64: string, password?: string): Promise<string> {
+  try {
+    console.log('[OCR] Processando PDF, senha fornecida:', !!password);
+    
+    // Se não tem senha, tentar processar normalmente
+    if (!password) {
+      return pdfBase64;
+    }
+
+    // Importar pdf-lib dinamicamente
+    const { PDFDocument } = await import('pdf-lib');
+    
+    // Converter base64 para buffer
+    const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+    
+    try {
+      // Tentar carregar o PDF (pdf-lib não suporta senha diretamente)
+      // Se der erro, é porque precisa de senha
+      const pdfDoc = await PDFDocument.load(pdfBuffer);
+      
+      // Se chegou aqui, não precisava de senha ou já estava desbloqueado
+      console.log('[OCR] PDF carregado sem problemas');
+      return pdfBase64;
+      
+    } catch (loadError: any) {
+      console.log('[OCR] Erro ao carregar PDF:', loadError.message);
+      
+      // Se é erro relacionado a criptografia/senha
+      if (loadError.message.includes('encrypt') || loadError.message.includes('password') || 
+          loadError.message.includes('security') || loadError.message.includes('owner')) {
+        throw new Error('SENHA_INCORRETA');
+      }
+      
+      // Outros erros de PDF
+      throw new Error('PDF_CORRUPTO');
+    }
+    
+  } catch (error: any) {
+    console.error('[OCR] Erro ao processar PDF com senha:', error.message);
+    throw error;
+  }
+}
+
+// Função para processar PDF protegido por senha
+async function processProtectedPdf(pdfBase64: string, password: string): Promise<string> {
+  try {
+    console.log('[OCR] Tentando desbloquear PDF com senha...');
+    
+    // Converter base64 para buffer
+    const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+    
+    // Para PDFs protegidos por senha, vamos tentar uma abordagem mais simples
+    // Primeiro, tentar verificar se o PDF é realmente protegido
+    const pdfHeader = pdfBuffer.toString('ascii', 0, 100);
+    
+    if (pdfHeader.includes('Encrypt')) {
+      console.log('[OCR] PDF protegido detectado, mas não conseguimos desbloquear no servidor');
+      throw new Error('NEEDS_PASSWORD');
+    }
+    
+    // Se chegou aqui, assumir que o PDF não é protegido ou já foi processado
+    return pdfBase64;
+    
+  } catch (error: any) {
+    console.error('[OCR] Erro ao processar PDF:', error.message);
+    
+    if (error.message === 'NEEDS_PASSWORD') {
+      throw error;
+    }
+    
+    throw new Error('PDF_PROCESSING_ERROR');
+  }
+}
+
 export default async function handler(req: any, res: any) {
   console.log('[OCR] Iniciando processamento...');
   
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
-
   try {
     const { imageBase64, pdfPassword } = req.body;
     
@@ -19,7 +93,9 @@ export default async function handler(req: any, res: any) {
     if (!imageBase64) {
       console.log('[OCR] Erro: Imagem não fornecida');
       return res.status(400).json({ error: 'Imagem não fornecida' });
-    }    // Detectar tipo de arquivo pelo cabeçalho base64
+    }
+
+    let processedImageBase64 = imageBase64;// Detectar tipo de arquivo pelo cabeçalho base64
     let mimeType = "image/jpeg"; // padrão
     let modelToUse = "gemini-2.0-flash-exp"; // usar sempre o mesmo modelo que funciona
     
@@ -29,11 +105,38 @@ export default async function handler(req: any, res: any) {
       // É uma imagem (JPEG, PNG, GIF)
       mimeType = imageBase64.startsWith('/9j/') ? "image/jpeg" : 
                  imageBase64.startsWith('iVBOR') ? "image/png" : "image/gif";
-      console.log('[OCR] Detectado: Imagem', mimeType);
-    } else if (imageBase64.startsWith('JVBERi0') || imageBase64.startsWith('data:application/pdf')) {
-      // É um PDF - usar o mesmo modelo que funciona
+      console.log('[OCR] Detectado: Imagem', mimeType);    } else if (imageBase64.startsWith('JVBERi0') || imageBase64.startsWith('data:application/pdf')) {
+      // É um PDF
       mimeType = "application/pdf";
       console.log('[OCR] Detectado: PDF');
+      
+      // Se tem senha, tentar processar PDF protegido
+      if (pdfPassword) {
+        try {
+          console.log('[OCR] Tentando processar PDF com senha...');
+          processedImageBase64 = await processProtectedPdf(imageBase64, pdfPassword);
+          console.log('[OCR] PDF processado com sucesso');
+        } catch (error: any) {
+          console.error('[OCR] Erro ao processar PDF protegido:', error.message);
+          
+          if (error.message === 'INVALID_PASSWORD') {
+            return res.status(400).json({ 
+              error: 'Senha incorreta para o PDF',
+              needsPassword: true,
+              message: 'A senha fornecida está incorreta. Por favor, verifique e tente novamente.'
+            });
+          } else if (error.message === 'NEEDS_PASSWORD') {
+            return res.status(400).json({ 
+              error: 'PDF protegido por senha',
+              needsPassword: true,
+              message: 'Este PDF está protegido por senha. Por favor, forneça a senha para continuar.'
+            });
+          }
+          
+          // Para outros erros, continuar tentando processar normalmente
+          console.log('[OCR] Continuando com processamento normal...');
+        }
+      }
     } else {
       console.log('[OCR] Tipo de arquivo não reconhecido, assumindo imagem JPEG');
       console.log('[OCR] Base64 começa com:', imageBase64.substring(0, 10));
@@ -83,11 +186,10 @@ Tipos: "income" ou "expense"
 
     const payload = {
       contents: [{
-        parts: [          { text: prompt },
-          {
+        parts: [          { text: prompt },          {
             inline_data: {
               mime_type: mimeType,
-              data: imageBase64
+              data: processedImageBase64
             }
           }
         ]
@@ -113,13 +215,24 @@ Tipos: "income" ou "expense"
       const errorText = await response.text();
       console.error('[OCR] Erro Gemini:', errorText);
       
-      // Verificar se é erro de PDF com senha
-      if (errorText.includes('password') || errorText.includes('encrypted') || errorText.includes('protected')) {
-        console.log('[OCR] PDF protegido por senha detectado');
+      // Verificar vários tipos de erros relacionados a PDF
+      const errorLower = errorText.toLowerCase();
+      if (errorLower.includes('password') || errorLower.includes('encrypted') || 
+          errorLower.includes('protected') || errorLower.includes('decrypt') ||
+          errorLower.includes('permission') || errorLower.includes('secure')) {
+        console.log('[OCR] PDF protegido por senha detectado via erro Gemini');
         return res.status(400).json({ 
           error: 'PDF protegido por senha',
           needsPassword: true,
           message: 'Este PDF está protegido por senha. Por favor, forneça a senha para continuar.'
+        });
+      }
+      
+      // Verificar se é erro de PDF corrompido ou inválido
+      if (errorLower.includes('pdf') && (errorLower.includes('invalid') || errorLower.includes('corrupt'))) {
+        return res.status(400).json({ 
+          error: 'PDF inválido ou corrompido',
+          message: 'O arquivo PDF fornecido está corrompido ou não é um PDF válido.'
         });
       }
       

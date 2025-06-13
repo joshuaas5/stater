@@ -39,19 +39,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const totalAmount = transactions.reduce((sum, t) => 
     sum + (t.type === 'income' ? t.amount : -t.amount), 0
   );
-
   // Verificar se há scroll necessário
   useEffect(() => {
     setShowScrollHint(transactions.length > 6); // Mostrar hint se há mais de 6 transações
   }, [transactions.length]);
-
-  // Calcular totais
-  const totalAmount = transactions.reduce((sum, t) => {
-    return sum + (t.type === 'income' ? t.amount : -t.amount);
-  }, 0);
-
-  const incomeCount = transactions.filter(t => t.type === 'income').length;
-  const expenseCount = transactions.filter(t => t.type === 'expense').length;
 
   const startEdit = (index: number) => {
     setEditingIndex(index);

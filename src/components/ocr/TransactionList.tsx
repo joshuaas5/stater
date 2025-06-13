@@ -28,7 +28,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   transactions, 
   onUpdate, 
   onDelete 
-}) => {  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+}) => {
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editData, setEditData] = useState<Transaction | null>(null);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
   const [showScrollHint, setShowScrollHint] = useState(false);
@@ -39,9 +40,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const totalAmount = transactions.reduce((sum, t) => 
     sum + (t.type === 'income' ? t.amount : -t.amount), 0
   );
+
   // Verificar se há scroll necessário
   useEffect(() => {
-    setShowScrollHint(transactions.length > 6); // Mostrar hint se há mais de 6 transações
+    setShowScrollHint(transactions.length > 6);
   }, [transactions.length]);
 
   const startEdit = (index: number) => {
@@ -61,6 +63,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       setEditData(null);
     }
   };
+
   const handleDelete = (index: number) => {
     if (confirm('Tem certeza que deseja excluir esta transação?')) {
       onDelete(index);
@@ -76,7 +79,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     setIsScrolledToBottom(scrollTop + clientHeight >= scrollHeight - 10);
   };
 
-  return (    <div className="space-y-3">
+  return (
+    <div className="space-y-3">
       {/* Contador de transações com resumo */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="flex justify-between items-start mb-2">
@@ -103,139 +107,154 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             Role abaixo para ver todas as transações
           </div>
         )}
-      </div>      {/* Container com scroll otimizado para faturas grandes */}
+      </div>      {/* Container com scroll MELHORADO - TODAS as transações visíveis */}
       <div 
-        className="max-h-[600px] overflow-y-auto space-y-2 pr-2 border border-gray-200 rounded-lg bg-white"
+        className="overflow-y-auto border border-gray-200 rounded-lg bg-white shadow-inner"
         style={{
-          scrollbarWidth: 'thin',
-          scrollbarColor: '#6b7280 #f3f4f6'
+          height: transactions.length > 10 ? '500px' : 'auto',
+          maxHeight: '70vh',
+          minHeight: transactions.length > 5 ? '300px' : 'auto',
+          scrollBehavior: 'smooth',
+          overflowX: 'hidden'
         }}
         onScroll={handleScroll}
       >
-        {transactions.map((transaction, index) => (
-          <div key={index} className="border rounded-lg p-3 bg-gray-50 shadow-sm">
-            {editingIndex === index && editData ? (
-            // Modo de edição
-            <div className="space-y-3">
-              <div>
-                <label className="text-sm font-medium">Descrição:</label>
-                <Input
-                  value={editData.description}
-                  onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-sm font-medium">Valor (R$):</label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={editData.amount}
-                    onChange={(e) => setEditData({ ...editData, amount: parseFloat(e.target.value) || 0 })}
-                    className="mt-1"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Data:</label>
-                  <Input
-                    type="date"
-                    value={editData.date}
-                    onChange={(e) => setEditData({ ...editData, date: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-sm font-medium">Categoria:</label>
-                  <Select 
-                    value={editData.category} 
-                    onValueChange={(value) => setEditData({ ...editData, category: value })}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map(cat => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Tipo:</label>
-                  <Select 
-                    value={editData.type} 
-                    onValueChange={(value: 'income' | 'expense') => setEditData({ ...editData, type: value })}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="expense">Despesa</SelectItem>
-                      <SelectItem value="income">Receita</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="flex justify-end gap-2">
-                <Button size="sm" variant="outline" onClick={cancelEdit}>
-                  <X className="w-4 h-4 mr-1" />
-                  Cancelar
-                </Button>
-                <Button size="sm" onClick={saveEdit}>
-                  <Check className="w-4 h-4 mr-1" />
-                  Salvar
-                </Button>
-              </div>
+        <div className="p-3 space-y-3">
+          {transactions.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              📄 Nenhuma transação encontrada
             </div>
           ) : (
-            // Modo de visualização
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">{transaction.description}</div>
-                <div className="text-sm text-gray-600 mt-1">
-                  <span className="font-medium">R$ {transaction.amount.toFixed(2)}</span> • 
-                  <span className="ml-1">{transaction.type === 'income' ? 'Receita' : 'Despesa'}</span> • 
-                  <span className="ml-1">{transaction.category}</span> • 
-                  <span className="ml-1">{transaction.date || 'Hoje'}</span>
-                </div>
+            <>
+              {transactions.map((transaction, index) => (
+              <div key={index} className="border rounded-lg p-3 bg-gray-50 shadow-sm">
+                {editingIndex === index && editData ? (
+                  // Modo de edição
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium">Descrição:</label>
+                      <Input
+                        value={editData.description}
+                        onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-sm font-medium">Valor (R$):</label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editData.amount}
+                          onChange={(e) => setEditData({ ...editData, amount: parseFloat(e.target.value) || 0 })}
+                          className="mt-1"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Data:</label>
+                        <Input
+                          type="date"
+                          value={editData.date}
+                          onChange={(e) => setEditData({ ...editData, date: e.target.value })}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-sm font-medium">Categoria:</label>
+                        <Select 
+                          value={editData.category} 
+                          onValueChange={(value) => setEditData({ ...editData, category: value })}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map(cat => (
+                              <SelectItem key={cat} value={cat}>
+                                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Tipo:</label>
+                        <Select 
+                          value={editData.type} 
+                          onValueChange={(value: 'income' | 'expense') => setEditData({ ...editData, type: value })}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="expense">Despesa</SelectItem>
+                            <SelectItem value="income">Receita</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-end gap-2">
+                      <Button size="sm" variant="outline" onClick={cancelEdit}>
+                        <X className="w-4 h-4 mr-1" />
+                        Cancelar
+                      </Button>
+                      <Button size="sm" onClick={saveEdit}>
+                        <Check className="w-4 h-4 mr-1" />
+                        Salvar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  // Modo de visualização
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">{transaction.description}</div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        <span className="font-medium">R$ {transaction.amount.toFixed(2)}</span> • 
+                        <span className="ml-1">{transaction.type === 'income' ? 'Receita' : 'Despesa'}</span> • 
+                        <span className="ml-1">{transaction.category}</span> • 
+                        <span className="ml-1">{transaction.date || 'Hoje'}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-1 ml-3">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => startEdit(index)}
+                        className="p-1 h-8 w-8"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="destructive" 
+                        onClick={() => handleDelete(index)}
+                        className="p-1 h-8 w-8"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>            ))}
+            
+            {/* Indicador de final da lista */}
+            {transactions.length > 5 && (
+              <div className="text-center py-3 text-sm text-gray-500 border-t bg-gray-50 rounded-b-lg mt-3">
+                📋 Final da lista • Total: {transactions.length} transações
               </div>
-              
-              <div className="flex gap-1 ml-3">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => startEdit(index)}
-                  className="p-1 h-8 w-8"
-                >
-                  <Edit2 className="w-3 h-3" />
-                </Button>                <Button 
-                  size="sm" 
-                  variant="destructive" 
-                  onClick={() => handleDelete(index)}
-                  className="p-1 h-8 w-8"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
-              </div>            </div>
-          )}        </div>
-      ))}
-      
-      {/* Indicador de final da lista quando há muitas transações */}
-      {transactions.length > 5 && (
-        <div className="text-center py-3 text-sm text-gray-500 border-t bg-gray-50 rounded-b-lg">
-          📋 Final da lista • Total: {transactions.length} transações
+            )}
+          </>
+        )}
         </div>
-      )}
       </div>
       
       {/* Resumo e ações quando há muitas transações */}

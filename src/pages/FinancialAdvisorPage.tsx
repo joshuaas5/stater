@@ -948,8 +948,8 @@ const handleImageUpload = async (imageBase64: string) => {
       sender: 'system',
       timestamp: new Date(),
       avatarUrl: IA_AVATAR
-    }]);    // Chamar API de OCR real com Gemini Vision
-    const response = await fetch('/api/gemini-vision-working', {
+    }]);    // Chamar API de OCR funcional
+    const response = await fetch('/api/gemini-ocr', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -957,16 +957,17 @@ const handleImageUpload = async (imageBase64: string) => {
       body: JSON.stringify({
         imageBase64: imageBase64.split(',')[1] // Remover data:image/...;base64,
       })
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao processar documento');
+    });    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+      console.error('Erro da API OCR:', errorData);
+      throw new Error(errorData.error || `Erro HTTP ${response.status}`);
     }
 
     const result = await response.json();
+    console.log('Resultado da API OCR:', result);
     
     if (!result.success) {
-      throw new Error('Falha no processamento do documento');
+      throw new Error(result.error || 'Falha no processamento do documento');
     }
 
     const ocrData = result.data;

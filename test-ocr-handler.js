@@ -1,7 +1,7 @@
-// API OCR funcional - baseada no teste que funcionou
+// API OCR em JavaScript puro para teste
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyDTTPO0otruHVzh7bXsi7MCyG674P03758";
 
-export default async function handler(req: any, res: any) {
+async function testOCRHandler(req, res) {
   console.log('[OCR] Iniciando processamento...');
   
   if (req.method !== 'POST') {
@@ -95,11 +95,11 @@ Tipos: "income" ou "expense"
       console.error('[OCR] Erro Gemini:', errorText);
       return res.status(500).json({ 
         error: 'Erro na API Gemini',
-        details: errorText.substring(0, 500) // Limitar tamanho do erro
+        details: errorText.substring(0, 500)
       });
     }
 
-    const data = await response.json() as any;
+    const data = await response.json();
     console.log('[OCR] Resposta Gemini recebida');
 
     if (!data.candidates || data.candidates.length === 0) {
@@ -138,11 +138,11 @@ Tipos: "income" ou "expense"
       console.log('[OCR] JSON parseado com sucesso!');
       console.log('[OCR] Transações encontradas:', ocrResult.transactions.length);
       
-    } catch (parseError: any) {
+    } catch (parseError) {
       console.error('[OCR] Erro ao parsear JSON:', parseError.message);
       console.error('[OCR] Texto problemático:', responseText);
       
-      // Retornar dados de fallback baseado no teste que funcionou
+      // Retornar dados de fallback
       ocrResult = {
         documentType: "outros",
         confidence: 0.8,
@@ -179,7 +179,7 @@ Tipos: "income" ou "expense"
       }
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('[OCR] Erro geral:', error.message);
     console.error('[OCR] Stack:', error.stack);
     
@@ -190,3 +190,5 @@ Tipos: "income" ou "expense"
     });
   }
 }
+
+module.exports = { testOCRHandler };

@@ -110,29 +110,9 @@ export default async function handler(req: any, res: any) {
       mimeType = "application/pdf";
       console.log('[OCR] Detectado: PDF');
       
-      // IMPORTANTE: Para PDFs protegidos, o Gemini não consegue processar
-      // Vamos detectar se é protegido e avisar o usuário
-      try {
-        const pdfBuffer = Buffer.from(imageBase64, 'base64');
-        const pdfHeader = pdfBuffer.toString('binary', 0, 1000);
-        
-        // Verificar se o PDF está criptografado
-        if (pdfHeader.includes('/Encrypt') || pdfHeader.includes('endobj') && pdfHeader.includes('/Filter')) {
-          console.log('[OCR] PDF protegido detectado');
-          
-          return res.status(400).json({ 
-            error: 'PDF protegido por senha não suportado',
-            needsPassword: false, // Não adianta pedir senha
-            message: '⚠️ PDFs protegidos por senha não são suportados atualmente. Por favor, remova a proteção do PDF ou use uma imagem/screenshot do documento.',
-            suggestion: 'Dica: Você pode fazer uma captura de tela (screenshot) do PDF aberto e enviar a imagem.'
-          });
-        }
-        
-        console.log('[OCR] PDF não protegido, processando normalmente');
-        
-      } catch (pdfCheckError: any) {
-        console.log('[OCR] Erro ao verificar PDF, tentando processar normalmente:', pdfCheckError.message);
-      }
+      // Não fazer detecção preventiva de PDF protegido
+      // Deixar o Gemini tentar processar e tratar erro se necessário
+      console.log('[OCR] PDF será processado normalmente pelo Gemini');
     }else {
       console.log('[OCR] Tipo de arquivo não reconhecido, assumindo imagem JPEG');
       console.log('[OCR] Base64 começa com:', imageBase64.substring(0, 10));
@@ -211,16 +191,28 @@ Tipos: "income" ou "expense"
       const errorText = await response.text();
       console.error('[OCR] Erro Gemini:', errorText);
       
-      // Verificar vários tipos de erros relacionados a PDF
+      // Verificar se é erro "The document has no pages" - PDF protegido
+      if (errorText.includes('The document has no pages')) {
+        console.log('[OCR] PDF protegido detectado via erro "no pages"');
+        return res.status(400).json({ 
+          error: 'PDF protegido por senha detectado',
+          needsPassword: false, // Não suportamos senha
+          message: '🔒 Este PDF está protegido por senha e não pode ser processado.\n\n💡 **Solução:** Faça uma captura de tela (screenshot) do PDF aberto e envie a imagem.',
+          isPdfProtected: true
+        });
+      }
+      
+      // Verificar outros tipos de erros relacionados a PDF
       const errorLower = errorText.toLowerCase();
       if (errorLower.includes('password') || errorLower.includes('encrypted') || 
           errorLower.includes('protected') || errorLower.includes('decrypt') ||
           errorLower.includes('permission') || errorLower.includes('secure')) {
-        console.log('[OCR] PDF protegido por senha detectado via erro Gemini');
+        console.log('[OCR] PDF protegido por senha detectado via outras mensagens');
         return res.status(400).json({ 
           error: 'PDF protegido por senha',
-          needsPassword: true,
-          message: 'Este PDF está protegido por senha. Por favor, forneça a senha para continuar.'
+          needsPassword: false, // Não suportamos mais
+          message: '🔒 Este PDF está protegido por senha.\n\n💡 **Solução:** Faça um screenshot do PDF e envie a imagem.',
+          isPdfProtected: true
         });
       }
       

@@ -910,7 +910,7 @@ const handleTabChange = (tabValue: string) => {
 }
 
 // Função para processar imagem OCR
-const handleImageUpload = async (imageBase64: string, pdfPassword?: string) => {
+const handleImageUpload = async (imageBase64: string) => {
   if (!imageBase64) return;
 
   setLoading(true);
@@ -939,7 +939,7 @@ const handleImageUpload = async (imageBase64: string, pdfPassword?: string) => {
       avatarUrl: IA_AVATAR
     }]);
 
-    // Chamar API de OCR funcional
+    // Chamar API de OCR funcional (sem senha)
     const response = await fetch('/api/gemini-ocr', {
       method: 'POST',
       headers: {
@@ -947,30 +947,17 @@ const handleImageUpload = async (imageBase64: string, pdfPassword?: string) => {
       },
       body: JSON.stringify({
         imageBase64: imageBase64.split(',')[1], // Remover data:image/...;base64,
-        pdfPassword: pdfPassword // Incluir senha se fornecida
+        // Removido pdfPassword
       })
     });    if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
       console.error('Erro da API OCR:', errorData);
       
-      // Verificar se é erro de PDF protegido por senha (não suportado)
-      if (errorData.error?.includes('PDF protegido por senha não suportado')) {
+      // Verificar se é PDF protegido (nova detecção)
+      if (errorData.isPdfProtected || errorData.error?.includes('PDF protegido')) {
         setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: `🚫 **PDF Protegido Detectado**\n\n${errorData.message}\n\n${errorData.suggestion || ''}`,
-          sender: 'system',
-          timestamp: new Date(),
-          avatarUrl: IA_AVATAR
-        }]);
-        setLoading(false);
-        return;
-      }
-      
-      // Verificar se é erro de PDF com senha (versão antiga)
-      if (errorData.needsPassword) {
-        setMessages(prev => [...prev, {
-          id: uuidv4(),
-          text: "🔒 Este PDF está protegido por senha. Por favor, forneça a senha do documento e tente novamente.",
+          text: errorData.message || "� **PDF Protegido Detectado**\n\nEste PDF está protegido por senha e não pode ser processado.\n\n💡 **Solução:** Faça uma captura de tela (screenshot) do PDF aberto e envie a imagem.",
           sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR

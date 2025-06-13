@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface ChatInputProps {
   onSubmit: (message: string) => void;
-  onImageUpload?: (imageBase64: string, pdfPassword?: string) => void;
+  onImageUpload?: (imageBase64: string) => void; // Removido pdfPassword
   loading: boolean;
   waitingConfirmation: boolean;
   pendingActionDetails: { description?: string; category?: string; type?: string; amount?: number; date?: string; ocrTransactions?: any[] } | null;
@@ -24,8 +24,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
 }) => {  const [message, setMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
-  const [showPasswordInput, setShowPasswordInput] = useState(false);
-  const [pdfPassword, setPdfPassword] = useState('');
+  // Removido showPasswordInput e pdfPassword
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -254,26 +253,16 @@ const ChatInput: React.FC<ChatInputProps> = ({
       setStream(null);
     }
     setShowCamera(false);
-  };
-  // Process selected image
+  };  // Process selected image
   const processSelectedImage = () => {
     if (selectedImage && onImageUpload) {
-      const isPdf = selectedImage.startsWith('data:application/pdf');
-      if (isPdf && showPasswordInput) {
-        onImageUpload(selectedImage, pdfPassword);
-      } else {
-        onImageUpload(selectedImage);
-      }
+      onImageUpload(selectedImage); // Sempre sem senha
       setSelectedImage(null);
-      setPdfPassword('');
-      setShowPasswordInput(false);
     }
   };
 
   const clearSelectedImage = () => {
     setSelectedImage(null);
-    setPdfPassword('');
-    setShowPasswordInput(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -437,39 +426,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 </Button>
               </div>
             )}
-          </div>
-        </div>
+          </div>        </div>
         
-        {/* Input de senha para PDF */}
-        {selectedImage && selectedImage.startsWith('data:application/pdf') && (
-          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-yellow-600 text-sm font-medium">🔒 PDF Protegido?</span>
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="password"
-                placeholder="Digite a senha do PDF (se houver)"
-                value={pdfPassword}
-                onChange={(e) => setPdfPassword(e.target.value)}
-                className="flex-1 px-3 py-2 border border-yellow-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              />
-              <Button
-                onClick={() => setShowPasswordInput(!showPasswordInput)}
-                variant="outline"
-                size="sm"
-                className="text-yellow-600 border-yellow-300"
-              >
-                {showPasswordInput ? 'Cancelar' : 'Usar Senha'}
-              </Button>
-            </div>
-            {pdfPassword && (
-              <p className="text-xs text-yellow-600 mt-1">
-                Senha será usada para desbloquear o PDF
-              </p>
-            )}
-          </div>
-        )}
+        {/* Removi o input de senha para PDF */}
         
         <div className="flex justify-center gap-3">
           <Button 

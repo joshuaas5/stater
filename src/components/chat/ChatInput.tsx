@@ -82,7 +82,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
     };
     reader.readAsDataURL(file);
   };
-
   // Camera functions
   const startCamera = async () => {
     try {
@@ -93,41 +92,44 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
       console.log('Solicitando acesso à câmera...');
 
-      // Solicitar permissão para câmera
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: 'environment', // Câmera traseira por padrão
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+      // Configuração mais simples para máxima compatibilidade
+      const constraints = {
+        video: {
+          facingMode: 'environment', // Câmera traseira preferida
+          width: { max: 1280 },
+          height: { max: 720 }
         }
-      });
+      };
+
+      // Solicitar permissão para câmera
+      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       
       console.log('Stream da câmera obtido:', mediaStream);
       
       if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        setStream(mediaStream);
+        console.log('Configurando vídeo...');
+        const video = videoRef.current;
         
-        // Aguardar o video carregar e definir o estado
-        videoRef.current.onloadedmetadata = () => {
-          console.log('Metadados do vídeo carregados');
-          if (videoRef.current) {
-            videoRef.current.play().then(() => {
-              console.log('Vídeo iniciado com sucesso');
-              setShowCamera(true);
-            }).catch((playError) => {
-              console.error('Erro ao reproduzir vídeo:', playError);
-              setShowCamera(true); // Mesmo com erro de play, mostrar a interface
-            });
+        // Definir propriedades do vídeo
+        video.srcObject = mediaStream;
+        video.setAttribute('playsinline', 'true'); // Importante para iOS
+        video.muted = true; // Necessário para autoplay em alguns navegadores
+        
+        setStream(mediaStream);
+        setShowCamera(true);
+        
+        // Tentar reproduzir o vídeo após um pequeno delay
+        setTimeout(async () => {
+          try {
+            if (video && video.srcObject) {
+              await video.play();
+              console.log('Vídeo reproduzindo com sucesso');
+            }
+          } catch (playError) {
+            console.warn('Erro ao reproduzir vídeo automaticamente:', playError);
+            // Não é crítico, o usuário pode clicar para reproduzir
           }
-        };
-
-        // Definir o estado imediatamente para mostrar a interface após um pequeno delay
-        setTimeout(() => {
-          if (mediaStream.active) {
-            setShowCamera(true);
-          }
-        }, 500);
+        }, 100);
       }
     } catch (err: any) {
       console.error('Erro ao acessar câmera:', err);
@@ -135,7 +137,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       let errorMessage = 'Não foi possível acessar a câmera.';
       
       if (err.name === 'NotAllowedError') {
-        errorMessage = 'Permissão negada. Permita o acesso à câmera e tente novamente.';
+        errorMessage = 'Permissão negada. Permita o acesso à câmera nas configurações do navegador e tente novamente.';
       } else if (err.name === 'NotFoundError') {
         errorMessage = 'Nenhuma câmera encontrada no dispositivo.';
       } else if (err.name === 'NotSupportedError') {
@@ -151,23 +153,60 @@ const ChatInput: React.FC<ChatInputProps> = ({
       });
     }
   };
-
   const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current || !canvasRef.current || !stream) {
+      toast({
+        title: "Erro ao capturar",
+        description: "Câmera não está pronta. Tente novamente.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     const canvas = canvasRef.current;
     const video = videoRef.current;
     const context = canvas.getContext('2d');
 
-    if (!context) return;
+    if (!context) {
+      toast({
+        title: "Erro no canvas",
+        description: "Não foi possível processar a imagem.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0);
+    try {
+      // Verificar se o vídeo tem dimensões válidas
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        toast({
+          title: "Vídeo não carregado",
+          description: "Aguarde a câmera carregar completamente.",
+          variant: "destructive"
+        });
+        return;
+      }
 
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
-    setSelectedImage(imageData);
-    stopCamera();
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0);
+
+      const imageData = canvas.toDataURL('image/jpeg', 0.8);
+      setSelectedImage(imageData);
+      stopCamera();
+
+      toast({
+        title: "Foto capturada!",
+        description: "Agora você pode processar o documento.",
+      });
+    } catch (error) {
+      console.error('Erro ao capturar foto:', error);
+      toast({
+        title: "Erro na captura",
+        description: "Falha ao capturar a foto. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
   const stopCamera = () => {
@@ -236,7 +275,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
       </div>
     );
   }
-
   // Camera view
   if (showCamera) {
     return (
@@ -246,18 +284,32 @@ const ChatInput: React.FC<ChatInputProps> = ({
             ref={videoRef} 
             autoPlay 
             playsInline
-            className="w-full max-w-sm mx-auto rounded-lg bg-black"
+            muted
+            style={{ 
+              width: '100%', 
+              maxWidth: '400px', 
+              height: 'auto',
+              backgroundColor: '#000',
+              borderRadius: '8px',
+              margin: '0 auto',
+              display: 'block'
+            }}
           />
           <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
         <div className="flex justify-center gap-3">
-          <Button onClick={capturePhoto} variant="default" size="sm">
-            📸 Capturar
+          <Button onClick={capturePhoto} variant="default" size="sm" disabled={!stream}>
+            📸 Capturar Foto
           </Button>
           <Button onClick={stopCamera} variant="outline" size="sm">
             ❌ Cancelar
           </Button>
         </div>
+        {stream && (
+          <p className="text-center text-sm text-muted-foreground mt-2">
+            Câmera ativa - posicione o documento e clique em capturar
+          </p>
+        )}
       </div>
     );
   }

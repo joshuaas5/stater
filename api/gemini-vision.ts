@@ -99,16 +99,19 @@ IMPORTANTE:
 `;
 
 export default async function handler(req: any, res: any) {
-  console.log('[GEMINI_VISION] Handler started');
+  console.log('[GEMINI_VISION] Handler started, method:', req.method);
   
   if (req.method !== 'POST') {
+    console.log('[GEMINI_VISION] Method not allowed:', req.method);
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
   // Verificar autenticação
   const authHeader = req.headers.authorization;
+  console.log('[GEMINI_VISION] Auth header present:', !!authHeader);
+  
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    console.error('[GEMINI_VISION] Token de autorização ausente');
+    console.error('[GEMINI_VISION] Token de autorização ausente ou mal formatado');
     return res.status(401).json({ error: 'Token de autorização ausente' });
   }
 
@@ -116,25 +119,31 @@ export default async function handler(req: any, res: any) {
   let userId = '';
 
   try {
+    console.log('[GEMINI_VISION] Tentando autenticar usuário...');
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
-      console.error('[GEMINI_VISION] Erro de autenticação:', authError);
+      console.error('[GEMINI_VISION] Erro de autenticação:', authError?.message || 'Usuário não encontrado');
       return res.status(401).json({ error: 'Token inválido' });
     }
     userId = user.id;
     console.log('[GEMINI_VISION] Usuário autenticado:', userId);
   } catch (e: any) {
-    console.error('[GEMINI_VISION] Exceção na autenticação:', e);
-    return res.status(500).json({ error: 'Erro na autenticação' });
+    console.error('[GEMINI_VISION] Exceção na autenticação:', e.message);
+    return res.status(500).json({ error: 'Erro na autenticação: ' + e.message });
   }
 
+  // Verificar dados de entrada
   const { imageBase64 } = req.body;
+  console.log('[GEMINI_VISION] Body keys:', Object.keys(req.body));
+  console.log('[GEMINI_VISION] imageBase64 present:', !!imageBase64);
+  console.log('[GEMINI_VISION] imageBase64 length:', imageBase64?.length || 0);
 
   if (!imageBase64) {
-    console.error('[GEMINI_VISION] Imagem não fornecida');
+    console.error('[GEMINI_VISION] Imagem não fornecida no body');
     return res.status(400).json({ error: 'Imagem não fornecida' });
   }
 
+  console.log('[GEMINI_VISION] GEMINI_API_KEY present:', !!GEMINI_API_KEY);
   if (!GEMINI_API_KEY) {
     console.error('[GEMINI_VISION] GEMINI_API_KEY não configurada');
     return res.status(500).json({ error: 'API não configurada' });
@@ -254,12 +263,13 @@ export default async function handler(req: any, res: any) {
         tokensUsed: data.usageMetadata?.totalTokenCount || 0
       }
     });
-
   } catch (error: any) {
     console.error('[GEMINI_VISION] Erro não tratado:', error);
+    console.error('[GEMINI_VISION] Stack trace:', error.stack);
     res.status(500).json({ 
       error: 'Erro interno do servidor',
-      message: error.message 
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }

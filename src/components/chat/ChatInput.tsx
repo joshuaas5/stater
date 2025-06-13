@@ -54,11 +54,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Aceitar imagens e PDFs
-    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-      toast({
+    if (!file) return;    // Aceitar apenas imagens por enquanto
+    if (!file.type.startsWith('image/')) {      toast({
         title: "Arquivo inválido",
         description: "Por favor, selecione apenas arquivos de imagem ou PDF.",
         variant: "destructive"
@@ -89,15 +86,18 @@ const ChatInput: React.FC<ChatInputProps> = ({
         throw new Error('Câmera não suportada neste navegador');
       }
 
-      console.log('Solicitando acesso à câmera...');
-
-      // Configuração mais simples para máxima compatibilidade
+      console.log('Solicitando acesso à câmera...');      // Configuração otimizada para câmera com melhor qualidade
       const constraints = {
         video: {
-          facingMode: 'environment', // Câmera traseira preferida
-          width: { max: 1280 },
-          height: { max: 720 }
-        }
+          facingMode: 'environment', // Câmera traseira preferida (melhor qualidade)
+          width: { ideal: 1920, max: 4096 }, // Alta resolução
+          height: { ideal: 1080, max: 2160 },
+          frameRate: { ideal: 30 }, // 30 FPS para melhor qualidade
+          focusMode: 'continuous', // Foco automático contínuo
+          whiteBalance: 'auto', // Balanço automático de branco
+          exposureMode: 'auto' // Exposição automática
+        },
+        audio: false // Não precisamos de áudio
       };
 
       // Solicitar permissão para câmera
@@ -182,18 +182,24 @@ const ChatInput: React.FC<ChatInputProps> = ({
           variant: "destructive"
         });
         return;
-      }
-
+      }      // Configurar canvas com alta qualidade
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
+      
+      // Configurações para melhor qualidade
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      
+      // Capturar a imagem do vídeo
       context.drawImage(video, 0, 0);
 
-      const imageData = canvas.toDataURL('image/jpeg', 0.8);
+      // Converter para JPEG com alta qualidade (0.95 = 95% de qualidade)
+      const imageData = canvas.toDataURL('image/jpeg', 0.95);
       setSelectedImage(imageData);
       stopCamera();
 
       toast({
-        title: "Foto capturada!",
+        title: "Foto capturada com alta qualidade!",
         description: "Agora você pode processar o documento.",
       });
     } catch (error) {
@@ -277,13 +283,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
   if (showCamera) {
     return (
       <div className="p-4 border-t border-border bg-card">
-        <div className="text-center mb-3">
-          <h3 className="text-lg font-semibold">📷 Câmera Ativa</h3>
-          <p className="text-sm text-muted-foreground">Posicione o documento e capture a foto</p>
+        <div className="text-center mb-4">
+          <h3 className="text-lg font-semibold">📷 Capturar Documento</h3>
+          <p className="text-sm text-muted-foreground">
+            Posicione bem o documento, aguarde o foco e capture
+          </p>
         </div>
         
         <div className="mb-4 flex justify-center">
-          <div className="relative border-2 border-primary rounded-lg overflow-hidden">
+          <div className="relative border-2 border-primary rounded-lg overflow-hidden shadow-lg">
             <video 
               ref={videoRef} 
               autoPlay 
@@ -291,34 +299,52 @@ const ChatInput: React.FC<ChatInputProps> = ({
               muted
               style={{ 
                 width: '100%', 
-                maxWidth: '400px',
-                minHeight: '300px',
+                maxWidth: '500px',
+                minHeight: '350px',
                 height: 'auto',
                 backgroundColor: '#000',
-                display: 'block'
+                display: 'block',
+                objectFit: 'cover' // Melhor enquadramento
               }}
             />
+            
+            {/* Overlay de guia para posicionamento */}
+            <div className="absolute inset-4 border-2 border-dashed border-white opacity-50 rounded pointer-events-none">
+              <div className="absolute top-0 left-0 w-6 h-6 border-l-4 border-t-4 border-white"></div>
+              <div className="absolute top-0 right-0 w-6 h-6 border-r-4 border-t-4 border-white"></div>
+              <div className="absolute bottom-0 left-0 w-6 h-6 border-l-4 border-b-4 border-white"></div>
+              <div className="absolute bottom-0 right-0 w-6 h-6 border-r-4 border-b-4 border-white"></div>
+            </div>
+            
             {!stream && (
               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <p className="text-white">Carregando câmera...</p>
+                <div className="text-center text-white">
+                  <div className="animate-spin w-8 h-8 border-4 border-white border-t-transparent rounded-full mx-auto mb-2"></div>
+                  <p>Inicializando câmera...</p>
+                </div>
               </div>
             )}
           </div>
           <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
         
-        <div className="flex justify-center gap-3">
+        <div className="flex justify-center gap-3 mb-3">
           <Button 
             onClick={capturePhoto} 
             variant="default" 
             size="lg"
             disabled={!stream}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-blue-600 hover:bg-blue-700 min-w-[140px]"
           >
-            📸 Capturar Foto
+            📸 Capturar
           </Button>
-          <Button onClick={stopCamera} variant="outline" size="lg">
-            ❌ Cancelar
+          <Button 
+            onClick={stopCamera} 
+            variant="outline" 
+            size="lg"
+            className="min-w-[100px]"
+          >
+            ✕ Fechar
           </Button>
         </div>
         
@@ -420,7 +446,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       {/* Hidden file input */}      <input
         ref={fileInputRef}
         type="file"
-        accept="image/*,application/pdf"
+        accept="image/*"
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />

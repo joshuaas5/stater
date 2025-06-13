@@ -6,9 +6,7 @@ export default async function handler(req: any, res: any) {
   
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
-  }
-
-  try {
+  }  try {
     const { imageBase64 } = req.body;
     
     console.log('[OCR] Verificando imagem...');
@@ -18,6 +16,37 @@ export default async function handler(req: any, res: any) {
     if (!imageBase64) {
       console.log('[OCR] Erro: Imagem não fornecida');
       return res.status(400).json({ error: 'Imagem não fornecida' });
+    }
+
+    // Detectar tipo de arquivo pelo cabeçalho base64
+    let mimeType = "image/jpeg"; // padrão
+    let modelToUse = "gemini-2.0-flash-exp"; // padrão para imagens
+    
+    if (imageBase64.startsWith('/9j/') || imageBase64.startsWith('iVBOR') || imageBase64.startsWith('R0lGOD')) {
+      // É uma imagem (JPEG, PNG, GIF)
+      mimeType = imageBase64.startsWith('/9j/') ? "image/jpeg" : 
+                 imageBase64.startsWith('iVBOR') ? "image/png" : "image/gif";
+      modelToUse = "gemini-2.0-flash-exp"; // Melhor para imagens
+      console.log('[OCR] Detectado: Imagem', mimeType);
+    } else if (imageBase64.startsWith('JVBERi0')) {
+      // É um PDF
+      mimeType = "application/pdf";
+      modelToUse = "gemini-2.5-flash"; // Testar se 2.5 Flash lê PDFs
+      console.log('[OCR] Detectado: PDF');
+    } else {
+      console.log('[OCR] Tipo de arquivo não reconhecido, assumindo imagem JPEG');
+    }
+
+    console.log('[OCR] Usando modelo:', modelToUse);
+    console.log('[OCR] MIME type:', mimeType);
+
+    // Detectar se é PDF
+    if (imageBase64.startsWith('data:application/pdf')) {
+      console.log('[OCR] PDF detectado - não suportado no momento');
+      return res.status(400).json({ 
+        error: 'PDFs ainda não são suportados. Por favor, tire uma foto ou faça upload de uma imagem (JPG, PNG).',
+        isPdf: true
+      });
     }
 
     console.log('[OCR] API Key presente:', !!GEMINI_API_KEY);
@@ -61,11 +90,10 @@ Tipos: "income" ou "expense"
 
     const payload = {
       contents: [{
-        parts: [
-          { text: prompt },
+        parts: [          { text: prompt },
           {
             inline_data: {
-              mime_type: "image/jpeg",
+              mime_type: mimeType,
               data: imageBase64
             }
           }
@@ -77,10 +105,10 @@ Tipos: "income" ou "expense"
         topP: 1,
         maxOutputTokens: 4096,
       }
-    };    console.log('[OCR] Chamando Gemini 2.5 Flash...');
+    };    console.log('[OCR] Chamando Gemini:', modelToUse);
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

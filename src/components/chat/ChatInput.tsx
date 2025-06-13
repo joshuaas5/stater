@@ -59,8 +59,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
                         file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)$/);
     const isValidPDF = file.type === 'application/pdf' || 
                       file.name.toLowerCase().endsWith('.pdf');
-    
-    if (!isValidImage && !isValidPDF) {toast({
+      if (!isValidImage && !isValidPDF) {
+      toast({
         title: "Arquivo inválido",
         description: "Por favor, selecione apenas arquivos de imagem (JPG, PNG, etc.) ou PDF.",
         variant: "destructive"
@@ -89,7 +89,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const startCamera = async () => {
     console.log('🔍 Iniciando câmera... isMobile:', isMobile);
     
-    // Se for mobile, usar input file com capture
+    // Se for mobile, usar input file com capture para câmera nativa
     if (isMobile) {
       console.log('📱 Usando câmera nativa do mobile');
       // Criar input temporário para câmera nativa
@@ -322,34 +322,28 @@ const ChatInput: React.FC<ChatInputProps> = ({
   }  // Camera view
   if (showCamera) {
     return (
-      <div className="p-4 border-t border-border bg-card">
-        <div className="text-center mb-4">
+      <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex flex-col">
+        {/* Header */}
+        <div className="bg-black text-white p-4 text-center">
           <h3 className="text-lg font-semibold">📷 Capturar Documento</h3>
-          <p className="text-sm text-muted-foreground">
-            Posicione bem o documento, aguarde o foco e capture
+          <p className="text-sm text-gray-300">
+            Posicione bem o documento e capture
           </p>
         </div>
         
-        <div className="mb-4 flex justify-center">
-          <div className="relative border-2 border-primary rounded-lg overflow-hidden shadow-lg">
+        {/* Camera area */}
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="relative max-w-lg w-full">
             <video 
               ref={videoRef} 
               autoPlay 
               playsInline
               muted
-              style={{ 
-                width: '100%', 
-                maxWidth: '500px',
-                minHeight: '350px',
-                height: 'auto',
-                backgroundColor: '#000',
-                display: 'block',
-                objectFit: 'cover' // Melhor enquadramento
-              }}
+              className="w-full h-auto max-h-[60vh] rounded-lg shadow-lg bg-black object-cover"
             />
             
             {/* Overlay de guia para posicionamento */}
-            <div className="absolute inset-4 border-2 border-dashed border-white opacity-50 rounded pointer-events-none">
+            <div className="absolute inset-4 border-2 border-dashed border-white opacity-70 rounded pointer-events-none">
               <div className="absolute top-0 left-0 w-6 h-6 border-l-4 border-t-4 border-white"></div>
               <div className="absolute top-0 right-0 w-6 h-6 border-r-4 border-t-4 border-white"></div>
               <div className="absolute bottom-0 left-0 w-6 h-6 border-l-4 border-b-4 border-white"></div>
@@ -357,45 +351,49 @@ const ChatInput: React.FC<ChatInputProps> = ({
             </div>
             
             {!stream && (
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center rounded-lg">
                 <div className="text-center text-white">
                   <div className="animate-spin w-8 h-8 border-4 border-white border-t-transparent rounded-full mx-auto mb-2"></div>
                   <p>Inicializando câmera...</p>
                 </div>
               </div>
             )}
+            
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
           </div>
-          <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
         
-        <div className="flex justify-center gap-3 mb-3">
-          <Button 
-            onClick={capturePhoto} 
-            variant="default" 
-            size="lg"
-            disabled={!stream}
-            className="bg-blue-600 hover:bg-blue-700 min-w-[140px]"
-          >
-            📸 Capturar
-          </Button>
-          <Button 
-            onClick={stopCamera} 
-            variant="outline" 
-            size="lg"
-            className="min-w-[100px]"
-          >
-            ✕ Fechar
-          </Button>
-        </div>
-        
-        {stream && (
-          <div className="text-center mt-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              Câmera conectada
+        {/* Bottom controls - sempre visível e funcional */}
+        <div className="bg-black text-white p-6">
+          <div className="flex justify-center gap-4 mb-4">
+            <Button 
+              onClick={capturePhoto} 
+              variant="default" 
+              size="lg"
+              disabled={!stream}
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-3 text-lg shadow-lg"
+            >
+              📸 Capturar Foto
+            </Button>
+            <Button 
+              onClick={stopCamera} 
+              variant="destructive" 
+              size="lg"
+              className="font-semibold px-8 py-3 text-lg shadow-lg"
+            >
+              ✕ Cancelar
+            </Button>
+          </div>
+          
+          {stream && (
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                Câmera conectada e pronta
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     );
   }
@@ -482,11 +480,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
           <Send size={18} />
         </Button>
       </form>
-      
-      {/* Hidden file input */}      <input
+        {/* Hidden file input */}
+      <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,application/pdf,.pdf"
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />

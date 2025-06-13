@@ -952,11 +952,38 @@ const handleImageUpload = async (imageBase64: string, pdfPassword?: string) => {
     });    if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
       console.error('Erro da API OCR:', errorData);
-        // Verificar se é erro de PDF com senha
+      
+      // Verificar se é erro de PDF protegido por senha (não suportado)
+      if (errorData.error?.includes('PDF protegido por senha não suportado')) {
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          text: `🚫 **PDF Protegido Detectado**\n\n${errorData.message}\n\n${errorData.suggestion || ''}`,
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }]);
+        setLoading(false);
+        return;
+      }
+      
+      // Verificar se é erro de PDF com senha (versão antiga)
       if (errorData.needsPassword) {
         setMessages(prev => [...prev, {
           id: uuidv4(),
           text: "🔒 Este PDF está protegido por senha. Por favor, forneça a senha do documento e tente novamente.",
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }]);
+        setLoading(false);
+        return;
+      }
+      
+      // Verificar se é erro específico do Gemini "no pages"
+      if (errorData.details?.includes('The document has no pages')) {
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          text: "📄 **Erro ao processar PDF**\n\nEste PDF não pôde ser processado. Possíveis causas:\n• PDF protegido por senha\n• PDF corrompido\n• Formato não suportado\n\n💡 **Solução:** Faça uma captura de tela (screenshot) do PDF e envie a imagem.",
           sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
@@ -1120,8 +1147,7 @@ return (
                   ))}
                 </div>
               </div>            )}
-            
-            {/* Interface de edição de transações OCR */}
+              {/* Interface de edição de transações OCR */}
             {waitingConfirmation && editableTransactions.length > 0 && (
               <div className="p-4 border-t border-border bg-blue-50">
                 <h3 className="font-semibold text-blue-900 mb-3">📝 Editar Transações</h3>
@@ -1133,6 +1159,30 @@ return (
                   onUpdate={updateTransaction}
                   onDelete={deleteTransaction}
                 />
+                
+                {/* Botões de confirmação SEMPRE visíveis */}
+                <div className="mt-6 pt-4 border-t border-blue-200 bg-blue-50 sticky bottom-0">
+                  <div className="flex justify-center gap-4">
+                    <Button 
+                      size="lg" 
+                      variant="outline" 
+                      onClick={() => handleSendMessage('não')}
+                      className="px-8 py-3 text-lg font-medium border-red-300 text-red-700 hover:bg-red-50"
+                    >
+                      ❌ Cancelar
+                    </Button>
+                    <Button 
+                      size="lg" 
+                      onClick={() => handleSendMessage('sim')}
+                      className="px-8 py-3 text-lg font-medium bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      ✅ Confirmar Todas ({editableTransactions.length})
+                    </Button>
+                  </div>
+                  <p className="text-center text-xs text-blue-600 mt-2">
+                    Confirme para salvar {editableTransactions.length} transações no sistema
+                  </p>
+                </div>
               </div>
             )}
             

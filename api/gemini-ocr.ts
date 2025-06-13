@@ -110,34 +110,30 @@ export default async function handler(req: any, res: any) {
       mimeType = "application/pdf";
       console.log('[OCR] Detectado: PDF');
       
-      // Se tem senha, tentar processar PDF protegido
-      if (pdfPassword) {
-        try {
-          console.log('[OCR] Tentando processar PDF com senha...');
-          processedImageBase64 = await processProtectedPdf(imageBase64, pdfPassword);
-          console.log('[OCR] PDF processado com sucesso');
-        } catch (error: any) {
-          console.error('[OCR] Erro ao processar PDF protegido:', error.message);
+      // IMPORTANTE: Para PDFs protegidos, o Gemini não consegue processar
+      // Vamos detectar se é protegido e avisar o usuário
+      try {
+        const pdfBuffer = Buffer.from(imageBase64, 'base64');
+        const pdfHeader = pdfBuffer.toString('binary', 0, 1000);
+        
+        // Verificar se o PDF está criptografado
+        if (pdfHeader.includes('/Encrypt') || pdfHeader.includes('endobj') && pdfHeader.includes('/Filter')) {
+          console.log('[OCR] PDF protegido detectado');
           
-          if (error.message === 'INVALID_PASSWORD') {
-            return res.status(400).json({ 
-              error: 'Senha incorreta para o PDF',
-              needsPassword: true,
-              message: 'A senha fornecida está incorreta. Por favor, verifique e tente novamente.'
-            });
-          } else if (error.message === 'NEEDS_PASSWORD') {
-            return res.status(400).json({ 
-              error: 'PDF protegido por senha',
-              needsPassword: true,
-              message: 'Este PDF está protegido por senha. Por favor, forneça a senha para continuar.'
-            });
-          }
-          
-          // Para outros erros, continuar tentando processar normalmente
-          console.log('[OCR] Continuando com processamento normal...');
+          return res.status(400).json({ 
+            error: 'PDF protegido por senha não suportado',
+            needsPassword: false, // Não adianta pedir senha
+            message: '⚠️ PDFs protegidos por senha não são suportados atualmente. Por favor, remova a proteção do PDF ou use uma imagem/screenshot do documento.',
+            suggestion: 'Dica: Você pode fazer uma captura de tela (screenshot) do PDF aberto e enviar a imagem.'
+          });
         }
+        
+        console.log('[OCR] PDF não protegido, processando normalmente');
+        
+      } catch (pdfCheckError: any) {
+        console.log('[OCR] Erro ao verificar PDF, tentando processar normalmente:', pdfCheckError.message);
       }
-    } else {
+    }else {
       console.log('[OCR] Tipo de arquivo não reconhecido, assumindo imagem JPEG');
       console.log('[OCR] Base64 começa com:', imageBase64.substring(0, 10));
     }

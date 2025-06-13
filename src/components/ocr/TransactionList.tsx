@@ -28,14 +28,21 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   transactions, 
   onUpdate, 
   onDelete 
-}) => {
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+}) => {  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editData, setEditData] = useState<Transaction | null>(null);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
   const [showScrollHint, setShowScrollHint] = useState(false);
+
+  // Cálculos para resumo
+  const incomeCount = transactions.filter(t => t.type === 'income').length;
+  const expenseCount = transactions.filter(t => t.type === 'expense').length;
+  const totalAmount = transactions.reduce((sum, t) => 
+    sum + (t.type === 'income' ? t.amount : -t.amount), 0
+  );
+
   // Verificar se há scroll necessário
   useEffect(() => {
-    setShowScrollHint(transactions.length > 4); // Mostrar hint se há mais de 4 transações
+    setShowScrollHint(transactions.length > 6); // Mostrar hint se há mais de 6 transações
   }, [transactions.length]);
 
   // Calcular totais
@@ -105,9 +112,13 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             Role abaixo para ver todas as transações
           </div>
         )}
-      </div>{/* Container com scroll para muitas transações */}
+      </div>      {/* Container com scroll otimizado para faturas grandes */}
       <div 
-        className="max-h-96 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 relative"
+        className="max-h-[600px] overflow-y-auto space-y-2 pr-2 border border-gray-200 rounded-lg bg-white"
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#6b7280 #f3f4f6'
+        }}
         onScroll={handleScroll}
       >
         {transactions.map((transaction, index) => (

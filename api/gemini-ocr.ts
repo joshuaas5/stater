@@ -125,37 +125,50 @@ export default async function handler(req: any, res: any) {
     if (!GEMINI_API_KEY) {
       console.log('[OCR] Erro: API Key não encontrada');
       return res.status(500).json({ error: 'API não configurada' });
-    }
-
-    // Prompt simples mas efetivo
+    }    // Prompt especializado para faturas de cartão
     const prompt = `
-Analise esta imagem de documento financeiro e extraia as informações.
+VOCÊ É UM ESPECIALISTA EM LEITURA DE FATURAS DE CARTÃO DE CRÉDITO.
 
-IMPORTANTE: Retorne APENAS um JSON válido no formato exato:
+ANÁLISE ESTE DOCUMENTO FINANCEIRO e extraia TODAS as transações com MÁXIMA PRECISÃO.
+
+REGRAS CRÍTICAS:
+1. TODAS as transações são DESPESAS (type: "expense") - NUNCA marque como receita
+2. IGNORE totais, saldos, pagamentos mínimos e valores resumo
+3. EXTRAIA apenas compras/gastos individuais
+4. SE for fatura Nubank, IGNORE "Cashback" e valores de pagamento
+5. VALORES devem ser EXATOS como mostrados
+6. NÃO invente transações que não existem
+
+RETORNE APENAS JSON VÁLIDO:
 
 {
-  "documentType": "extrato",
+  "documentType": "fatura_cartao",
   "confidence": 0.95,
   "shouldGroup": false,
   "transactions": [
     {
-      "description": "Descrição clara da transação",
-      "amount": 100.50,
+      "description": "Nome exato do estabelecimento/transação",
+      "amount": 99.99,
       "date": "2025-06-13",
-      "category": "alimentacao",
+      "category": "categoria_apropriada",
       "type": "expense",
       "confidence": 0.9
     }
   ],
   "summary": {
-    "totalAmount": 100.50,
-    "itemCount": 1,
-    "establishment": "Nome do local"
+    "totalAmount": 999.99,
+    "itemCount": 10,
+    "establishment": "Fatura Cartão de Crédito"
   }
 }
 
-Categorias: alimentacao, transporte, saude, educacao, lazer, casa, tecnologia, roupas, servicos, outros
-Tipos: "income" ou "expense"
+CATEGORIAS: alimentacao, transporte, saude, educacao, lazer, casa, tecnologia, roupas, servicos, outros
+
+IMPORTANTE: 
+- Seja PRECISO nos valores
+- NÃO some valores duplicados 
+- IGNORE pagamentos e créditos
+- Foque apenas nas COMPRAS/GASTOS
 `;
 
     console.log('[OCR] Preparando payload para Gemini...');
@@ -169,12 +182,11 @@ Tipos: "income" ou "expense"
             }
           }
         ]
-      }],
-      generationConfig: {
-        temperature: 0.1,
-        topK: 32,
-        topP: 1,
-        maxOutputTokens: 4096,
+      }],      generationConfig: {
+        temperature: 0.1, // Muito baixo para precisão
+        topK: 16,         // Reduzido para foco
+        topP: 0.8,        // Mais determinístico
+        maxOutputTokens: 8192, // Dobrado para faturas grandes
       }
     };    console.log('[OCR] Chamando Gemini:', modelToUse);
 
@@ -268,34 +280,48 @@ Tipos: "income" ou "expense"
       
       console.log('[OCR] JSON parseado com sucesso!');
       console.log('[OCR] Transações encontradas:', ocrResult.transactions.length);
-      
-    } catch (parseError: any) {
+        } catch (parseError: any) {
       console.error('[OCR] Erro ao parsear JSON:', parseError.message);
       console.error('[OCR] Texto problemático:', responseText);
       
-      // Retornar dados de fallback baseado no teste que funcionou
-      ocrResult = {
-        documentType: "outros",
-        confidence: 0.8,
-        shouldGroup: false,
-        transactions: [
-          {
-            description: "Transação extraída de documento",
-            amount: 50.00,
-            date: new Date().toISOString().split('T')[0],
-            category: "outros",
-            type: "expense",
-            confidence: 0.8
-          }
-        ],
-        summary: {
-          totalAmount: 50.00,
-          itemCount: 1,
-          establishment: "Documento processado"
+      // Para faturas grandes, tentar extrair JSON parcial
+      try {
+        const jsonMatches = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatches) {
+          const partialJson = jsonMatches[0];
+          ocrResult = JSON.parse(partialJson);
+          console.log('[OCR] JSON parcial extraído com sucesso');
+        } else {
+          throw new Error('Nenhum JSON encontrado');
         }
-      };
+      } catch (partialError) {
+        console.log('[OCR] Fallback para estrutura simplificada');
+        
+        // Retornar dados de fallback mais informativos
+        ocrResult = {
+          documentType: "fatura_cartao",
+          confidence: 0.6,
+          shouldGroup: false,
+          transactions: [
+            {
+              description: "⚠️ Documento processado parcialmente - Verifique manualmente",
+              amount: 0.01,
+              date: new Date().toISOString().split('T')[0],
+              category: "outros",
+              type: "expense",
+              confidence: 0.6
+            }
+          ],
+          summary: {
+            totalAmount: 0.01,
+            itemCount: 1,
+            establishment: "Processamento Parcial"
+          },
+          warning: "O documento foi processado parcialmente devido à complexidade. Recomenda-se verificação manual."
+        };
+      }
       
-      console.log('[OCR] Usando dados de fallback');
+      console.log('[OCR] Usando dados de fallback ou parciais');
     }
 
     console.log('[OCR] Processamento concluído com sucesso!');

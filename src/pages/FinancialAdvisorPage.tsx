@@ -948,8 +948,8 @@ const handleImageUpload = async (imageBase64: string) => {
       sender: 'system',
       timestamp: new Date(),
       avatarUrl: IA_AVATAR
-    }]);    // Chamar API de OCR (versão de teste para debug)
-    const response = await fetch('/api/ocr-test', {
+    }]);    // Chamar API de OCR real com Gemini Vision
+    const response = await fetch('/api/gemini-vision-working', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

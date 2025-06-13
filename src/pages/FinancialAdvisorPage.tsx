@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/navigation/NavBar';
 import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
+import { TransactionList } from '@/components/ocr/TransactionList';
 import { isLoggedIn, saveTransaction as saveTransactionUtil } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
 import { ChatMessage, Transaction } from '@/types';
@@ -66,13 +67,13 @@ export const FinancialAdvisorPage: React.FC = () => {
   };
 
   // Persistência do Chat: Carregar mensagens do localStorage ou usar inicial
-  // Messages will be loaded in a useEffect hook once currentUserId is known.
-  const [messages, setMessages] = useState<ChatMessage[]>([initialSystemMessage]);
+  // Messages will be loaded in a useEffect hook once currentUserId is known.  const [messages, setMessages] = useState<ChatMessage[]>([initialSystemMessage]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [waitingConfirmation, setWaitingConfirmation] = useState(false);
+  const [editableTransactions, setEditableTransactions] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined); // undefined: not yet checked, null: checked and no user, string: user ID
@@ -278,9 +279,7 @@ const handleSendMessage = async (message: string) => {
         if (pendingAction.tipo === 'generic_confirmation' && pendingAction.dados.ocrTransactions) {
           const ocrTransactions = pendingAction.dados.ocrTransactions;
           let successCount = 0;
-          let errorCount = 0;
-
-          // Processar cada transação
+          let errorCount = 0;          // Processar cada transação
           for (const transaction of ocrTransactions) {
             try {
               // Preparar data da transação
@@ -288,7 +287,7 @@ const handleSendMessage = async (message: string) => {
                 ? new Date(transaction.date) 
                 : new Date();
 
-              // Salvar no Supabase
+              // Salvar no Supabase (única fonte da verdade)
               await supabase.from('transactions').insert([
                 {
                   type: transaction.type,
@@ -301,17 +300,6 @@ const handleSendMessage = async (message: string) => {
                 }
               ]);
 
-              // Salvar no localStorage
-              const transactionToSave: Transaction = {
-                id: uuidv4(),
-                title: transaction.description,
-                amount: Number(transaction.amount),
-                type: transaction.type,
-                category: transaction.category || '',
-                date: transactionDate,
-                userId: activeUserId,
-              };
-              saveTransactionUtil(transactionToSave);
               successCount++;
             } catch (transactionError) {
               console.error('Erro ao salvar transação OCR:', transactionError);
@@ -971,13 +959,10 @@ const handleImageUpload = async (imageBase64: string) => {
     }
 
     const ocrData = result.data;
-    const transactions = ocrData.transactions;
-
-    // Criar mensagem com resultados
+    const transactions = ocrData.transactions;    // Criar mensagem com resultados
     let resultMessage = `🤖 **Documento processado com sucesso!**\n\n`;
     resultMessage += `📋 **Tipo:** ${ocrData.documentType.replace('_', ' ')}\n`;
-    resultMessage += `📊 **Confiança:** ${Math.round(ocrData.confidence * 100)}%\n`;
-    resultMessage += `💰 **Total:** R$ ${ocrData.summary.totalAmount.toFixed(2)}\n`;
+    resultMessage += ` **Total:** R$ ${ocrData.summary.totalAmount.toFixed(2)}\n`;
     
     if (ocrData.summary.establishment) {
       resultMessage += `🏪 **Local:** ${ocrData.summary.establishment}\n`;
@@ -991,11 +976,8 @@ const handleImageUpload = async (imageBase64: string) => {
       resultMessage += `${i + 1}. **${transaction.description}**\n`;
       resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
       resultMessage += `   📁 Categoria: ${transaction.category}\n`;
-      resultMessage += `   📅 Data: ${transaction.date || 'Hoje'}\n`;
-      resultMessage += `   ✅ Confiança: ${Math.round(transaction.confidence * 100)}%\n\n`;
+      resultMessage += `   📅 Data: ${transaction.date || 'Hoje'}\n\n`;
     }
-
-    resultMessage += `Deseja que eu adicione essas transações ao seu sistema? Digite "**sim**" para confirmar todas ou "**não**" para cancelar.`;
 
     // Adicionar mensagem com resultados
     setMessages(prev => [...prev, {

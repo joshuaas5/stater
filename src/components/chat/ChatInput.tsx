@@ -8,7 +8,7 @@ interface ChatInputProps {
   onImageUpload?: (imageBase64: string) => void;
   loading: boolean;
   waitingConfirmation: boolean;
-  pendingActionDetails: { description?: string; category?: string; type?: string; amount?: number; date?: string } | null;
+  pendingActionDetails: { description?: string; category?: string; type?: string; amount?: number; date?: string; ocrTransactions?: any[] } | null;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -52,15 +52,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const handleFileSelect = () => {
     fileInputRef.current?.click();
   };
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
+    // Aceitar imagens e PDFs
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
       toast({
         title: "Arquivo inválido",
-        description: "Por favor, selecione apenas arquivos de imagem.",
+        description: "Por favor, selecione apenas arquivos de imagem ou PDF.",
         variant: "destructive"
       });
       return;
@@ -77,11 +77,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      const imageData = e.target?.result as string;
-      setSelectedImage(imageData);
+      const fileData = e.target?.result as string;
+      setSelectedImage(fileData);
     };
     reader.readAsDataURL(file);
-  };  // Camera functions
+  };// Camera functions
   const startCamera = async () => {
     try {
       // Verificar se o navegador suporta câmera
@@ -256,10 +256,12 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   if (waitingConfirmation && pendingActionDetails) {
-    return (
-      <div className="p-3 border-t border-border bg-amber-50">
+    return (      <div className="p-3 border-t border-border bg-amber-50">
         <p className="text-sm text-center text-amber-700 mb-2">
-          Confirmar ação: Registrar {pendingActionDetails.type || 'transação'} "<strong>{pendingActionDetails.description || pendingActionDetails.category}</strong>" de <strong>{pendingActionDetails.amount ? Math.abs(pendingActionDetails.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : ''}</strong> {pendingActionDetails.date ? `em ${new Date(pendingActionDetails.date).toLocaleDateString('pt-BR')}` : ''}?
+          {pendingActionDetails.ocrTransactions ? 
+            `Confirmar ação: Registrar ${pendingActionDetails.ocrTransactions.length > 1 ? 'transações' : 'transação'}` :
+            `Confirmar ação: Registrar ${pendingActionDetails.type || 'transação'} "<strong>${pendingActionDetails.description || pendingActionDetails.category}</strong>" de <strong>${pendingActionDetails.amount ? Math.abs(pendingActionDetails.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : ''}</strong> ${pendingActionDetails.date ? `em ${new Date(pendingActionDetails.date).toLocaleDateString('pt-BR')}` : ''}?`
+          }
         </p>
         <div className="flex justify-center gap-3">
           <Button onClick={onConfirm} variant="default" size="sm" disabled={loading} className="bg-green-600 hover:bg-green-700 text-white">
@@ -415,11 +417,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
         </Button>
       </form>
       
-      {/* Hidden file input */}
-      <input
+      {/* Hidden file input */}      <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,application/pdf"
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />

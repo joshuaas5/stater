@@ -65,9 +65,9 @@ export const FinancialAdvisorPage: React.FC = () => {
     sender: "system",
     timestamp: new Date()
   };
-
   // Persistência do Chat: Carregar mensagens do localStorage ou usar inicial
-  // Messages will be loaded in a useEffect hook once currentUserId is known.  const [messages, setMessages] = useState<ChatMessage[]>([initialSystemMessage]);
+  // Messages will be loaded in a useEffect hook once currentUserId is known.
+  const [messages, setMessages] = useState<ChatMessage[]>([initialSystemMessage]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -274,10 +274,10 @@ const handleSendMessage = async (message: string) => {
     if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim')) {
       setLoading(true);
       setError("");
-      try {
-        // Processar transações OCR
+      try {        // Processar transações OCR
         if (pendingAction.tipo === 'generic_confirmation' && pendingAction.dados.ocrTransactions) {
-          const ocrTransactions = pendingAction.dados.ocrTransactions;
+          // Usar as transações editáveis ao invés das originais
+          const ocrTransactions = editableTransactions.length > 0 ? editableTransactions : pendingAction.dados.ocrTransactions;
           let successCount = 0;
           let errorCount = 0;          // Processar cada transação
           for (const transaction of ocrTransactions) {
@@ -413,11 +413,11 @@ const handleSendMessage = async (message: string) => {
           setMessages((prevMessages: ChatMessage[]) => ([
             ...prevMessages,
             { id: uuidv4(), text: '✅ Conta registrada com sucesso!', sender: 'system', timestamp: new Date() }
-          ]));
-        } // Closes 'else if (pendingAction.tipo === 'conta')'
+          ]));        } // Closes 'else if (pendingAction.tipo === 'conta')'
         
         setPendingAction(null);
         setWaitingConfirmation(false);
+        setEditableTransactions([]); // Limpar transações editáveis
 
       } catch (e: any) { // Catch for the 'sim' block's try
         const errorMessage = e.message || (typeof e === 'string' ? e : 'Erro desconhecido ao registrar no banco.');
@@ -448,10 +448,10 @@ const handleSendMessage = async (message: string) => {
           sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
-        }
-      ]);
+        }      ]);
       setWaitingConfirmation(false);
       setPendingAction(null);
+      setEditableTransactions([]); // Limpar transações editáveis
       setLoading(false); // Certifica que o loading é desativado
       return; // Importante sair após tratar o cancelamento
     }
@@ -986,9 +986,8 @@ const handleImageUpload = async (imageBase64: string) => {
       sender: 'system',
       timestamp: new Date(),
       avatarUrl: IA_AVATAR
-    }]);
-
-    // Preparar ação pendente para confirmação
+    }]);    // Preparar ação pendente para confirmação
+    setEditableTransactions(transactions); // Armazenar transações editáveis
     setPendingAction({
       tipo: 'generic_confirmation',
       dados: {
@@ -1011,6 +1010,55 @@ const handleImageUpload = async (imageBase64: string) => {
     }]);
   } finally {
     setLoading(false);
+  }
+};
+
+// Funções para editar transações OCR
+const updateTransaction = (index: number, updatedTransaction: any) => {
+  const newTransactions = [...editableTransactions];
+  newTransactions[index] = updatedTransaction;
+  setEditableTransactions(newTransactions);
+  
+  // Atualizar também o pendingAction
+  if (pendingAction) {
+    setPendingAction({
+      ...pendingAction,
+      dados: {
+        ...pendingAction.dados,
+        ocrTransactions: newTransactions
+      }
+    });
+  }
+};
+
+const deleteTransaction = (index: number) => {
+  const newTransactions = editableTransactions.filter((_, i) => i !== index);
+  setEditableTransactions(newTransactions);
+  
+  // Atualizar também o pendingAction
+  if (pendingAction) {
+    setPendingAction({
+      ...pendingAction,
+      dados: {
+        ...pendingAction.dados,
+        ocrTransactions: newTransactions
+      }
+    });
+  }
+  
+  // Se não há mais transações, cancelar a confirmação
+  if (newTransactions.length === 0) {
+    setWaitingConfirmation(false);
+    setPendingAction(null);
+    setEditableTransactions([]);
+    
+    setMessages(prev => [...prev, {
+      id: uuidv4(),
+      text: "❌ Todas as transações foram removidas. Operação cancelada.",
+      sender: 'system',
+      timestamp: new Date(),
+      avatarUrl: IA_AVATAR
+    }]);
   }
 };
 
@@ -1054,9 +1102,24 @@ return (
                     </Button>
                   ))}
                 </div>
+              </div>            )}
+            
+            {/* Interface de edição de transações OCR */}
+            {waitingConfirmation && editableTransactions.length > 0 && (
+              <div className="p-4 border-t border-border bg-blue-50">
+                <h3 className="font-semibold text-blue-900 mb-3">📝 Editar Transações</h3>
+                <p className="text-sm text-blue-700 mb-3">
+                  Verifique e edite as transações antes de confirmar:
+                </p>
+                <TransactionList
+                  transactions={editableTransactions}
+                  onUpdate={updateTransaction}
+                  onDelete={deleteTransaction}
+                />
               </div>
             )}
-            {/* ChatInput fica aqui, abaixo das mensagens/sugestões, mas acima do padding da NavBar */}            <ChatInput
+            
+            {/* ChatInput fica aqui, abaixo das mensagens/sugestões, mas acima do padding da NavBar */}<ChatInput
               onSubmit={handleSendMessage} 
               onImageUpload={handleImageUpload}
               loading={loading}

@@ -231,11 +231,17 @@ export const saveTransaction = (transaction: Transaction): void => {
   console.log('💾 [saveTransaction] Salvando no localStorage. Total de transações:', transactions.length);
   localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
   console.log('✅ [saveTransaction] Transação salva no localStorage');
-  
-  // Disparar evento para atualizar a UI
+    // Disparar evento para atualizar a UI
   console.log('🔄 [saveTransaction] Disparando evento transactionsUpdated...');
   window.dispatchEvent(new Event('transactionsUpdated'));
   console.log('✅ [saveTransaction] Evento disparado');
+  
+  // FORÇAR atualização adicional após um delay
+  setTimeout(() => {
+    console.log('🔄 [saveTransaction] Disparando evento adicional...');
+    window.dispatchEvent(new Event('transactionsUpdated'));
+    window.dispatchEvent(new CustomEvent('transactionsUpdated', { detail: { newTransaction: transaction } }));
+  }, 100);
   
   // Também salvar no Supabase - com retry em caso de falha
   const saveToSupabase = async () => {

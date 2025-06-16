@@ -255,9 +255,16 @@ const handleSendMessage = async (message: string) => {
       setWaitingConfirmation(false);
       setPendingAction(null);
       return;
-    }
-
-    const activeUserId = user.id;
+    }    const activeUserId = user.id;
+    
+    // SEMPRE salvar/atualizar usuário no localStorage para garantir sincronização
+    const userToSave = {
+      id: activeUserId,
+      email: user.email || '',
+      username: user.user_metadata?.username || user.email || ''
+    };
+    console.log('💾 Sincronizando usuário no localStorage:', userToSave);
+    saveUser(userToSave);
 
     if (!activeUserId) {
       setMessages(prev => [...prev, { id: uuidv4(), text: "❌ Erro: Usuário não identificado. Por favor, tente fazer login novamente.", sender: 'system', timestamp: new Date() }]);
@@ -352,6 +359,12 @@ const handleSendMessage = async (message: string) => {
           console.log('🔄 Disparando evento transactionsUpdated...');
           window.dispatchEvent(new Event('transactionsUpdated'));
           console.log('✅ Evento transactionsUpdated disparado');
+          
+          // FORÇAR atualização do Dashboard
+          setTimeout(() => {
+            window.dispatchEvent(new Event('transactionsUpdated'));
+            window.dispatchEvent(new CustomEvent('transactionsUpdated'));
+          }, 500);
           
           // Mensagem de resultado
           let resultMessage = '';

@@ -147,12 +147,20 @@ export const FinancialAdvisorPage: React.FC = () => {
     ));
     console.log(`FinancialAdvisorPage: Saved messages to ${storageKey}`);
   }, [messages, currentUserId, initialSystemMessage.id, initialSystemMessage.text]);
-
   useEffect(() => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 50);
-  }, [messages]);  const handleSuggestionClick = (suggestion: string) => {
+  }, [messages]);
+
+  // Novo useEffect para scroll quando transações editáveis mudarem
+  useEffect(() => {
+    if (editableTransactions.length > 0) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [editableTransactions, waitingConfirmation]);const handleSuggestionClick = (suggestion: string) => {
     // Para botões de registro de transação, fazer a IA perguntar pelos detalhes
     if (suggestion === 'Registrar Despesa' || suggestion === 'Registrar Receita') {
       const transactionType = suggestion === 'Registrar Despesa' ? 'despesa' : 'receita';
@@ -776,9 +784,7 @@ const handleSendMessage = async (message: string) => {
             resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
             resultMessage += `   📁 Categoria: ${transaction.category}\n`;
             resultMessage += `   📅 Data: Hoje\n\n`;
-          }
-
-          // Adicionar mensagem com resultados
+          }          // Adicionar mensagem com resultados
           setMessages(prev => [...prev, {
             id: uuidv4(),
             text: resultMessage,
@@ -798,6 +804,11 @@ const handleSendMessage = async (message: string) => {
             }
           });
           setWaitingConfirmation(true);
+          
+          // Forçar scroll após definir transações editáveis
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+          }, 200);
         } else {
           // Se não é lista, tentar detectar transação individual
           const detectedTransaction = detectTransactionInText(botResponseText, message);
@@ -840,93 +851,224 @@ const handleSendMessage = async (message: string) => {
     const originalMessage = userMessage.toLowerCase();
     const transactions: any[] = [];
     
-    // Padrões para detectar múltiplas transações separadas por vírgula, "e", "também", etc.
-    const listPatterns = [
-      // Padrão: "gastei X no/na Y, Z no/na W, etc."
-      /(?:gastei|paguei|comprei|saiu|custou)\s+(?:r\$\s*)?(\d+(?:[,.]\d{2})?)\s+(?:no|na|em|do|da|para)\s+([^,;]+?)(?:\s*,\s*(?:e\s+)?(?:r\$\s*)?(\d+(?:[,.]\d{2})?)\s+(?:no|na|em|do|da|para)\s+([^,;]+?))+/gi,
-      // Padrão: "X reais no Y, Z reais no W"
-      /(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:no|na|em|do|da|para)\s+([^,;]+?)(?:\s*,\s*(?:e\s+)?(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:no|na|em|do|da|para)\s+([^,;]+?))+/gi
-    ];
+    // Primeiro, tentar detectar padrões de texto estruturado com quebras de linha
+    const lines = userMessage.split(/\n+/).filter(line => line.trim().length > 0);
     
-    // Tentar detectar lista com padrões mais simples primeiro
-    const simpleListMatch = originalMessage.match(/(?:gastei|paguei|comprei).*?(?:,.*){1,}/);
-    if (simpleListMatch) {
-      // Quebrar por vírgulas e processar cada item
-      const parts = originalMessage.split(/[,;]|\s+e\s+/).filter(part => part.trim());
-      
-      for (const part of parts) {
-        const cleanPart = part.trim();
-        if (!cleanPart) continue;
+    // Se tem múltiplas linhas, tentar processar cada uma como transação separada
+    if (lines.length >= 2) {
+      for (const line of lines) {
+        const cleanLine = line.trim();
+        if (!cleanLine) continue;
         
-        // Extrair valor e descrição de cada parte
-        const valueMatch = cleanPart.match(/(?:r\$\s*)?(\d+(?:[,.]\d{2})?)/);
-        const locationMatch = cleanPart.match(/(?:no|na|em|do|da|para)\s+([^,;.!?]+)/);
+        // Padrões para detectar valor em cada linha
+        const valuePatterns = [
+          /r\$\s*(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)/i, // R$ 1.000,00 ou R$ 1000.00
+          /(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*(?:\/mês|por mês|mensal|reais?)/i, // 1000/mês
+          /(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*-/i, // 1000 - descrição
+        ];
         
-        if (valueMatch) {
-          const amount = parseFloat(valueMatch[1].replace(',', '.'));
-          let description = '';
+        let amount = 0;
+        let description = '';
+        
+        // Tentar extrair valor
+        for (const pattern of valuePatterns) {
+          const match = cleanLine.match(pattern);
+          if (match) {
+            let valueStr = match[1].replace(/[.,]/g, '');
+            // Se termina com dois dígitos, é centavo
+            if (valueStr.length >= 3) {
+              amount = parseFloat(valueStr.slice(0, -2) + '.' + valueStr.slice(-2));
+            } else {
+              amount = parseFloat(valueStr);
+            }
+            break;
+          }
+        }
+        
+        // Se não encontrou valor com padrões específicos, tentar padrão mais simples
+        if (amount === 0) {
+          const simpleMatch = cleanLine.match(/(\d+(?:[.,]\d{2})?)/);
+          if (simpleMatch) {
+            amount = parseFloat(simpleMatch[1].replace(',', '.'));
+          }
+        }
+        
+        // Extrair descrição (primeira parte antes do valor ou dash)
+        if (amount > 0) {
+          // Remover o valor da linha para pegar a descrição
+          description = cleanLine
+            .replace(/r\$\s*\d+(?:[.,]\d{3})*(?:[.,]\d{2})?/i, '')
+            .replace(/\s*-\s*.*$/i, '') // Remove tudo após o dash
+            .replace(/^\s*-\s*/, '') // Remove dash no início
+            .trim();
           
-          if (locationMatch) {
-            description = locationMatch[1].trim();
-          } else {
-            // Tentar extrair descrição de outras formas
-            const words = cleanPart.split(/\s+/);
-            const nonNumericWords = words.filter(word => !word.match(/^\d+([,.]\d{2})?$/) && !word.match(/^r\$$/i));
-            description = nonNumericWords.slice(-2).join(' '); // Pegar últimas 2 palavras
+          // Se a descrição está vazia, tentar pegar a primeira parte
+          if (!description) {
+            const parts = cleanLine.split(/\s*-\s*/);
+            description = parts[0].trim();
           }
           
-          if (description) {
+          // Limitar descrição a algo razoável
+          if (description.length > 50) {
+            description = description.substring(0, 50) + '...';
+          }
+          
+          if (description && amount > 0) {
             transactions.push({
               type: 'expense', // Assumir despesa por padrão para listas
               amount: amount,
               description: description.charAt(0).toUpperCase() + description.slice(1),
               category: getCategoryFromDescription(description),
-              date: new Date().toISOString().split('T')[0] // Hoje
+              date: new Date().toISOString().split('T')[0]
             });
           }
         }
       }
     }
     
-    // Se não encontrou transações com o método simples, tentar padrões mais complexos
+    // Se não encontrou transações com quebras de linha, tentar método anterior (vírgulas)
     if (transactions.length === 0) {
-      // Procurar por padrões como "50 no mercado, 30 na farmácia"
-      const complexMatches = [...originalMessage.matchAll(/(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:no|na|em|do|da|para)\s+([^,;.!?]+)/gi)];
-      
-      for (const match of complexMatches) {
-        const amount = parseFloat(match[1].replace(',', '.'));
-        const description = match[2].trim();
+      // Tentar detectar lista com padrões mais simples primeiro
+      const simpleListMatch = originalMessage.match(/(?:gastei|paguei|comprei).*?(?:,.*){1,}/);
+      if (simpleListMatch) {
+        // Quebrar por vírgulas e processar cada item
+        const parts = originalMessage.split(/[,;]|\s+e\s+/).filter(part => part.trim());
         
-        if (amount > 0 && description) {
-          transactions.push({
-            type: 'expense',
-            amount: amount,
-            description: description.charAt(0).toUpperCase() + description.slice(1),
-            category: getCategoryFromDescription(description),
-            date: new Date().toISOString().split('T')[0]
-          });
+        for (const part of parts) {
+          const cleanPart = part.trim();
+          if (!cleanPart) continue;
+          
+          // Extrair valor e descrição de cada parte
+          const valueMatch = cleanPart.match(/(?:r\$\s*)?(\d+(?:[,.]\d{2})?)/);
+          const locationMatch = cleanPart.match(/(?:no|na|em|do|da|para)\s+([^,;.!?]+)/);
+          
+          if (valueMatch) {
+            const amount = parseFloat(valueMatch[1].replace(',', '.'));
+            let description = '';
+            
+            if (locationMatch) {
+              description = locationMatch[1].trim();
+            } else {
+              // Tentar extrair descrição de outras formas
+              const words = cleanPart.split(/\s+/);
+              const nonNumericWords = words.filter(word => !word.match(/^\d+([,.]\d{2})?$/) && !word.match(/^r\$$/i));
+              description = nonNumericWords.slice(-2).join(' '); // Pegar últimas 2 palavras
+            }
+            
+            if (description) {
+              transactions.push({
+                type: 'expense',
+                amount: amount,
+                description: description.charAt(0).toUpperCase() + description.slice(1),
+                category: getCategoryFromDescription(description),
+                date: new Date().toISOString().split('T')[0]
+              });
+            }
+          }
+        }
+      }
+      
+      // Se ainda não encontrou, tentar padrões mais complexos
+      if (transactions.length === 0) {
+        // Procurar por padrões como "50 no mercado, 30 na farmácia"
+        const complexMatches = [...originalMessage.matchAll(/(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:no|na|em|do|da|para)\s+([^,;.!?]+)/gi)];
+        
+        for (const match of complexMatches) {
+          const amount = parseFloat(match[1].replace(',', '.'));
+          const description = match[2].trim();
+          
+          if (amount > 0 && description) {
+            transactions.push({
+              type: 'expense',
+              amount: amount,
+              description: description.charAt(0).toUpperCase() + description.slice(1),
+              category: getCategoryFromDescription(description),
+              date: new Date().toISOString().split('T')[0]
+            });
+          }
         }
       }
     }
     
+    // Log para debug
+    console.log('Transações detectadas:', transactions);
+    
     return transactions.length >= 2 ? transactions : []; // Só considerar lista se tiver 2+ transações
   };
-  
-  // Função para inferir categoria baseada na descrição
+    // Função para inferir categoria baseada na descrição
   const getCategoryFromDescription = (description: string) => {
     const desc = description.toLowerCase();
     
-    if (desc.includes('mercado') || desc.includes('supermercado') || desc.includes('feira')) {
-      return 'Alimentação';
-    } else if (desc.includes('farmácia') || desc.includes('remédio') || desc.includes('medicina')) {
+    // Moradia e habitação
+    if (desc.includes('aluguel') || desc.includes('apartamento') || desc.includes('condomínio') || 
+        desc.includes('taxa de condomínio') || desc.includes('casa') || desc.includes('imóvel')) {
+      return 'Moradia';
+    }
+    
+    // Saúde
+    if (desc.includes('plano de saúde') || desc.includes('saúde') || desc.includes('farmácia') || 
+        desc.includes('remédio') || desc.includes('medicina') || desc.includes('médico') ||
+        desc.includes('consulta') || desc.includes('exame') || desc.includes('hospital')) {
       return 'Saúde';
-    } else if (desc.includes('gasolina') || desc.includes('combustível') || desc.includes('posto')) {
+    }
+    
+    // Internet e tecnologia
+    if (desc.includes('internet') || desc.includes('5g') || desc.includes('wifi') || 
+        desc.includes('conexão') || desc.includes('streaming') || desc.includes('aplicativo') ||
+        desc.includes('app') || desc.includes('software') || desc.includes('tecnologia')) {
+      return 'Internet/Tecnologia';
+    }
+    
+    // Educação
+    if (desc.includes('curso') || desc.includes('idiomas') || desc.includes('educação') || 
+        desc.includes('aula') || desc.includes('professor') || desc.includes('ensino') ||
+        desc.includes('treinamento') || desc.includes('capacitação')) {
+      return 'Educação';
+    }
+    
+    // Transporte e veículos
+    if (desc.includes('carro') || desc.includes('veículo') || desc.includes('manutenção') ||
+        desc.includes('gasolina') || desc.includes('combustível') || desc.includes('posto') ||
+        desc.includes('seguro') || desc.includes('revisão') || desc.includes('elétrico')) {
       return 'Transporte';
-    } else if (desc.includes('conta') || desc.includes('boleto') || desc.includes('fatura')) {
-      return 'Contas';
-    } else if (desc.includes('restaurante') || desc.includes('lanche')) {
+    }
+    
+    // Telefonia
+    if (desc.includes('telefonia') || desc.includes('celular') || desc.includes('móvel') ||
+        desc.includes('ligação') || desc.includes('dados') || desc.includes('roaming') ||
+        desc.includes('plano') && (desc.includes('telefone') || desc.includes('celular'))) {
+      return 'Telefonia';
+    }
+    
+    // Entretenimento e lazer
+    if (desc.includes('clube') || desc.includes('assinatura') || desc.includes('vinhos') ||
+        desc.includes('entretenimento') || desc.includes('lazer') || desc.includes('netflix') ||
+        desc.includes('spotify') || desc.includes('fitness') || desc.includes('academia') ||
+        desc.includes('treino') || desc.includes('personal')) {
+      return 'Entretenimento';
+    }
+    
+    // Serviços domésticos
+    if (desc.includes('limpeza') || desc.includes('faxina') || desc.includes('serviço') ||
+        desc.includes('doméstico') || desc.includes('residencial') || desc.includes('casa')) {
+      return 'Serviços';
+    }
+    
+    // Alimentação (mantendo os anteriores)
+    if (desc.includes('mercado') || desc.includes('supermercado') || desc.includes('feira') ||
+        desc.includes('restaurante') || desc.includes('lanche') || desc.includes('comida')) {
       return 'Alimentação';
-    } else if (desc.includes('shopping') || desc.includes('loja') || desc.includes('roupa')) {
+    }
+    
+    // Contas (mantendo os anteriores)
+    if (desc.includes('conta') || desc.includes('boleto') || desc.includes('fatura') ||
+        desc.includes('taxa')) {
+      return 'Contas';
+    }
+    
+    // Compras (mantendo os anteriores)
+    if (desc.includes('shopping') || desc.includes('loja') || desc.includes('roupa') ||
+        desc.includes('compra')) {
       return 'Compras';
     }
     
@@ -1146,9 +1288,7 @@ const handleImageUpload = async (imageBase64: string) => {
       resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
       resultMessage += `   📁 Categoria: ${transaction.category}\n`;
       resultMessage += `   📅 Data: ${transaction.date || 'Hoje'}\n\n`;
-    }
-
-    // Adicionar mensagem com resultados
+    }    // Adicionar mensagem com resultados
     setMessages(prev => [...prev, {
       id: uuidv4(),
       text: resultMessage,
@@ -1166,6 +1306,11 @@ const handleImageUpload = async (imageBase64: string) => {
       }
     });
     setWaitingConfirmation(true);
+    
+    // Forçar scroll após definir transações editáveis para OCR
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 200);
 
   } catch (err: any) {
     console.error('Erro ao processar imagem:', err);

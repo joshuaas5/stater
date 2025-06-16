@@ -647,9 +647,14 @@ const handleSendMessage = async (message: string) => {
         if (recentTransactions && recentTransactions.length > 0) {
           // Calcular saldo simples
           balance = recentTransactions.reduce((acc, tx) => acc + (tx.type === 'income' ? tx.amount : -tx.amount), 0);
-        }
-        // Montar prompt rico
+        }        // Montar prompt rico
         userPrompt = `Você é um consultor financeiro realista e responsável. Analise a situação abaixo e responda de forma personalizada, citando números, regras de saúde financeira e sugerindo ações realistas.\n\n` +
+          `INSTRUÇÕES ESPECIAIS PARA LISTAS DE TRANSAÇÕES:\n` +
+          `- Se o usuário pedir para "adicionar", "incluir", "registrar" uma LISTA de transações (2 ou more itens), SEMPRE retorne um JSON válido no formato:\n` +
+          `[{"description":"Nome da transação","amount":123.45,"type":"expense","category":"categoria","date":"YYYY-MM-DD"},...]\n` +
+          `- Use "expense" para gastos/saídas e "income" para receitas/entradas\n` +
+          `- Categorias sugeridas: "alimentacao", "transporte", "saude", "lazer", "moradia", "educacao", "tecnologia", "servicos", "outros"\n` +
+          `- Após o JSON, você pode adicionar comentários e análises normalmente\n\n` +
           `Saldo atual: R$ ${balance.toFixed(2)}\n` +
           `Transações recentes:\n` +
           (recentTransactions && recentTransactions.length > 0
@@ -855,10 +860,62 @@ const handleSendMessage = async (message: string) => {
              setWaitingConfirmation(true);
              isTransactionJson = true;
           }
-        }
-      } catch (e: any) {
+        }      } catch (e: any) {
         console.log("AI response not a transaction JSON or parse failed: ", e.message, "\nResponse: ", botResponseText);
         isTransactionJson = false;
+      }
+
+      // NOVO: Se não conseguiu detectar JSON, tentar detectar lista na resposta da IA em texto livre
+      if (!isTransactionJson) {
+        const aiTransactionList = detectTransactionListInAIResponse(botResponseText);
+        if (aiTransactionList.length >= 2) {
+          console.log("🤖 Lista de transações detectada na resposta da IA:", aiTransactionList);
+          
+          // Criar mensagem de confirmação similar ao fluxo do JSON
+          let resultMessage = `🤖 **Detectei ${aiTransactionList.length} transações na resposta!**\n\n`;
+          
+          const totalAmount = aiTransactionList.reduce((sum: number, tx: any) => sum + tx.amount, 0);
+          resultMessage += `💰 **Total:** R$ ${totalAmount.toFixed(2)}\n\n`;
+          resultMessage += `**Transações encontradas:**\n\n`;
+
+          // Listar cada transação
+          for (let i = 0; i < aiTransactionList.length; i++) {
+            const transaction = aiTransactionList[i];
+            resultMessage += `${i + 1}. **${transaction.description}**\n`;
+            resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
+            resultMessage += `   📁 Categoria: ${transaction.category}\n`;
+            resultMessage += `   📅 Data: ${transaction.date === new Date().toISOString().split('T')[0] ? 'Hoje' : transaction.date}\n\n`;
+          }
+
+          // Adicionar mensagem com resultados
+          setMessages(prev => [...prev, {
+            id: uuidv4(),
+            text: resultMessage,
+            sender: 'system',
+            timestamp: new Date(),
+            avatarUrl: IA_AVATAR
+          }]);
+
+          // Preparar ação pendente para confirmação (igual ao OCR)
+          setEditableTransactions(aiTransactionList);
+          setPendingAction({
+            tipo: 'generic_confirmation',
+            dados: {
+              ocrTransactions: aiTransactionList,
+              documentType: 'ai_text_list',
+              establishment: 'Lista processada pela IA (texto livre)'
+            }
+          });
+          setWaitingConfirmation(true);
+          
+          // Forçar scroll após definir transações editáveis
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+          }, 200);
+
+          setLoading(false);
+          return;
+        }
       }
 
       if (isTransactionJson) {
@@ -990,7 +1047,60 @@ const handleSendMessage = async (message: string) => {
     const originalMessage = userMessage.toLowerCase();
     const transactions: any[] = [];
     
-    // Primeiro, tentar detectar padrões de texto estruturado com quebras de linha
+    // NOVO: Detectar padrão específico "ADICIONE ESSAS SAÍDAS:" e similares
+    if (originalMessage.includes('adicione') || originalMessage.includes('inclua') || originalMessage.includes('registre')) {
+      // Tentar quebrar por pontos seguidos de maiúscula (padrão de lista longa)
+      const sentencePattern = /([A-ZÁÊÀÕ][^.]*?)\s*-\s*R\$\s*(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)/gi;
+      const sentenceMatches = [...userMessage.matchAll(sentencePattern)];
+      
+      if (sentenceMatches.length >= 2) {
+        for (const match of sentenceMatches) {
+          let description = match[1].trim();
+          let amountStr = match[2];
+          
+          // Remover palavras iniciais comuns
+          description = description.replace(/^(adicione|inclua|registre|essas?|saídas?|gastos?)\s*/i, '');
+          
+          // Converter valor (tratar separadores de milhares)
+          let amount = parseFloat(amountStr.replace(/[.,]/g, (match, offset, string) => {
+            const remainingString = string.substring(offset + 1);
+            if (remainingString.length === 2 && !remainingString.includes('.') && !remainingString.includes(',')) {
+              return '.'; // É decimal
+            }
+            return ''; // É separador de milhares, remover
+          }));
+          
+          // Se termina com /mês, é valor mensal
+          if (description.toLowerCase().includes('/mês')) {
+            description = description.replace(/\s*-\s*R\$.*$/i, '').trim();
+          }
+          
+          // Limitar descrição
+          if (description.length > 50) {
+            const firstPart = description.split(/\s*-\s*/)[0];
+            description = firstPart.length <= 50 ? firstPart : firstPart.substring(0, 50) + '...';
+          }
+          
+          if (amount > 0 && description) {
+            transactions.push({
+              type: 'expense',
+              amount: amount,
+              description: description.charAt(0).toUpperCase() + description.slice(1),
+              category: getCategoryFromDescription(description),
+              date: new Date().toISOString().split('T')[0]
+            });
+          }
+        }
+      }
+    }
+    
+    // Se já encontrou transações com o padrão específico, retornar
+    if (transactions.length >= 2) {
+      console.log('Transações detectadas (padrão específico):', transactions);
+      return transactions;
+    }
+    
+    // Continuar com detecção por quebras de linha (método original)
     const lines = userMessage.split(/\n+/).filter(line => line.trim().length > 0);
     
     // Se tem múltiplas linhas, tentar processar cada uma como transação separada
@@ -1210,8 +1320,128 @@ const handleSendMessage = async (message: string) => {
         desc.includes('compra')) {
       return 'Compras';
     }
+      return 'Outros';
+  };
+
+  // Função para detectar listas de transações em respostas de texto livre da IA
+  const detectTransactionListInAIResponse = (aiResponse: string): any[] => {
+    const transactions: any[] = [];
     
-    return 'Outros';
+    // Padrões para detectar listas de transações nas respostas da IA
+    const responseLines = aiResponse.split(/\n+/).filter(line => line.trim().length > 0);
+    
+    for (const line of responseLines) {
+      const cleanLine = line.trim();
+      if (!cleanLine) continue;
+      
+      // Padrões comuns da IA para listar transações
+      const patterns = [
+        // Padrão: "1. Descrição - R$ 100,00"
+        /^\d+\.\s*(.+?)\s*-\s*R\$\s*(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)/i,
+        // Padrão: "• Descrição: R$ 100,00"
+        /^[•\-*]\s*(.+?):\s*R\$\s*(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)/i,
+        // Padrão: "Descrição: R$ 100"
+        /^(.+?):\s*R\$\s*(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)/i,
+        // Padrão: "R$ 100 - Descrição"
+        /^R\$\s*(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*-\s*(.+)/i,
+        // Padrão: "R$ 100 para Descrição"
+        /^R\$\s*(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)\s+(?:para|em|no|na)\s+(.+)/i
+      ];
+      
+      for (const pattern of patterns) {
+        const match = cleanLine.match(pattern);
+        if (match) {
+          let description = '';
+          let amountStr = '';
+          
+          // Dependendo do padrão, a descrição e valor podem estar em posições diferentes
+          if (pattern.source.includes('R\\$\\s*\\(\\d+')) {
+            // Padrões onde valor vem depois da descrição
+            if (match[2]) {
+              description = match[1].trim();
+              amountStr = match[2];
+            }
+          } else {
+            // Padrões onde valor vem antes da descrição
+            if (match[1] && match[2]) {
+              if (match[1].match(/^\d/)) {
+                // Primeiro grupo é valor
+                amountStr = match[1];
+                description = match[2].trim();
+              } else {
+                // Primeiro grupo é descrição
+                description = match[1].trim();
+                amountStr = match[2];
+              }
+            }
+          }
+          
+          if (description && amountStr) {
+            // Limpar descrição de formatação desnecessária
+            description = description
+              .replace(/^\d+\.\s*/, '') // Remove numeração
+              .replace(/^[•\-*]\s*/, '') // Remove marcadores
+              .replace(/:\s*$/, '') // Remove dois pontos finais
+              .trim();
+            
+            // Converter valor
+            const amount = parseFloat(amountStr.replace(/[.,]/g, (match, offset, string) => {
+              // Se é a última vírgula/ponto e tem 2 dígitos após, é decimal
+              const remainingString = string.substring(offset + 1);
+              if (remainingString.length === 2 && !remainingString.includes('.') && !remainingString.includes(',')) {
+                return '.';
+              }
+              return '';
+            }));
+            
+            if (amount > 0 && description.length > 0) {
+              transactions.push({
+                type: 'expense', // Assumir despesa por padrão
+                amount: amount,
+                description: description.charAt(0).toUpperCase() + description.slice(1),
+                category: getCategoryFromDescription(description),
+                date: new Date().toISOString().split('T')[0]
+              });
+            }
+          }
+          break; // Parou no primeiro padrão que funcionou
+        }
+      }
+    }
+    
+    // Também tentar detectar padrões mais complexos em texto corrido
+    if (transactions.length === 0) {
+      // Padrões para texto corrido com múltiplas transações
+      const complexPatterns = [
+        // "gastou R$ 50 no mercado, R$ 30 na farmácia"
+        /R\$\s*(\d+(?:[.,]\d{2})?)\s+(?:no|na|em|para|do|da)\s+([^,;.!?]+)/gi,
+        // "50 reais no mercado, 30 na farmácia"
+        /(\d+(?:[.,]\d{2})?)\s*reais?\s+(?:no|na|em|para|do|da)\s+([^,;.!?]+)/gi
+      ];
+      
+      for (const pattern of complexPatterns) {
+        const matches = [...aiResponse.matchAll(pattern)];
+        
+        for (const match of matches) {
+          const amount = parseFloat(match[1].replace(',', '.'));
+          const description = match[2].trim();
+          
+          if (amount > 0 && description) {
+            transactions.push({
+              type: 'expense',
+              amount: amount,
+              description: description.charAt(0).toUpperCase() + description.slice(1),
+              category: getCategoryFromDescription(description),
+              date: new Date().toISOString().split('T')[0]
+            });
+          }
+        }
+      }
+    }
+    
+    console.log('🤖 Transações detectadas na resposta da IA:', transactions);
+    
+    return transactions.length >= 2 ? transactions : []; // Só considerar lista se tiver 2+ transações
   };
 
   // Função de fallback para detectar transações que a IA pode ter perdido

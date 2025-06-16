@@ -308,6 +308,18 @@ const handleSendMessage = async (message: string) => {
                 }
               ]);
 
+              // NOVO: Salvar também no localStorage para aparecer em "últimas transações"
+              const transactionToSave: Transaction = {
+                id: uuidv4(),
+                title: transaction.description,
+                amount: Number(transaction.amount),
+                type: transaction.type as 'income' | 'expense',
+                category: transaction.category || '',
+                date: transactionDate,
+                userId: activeUserId
+              };
+              saveTransactionUtil(transactionToSave);
+
               successCount++;
             } catch (transactionError) {
               console.error('Erro ao salvar transação OCR:', transactionError);
@@ -613,10 +625,13 @@ const handleSendMessage = async (message: string) => {
         setMessages(prev => [...prev, { id: uuidv4(), text: `❌ ${userErrorMessage}`, sender: 'system', timestamp: new Date() }]);
         setLoading(false);
         return; // Return early on API error
+      }      const backendData = await backendApiResponse.json();
+      let botResponseText = backendData.resposta;
+      
+      // Limpar tags HTML da resposta da IA
+      if (typeof botResponseText === 'string') {
+        botResponseText = botResponseText.replace(/<\/?strong>/g, '**').replace(/<\/?[^>]+(>|$)/g, '');
       }
-
-      const backendData = await backendApiResponse.json();
-      const botResponseText = backendData.resposta;
       // --- NOVO: Atualizar uso de tokens e requisições do usuário ---
       try {
         // O backend pode retornar o número de tokens usados na resposta
@@ -694,19 +709,28 @@ const handleSendMessage = async (message: string) => {
         }
         
         const sanitizedJsonString = jsonStringToParse.replace(/,\s*([}\]])/g, '$1');
-        const parsed = JSON.parse(sanitizedJsonString);
-
-        if (parsed && typeof parsed === 'object') {
+        const parsed = JSON.parse(sanitizedJsonString);        if (parsed && typeof parsed === 'object') {
           // NOVO: Detectar ARRAY de transações (lista retornada pela IA)
           if (Array.isArray(parsed) && parsed.length >= 2) {
+            console.log('Detectou array de transações da IA:', parsed);
+            
             // Converter array de transações da IA para formato esperado
-            const transactionList = parsed.map(tx => ({
-              type: tx.tipo === 'receita' ? 'income' : 'expense',
-              amount: parseFloat(tx.valor),
-              description: tx.descrição || tx.description || 'Transação',
-              category: tx.categoria || tx.category || 'Outros',
-              date: tx.data || tx.date || new Date().toISOString().split('T')[0]
-            }));
+            const transactionList = parsed.map((tx, index) => {
+              console.log(`Processando transação ${index + 1}:`, tx);
+              return {
+                type: tx.tipo === 'receita' ? 'income' : 'expense',
+                amount: parseFloat(tx.valor || tx.amount || 0),
+                description: tx.descrição || tx.description || `Transação ${index + 1}`,
+                category: tx.categoria || tx.category || 'Outros',
+                date: tx.data || tx.date || new Date().toISOString().split('T')[0]
+              };
+            }).filter(tx => tx.amount > 0); // Filtrar transações com valor válido
+
+            console.log('Lista de transações convertida:', transactionList);
+
+            if (transactionList.length === 0) {
+              throw new Error('Nenhuma transação válida encontrada no array da IA');
+            }
 
             // Criar mensagem de resumo
             const totalAmount = transactionList.reduce((sum, tx) => sum + tx.amount, 0);

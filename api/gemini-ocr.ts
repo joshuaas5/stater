@@ -125,104 +125,86 @@ export default async function handler(req: any, res: any) {
     if (!GEMINI_API_KEY) {
       console.log('[OCR] Erro: API Key não encontrada');
       return res.status(500).json({ error: 'API não configurada' });
-    }    // Prompt especializado para documentos financeiros avançados
+    }    // Prompt ULTRA especializado para documentos financeiros
     const prompt = `
-VOCÊ É UM ESPECIALISTA EM ANÁLISE DE DOCUMENTOS FINANCEIROS COMPLEXOS.
+VOCÊ É UM ESPECIALISTA EM ANÁLISE DE DOCUMENTOS FINANCEIROS. ANALISE COM EXTREMA PRECISÃO.
 
-ANALISE ESTE DOCUMENTO e extraia TODAS as transações com MÁXIMA PRECISÃO, identificando corretamente ENTRADAS e SAÍDAS.
+INSTRUÇÕES CRÍTICAS:
 
-TIPOS DE DOCUMENTOS SUPORTADOS:
-- Faturas de cartão de crédito (apenas saídas/despesas)
-- Extratos bancários (entradas E saídas)
-- Extratos de conta corrente (entradas E saídas)
-- Extratos de poupança (entradas E saídas)
-- Relatórios de investimentos (entradas E saídas)
-- Extratos de carteira digital/PIX (entradas E saídas)
+1. TIPOS DE DOCUMENTO - Identifique primeiro:
+   📱 FATURA CARTÃO DE CRÉDITO: Apenas DESPESAS (compras), exceto estornos/cashback
+   🏦 EXTRATO BANCÁRIO: ENTRADAS (depósitos) E SAÍDAS (saques/débitos)
+   💰 EXTRATO PIX/DIGITAL: ENTRADAS (recebidos) E SAÍDAS (enviados)
 
-REGRAS CRÍTICAS PARA IDENTIFICAR TIPO DE TRANSAÇÃO:
+2. REGRAS DE OURO PARA TIPO:
 
-🔴 SAÍDAS/DESPESAS (type: "expense"):
-- Compras em estabelecimentos
-- Saques em dinheiro
-- Transferências enviadas (PIX enviado, TED enviado, etc.)
-- Pagamentos de contas/boletos
-- Anuidades e taxas
-- Débitos em geral
-- Valores com sinais negativos (-)
-- Valores em vermelho (se colorido)
-- Descrições como: "Pagamento", "Débito", "Saque", "Transferência enviada"
+   🔴 DESPESAS (type: "expense"):
+   - Qualquer COMPRA em estabelecimento
+   - SAQUES em dinheiro
+   - PIX/TED/Transferência ENVIADA/FEITA POR VOCÊ
+   - Pagamentos de contas, boletos, financiamentos
+   - Anuidades, taxas, juros cobrados
+   - Valores precedidos por DÉBITO, menos (-), vermelho
+   - Descrições: "Compra", "Pagamento", "Débito", "Saque", "PIX enviado", "Transferência feita"
 
-🟢 ENTRADAS/RECEITAS (type: "income"):
-- Depósitos recebidos
-- Transferências recebidas (PIX recebido, TED recebido, etc.)
-- Salários e pagamentos
-- Rendimentos e juros
-- Reembolsos e estornos
-- Cashback e benefícios
-- Valores com sinais positivos (+)
-- Valores em verde (se colorido)
-- Descrições como: "Depósito", "Crédito", "Transferência recebida", "Salário", "Rendimento"
+   🟢 RECEITAS (type: "income"):  
+   - DEPÓSITOS na sua conta
+   - PIX/TED/Transferência RECEBIDA/FEITA PARA VOCÊ
+   - Salários, freelances, vendas
+   - Rendimentos, juros recebidos, cashback
+   - Estornos, reembolsos
+   - Valores precedidos por CRÉDITO, mais (+), verde
+   - Descrições: "Depósito", "Crédito", "PIX recebido", "Transferência recebida", "Salário"
 
-REGRAS DE EXCLUSÃO:
-- IGNORE saldos totais, saldos anteriores, saldos atuais
-- IGNORE pagamentos mínimos, valores de fechamento
-- IGNORE totalizadores e resumos
-- IGNORE linhas de cabeçalho/rodapé
-- IGNORE valores que claramente são resumos/somatórias
+3. ⚠️ IGNORE COMPLETAMENTE:
+   - Saldos (anterior, atual, disponível)
+   - Limites de cartão
+   - Valores mínimos/totais da fatura
+   - Resumos e totalizadores
+   - Informações de cabeçalho/rodapé
+   - Pagamentos da própria fatura (evita duplicação)
 
-ANÁLISE CONTEXTUAL:
-1. Primeiro identifique o TIPO de documento (fatura cartão, extrato banco, etc.)
-2. Para extratos bancários: analise se há padrão de cores ou símbolos para diferenciar entrada/saída
-3. Para faturas de cartão: praticamente tudo são despesas, exceto estornos/cashback
-4. Analise descrições cuidadosamente para determinar direção da transação
-5. Considere valor e contexto (ex: "PIX enviado" = saída, "PIX recebido" = entrada)
+4. 🚨 CASOS ESPECIAIS:
+   - FATURA CARTÃO: 99% são despesas, só estornos são receitas
+   - PAGAMENTO DE FATURA: Se aparecer "Pagamento fatura", É DESPESA no extrato bancário
+   - PIX: Leia com cuidado se foi "enviado" (despesa) ou "recebido" (receita)
+   - VALORES ZERADOS: Se não conseguir ler, retorne array vazio, NÃO invente valores
 
-FORMATAÇÃO DE VALORES:
-- Remova símbolos de moeda (R$, $, etc.)
-- Use formato decimal com ponto (ex: 150.50, não 150,50)
-- NÃO inclua separadores de milhares
+5. DATAS E VALORES:
+   - Use formato YYYY-MM-DD para datas
+   - Valores em formato decimal: 150.50 (não 150,50)
+   - Se não conseguir determinar data, use data atual
 
-CATEGORIZAÇÃO INTELIGENTE:
-- "alimentacao": restaurantes, supermercados, delivery
-- "transporte": uber, combustível, pedágios, transporte público
-- "saude": farmácias, consultas, exames, planos de saúde
-- "lazer": cinema, streaming, jogos, viagens
-- "moradia": aluguel, condomínio, luz, água, gás
-- "educacao": cursos, livros, material escolar
-- "tecnologia": eletrônicos, software, internet
-- "servicos": bancos, cartórios, seguros, manutenções
-- "outros": quando não se encaixa nas categorias acima
+6. SE NÃO CONSEGUIR LER O DOCUMENTO:
+   - Retorne transactions: [] (array vazio)
+   - NÃO invente valores como 0.01
+   - Seja honesto na confidence (baixa se houver dúvidas)
 
-RETORNE APENAS JSON VÁLIDO no formato:
+RETORNE APENAS JSON VÁLIDO:
 
 {
-  "documentType": "extrato_bancario" ou "fatura_cartao" ou "extrato_pix" ou "relatorio_investimento",
-  "confidence": 0.95,
+  "documentType": "fatura_cartao" | "extrato_bancario" | "extrato_pix" | "extrato_conta",
+  "confidence": 0.85,
   "summary": {
-    "totalAmount": [soma de todas as transações],
-    "totalIncome": [soma apenas das entradas],
-    "totalExpense": [soma apenas das saídas],
-    "establishment": "Nome da instituição/banco",
-    "period": "Período do documento se identificável"
+    "totalAmount": [soma líquida: entradas - saídas],
+    "totalIncome": [soma apenas receitas],
+    "totalExpense": [soma apenas despesas],
+    "establishment": "Nome do banco/cartão",
+    "period": "Período se identificável"
   },
   "transactions": [
     {
-      "description": "Descrição exata da transação",
+      "description": "Descrição clara da transação",
       "amount": 150.50,
-      "type": "expense" ou "income",
-      "category": "categoria_apropriada",
+      "type": "expense" | "income",
+      "category": "alimentacao|transporte|saude|lazer|moradia|educacao|tecnologia|servicos|outros",
       "date": "2024-12-25",
       "confidence": 0.9
     }
   ]
 }
 
-IMPORTANTE: 
-- Seja MUITO criterioso para identificar corretamente entrada vs saída
-- Em caso de dúvida sobre o tipo, analise o contexto e descrição
-- Para documentos complexos, priorize precisão sobre quantidade
-- NÃO invente transações que não existem claramente no documento
-`;
+LEMBRE-SE: SEJA CONSERVADOR. Prefira menos transações corretas do que muitas incorretas!`;
 
     console.log('[OCR] Preparando payload para Gemini...');
 

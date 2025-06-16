@@ -4,7 +4,7 @@ import NavBar from '@/components/navigation/NavBar';
 import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
 import { TransactionList } from '@/components/ocr/TransactionList';
-import { isLoggedIn, saveTransaction as saveTransactionUtil } from '@/utils/localStorage';
+import { isLoggedIn, saveTransaction as saveTransactionUtil, getCurrentUser, saveUser } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
 import { ChatMessage, Transaction } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -282,13 +282,16 @@ const handleSendMessage = async (message: string) => {
     if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim')) {
       setLoading(true);
       setError("");
-      try {        // Processar transações OCR
-        if (pendingAction.tipo === 'generic_confirmation' && pendingAction.dados.ocrTransactions) {
-          // Usar as transações editáveis ao invés das originais
-          const ocrTransactions = editableTransactions.length > 0 ? editableTransactions : pendingAction.dados.ocrTransactions;
+      try {        // Processar transações (OCR, texto, IA)
+        if (pendingAction.tipo === 'generic_confirmation' && (pendingAction.dados.ocrTransactions || editableTransactions.length > 0)) {
+          // Usar as transações editáveis se disponíveis, caso contrário usar as originais
+          const transactionsToProcess = editableTransactions.length > 0 ? editableTransactions : (pendingAction.dados.ocrTransactions || []);
           let successCount = 0;
-          let errorCount = 0;          // Processar cada transação
-          for (const transaction of ocrTransactions) {
+          let errorCount = 0;
+          
+          console.log(`Processando ${transactionsToProcess.length} transações:`, JSON.stringify(transactionsToProcess));
+          console.log('User ID ativo:', activeUserId);// Processar cada transação
+          for (const transaction of transactionsToProcess) {
             try {
               // Preparar data da transação
               const transactionDate = transaction.date 
@@ -306,9 +309,7 @@ const handleSendMessage = async (message: string) => {
                   created_at: new Date().toISOString(),
                   user_id: activeUserId
                 }
-              ]);
-
-              // NOVO: Salvar também no localStorage para aparecer em "últimas transações"
+              ]);              // NOVO: Salvar também no localStorage para aparecer em "últimas transações"
               const transactionToSave: Transaction = {
                 id: uuidv4(),
                 title: transaction.description,
@@ -318,6 +319,24 @@ const handleSendMessage = async (message: string) => {
                 date: transactionDate,
                 userId: activeUserId
               };
+              
+              // Log para debug
+              console.log('Salvando transação OCR:', JSON.stringify(transactionToSave));
+              console.log('User ID ativo:', activeUserId);
+              
+              // Garantir que o usuário está salvo no localStorage antes de salvar a transação
+              const currentLocalUser = getCurrentUser();
+              if (!currentLocalUser || currentLocalUser.id !== activeUserId) {
+                // Salvar usuário no localStorage se não estiver lá
+                const userToSave = {
+                  id: activeUserId,
+                  email: user.email || '',
+                  username: user.user_metadata?.username || user.email || ''
+                };
+                console.log('Salvando usuário no localStorage:', userToSave);
+                saveUser(userToSave);
+              }
+              
               saveTransactionUtil(transactionToSave);
 
               successCount++;
@@ -401,8 +420,7 @@ const handleSendMessage = async (message: string) => {
               date: transactionDate.toISOString(),
               created_at: new Date().toISOString(),
             }
-          ]);
-          // Salva no localStorage usando a função utilitária
+          ]);          // Salva no localStorage usando a função utilitária
           const transactionToSave: Transaction = {
             id: uuidv4(), 
             title: capitalizedDescription, // Usa a descrição capitalizada
@@ -410,8 +428,26 @@ const handleSendMessage = async (message: string) => {
             type: pendingAction.tipo as 'income' | 'expense',
             category: category || '',
             date: transactionDate,
-            userId: activeUserId, // Usa o activeUserId obtido no início da função
+            userId: activeUserId // Usa o activeUserId obtido no início da função
           };
+          
+          // Log para debug
+          console.log('Salvando transação manual:', JSON.stringify(transactionToSave));
+          console.log('User ID ativo:', activeUserId);
+          
+          // Garantir que o usuário está salvo no localStorage antes de salvar a transação
+          const currentLocalUser = getCurrentUser();
+          if (!currentLocalUser || currentLocalUser.id !== activeUserId) {
+            // Salvar usuário no localStorage se não estiver lá
+            const userToSave = {
+              id: activeUserId,
+              email: user.email || '',
+              username: user.user_metadata?.username || user.email || ''
+            };
+            console.log('Salvando usuário no localStorage:', userToSave);
+            saveUser(userToSave);
+          }
+          
           saveTransactionUtil(transactionToSave);
           window.dispatchEvent(new Event('transactionsUpdated'));
           setMessages((prevMessages: ChatMessage[]) => ([

@@ -118,7 +118,7 @@ const mapSupabaseToTransaction = (data: any): Transaction => {
     type: data.type,
     category: data.category,
     date: new Date(data.date),
-    user_id: data.user_id,
+    userId: data.user_id, // Converter do Supabase (user_id) para interface local (userId)
     isRecurring: data.is_recurring || false,
     recurringDay: data.recurring_day || null,
     recurrenceFrequency: data.recurrence_frequency || null,
@@ -195,9 +195,8 @@ export const saveTransaction = (transaction: Transaction): void => {
   if (!transaction.id) {
     transaction.id = uuidv4();
   }
-  
-  // Garantir que o usuário ID esteja definido
-  transaction.user_id = user.id;
+    // Garantir que o usuário ID esteja definido
+  transaction.userId = user.id;
   
   // Garantir que a data esteja em formato correto
   if (!(transaction.date instanceof Date)) {

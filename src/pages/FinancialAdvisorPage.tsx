@@ -753,30 +753,70 @@ const handleSendMessage = async (message: string) => {
         } catch (e) {
           // Não parseou detalhe como JSON, usa botResponseText original para confirmação.
           confirmationMessageForChat = botResponseText; // A pergunta original da IA será usada para confirmação.
-        }
-
-        setPendingAction({ tipo: pendingActionType, dados: actionData });
+        }        setPendingAction({ tipo: pendingActionType, dados: actionData });
         setWaitingConfirmation(true);
         const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationMessageForChat, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
         setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
         } else if (!pendingAction) { 
-        // Tentar detectar transação como fallback se a IA não retornou JSON
-        const detectedTransaction = detectTransactionInText(botResponseText, message);
+        // NOVO: Primeiro tentar detectar LISTA de transações
+        const detectedTransactionList = detectTransactionListInText(message);
         
-        if (detectedTransaction) {
-          // Se detectamos uma transação, criar confirmação
-          const transactionTypeWord = detectedTransaction.tipo === 'income' ? 'receita 🤑' : 'despesa 💸';
-          const confirmationText = `📝 Detectei que você mencionou uma ${transactionTypeWord} de R$${detectedTransaction.dados.amount.toFixed(2)}${detectedTransaction.dados.description ? ` - ${detectedTransaction.dados.description}` : ''}.\n\nVocê confirma o registro desta transação? (sim/não)`;
+        if (detectedTransactionList.length >= 2) {
+          // Detectou uma lista de transações - mostrar interface de revisão
+          let resultMessage = `🤖 **Detectei ${detectedTransactionList.length} transações na sua mensagem!**\n\n`;
           
-          setPendingAction(detectedTransaction);
+          const totalAmount = detectedTransactionList.reduce((sum, tx) => sum + tx.amount, 0);
+          resultMessage += `💰 **Total:** R$ ${totalAmount.toFixed(2)}\n\n`;
+          resultMessage += `**Transações encontradas:**\n\n`;
+
+          // Listar cada transação
+          for (let i = 0; i < detectedTransactionList.length; i++) {
+            const transaction = detectedTransactionList[i];
+            resultMessage += `${i + 1}. **${transaction.description}**\n`;
+            resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
+            resultMessage += `   📁 Categoria: ${transaction.category}\n`;
+            resultMessage += `   📅 Data: Hoje\n\n`;
+          }
+
+          // Adicionar mensagem com resultados
+          setMessages(prev => [...prev, {
+            id: uuidv4(),
+            text: resultMessage,
+            sender: 'system',
+            timestamp: new Date(),
+            avatarUrl: IA_AVATAR
+          }]);
+
+          // Preparar ação pendente para confirmação (igual ao OCR)
+          setEditableTransactions(detectedTransactionList);
+          setPendingAction({
+            tipo: 'generic_confirmation',
+            dados: {
+              ocrTransactions: detectedTransactionList,
+              documentType: 'text_list',
+              establishment: 'Lista de transações'
+            }
+          });
           setWaitingConfirmation(true);
-          
-          const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
-          setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
         } else {
-          // Resposta normal se não detectou transação
-          const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
-          setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+          // Se não é lista, tentar detectar transação individual
+          const detectedTransaction = detectTransactionInText(botResponseText, message);
+          
+          if (detectedTransaction) {
+            // Se detectamos uma transação, criar confirmação
+            const transactionTypeWord = detectedTransaction.tipo === 'income' ? 'receita 🤑' : 'despesa 💸';
+            const confirmationText = `📝 Detectei que você mencionou uma ${transactionTypeWord} de R$${detectedTransaction.dados.amount.toFixed(2)}${detectedTransaction.dados.description ? ` - ${detectedTransaction.dados.description}` : ''}.\n\nVocê confirma o registro desta transação? (sim/não)`;
+            
+            setPendingAction(detectedTransaction);
+            setWaitingConfirmation(true);
+            
+            const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+            setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+          } else {
+            // Resposta normal se não detectou transação
+            const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+            setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+          }
         }
       }
       
@@ -795,7 +835,105 @@ const handleSendMessage = async (message: string) => {
     } finally {
       setLoading(false);
     }
-  };  // Função de fallback para detectar transações que a IA pode ter perdido
+  };  // Função para detectar listas de transações em texto
+  const detectTransactionListInText = (userMessage: string) => {
+    const originalMessage = userMessage.toLowerCase();
+    const transactions: any[] = [];
+    
+    // Padrões para detectar múltiplas transações separadas por vírgula, "e", "também", etc.
+    const listPatterns = [
+      // Padrão: "gastei X no/na Y, Z no/na W, etc."
+      /(?:gastei|paguei|comprei|saiu|custou)\s+(?:r\$\s*)?(\d+(?:[,.]\d{2})?)\s+(?:no|na|em|do|da|para)\s+([^,;]+?)(?:\s*,\s*(?:e\s+)?(?:r\$\s*)?(\d+(?:[,.]\d{2})?)\s+(?:no|na|em|do|da|para)\s+([^,;]+?))+/gi,
+      // Padrão: "X reais no Y, Z reais no W"
+      /(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:no|na|em|do|da|para)\s+([^,;]+?)(?:\s*,\s*(?:e\s+)?(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:no|na|em|do|da|para)\s+([^,;]+?))+/gi
+    ];
+    
+    // Tentar detectar lista com padrões mais simples primeiro
+    const simpleListMatch = originalMessage.match(/(?:gastei|paguei|comprei).*?(?:,.*){1,}/);
+    if (simpleListMatch) {
+      // Quebrar por vírgulas e processar cada item
+      const parts = originalMessage.split(/[,;]|\s+e\s+/).filter(part => part.trim());
+      
+      for (const part of parts) {
+        const cleanPart = part.trim();
+        if (!cleanPart) continue;
+        
+        // Extrair valor e descrição de cada parte
+        const valueMatch = cleanPart.match(/(?:r\$\s*)?(\d+(?:[,.]\d{2})?)/);
+        const locationMatch = cleanPart.match(/(?:no|na|em|do|da|para)\s+([^,;.!?]+)/);
+        
+        if (valueMatch) {
+          const amount = parseFloat(valueMatch[1].replace(',', '.'));
+          let description = '';
+          
+          if (locationMatch) {
+            description = locationMatch[1].trim();
+          } else {
+            // Tentar extrair descrição de outras formas
+            const words = cleanPart.split(/\s+/);
+            const nonNumericWords = words.filter(word => !word.match(/^\d+([,.]\d{2})?$/) && !word.match(/^r\$$/i));
+            description = nonNumericWords.slice(-2).join(' '); // Pegar últimas 2 palavras
+          }
+          
+          if (description) {
+            transactions.push({
+              type: 'expense', // Assumir despesa por padrão para listas
+              amount: amount,
+              description: description.charAt(0).toUpperCase() + description.slice(1),
+              category: getCategoryFromDescription(description),
+              date: new Date().toISOString().split('T')[0] // Hoje
+            });
+          }
+        }
+      }
+    }
+    
+    // Se não encontrou transações com o método simples, tentar padrões mais complexos
+    if (transactions.length === 0) {
+      // Procurar por padrões como "50 no mercado, 30 na farmácia"
+      const complexMatches = [...originalMessage.matchAll(/(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s+(?:no|na|em|do|da|para)\s+([^,;.!?]+)/gi)];
+      
+      for (const match of complexMatches) {
+        const amount = parseFloat(match[1].replace(',', '.'));
+        const description = match[2].trim();
+        
+        if (amount > 0 && description) {
+          transactions.push({
+            type: 'expense',
+            amount: amount,
+            description: description.charAt(0).toUpperCase() + description.slice(1),
+            category: getCategoryFromDescription(description),
+            date: new Date().toISOString().split('T')[0]
+          });
+        }
+      }
+    }
+    
+    return transactions.length >= 2 ? transactions : []; // Só considerar lista se tiver 2+ transações
+  };
+  
+  // Função para inferir categoria baseada na descrição
+  const getCategoryFromDescription = (description: string) => {
+    const desc = description.toLowerCase();
+    
+    if (desc.includes('mercado') || desc.includes('supermercado') || desc.includes('feira')) {
+      return 'Alimentação';
+    } else if (desc.includes('farmácia') || desc.includes('remédio') || desc.includes('medicina')) {
+      return 'Saúde';
+    } else if (desc.includes('gasolina') || desc.includes('combustível') || desc.includes('posto')) {
+      return 'Transporte';
+    } else if (desc.includes('conta') || desc.includes('boleto') || desc.includes('fatura')) {
+      return 'Contas';
+    } else if (desc.includes('restaurante') || desc.includes('lanche')) {
+      return 'Alimentação';
+    } else if (desc.includes('shopping') || desc.includes('loja') || desc.includes('roupa')) {
+      return 'Compras';
+    }
+    
+    return 'Outros';
+  };
+
+  // Função de fallback para detectar transações que a IA pode ter perdido
   const detectTransactionInText = (text: string, userMessage: string) => {
     const originalMessage = userMessage.toLowerCase();
     

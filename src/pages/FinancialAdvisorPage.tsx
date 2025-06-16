@@ -345,10 +345,23 @@ const handleSendMessage = async (message: string) => {
                 console.log('💾 Salvando usuário no localStorage:', userToSave);
                 saveUser(userToSave);
               }
-              
-              console.log('🔄 Chamando saveTransactionUtil...');
+                console.log('🔄 Chamando saveTransactionUtil...');
               saveTransactionUtil(transactionToSave);
               console.log('✅ saveTransactionUtil chamado com sucesso');
+              
+              // Forçar múltiplas atualizações para garantir que o Dashboard seja atualizado
+              setTimeout(() => {
+                console.log('🔄 Disparando eventos adicionais para Dashboard...');
+                window.dispatchEvent(new Event('transactionsUpdated'));
+                window.dispatchEvent(new CustomEvent('transactionsUpdated', { 
+                  detail: { source: 'ocr', transaction: transactionToSave } 
+                }));
+              }, 100);
+              
+              setTimeout(() => {
+                console.log('🔄 Disparando eventos finais para Dashboard...');
+                window.dispatchEvent(new Event('transactionsUpdated'));
+              }, 500);
 
               successCount++;
             } catch (transactionError) {
@@ -1576,19 +1589,43 @@ const handleImageUpload = async (imageBase64: string) => {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !sessionData?.session) {
       throw new Error("Erro ao obter sessão");
-    }
-
-    // Adicionar mensagem de upload
+    }    // Adicionar mensagem de upload com feedback visual
     const isPdf = imageBase64.startsWith('data:application/pdf');
+    const processingMessageId = uuidv4();
     setMessages(prev => [...prev, {
-      id: uuidv4(),
-      text: isPdf ? "📄 Processando PDF..." : "📄 Processando imagem...",
+      id: processingMessageId,
+      text: isPdf ? "📄 **Processando PDF...**\n\n⏳ Analisando documento financeiro com IA\n💡 Documentos grandes podem levar até 3 minutos\n\n*Aguarde, não recarregue a página...*" : "📄 **Processando imagem...**\n\n⏳ Analisando documento financeiro com IA\n💡 Extratos complexos podem levar alguns minutos\n\n*Aguarde, não recarregue a página...*",
       sender: 'system',
       timestamp: new Date(),
       avatarUrl: IA_AVATAR
     }]);
 
-    // Chamar API de OCR funcional (sem senha)
+    // Atualizar mensagem de progresso a cada 30 segundos
+    let progressInterval: NodeJS.Timeout;
+    let progressCount = 0;
+    const progressMessages = [
+      "🔍 Analisando estrutura do documento...",
+      "📊 Identificando transações...",
+      "💰 Calculando valores e categorias...",
+      "📝 Organizando dados encontrados...",
+      "✨ Finalizando processamento..."
+    ];
+
+    progressInterval = setInterval(() => {
+      if (progressCount < progressMessages.length) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === processingMessageId 
+            ? { ...msg, text: `${msg.text.split('\n')[0]}\n\n⏳ ${progressMessages[progressCount]}\n💡 Documentos grandes podem levar até 3 minutos\n\n*Aguarde, não recarregue a página...*` }
+            : msg
+        ));
+        progressCount++;
+      }
+    }, 30000); // A cada 30 segundos
+
+    // Chamar API de OCR funcional com timeout aumentado para 3 minutos
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutos timeout
+    
     const response = await fetch('/api/gemini-ocr', {
       method: 'POST',
       headers: {
@@ -1597,16 +1634,47 @@ const handleImageUpload = async (imageBase64: string) => {
       body: JSON.stringify({
         imageBase64: imageBase64.split(',')[1], // Remover data:image/...;base64,
         // Removido pdfPassword
-      })
-    });    if (!response.ok) {
+      }),
+      signal: controller.signal    });
+    
+    clearTimeout(timeoutId);
+    clearInterval(progressInterval);
+
+    if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
       console.error('Erro da API OCR:', errorData);
+      
+      // Verificar se é erro de abort (timeout do cliente)
+      if (controller.signal.aborted) {
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          text: "⏱️ **Timeout no Processamento (3 minutos)**\n\nO documento demorou muito para processar.\n\n💡 **Soluções recomendadas:**\n• **Para PDFs grandes:** Divida em seções menores\n• **Para extratos longos:** Faça capturas de tela de partes específicas\n• **Alternativa rápida:** Tire fotos das páginas com o celular\n• **Documentos complexos:** Simplifique removendo páginas desnecessárias\n\n🔄 **Quer tentar novamente?** Envie um documento menor ou em formato de imagem.",
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }]);
+        setLoading(false);
+        return;
+      }
+      
+      // Verificar se é erro de timeout (504) do servidor
+      if (response.status === 504 || response.status === 502 || errorData.error?.includes('timeout') || errorData.error?.includes('504') || errorData.error?.includes('502')) {
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          text: "🔄 **Servidor Sobrecarregado**\n\nO servidor está processando muitos documentos no momento.\n\n💡 **Soluções:**\n• **Aguarde 2-3 minutos** e tente novamente\n• **Use imagens** ao invés de PDFs (mais rápido)\n• **Divida documentos grandes** em partes menores\n• **Horários alternativos:** Tente em horários de menor uso\n\n✨ **Dica:** Imagens (JPG/PNG) são processadas mais rapidamente que PDFs!",
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }]);
+        setLoading(false);
+        return;
+      }
       
       // Verificar se é PDF protegido (nova detecção)
       if (errorData.isPdfProtected || errorData.error?.includes('PDF protegido')) {
         setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: errorData.message || "� **PDF Protegido Detectado**\n\nEste PDF está protegido por senha e não pode ser processado.\n\n💡 **Solução:** Faça uma captura de tela (screenshot) do PDF aberto e envie a imagem.",
+          text: errorData.message || "🔒 **PDF Protegido Detectado**\n\nEste PDF está protegido por senha e não pode ser processado.\n\n💡 **Solução:** Faça uma captura de tela (screenshot) do PDF aberto e envie a imagem.",
           sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
@@ -1639,25 +1707,39 @@ const handleImageUpload = async (imageBase64: string) => {
     }
 
     const ocrData = result.data;
-    const transactions = ocrData.transactions;    // Criar mensagem com resultados
-    let resultMessage = `🤖 **Documento processado com sucesso!**\n\n`;
+    const transactions = ocrData.transactions;    // Criar mensagem com resultados e instruções claras
+    let resultMessage = `✅ **Documento processado com sucesso!**\n\n`;
     resultMessage += `📋 **Tipo:** ${ocrData.documentType.replace('_', ' ')}\n`;
-    resultMessage += ` **Total:** R$ ${ocrData.summary.totalAmount.toFixed(2)}\n`;
+    resultMessage += `💰 **Total:** R$ ${ocrData.summary.totalAmount.toFixed(2)}\n`;
     
     if (ocrData.summary.establishment) {
       resultMessage += `🏪 **Local:** ${ocrData.summary.establishment}\n`;
     }
     
-    resultMessage += `\n**${transactions.length} transações encontradas:**\n\n`;
-
-    // Processar cada transação
-    for (let i = 0; i < transactions.length; i++) {
-      const transaction = transactions[i];
+    if (ocrData.summary.period) {
+      resultMessage += `📅 **Período:** ${ocrData.summary.period}\n`;
+    }
+    
+    resultMessage += `\n🔍 **${transactions.length} transações identificadas:**\n\n`;
+    
+    // Mostrar apenas primeiras 3 transações na mensagem para não poluir
+    const transactionsToShow = transactions.slice(0, 3);
+    for (let i = 0; i < transactionsToShow.length; i++) {
+      const transaction = transactionsToShow[i];
       resultMessage += `${i + 1}. **${transaction.description}**\n`;
-      resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
-      resultMessage += `   📁 Categoria: ${transaction.category}\n`;
-      resultMessage += `   📅 Data: ${transaction.date || 'Hoje'}\n\n`;
-    }    // Adicionar mensagem com resultados
+      resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? '✅ Receita' : '❌ Despesa'})\n`;
+      resultMessage += `   📁 ${transaction.category} • 📅 ${transaction.date || 'Hoje'}\n\n`;
+    }
+    
+    if (transactions.length > 3) {
+      resultMessage += `... e mais ${transactions.length - 3} transações\n\n`;
+    }
+    
+    resultMessage += `👇 **PRÓXIMOS PASSOS:**\n`;
+    resultMessage += `• **Revise** as transações abaixo\n`;
+    resultMessage += `• **Edite** valores se necessário\n`;
+    resultMessage += `• **Confirme** para salvar no seu Dashboard\n`;
+    resultMessage += `• Após confirmar, as transações aparecerão em "Últimas Transações"`;// Adicionar mensagem com resultados
     setMessages(prev => [...prev, {
       id: uuidv4(),
       text: resultMessage,
@@ -1681,8 +1763,7 @@ const handleImageUpload = async (imageBase64: string) => {
     // Forçar scroll após definir transações editáveis para OCR
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 200);
-  } catch (err: any) {
+    }, 200);  } catch (err: any) {
     console.error('Erro ao processar imagem:', err);
     console.error('Erro completo:', err.stack);
     
@@ -1693,15 +1774,25 @@ const handleImageUpload = async (imageBase64: string) => {
       errorMessage = err;
     }
     
-    setError(errorMessage);
-    setMessages(prev => [...prev, {
-      id: uuidv4(),
-      text: `❌ Erro ao processar documento: ${errorMessage}\n\n💡 **Dica:** Se for um PDF protegido, tente fazer uma captura de tela e enviar como imagem.`,
-      sender: 'system',
-      timestamp: new Date(),
-      avatarUrl: IA_AVATAR
-    }]);
-  } finally {
+    // Verificar se é erro de abort (timeout)
+    if (err.name === 'AbortError' || errorMessage.includes('aborted')) {
+      setMessages(prev => [...prev, {
+        id: uuidv4(),
+        text: "⏱️ **Processamento Interrompido**\n\nO processamento foi cancelado devido ao tempo limite.\n\n💡 **Tente estas alternativas:**\n• **Imagens menores:** Corte o documento em seções\n• **Formato diferente:** Use JPG/PNG ao invés de PDF\n• **Qualidade reduzida:** Comprima a imagem antes de enviar\n• **Tentar novamente:** Aguarde alguns minutos e envie novamente",
+        sender: 'system',
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
+      }]);
+    } else {
+      setError(errorMessage);
+      setMessages(prev => [...prev, {
+        id: uuidv4(),
+        text: `❌ **Erro ao processar documento**\n\n${errorMessage}\n\n💡 **Sugestões:**\n• Verifique se o arquivo não está corrompido\n• Para PDFs protegidos, faça uma captura de tela\n• Tente usar formato de imagem (JPG/PNG)\n• Reduza o tamanho do arquivo se muito grande`,
+        sender: 'system',
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR      }]);
+    }  } finally {
+    // Cleanup básico
     setLoading(false);
   }
 };

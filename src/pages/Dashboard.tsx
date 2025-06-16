@@ -98,10 +98,22 @@ const Dashboard: React.FC = () => {
       console.log('📊 [Dashboard] selectedMonth:', selectedMonth, 'selectedYear:', selectedYear);
       console.log('📊 [Dashboard] startDate:', startDate, 'endDate:', endDate);
       
+      // Forçar atualização imediata para transações OCR/IA
+      setTimeout(() => {
+        console.log('📊 [Dashboard] Recarregando transações (primeira tentativa)...');
+        loadTransactions(selectedMonth, selectedYear);
+      }, 50);
+      
       // Se um filtro de período estiver ativo, não recarrega automaticamente com o mês/ano
       if (!startDate || !endDate) {
         console.log('📊 [Dashboard] Recarregando transações...');
         loadTransactions(selectedMonth, selectedYear);
+        
+        // Segunda tentativa para garantir
+        setTimeout(() => {
+          console.log('📊 [Dashboard] Segunda tentativa de recarga...');
+          loadTransactions(selectedMonth, selectedYear);
+        }, 300);
       } else {
         console.log('📊 [Dashboard] Filtro de período ativo, não recarregando automaticamente');
       }
@@ -115,10 +127,21 @@ const Dashboard: React.FC = () => {
         setBalance(totalBalance);
       }
     };
+    
+    // Listener específico para eventos customizados (OCR/IA)
+    const customHandler = (event: any) => {
+      console.log('📊 [Dashboard] Evento customizado recebido!', event.detail);
+      // Forçar múltiplas atualizações para transações OCR/IA
+      setTimeout(() => loadTransactions(selectedMonth, selectedYear), 100);
+      setTimeout(() => loadTransactions(selectedMonth, selectedYear), 500);
+      setTimeout(() => loadTransactions(selectedMonth, selectedYear), 1000);
+    };
+    
     window.addEventListener('transactionsUpdated', handler);
-    return () => {
+    window.addEventListener('transactionsUpdated', customHandler);    return () => {
       window.removeEventListener('transactionsUpdated', handler);
-    };  }, [navigate, selectedMonth, selectedYear]);
+      window.removeEventListener('transactionsUpdated', customHandler);
+    };}, [navigate, selectedMonth, selectedYear]);
 
   // UseEffect para reagir às mudanças no filtro de nome
   useEffect(() => {

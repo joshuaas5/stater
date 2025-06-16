@@ -125,50 +125,103 @@ export default async function handler(req: any, res: any) {
     if (!GEMINI_API_KEY) {
       console.log('[OCR] Erro: API Key não encontrada');
       return res.status(500).json({ error: 'API não configurada' });
-    }    // Prompt especializado para faturas de cartão
+    }    // Prompt especializado para documentos financeiros avançados
     const prompt = `
-VOCÊ É UM ESPECIALISTA EM LEITURA DE FATURAS DE CARTÃO DE CRÉDITO.
+VOCÊ É UM ESPECIALISTA EM ANÁLISE DE DOCUMENTOS FINANCEIROS COMPLEXOS.
 
-ANÁLISE ESTE DOCUMENTO FINANCEIRO e extraia TODAS as transações com MÁXIMA PRECISÃO.
+ANALISE ESTE DOCUMENTO e extraia TODAS as transações com MÁXIMA PRECISÃO, identificando corretamente ENTRADAS e SAÍDAS.
 
-REGRAS CRÍTICAS:
-1. TODAS as transações são DESPESAS (type: "expense") - NUNCA marque como receita
-2. IGNORE totais, saldos, pagamentos mínimos e valores resumo
-3. EXTRAIA apenas compras/gastos individuais
-4. SE for fatura Nubank, IGNORE "Cashback" e valores de pagamento
-5. VALORES devem ser EXATOS como mostrados
-6. NÃO invente transações que não existem
+TIPOS DE DOCUMENTOS SUPORTADOS:
+- Faturas de cartão de crédito (apenas saídas/despesas)
+- Extratos bancários (entradas E saídas)
+- Extratos de conta corrente (entradas E saídas)
+- Extratos de poupança (entradas E saídas)
+- Relatórios de investimentos (entradas E saídas)
+- Extratos de carteira digital/PIX (entradas E saídas)
 
-RETORNE APENAS JSON VÁLIDO:
+REGRAS CRÍTICAS PARA IDENTIFICAR TIPO DE TRANSAÇÃO:
+
+🔴 SAÍDAS/DESPESAS (type: "expense"):
+- Compras em estabelecimentos
+- Saques em dinheiro
+- Transferências enviadas (PIX enviado, TED enviado, etc.)
+- Pagamentos de contas/boletos
+- Anuidades e taxas
+- Débitos em geral
+- Valores com sinais negativos (-)
+- Valores em vermelho (se colorido)
+- Descrições como: "Pagamento", "Débito", "Saque", "Transferência enviada"
+
+🟢 ENTRADAS/RECEITAS (type: "income"):
+- Depósitos recebidos
+- Transferências recebidas (PIX recebido, TED recebido, etc.)
+- Salários e pagamentos
+- Rendimentos e juros
+- Reembolsos e estornos
+- Cashback e benefícios
+- Valores com sinais positivos (+)
+- Valores em verde (se colorido)
+- Descrições como: "Depósito", "Crédito", "Transferência recebida", "Salário", "Rendimento"
+
+REGRAS DE EXCLUSÃO:
+- IGNORE saldos totais, saldos anteriores, saldos atuais
+- IGNORE pagamentos mínimos, valores de fechamento
+- IGNORE totalizadores e resumos
+- IGNORE linhas de cabeçalho/rodapé
+- IGNORE valores que claramente são resumos/somatórias
+
+ANÁLISE CONTEXTUAL:
+1. Primeiro identifique o TIPO de documento (fatura cartão, extrato banco, etc.)
+2. Para extratos bancários: analise se há padrão de cores ou símbolos para diferenciar entrada/saída
+3. Para faturas de cartão: praticamente tudo são despesas, exceto estornos/cashback
+4. Analise descrições cuidadosamente para determinar direção da transação
+5. Considere valor e contexto (ex: "PIX enviado" = saída, "PIX recebido" = entrada)
+
+FORMATAÇÃO DE VALORES:
+- Remova símbolos de moeda (R$, $, etc.)
+- Use formato decimal com ponto (ex: 150.50, não 150,50)
+- NÃO inclua separadores de milhares
+
+CATEGORIZAÇÃO INTELIGENTE:
+- "alimentacao": restaurantes, supermercados, delivery
+- "transporte": uber, combustível, pedágios, transporte público
+- "saude": farmácias, consultas, exames, planos de saúde
+- "lazer": cinema, streaming, jogos, viagens
+- "moradia": aluguel, condomínio, luz, água, gás
+- "educacao": cursos, livros, material escolar
+- "tecnologia": eletrônicos, software, internet
+- "servicos": bancos, cartórios, seguros, manutenções
+- "outros": quando não se encaixa nas categorias acima
+
+RETORNE APENAS JSON VÁLIDO no formato:
 
 {
-  "documentType": "fatura_cartao",
+  "documentType": "extrato_bancario" ou "fatura_cartao" ou "extrato_pix" ou "relatorio_investimento",
   "confidence": 0.95,
-  "shouldGroup": false,
+  "summary": {
+    "totalAmount": [soma de todas as transações],
+    "totalIncome": [soma apenas das entradas],
+    "totalExpense": [soma apenas das saídas],
+    "establishment": "Nome da instituição/banco",
+    "period": "Período do documento se identificável"
+  },
   "transactions": [
     {
-      "description": "Nome exato do estabelecimento/transação",
-      "amount": 99.99,
-      "date": "2025-06-13",
+      "description": "Descrição exata da transação",
+      "amount": 150.50,
+      "type": "expense" ou "income",
       "category": "categoria_apropriada",
-      "type": "expense",
+      "date": "2024-12-25",
       "confidence": 0.9
     }
-  ],
-  "summary": {
-    "totalAmount": 999.99,
-    "itemCount": 10,
-    "establishment": "Fatura Cartão de Crédito"
-  }
+  ]
 }
 
-CATEGORIAS: alimentacao, transporte, saude, educacao, lazer, casa, tecnologia, roupas, servicos, outros
-
 IMPORTANTE: 
-- Seja PRECISO nos valores
-- NÃO some valores duplicados 
-- IGNORE pagamentos e créditos
-- Foque apenas nas COMPRAS/GASTOS
+- Seja MUITO criterioso para identificar corretamente entrada vs saída
+- Em caso de dúvida sobre o tipo, analise o contexto e descrição
+- Para documentos complexos, priorize precisão sobre quantidade
+- NÃO invente transações que não existem claramente no documento
 `;
 
     console.log('[OCR] Preparando payload para Gemini...');
@@ -272,14 +325,54 @@ IMPORTANTE:
       
       console.log('[OCR] Texto limpo para parse:', cleanText.substring(0, 100));
       ocrResult = JSON.parse(cleanText);
-      
-      // Validar estrutura básica
+        // Validar estrutura básica
       if (!ocrResult.transactions || !Array.isArray(ocrResult.transactions)) {
         throw new Error('Estrutura inválida: transactions não é array');
       }
       
+      // Validar e corrigir campos obrigatórios
+      ocrResult.transactions = ocrResult.transactions.map((transaction: any) => {
+        // Garantir que o tipo seja válido
+        if (!transaction.type || (transaction.type !== 'income' && transaction.type !== 'expense')) {
+          // Se não especificado, assumir despesa como padrão para compatibilidade
+          transaction.type = 'expense';
+        }
+        
+        // Garantir que o amount seja numérico
+        if (typeof transaction.amount === 'string') {
+          transaction.amount = parseFloat(transaction.amount.replace(/[R$\s,]/g, '').replace(',', '.')) || 0;
+        }
+        
+        // Garantir confidence padrão
+        if (!transaction.confidence) {
+          transaction.confidence = 0.8;
+        }
+        
+        return transaction;
+      });
+      
+      // Atualizar summary com informações de entrada/saída
+      if (!ocrResult.summary) {
+        ocrResult.summary = {};
+      }
+      
+      const totalIncome = ocrResult.transactions
+        .filter((t: any) => t.type === 'income')
+        .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+        
+      const totalExpense = ocrResult.transactions
+        .filter((t: any) => t.type === 'expense')
+        .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+      
+      ocrResult.summary.totalIncome = totalIncome;
+      ocrResult.summary.totalExpense = totalExpense;
+      ocrResult.summary.totalAmount = totalIncome + totalExpense;
+      ocrResult.summary.itemCount = ocrResult.transactions.length;
+      
       console.log('[OCR] JSON parseado com sucesso!');
       console.log('[OCR] Transações encontradas:', ocrResult.transactions.length);
+      console.log('[OCR] Total receitas:', totalIncome);
+      console.log('[OCR] Total despesas:', totalExpense);
         } catch (parseError: any) {
       console.error('[OCR] Erro ao parsear JSON:', parseError.message);
       console.error('[OCR] Texto problemático:', responseText);

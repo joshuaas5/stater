@@ -95,17 +95,22 @@ const Dashboard: React.FC = () => {
     loadTransactions(selectedMonth, selectedYear);    // Listener para atualizar transações quando houver novas
     const handler = () => {
       console.log('📊 [Dashboard] Evento transactionsUpdated recebido!');
+      console.log('📊 [Dashboard] selectedMonth:', selectedMonth, 'selectedYear:', selectedYear);
+      console.log('📊 [Dashboard] startDate:', startDate, 'endDate:', endDate);
       
       // Se um filtro de período estiver ativo, não recarrega automaticamente com o mês/ano
       if (!startDate || !endDate) {
         console.log('📊 [Dashboard] Recarregando transações...');
         loadTransactions(selectedMonth, selectedYear);
+      } else {
+        console.log('📊 [Dashboard] Filtro de período ativo, não recarregando automaticamente');
       }
       
       // Sempre recalcular o saldo total quando houver novas transações
       const allTransactions = getTransactions();
       console.log(`📊 [Dashboard] Total de transações encontradas: ${allTransactions.length}`);
       if (allTransactions && allTransactions.length > 0) {
+        console.log('📊 [Dashboard] Últimas 3 transações:', allTransactions.slice(0, 3).map(t => ({ title: t.title, amount: t.amount, date: t.date })));
         const totalBalance = calculateBalance(allTransactions, []);
         setBalance(totalBalance);
       }
@@ -164,9 +169,6 @@ const Dashboard: React.FC = () => {
     
     let filteredTransactions = allTransactions;
     
-    // TEMPORÁRIO: Para debug, sempre mostrar todas as transações nas "Últimas Transações"
-    // Comentando filtro por data para garantir que todas apareçam
-    /*
     // Filtrar por período
     if (useCustomPeriod && startDate && endDate) {
       const start = new Date(startDate + 'T00:00:00');
@@ -175,13 +177,15 @@ const Dashboard: React.FC = () => {
         const transactionDate = new Date(t.date);
         return transactionDate >= start && transactionDate <= end;
       });
+      console.log(`📊 [loadTransactions] Após filtro por período personalizado: ${filteredTransactions.length}`);
     } else {
+      // Filtrar por mês/ano selecionado
       filteredTransactions = allTransactions.filter(t => {
         const transactionDate = new Date(t.date);
         return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
       });
+      console.log(`📊 [loadTransactions] Após filtro por mês ${month + 1}/${year}: ${filteredTransactions.length}`);
     }
-    */
     
     // Filtrar por nome se houver filtro
     if (nameFilter.trim()) {
@@ -194,9 +198,6 @@ const Dashboard: React.FC = () => {
     
     // Sort transactions by date in descending order (most recent first)
     filteredTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    
-    // Limitar a 50 transações mais recentes para performance
-    filteredTransactions = filteredTransactions.slice(0, 50);
     
     console.log(`📊 [loadTransactions] Definindo ${filteredTransactions.length} transações`);
     setTransactions(filteredTransactions);

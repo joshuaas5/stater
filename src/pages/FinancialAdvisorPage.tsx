@@ -1682,13 +1682,21 @@ const handleImageUpload = async (imageBase64: string) => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 200);
-
   } catch (err: any) {
     console.error('Erro ao processar imagem:', err);
-    setError(err.message || 'Erro ao processar documento');
+    console.error('Erro completo:', err.stack);
+    
+    let errorMessage = 'Erro desconhecido';
+    if (err.message) {
+      errorMessage = err.message;
+    } else if (typeof err === 'string') {
+      errorMessage = err;
+    }
+    
+    setError(errorMessage);
     setMessages(prev => [...prev, {
       id: uuidv4(),
-      text: `❌ Erro ao processar documento: ${err.message || 'Erro desconhecido'}`,
+      text: `❌ Erro ao processar documento: ${errorMessage}\n\n💡 **Dica:** Se for um PDF protegido, tente fazer uma captura de tela e enviar como imagem.`,
       sender: 'system',
       timestamp: new Date(),
       avatarUrl: IA_AVATAR

@@ -1462,7 +1462,7 @@ const deleteTransaction = (index: number) => {
 return (
   <>
     <div className="flex flex-col h-screen bg-background">
-      <div className="flex-grow container mx-auto px-0 sm:px-4 pt-4 pb-20 flex flex-col overflow-hidden">
+      <div className="flex-grow container mx-auto px-0 sm:px-4 pt-4 pb-32 flex flex-col overflow-hidden"> {/* Aumentado pb-20 para pb-32 */}
         <div className="mb-4 text-center">
           <h1 className="text-2xl font-bold text-foreground">VOYB IA 🤖</h1>
         </div>
@@ -1499,22 +1499,25 @@ return (
                     </Button>
                   ))}
                 </div>
-              </div>            )}
-              {/* Interface de edição de transações OCR */}
+              </div>            )}              {/* Interface de edição de transações OCR */}
             {waitingConfirmation && editableTransactions.length > 0 && (
               <div className="p-4 border-t border-border bg-blue-50">
                 <h3 className="font-semibold text-blue-900 mb-3">📝 Editar Transações</h3>
                 <p className="text-sm text-blue-700 mb-3">
                   Verifique e edite as transações antes de confirmar:
                 </p>
-                <TransactionList
-                  transactions={editableTransactions}
-                  onUpdate={updateTransaction}
-                  onDelete={deleteTransaction}
-                />
                 
-                {/* Botões de confirmação SEMPRE visíveis */}
-                <div className="mt-6 pt-4 border-t border-blue-200 bg-blue-50 sticky bottom-0">
+                {/* Container da lista com altura limitada para não sobrepor botões */}
+                <div className="mb-6">
+                  <TransactionList
+                    transactions={editableTransactions}
+                    onUpdate={updateTransaction}
+                    onDelete={deleteTransaction}
+                  />
+                </div>
+                
+                {/* Botões de confirmação SEMPRE visíveis - SEM sticky */}
+                <div className="pt-4 border-t border-blue-200 bg-blue-50">
                   <div className="flex justify-center gap-4">
                     <Button 
                       size="lg" 

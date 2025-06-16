@@ -1535,45 +1535,50 @@ return (
                     </Button>
                   ))}
                 </div>
-              </div>            )}              {/* Interface de edição de transações OCR */}
+              </div>            )}            {/* Interface de edição de transações OCR */}
             {waitingConfirmation && editableTransactions.length > 0 && (
-              <div className="p-4 border-t border-border bg-blue-50">
-                <h3 className="font-semibold text-blue-900 mb-3">📝 Editar Transações</h3>
-                <p className="text-sm text-blue-700 mb-3">
-                  Verifique e edite as transações antes de confirmar:
-                </p>
-                
-                {/* Container da lista com altura limitada para não sobrepor botões */}
-                <div className="mb-6">
-                  <TransactionList
-                    transactions={editableTransactions}
-                    onUpdate={updateTransaction}
-                    onDelete={deleteTransaction}
-                  />
-                </div>
-                
-                {/* Botões de confirmação SEMPRE visíveis - SEM sticky */}
-                <div className="pt-4 border-t border-blue-200 bg-blue-50">
-                  <div className="flex justify-center gap-4">
-                    <Button 
-                      size="lg" 
-                      variant="outline" 
-                      onClick={() => handleSendMessage('não')}
-                      className="px-8 py-3 text-lg font-medium border-red-300 text-red-700 hover:bg-red-50"
-                    >
-                      ❌ Cancelar
-                    </Button>
-                    <Button 
-                      size="lg" 
-                      onClick={() => handleSendMessage('sim')}
-                      className="px-8 py-3 text-lg font-medium bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      ✅ Confirmar Todas ({editableTransactions.length})
-                    </Button>
+              <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+                  {/* Header */}
+                  <div className="p-4 border-b border-gray-200 bg-blue-50 rounded-t-lg">
+                    <h3 className="font-semibold text-blue-900 mb-1">📝 Editar Transações</h3>
+                    <p className="text-sm text-blue-700">
+                      Verifique e edite as transações antes de confirmar:
+                    </p>
                   </div>
-                  <p className="text-center text-xs text-blue-600 mt-2">
-                    Confirme para salvar {editableTransactions.length} transações no sistema
-                  </p>
+                  
+                  {/* Lista de transações com scroll */}
+                  <div className="flex-1 overflow-hidden p-4">
+                    <TransactionList
+                      transactions={editableTransactions}
+                      onUpdate={updateTransaction}
+                      onDelete={deleteTransaction}
+                    />
+                  </div>
+                  
+                  {/* Botões de confirmação SEMPRE visíveis */}
+                  <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+                    <div className="flex justify-center gap-4">
+                      <Button 
+                        size="lg" 
+                        variant="outline" 
+                        onClick={() => handleSendMessage('não')}
+                        className="px-8 py-3 text-lg font-medium border-red-300 text-red-700 hover:bg-red-50"
+                      >
+                        ❌ Cancelar
+                      </Button>
+                      <Button 
+                        size="lg" 
+                        onClick={() => handleSendMessage('sim')}
+                        className="px-8 py-3 text-lg font-medium bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        ✅ Confirmar Todas ({editableTransactions.length})
+                      </Button>
+                    </div>
+                    <p className="text-center text-xs text-gray-600 mt-2">
+                      Confirme para salvar {editableTransactions.length} transações no sistema
+                    </p>
+                  </div>
                 </div>
               </div>
             )}

@@ -111,9 +111,9 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       <div 
         className="overflow-y-auto border border-gray-200 rounded-lg bg-white shadow-inner"
         style={{
-          height: transactions.length > 10 ? '400px' : 'auto',
-          maxHeight: '50vh', // Reduzido de 70vh para 50vh
-          minHeight: transactions.length > 3 ? '200px' : 'auto', // Reduzido de 300px para 200px
+          height: transactions.length > 6 ? '300px' : 'auto',
+          maxHeight: '40vh', // Reduzido para funcionar melhor no modal
+          minHeight: transactions.length > 3 ? '150px' : 'auto',
           scrollBehavior: 'smooth',
           overflowX: 'hidden'
         }}

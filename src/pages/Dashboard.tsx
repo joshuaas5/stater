@@ -54,11 +54,11 @@ const Dashboard: React.FC = () => {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [editingTransactionDontAdjustBalance, setEditingTransactionDontAdjustBalance] = useState(false);
   const [showAllTransactionsInMonth, setShowAllTransactionsInMonth] = useState(false);
-
   const [lastEditedTransactionIdForBalanceSkip, setLastEditedTransactionIdForBalanceSkip] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [showDateFilters, setShowDateFilters] = useState(false);
+  const [nameFilter, setNameFilter] = useState<string>(''); // Novo filtro por nome
   
   const [newTransaction, setNewTransaction] = useState({
     title: '',
@@ -111,8 +111,12 @@ const Dashboard: React.FC = () => {
     window.addEventListener('transactionsUpdated', handler);
     return () => {
       window.removeEventListener('transactionsUpdated', handler);
-    };
-  }, [navigate, selectedMonth, selectedYear]);
+    };  }, [navigate, selectedMonth, selectedYear]);
+
+  // UseEffect para reagir às mudanças no filtro de nome
+  useEffect(() => {
+    loadTransactions(selectedMonth, selectedYear, !!startDate && !!endDate);
+  }, [nameFilter]);
 
   const calculateTotalBalance = () => {
     const allTransactions = getTransactions();
@@ -152,10 +156,11 @@ const Dashboard: React.FC = () => {
     const change = calculatePercentageChange(last30DaysBalance, previous30DaysBalance);
     setPercentChange(change);
   };
-
   const loadTransactions = (month: number, year: number, useCustomPeriod = false) => {
     const allTransactions = getTransactions();
     let filteredTransactions = allTransactions;
+    
+    // Filtrar por período
     if (useCustomPeriod && startDate && endDate) {
       const start = new Date(startDate + 'T00:00:00');
       const end = new Date(endDate + 'T23:59:59');
@@ -168,6 +173,14 @@ const Dashboard: React.FC = () => {
         const transactionDate = new Date(t.date);
         return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
       });
+    }
+    
+    // Filtrar por nome se houver filtro
+    if (nameFilter.trim()) {
+      filteredTransactions = filteredTransactions.filter(t => 
+        t.title.toLowerCase().includes(nameFilter.toLowerCase()) ||
+        t.category.toLowerCase().includes(nameFilter.toLowerCase())
+      );
     }
     
     // Sort transactions by date in descending order (most recent first)
@@ -639,16 +652,27 @@ const Dashboard: React.FC = () => {
       
       <h2 className="text-galileo-text text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-2">
         Últimas Transações
-      </h2>
-      <div className="px-4 mb-4 flex flex-col gap-2">
-        <Button 
-          onClick={() => setShowDateFilters(!showDateFilters)} 
-          variant="outline" 
-          size="sm"
-          className="w-full sm:w-auto"
-        >
-          {showDateFilters ? 'Ocultar Filtros de Data' : 'Filtrar por Data'}
-        </Button>
+      </h2>      <div className="px-4 mb-4 flex flex-col gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button 
+            onClick={() => setShowDateFilters(!showDateFilters)} 
+            variant="outline" 
+            size="sm"
+            className="w-full sm:w-auto"
+          >
+            {showDateFilters ? 'Ocultar Filtros' : 'Filtros Avançados'}
+          </Button>
+          
+          {/* Filtro rápido por nome sempre visível */}
+          <div className="flex-1">
+            <Input 
+              placeholder="Buscar por nome ou categoria..." 
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+              className="text-sm"
+            />
+          </div>
+        </div>
 
         {showDateFilters && (
           <div className="flex flex-col sm:flex-row gap-2 items-center pt-2">
@@ -665,14 +689,15 @@ const Dashboard: React.FC = () => {
               onClick={() => {
                 setStartDate(null); 
                 setEndDate(null); 
+                setNameFilter('');
                 loadTransactions(selectedMonth, selectedYear); 
-                setShowDateFilters(false); // Oculta os filtros ao limpar
+                setShowDateFilters(false);
               }} 
               variant="ghost" 
               className="mt-1 sm:mt-auto h-9 text-xs w-full sm:w-auto" 
               size="sm"
             >
-              Limpar Filtro
+              Limpar Filtros
             </Button>
           </div>
         )}

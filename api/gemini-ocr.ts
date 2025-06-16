@@ -125,86 +125,109 @@ export default async function handler(req: any, res: any) {
     if (!GEMINI_API_KEY) {
       console.log('[OCR] Erro: API Key não encontrada');
       return res.status(500).json({ error: 'API não configurada' });
-    }    // Prompt ULTRA especializado para documentos financeiros
+    }    // Prompt especializado para documentos financeiros avançados
     const prompt = `
-VOCÊ É UM ESPECIALISTA EM ANÁLISE DE DOCUMENTOS FINANCEIROS. ANALISE COM EXTREMA PRECISÃO.
+VOCÊ É UM ESPECIALISTA EM ANÁLISE DE DOCUMENTOS FINANCEIROS COMPLEXOS.
 
-INSTRUÇÕES CRÍTICAS:
+ANALISE ESTE DOCUMENTO e extraia TODAS as transações com MÁXIMA PRECISÃO, identificando corretamente ENTRADAS e SAÍDAS.
 
-1. TIPOS DE DOCUMENTO - Identifique primeiro:
-   📱 FATURA CARTÃO DE CRÉDITO: Apenas DESPESAS (compras), exceto estornos/cashback
-   🏦 EXTRATO BANCÁRIO: ENTRADAS (depósitos) E SAÍDAS (saques/débitos)
-   💰 EXTRATO PIX/DIGITAL: ENTRADAS (recebidos) E SAÍDAS (enviados)
+TIPOS DE DOCUMENTOS SUPORTADOS:
+- Faturas de cartão de crédito (APENAS saídas/despesas - NÃO incluir pagamentos da fatura)
+- Extratos bancários (entradas E saídas)
+- Extratos de conta corrente (entradas E saídas)
+- Extratos de poupança (entradas E saídas)
+- Relatórios de investimentos (entradas E saídas)
+- Extratos de carteira digital/PIX (entradas E saídas)
 
-2. REGRAS DE OURO PARA TIPO:
+REGRAS CRÍTICAS PARA FATURAS DE CARTÃO:
+❌ NÃO INCLUIR como transações:
+- Pagamentos da fatura (ex: "Pagamento recebido", "Débito em conta")
+- Valores totais da fatura
+- Saldo anterior, saldo atual
+- Limite de crédito
+- Valor mínimo
 
-   🔴 DESPESAS (type: "expense"):
-   - Qualquer COMPRA em estabelecimento
-   - SAQUES em dinheiro
-   - PIX/TED/Transferência ENVIADA/FEITA POR VOCÊ
-   - Pagamentos de contas, boletos, financiamentos
-   - Anuidades, taxas, juros cobrados
-   - Valores precedidos por DÉBITO, menos (-), vermelho
-   - Descrições: "Compra", "Pagamento", "Débito", "Saque", "PIX enviado", "Transferência feita"
+✅ INCLUIR APENAS:
+- Compras em estabelecimentos
+- Saques no cartão
+- Anuidades e taxas do cartão
+- IOF e juros
+- Estornos (como receita/entrada)
 
-   🟢 RECEITAS (type: "income"):  
-   - DEPÓSITOS na sua conta
-   - PIX/TED/Transferência RECEBIDA/FEITA PARA VOCÊ
-   - Salários, freelances, vendas
-   - Rendimentos, juros recebidos, cashback
-   - Estornos, reembolsos
-   - Valores precedidos por CRÉDITO, mais (+), verde
-   - Descrições: "Depósito", "Crédito", "PIX recebido", "Transferência recebida", "Salário"
+REGRAS CRÍTICAS PARA EXTRATOS BANCÁRIOS:
+🔴 SAÍDAS/DESPESAS (type: "expense"):
+- Compras com débito/crédito
+- Saques em dinheiro
+- PIX/TED/transferências ENVIADAS
+- Pagamentos de contas/boletos
+- Taxas bancárias
+- Débitos automáticos
+- Valores com (-) ou em vermelho
 
-3. ⚠️ IGNORE COMPLETAMENTE:
-   - Saldos (anterior, atual, disponível)
-   - Limites de cartão
-   - Valores mínimos/totais da fatura
-   - Resumos e totalizadores
-   - Informações de cabeçalho/rodapé
-   - Pagamentos da própria fatura (evita duplicação)
+🟢 ENTRADAS/RECEITAS (type: "income"):
+- Depósitos
+- PIX/TED/transferências RECEBIDAS
+- Salários
+- Rendimentos
+- Estornos
+- Valores com (+) ou em verde
 
-4. 🚨 CASOS ESPECIAIS:
-   - FATURA CARTÃO: 99% são despesas, só estornos são receitas
-   - PAGAMENTO DE FATURA: Se aparecer "Pagamento fatura", É DESPESA no extrato bancário
-   - PIX: Leia com cuidado se foi "enviado" (despesa) ou "recebido" (receita)
-   - VALORES ZERADOS: Se não conseguir ler, retorne array vazio, NÃO invente valores
+ANÁLISE CONTEXTUAL AVANÇADA:
+1. Para NUBANK e bancos digitais: 
+   - Observe padrões de cores (verde=entrada, vermelho=saída)
+   - Procure por ícones de direção (setas, símbolos)
+   - Analise descrições como "Pix enviado", "Pix recebido", "Transferência"
+   - IGNORE rendimentos do Nubank (geralmente centavos)
+2. Para extratos tradicionais: analise códigos de operação
+3. Valores pequenos podem ser taxas ou rendimentos - analise o contexto
+4. Se encontrar apenas valores muito baixos (ex: R$ 0,01), PROCURE MAIS TRANSAÇÕES
+5. Para FATURAS DE CARTÃO: NÃO inclua o pagamento da fatura como despesa
 
-5. DATAS E VALORES:
-   - Use formato YYYY-MM-DD para datas
-   - Valores em formato decimal: 150.50 (não 150,50)
-   - Se não conseguir determinar data, use data atual
+VALIDAÇÃO DE QUALIDADE:
+- Extratos típicos têm MÚLTIPLAS transações com valores VARIADOS
+- Se identificar apenas 1-2 transações pequenas, REANALISE o documento
+- Para Nubank: procure por seções como "Gastos", "Transferências", "Pagamentos"
+- Valores comuns: compras (R$ 20-500), transferências (R$ 50-2000), salários (R$ 1000+)
 
-6. SE NÃO CONSEGUIR LER O DOCUMENTO:
-   - Retorne transactions: [] (array vazio)
-   - NÃO invente valores como 0.01
-   - Seja honesto na confidence (baixa se houver dúvidas)
+PADRÕES ESPECÍFICOS NUBANK:
+- "Pix enviado para": SAÍDA/expense
+- "Pix recebido de": ENTRADA/income  
+- "Transferência enviada": SAÍDA/expense
+- "Transferência recebida": ENTRADA/income
+- "Pagamento no débito": SAÍDA/expense
+- "Compra no cartão": SAÍDA/expense
+- Rendimentos da conta: geralmente MUITO BAIXOS (ignore se < R$ 1,00)
 
-RETORNE APENAS JSON VÁLIDO:
+RETORNE APENAS JSON VÁLIDO no formato:
 
 {
-  "documentType": "fatura_cartao" | "extrato_bancario" | "extrato_pix" | "extrato_conta",
-  "confidence": 0.85,
+  "documentType": "extrato_bancario" ou "fatura_cartao" ou "extrato_pix" ou "relatorio_investimento",
+  "confidence": 0.95,
   "summary": {
-    "totalAmount": [soma líquida: entradas - saídas],
-    "totalIncome": [soma apenas receitas],
-    "totalExpense": [soma apenas despesas],
-    "establishment": "Nome do banco/cartão",
-    "period": "Período se identificável"
+    "totalAmount": [soma de todas as transações],
+    "totalIncome": [soma apenas das entradas],
+    "totalExpense": [soma apenas das saídas],
+    "establishment": "Nome da instituição/banco",
+    "period": "Período do documento se identificável"
   },
   "transactions": [
     {
-      "description": "Descrição clara da transação",
+      "description": "Descrição exata da transação",
       "amount": 150.50,
-      "type": "expense" | "income",
-      "category": "alimentacao|transporte|saude|lazer|moradia|educacao|tecnologia|servicos|outros",
+      "type": "expense" ou "income",
+      "category": "categoria_apropriada",
       "date": "2024-12-25",
       "confidence": 0.9
     }
   ]
 }
 
-LEMBRE-SE: SEJA CONSERVADOR. Prefira menos transações corretas do que muitas incorretas!`;
+IMPORTANTE: 
+- Seja MUITO criterioso para identificar corretamente entrada vs saída
+- Em caso de dúvida sobre o tipo, analise o contexto e descrição
+- Para documentos complexos, priorize precisão sobre quantidade
+- NÃO invente transações que não existem claramente no documento
+`;
 
     console.log('[OCR] Preparando payload para Gemini...');
 
@@ -350,11 +373,32 @@ LEMBRE-SE: SEJA CONSERVADOR. Prefira menos transações corretas do que muitas i
       ocrResult.summary.totalExpense = totalExpense;
       ocrResult.summary.totalAmount = totalIncome + totalExpense;
       ocrResult.summary.itemCount = ocrResult.transactions.length;
-      
-      console.log('[OCR] JSON parseado com sucesso!');
+        console.log('[OCR] JSON parseado com sucesso!');
       console.log('[OCR] Transações encontradas:', ocrResult.transactions.length);
       console.log('[OCR] Total receitas:', totalIncome);
       console.log('[OCR] Total despesas:', totalExpense);
+      
+      // VALIDAÇÃO DE QUALIDADE DOS RESULTADOS
+      const hasOnlySmallValues = ocrResult.transactions.every((t: any) => (t.amount || 0) < 1.0);
+      const hasVeryFewTransactions = ocrResult.transactions.length <= 2;
+      const totalValue = totalIncome + totalExpense;
+      
+      if (hasOnlySmallValues && hasVeryFewTransactions && totalValue < 5.0) {
+        console.log('[OCR] ⚠️ Resultado suspeito: valores muito baixos ou poucas transações');
+        
+        return res.status(400).json({
+          success: false,
+          error: 'Documento não foi processado corretamente',
+          details: 'O sistema identificou apenas transações de valores muito baixos. Isso pode indicar que o documento não foi lido corretamente.',
+          suggestions: [
+            'Verifique se o documento está legível e bem escaneado',
+            'Para PDFs protegidos, faça uma captura de tela',
+            'Tente enviar o documento em formato de imagem (JPG/PNG)',
+            'Se for um extrato/fatura complexo, tente dividir em páginas menores'
+          ],
+          needsManualReview: true
+        });
+      }
         } catch (parseError: any) {
       console.error('[OCR] Erro ao parsear JSON:', parseError.message);
       console.error('[OCR] Texto problemático:', responseText);

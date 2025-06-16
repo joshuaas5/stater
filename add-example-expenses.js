@@ -1,137 +1,151 @@
-// Script para adicionar despesas de exemplo ao sistema
-// Executar no console do navegador após fazer login
+// Script para adicionar despesas de exemplo
+const { createClient } = require('@supabase/supabase-js');
 
-const addExampleExpenses = () => {
-  console.log('🏠 Adicionando despesas de exemplo...');
+const supabaseUrl = 'https://hkukcqaxftlykrcyjzlg.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrdwtjcWF4ZnRseWtyY3lqemxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI5OTA0ODEsImV4cCI6MjA0ODU2NjQ4MX0.uWdGjOHtUYv8nNuAJONZCvJyNOwpNpLLfCl5_y5UrPQ';
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+const exampleExpenses = [
+  {
+    title: 'Aluguel de Apartamento Compacto',
+    amount: 2500.00,
+    type: 'expense',
+    category: 'moradia',
+    description: 'Apartamento de 40m² em bairro residencial de grande cidade'
+  },
+  {
+    title: 'Plano de Saúde Premium',
+    amount: 850.00,
+    type: 'expense',
+    category: 'saude',
+    description: 'Cobertura completa com consultas, exames e internações'
+  },
+  {
+    title: 'Internet 5G',
+    amount: 150.00,
+    type: 'expense',
+    category: 'tecnologia',
+    description: 'Conexão 1GB/s com acesso ilimitado para streaming e jogos'
+  },
+  {
+    title: 'Curso de Idiomas Online',
+    amount: 300.00, // R$ 600 por semestre = R$ 300 por mês
+    type: 'expense',
+    category: 'educacao',
+    description: 'Aulas virtuais de inglês avançado com professores nativos'
+  },
+  {
+    title: 'Manutenção Carro Elétrico',
+    amount: 400.00,
+    type: 'expense',
+    category: 'transporte',
+    description: 'Revisões, recarga de bateria e seguro de veículo compacto'
+  },
+  {
+    title: 'Clube de Vinhos',
+    amount: 200.00,
+    type: 'expense',
+    category: 'lazer',
+    description: 'Três garrafas de vinhos nacionais e importados mensais'
+  },
+  {
+    title: 'Serviço de Limpeza',
+    amount: 350.00,
+    type: 'expense',
+    category: 'servicos',
+    description: 'Faxinas semanais em casa de tamanho médio'
+  },
+  {
+    title: 'App de Fitness',
+    amount: 80.00,
+    type: 'expense',
+    category: 'saude',
+    description: 'Treinos personalizados com personal trainer virtual'
+  },
+  {
+    title: 'Taxa de Condomínio',
+    amount: 700.00,
+    type: 'expense',
+    category: 'moradia',
+    description: 'Prédio com piscina, academia e segurança 24 horas'
+  },
+  {
+    title: 'Plano de Celular',
+    amount: 120.00,
+    type: 'expense',
+    category: 'tecnologia',
+    description: 'Pacote 50GB, ligações ilimitadas e roaming nacional'
+  }
+];
+
+async function addExampleExpenses() {
+  console.log('🏠 Adicionando despesas de exemplo...\n');
   
-  const exampleExpenses = [
-    {
-      description: "Aluguel de Apartamento Compacto", 
-      amount: 2500, 
-      type: "expense", 
-      category: "moradia",
-      date: "2025-06-16"
-    },
-    {
-      description: "Plano de Saúde Premium", 
-      amount: 850, 
-      type: "expense", 
-      category: "saude",
-      date: "2025-06-16"
-    },
-    {
-      description: "Assinatura de Internet 5G", 
-      amount: 150, 
-      type: "expense", 
-      category: "tecnologia",
-      date: "2025-06-16"
-    },
-    {
-      description: "Curso de Idiomas Online", 
-      amount: 600, 
-      type: "expense", 
-      category: "educacao",
-      date: "2025-06-16"
-    },
-    {
-      description: "Manutenção de Carro Elétrico", 
-      amount: 400, 
-      type: "expense", 
-      category: "transporte",
-      date: "2025-06-16"
-    },
-    {
-      description: "Clube de Assinatura de Vinhos", 
-      amount: 200, 
-      type: "expense", 
-      category: "lazer",
-      date: "2025-06-16"
-    },
-    {
-      description: "Serviço de Limpeza Residencial", 
-      amount: 350, 
-      type: "expense", 
-      category: "servicos",
-      date: "2025-06-16"
-    },
-    {
-      description: "Assinatura de Aplicativo de Fitness", 
-      amount: 80, 
-      type: "expense", 
-      category: "saude",
-      date: "2025-06-16"
-    },
-    {
-      description: "Taxa de Condomínio", 
-      amount: 700, 
-      type: "expense", 
-      category: "moradia",
-      date: "2025-06-16"
-    },
-    {
-      description: "Plano de Telefonia Móvel", 
-      amount: 120, 
-      type: "expense", 
-      category: "tecnologia",
-      date: "2025-06-16"
-    }
-  ];
-
-  // Simular a função saveTransaction que existe no sistema
   try {
-    // Buscar a função do localStorage
-    const { saveTransaction: saveTransactionUtil, getCurrentUser, uuidv4 } = window;
+    // Verificar autenticação
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData?.session) {
+      console.log('❌ Erro: Usuário não autenticado');
+      console.log('⚠️  Faça login no sistema primeiro');
+      return;
+    }
     
-    if (!saveTransactionUtil) {
-      console.error('❌ Função saveTransaction não encontrada. Certifique-se de estar na página correta.');
-      return;
-    }
-
-    const user = getCurrentUser();
-    if (!user) {
-      console.error('❌ Usuário não encontrado. Faça login primeiro.');
-      return;
-    }
-
-    console.log('✅ Usuário encontrado:', user.email);
+    const userId = sessionData.session.user.id;
+    console.log('✅ Usuário autenticado:', userId.slice(0, 8) + '...');
+    
+    const currentDate = new Date();
+    const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     
     // Adicionar cada despesa
-    exampleExpenses.forEach((expense, index) => {
+    for (let i = 0; i < exampleExpenses.length; i++) {
+      const expense = exampleExpenses[i];
+      
+      // Distribuir as datas ao longo do mês
+      const dayOfMonth = Math.floor((i + 1) * (28 / exampleExpenses.length)) + 1;
+      const transactionDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), dayOfMonth);
+      
       const transaction = {
-        id: uuidv4(),
-        userId: user.id,
-        title: expense.description,
+        id: `example-${Date.now()}-${i}`,
+        user_id: userId,
+        title: expense.title,
         amount: expense.amount,
         type: expense.type,
         category: expense.category,
-        date: new Date(expense.date),
-        created_at: new Date(),
-        updated_at: new Date()
+        date: transactionDate.toISOString().split('T')[0],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
       
-      saveTransactionUtil(transaction);
-      console.log(`✅ ${index + 1}/10 - ${expense.description}: R$ ${expense.amount}`);
-    });
-
-    console.log('🎉 Todas as despesas foram adicionadas com sucesso!');
-    console.log('💰 Total adicionado: R$ ' + exampleExpenses.reduce((sum, exp) => sum + exp.amount, 0).toFixed(2));
-    console.log('📊 Verifique o Dashboard para ver as transações.');
+      console.log(`${i + 1}. Adicionando: ${expense.title} - R$ ${expense.amount}`);
+      
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert(transaction)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error(`❌ Erro ao adicionar ${expense.title}:`, error.message);
+      } else {
+        console.log(`✅ ${expense.title} adicionado com sucesso`);
+      }
+      
+      // Pequeno delay para não sobrecarregar a API
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
     
-    // Forçar atualização do Dashboard
-    setTimeout(() => {
-      window.dispatchEvent(new Event('transactionsUpdated'));
-      console.log('🔄 Dashboard atualizado!');
-    }, 1000);
-
+    console.log('\n🎉 Todas as despesas de exemplo foram adicionadas!');
+    console.log('\n📊 Resumo:');
+    console.log(`• Total de despesas: ${exampleExpenses.length}`);
+    const totalAmount = exampleExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+    console.log(`• Valor total mensal: R$ ${totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
+    console.log('\n🔄 Recarregue o Dashboard para ver as novas transações!');
+    
   } catch (error) {
-    console.error('❌ Erro ao adicionar despesas:', error);
-    console.log('💡 Dica: Execute este script na página do Dashboard ou Financial Advisor.');
+    console.error('❌ Erro no processo:', error);
   }
-};
-
-// Executar automaticamente se estiver no contexto correto
-if (typeof window !== 'undefined' && window.location) {
-  console.log('🚀 Script carregado. Execute addExampleExpenses() para adicionar as despesas.');
-} else {
-  addExampleExpenses();
 }
+
+// Executar script
+addExampleExpenses().catch(console.error);

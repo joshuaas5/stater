@@ -51,31 +51,83 @@ const ChatInput: React.FC<ChatInputProps> = ({
   // Handle file upload
   const handleFileSelect = () => {
     fileInputRef.current?.click();
-  };
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  };  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;    // Aceitar imagens e PDFs
+    if (!file) return;    // Aceitar imagens, PDFs e arquivos de texto/planilha
     const isValidImage = file.type.startsWith('image/') || 
                         file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp)$/);
     const isValidPDF = file.type === 'application/pdf' || 
                       file.name.toLowerCase().endsWith('.pdf');
-      if (!isValidImage && !isValidPDF) {
+    const isValidText = file.type === 'text/plain' || 
+                       file.name.toLowerCase().endsWith('.txt');
+    const isValidCSV = file.type === 'text/csv' || 
+                      file.name.toLowerCase().endsWith('.csv');
+    const isValidExcel = file.type.includes('sheet') || 
+                        file.name.toLowerCase().match(/\.(xls|xlsx|xlsm)$/);
+      if (!isValidImage && !isValidPDF && !isValidText && !isValidCSV && !isValidExcel) {
       toast({
         title: "Arquivo inválido",
-        description: "Por favor, selecione apenas arquivos de imagem (JPG, PNG, etc.) ou PDF.",
+        description: "Selecione apenas: imagens (JPG, PNG), PDF, texto (TXT), planilhas (CSV, XLS, XLSX, XLSM).",
+        variant: "destructive"
+      });
+      return;
+    }    if (file.size > 15 * 1024 * 1024) { // 15MB limit para planilhas maiores
+      toast({
+        title: "Arquivo muito grande",
+        description: "O arquivo deve ter no máximo 15MB.",
         variant: "destructive"
       });
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      toast({
-        title: "Arquivo muito grande",
-        description: "O arquivo deve ter no máximo 10MB.",
-        variant: "destructive"
-      });
-      return;
-    }    const reader = new FileReader();
+    // Processar arquivos de texto/planilha diferente de imagens/PDFs
+    if (isValidText || isValidCSV || isValidExcel) {
+      console.log('📄 Processando arquivo texto/planilha:', file.name, file.type);
+      
+      // Para arquivos de texto e CSV, ler como texto
+      if (isValidText || isValidCSV) {
+        const textReader = new FileReader();
+        textReader.onload = (e) => {
+          const textContent = e.target?.result as string;
+          console.log('📝 Conteúdo de texto carregado, tamanho:', textContent?.length);
+          
+          // Criar dados específicos para arquivo de texto
+          const fileData = {
+            fileName: file.name,
+            fileType: isValidCSV ? 'text/csv' : 'text/plain',
+            textData: textContent,
+            fileSize: file.size
+          };
+          
+          // Passar dados como JSON string no lugar de base64
+          onImageUpload?.(JSON.stringify(fileData));
+        };
+        textReader.readAsText(file);
+        return;
+      }
+      
+      // Para arquivos Excel, processar como base64 (será convertido no backend)
+      if (isValidExcel) {
+        const excelReader = new FileReader();
+        excelReader.onload = (e) => {
+          const arrayBuffer = e.target?.result as ArrayBuffer;
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+          console.log('📊 Arquivo Excel carregado, tamanho base64:', base64.length);
+          
+          // Criar dados específicos para arquivo Excel
+          const fileData = {
+            fileName: file.name,
+            fileType: file.type || 'application/vnd.ms-excel',
+            excelData: base64,
+            fileSize: file.size
+          };
+          
+          onImageUpload?.(JSON.stringify(fileData));
+        };
+        excelReader.readAsArrayBuffer(file);
+        return;
+      }
+    }const reader = new FileReader();
     reader.onload = (e) => {
       const fileData = e.target?.result as string;
       setSelectedImage(fileData);
@@ -514,7 +566,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*,application/pdf,.pdf"
+        accept="image/*,application/pdf,.pdf,.txt,.csv,.xls,.xlsx,.xlsm,text/plain,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />

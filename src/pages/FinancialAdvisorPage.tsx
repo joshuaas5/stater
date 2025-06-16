@@ -1589,11 +1589,46 @@ const handleImageUpload = async (imageBase64: string) => {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !sessionData?.session) {
       throw new Error("Erro ao obter sessão");
-    }    // Adicionar mensagem de upload com feedback visual
-    const isPdf = imageBase64.startsWith('data:application/pdf');
-    const processingMessageId = uuidv4();    setMessages(prev => [...prev, {
+    }
+
+    // Detectar se é arquivo de texto/planilha ou imagem/PDF
+    let isTextFile = false;
+    let fileData: any = null;
+    
+    try {
+      fileData = JSON.parse(imageBase64);
+      isTextFile = true;
+      console.log('📄 Arquivo de texto/planilha detectado:', fileData.fileName, fileData.fileType);
+    } catch {
+      // Não é JSON, continuar como imagem/PDF
+      console.log('🖼️ Arquivo de imagem/PDF detectado');
+    }
+
+    // Adicionar mensagem de upload com feedback visual adequado
+    const isPdf = !isTextFile && imageBase64.startsWith('data:application/pdf');
+    const processingMessageId = uuidv4();
+    
+    let processingMessage = "";
+    if (isTextFile) {
+      const fileType = fileData?.fileType || 'text/plain';
+      if (fileType.includes('csv')) {
+        processingMessage = "📊 **Processando arquivo CSV...**\n\n⏳ Analisando dados financeiros\n💡 Extraindo transações da planilha\n\n*Aguarde, não recarregue a página...*";
+      } else if (fileType.includes('excel') || fileType.includes('sheet')) {
+        processingMessage = "📈 **Processando planilha Excel...**\n\n⏳ Analisando dados financeiros\n💡 Convertendo e extraindo transações\n\n*Aguarde, não recarregue a página...*";
+      } else if (fileType.includes('text')) {
+        processingMessage = "📝 **Processando arquivo de texto...**\n\n⏳ Analisando extrato em formato texto\n💡 Identificando transações\n\n*Aguarde, não recarregue a página...*";
+      } else {
+        processingMessage = "📄 **Processando arquivo...**\n\n⏳ Analisando documento financeiro\n💡 Extraindo informações\n\n*Aguarde, não recarregue a página...*";
+      }
+    } else if (isPdf) {
+      processingMessage = "📄 **Processando PDF...**\n\n⏳ Analisando documento financeiro com IA\n💡 Processamento pode levar até 1 minuto\n\n*Aguarde, não recarregue a página...*";
+    } else {
+      processingMessage = "📄 **Processando imagem...**\n\n⏳ Analisando documento financeiro com IA\n💡 Extratos complexos podem levar alguns segundos\n\n*Aguarde, não recarregue a página...*";
+    }
+
+    setMessages(prev => [...prev, {
       id: processingMessageId,
-      text: isPdf ? "📄 **Processando PDF...**\n\n⏳ Analisando documento financeiro com IA\n💡 Processamento pode levar até 1 minuto\n\n*Aguarde, não recarregue a página...*" : "📄 **Processando imagem...**\n\n⏳ Analisando documento financeiro com IA\n💡 Extratos complexos podem levar alguns segundos\n\n*Aguarde, não recarregue a página...*",
+      text: processingMessage,
       sender: 'system',
       timestamp: new Date(),
       avatarUrl: IA_AVATAR
@@ -1621,16 +1656,35 @@ const handleImageUpload = async (imageBase64: string) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 segundos (deixa margem para o Vercel)
     
+    // Preparar dados para envio baseado no tipo de arquivo
+    let requestBody: any;
+    
+    if (isTextFile && fileData) {
+      // Arquivo de texto/planilha
+      requestBody = {
+        fileName: fileData.fileName,
+        fileType: fileData.fileType,
+        textData: fileData.textData,
+        csvData: fileData.textData, // Para compatibilidade
+        excelData: fileData.excelData // Para arquivos Excel
+      };
+      console.log('📤 Enviando arquivo de texto/planilha para API:', fileData.fileName);
+    } else {
+      // Imagem/PDF tradicional
+      requestBody = {
+        imageBase64: imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64
+      };
+      console.log('📤 Enviando imagem/PDF para API');
+    }
+    
     const response = await fetch('/api/gemini-ocr', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        imageBase64: imageBase64.split(',')[1], // Remover data:image/...;base64,
-        // Removido pdfPassword
-      }),
-      signal: controller.signal    });
+      body: JSON.stringify(requestBody),
+      signal: controller.signal
+    });
     
     clearTimeout(timeoutId);
     clearInterval(progressInterval);

@@ -76,23 +76,265 @@ async function processProtectedPdf(pdfBase64: string, password: string): Promise
   }
 }
 
+// Função para processar arquivos de texto (CSV, TXT, Excel)
+async function processTextFile(req: any, res: any, textContent: string, fileType: string, excelData?: string) {
+  console.log('[TEXT] Processando arquivo de texto/planilha...');
+  console.log('[TEXT] Tipo:', fileType);
+  console.log('[TEXT] Tamanho do conteúdo texto:', textContent?.length || 0);
+  console.log('[TEXT] Dados Excel presentes:', !!excelData);
+  
+  let finalTextContent = textContent;
+  
+  // Processar arquivo Excel se fornecido
+  if (excelData && (fileType.includes('excel') || fileType.includes('sheet') || fileType.includes('xls'))) {
+    try {
+      console.log('[TEXT] Processando arquivo Excel...');
+      
+      // Importar XLSX dinamicamente
+      const XLSX = await import('xlsx');
+      
+      // Converter base64 para buffer
+      const buffer = Buffer.from(excelData, 'base64');
+      
+      // Ler workbook
+      const workbook = XLSX.read(buffer, { type: 'buffer' });
+      
+      // Pegar primeira planilha
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      
+      // Converter para CSV
+      const csvData = XLSX.utils.sheet_to_csv(worksheet);
+      console.log('[TEXT] Excel convertido para CSV, tamanho:', csvData.length);
+      
+      finalTextContent = csvData;
+      
+    } catch (excelError: any) {
+      console.error('[TEXT] Erro ao processar Excel:', excelError.message);
+      return res.status(400).json({ 
+        error: 'Erro ao processar arquivo Excel',
+        details: 'Não foi possível ler o arquivo Excel. Verifique se o arquivo não está corrompido.',
+        suggestions: [
+          'Tente salvar o arquivo como CSV no Excel',
+          'Verifique se o arquivo não está protegido por senha',
+          'Certifique-se de que o arquivo contém dados válidos'
+        ],
+        needsManualReview: true
+      });
+    }
+  }
+  
+  if (!finalTextContent || finalTextContent.trim().length === 0) {
+    return res.status(400).json({ 
+      error: 'Conteúdo do arquivo vazio',
+      details: 'O arquivo não contém dados válidos para processamento.'
+    });
+  }
+
+  const prompt = `
+VOCÊ É UM ESPECIALISTA EM ANÁLISE DE DADOS FINANCEIROS EM FORMATO TEXTO/CSV.
+
+ANALISE ESTE CONTEÚDO DE ARQUIVO FINANCEIRO e extraia TODAS as transações:
+
+FORMATO DO ARQUIVO: ${fileType}
+CONTEÚDO:
+${finalTextContent}
+
+INSTRUÇÕES ESPECÍFICAS POR FORMATO:
+
+🗂️ ARQUIVOS CSV/EXCEL:
+- Procure por colunas como: Data, Descrição, Valor, Débito, Crédito, Saldo
+- Ignore cabeçalhos e totais
+- Identifique a estrutura das colunas automaticamente
+
+📄 ARQUIVOS TXT:
+- Procure por padrões como: DD/MM/AAAA ou DD-MM-AAAA para datas
+- Valores monetários: R$ 123,45 ou 123.45 ou (123,45) para negativos
+- Descrições de transações entre a data e o valor
+
+REGRAS DE ANÁLISE:
+1. IDENTIFIQUE a estrutura do arquivo (delimitadores, colunas, formato)
+2. EXTRAIA todas as transações válidas
+3. DETERMINE tipo: "income" para entradas/créditos, "expense" para saídas/débitos
+4. CATEGORIZE automaticamente based na descrição
+5. FORMATE datas para YYYY-MM-DD
+6. CONVERTA valores para formato decimal (123.45)
+
+PADRÕES COMUNS EM EXTRATOS BRASILEIROS:
+- Banco do Brasil: "DATA | DESCRIÇÃO | VALOR | SALDO"
+- Bradesco: "Data;Descrição;Valor;Tipo"
+- Caixa: "DATA HISTORICO DOCUMENTO VALOR SALDO"
+- Nubank: Formato JSON ou CSV com colunas específicas
+
+RETORNE APENAS JSON VÁLIDO:
+{
+  "documentType": "arquivo_csv" ou "arquivo_txt" ou "arquivo_excel",
+  "confidence": 0.95,
+  "summary": {
+    "totalAmount": [soma de todas as transações],
+    "totalIncome": [soma apenas das entradas],
+    "totalExpense": [soma apenas das saídas],
+    "establishment": "Banco/Instituição detectada",
+    "period": "Período detectado",
+    "fileFormat": "${fileType}"
+  },
+  "transactions": [
+    {
+      "description": "Descrição da transação",
+      "amount": 150.50,
+      "type": "expense" ou "income",
+      "category": "categoria_apropriada",
+      "date": "2024-12-25",
+      "confidence": 0.9
+    }
+  ]
+}
+
+CATEGORIAS DISPONÍVEIS:
+- "alimentacao": supermercados, restaurantes, delivery
+- "transporte": combustível, uber, pedágios
+- "saude": farmácias, consultas, planos
+- "lazer": entretenimento, viagens, streaming
+- "moradia": aluguel, condomínio, utilidades
+- "educacao": cursos, livros, material escolar
+- "tecnologia": eletrônicos, software, internet
+- "servicos": bancos, seguros, manutenções
+- "outros": quando não se encaixa nas categorias
+`;
+
+  try {
+    console.log('[TEXT] Chamando Gemini para análise de texto...');
+    
+    const payload = {
+      contents: [{
+        parts: [{ text: prompt }]
+      }],
+      generationConfig: {
+        temperature: 0.1,
+        topK: 16,
+        topP: 0.8,
+        maxOutputTokens: 8192,
+      }
+    };
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[TEXT] Erro Gemini:', errorText);
+      return res.status(500).json({ 
+        error: 'Erro na análise do arquivo',
+        details: errorText.substring(0, 500)
+      });
+    }    const data = await response.json() as any;
+    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+    console.log('[TEXT] Resposta Gemini recebida, tamanho:', responseText.length);
+
+    // Processar resposta JSON similar ao OCR
+    let textResult: any;
+    try {
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        textResult = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('JSON não encontrado na resposta');
+      }
+
+      // Calcular totais
+      const totalIncome = textResult.transactions
+        .filter((t: any) => t.type === 'income')
+        .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+        
+      const totalExpense = textResult.transactions
+        .filter((t: any) => t.type === 'expense')
+        .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+      
+      textResult.summary.totalIncome = totalIncome;
+      textResult.summary.totalExpense = totalExpense;
+      textResult.summary.totalAmount = totalIncome + totalExpense;
+      textResult.summary.itemCount = textResult.transactions.length;
+      
+      console.log('[TEXT] Arquivo processado com sucesso!');
+      console.log('[TEXT] Transações encontradas:', textResult.transactions.length);
+
+      // Validação similar ao OCR
+      const hasOnlySmallValues = textResult.transactions.every((t: any) => (t.amount || 0) < 1.0);
+      const hasVeryFewTransactions = textResult.transactions.length <= 1;
+      const totalValue = totalIncome + totalExpense;
+      
+      if (hasOnlySmallValues && hasVeryFewTransactions && totalValue < 5.0) {
+        console.log('[TEXT] ⚠️ Resultado suspeito detectado');
+        
+        return res.status(400).json({
+          success: false,
+          error: 'Arquivo não foi processado corretamente',
+          details: 'O sistema não conseguiu identificar transações válidas neste arquivo.',
+          suggestions: [
+            'Verifique se o arquivo contém dados financeiros válidos',
+            'Para arquivos CSV, certifique-se de que as colunas estão bem definidas',
+            'Para arquivos TXT, verifique se o formato está legível',
+            'Tente converter o arquivo para um formato mais padrão (CSV)'
+          ],
+          needsManualReview: true
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: textResult
+      });
+
+    } catch (parseError: any) {
+      console.error('[TEXT] Erro ao parsear JSON:', parseError.message);
+      
+      return res.status(500).json({
+        success: false,
+        error: 'Erro ao processar arquivo de texto',
+        details: 'Não foi possível extrair as transações do arquivo fornecido.'
+      });
+    }
+
+  } catch (error: any) {
+    console.error('[TEXT] Erro inesperado:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Erro inesperado ao processar arquivo',
+      details: error.message
+    });
+  }
+}
+
 export default async function handler(req: any, res: any) {
   console.log('[OCR] Iniciando processamento...');
   
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
-  }
-  try {
-    const { imageBase64, pdfPassword } = req.body;
+  }  try {
+    const { imageBase64, fileName, fileType, csvData, textData, excelData } = req.body;
     
-    console.log('[OCR] Verificando imagem...');
-    console.log('[OCR] Imagem recebida:', !!imageBase64);
-    console.log('[OCR] Tamanho da imagem:', imageBase64?.length || 0);
-    console.log('[OCR] Senha PDF fornecida:', !!pdfPassword);
+    console.log('[OCR] Verificando dados recebidos...');
+    console.log('[OCR] Imagem/arquivo presente:', !!imageBase64);
+    console.log('[OCR] Nome do arquivo:', fileName);
+    console.log('[OCR] Tipo do arquivo:', fileType);
+    console.log('[OCR] Dados CSV:', !!csvData);    console.log('[OCR] Dados Excel:', !!excelData);
+    
+    // Se for CSV, XLS, XLSM ou TXT, processar como texto
+    if (fileType && (fileType.includes('csv') || fileType.includes('excel') || fileType.includes('sheet') || fileType.includes('text'))) {
+      console.log('[OCR] Processando arquivo de texto/planilha...');
+      return await processTextFile(req, res, csvData || textData, fileType, excelData);
+    }
     
     if (!imageBase64) {
-      console.log('[OCR] Erro: Imagem não fornecida');
-      return res.status(400).json({ error: 'Imagem não fornecida' });
+      console.log('[OCR] Erro: Arquivo não fornecido');
+      return res.status(400).json({ error: 'Arquivo não fornecido' });
     }
 
     let processedImageBase64 = imageBase64;// Detectar tipo de arquivo pelo cabeçalho base64
@@ -189,6 +431,41 @@ VALIDAÇÃO DE QUALIDADE:
 - Para Nubank: procure por seções como "Gastos", "Transferências", "Pagamentos"
 - Valores comuns: compras (R$ 20-500), transferências (R$ 50-2000), salários (R$ 1000+)
 
+PADRÕES ESPECÍFICOS POR BANCO BRASILEIRO:
+
+🏛️ BANCO DO BRASIL:
+- Formato típico: "DATA | DESCRIÇÃO | VALOR | SALDO"
+- Códigos de operação: "TED", "PIX", "DÉBITO AUTOMÁTICO"
+- SAÍDAS: valores com (-) ou "D" ao lado
+- ENTRADAS: valores com (+) ou "C" ao lado
+- Ignore: "SALDO ANTERIOR", "SALDO ATUAL"
+
+🏦 BRADESCO:
+- Formato típico: "Data | Histórico | Valor | Saldo"
+- SAÍDAS: "SAQUE", "DÉBITO", "TRANSFERÊNCIA ENVIADA"
+- ENTRADAS: "DEPÓSITO", "CRÉDITO", "TRANSFERÊNCIA RECEBIDA"
+- Ignore: linhas de saldo, limites, anuidades já pagas
+
+🏢 CAIXA ECONÔMICA:
+- Formato típico: "DATA | HISTÓRICO | DOCUMENTO | VALOR | SALDO"
+- Códigos específicos: "DÉBITO CONTA", "CRÉDITO CONTA"
+- SAÍDAS: valores negativos ou com código "D"
+- ENTRADAS: valores positivos ou com código "C"
+- Ignore: "SALDO DO DIA", rendimentos baixos da poupança
+
+💜 NUBANK:
+- Visual moderno com cores
+- Verde = ENTRADA (Pix recebido, transferência recebida)
+- Vermelho = SAÍDA (Pix enviado, compras, transferências enviadas)
+- Descrições claras: "Compra aprovada", "Pix para João"
+- Ignore: rendimentos baixos (centavos), cashback já aplicado
+
+🏦 ITAÚ:
+- Formato: "Data | Lançamento | Valor | Saldo"
+- SAÍDAS: "DÉBITO", "SAQUE", "TEV ELETRÔNICA ENVIADA"
+- ENTRADAS: "CRÉDITO", "DEPÓSITO", "TEV ELETRÔNICA RECEBIDA"
+- Ignore: "SALDO ANTERIOR", taxas já debitadas em outras linhas
+
 PADRÕES ESPECÍFICOS NUBANK:
 - "Pix enviado para": SAÍDA/expense
 - "Pix recebido de": ENTRADA/income  
@@ -197,6 +474,13 @@ PADRÕES ESPECÍFICOS NUBANK:
 - "Pagamento no débito": SAÍDA/expense
 - "Compra no cartão": SAÍDA/expense
 - Rendimentos da conta: geralmente MUITO BAIXOS (ignore se < R$ 1,00)
+
+VALIDAÇÃO ESPECÍFICA PARA EXTRATOS BRASILEIROS:
+- Extratos bancários BR têm MÚLTIPLAS transações diárias
+- Valores típicos: compras R$ 10-500, transferências R$ 50-5000, salários R$ 1000+
+- Se encontrar apenas 1 transação baixa (ex: R$ 0,01), PROCURE MAIS no documento
+- Bancos digitais (Nubank, Inter, C6) têm layout diferente de bancos tradicionais
+- PIX é muito comum: analise direção ("para" = saída, "de" = entrada)
 
 RETORNE APENAS JSON VÁLIDO no formato:
 
@@ -324,8 +608,8 @@ IMPORTANTE:
       const cleanText = responseText
         .replace(/```json\n?/g, '')
         .replace(/```\n?/g, '')
-        .replace(/^[^{]*/, '') // Remove texto antes do primeiro {
-        .replace(/[^}]*$/, '') // Remove texto depois do último }
+        .replace(/^[^{]*/, '') // Removes leading text until first {
+        .replace(/[^}]*$/, '') // Removes trailing text after last }
         .trim();
       
       console.log('[OCR] Texto limpo para parse:', cleanText.substring(0, 100));

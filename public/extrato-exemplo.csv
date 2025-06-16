@@ -1,0 +1,13 @@
+Data,Descrição,Valor,Tipo,Categoria
+2024-12-01,Saldo Inicial,2500.00,income,inicial
+2024-12-02,PIX Recebido - Maria Santos,800.00,income,transferencia
+2024-12-03,Supermercado XYZ,-156.80,expense,alimentacao
+2024-12-05,TED Enviada - João Pedro,-250.00,expense,transferencia
+2024-12-07,Salário - Empresa ABC,3500.00,income,salario
+2024-12-10,Conta de Luz - CELESC,-125.45,expense,moradia
+2024-12-12,Posto Shell - Combustível,-89.50,expense,transporte
+2024-12-15,PIX Enviado - Ana Oliveira,-200.00,expense,transferencia
+2024-12-18,Farmácia Popular,-67.90,expense,saude
+2024-12-20,Transferência Recebida - Marcos,150.00,income,transferencia
+2024-12-22,Pagamento Cartão de Crédito,-1200.00,expense,servicos
+2024-12-25,Magazine Luiza - Compras,-299.99,expense,outros

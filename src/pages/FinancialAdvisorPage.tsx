@@ -1591,40 +1591,35 @@ const handleImageUpload = async (imageBase64: string) => {
       throw new Error("Erro ao obter sessão");
     }    // Adicionar mensagem de upload com feedback visual
     const isPdf = imageBase64.startsWith('data:application/pdf');
-    const processingMessageId = uuidv4();
-    setMessages(prev => [...prev, {
+    const processingMessageId = uuidv4();    setMessages(prev => [...prev, {
       id: processingMessageId,
-      text: isPdf ? "📄 **Processando PDF...**\n\n⏳ Analisando documento financeiro com IA\n💡 Documentos grandes podem levar até 3 minutos\n\n*Aguarde, não recarregue a página...*" : "📄 **Processando imagem...**\n\n⏳ Analisando documento financeiro com IA\n💡 Extratos complexos podem levar alguns minutos\n\n*Aguarde, não recarregue a página...*",
+      text: isPdf ? "📄 **Processando PDF...**\n\n⏳ Analisando documento financeiro com IA\n💡 Processamento pode levar até 1 minuto\n\n*Aguarde, não recarregue a página...*" : "📄 **Processando imagem...**\n\n⏳ Analisando documento financeiro com IA\n💡 Extratos complexos podem levar alguns segundos\n\n*Aguarde, não recarregue a página...*",
       sender: 'system',
       timestamp: new Date(),
       avatarUrl: IA_AVATAR
     }]);
 
-    // Atualizar mensagem de progresso a cada 30 segundos
+    // Atualizar mensagem de progresso a cada 20 segundos (mais adequado para 60s total)
     let progressInterval: NodeJS.Timeout;
     let progressCount = 0;
     const progressMessages = [
       "🔍 Analisando estrutura do documento...",
       "📊 Identificando transações...",
-      "💰 Calculando valores e categorias...",
-      "📝 Organizando dados encontrados...",
-      "✨ Finalizando processamento..."
+      "💰 Finalizando processamento..."
     ];
 
     progressInterval = setInterval(() => {
       if (progressCount < progressMessages.length) {
         setMessages(prev => prev.map(msg => 
           msg.id === processingMessageId 
-            ? { ...msg, text: `${msg.text.split('\n')[0]}\n\n⏳ ${progressMessages[progressCount]}\n💡 Documentos grandes podem levar até 3 minutos\n\n*Aguarde, não recarregue a página...*` }
+            ? { ...msg, text: `${msg.text.split('\n')[0]}\n\n⏳ ${progressMessages[progressCount]}\n💡 Processamento pode levar até 1 minuto\n\n*Aguarde, não recarregue a página...*` }
             : msg
         ));
         progressCount++;
       }
-    }, 30000); // A cada 30 segundos
-
-    // Chamar API de OCR funcional com timeout aumentado para 3 minutos
+    }, 20000); // A cada 20 segundos// Chamar API de OCR funcional com timeout ajustado para plano gratuito Vercel (60s máximo)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutos timeout
+    const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 segundos (deixa margem para o Vercel)
     
     const response = await fetch('/api/gemini-ocr', {
       method: 'POST',
@@ -1645,10 +1640,9 @@ const handleImageUpload = async (imageBase64: string) => {
       console.error('Erro da API OCR:', errorData);
       
       // Verificar se é erro de abort (timeout do cliente)
-      if (controller.signal.aborted) {
-        setMessages(prev => [...prev, {
+      if (controller.signal.aborted) {        setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: "⏱️ **Timeout no Processamento (3 minutos)**\n\nO documento demorou muito para processar.\n\n💡 **Soluções recomendadas:**\n• **Para PDFs grandes:** Divida em seções menores\n• **Para extratos longos:** Faça capturas de tela de partes específicas\n• **Alternativa rápida:** Tire fotos das páginas com o celular\n• **Documentos complexos:** Simplifique removendo páginas desnecessárias\n\n🔄 **Quer tentar novamente?** Envie um documento menor ou em formato de imagem.",
+          text: "⏱️ **Timeout no Processamento (1 minuto)**\n\nO documento demorou muito para processar.\n\n💡 **Soluções recomendadas:**\n• **Para PDFs grandes:** Divida em seções menores ou use imagens\n• **Para extratos longos:** Faça capturas de tela de partes específicas\n• **Alternativa rápida:** Tire fotos das páginas importantes\n• **Documentos complexos:** Simplifique removendo páginas extras\n\n🔄 **Quer tentar novamente?** Envie um documento menor ou em formato de imagem.",
           sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR

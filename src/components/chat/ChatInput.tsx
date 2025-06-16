@@ -295,11 +295,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   if (waitingConfirmation && pendingActionDetails) {
-    return (      <div className="p-3 border-t border-border bg-amber-50">
-        <p className="text-sm text-center text-amber-700 mb-2">
+    return (      <div className="p-3 border-t border-border bg-amber-50">        <p className="text-sm text-center text-amber-700 mb-2">
           {pendingActionDetails.ocrTransactions ? 
             `Confirmar ação: Registrar ${pendingActionDetails.ocrTransactions.length > 1 ? 'transações' : 'transação'}` :
-            `Confirmar ação: Registrar ${pendingActionDetails.type || 'transação'} "<strong>${pendingActionDetails.description || pendingActionDetails.category}</strong>" de <strong>${pendingActionDetails.amount ? Math.abs(pendingActionDetails.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : ''}</strong> ${pendingActionDetails.date ? `em ${new Date(pendingActionDetails.date).toLocaleDateString('pt-BR')}` : ''}?`
+            `Confirmar ação: Registrar ${pendingActionDetails.type || 'transação'} "${pendingActionDetails.description || pendingActionDetails.category}" de ${pendingActionDetails.amount ? Math.abs(pendingActionDetails.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : ''} ${pendingActionDetails.date ? `em ${new Date(pendingActionDetails.date).toLocaleDateString('pt-BR')}` : ''}?`
           }
         </p>
         <div className="flex justify-center gap-3">

@@ -202,11 +202,11 @@ export const saveTransaction = (transaction: Transaction): void => {
   if (!(transaction.date instanceof Date)) {
     transaction.date = new Date(transaction.date || new Date());
   }
-  
-  console.log('Salvando transação:', JSON.stringify(transaction));
+    console.log('💾 [saveTransaction] Dados da transação preparados:', JSON.stringify(transaction));
   
   // Salvar localmente
   const transactionsStr = localStorage.getItem(`transactions_${user.id}`);
+  console.log('📂 [saveTransaction] Carregando transações existentes para user:', user.id);
   let transactions: Transaction[] = [];
   if (transactionsStr) {
     try {
@@ -216,21 +216,26 @@ export const saveTransaction = (transaction: Transaction): void => {
       transactions = [];
     }
   }
-  
-  // Verificar se a transação já existe, para não adicionar duplicatas
+    // Verificar se a transação já existe, para não adicionar duplicatas
   const existingIndex = transactions.findIndex(t => t.id === transaction.id);
   if (existingIndex >= 0) {
     // Substituir a transação existente
+    console.log('🔄 [saveTransaction] Substituindo transação existente no índice:', existingIndex);
     transactions[existingIndex] = transaction;
   } else {
     // Adicionar nova transação
+    console.log('➕ [saveTransaction] Adicionando nova transação');
     transactions.push(transaction);
   }
   
+  console.log('💾 [saveTransaction] Salvando no localStorage. Total de transações:', transactions.length);
   localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
+  console.log('✅ [saveTransaction] Transação salva no localStorage');
   
   // Disparar evento para atualizar a UI
+  console.log('🔄 [saveTransaction] Disparando evento transactionsUpdated...');
   window.dispatchEvent(new Event('transactionsUpdated'));
+  console.log('✅ [saveTransaction] Evento disparado');
   
   // Também salvar no Supabase - com retry em caso de falha
   const saveToSupabase = async () => {

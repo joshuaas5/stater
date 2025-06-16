@@ -289,8 +289,10 @@ const handleSendMessage = async (message: string) => {
           let successCount = 0;
           let errorCount = 0;
           
-          console.log(`Processando ${transactionsToProcess.length} transações:`, JSON.stringify(transactionsToProcess));
-          console.log('User ID ativo:', activeUserId);// Processar cada transação
+          console.log(`🔄 PROCESSANDO ${transactionsToProcess.length} transações:`, JSON.stringify(transactionsToProcess));
+          console.log('👤 User ID ativo:', activeUserId);
+          console.log('📋 editableTransactions:', editableTransactions.length);
+          console.log('📋 pendingAction.dados.ocrTransactions:', pendingAction.dados.ocrTransactions?.length || 0);// Processar cada transação
           for (const transaction of transactionsToProcess) {
             try {
               // Preparar data da transação
@@ -319,13 +321,13 @@ const handleSendMessage = async (message: string) => {
                 date: transactionDate,
                 userId: activeUserId
               };
-              
-              // Log para debug
-              console.log('Salvando transação OCR:', JSON.stringify(transactionToSave));
-              console.log('User ID ativo:', activeUserId);
+                // Log para debug
+              console.log('💾 Salvando transação:', JSON.stringify(transactionToSave));
+              console.log('👤 User ID ativo:', activeUserId);
               
               // Garantir que o usuário está salvo no localStorage antes de salvar a transação
               const currentLocalUser = getCurrentUser();
+              console.log('👤 Current local user:', currentLocalUser);
               if (!currentLocalUser || currentLocalUser.id !== activeUserId) {
                 // Salvar usuário no localStorage se não estiver lá
                 const userToSave = {
@@ -333,21 +335,23 @@ const handleSendMessage = async (message: string) => {
                   email: user.email || '',
                   username: user.user_metadata?.username || user.email || ''
                 };
-                console.log('Salvando usuário no localStorage:', userToSave);
+                console.log('💾 Salvando usuário no localStorage:', userToSave);
                 saveUser(userToSave);
               }
               
+              console.log('🔄 Chamando saveTransactionUtil...');
               saveTransactionUtil(transactionToSave);
+              console.log('✅ saveTransactionUtil chamado com sucesso');
 
               successCount++;
             } catch (transactionError) {
               console.error('Erro ao salvar transação OCR:', transactionError);
               errorCount++;
             }
-          }
-
-          // Atualizar interface
+          }          // Atualizar interface
+          console.log('🔄 Disparando evento transactionsUpdated...');
           window.dispatchEvent(new Event('transactionsUpdated'));
+          console.log('✅ Evento transactionsUpdated disparado');
           
           // Mensagem de resultado
           let resultMessage = '';
@@ -357,6 +361,8 @@ const handleSendMessage = async (message: string) => {
           if (errorCount > 0) {
             resultMessage += `${successCount > 0 ? '\n' : ''}❌ ${errorCount} transações falharam ao salvar.`;
           }
+          
+          console.log(`📊 Resultado final: ${successCount} sucessos, ${errorCount} erros`);
 
           setMessages((prevMessages: ChatMessage[]) => ([
             ...prevMessages,
@@ -912,7 +918,7 @@ const handleSendMessage = async (message: string) => {
             avatarUrl: IA_AVATAR
           }]);
 
-          // Preparar ação pendente para confirmação (igual ao OCR)
+          // Preparar ação pendente para confirmação (igual ao OCR)          console.log('🔍 Lista de transações detectada:', detectedTransactionList);
           setEditableTransactions(detectedTransactionList);
           setPendingAction({
             tipo: 'generic_confirmation',
@@ -922,6 +928,7 @@ const handleSendMessage = async (message: string) => {
               establishment: 'Lista de transações'
             }
           });
+          console.log('📝 PendingAction definida para lista de texto');
           setWaitingConfirmation(true);
           
           // Forçar scroll após definir transações editáveis
@@ -1415,6 +1422,7 @@ const handleImageUpload = async (imageBase64: string) => {
       timestamp: new Date(),
       avatarUrl: IA_AVATAR
     }]);    // Preparar ação pendente para confirmação
+    console.log('📷 OCR processado:', transactions.length, 'transações');
     setEditableTransactions(transactions); // Armazenar transações editáveis
     setPendingAction({
       tipo: 'generic_confirmation',
@@ -1424,6 +1432,7 @@ const handleImageUpload = async (imageBase64: string) => {
         establishment: ocrData.summary.establishment
       }
     });
+    console.log('📝 PendingAction definida para OCR');
     setWaitingConfirmation(true);
     
     // Forçar scroll após definir transações editáveis para OCR

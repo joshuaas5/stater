@@ -669,9 +669,7 @@ const handleSendMessage = async (message: string) => {
         setLoading(false);
         return; // Return early if response format is wrong
       }
-      let confirmationMessageForChat: string = botResponseText;
-
-      // Attempt to parse AI response for transaction JSON
+      let confirmationMessageForChat: string = botResponseText;      // Attempt to parse AI response for transaction JSON
       let isTransactionJson = false;
       try {
         let jsonStringToParse = botResponseText;
@@ -680,12 +678,18 @@ const handleSendMessage = async (message: string) => {
         if (jsonBlockMatch && jsonBlockMatch[1]) {
           jsonStringToParse = jsonBlockMatch[1].trim();
         } else {
-          const firstBrace = botResponseText.indexOf('{');
-          const lastBrace = botResponseText.lastIndexOf('}');
+          const firstBrace = botResponseText.indexOf('[');
+          const lastBrace = botResponseText.lastIndexOf(']');
           if (firstBrace !== -1 && lastBrace > firstBrace) {
             jsonStringToParse = botResponseText.substring(firstBrace, lastBrace + 1);
           } else {
-            throw new Error("No clear JSON structure found in AI response for transaction parsing.");
+            const firstObjBrace = botResponseText.indexOf('{');
+            const lastObjBrace = botResponseText.lastIndexOf('}');
+            if (firstObjBrace !== -1 && lastObjBrace > firstObjBrace) {
+              jsonStringToParse = botResponseText.substring(firstObjBrace, lastObjBrace + 1);
+            } else {
+              throw new Error("No clear JSON structure found in AI response for transaction parsing.");
+            }
           }
         }
         
@@ -693,7 +697,62 @@ const handleSendMessage = async (message: string) => {
         const parsed = JSON.parse(sanitizedJsonString);
 
         if (parsed && typeof parsed === 'object') {
-          if ((parsed.tipo === 'receita' || parsed.tipo === 'despesa') &&
+          // NOVO: Detectar ARRAY de transações (lista retornada pela IA)
+          if (Array.isArray(parsed) && parsed.length >= 2) {
+            // Converter array de transações da IA para formato esperado
+            const transactionList = parsed.map(tx => ({
+              type: tx.tipo === 'receita' ? 'income' : 'expense',
+              amount: parseFloat(tx.valor),
+              description: tx.descrição || tx.description || 'Transação',
+              category: tx.categoria || tx.category || 'Outros',
+              date: tx.data || tx.date || new Date().toISOString().split('T')[0]
+            }));
+
+            // Criar mensagem de resumo
+            const totalAmount = transactionList.reduce((sum, tx) => sum + tx.amount, 0);
+            let resultMessage = `🤖 **A IA detectou ${transactionList.length} transações na sua lista!**\n\n`;
+            resultMessage += `💰 **Total:** R$ ${totalAmount.toFixed(2)}\n\n`;
+            resultMessage += `**Transações processadas:**\n\n`;
+
+            // Listar cada transação
+            for (let i = 0; i < transactionList.length; i++) {
+              const transaction = transactionList[i];
+              resultMessage += `${i + 1}. **${transaction.description}**\n`;
+              resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
+              resultMessage += `   📁 Categoria: ${transaction.category}\n`;
+              resultMessage += `   📅 Data: ${transaction.date === new Date().toISOString().split('T')[0] ? 'Hoje' : transaction.date}\n\n`;
+            }
+
+            // Adicionar mensagem com resultados
+            setMessages(prev => [...prev, {
+              id: uuidv4(),
+              text: resultMessage,
+              sender: 'system',
+              timestamp: new Date(),
+              avatarUrl: IA_AVATAR
+            }]);
+
+            // Preparar ação pendente para confirmação (igual ao OCR)
+            setEditableTransactions(transactionList);
+            setPendingAction({
+              tipo: 'generic_confirmation',
+              dados: {
+                ocrTransactions: transactionList,
+                documentType: 'ai_list',
+                establishment: 'Lista processada pela IA'
+              }
+            });
+            setWaitingConfirmation(true);
+            
+            // Forçar scroll após definir transações editáveis
+            setTimeout(() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            }, 200);
+
+            isTransactionJson = true;
+          }
+          // Transação individual (formato existente)
+          else if ((parsed.tipo === 'receita' || parsed.tipo === 'despesa') &&
               parsed.hasOwnProperty('descrição') &&
               parsed.hasOwnProperty('valor')
           ) {

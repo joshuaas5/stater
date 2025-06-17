@@ -1742,20 +1742,22 @@ const handleImageUpload = async (imageBase64: string) => {
         }]);
         setLoading(false);
         return;      }
-      
-      // Verificar se precisa de revisão manual (documento mal processado)
+        // Verificar se precisa de revisão manual (documento mal processado)
       if (errorData.needsManualReview) {
-        let suggestionText = "🔍 **Documento não foi lido corretamente**\n\n";
-        suggestionText += errorData.details || "O sistema teve dificuldade para processar este documento.";
+        let suggestionText = "❌ **Arquivo não foi lido corretamente**\n\n";
+        suggestionText += errorData.details || "O sistema não conseguiu processar este arquivo.";
         
         if (errorData.suggestions && errorData.suggestions.length > 0) {
-          suggestionText += "\n\n💡 **Soluções:**\n";
+          suggestionText += "\n\n**Como resolver:**\n";
           errorData.suggestions.forEach((suggestion: string) => {
-            suggestionText += `• ${suggestion}\n`;
+            suggestionText += `${suggestion}\n`;
           });
+        } else {
+          suggestionText += "\n\n**Como resolver:**\n";
+          suggestionText += "✅ OPÇÃO 1: Tire uma FOTO clara do extrato com seu celular\n";
+          suggestionText += "✅ OPÇÃO 2: Copie o texto do extrato e cole aqui no chat\n";
+          suggestionText += "✅ OPÇÃO 3: Salve como PDF e tente novamente\n";
         }
-        
-        suggestionText += "\n🎯 **Dica especial para Nubank:** Certifique-se de que todas as transações estão visíveis na tela antes de fazer o screenshot.";
         
         setMessages(prev => [...prev, {
           id: uuidv4(),

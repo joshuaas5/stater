@@ -106,18 +106,17 @@ async function processTextFile(req: any, res: any, textContent: string, fileType
       // Converter para CSV
       const csvData = XLSX.utils.sheet_to_csv(worksheet);
       console.log('[TEXT] Excel convertido para CSV, tamanho:', csvData.length);
-      
-      finalTextContent = csvData;
+        finalTextContent = csvData;
       
     } catch (excelError: any) {
       console.error('[TEXT] Erro ao processar Excel:', excelError.message);
       return res.status(400).json({ 
-        error: 'Erro ao processar arquivo Excel',
-        details: 'Não foi possível ler o arquivo Excel. Verifique se o arquivo não está corrompido.',
+        error: 'Não consegui ler este arquivo',
+        details: 'Experimente estas alternativas que FUNCIONAM:',
         suggestions: [
-          'Tente salvar o arquivo como CSV no Excel',
-          'Verifique se o arquivo não está protegido por senha',
-          'Certifique-se de que o arquivo contém dados válidos'
+          '📸 TIRE FOTOS das páginas do extrato',
+          '📋 COPIE E COLE o texto aqui no chat',
+          '�️ ENVIE COMO IMAGEM (JPG/PNG)'
         ],
         needsManualReview: true
       });
@@ -129,76 +128,66 @@ async function processTextFile(req: any, res: any, textContent: string, fileType
       error: 'Conteúdo do arquivo vazio',
       details: 'O arquivo não contém dados válidos para processamento.'
     });
-  }
-  const prompt = `
-VOCÊ É UM ESPECIALISTA EM ANÁLISE DE DADOS FINANCEIROS BRASILEIROS.
+  }  const prompt = `
+VOCÊ É UM ESPECIALISTA EM EXTRATOS BANCÁRIOS BRASILEIROS.
 
-ANALISE ESTE CONTEÚDO DE ARQUIVO FINANCEIRO e extraia TODAS as transações com MÁXIMA PRECISÃO:
+ANALISE ESTE ARQUIVO FINANCEIRO e extraia TODAS as transações com MÁXIMA PRECISÃO:
 
-FORMATO DO ARQUIVO: ${fileType}
+ARQUIVO: ${fileType}
 CONTEÚDO:
 ${finalTextContent}
 
-INSTRUÇÕES CRÍTICAS:
+INSTRUÇÕES PARA PROCESSAMENTO:
 
-🗂️ ARQUIVOS CSV/EXCEL:
-- Identifique automaticamente as colunas: Data, Descrição, Valor, Tipo
-- IGNORE cabeçalhos, totais, saldos
-- Para valores: use SEMPRE números positivos, determine tipo pela descrição
-- Formatos aceitos: "1234.56" ou "1.234,56" ou "R$ 1.234,56"
+� PARA ARQUIVOS CSV/PLANILHA:
+- Identifique colunas automaticamente: Data, Descrição, Valor, Débito/Crédito
+- IGNORE: cabeçalhos, linhas de total, saldo anterior/atual
+- Detecte separadores (vírgula, ponto-e-vírgula, pipe)
+- Valores: converta "1.234,56" ou "R$ 1.234,56" para 1234.56
+- Determine tipo pela coluna ou descrição
 
-📄 ARQUIVOS TXT:
-- Procure padrões: DD/MM/AAAA seguido de DESCRIÇÃO e VALOR
-- Valores podem estar com + (entrada) ou - (saída)
-- Ignore linhas de "SALDO", "TOTAL", "ANTERIOR"
-- PIX enviado = expense, PIX recebido = income
+� PARA ARQUIVOS TXT:
+- Busque padrões: DD/MM/AAAA + DESCRIÇÃO + VALOR
+- Identifique entradas (+) e saídas (-)
+- PIX/TED ENVIADO = expense, RECEBIDO = income
 
-REGRAS ESPECÍFICAS PARA BANCOS BRASILEIROS:
-- Banco do Brasil: + = income, - = expense
-- Bradesco: DÉBITO = expense, CRÉDITO = income  
-- Caixa: D = expense, C = income
-- Nubank: "enviado" = expense, "recebido" = income
-- Transferências: analise direção ("para" = expense, "de" = income)
+REGRAS BANCÁRIAS BRASILEIRAS:
+✅ ENTRADAS (income): Salários, depósitos, PIX recebido, estornos
+❌ SAÍDAS (expense): Compras, saques, PIX enviado, taxas, debitos
 
-VALIDAÇÃO RIGOROSA:
-- NÃO extraia se encontrar apenas valores muito baixos (< R$ 1,00)
-- Extratos típicos têm MÚLTIPLAS transações variadas
-- Se encontrar poucos dados, retorne erro específico
-- SEMPRE converta valores para número decimal positivo
+VALIDAÇÃO OBRIGATÓRIA:
+- Mínimo 2 transações válidas
+- Valores > R$ 0,50 cada
+- Datas válidas (formato brasileiro)
+- Descrições não vazias
 
-FORMATO DE SAÍDA (JSON VÁLIDO):
+RESPOSTA JSON OBRIGATÓRIA:
 {
-  "documentType": "arquivo_texto",
+  "documentType": "extrato_bancario",
   "confidence": 0.95,
   "summary": {
-    "totalAmount": [SOMA TOTAL de income + expense],
-    "totalIncome": [SOMA apenas income],
-    "totalExpense": [SOMA apenas expense],
+    "totalAmount": [soma_total_movimentado],
+    "totalIncome": [soma_receitas],
+    "totalExpense": [soma_despesas],
     "establishment": "Banco identificado",
-    "period": "Período se detectado",
+    "period": "Período",
     "fileFormat": "${fileType}"
   },
   "transactions": [
     {
-      "description": "Descrição da transação",
+      "description": "Descrição clara",
       "amount": 150.50,
-      "type": "expense" ou "income",
-      "category": "categoria_apropriada",
+      "type": "expense",
+      "category": "alimentacao",
       "date": "2024-12-25",
       "confidence": 0.9
     }
   ]
 }
 
-CATEGORIAS DISPONÍVEIS:
-- "alimentacao": supermercados, restaurantes, delivery
-- "transporte": combustível, uber, pedágios
-- "saude": farmácias, consultas, planos
-- "lazer": entretenimento, viagens, streaming
-- "moradia": aluguel, condomínio, utilidades
-- "educacao": cursos, livros, material escolar
-- "tecnologia": eletrônicos, software, internet
-- "servicos": bancos, seguros, manutenções
+CATEGORIAS: alimentacao, transporte, moradia, saude, lazer, educacao, tecnologia, servicos, transferencia, investimento, receita, outros
+
+IMPORTANTE: Se não conseguir extrair transações válidas, retorne array vazio.
 - "outros": quando não se encaixa nas categorias
 
 EXEMPLO DE RESPOSTA VÁLIDA:
@@ -304,18 +293,15 @@ IMPORTANTE:
       const totalValue = totalIncome + totalExpense;
       
       if (hasOnlySmallValues && hasVeryFewTransactions && totalValue < 5.0) {
-        console.log('[TEXT] ⚠️ Resultado suspeito detectado');
-        
-        return res.status(400).json({
+        console.log('[TEXT] ⚠️ Resultado suspeito detectado');        return res.status(400).json({
           success: false,
-          error: 'Documento não foi processado corretamente',
-          details: 'O sistema não conseguiu identificar transações válidas neste arquivo.',
+          error: 'Não consegui ler este arquivo',
+          details: 'Experimente estas alternativas que FUNCIONAM:',
           suggestions: [
-            '📸 SOLUÇÃO RECOMENDADA: Tire screenshots (capturas de tela) das páginas',
-            '🔗 Una as imagens em: https://products.aspose.app/words/pt/merger/jpg',
-            '📋 ALTERNATIVA: Copie e cole o texto do extrato diretamente no chat',
-            '💡 Para arquivos CSV/Excel: Verifique se as colunas estão bem definidas',
-            '🔄 Tente converter para um formato mais padrão (PDF ou imagem)'          ],
+            '📸 TIRE FOTOS das páginas do extrato',
+            '📋 COPIE E COLE o texto aqui no chat',
+            '�️ ENVIE COMO IMAGEM (JPG/PNG)'
+          ],
           needsManualReview: true
         });
       }
@@ -327,32 +313,28 @@ IMPORTANTE:
 
     } catch (parseError: any) {
       console.error('[TEXT] Erro ao parsear JSON:', parseError.message);
-      console.error('[TEXT] Resposta que causou erro:', responseText.substring(0, 500));
-      
-      return res.status(500).json({
+      console.error('[TEXT] Resposta que causou erro:', responseText.substring(0, 500));        return res.status(500).json({
         success: false,
-        error: 'Erro ao processar arquivo de texto',
-        details: 'Não foi possível extrair as transações do arquivo fornecido.',
+        error: 'Não consegui ler este arquivo',
+        details: 'Experimente estas alternativas que FUNCIONAM:',
         suggestions: [
-          '📸 SOLUÇÃO RECOMENDADA: Tire screenshots (capturas de tela) das páginas',
-          '🔗 Una as imagens em: https://products.aspose.app/words/pt/merger/jpg',
-          '📋 ALTERNATIVA: Copie e cole o texto do extrato diretamente no chat',
-          '💡 Tente salvar o arquivo como PDF e enviar novamente'
+          '📸 TIRE FOTOS das páginas do extrato',
+          '📋 COPIE E COLE o texto aqui no chat',
+          '�️ ENVIE COMO IMAGEM (JPG/PNG)'
         ],
         needsManualReview: true
       });
     }
 
   } catch (error: any) {
-    console.error('[TEXT] Erro inesperado:', error);
-    return res.status(500).json({
+    console.error('[TEXT] Erro inesperado:', error);    return res.status(500).json({
       success: false,
-      error: 'Erro inesperado ao processar arquivo',
-      details: error.message,
+      error: 'Não consegui ler este arquivo',
+      details: 'Experimente estas alternativas que FUNCIONAM:',
       suggestions: [
-        '📸 SOLUÇÃO RECOMENDADA: Tire screenshots (capturas de tela) das páginas',
-        '🔗 Una as imagens em: https://products.aspose.app/words/pt/merger/jpg',
-        '📋 ALTERNATIVA: Copie e cole o texto do extrato diretamente no chat'
+        '📸 TIRE FOTOS das páginas do extrato',
+        '📋 COPIE E COLE o texto aqui no chat',
+        '🖼️ ENVIE COMO IMAGEM (JPG/PNG)'
       ],
       needsManualReview: true
     });
@@ -715,18 +697,14 @@ IMPORTANTE:
       const totalValue = totalIncome + totalExpense;
         if (hasOnlySmallValues && hasVeryFewTransactions && totalValue < 5.0) {
         console.log('[OCR] ⚠️ Resultado suspeito: valores muito baixos ou poucas transações');
-        
-        return res.status(400).json({
+          return res.status(400).json({
           success: false,
-          error: 'Documento não foi processado corretamente',
-          details: 'O sistema identificou apenas transações de valores muito baixos ou não conseguiu ler o documento corretamente.',
+          error: 'Documento não foi lido corretamente',
+          details: 'O sistema não conseguiu extrair as transações do documento.',
           suggestions: [
-            '📸 SOLUÇÃO RECOMENDADA: Tire screenshots (capturas de tela) de cada página do extrato',
-            '🔗 Una as imagens em: https://products.aspose.app/words/pt/merger/jpg',
-            '📋 ALTERNATIVA 1: Copie e cole o texto do extrato diretamente no chat',
-            '📄 ALTERNATIVA 2: Salve como PDF e envie novamente',
-            '🔍 Para extratos grandes: Divida em seções menores',
-            '💡 Dica: Imagens (JPG/PNG) são processadas mais rapidamente que PDFs'
+            '✅ OPÇÃO 1: Tire uma FOTO clara do extrato com seu celular',
+            '✅ OPÇÃO 2: Copie o texto do extrato e cole no chat',
+            '✅ OPÇÃO 3: Divida em páginas menores e envie uma por vez'
           ],
           needsManualReview: true
         });
@@ -746,18 +724,14 @@ IMPORTANTE:
           throw new Error('Nenhum JSON encontrado');
         }      } catch (partialError) {
         console.log('[OCR] Falha ao extrair JSON da resposta');
-        
-        return res.status(400).json({
+          return res.status(400).json({
           success: false,
-          error: 'Documento não foi processado corretamente',
-          details: 'O sistema não conseguiu interpretar o conteúdo do documento. O arquivo pode estar corrompido, protegido ou em formato incompatível.',
+          error: 'Documento não foi lido corretamente',
+          details: 'O arquivo não pôde ser processado. Pode estar protegido, corrompido ou em formato incompatível.',
           suggestions: [
-            '📸 SOLUÇÃO RECOMENDADA: Tire screenshots (capturas de tela) de cada página',
-            '🔗 Una as imagens em: https://products.aspose.app/words/pt/merger/jpg',
-            '📋 ALTERNATIVA 1: Copie e cole o texto do extrato diretamente no chat',
-            '📄 ALTERNATIVA 2: Converta para formato de imagem (JPG/PNG)',
-            '🔄 ALTERNATIVA 3: Tente um arquivo menor ou dividido em partes',
-            '💡 Para PDFs protegidos: Abra o arquivo e faça screenshot de cada página'
+            '✅ OPÇÃO 1: Tire uma FOTO clara do documento com seu celular',
+            '✅ OPÇÃO 2: Copie o texto do extrato e cole no chat',
+            '✅ OPÇÃO 3: Converta para imagem (JPG/PNG) e envie'
           ],
           needsManualReview: true
         });

@@ -1619,21 +1619,20 @@ const handleImageUpload = async (imageBase64: string) => {
     const processingMessageId = uuidv4();
       let processingMessage = "";
     if (isTextFile) {
-      const fileType = fileData?.fileType || 'text/plain';
-      if (fileType.includes('csv')) {
-        processingMessage = "📊 Processando CSV... Extraindo transações da planilha.";
+      const fileType = fileData?.fileType || 'text/plain';      if (fileType.includes('csv')) {
+        processingMessage = "Processando arquivo...";
       } else if (fileType.includes('excel') || fileType.includes('sheet')) {
-        processingMessage = "📈 Processando Excel... Analisando dados financeiros.";
+        processingMessage = "Processando arquivo...";
       } else if (fileType.includes('text')) {
-        processingMessage = "📝 Processando texto... Identificando transações.";
+        processingMessage = "Processando arquivo...";
       } else {
-        processingMessage = "📄 Processando arquivo... Extraindo informações.";
+        processingMessage = "Processando arquivo...";
       }
     } else if (isPdf) {
-      processingMessage = "📄 Processando PDF... Análise com IA pode levar até 60s.";
+      processingMessage = "Processando arquivo...";
     } else {
-      processingMessage = "� Processando imagem... Extraindo dados com IA.";
-    }    setMessages(prev => [...prev, {
+      processingMessage = "Processando arquivo...";
+    }setMessages(prev => [...prev, {
       id: processingMessageId,
       text: processingMessage,
       sender: 'system',
@@ -2750,10 +2749,10 @@ function getProcessingIcon(content: string): string {
 }
 
 function getProcessingDetails(content: string): string {
-  if (content.includes('PDF')) return 'Analisando estrutura do documento... Processamento pode levar até 1 minuto';
-  if (content.includes('imagem')) return 'Analisando imagem e extraindo texto... Processamento pode levar até 30 segundos';
-  if (content.includes('texto')) return 'Processando arquivo de texto... Aguarde alguns segundos';
-  return 'Processando... Aguarde';
+  if (content.includes('PDF')) return 'Processando arquivo...';
+  if (content.includes('imagem')) return 'Processando arquivo...';
+  if (content.includes('texto')) return 'Processando arquivo...';
+  return 'Processando arquivo...';
 }
 
 function formatMessageContent(content: string): React.ReactNode {

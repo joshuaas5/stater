@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Image, Camera, X } from 'lucide-react';
+import { Send, Image, Camera, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -212,7 +212,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           >            <textarea
               ref={inputRef}
               className="message-input"
-              placeholder="Digite sua mensagem aqui..."
+              placeholder={loading ? "Enviando mensagem..." : "Digite sua mensagem aqui..."}
               value={message}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
@@ -315,10 +315,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)'
                 }}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22,2 15,22 11,13 2,9"></polygon>
-                </svg>
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                  </svg>
+                )}
               </button>
             </div>
           </form>

@@ -2517,125 +2517,104 @@ return (
             </div>
           </div>
         </div>
-      )}
-
-      {/* Confirmation Modal for Simple Transactions - NOVO */}
+      )}      {/* Confirmation Popup - Pequeno popup na parte inferior */}
       {waitingConfirmation && pendingAction && editableTransactions.length === 0 && (
         <div 
-          className="modal-overlay"
+          className="confirmation-popup"
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
+            bottom: '100px', // Acima da barra de input
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))',
+            backdropFilter: 'blur(20px)',
+            borderRadius: '16px',
+            padding: '16px 20px',
+            maxWidth: '350px',
+            width: '90%',
+            color: '#2d3748',
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            zIndex: 999,
+            animation: 'slideUpFadeIn 0.3s ease-out',
+            textAlign: 'center'
           }}
         >
-          <div 
-            className="modal-content"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))',              backdropFilter: 'blur(15px)',
-              borderRadius: '16px',
-              padding: '20px',
-              maxWidth: '320px',
-              width: '85%',
-              color: '#2d3748',
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              animation: 'modalSlideIn 0.3s ease-out',
-              textAlign: 'center'
-            }}
-          >            <div style={{ marginBottom: '16px' }}>
-              <div style={{ 
-                fontSize: '24px', 
-                marginBottom: '8px' 
-              }}>
-                {pendingAction.tipo === 'income' ? '💰' : '💸'}
-              </div>
-              <h3 style={{ 
-                marginBottom: '8px', 
-                color: '#2d3748', 
-                fontSize: '16px',
+          <div style={{ marginBottom: '12px' }}>
+            <p style={{ 
+              fontSize: '14px',
+              fontWeight: '600',
+              margin: '0 0 8px 0',
+              lineHeight: '1.3'
+            }}>
+              Você deseja confirmar a {pendingAction.tipo === 'income' ? 'entrada' : 'saída'} no valor de{' '}
+              <span style={{ 
+                color: pendingAction.tipo === 'income' ? '#16a34a' : '#dc2626',
                 fontWeight: '700'
               }}>
-                Confirmar Transação
-              </h3>              <div style={{
-                background: 'rgba(79, 70, 229, 0.06)',
-                borderRadius: '10px',
-                padding: '12px',
-                marginBottom: '12px'
-              }}>
-                <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>
-                  {pendingAction.dados.description || 'Transação'}
-                </div>
-                <div style={{ fontSize: '18px', fontWeight: '700', color: pendingAction.tipo === 'income' ? '#16a34a' : '#dc2626' }}>
-                  R$ {pendingAction.dados.amount?.toFixed(2) || '0,00'}
-                </div>
-                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                  {pendingAction.tipo === 'income' ? 'Receita' : 'Despesa'} • {pendingAction.dados.category || 'Sem categoria'}
-                </div>
-              </div>
+                R$ {pendingAction.dados.amount?.toFixed(2) || '0,00'}
+              </span>?
+            </p>
+            {pendingAction.dados.description && (
               <p style={{ 
-                color: '#666', 
-                fontSize: '13px',
-                lineHeight: '1.3'
+                fontSize: '12px',
+                color: '#666',
+                margin: '0',
+                lineHeight: '1.2'
               }}>
-                Confirma o registro desta transação?
+                {pendingAction.dados.description}
               </p>
-            </div>            <div style={{ 
-              display: 'flex', 
-              gap: '10px', 
-              justifyContent: 'center'
-            }}>
-              <button
-                onClick={() => handleSendMessage('não')}
-                style={{
-                  background: 'rgba(239, 68, 68, 0.12)',
-                  color: '#dc2626',
-                  border: '1px solid rgba(239, 68, 68, 0.25)',
-                  borderRadius: '10px',
-                  padding: '10px 16px',
-                  fontWeight: '600',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  flex: 1,                  justifyContent: 'center'
-                }}
-              >
-                ❌ Cancelar
-              </button>              <button
-                onClick={() => handleSendMessage('sim')}
-                style={{
-                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '10px',
-                  padding: '10px 16px',
-                  fontWeight: '600',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  flex: 1,
-                  justifyContent: 'center',
-                  boxShadow: '0 3px 10px rgba(79, 70, 229, 0.3)'
-                }}
-              >
-                ✅ Confirmar
-              </button>
-            </div>
+            )}
+          </div>
+
+          <div style={{ 
+            display: 'flex', 
+            gap: '8px', 
+            justifyContent: 'center'
+          }}>
+            <button
+              onClick={() => handleSendMessage('não')}
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#dc2626',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontWeight: '600',
+                fontSize: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                flex: 1,
+                justifyContent: 'center'
+              }}
+            >
+              ❌ Cancelar
+            </button>
+            <button
+              onClick={() => handleSendMessage('sim')}
+              style={{
+                background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontWeight: '600',
+                fontSize: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                flex: 1,
+                justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(79, 70, 229, 0.3)'
+              }}
+            >
+              ✅ Confirmar
+            </button>
           </div>
         </div>
       )}{/* CSS Animation */}
@@ -2645,8 +2624,7 @@ return (
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
           }
-          
-          @keyframes modalSlideIn {
+            @keyframes modalSlideIn {
             0% { 
               opacity: 0; 
               transform: translateY(-30px) scale(0.95); 
@@ -2654,6 +2632,17 @@ return (
             100% { 
               opacity: 1; 
               transform: translateY(0) scale(1); 
+            }
+          }
+          
+          @keyframes slideUpFadeIn {
+            0% { 
+              opacity: 0; 
+              transform: translateX(-50%) translateY(20px); 
+            }
+            100% { 
+              opacity: 1; 
+              transform: translateX(-50%) translateY(0); 
             }
           }
             /* Chat container ajustado para melhor espaçamento */

@@ -176,21 +176,19 @@ const ChatInput: React.FC<ChatInputProps> = ({
     <>      <div 
         className="input-container"
         style={{
-          position: 'sticky',
+          position: 'fixed',
           bottom: 0,
           left: 0,
           right: 0,
-          padding: '20px',
+          padding: '15px 20px', // Reduzido o padding
           borderTop: '1px solid rgba(255, 255, 255, 0.15)',
           background: 'rgba(255, 255, 255, 0.05)',
           backdropFilter: 'blur(20px)',
           width: '100vw',
-          marginLeft: 'calc(-50vw + 50%)',
-          marginRight: 'calc(-50vw + 50%)',
           boxSizing: 'border-box',
           zIndex: 1000
         }}
-      >        <div 
+      ><div 
           className="input-wrapper" 
           style={{
             display: 'flex',
@@ -418,13 +416,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
               border: '2px solid rgba(255, 255, 255, 0.2)'
             }}
           />
-          
-          {/* Controles da câmera */}
+            {/* Controles da câmera */}
           <div style={{ 
-            marginTop: '30px', 
+            marginTop: '25px', 
             display: 'flex', 
             gap: '20px',
-            alignItems: 'center'
+            alignItems: 'center',
+            flexDirection: 'column'
           }}>
             {/* Botão capturar */}
             <button
@@ -434,15 +432,16 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 color: 'white',
                 border: 'none',
                 borderRadius: '50%',
-                width: '80px',
-                height: '80px',
-                fontSize: '32px',
+                width: '70px',
+                height: '70px',
+                fontSize: '28px',
                 cursor: 'pointer',
                 boxShadow: '0 8px 25px rgba(79, 70, 229, 0.4)',
                 transition: 'all 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                marginBottom: '20px' // Espaço entre botão e texto
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'scale(1.1)';
@@ -455,23 +454,19 @@ const ChatInput: React.FC<ChatInputProps> = ({
             >
               📷
             </button>
+            
+            {/* Dicas de uso - movido para dentro dos controles */}
+            <div style={{
+              color: 'rgba(255, 255, 255, 0.8)',
+              textAlign: 'center',
+              fontSize: '13px',
+              maxWidth: '280px',
+              lineHeight: '1.3'
+            }}>
+              💡 Posicione o extrato bem iluminado e sem reflexos
+            </div>
           </div>
-          
-          {/* Dicas de uso */}
-          <div style={{
-            position: 'absolute',
-            bottom: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            color: 'rgba(255, 255, 255, 0.8)',
-            textAlign: 'center',
-            fontSize: '14px',
-            maxWidth: '90%'
-          }}>
-            💡 Posicione o extrato bem iluminado e sem reflexos para melhor leitura
-          </div>
-
-          <canvas ref={canvasRef} style={{ display: 'none' }} />
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
       )}      {/* CSS Animations - CORRIGIDO */}
       <style dangerouslySetInnerHTML={{

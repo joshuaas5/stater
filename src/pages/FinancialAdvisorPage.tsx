@@ -1943,7 +1943,7 @@ return (
         overflow: 'hidden', // Evita scroll horizontal
         position: 'relative'
       }}
-    >{/* Header - CORRIGIDO */}
+    >      {/* Header - CORRIGIDO */}
       <div 
         className="header"
         style={{
@@ -1954,27 +1954,29 @@ return (
           background: 'rgba(255, 255, 255, 0.08)',
           backdropFilter: 'blur(20px)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
-          position: 'sticky',
+          position: 'fixed',
           top: 0,
-          zIndex: 100,
+          left: 0,
+          right: 0,
+          zIndex: 1001,
           height: '60px'
         }}
       >        <div 
           className="logo"
           style={{
-            fontSize: '24px',
-            fontWeight: 800,
-            color: 'rgba(255, 255, 255, 0.98)',
-            fontFamily: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            letterSpacing: '0.3px',
-            textShadow: '0 2px 15px rgba(0, 0, 0, 0.4)',
-            background: 'linear-gradient(135deg, #ffffff, #e0e7ff)',
+            fontSize: '22px',
+            fontWeight: 700,
+            color: '#ffffff',
+            fontFamily: '"Poppins", "Roboto", "Helvetica Neue", sans-serif',
+            letterSpacing: '0.5px',
+            textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
+            background: 'linear-gradient(45deg, #ffffff, #f0f8ff)',
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent'
           }}
         >
-          VOYB IA
+          Assistente IA
         </div>
         <div 
           className="user-info"
@@ -2029,12 +2031,12 @@ return (
           margin: '0 auto',
           width: '100%',
           padding: '0 20px',
-          paddingTop: '20px',
-          paddingBottom: '100px', // Espaço para a barra de input fixa
+          paddingTop: '80px', // Espaço para header fixo
+          paddingBottom: '20px', // Reduzido o espaço em baixo
           boxSizing: 'border-box',
-          minHeight: 'calc(100vh - 120px)' // Altura mínima para evitar cortes
+          minHeight: 'calc(100vh - 80px)' // Ajustado para header fixo
         }}
-      >        <div 
+      ><div 
           className="chat-messages" 
           ref={messagesEndRef}
           style={{
@@ -2620,19 +2622,19 @@ return (
           .financial-advisor-page {
             overflow-x: hidden !important;
           }
-          
-          /* Responsividade melhorada */
+            /* Responsividade melhorada */
           @media (max-width: 768px) {
             .header {
               padding: 10px 15px !important;
               height: 50px !important;
             }
             .logo {
-              font-size: 20px !important;
+              font-size: 18px !important;
             }
             .chat-container {
               padding: 0 15px !important;
-              padding-bottom: 90px !important;
+              padding-top: 70px !important;
+              padding-bottom: 15px !important;
             }
             .chat-messages {
               padding: 15px 0 !important;
@@ -2645,11 +2647,12 @@ return (
               height: 45px !important;
             }
             .logo {
-              font-size: 18px !important;
+              font-size: 16px !important;
             }
             .chat-container {
               padding: 0 12px !important;
-              padding-bottom: 80px !important;
+              padding-top: 65px !important;
+              padding-bottom: 10px !important;
             }
           }
         `      }} />

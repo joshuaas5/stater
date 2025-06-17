@@ -1929,19 +1929,21 @@ const deleteTransaction = (index: number) => {
 };
 
 return (
-  <>
-    <div 
+  <>    <div 
       className="financial-advisor-page"
       style={{
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         minHeight: '100vh',
+        width: '100vw',
         color: 'white',
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: '80px' // Espaço para o NavBar
+        paddingBottom: '0px', // Removido espaço extra
+        overflow: 'hidden', // Evita scroll horizontal
+        position: 'relative'
       }}
-    >      {/* Header - CORRIGIDO */}
+    >{/* Header - CORRIGIDO */}
       <div 
         className="header"
         style={{
@@ -1957,16 +1959,22 @@ return (
           zIndex: 100,
           height: '60px'
         }}
-      >
-        <div 
+      >        <div 
           className="logo"
           style={{
-            fontSize: '18px',
-            fontWeight: 600,
-            color: 'rgba(255, 255, 255, 0.95)'
+            fontSize: '24px',
+            fontWeight: 800,
+            color: 'rgba(255, 255, 255, 0.98)',
+            fontFamily: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            letterSpacing: '0.3px',
+            textShadow: '0 2px 15px rgba(0, 0, 0, 0.4)',
+            background: 'linear-gradient(135deg, #ffffff, #e0e7ff)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
           }}
         >
-          Assistente IA
+          VOYB IA
         </div>
         <div 
           className="user-info"
@@ -2020,20 +2028,23 @@ return (
           maxWidth: '900px',
           margin: '0 auto',
           width: '100%',
-          padding: '0 30px',
-          paddingTop: '20px'
+          padding: '0 20px',
+          paddingTop: '20px',
+          paddingBottom: '100px', // Espaço para a barra de input fixa
+          boxSizing: 'border-box',
+          minHeight: 'calc(100vh - 120px)' // Altura mínima para evitar cortes
         }}
-      >
-        <div 
+      >        <div 
           className="chat-messages" 
           ref={messagesEndRef}
           style={{
             flex: 1,
-            padding: '30px 0',
+            padding: '20px 0',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
-            gap: '20px'
+            gap: '20px',
+            minHeight: '400px'
           }}
         >
           {/* Error Display */}
@@ -2585,8 +2596,7 @@ return (
           .cancel-button:hover {
             background: rgba(255, 255, 255, 0.25) !important;
           }
-          
-          /* Melhorar scrollbars */
+            /* Melhorar scrollbars */
           ::-webkit-scrollbar {
             width: 8px;
           }
@@ -2601,12 +2611,51 @@ return (
           ::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.5);
           }
-        `
-      }} />
+          
+          /* Correções de layout geral */
+          body {
+            overflow-x: hidden !important;
+          }
+          
+          .financial-advisor-page {
+            overflow-x: hidden !important;
+          }
+          
+          /* Responsividade melhorada */
+          @media (max-width: 768px) {
+            .header {
+              padding: 10px 15px !important;
+              height: 50px !important;
+            }
+            .logo {
+              font-size: 20px !important;
+            }
+            .chat-container {
+              padding: 0 15px !important;
+              padding-bottom: 90px !important;
+            }
+            .chat-messages {
+              padding: 15px 0 !important;
+            }
+          }
+          
+          @media (max-width: 480px) {
+            .header {
+              padding: 8px 12px !important;
+              height: 45px !important;
+            }
+            .logo {
+              font-size: 18px !important;
+            }
+            .chat-container {
+              padding: 0 12px !important;
+              padding-bottom: 80px !important;
+            }
+          }
+        `      }} />
     </div>
     
-    {/* NavBar */}
-    <NavBar />
+    {/* NavBar removido do assistente IA para melhor experiência */}
   </>
 );
 

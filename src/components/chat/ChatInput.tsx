@@ -166,150 +166,170 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   // Cleanup camera when component unmounts
   useEffect(() => {
-    return () => {
-      if (stream) {
+    return () => {      if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
   }, [stream]);
+
   return (
-    <>
-      <div 
+    <>      <div 
         className="input-container"
         style={{
-          padding: '20px 30px 25px 30px',
+          position: 'sticky',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: '20px',
           borderTop: '1px solid rgba(255, 255, 255, 0.15)',
           background: 'rgba(255, 255, 255, 0.05)',
-          backdropFilter: 'blur(20px)'
+          backdropFilter: 'blur(20px)',
+          width: '100vw',
+          marginLeft: 'calc(-50vw + 50%)',
+          marginRight: 'calc(-50vw + 50%)',
+          boxSizing: 'border-box',
+          zIndex: 1000
         }}
-      >
-        <form 
+      >        <div 
           className="input-wrapper" 
-          onSubmit={handleSubmit}
           style={{
             display: 'flex',
             gap: '15px',
             alignItems: 'flex-end',
             maxWidth: '900px',
             margin: '0 auto',
-            width: '100%'
+            width: '100%',
+            boxSizing: 'border-box',
+            padding: '0 20px'
           }}
         >
-          <textarea
-            ref={inputRef}
-            className="message-input"
-            placeholder="Digite sua mensagem..."
-            value={message}
-            onChange={handleInputChange}
-            onKeyPress={handleKeyPress}
-            disabled={loading}
-            rows={1}
-            style={{
-              flex: 1,
-              background: 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(15px)',
-              border: '2px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '25px',
-              padding: '15px 22px',
-              color: 'white',
-              fontSize: '15px',
-              outline: 'none',
-              transition: 'all 0.3s ease',
-              resize: 'none',
-              minHeight: '52px',
-              maxHeight: '120px',
-              fontFamily: 'inherit',
-              opacity: loading ? 0.5 : 1,
-              cursor: loading ? 'not-allowed' : 'text',
-              lineHeight: '1.4',
-              boxSizing: 'border-box'
-            }}
-          />
-            <div 
-            className="input-actions"
+          <form 
+            onSubmit={handleSubmit}
             style={{
               display: 'flex',
-              gap: '10px',
-              alignItems: 'center'
+              gap: '15px',
+              alignItems: 'flex-end',
+              width: '100%'
             }}
-          >
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
+          >            <textarea
+              ref={inputRef}
+              className="message-input"
+              placeholder="Digite sua mensagem aqui..."
+              value={message}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
               disabled={loading}
-              title="Anexar arquivo"
+              rows={1}
               style={{
-                width: '52px',
-                height: '52px',
+                flex: 1,
                 background: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)',
-                border: '2px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '50%',
+                backdropFilter: 'blur(15px)',
+                border: '2px solid rgba(255, 255, 255, 0.25)',
+                borderRadius: '25px',
+                padding: '16px 24px',
                 color: 'white',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                fontSize: '15px',
+                outline: 'none',
                 transition: 'all 0.3s ease',
-                fontSize: '18px',
-                opacity: loading ? 0.5 : 1
-              }}
-            >
-              📎
-            </button>
+                resize: 'none',
+                minHeight: '52px',
+                maxHeight: '120px',
+                fontFamily: 'inherit',
+                opacity: loading ? 0.5 : 1,
+                cursor: loading ? 'not-allowed' : 'text',
+                lineHeight: '1.4',
+                boxSizing: 'border-box',
+                width: '100%',
+                minWidth: '0', // Evita overflow
+                overflow: 'hidden' // Evita scroll interno
+              }}            />
             
-            <button
-              type="button"
-              onClick={startCamera}
-              disabled={loading}
-              title="Tirar foto"
+            <div 
+              className="input-actions"
               style={{
-                width: '52px',
-                height: '52px',
-                background: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)',
-                border: '2px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '50%',
-                color: 'white',
-                cursor: loading ? 'not-allowed' : 'pointer',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.3s ease',
-                fontSize: '18px',
-                opacity: loading ? 0.5 : 1
+                gap: '10px',
+                alignItems: 'center'
               }}
             >
-              📷
-            </button>
-            
-            <button
-              type="submit"
-              disabled={loading || !message.trim()}
-              title="Enviar"
-              style={{
-                width: '52px',
-                height: '52px',
-                background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-                border: 'none',
-                borderRadius: '50%',
-                color: 'white',
-                cursor: (loading || !message.trim()) ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.3s ease',
-                opacity: (loading || !message.trim()) ? 0.5 : 1,
-                boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)'
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22,2 15,22 11,13 2,9"></polygon>
-              </svg>
-            </button>
-          </div>
-        </form>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={loading}
+                title="Anexar arquivo"
+                style={{
+                  width: '52px',
+                  height: '52px',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(10px)',
+                  border: '2px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '50%',
+                  color: 'white',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                  fontSize: '18px',
+                  opacity: loading ? 0.5 : 1
+                }}
+              >
+                📎
+              </button>
+              
+              <button
+                type="button"
+                onClick={startCamera}
+                disabled={loading}
+                title="Tirar foto"
+                style={{
+                  width: '52px',
+                  height: '52px',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(10px)',
+                  border: '2px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '50%',
+                  color: 'white',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                  fontSize: '18px',
+                  opacity: loading ? 0.5 : 1
+                }}
+              >
+                📷
+              </button>
+              
+              <button
+                type="submit"
+                disabled={loading || !message.trim()}
+                title="Enviar"
+                style={{
+                  width: '52px',
+                  height: '52px',
+                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  color: 'white',
+                  cursor: (loading || !message.trim()) ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                  opacity: (loading || !message.trim()) ? 0.5 : 1,
+                  boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)'
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
 
       {/* Hidden file inputs */}
@@ -455,11 +475,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
         </div>
       )}      {/* CSS Animations - CORRIGIDO */}
       <style dangerouslySetInnerHTML={{
-        __html: `
-          .message-input::placeholder {
-            color: rgba(255, 255, 255, 0.65);
-            text-align: left;
-            padding-left: 0;
+        __html: `          .message-input::placeholder {
+            color: rgba(255, 255, 255, 0.7) !important;
+            text-align: left !important;
+            padding-left: 0 !important;
+            opacity: 1 !important;
+          }
+          .message-input:focus::placeholder {
+            color: rgba(255, 255, 255, 0.5) !important;
           }
           .message-input:focus {
             border-color: rgba(255, 255, 255, 0.4) !important;
@@ -475,24 +498,24 @@ const ChatInput: React.FC<ChatInputProps> = ({
             transform: scale(1.05);
             box-shadow: 0 6px 25px rgba(79, 70, 229, 0.5) !important;
           }
-          
-          /* Responsividade mobile melhorada */
+            /* Responsividade mobile melhorada */
           @media (max-width: 768px) {
             .input-container {
-              padding: 15px 20px 20px 20px !important;
+              padding: 15px 10px !important;
             }
             .input-wrapper {
-              gap: 12px !important;
+              gap: 10px !important;
+              padding: 0 10px !important;
             }
             .input-actions button {
-              width: 48px !important;
-              height: 48px !important;
+              width: 44px !important;
+              height: 44px !important;
               font-size: 16px !important;
             }
             .message-input {
               font-size: 14px !important;
-              padding: 12px 18px !important;
-              min-height: 48px !important;
+              padding: 12px 16px !important;
+              min-height: 44px !important;
               border-width: 1px !important;
             }
           }
@@ -500,7 +523,31 @@ const ChatInput: React.FC<ChatInputProps> = ({
           /* Tablet */
           @media (max-width: 1024px) {
             .input-container {
-              padding: 18px 25px 22px 25px !important;
+              padding: 18px 15px !important;
+            }
+            .input-wrapper {
+              padding: 0 15px !important;
+            }
+          }
+          
+          /* Dispositivos pequenos */
+          @media (max-width: 480px) {
+            .input-container {
+              padding: 12px 8px !important;
+            }
+            .input-wrapper {
+              gap: 8px !important;
+              padding: 0 8px !important;
+            }
+            .input-actions button {
+              width: 40px !important;
+              height: 40px !important;
+              font-size: 14px !important;
+            }
+            .message-input {
+              font-size: 13px !important;
+              padding: 10px 14px !important;
+              min-height: 40px !important;
             }
           }
         `

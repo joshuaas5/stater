@@ -2032,11 +2032,11 @@ return (
           width: '100%',
           padding: '0 20px',
           paddingTop: '80px', // Espaço para header fixo
-          paddingBottom: '20px', // Reduzido o espaço em baixo
+          paddingBottom: '90px', // Espaço adequado para input fixo
           boxSizing: 'border-box',
           minHeight: 'calc(100vh - 80px)' // Ajustado para header fixo
         }}
-      >        <div 
+      ><div 
           className="chat-messages"
           style={{
             flex: 1,
@@ -2172,9 +2172,48 @@ return (
                       borderRadius: '20px 20px 6px 20px',
                       boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                     })
-                  }}
-                >
+                  }}                >
                   {formatMessageContent(message.text)}
+                  
+                  {/* Sugestões integradas na primeira mensagem do sistema */}
+                  {showSuggestions && message.sender === 'system' && index === 0 && !pendingAction && (
+                    <div style={{ 
+                      marginTop: '15px',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '8px'
+                    }}>
+                      {initialSuggestions.map((sug: string, sugIndex: number) => (
+                        <button
+                          key={sugIndex}
+                          onClick={() => handleSuggestionClick(sug)}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.2)',
+                            backdropFilter: 'blur(10px)',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            borderRadius: '15px',
+                            padding: '6px 12px',
+                            color: 'white',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            whiteSpace: 'nowrap'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                          }}
+                        >
+                          {sug}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </React.Fragment>          ))}
@@ -2236,46 +2275,7 @@ return (
                 Aguarde um momento...
               </div>
             </div>
-          )}
-        </div>
-
-        {/* Suggestions */}
-        {showSuggestions && !pendingAction && typeof initialSuggestions !== 'undefined' && (
-          <div 
-            className="suggestions-container"
-            style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(15px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '15px',
-              padding: '15px',
-              marginBottom: '20px'
-            }}
-          >
-            {initialSuggestions.map((sug: string, index: number) => (
-              <button
-                key={index}
-                className="suggestion-button"
-                onClick={() => handleSuggestionClick(sug)}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.25)',
-                  borderRadius: '20px',
-                  padding: '8px 16px',
-                  color: 'white',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  marginRight: '8px',
-                  marginBottom: '8px'
-                }}
-              >
-                {sug}
-              </button>
-            ))}
-          </div>
-        )}
+          )}        </div>
 
         {/* Chat Input */}
         <ChatInput
@@ -2758,13 +2758,9 @@ return (
               transform: translateY(0) scale(1); 
             }
           }
-          
-          .suggestion-button:hover {
-            background: rgba(255, 255, 255, 0.25) !important;
-            transform: translateY(-2px);
-          }
-          .cancel-button:hover {
-            background: rgba(255, 255, 255, 0.25) !important;
+            /* Chat container ajustado para melhor espaçamento */
+          .chat-container {
+            padding-bottom: 90px !important; /* Espaço para input fixo */
           }
             /* Melhorar scrollbars */
           ::-webkit-scrollbar {
@@ -2801,7 +2797,7 @@ return (
             .chat-container {
               padding: 0 15px !important;
               padding-top: 70px !important;
-              padding-bottom: 15px !important;
+              padding-bottom: 85px !important;
             }
             .chat-messages {
               padding: 15px 0 !important;
@@ -2826,7 +2822,7 @@ return (
             .chat-container {
               padding: 0 12px !important;
               padding-top: 65px !important;
-              padding-bottom: 10px !important;
+              padding-bottom: 80px !important;
             }
             
             /* Modal mobile */

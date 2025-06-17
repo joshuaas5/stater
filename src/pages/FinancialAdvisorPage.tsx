@@ -1918,109 +1918,494 @@ const deleteTransaction = (index: number) => {
 
 return (
   <>
-    <div className="flex flex-col h-screen bg-background">
-      <div className="flex-grow container mx-auto px-0 sm:px-4 pt-4 pb-32 flex flex-col overflow-hidden"> {/* Aumentado pb-20 para pb-32 */}
-        <div className="mb-4 text-center">
-          <h1 className="text-2xl font-bold text-foreground">VOYB IA 🤖</h1>
+    <div 
+      className="financial-advisor-page"
+      style={{
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        minHeight: '100vh',
+        color: 'white',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      {/* Header */}
+      <div 
+        className="header"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '20px 30px',
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+        }}
+      >
+        <div 
+          className="logo"
+          style={{
+            fontSize: '24px',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}
+        >
+          🤖 VOYBIA
         </div>
-
-        <div className="flex-grow flex flex-col overflow-hidden">
-          {/* Este div é o contêiner principal do chat, incluindo mensagens e input */}
-          <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden"> 
-            {error && (
-              <div className="p-4 bg-destructive text-destructive-foreground">
-                {error}
-              </div>
-            )}
-            {/* ChatMessages agora ocupa o espaço flexível e tem seu próprio scroll interno */}
-            <div className="flex-grow overflow-y-auto">
-              <ChatMessages messages={messages} messagesEndRef={messagesEndRef} iaAvatar={IA_AVATAR} userAvatar={USER_AVATAR} />
-            </div>
-            {loading && (
-              <div className="flex items-center gap-2 px-4 py-2 text-gray-500 animate-pulse">
-                <Loader2 className="animate-spin mr-2" size={18} /> Pensando...
-              </div>
-            )}
-            {showSuggestions && !pendingAction && typeof initialSuggestions !== 'undefined' && (
-              <div className="p-2 border-t border-border bg-card">
-                <div className="flex overflow-x-auto space-x-2 py-2 scrollbar-thin scrollbar-thumb-muted-foreground/50 scrollbar-track-transparent">
-                  {initialSuggestions.map((sug: string, index: number) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
-                      onClick={() => handleSuggestionClick(sug)}
-                    >
-                      {sug}
-                    </Button>
-                  ))}
-                </div>
-              </div>            )}            {/* Interface de edição de transações OCR */}
-            {waitingConfirmation && editableTransactions.length > 0 && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
-                  {/* Header */}
-                  <div className="p-4 border-b border-gray-200 bg-blue-50 rounded-t-lg">
-                    <h3 className="font-semibold text-blue-900 mb-1">📝 Editar Transações</h3>
-                    <p className="text-sm text-blue-700">
-                      Verifique e edite as transações antes de confirmar:
-                    </p>
-                  </div>
-                  
-                  {/* Lista de transações com scroll */}
-                  <div className="flex-1 overflow-hidden p-4">
-                    <TransactionList
-                      transactions={editableTransactions}
-                      onUpdate={updateTransaction}
-                      onDelete={deleteTransaction}
-                    />
-                  </div>
-                  
-                  {/* Botões de confirmação SEMPRE visíveis */}
-                  <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-                    <div className="flex justify-center gap-4">
-                      <Button 
-                        size="lg" 
-                        variant="outline" 
-                        onClick={() => handleSendMessage('não')}
-                        className="px-8 py-3 text-lg font-medium border-red-300 text-red-700 hover:bg-red-50"
-                      >
-                        ❌ Cancelar
-                      </Button>
-                      <Button 
-                        size="lg" 
-                        onClick={() => handleSendMessage('sim')}
-                        className="px-8 py-3 text-lg font-medium bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        ✅ Confirmar Todas ({editableTransactions.length})
-                      </Button>
-                    </div>
-                    <p className="text-center text-xs text-gray-600 mt-2">
-                      Confirme para salvar {editableTransactions.length} transações no sistema
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* ChatInput fica aqui, abaixo das mensagens/sugestões, mas acima do padding da NavBar */}<ChatInput
-              onSubmit={handleSendMessage} 
-              onImageUpload={handleImageUpload}
-              loading={loading}
-              waitingConfirmation={waitingConfirmation} 
-              pendingActionDetails={pendingAction ? pendingAction.dados : null} 
-              onConfirm={() => handleSendMessage('sim')} 
-              onCancel={() => handleSendMessage('não')} 
-            />
+        <div 
+          className="user-info"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '15px'
+          }}
+        >
+          <button 
+            className="cancel-button"
+            onClick={() => navigate('/dashboard')}
+            style={{
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '20px',
+              padding: '8px 16px',
+              color: 'white',
+              fontSize: '14px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            Voltar
+          </button>
+          <div 
+            className="user-avatar"
+            style={{
+              width: '40px',
+              height: '40px',
+              background: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 600,
+              fontSize: '16px'
+            }}
+          >
+            {getCurrentUser()?.email?.charAt(0)?.toUpperCase() || 'U'}
           </div>
         </div>
       </div>
-      {/* A NavBar que aparece no rodapé é renderizada aqui */}
-      <NavBar />
+
+      {/* Chat Container */}
+      <div 
+        className="chat-container"
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          maxWidth: '900px',
+          margin: '0 auto',
+          width: '100%',
+          padding: '0 30px'
+        }}
+      >
+        <div 
+          className="chat-messages" 
+          ref={messagesEndRef}
+          style={{
+            flex: 1,
+            padding: '30px 0',
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px'
+          }}
+        >
+          {/* Error Display */}
+          {error && (            <div 
+              className="message assistant" 
+              style={{ 
+                maxWidth: '70%',
+                padding: '16px 20px',
+                fontSize: '15px',
+                lineHeight: '1.5',
+                wordWrap: 'break-word',
+                background: 'rgba(239, 68, 68, 0.2)',
+                backdropFilter: 'blur(15px)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                alignSelf: 'flex-start',
+                borderRadius: '20px 20px 20px 6px'
+              }}
+            >
+              ❌ {error}
+            </div>
+          )}
+
+          {/* Messages */}
+          {messages.map((message, index) => (
+            <React.Fragment key={index}>
+              {/* Timestamp */}
+              <div 
+                className="timestamp"
+                style={{
+                  textAlign: 'center',
+                  fontSize: '12px',
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  margin: '10px 0'
+                }}
+              >
+                {formatTimestamp(message.timestamp)}
+              </div>
+
+              {/* Processing Message */}
+              {message.sender === 'system' && message.text.includes('Processando') && (
+                <div 
+                  className="processing-message"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(15px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    maxWidth: '80%',
+                    alignSelf: 'flex-start'
+                  }}
+                >
+                  <div 
+                    className="processing-header"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      marginBottom: '12px'
+                    }}
+                  >
+                    <div 
+                      className="processing-icon"
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        borderTop: '2px solid white',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                      }}
+                    ></div>
+                    <div 
+                      className="processing-title"
+                      style={{
+                        fontWeight: 600,
+                        fontSize: '16px'
+                      }}
+                    >
+                      {getProcessingIcon(message.text)} {message.text}
+                    </div>
+                  </div>
+                  <div 
+                    className="processing-details"
+                    style={{
+                      fontSize: '14px',
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      marginBottom: '8px'
+                    }}
+                  >
+                    {getProcessingDetails(message.text)}
+                  </div>
+                  <div 
+                    className="processing-note"
+                    style={{
+                      fontSize: '12px',
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      fontStyle: 'italic'
+                    }}
+                  >
+                    Aguarde, não recarregue a página...
+                  </div>
+                </div>
+              )}              {/* Regular Messages */}
+              {!(message.sender === 'system' && message.text.includes('Processando')) && (
+                <div 
+                  className={`message ${message.sender}`}
+                  style={{
+                    maxWidth: '70%',
+                    padding: '16px 20px',
+                    fontSize: '15px',
+                    lineHeight: '1.5',
+                    wordWrap: 'break-word',
+                    ...(message.sender === 'system' ? {
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(15px)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      alignSelf: 'flex-start',
+                      borderRadius: '20px 20px 20px 6px'
+                    } : {
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      color: '#2d3748',
+                      alignSelf: 'flex-end',
+                      borderRadius: '20px 20px 6px 20px',
+                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+                    })
+                  }}
+                >
+                  {formatMessageContent(message.text)}
+                </div>
+              )}
+            </React.Fragment>
+          ))}
+
+          {/* Loading indicator */}
+          {loading && (
+            <div 
+              className="processing-message"
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(15px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '20px',
+                padding: '20px',
+                maxWidth: '80%',
+                alignSelf: 'flex-start'
+              }}
+            >
+              <div 
+                className="processing-header"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '12px'
+                }}
+              >
+                <div 
+                  className="processing-icon"
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    borderTop: '2px solid white',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }}
+                ></div>
+                <div 
+                  className="processing-title"
+                  style={{
+                    fontWeight: 600,
+                    fontSize: '16px'
+                  }}
+                >
+                  🤖 Processando...
+                </div>
+              </div>
+              <div 
+                className="processing-details"
+                style={{
+                  fontSize: '14px',
+                  color: 'rgba(255, 255, 255, 0.8)'
+                }}
+              >
+                Aguarde um momento...
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Suggestions */}
+        {showSuggestions && !pendingAction && typeof initialSuggestions !== 'undefined' && (
+          <div 
+            className="suggestions-container"
+            style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(15px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '15px',
+              padding: '15px',
+              marginBottom: '20px'
+            }}
+          >
+            {initialSuggestions.map((sug: string, index: number) => (
+              <button
+                key={index}
+                className="suggestion-button"
+                onClick={() => handleSuggestionClick(sug)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  borderRadius: '20px',
+                  padding: '8px 16px',
+                  color: 'white',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  marginRight: '8px',
+                  marginBottom: '8px'
+                }}
+              >
+                {sug}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Chat Input */}
+        <ChatInput
+          onSubmit={handleSendMessage} 
+          onImageUpload={handleImageUpload}
+          loading={loading}
+          waitingConfirmation={waitingConfirmation} 
+          pendingActionDetails={pendingAction ? pendingAction.dados : null} 
+          onConfirm={() => handleSendMessage('sim')} 
+          onCancel={() => handleSendMessage('não')} 
+        />
+      </div>
+
+      {/* Transaction Review Modal */}
+      {waitingConfirmation && editableTransactions.length > 0 && (
+        <div 
+          className="modal-overlay"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}
+        >
+          <div 
+            className="modal-content"
+            style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '20px',
+              padding: '30px',
+              maxWidth: '90%',
+              maxHeight: '80%',
+              overflowY: 'auto',
+              color: '#2d3748',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+            }}
+          >
+            <h3 style={{ marginBottom: '20px', color: '#2d3748' }}>
+              📝 Editar Transações
+            </h3>
+            <p style={{ marginBottom: '20px', color: '#666' }}>
+              Verifique e edite as transações antes de confirmar:
+            </p>
+            
+            <div style={{ maxHeight: '400px', overflowY: 'auto', marginBottom: '20px' }}>
+              <TransactionList
+                transactions={editableTransactions}
+                onUpdate={updateTransaction}
+                onDelete={deleteTransaction}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={() => handleSendMessage('não')}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  color: '#2d3748',
+                  border: '1px solid rgba(0, 0, 0, 0.1)',
+                  borderRadius: '12px',
+                  padding: '12px 24px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                ❌ Cancelar
+              </button>
+              <button
+                onClick={() => handleSendMessage('sim')}
+                style={{
+                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '12px 24px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  marginLeft: '12px'
+                }}
+              >
+                ✅ Confirmar Todas ({editableTransactions.length})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSS Animation */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          .suggestion-button:hover {
+            background: rgba(255, 255, 255, 0.25) !important;
+            transform: translateY(-2px);
+          }
+          .cancel-button:hover {
+            background: rgba(255, 255, 255, 0.25) !important;
+          }
+        `
+      }} />
     </div>
   </>
 );
+
+// Helper functions
+function formatTimestamp(timestamp: Date): string {
+  const now = new Date();
+  const diffInMinutes = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60));
+  
+  if (diffInMinutes < 1) return 'agora';
+  if (diffInMinutes < 60) return `há ${diffInMinutes} minuto${diffInMinutes > 1 ? 's' : ''}`;
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `há cerca de ${diffInHours} hora${diffInHours > 1 ? 's' : ''}`;
+  
+  const diffInDays = Math.floor(diffInHours / 24);
+  return `há ${diffInDays} dia${diffInDays > 1 ? 's' : ''}`;
+}
+
+function getProcessingIcon(content: string): string {
+  if (content.includes('PDF')) return '📄';
+  if (content.includes('imagem')) return '📷';
+  if (content.includes('texto')) return '📝';
+  return '🔍';
+}
+
+function getProcessingDetails(content: string): string {
+  if (content.includes('PDF')) return '🔍 Analisando estrutura do documento... ⏱️ Processamento pode levar até 1 minuto';
+  if (content.includes('imagem')) return '🔍 Analisando imagem e extraindo texto... ⏱️ Processamento pode levar até 30 segundos';
+  if (content.includes('texto')) return '🔍 Processando arquivo de texto... ⏱️ Aguarde alguns segundos';
+  return '🔍 Processando... ⏱️ Aguarde';
+}
+
+function formatMessageContent(content: string): React.ReactNode {
+  if (content.includes('\n')) {
+    return content.split('\n').map((line, index) => (
+      <React.Fragment key={index}>
+        {line}
+        {index < content.split('\n').length - 1 && <br />}
+      </React.Fragment>
+    ));
+  }
+  return content;
+}
 };
 
 export default FinancialAdvisorPage;

@@ -172,14 +172,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
       }
     };
   }, [stream]);
-
   return (
     <>
       <div 
         className="input-container"
         style={{
-          padding: '30px 0',
-          borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+          padding: '20px 30px 25px 30px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.15)',
           background: 'rgba(255, 255, 255, 0.05)',
           backdropFilter: 'blur(20px)'
         }}
@@ -189,14 +188,17 @@ const ChatInput: React.FC<ChatInputProps> = ({
           onSubmit={handleSubmit}
           style={{
             display: 'flex',
-            gap: '12px',
-            alignItems: 'flex-end'
+            gap: '15px',
+            alignItems: 'flex-end',
+            maxWidth: '900px',
+            margin: '0 auto',
+            width: '100%'
           }}
         >
           <textarea
             ref={inputRef}
             className="message-input"
-            placeholder="Digite uma mensagem..."
+            placeholder="Digite sua mensagem..."
             value={message}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
@@ -206,27 +208,28 @@ const ChatInput: React.FC<ChatInputProps> = ({
               flex: 1,
               background: 'rgba(255, 255, 255, 0.15)',
               backdropFilter: 'blur(15px)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
+              border: '2px solid rgba(255, 255, 255, 0.2)',
               borderRadius: '25px',
-              padding: '14px 20px',
+              padding: '15px 22px',
               color: 'white',
               fontSize: '15px',
               outline: 'none',
               transition: 'all 0.3s ease',
               resize: 'none',
-              minHeight: '50px',
+              minHeight: '52px',
               maxHeight: '120px',
               fontFamily: 'inherit',
               opacity: loading ? 0.5 : 1,
-              cursor: loading ? 'not-allowed' : 'text'
+              cursor: loading ? 'not-allowed' : 'text',
+              lineHeight: '1.4',
+              boxSizing: 'border-box'
             }}
           />
-          
-          <div 
+            <div 
             className="input-actions"
             style={{
               display: 'flex',
-              gap: '8px',
+              gap: '10px',
               alignItems: 'center'
             }}
           >
@@ -236,11 +239,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
               disabled={loading}
               title="Anexar arquivo"
               style={{
-                width: '50px',
-                height: '50px',
+                width: '52px',
+                height: '52px',
                 background: 'rgba(255, 255, 255, 0.15)',
                 backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.25)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
                 borderRadius: '50%',
                 color: 'white',
                 cursor: loading ? 'not-allowed' : 'pointer',
@@ -261,11 +264,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
               disabled={loading}
               title="Tirar foto"
               style={{
-                width: '50px',
-                height: '50px',
+                width: '52px',
+                height: '52px',
                 background: 'rgba(255, 255, 255, 0.15)',
                 backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.25)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
                 borderRadius: '50%',
                 color: 'white',
                 cursor: loading ? 'not-allowed' : 'pointer',
@@ -285,8 +288,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
               disabled={loading || !message.trim()}
               title="Enviar"
               style={{
-                width: '50px',
-                height: '50px',
+                width: '52px',
+                height: '52px',
                 background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
                 border: 'none',
                 borderRadius: '50%',
@@ -296,7 +299,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 transition: 'all 0.3s ease',
-                opacity: (loading || !message.trim()) ? 0.5 : 1
+                opacity: (loading || !message.trim()) ? 0.5 : 1,
+                boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)'
               }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -449,37 +453,54 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
           <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
-      )}
-
-      {/* CSS Animations */}
+      )}      {/* CSS Animations - CORRIGIDO */}
       <style dangerouslySetInnerHTML={{
         __html: `
           .message-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.65);
+            text-align: left;
+            padding-left: 0;
           }
           .message-input:focus {
             border-color: rgba(255, 255, 255, 0.4) !important;
             background: rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
           }
           .input-actions button:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.25) !important;
             transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.35) !important;
           }
           .input-actions button[type="submit"]:hover:not(:disabled) {
             transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 6px 25px rgba(79, 70, 229, 0.5) !important;
           }
+          
+          /* Responsividade mobile melhorada */
           @media (max-width: 768px) {
             .input-container {
-              padding: 20px 0 !important;
+              padding: 15px 20px 20px 20px !important;
+            }
+            .input-wrapper {
+              gap: 12px !important;
             }
             .input-actions button {
-              width: 45px !important;
-              height: 45px !important;
+              width: 48px !important;
+              height: 48px !important;
               font-size: 16px !important;
             }
             .message-input {
               font-size: 14px !important;
+              padding: 12px 18px !important;
+              min-height: 48px !important;
+              border-width: 1px !important;
+            }
+          }
+          
+          /* Tablet */
+          @media (max-width: 1024px) {
+            .input-container {
+              padding: 18px 25px 22px 25px !important;
             }
           }
         `

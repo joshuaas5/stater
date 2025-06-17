@@ -61,7 +61,7 @@ export const FinancialAdvisorPage: React.FC = () => {
   const { t } = useTranslation();
   const [showSuggestions, setShowSuggestions] = useState(true);  const initialSystemMessage: ChatMessage = {
     id: uuidv4(),
-    text: `Olá! Eu sou a VOYB IA 🤖 do ICTUS. Estou aqui para ajudar com suas finanças.\n\n**Como posso te ajudar hoje?**\n\nPosso ajudá-lo a:\n• **Registrar receitas e despesas**\n• **Analisar seus gastos**\n• **Criar orçamentos**\n• **Dar dicas de economia**\n• **Gerenciar suas contas**\n\nSempre pedirei confirmação antes de registrar qualquer transação.`,
+    text: `Olá, sou sua IA de gestão financeira. Como posso lhe ajudar hoje?\n\nPosso ajudá-lo a:\n• Registrar receitas e despesas\n• Analisar seus gastos\n• Criar orçamentos\n• Dar dicas de economia\n• Gerenciar suas contas\n\nSempre pedirei confirmação antes de registrar qualquer transação.`,
     sender: "system",
     timestamp: new Date()
   };
@@ -1941,31 +1941,32 @@ return (
         flexDirection: 'column',
         paddingBottom: '80px' // Espaço para o NavBar
       }}
-    >
-      {/* Header */}
+    >      {/* Header - CORRIGIDO */}
       <div 
         className="header"
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '20px 30px',
-          background: 'rgba(255, 255, 255, 0.1)',
+          padding: '12px 30px',
+          background: 'rgba(255, 255, 255, 0.08)',
           backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+          height: '60px'
         }}
       >
         <div 
           className="logo"
           style={{
-            fontSize: '24px',
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
+            fontSize: '18px',
+            fontWeight: 600,
+            color: 'rgba(255, 255, 255, 0.95)'
           }}
         >
-          🤖 VOYBIA
+          Assistente IA
         </div>
         <div 
           className="user-info"
@@ -2009,9 +2010,7 @@ return (
             {getCurrentUser()?.email?.charAt(0)?.toUpperCase() || 'U'}
           </div>
         </div>
-      </div>
-
-      {/* Chat Container */}
+      </div>      {/* Chat Container - AJUSTADO */}
       <div 
         className="chat-container"
         style={{
@@ -2021,7 +2020,8 @@ return (
           maxWidth: '900px',
           margin: '0 auto',
           width: '100%',
-          padding: '0 30px'
+          padding: '0 30px',
+          paddingTop: '20px'
         }}
       >
         <div 

@@ -262,19 +262,39 @@ IMPORTANTE:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       }
-    );
-
-    if (!response.ok) {
+    );    if (!response.ok) {
       const errorText = await response.text();
-      console.error('[TEXT] Erro Gemini:', errorText);
+      console.error('[TEXT] Erro Gemini:', response.status, errorText);
       return res.status(500).json({ 
+        success: false,
         error: 'Erro na análise do arquivo',
-        details: errorText.substring(0, 500)
+        details: `Erro ${response.status}: ${errorText.substring(0, 200)}`,
+        suggestions: [
+          '📸 TIRE UMA FOTO da tela do extrato e envie',
+          '📋 COPIE o texto do extrato e cole no chat',
+          '💾 SALVE como PDF e tente novamente'
+        ]
       });
     }    const data = await response.json() as any;
-    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+      console.error('[TEXT] Resposta inválida do Gemini:', JSON.stringify(data));
+      return res.status(500).json({
+        success: false,
+        error: 'Resposta inválida da IA',
+        details: 'A IA não conseguiu processar o arquivo.',
+        suggestions: [
+          '📸 TIRE UMA FOTO da tela do extrato e envie',
+          '📋 COPIE o texto do extrato e cole no chat',
+          '💾 SALVE como PDF e tente novamente'
+        ]
+      });
+    }
+    
+    const responseText = data.candidates[0].content.parts[0].text || '';
     
     console.log('[TEXT] Resposta Gemini recebida, tamanho:', responseText.length);
+    console.log('[TEXT] Primeiros 200 chars:', responseText.substring(0, 200));
 
     // Processar resposta JSON similar ao OCR
     let textResult: any;

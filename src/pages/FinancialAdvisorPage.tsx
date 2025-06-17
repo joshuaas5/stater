@@ -224,6 +224,18 @@ const isAddBillIntent = (msg: string) => {
   return triggers.some(trigger => msg.toLowerCase().includes(trigger));
 };
 
+  // Função para forçar scroll para o final
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  };
+
+  // Hook para scroll automático quando messages mudam
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
 const handleSendMessage = async (message: string) => {
   if (isAddBillIntent(message)) {
     setMessages(prev => [
@@ -1926,7 +1938,8 @@ return (
         minHeight: '100vh',
         color: 'white',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        paddingBottom: '80px' // Espaço para o NavBar
       }}
     >
       {/* Header */}
@@ -2260,9 +2273,7 @@ return (
           onConfirm={() => handleSendMessage('sim')} 
           onCancel={() => handleSendMessage('não')} 
         />
-      </div>
-
-      {/* Transaction Review Modal */}
+      </div>      {/* Transaction Review Modal - VISUAL NOVO */}
       {waitingConfirmation && editableTransactions.length > 0 && (
         <div 
           className="modal-overlay"
@@ -2272,36 +2283,63 @@ return (
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(5px)',
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(10px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000
+            zIndex: 1000,
+            padding: '20px'
           }}
         >
           <div 
             className="modal-content"
             style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(20px)',
-              borderRadius: '20px',
-              padding: '30px',
-              maxWidth: '90%',
-              maxHeight: '80%',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))',
+              backdropFilter: 'blur(20px)',              borderRadius: '25px',
+              padding: '40px',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '85vh',
               overflowY: 'auto',
               color: '#2d3748',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+              boxShadow: '0 25px 80px rgba(0, 0, 0, 0.4)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              animation: 'modalSlideIn 0.3s ease-out'
             }}
           >
-            <h3 style={{ marginBottom: '20px', color: '#2d3748' }}>
-              📝 Editar Transações
-            </h3>
-            <p style={{ marginBottom: '20px', color: '#666' }}>
-              Verifique e edite as transações antes de confirmar:
-            </p>
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+              <h3 style={{ 
+                marginBottom: '15px', 
+                color: '#2d3748', 
+                fontSize: '24px',
+                fontWeight: '700',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px'
+              }}>
+                📝 Revisar Transações
+              </h3>
+              <p style={{ 
+                marginBottom: '0', 
+                color: '#666', 
+                fontSize: '16px',
+                lineHeight: '1.5'
+              }}>
+                Verifique e edite as transações antes de confirmar:
+              </p>
+            </div>
             
-            <div style={{ maxHeight: '400px', overflowY: 'auto', marginBottom: '20px' }}>
+            <div style={{ 
+              maxHeight: '400px', 
+              overflowY: 'auto', 
+              marginBottom: '30px',
+              background: 'rgba(255, 255, 255, 0.7)',
+              borderRadius: '15px',
+              padding: '20px',
+              border: '1px solid rgba(0, 0, 0, 0.1)'
+            }}>
               <TransactionList
                 transactions={editableTransactions}
                 onUpdate={updateTransaction}
@@ -2309,18 +2347,37 @@ return (
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <div style={{ 
+              display: 'flex', 
+              gap: '15px', 
+              justifyContent: 'center',
+              flexWrap: 'wrap'
+            }}>
               <button
                 onClick={() => handleSendMessage('não')}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  color: '#2d3748',
-                  border: '1px solid rgba(0, 0, 0, 0.1)',
-                  borderRadius: '12px',
-                  padding: '12px 24px',
-                  fontWeight: 600,
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  color: '#dc2626',
+                  border: '2px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '15px',
+                  padding: '15px 30px',
+                  fontWeight: '600',
+                  fontSize: '16px',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  minWidth: '140px',
+                  justifyContent: 'center'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 ❌ Cancelar
@@ -2331,28 +2388,196 @@ return (
                   background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '12px',
-                  padding: '12px 24px',
-                  fontWeight: 600,
+                  borderRadius: '15px',
+                  padding: '15px 30px',
+                  fontWeight: '600',
+                  fontSize: '16px',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
-                  marginLeft: '12px'
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  minWidth: '200px',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(79, 70, 229, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(79, 70, 229, 0.3)';
                 }}
               >
-                ✅ Confirmar Todas ({editableTransactions.length})
+                ✅ Confirmar ({editableTransactions.length})
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* CSS Animation */}
+      {/* Confirmation Modal for Simple Transactions - NOVO */}
+      {waitingConfirmation && pendingAction && editableTransactions.length === 0 && (
+        <div 
+          className="modal-overlay"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+        >
+          <div 
+            className="modal-content"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '25px',
+              padding: '40px',              maxWidth: '95%',
+              width: '100%',
+              color: '#2d3748',
+              boxShadow: '0 25px 80px rgba(0, 0, 0, 0.4)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              animation: 'modalSlideIn 0.3s ease-out',
+              textAlign: 'center'
+            }}
+          >
+            <div style={{ marginBottom: '30px' }}>
+              <div style={{ 
+                fontSize: '48px', 
+                marginBottom: '20px' 
+              }}>
+                {pendingAction.tipo === 'income' ? '💰' : '💸'}
+              </div>
+              <h3 style={{ 
+                marginBottom: '15px', 
+                color: '#2d3748', 
+                fontSize: '24px',
+                fontWeight: '700'
+              }}>
+                Confirmar Transação
+              </h3>
+              <div style={{
+                background: 'rgba(79, 70, 229, 0.1)',
+                borderRadius: '15px',
+                padding: '20px',
+                marginBottom: '20px'
+              }}>
+                <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
+                  {pendingAction.dados.description || 'Transação'}
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: pendingAction.tipo === 'income' ? '#16a34a' : '#dc2626' }}>
+                  R$ {pendingAction.dados.amount?.toFixed(2) || '0,00'}
+                </div>
+                <div style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>
+                  {pendingAction.tipo === 'income' ? 'Receita' : 'Despesa'} • {pendingAction.dados.category || 'Sem categoria'}
+                </div>
+              </div>
+              <p style={{ 
+                color: '#666', 
+                fontSize: '16px',
+                lineHeight: '1.5'
+              }}>
+                Confirma o registro desta transação?
+              </p>
+            </div>
+
+            <div style={{ 
+              display: 'flex', 
+              gap: '15px', 
+              justifyContent: 'center',
+              flexWrap: 'wrap'
+            }}>
+              <button
+                onClick={() => handleSendMessage('não')}
+                style={{
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  color: '#dc2626',
+                  border: '2px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '15px',
+                  padding: '15px 30px',
+                  fontWeight: '600',
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  minWidth: '140px',
+                  justifyContent: 'center'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                ❌ Cancelar
+              </button>
+              <button
+                onClick={() => handleSendMessage('sim')}
+                style={{
+                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '15px',
+                  padding: '15px 30px',
+                  fontWeight: '600',
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  minWidth: '180px',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(79, 70, 229, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(79, 70, 229, 0.3)';
+                }}
+              >
+                ✅ Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}{/* CSS Animation */}
       <style dangerouslySetInnerHTML={{
         __html: `
           @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
           }
+          
+          @keyframes modalSlideIn {
+            0% { 
+              opacity: 0; 
+              transform: translateY(-30px) scale(0.95); 
+            }
+            100% { 
+              opacity: 1; 
+              transform: translateY(0) scale(1); 
+            }
+          }
+          
           .suggestion-button:hover {
             background: rgba(255, 255, 255, 0.25) !important;
             transform: translateY(-2px);
@@ -2360,9 +2585,28 @@ return (
           .cancel-button:hover {
             background: rgba(255, 255, 255, 0.25) !important;
           }
+          
+          /* Melhorar scrollbars */
+          ::-webkit-scrollbar {
+            width: 8px;
+          }
+          ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+          }
+          ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+          }
+          ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+          }
         `
       }} />
     </div>
+    
+    {/* NavBar */}
+    <NavBar />
   </>
 );
 
@@ -2389,10 +2633,10 @@ function getProcessingIcon(content: string): string {
 }
 
 function getProcessingDetails(content: string): string {
-  if (content.includes('PDF')) return '🔍 Analisando estrutura do documento... ⏱️ Processamento pode levar até 1 minuto';
-  if (content.includes('imagem')) return '🔍 Analisando imagem e extraindo texto... ⏱️ Processamento pode levar até 30 segundos';
-  if (content.includes('texto')) return '🔍 Processando arquivo de texto... ⏱️ Aguarde alguns segundos';
-  return '🔍 Processando... ⏱️ Aguarde';
+  if (content.includes('PDF')) return 'Analisando estrutura do documento... Processamento pode levar até 1 minuto';
+  if (content.includes('imagem')) return 'Analisando imagem e extraindo texto... Processamento pode levar até 30 segundos';
+  if (content.includes('texto')) return 'Processando arquivo de texto... Aguarde alguns segundos';
+  return 'Processando... Aguarde';
 }
 
 function formatMessageContent(content: string): React.ReactNode {

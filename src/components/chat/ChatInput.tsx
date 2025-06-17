@@ -74,43 +74,85 @@ const ChatInput: React.FC<ChatInputProps> = ({
       e.target.value = '';
     }
   };
-
   const startCamera = async () => {
     try {
+      console.log('Iniciando câmera...');
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
       });
+      console.log('Stream da câmera obtido:', mediaStream);
       setStream(mediaStream);
       setShowCamera(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
+      
+      // Aguardar um pouco antes de definir o srcObject
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+          console.log('Video srcObject definido');
+        }
+      }, 100);
     } catch (error) {
-      console.error('Error accessing camera:', error);
+      console.error('Erro ao acessar câmera:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível acessar a câmera",
+        description: "Não foi possível acessar a câmera. Verifique as permissões.",
         variant: "destructive",
       });
     }
   };
-
   const capturePhoto = () => {
+    console.log('Tentando capturar foto...');
     if (videoRef.current && canvasRef.current) {
       const canvas = canvasRef.current;
       const video = videoRef.current;
+      
+      // Verificar se o vídeo está carregado
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        console.error('Vídeo não está carregado ainda');
+        toast({
+          title: "Erro",
+          description: "Aguarde o vídeo carregar completamente",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(video, 0, 0);
-        const base64Data = canvas.toDataURL('image/jpeg').split(',')[1];
+        const base64Data = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+        console.log('Foto capturada, tamanho base64:', base64Data.length);
+        
         if (onImageUpload) {
           onImageUpload(base64Data);
+          toast({
+            title: "Sucesso",
+            description: "Foto capturada com sucesso!",
+          });
         }
         stopCamera();
+      } else {
+        console.error('Não foi possível obter contexto do canvas');
+        toast({
+          title: "Erro",
+          description: "Erro ao processar a foto",
+          variant: "destructive",
+        });
       }
+    } else {
+      console.error('Video ou Canvas não estão disponíveis');
+      toast({
+        title: "Erro",
+        description: "Câmera não está pronta",
+        variant: "destructive",
+      });
     }
   };
 
@@ -282,9 +324,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         accept="image/*"
         capture="environment"
         onChange={handleFileSelect}
-      />
-
-      {/* Camera Modal */}
+      />      {/* Camera Modal - MELHORADO */}
       {showCamera && (
         <div 
           style={{
@@ -293,26 +333,76 @@ const ChatInput: React.FC<ChatInputProps> = ({
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.9)',
-            zIndex: 1000,
+            background: 'rgba(0, 0, 0, 0.95)',
+            zIndex: 1001,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            padding: '20px'
           }}
         >
+          {/* Header da câmera */}
+          <div style={{
+            position: 'absolute',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            color: 'white',
+            fontSize: '18px',
+            fontWeight: '600',
+            zIndex: 1002
+          }}>
+            📷 Capturar Extrato
+          </div>
+          
+          {/* Botão fechar */}
+          <button
+            onClick={stopCamera}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              borderRadius: '50%',
+              width: '50px',
+              height: '50px',
+              color: 'white',
+              fontSize: '24px',
+              cursor: 'pointer',
+              zIndex: 1002,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            ✕
+          </button>
+          
+          {/* Vídeo da câmera */}
           <video
             ref={videoRef}
             autoPlay
             playsInline
+            muted
             style={{
-              maxWidth: '90%',
-              maxHeight: '70%',
-              borderRadius: '12px'
+              maxWidth: '95%',
+              maxHeight: '70vh',
+              borderRadius: '15px',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
+              border: '2px solid rgba(255, 255, 255, 0.2)'
             }}
           />
           
-          <div style={{ marginTop: '20px', display: 'flex', gap: '20px' }}>
+          {/* Controles da câmera */}
+          <div style={{ 
+            marginTop: '30px', 
+            display: 'flex', 
+            gap: '20px',
+            alignItems: 'center'
+          }}>
+            {/* Botão capturar */}
             <button
               onClick={capturePhoto}
               style={{
@@ -320,30 +410,41 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 color: 'white',
                 border: 'none',
                 borderRadius: '50%',
-                width: '70px',
-                height: '70px',
-                fontSize: '24px',
-                cursor: 'pointer'
+                width: '80px',
+                height: '80px',
+                fontSize: '32px',
+                cursor: 'pointer',
+                boxShadow: '0 8px 25px rgba(79, 70, 229, 0.4)',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = '0 12px 30px rgba(79, 70, 229, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(79, 70, 229, 0.4)';
               }}
             >
               📷
             </button>
-            
-            <button
-              onClick={stopCamera}
-              style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                color: 'white',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                borderRadius: '50%',
-                width: '70px',
-                height: '70px',
-                fontSize: '24px',
-                cursor: 'pointer'
-              }}
-            >
-              ❌
-            </button>
+          </div>
+          
+          {/* Dicas de uso */}
+          <div style={{
+            position: 'absolute',
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            color: 'rgba(255, 255, 255, 0.8)',
+            textAlign: 'center',
+            fontSize: '14px',
+            maxWidth: '90%'
+          }}>
+            💡 Posicione o extrato bem iluminado e sem reflexos para melhor leitura
           </div>
 
           <canvas ref={canvasRef} style={{ display: 'none' }} />

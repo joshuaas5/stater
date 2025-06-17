@@ -1948,15 +1948,10 @@ return (
             color: '#ffffff',
             fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
             letterSpacing: '1px',
-            textShadow: '0 0 10px rgba(79, 70, 229, 0.8), 0 0 20px rgba(124, 58, 237, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4)',
-            background: 'linear-gradient(45deg, #ffffff, #e0e7ff, #c7d2fe)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            WebkitTextStroke: '1px rgba(79, 70, 229, 0.3)',
+            textShadow: '2px 2px 0px #4f46e5, 4px 4px 0px #7c3aed, 0 0 20px rgba(79, 70, 229, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
             textTransform: 'uppercase',
             position: 'relative',
-            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))'
+            filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))'
           }}
         >
           Assistente IA
@@ -2546,119 +2541,96 @@ return (
           <div 
             className="modal-content"
             style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))',
-              backdropFilter: 'blur(20px)',
-              borderRadius: '25px',
-              padding: '40px',              maxWidth: '95%',
-              width: '100%',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))',              backdropFilter: 'blur(15px)',
+              borderRadius: '16px',
+              padding: '20px',
+              maxWidth: '320px',
+              width: '85%',
               color: '#2d3748',
-              boxShadow: '0 25px 80px rgba(0, 0, 0, 0.4)',
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
               border: '1px solid rgba(255, 255, 255, 0.3)',
               animation: 'modalSlideIn 0.3s ease-out',
               textAlign: 'center'
             }}
-          >
-            <div style={{ marginBottom: '30px' }}>
+          >            <div style={{ marginBottom: '16px' }}>
               <div style={{ 
-                fontSize: '48px', 
-                marginBottom: '20px' 
+                fontSize: '24px', 
+                marginBottom: '8px' 
               }}>
                 {pendingAction.tipo === 'income' ? '💰' : '💸'}
               </div>
               <h3 style={{ 
-                marginBottom: '15px', 
+                marginBottom: '8px', 
                 color: '#2d3748', 
-                fontSize: '24px',
+                fontSize: '16px',
                 fontWeight: '700'
               }}>
                 Confirmar Transação
-              </h3>
-              <div style={{
-                background: 'rgba(79, 70, 229, 0.1)',
-                borderRadius: '15px',
-                padding: '20px',
-                marginBottom: '20px'
+              </h3>              <div style={{
+                background: 'rgba(79, 70, 229, 0.06)',
+                borderRadius: '10px',
+                padding: '12px',
+                marginBottom: '12px'
               }}>
-                <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>
                   {pendingAction.dados.description || 'Transação'}
                 </div>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: pendingAction.tipo === 'income' ? '#16a34a' : '#dc2626' }}>
+                <div style={{ fontSize: '18px', fontWeight: '700', color: pendingAction.tipo === 'income' ? '#16a34a' : '#dc2626' }}>
                   R$ {pendingAction.dados.amount?.toFixed(2) || '0,00'}
                 </div>
-                <div style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>
+                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
                   {pendingAction.tipo === 'income' ? 'Receita' : 'Despesa'} • {pendingAction.dados.category || 'Sem categoria'}
                 </div>
               </div>
               <p style={{ 
                 color: '#666', 
-                fontSize: '16px',
-                lineHeight: '1.5'
+                fontSize: '13px',
+                lineHeight: '1.3'
               }}>
                 Confirma o registro desta transação?
               </p>
-            </div>
-
-            <div style={{ 
+            </div>            <div style={{ 
               display: 'flex', 
-              gap: '15px', 
-              justifyContent: 'center',
-              flexWrap: 'wrap'
+              gap: '10px', 
+              justifyContent: 'center'
             }}>
               <button
                 onClick={() => handleSendMessage('não')}
                 style={{
-                  background: 'rgba(239, 68, 68, 0.15)',
+                  background: 'rgba(239, 68, 68, 0.12)',
                   color: '#dc2626',
-                  border: '2px solid rgba(239, 68, 68, 0.3)',
-                  borderRadius: '15px',
-                  padding: '15px 30px',
+                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                  borderRadius: '10px',
+                  padding: '10px 16px',
                   fontWeight: '600',
-                  fontSize: '16px',
+                  fontSize: '13px',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease',
+                  transition: 'all 0.2s ease',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  minWidth: '140px',
-                  justifyContent: 'center'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
-                  e.currentTarget.style.transform = 'translateY(0)';
+                  gap: '4px',
+                  flex: 1,                  justifyContent: 'center'
                 }}
               >
                 ❌ Cancelar
-              </button>
-              <button
+              </button>              <button
                 onClick={() => handleSendMessage('sim')}
                 style={{
                   background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '15px',
-                  padding: '15px 30px',
+                  borderRadius: '10px',
+                  padding: '10px 16px',
                   fontWeight: '600',
-                  fontSize: '16px',
+                  fontSize: '13px',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease',
+                  transition: 'all 0.2s ease',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  minWidth: '180px',
+                  gap: '4px',
+                  flex: 1,
                   justifyContent: 'center',
-                  boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(79, 70, 229, 0.5)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(79, 70, 229, 0.3)';
+                  boxShadow: '0 3px 10px rgba(79, 70, 229, 0.3)'
                 }}
               >
                 ✅ Confirmar

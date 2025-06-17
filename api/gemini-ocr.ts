@@ -102,21 +102,20 @@ async function processTextFile(req: any, res: any, textContent: string, fileType
       // Pegar primeira planilha
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      
-      // Converter para CSV
+        // Converter para CSV
       const csvData = XLSX.utils.sheet_to_csv(worksheet);
       console.log('[TEXT] Excel convertido para CSV, tamanho:', csvData.length);
-        finalTextContent = csvData;
+      
+      finalTextContent = csvData;
       
     } catch (excelError: any) {
       console.error('[TEXT] Erro ao processar Excel:', excelError.message);
       return res.status(400).json({ 
-        error: 'Não consegui ler este arquivo',
-        details: 'Experimente estas alternativas que FUNCIONAM:',
+        error: 'Arquivo não foi lido corretamente',
         suggestions: [
-          '📸 TIRE FOTOS das páginas do extrato',
-          '📋 COPIE E COLE o texto aqui no chat',
-          '�️ ENVIE COMO IMAGEM (JPG/PNG)'
+          '📸 TIRE UMA FOTO da planilha na tela e envie',
+          '📋 COPIE os dados da planilha e cole no chat',
+          '💾 SALVE como PDF e envie'
         ],
         needsManualReview: true
       });
@@ -129,53 +128,60 @@ async function processTextFile(req: any, res: any, textContent: string, fileType
       details: 'O arquivo não contém dados válidos para processamento.'
     });
   }  const prompt = `
-VOCÊ É UM ESPECIALISTA EM EXTRATOS BANCÁRIOS BRASILEIROS.
+VOCÊ É UM ESPECIALISTA EM ANÁLISE DE DADOS FINANCEIROS BRASILEIROS.
 
-ANALISE ESTE ARQUIVO FINANCEIRO e extraia TODAS as transações com MÁXIMA PRECISÃO:
+ANALISE ESTE CONTEÚDO DE ARQUIVO FINANCEIRO e extraia TODAS as transações com MÁXIMA PRECISÃO:
 
-ARQUIVO: ${fileType}
-CONTEÚDO:
+FORMATO DO ARQUIVO: ${fileType}
+CONTEÚDO A ANALISAR:
 ${finalTextContent}
 
-INSTRUÇÕES PARA PROCESSAMENTO:
+INSTRUÇÕES ESPECÍFICAS POR FORMATO:
 
-� PARA ARQUIVOS CSV/PLANILHA:
-- Identifique colunas automaticamente: Data, Descrição, Valor, Débito/Crédito
-- IGNORE: cabeçalhos, linhas de total, saldo anterior/atual
-- Detecte separadores (vírgula, ponto-e-vírgula, pipe)
-- Valores: converta "1.234,56" ou "R$ 1.234,56" para 1234.56
-- Determine tipo pela coluna ou descrição
+🗂️ PARA CSV/EXCEL:
+- Procure colunas com: Data, Descrição/Histórico, Valor/Débito/Crédito, Tipo
+- IGNORE linhas de cabeçalho, totais, saldos, rodapés
+- Valores sempre POSITIVOS no JSON (ex: -150.50 vira 150.50)
+- Determine tipo pela coluna ou contexto da descrição
+- Aceite separadores: vírgula (,) ou ponto e vírgula (;)
+- Formatos de valor: "1234.56", "1.234,56", "R$ 1.234,56", "-1234,56"
 
-� PARA ARQUIVOS TXT:
-- Busque padrões: DD/MM/AAAA + DESCRIÇÃO + VALOR
-- Identifique entradas (+) e saídas (-)
-- PIX/TED ENVIADO = expense, RECEBIDO = income
+📄 PARA ARQUIVOS TXT:
+- Procure padrões: DD/MM/AAAA + DESCRIÇÃO + VALOR
+- Valores com + ou sem sinal = ENTRADA (income)
+- Valores com - = SAÍDA (expense)
+- PIX enviado/TED = expense, PIX recebido = income
+- Ignore linhas de "SALDO", "TOTAL", "ANTERIOR"
 
-REGRAS BANCÁRIAS BRASILEIRAS:
-✅ ENTRADAS (income): Salários, depósitos, PIX recebido, estornos
-❌ SAÍDAS (expense): Compras, saques, PIX enviado, taxas, debitos
+🏦 REGRAS PARA BANCOS BRASILEIROS:
+- Banco do Brasil: (+) = income, (-) = expense
+- Bradesco: DÉBITO/D = expense, CRÉDITO/C = income  
+- Caixa: D = expense, C = income
+- Nubank: "enviado"/"pago" = expense, "recebido" = income
+- Itaú: (+) = income, (-) = expense
+- Transferências: analise direção ("para" = expense, "de" = income)
 
 VALIDAÇÃO OBRIGATÓRIA:
-- Mínimo 2 transações válidas
-- Valores > R$ 0,50 cada
-- Datas válidas (formato brasileiro)
-- Descrições não vazias
+- NÃO extraia se só houver valores < R$ 1,00
+- Extratos típicos têm MÚLTIPLAS transações variadas
+- Se poucos dados válidos, retorne transactions: []
+- SEMPRE use números positivos no campo amount
 
-RESPOSTA JSON OBRIGATÓRIA:
+FORMATO JSON OBRIGATÓRIO:
 {
-  "documentType": "extrato_bancario",
+  "documentType": "extrato_${fileType}",
   "confidence": 0.95,
   "summary": {
-    "totalAmount": [soma_total_movimentado],
-    "totalIncome": [soma_receitas],
-    "totalExpense": [soma_despesas],
+    "totalAmount": [SOMA TOTAL],
+    "totalIncome": [SOMA receitas],
+    "totalExpense": [SOMA despesas],
     "establishment": "Banco identificado",
-    "period": "Período",
+    "period": "Período detectado",
     "fileFormat": "${fileType}"
   },
   "transactions": [
     {
-      "description": "Descrição clara",
+      "description": "Descrição clara da transação",
       "amount": 150.50,
       "type": "expense",
       "category": "alimentacao",
@@ -185,41 +191,51 @@ RESPOSTA JSON OBRIGATÓRIA:
   ]
 }
 
-CATEGORIAS: alimentacao, transporte, moradia, saude, lazer, educacao, tecnologia, servicos, transferencia, investimento, receita, outros
+CATEGORIAS VÁLIDAS:
+- "alimentacao": supermercados, restaurantes, delivery
+- "transporte": combustível, uber, pedágios, estacionamento
+- "saude": farmácias, consultas, planos de saúde
+- "lazer": entretenimento, viagens, streaming, cinema
+- "moradia": aluguel, condomínio, água, luz, gás
+- "educacao": cursos, livros, mensalidades escolares
+- "tecnologia": eletrônicos, software, internet, telefone
+- "servicos": bancos, seguros, manutenções, taxas
+- "compras": roupas, casa, presentes, diversos
+- "transferencia": PIX, TED, transferências entre contas
+- "investimento": aplicações, resgates, corretora
+- "receita": salário, freelance, vendas, aluguéis
+- "outros": quando não se encaixa em nenhuma categoria
 
-IMPORTANTE: Se não conseguir extrair transações válidas, retorne array vazio.
-- "outros": quando não se encaixa nas categorias
-
-EXEMPLO DE RESPOSTA VÁLIDA:
+EXEMPLO DE SAÍDA VÁLIDA:
 {
-  "documentType": "arquivo_texto",
+  "documentType": "extrato_csv",
   "confidence": 0.95,
   "summary": {
-    "totalAmount": 4565.25,
-    "totalIncome": 3500.00,
+    "totalAmount": 2565.25,
+    "totalIncome": 1500.00,
     "totalExpense": 1065.25,
     "establishment": "Banco do Brasil",
     "period": "Dezembro 2024",
-    "fileFormat": "text/plain"
+    "fileFormat": "text/csv"
   },
   "transactions": [
     {
-      "description": "Salário - Empresa ABC",
-      "amount": 3500.00,
-      "type": "income",
-      "category": "outros",
-      "date": "2024-12-07",
+      "description": "Supermercado Extra",
+      "amount": 285.90,
+      "type": "expense",
+      "category": "alimentacao",
+      "date": "2024-12-15",
       "confidence": 0.95
     }
   ]
 }
 
 IMPORTANTE: 
-- Retorne APENAS o JSON, sem texto adicional
-- Use valores numéricos para amounts (não strings)
-- Dates no formato YYYY-MM-DD
+- Retorne APENAS o JSON válido, sem texto adicional
+- Se não encontrar dados válidos, retorne transactions: [] (array vazio)
+- Sempre use valores numéricos (não strings) para amounts
+- Datas sempre no formato YYYY-MM-DD
 - Types apenas "income" ou "expense"
-- Se não conseguir extrair nada válido, retorne array transactions vazio
 `;
 
   try {
@@ -295,12 +311,12 @@ IMPORTANTE:
       if (hasOnlySmallValues && hasVeryFewTransactions && totalValue < 5.0) {
         console.log('[TEXT] ⚠️ Resultado suspeito detectado');        return res.status(400).json({
           success: false,
-          error: 'Não consegui ler este arquivo',
-          details: 'Experimente estas alternativas que FUNCIONAM:',
+          error: 'Arquivo não foi lido corretamente',
+          details: 'O sistema não conseguiu extrair transações válidas.',
           suggestions: [
-            '📸 TIRE FOTOS das páginas do extrato',
-            '📋 COPIE E COLE o texto aqui no chat',
-            '�️ ENVIE COMO IMAGEM (JPG/PNG)'
+            '📸 TIRE UMA FOTO da tela do extrato e envie',
+            '📋 COPIE o texto do extrato e cole no chat',
+            '💾 SALVE como PDF e tente novamente'
           ],
           needsManualReview: true
         });
@@ -315,12 +331,12 @@ IMPORTANTE:
       console.error('[TEXT] Erro ao parsear JSON:', parseError.message);
       console.error('[TEXT] Resposta que causou erro:', responseText.substring(0, 500));        return res.status(500).json({
         success: false,
-        error: 'Não consegui ler este arquivo',
-        details: 'Experimente estas alternativas que FUNCIONAM:',
+        error: 'Arquivo não foi lido corretamente',
+        details: 'Não foi possível processar este formato de arquivo.',
         suggestions: [
-          '📸 TIRE FOTOS das páginas do extrato',
-          '📋 COPIE E COLE o texto aqui no chat',
-          '�️ ENVIE COMO IMAGEM (JPG/PNG)'
+          '📸 TIRE UMA FOTO da tela do extrato e envie',
+          '📋 COPIE o texto do extrato e cole no chat',
+          '💾 SALVE como PDF e tente novamente'
         ],
         needsManualReview: true
       });
@@ -329,12 +345,11 @@ IMPORTANTE:
   } catch (error: any) {
     console.error('[TEXT] Erro inesperado:', error);    return res.status(500).json({
       success: false,
-      error: 'Não consegui ler este arquivo',
-      details: 'Experimente estas alternativas que FUNCIONAM:',
+      error: 'Erro ao processar arquivo',
+      details: 'Formato de arquivo não suportado.',
       suggestions: [
-        '📸 TIRE FOTOS das páginas do extrato',
-        '📋 COPIE E COLE o texto aqui no chat',
-        '🖼️ ENVIE COMO IMAGEM (JPG/PNG)'
+        '📸 TIRE UMA FOTO da tela do extrato e envie',
+        '📋 COPIE o texto do extrato e cole no chat'
       ],
       needsManualReview: true
     });

@@ -2036,9 +2036,8 @@ return (
           boxSizing: 'border-box',
           minHeight: 'calc(100vh - 80px)' // Ajustado para header fixo
         }}
-      ><div 
-          className="chat-messages" 
-          ref={messagesEndRef}
+      >        <div 
+          className="chat-messages"
           style={{
             flex: 1,
             padding: '20px 0',
@@ -2178,8 +2177,10 @@ return (
                   {formatMessageContent(message.text)}
                 </div>
               )}
-            </React.Fragment>
-          ))}
+            </React.Fragment>          ))}
+
+          {/* Scroll anchor para posicionar no final */}
+          <div ref={messagesEndRef} style={{ height: '1px' }} />
 
           {/* Loading indicator */}
           {loading && (
@@ -2286,7 +2287,7 @@ return (
           onConfirm={() => handleSendMessage('sim')} 
           onCancel={() => handleSendMessage('não')} 
         />
-      </div>      {/* Transaction Review Modal - VISUAL NOVO */}
+      </div>      {/* Transaction Review Modal - REWORK COMPLETO */}
       {waitingConfirmation && editableTransactions.length > 0 && (
         <div 
           className="modal-overlay"
@@ -2296,134 +2297,301 @@ return (
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(10px)',
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(15px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
+            zIndex: 1002,
+            padding: '10px'
           }}
         >
           <div 
             className="modal-content"
             style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))',
-              backdropFilter: 'blur(20px)',              borderRadius: '25px',
-              padding: '40px',
-              maxWidth: '600px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              borderRadius: '20px',
               width: '100%',
-              maxHeight: '85vh',
-              overflowY: 'auto',
-              color: '#2d3748',
-              boxShadow: '0 25px 80px rgba(0, 0, 0, 0.4)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              animation: 'modalSlideIn 0.3s ease-out'
+              maxWidth: '500px',
+              height: '90vh',
+              maxHeight: '700px',
+              display: 'flex',
+              flexDirection: 'column',
+              color: 'white',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              overflow: 'hidden'
             }}
           >
-            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-              <h3 style={{ 
-                marginBottom: '15px', 
-                color: '#2d3748', 
-                fontSize: '24px',
-                fontWeight: '700',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '12px'
-              }}>
-                📝 Revisar Transações
-              </h3>
-              <p style={{ 
-                marginBottom: '0', 
-                color: '#666', 
-                fontSize: '16px',
-                lineHeight: '1.5'
-              }}>
-                Verifique e edite as transações antes de confirmar:
-              </p>
-            </div>
-            
-            <div style={{ 
-              maxHeight: '400px', 
-              overflowY: 'auto', 
-              marginBottom: '30px',
-              background: 'rgba(255, 255, 255, 0.7)',
-              borderRadius: '15px',
-              padding: '20px',
-              border: '1px solid rgba(0, 0, 0, 0.1)'
+            {/* Header do Modal */}
+            <div style={{
+              padding: '20px 25px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
             }}>
-              <TransactionList
-                transactions={editableTransactions}
-                onUpdate={updateTransaction}
-                onDelete={deleteTransaction}
-              />
+              <div>
+                <h2 style={{
+                  margin: 0,
+                  fontSize: '20px',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px'
+                }}>
+                  📋 Revisar Transações
+                </h2>
+                <p style={{
+                  margin: '5px 0 0 0',
+                  fontSize: '14px',
+                  opacity: 0.8
+                }}>
+                  {editableTransactions.length} transação{editableTransactions.length > 1 ? 'ões' : ''} encontrada{editableTransactions.length > 1 ? 's' : ''}
+                </p>
+              </div>
+              <button
+                onClick={() => handleSendMessage('não')}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  padding: '8px',
+                  cursor: 'pointer',
+                  fontSize: '18px',
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ✕
+              </button>
             </div>
 
-            <div style={{ 
-              display: 'flex', 
-              gap: '15px', 
-              justifyContent: 'center',
-              flexWrap: 'wrap'
+            {/* Lista de Transações */}
+            <div style={{
+              flex: 1,
+              padding: '20px 25px',
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '15px'
+            }}>
+              {editableTransactions.map((transaction, index) => (
+                <div key={index} style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: '15px',
+                  padding: '20px',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    marginBottom: '15px'
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        marginBottom: '5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}>
+                        {transaction.type === 'income' ? '💰' : '💸'}
+                        <input
+                          type="text"
+                          value={transaction.description || ''}
+                          onChange={(e) => updateTransaction(index, { ...transaction, description: e.target.value })}
+                          placeholder="Descrição da transação..."
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.2)',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                            color: 'white',
+                            fontSize: '14px',
+                            flex: 1,
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                      
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '10px',
+                        marginBottom: '10px'
+                      }}>
+                        <div>
+                          <label style={{ fontSize: '12px', opacity: 0.8, display: 'block', marginBottom: '5px' }}>
+                            Valor (R$)
+                          </label>
+                          <input
+                            type="number"
+                            value={Math.abs(transaction.amount || 0)}
+                            onChange={(e) => updateTransaction(index, { 
+                              ...transaction, 
+                              amount: transaction.type === 'expense' ? -Math.abs(parseFloat(e.target.value) || 0) : Math.abs(parseFloat(e.target.value) || 0)
+                            })}
+                            style={{
+                              background: 'rgba(255, 255, 255, 0.2)',
+                              border: '1px solid rgba(255, 255, 255, 0.3)',
+                              borderRadius: '8px',
+                              padding: '8px 12px',
+                              color: 'white',
+                              fontSize: '14px',
+                              width: '100%',
+                              outline: 'none'
+                            }}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label style={{ fontSize: '12px', opacity: 0.8, display: 'block', marginBottom: '5px' }}>
+                            Data
+                          </label>
+                          <input
+                            type="date"
+                            value={transaction.date || new Date().toISOString().split('T')[0]}
+                            onChange={(e) => updateTransaction(index, { ...transaction, date: e.target.value })}
+                            style={{
+                              background: 'rgba(255, 255, 255, 0.2)',
+                              border: '1px solid rgba(255, 255, 255, 0.3)',
+                              borderRadius: '8px',
+                              padding: '8px 12px',
+                              color: 'white',
+                              fontSize: '14px',
+                              width: '100%',
+                              outline: 'none'
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '12px', opacity: 0.8, display: 'block', marginBottom: '5px' }}>
+                          Categoria
+                        </label>
+                        <select
+                          value={transaction.category || ''}
+                          onChange={(e) => updateTransaction(index, { ...transaction, category: e.target.value })}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.2)',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                            color: 'white',
+                            fontSize: '14px',
+                            width: '100%',
+                            outline: 'none'
+                          }}
+                        >
+                          <option value="" style={{ background: '#333', color: 'white' }}>Selecione uma categoria</option>
+                          <option value="alimentacao" style={{ background: '#333', color: 'white' }}>🍽️ Alimentação</option>
+                          <option value="transporte" style={{ background: '#333', color: 'white' }}>🚗 Transporte</option>
+                          <option value="lazer" style={{ background: '#333', color: 'white' }}>🎮 Lazer</option>
+                          <option value="saude" style={{ background: '#333', color: 'white' }}>⚕️ Saúde</option>
+                          <option value="educacao" style={{ background: '#333', color: 'white' }}>📚 Educação</option>
+                          <option value="casa" style={{ background: '#333', color: 'white' }}>🏠 Casa</option>
+                          <option value="trabalho" style={{ background: '#333', color: 'white' }}>💼 Trabalho</option>
+                          <option value="outros" style={{ background: '#333', color: 'white' }}>📦 Outros</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => deleteTransaction(index)}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.2)',
+                        border: '1px solid rgba(239, 68, 68, 0.4)',
+                        borderRadius: '8px',
+                        color: '#ff6b6b',
+                        padding: '8px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        marginLeft: '10px',
+                        width: '36px',
+                        height: '36px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer com Botões */}
+            <div style={{
+              padding: '20px 25px',
+              borderTop: '1px solid rgba(255, 255, 255, 0.15)',
+              background: 'rgba(255, 255, 255, 0.05)',
+              display: 'flex',
+              gap: '15px',
+              justifyContent: 'space-between'
             }}>
               <button
                 onClick={() => handleSendMessage('não')}
                 style={{
-                  background: 'rgba(239, 68, 68, 0.15)',
-                  color: '#dc2626',
-                  border: '2px solid rgba(239, 68, 68, 0.3)',
-                  borderRadius: '15px',
-                  padding: '15px 30px',
-                  fontWeight: '600',
-                  fontSize: '16px',
+                  background: 'rgba(239, 68, 68, 0.2)',
+                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                  borderRadius: '12px',
+                  color: '#ff6b6b',
+                  padding: '12px 24px',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  minWidth: '140px',
-                  justifyContent: 'center'
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  flex: 1,
+                  transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 ❌ Cancelar
               </button>
+              
               <button
                 onClick={() => handleSendMessage('sim')}
                 style={{
                   background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-                  color: 'white',
                   border: 'none',
-                  borderRadius: '15px',
-                  padding: '15px 30px',
-                  fontWeight: '600',
-                  fontSize: '16px',
+                  borderRadius: '12px',
+                  color: 'white',
+                  padding: '12px 24px',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  minWidth: '200px',
-                  justifyContent: 'center',
-                  boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)'
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  flex: 2,
+                  boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)',
+                  transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(79, 70, 229, 0.5)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(79, 70, 229, 0.4)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
                   e.currentTarget.style.boxShadow = '0 4px 15px rgba(79, 70, 229, 0.3)';
                 }}
               >
-                ✅ Confirmar ({editableTransactions.length})
+                ✅ Salvar {editableTransactions.length} Transação{editableTransactions.length > 1 ? 'ões' : ''}
               </button>
             </div>
           </div>
@@ -2621,8 +2789,7 @@ return (
           
           .financial-advisor-page {
             overflow-x: hidden !important;
-          }
-            /* Responsividade melhorada */
+          }          /* Responsividade melhorada */
           @media (max-width: 768px) {
             .header {
               padding: 10px 15px !important;
@@ -2639,6 +2806,13 @@ return (
             .chat-messages {
               padding: 15px 0 !important;
             }
+            
+            /* Modal responsivo */
+            .modal-content {
+              height: 95vh !important;
+              margin: 5px !important;
+              border-radius: 15px !important;
+            }
           }
           
           @media (max-width: 480px) {
@@ -2653,6 +2827,14 @@ return (
               padding: 0 12px !important;
               padding-top: 65px !important;
               padding-bottom: 10px !important;
+            }
+            
+            /* Modal mobile */
+            .modal-content {
+              height: 98vh !important;
+              margin: 0 !important;
+              border-radius: 0 !important;
+              max-width: 100% !important;
             }
           }
         `      }} />

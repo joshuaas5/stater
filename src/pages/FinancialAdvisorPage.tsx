@@ -356,8 +356,7 @@ const handleSendMessage = async (message: string) => {
                 };
                 console.log('💾 Salvando usuário no localStorage:', userToSave);
                 saveUser(userToSave);
-              }
-                console.log('🔄 Chamando saveTransactionUtil...');
+              }                console.log('🔄 Chamando saveTransactionUtil...');
               saveTransactionUtil(transactionToSave);
               console.log('✅ saveTransactionUtil chamado com sucesso');
               
@@ -368,6 +367,8 @@ const handleSendMessage = async (message: string) => {
                 window.dispatchEvent(new CustomEvent('transactionsUpdated', { 
                   detail: { source: 'ocr', transaction: transactionToSave } 
                 }));
+                // Forçar recarga da localStorage
+                window.dispatchEvent(new Event('storage'));
               }, 100);
               
               setTimeout(() => {
@@ -489,9 +490,10 @@ const handleSendMessage = async (message: string) => {
             console.log('Salvando usuário no localStorage:', userToSave);
             saveUser(userToSave);
           }
-          
-          saveTransactionUtil(transactionToSave);
-          window.dispatchEvent(new Event('transactionsUpdated'));          setMessages((prevMessages: ChatMessage[]) => [
+            saveTransactionUtil(transactionToSave);
+          window.dispatchEvent(new Event('transactionsUpdated'));
+          // Forçar recarga da localStorage
+          window.dispatchEvent(new Event('storage'));setMessages((prevMessages: ChatMessage[]) => [
             ...prevMessages,
             { id: uuidv4(), text: `✅ ${pendingAction.tipo === 'income' ? 'Receita' : 'Despesa'} registrada com sucesso!`, sender: 'system', timestamp: new Date() }
           ]);
@@ -1615,26 +1617,23 @@ const handleImageUpload = async (imageBase64: string) => {
     // Adicionar mensagem de upload com feedback visual adequado
     const isPdf = !isTextFile && imageBase64.startsWith('data:application/pdf');
     const processingMessageId = uuidv4();
-    
-    let processingMessage = "";
+      let processingMessage = "";
     if (isTextFile) {
       const fileType = fileData?.fileType || 'text/plain';
       if (fileType.includes('csv')) {
-        processingMessage = "📊 **Processando arquivo CSV...**\n\n⏳ Analisando dados financeiros\n💡 Extraindo transações da planilha\n\n*Aguarde, não recarregue a página...*";
+        processingMessage = "📊 Processando CSV... Extraindo transações da planilha.";
       } else if (fileType.includes('excel') || fileType.includes('sheet')) {
-        processingMessage = "📈 **Processando planilha Excel...**\n\n⏳ Analisando dados financeiros\n💡 Convertendo e extraindo transações\n\n*Aguarde, não recarregue a página...*";
+        processingMessage = "📈 Processando Excel... Analisando dados financeiros.";
       } else if (fileType.includes('text')) {
-        processingMessage = "📝 **Processando arquivo de texto...**\n\n⏳ Analisando extrato em formato texto\n💡 Identificando transações\n\n*Aguarde, não recarregue a página...*";
+        processingMessage = "📝 Processando texto... Identificando transações.";
       } else {
-        processingMessage = "📄 **Processando arquivo...**\n\n⏳ Analisando documento financeiro\n💡 Extraindo informações\n\n*Aguarde, não recarregue a página...*";
+        processingMessage = "📄 Processando arquivo... Extraindo informações.";
       }
     } else if (isPdf) {
-      processingMessage = "📄 **Processando PDF...**\n\n⏳ Analisando documento financeiro com IA\n💡 Processamento pode levar até 1 minuto\n\n*Aguarde, não recarregue a página...*";
+      processingMessage = "📄 Processando PDF... Análise com IA pode levar até 60s.";
     } else {
-      processingMessage = "📄 **Processando imagem...**\n\n⏳ Analisando documento financeiro com IA\n💡 Extratos complexos podem levar alguns segundos\n\n*Aguarde, não recarregue a página...*";
-    }
-
-    setMessages(prev => [...prev, {
+      processingMessage = "� Processando imagem... Extraindo dados com IA.";
+    }    setMessages(prev => [...prev, {
       id: processingMessageId,
       text: processingMessage,
       sender: 'system',
@@ -1642,25 +1641,7 @@ const handleImageUpload = async (imageBase64: string) => {
       avatarUrl: IA_AVATAR
     }]);
 
-    // Atualizar mensagem de progresso a cada 20 segundos (mais adequado para 60s total)
-    let progressInterval: NodeJS.Timeout;
-    let progressCount = 0;
-    const progressMessages = [
-      "🔍 Analisando estrutura do documento...",
-      "📊 Identificando transações...",
-      "💰 Finalizando processamento..."
-    ];
-
-    progressInterval = setInterval(() => {
-      if (progressCount < progressMessages.length) {
-        setMessages(prev => prev.map(msg => 
-          msg.id === processingMessageId 
-            ? { ...msg, text: `${msg.text.split('\n')[0]}\n\n⏳ ${progressMessages[progressCount]}\n💡 Processamento pode levar até 1 minuto\n\n*Aguarde, não recarregue a página...*` }
-            : msg
-        ));
-        progressCount++;
-      }
-    }, 20000); // A cada 20 segundos// Chamar API de OCR funcional com timeout ajustado para plano gratuito Vercel (60s máximo)
+    // Chamar API de OCR funcional com timeout ajustadopara plano gratuito Vercel (60s máximo)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 segundos (deixa margem para o Vercel)
     
@@ -1693,9 +1674,7 @@ const handleImageUpload = async (imageBase64: string) => {
       body: JSON.stringify(requestBody),
       signal: controller.signal
     });
-    
-    clearTimeout(timeoutId);
-    clearInterval(progressInterval);
+      clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
@@ -1964,16 +1943,20 @@ return (
       >        <div 
           className="logo"
           style={{
-            fontSize: '22px',
-            fontWeight: 700,
+            fontSize: '24px',
+            fontWeight: 800,
             color: '#ffffff',
-            fontFamily: '"Poppins", "Roboto", "Helvetica Neue", sans-serif',
-            letterSpacing: '0.5px',
-            textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-            background: 'linear-gradient(45deg, #ffffff, #f0f8ff)',
+            fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
+            letterSpacing: '1px',
+            textShadow: '0 0 10px rgba(79, 70, 229, 0.8), 0 0 20px rgba(124, 58, 237, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4)',
+            background: 'linear-gradient(45deg, #ffffff, #e0e7ff, #c7d2fe)',
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
+            WebkitTextFillColor: 'transparent',
+            WebkitTextStroke: '1px rgba(79, 70, 229, 0.3)',
+            textTransform: 'uppercase',
+            position: 'relative',
+            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))'
           }}
         >
           Assistente IA
@@ -2216,66 +2199,9 @@ return (
                   )}
                 </div>
               )}
-            </React.Fragment>          ))}
-
-          {/* Scroll anchor para posicionar no final */}
+            </React.Fragment>          ))}          {/* Scroll anchor para posicionar no final */}
           <div ref={messagesEndRef} style={{ height: '1px' }} />
-
-          {/* Loading indicator */}
-          {loading && (
-            <div 
-              className="processing-message"
-              style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(15px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '20px',
-                padding: '20px',
-                maxWidth: '80%',
-                alignSelf: 'flex-start'
-              }}
-            >
-              <div 
-                className="processing-header"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginBottom: '12px'
-                }}
-              >
-                <div 
-                  className="processing-icon"
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    border: '2px solid rgba(255, 255, 255, 0.3)',
-                    borderTop: '2px solid white',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite'
-                  }}
-                ></div>
-                <div 
-                  className="processing-title"
-                  style={{
-                    fontWeight: 600,
-                    fontSize: '16px'
-                  }}
-                >
-                  🤖 Processando...
-                </div>
-              </div>
-              <div 
-                className="processing-details"
-                style={{
-                  fontSize: '14px',
-                  color: 'rgba(255, 255, 255, 0.8)'
-                }}
-              >
-                Aguarde um momento...
-              </div>
-            </div>
-          )}        </div>
+        </div>
 
         {/* Chat Input */}
         <ChatInput

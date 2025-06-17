@@ -180,7 +180,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           bottom: 0,
           left: 0,
           right: 0,
-          padding: '15px 20px', // Reduzido o padding
+          padding: '20px 20px', // Aumentado mais para 20px
           borderTop: '1px solid rgba(255, 255, 255, 0.15)',
           background: 'rgba(255, 255, 255, 0.05)',
           backdropFilter: 'blur(20px)',
@@ -230,7 +230,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 outline: 'none',
                 transition: 'all 0.3s ease',
                 resize: 'none',
-                minHeight: '52px',
+                minHeight: '58px', // Aumentado mais para 58px
                 maxHeight: '120px',
                 fontFamily: 'inherit',
                 opacity: loading ? 0.5 : 1,
@@ -249,15 +249,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 gap: '10px',
                 alignItems: 'center'
               }}
-            >
-              <button
+            >              <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={loading}
                 title="Anexar arquivo"
                 style={{
-                  width: '52px',
-                  height: '52px',
+                  width: '58px', // Aumentado mais para 58px
+                  height: '58px',
                   background: 'rgba(255, 255, 255, 0.15)',
                   backdropFilter: 'blur(10px)',
                   border: '2px solid rgba(255, 255, 255, 0.2)',
@@ -273,16 +272,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 }}
               >
                 📎
-              </button>
-              
-              <button
+              </button>                <button
                 type="button"
                 onClick={startCamera}
                 disabled={loading}
                 title="Tirar foto"
                 style={{
-                  width: '52px',
-                  height: '52px',
+                  width: '58px', // Aumentado mais para 58px
+                  height: '58px',
                   background: 'rgba(255, 255, 255, 0.15)',
                   backdropFilter: 'blur(10px)',
                   border: '2px solid rgba(255, 255, 255, 0.2)',
@@ -298,15 +295,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 }}
               >
                 📷
-              </button>
-              
-              <button
+              </button>                <button
                 type="submit"
                 disabled={loading || !message.trim()}
                 title="Enviar"
                 style={{
-                  width: '52px',
-                  height: '52px',
+                  width: '58px', // Aumentado mais para 58px
+                  height: '58px',
                   background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
                   border: 'none',
                   borderRadius: '50%',

@@ -253,16 +253,14 @@ IMPORTANTE:
         topP: 0.8,
         maxOutputTokens: 8192,
       }
-    };
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`,
+    };    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       }
-    );    if (!response.ok) {
+    );if (!response.ok) {
       const errorText = await response.text();
       console.error('[TEXT] Erro Gemini:', response.status, errorText);
       return res.status(500).json({ 
@@ -403,7 +401,7 @@ export default async function handler(req: any, res: any) {
 
     let processedImageBase64 = imageBase64;// Detectar tipo de arquivo pelo cabeçalho base64
     let mimeType = "image/jpeg"; // padrão
-    let modelToUse = "gemini-2.0-flash-exp"; // usar sempre o mesmo modelo que funciona
+    let modelToUse = "gemini-2.0-flash-exp"; // 2.0 Flash Experimental para fotos
     
     console.log('[OCR] Primeiros 20 chars do base64:', imageBase64.substring(0, 20));
     

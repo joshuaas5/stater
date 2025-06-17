@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import NavBar from '@/components/navigation/NavBar';
+import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
+import { TransactionList } from '@/components/ocr/TransactionList';
 import { isLoggedIn, saveTransaction as saveTransactionUtil, getCurrentUser, saveUser } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
 import { ChatMessage, Transaction } from '@/types';
@@ -8,7 +11,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '@/hooks/use-translation';
 import { fetchGeminiFlashLite, GeminiTransactionIntent } from '@/utils/gemini';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Edit3, Trash2 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
@@ -383,9 +388,7 @@ const handleSendMessage = async (message: string) => {
             resultMessage += `${successCount > 0 ? '\n' : ''}❌ ${errorCount} transações falharam ao salvar.`;
           }
           
-          console.log(`📊 Resultado final: ${successCount} sucessos, ${errorCount} erros`);
-
-          setMessages((prevMessages: ChatMessage[]) => ([
+          console.log(`📊 Resultado final: ${successCount} sucessos, ${errorCount} erros`);          setMessages((prevMessages: ChatMessage[]) => [
             ...prevMessages,
             { 
               id: uuidv4(), 
@@ -394,7 +397,7 @@ const handleSendMessage = async (message: string) => {
               timestamp: new Date(),
               avatarUrl: IA_AVATAR
             }
-          ]));
+          ]);
         }
         // Processar transações normais
         else if (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense') {
@@ -476,15 +479,13 @@ const handleSendMessage = async (message: string) => {
           }
           
           saveTransactionUtil(transactionToSave);
-          window.dispatchEvent(new Event('transactionsUpdated'));
-          setMessages((prevMessages: ChatMessage[]) => ([
+          window.dispatchEvent(new Event('transactionsUpdated'));          setMessages((prevMessages: ChatMessage[]) => [
             ...prevMessages,
             { id: uuidv4(), text: `✅ ${pendingAction.tipo === 'income' ? 'Receita' : 'Despesa'} registrada com sucesso!`, sender: 'system', timestamp: new Date() }
-          ]));
+          ]);
         } else if (pendingAction.tipo === 'bill') {
           // Exemplo para contas
-          const { valor, descricao, vencimento } = pendingAction.dados;
-          await supabase.from('bills').insert([
+          const { valor, descricao, vencimento } = pendingAction.dados;          await supabase.from('bills').insert([
             {
               amount: valor,
               title: descricao,
@@ -492,11 +493,11 @@ const handleSendMessage = async (message: string) => {
               user_id: activeUserId, // Assuming you have a user_id field in your bills table
               created_at: new Date().toISOString(),
             }
-          );
-          setMessages((prevMessages: ChatMessage[]) => ([
+          ]);
+          setMessages((prevMessages: ChatMessage[]) => [
             ...prevMessages,
             { id: uuidv4(), text: '✅ Conta registrada com sucesso!', sender: 'system', timestamp: new Date() }
-          ]));        } // Closes 'else if (pendingAction.tipo === 'conta')'
+          ]);} // Closes 'else if (pendingAction.tipo === 'conta')'
         
         setPendingAction(null);
         setWaitingConfirmation(false);
@@ -1155,7 +1156,7 @@ const handleSendMessage = async (message: string) => {
           // Remover o valor da linha para pegar a descrição
           description = cleanLine
             .replace(/r\$\s*\d+(?:[.,]\d{3})*(?:[.,]\d{2})?/i, '')
-            .replace(/\s*-\s*.*$/i, '') // Removes tudo após o dash
+            .replace(/\s*-\s*.*$/i, '') // Remove tudo após o dash
             .replace(/^\s*-\s*/, '') // Remove dash no início
             .trim();
           
@@ -1387,9 +1388,9 @@ const handleSendMessage = async (message: string) => {
           if (description && amountStr) {
             // Limpar descrição de formatação desnecessária
             description = description
-              .replace(/^\d+\.\s*/, '') // Removes numeração
-              .replace(/^[•\-*]\s*/, '') // Removes marcadores
-              .replace(/:\s*$/, '') // Removes dois pontos finais
+              .replace(/^\d+\.\s*/, '') // Remove numeração
+              .replace(/^[•\-*]\s*/, '') // Remove marcadores
+              .replace(/:\s*$/, '') // Remove dois pontos finais
               .trim();
             
             // Converter valor
@@ -1915,413 +1916,39 @@ const deleteTransaction = (index: number) => {
   }
 };
 
-const handleConfirmAction = async () => {
-    if (pendingAction) {
-      try {
-        setLoading(true);
-        
-        // Processar e salvar transações
-        for (const transaction of editableTransactions) {
-          await saveTransactionUtil(transaction);
-        }
-        
-        // Adicionar mensagem de sucesso
-        const successMessage: ChatMessage = {
-          id: uuidv4(),
-          text: `✅ **Transações salvas com sucesso!**\n\n${editableTransactions.length} transaç${editableTransactions.length > 1 ? 'ões foram adicionadas' : 'ão foi adicionada'} ao seu controle financeiro.\n\n• Você pode visualizar todas as transações no Dashboard\n• Os totais foram atualizados automaticamente`,
-          sender: "system",
-          timestamp: new Date()
-        };
-        
-        setMessages(prev => [...prev, successMessage]);
-        setPendingAction(null);
-        setEditableTransactions([]);
-        
-      } catch (error) {
-        console.error('Erro ao salvar transações:', error);
-        const errorMessage: ChatMessage = {
-          id: uuidv4(),
-          text: '❌ **Erro ao salvar transações**\n\nOcorreu um erro ao salvar as transações. Tente novamente.',
-          sender: "system",
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, errorMessage]);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  // Helper functions for the new layout
-  const formatTimestamp = (timestamp: Date): string => {
-    const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'agora';
-    if (diffInMinutes < 60) return `há ${diffInMinutes} minuto${diffInMinutes > 1 ? 's' : ''}`;
-    
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `há cerca de ${diffInHours} hora${diffInHours > 1 ? 's' : ''}`;
-    
-    const diffInDays = Math.floor(diffInHours / 24);
-    return `há ${diffInDays} dia${diffInDays > 1 ? 's' : ''}`;
-  };
-
-  const formatMessageContent = (content: string): React.ReactNode => {
-    // Preservar formatação de listas, links, etc.
-    if (content.includes('\n')) {
-      return content.split('\n').map((line, index) => (
-        <React.Fragment key={index}>
-          {line}
-          {index < content.split('\n').length - 1 && <br />}
-        </React.Fragment>
-      ));
-    }
-    return content;
-  };
-
-  const handleEditTransaction = (index: number) => {
-    // Implementar edição de transação
-    console.log('Editing transaction:', index);
-  };
-
-  const handleDeleteTransaction = (index: number) => {
-    // Implementar exclusão de transação
-    const newTransactions = editableTransactions.filter((_, i) => i !== index);
-    setEditableTransactions(newTransactions);
-  };
-
-  return (
-    <div className="financial-advisor-page">
-    <style jsx>{`
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      .financial-advisor-page {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        color: white;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px 30px;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-      }
-
-      .logo {
-        font-size: 24px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .logo::before {
-        content: "🤖";
-        font-size: 28px;
-      }
-
-      .user-info {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-      }
-
-      .user-avatar {
-        width: 40px;
-        height: 40px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 16px;
-      }
-
-      .cancel-button {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 20px;
-        padding: 8px 16px;
-        color: white;
-        font-size: 14px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-
-      .cancel-button:hover {
-        background: rgba(255, 255, 255, 0.25);
-      }
-
-      .chat-container {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        max-width: 900px;
-        margin: 0 auto;
-        width: 100%;
-        padding: 0 30px;
-      }
-
-      .chat-messages {
-        flex: 1;
-        padding: 30px 0;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
-
-      .message {
-        max-width: 70%;
-        padding: 16px 20px;
-        border-radius: 20px;
-        font-size: 15px;
-        line-height: 1.5;
-        word-wrap: break-word;
-      }
-
-      .message.assistant {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        align-self: flex-start;
-        border-radius: 20px 20px 20px 6px;
-      }
-
-      .message.user {
-        background: rgba(255, 255, 255, 0.9);
-        color: #2d3748;
-        align-self: flex-end;
-        border-radius: 20px 20px 6px 20px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      }
-
-      .processing-message {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 20px;
-        padding: 20px;
-        max-width: 80%;
-        align-self: flex-start;
-      }
-
-      .processing-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 12px;
-      }
-
-      .processing-icon {
-        width: 20px;
-        height: 20px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-top: 2px solid white;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
-
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-
-      .processing-title {
-        font-weight: 600;
-        font-size: 16px;
-      }
-
-      .processing-details {
-        font-size: 14px;
-        color: rgba(255, 255, 255, 0.8);
-        margin-bottom: 8px;
-      }
-
-      .processing-note {
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.6);
-        font-style: italic;
-      }
-
-      .timestamp {
-        text-align: center;
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.5);
-        margin: 10px 0;
-      }
-
-      /* Scrollbar styling */
-      .chat-messages::-webkit-scrollbar {
-        width: 6px;
-      }
-
-      .chat-messages::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 3px;
-      }
-      @media (max-width: 768px) {
-        .header {
-          padding: 15px 20px;
-        }
-        
-        .chat-container {
-          padding: 0 20px;
-        }
-        
-        .message {
-          max-width: 85%;
-          font-size: 14px;
-        }
-      }
-    `}</style>
-
-    {/* Header */}
-    <div className="header">
-      <div className="logo">VOYBIA</div>
-      <div className="user-info">
-        <button 
-          className="cancel-button"
-          onClick={() => navigate('/dashboard')}
-        >
-          Voltar
-        </button>
-        <div className="user-avatar">
-          {getCurrentUser()?.name?.charAt(0)?.toUpperCase() || 'U'}
+return (
+  <>
+    <div className="flex flex-col h-screen bg-background">
+      <div className="flex-grow container mx-auto px-0 sm:px-4 pt-4 pb-32 flex flex-col overflow-hidden"> {/* Aumentado pb-20 para pb-32 */}
+        <div className="mb-4 text-center">
+          <h1 className="text-2xl font-bold text-foreground">VOYB IA 🤖</h1>
         </div>
-      </div>
-    </div>
 
-    {/* Chat Container */}
-    <div className="chat-container">
-      <div className="chat-messages" ref={messagesEndRef}>
-        {messages.map((message, index) => (
-          <React.Fragment key={index}>
-            {/* Timestamp */}
-            <div className="timestamp">
-              {formatTimestamp(message.timestamp)}
-            </div>
-
-            {/* Processing Message */}
-            {loading && index === messages.length - 1 && (
-              <div className="processing-message">
-                <div className="processing-header">
-                  <div className="processing-icon"></div>
-                  <div className="processing-title">
-                    🤖 Analisando sua solicitação...
-                  </div>
-                </div>
-                <div className="processing-details">
-                  🔍 Processando informações... ⏱️ Aguarde alguns segundos
-                </div>
-                <div className="processing-note">
-                  Aguarde, não recarregue a página...
-                </div>
+        <div className="flex-grow flex flex-col overflow-hidden">
+          {/* Este div é o contêiner principal do chat, incluindo mensagens e input */}
+          <div className="flex flex-col flex-grow bg-card shadow-xl rounded-lg overflow-hidden"> 
+            {error && (
+              <div className="p-4 bg-destructive text-destructive-foreground">
+                {error}
               </div>
             )}
-
-            {/* Regular Messages */}
-            <div className={`message ${message.sender === 'user' ? 'user' : 'assistant'}`}>
-              {formatMessageContent(message.text)}
+            {/* ChatMessages agora ocupa o espaço flexível e tem seu próprio scroll interno */}
+            <div className="flex-grow overflow-y-auto">
+              <ChatMessages messages={messages} messagesEndRef={messagesEndRef} iaAvatar={IA_AVATAR} userAvatar={USER_AVATAR} />
             </div>
-          </React.Fragment>
-        ))}
-      </div>
-
-      {/* Chat Input */}
-      <ChatInput
-        onSendMessage={handleSendMessage}
-        onImageUpload={handleImageUpload}
-        disabled={loading}
-        placeholder="Digite uma mensagem..."
-      />
-    </div>
-
-    {/* Transaction Review Modal */}
-    {pendingAction && (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <h2 style={{ marginBottom: '20px', color: '#2d3748' }}>
-            Revisar Transações Detectadas
-          </h2>
-          
-          {editableTransactions.map((transaction, index) => (
-            <div key={index} className="transaction-item">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <strong>{transaction.description}</strong>
-                  <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
-                    {transaction.category} • {transaction.date}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ 
-                    color: transaction.type === 'income' ? '#16a34a' : '#dc2626',
-                    fontWeight: '600'
-                  }}>
-                    {transaction.type === 'income' ? '+' : '-'}R$ {transaction.amount.toFixed(2)}
-                  </span>
-                  <button
-                    onClick={() => handleEditTransaction(index)}
-                    style={{ 
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: '4px'
-                    }}
-                  >
-                    <Edit3 size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteTransaction(index)}
-                    style={{ 
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: '4px',
-                      color: '#dc2626'
-                    }}
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+            {loading && (
+              <div className="flex items-center gap-2 px-4 py-2 text-gray-500 animate-pulse">
+                <Loader2 className="animate-spin mr-2" size={18} /> Pensando...
               </div>
-            </div>
-          ))}
-
-          <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-            <button
-              className="button-primary"
-              onClick={handleConfirmAction}
-            >
-              Confirmar e Salvar ({editableTransactions.length} transações)
-            </button>
-            <button
-              className="button-secondary"
-              onClick={() => setPendingAction(null)}
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-  </div>
-);
+            )}
+            {showSuggestions && !pendingAction && typeof initialSuggestions !== 'undefined' && (
+              <div className="p-2 border-t border-border bg-card">
+                <div className="flex overflow-x-auto space-x-2 py-2 scrollbar-thin scrollbar-thumb-muted-foreground/50 scrollbar-track-transparent">
+                  {initialSuggestions.map((sug: string, index: number) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
                       className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
                       onClick={() => handleSuggestionClick(sug)}
                     >

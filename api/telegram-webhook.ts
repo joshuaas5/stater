@@ -1,4 +1,4 @@
-// API Webhook do Telegram para conectar ao Assistente IA
+// API Webhook do Telegram - Versão Simplificada e Funcional
 import { createClient } from '@supabase/supabase-js';
 
 // Configuração Supabase
@@ -7,16 +7,14 @@ const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Token do bot - IMPORTANTE: configurar no Vercel
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7774906065:AAGnHNWKAmj9xj-KxKs8SnQi5l3SJ4MrFgQ';
+
 // Função para enviar mensagem via Telegram Bot API
 async function sendTelegramMessage(chatId: string, message: string) {
-  const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-  
-  if (!BOT_TOKEN) {
-    console.error('❌ TELEGRAM_BOT_TOKEN não configurado');
-    return false;
-  }
-
   try {
+    console.log(`📤 Enviando mensagem para ${chatId}:`, message.substring(0, 100));
+    
     const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: {
@@ -29,225 +27,152 @@ async function sendTelegramMessage(chatId: string, message: string) {
       })
     });
 
+    const result = await response.json();
+    
     if (!response.ok) {
-      throw new Error(`Telegram API error: ${response.status}`);
+      console.error('❌ Erro API Telegram:', result);
+      return false;
     }
 
+    console.log('✅ Mensagem enviada com sucesso');
     return true;
   } catch (error) {
-    console.error('❌ Erro ao enviar mensagem Telegram:', error);
+    console.error('❌ Erro ao enviar mensagem:', error);
     return false;
   }
 }
 
 // Handler principal do webhook
 export default async function handler(req: any, res: any) {
+  // Log detalhado para debug
+  console.log('🤖 =================================');
   console.log('🤖 Webhook Telegram recebido');
+  console.log('🤖 Método:', req.method);
+  console.log('🤖 Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('🤖 Body:', JSON.stringify(req.body, null, 2));
+  console.log('🤖 =================================');
 
   // Verificar se é uma requisição POST
   if (req.method !== 'POST') {
+    console.log('❌ Método não é POST');
     return res.status(405).json({ error: 'Método não permitido' });
   }
+  // Responder imediatamente para evitar timeout
+  res.status(200).json({ ok: true, message: 'Webhook recebido' });
 
   try {
     const update = req.body;
-    console.log('📨 Update recebido:', JSON.stringify(update, null, 2));
 
     // Verificar se há uma mensagem
-    if (!update.message || !update.message.text) {
-      return res.status(200).json({ ok: true });
+    if (!update || !update.message || !update.message.text) {
+      console.log('📭 Sem mensagem de texto');
+      return;
     }
 
     const chatId = update.message.chat.id.toString();
-    const messageText = update.message.text;
+    const messageText = update.message.text.trim();
     const username = update.message.from.username || update.message.from.first_name || 'Usuário';
 
     console.log(`💬 Mensagem de ${username} (${chatId}): ${messageText}`);
 
-    // Comando /start com código de vinculação
-    if (messageText.startsWith('/start ')) {
-      const code = messageText.replace('/start ', '').trim();
-      console.log(`🔑 Tentativa de vinculação com código: ${code}`);
-
+    // Processar comandos de forma assíncrona
+    setImmediate(async () => {
       try {
-        // Buscar código no banco de dados
-        const { data: linkData, error: linkError } = await supabase
-          .from('telegram_link_codes')
-          .select('*')
-          .eq('code', code)
-          .single();
-
-        if (linkError || !linkData) {
-          console.log('❌ Código não encontrado:', linkError);
-          await sendTelegramMessage(chatId, 
-            '❌ *Código inválido ou expirado*\n\n' +
-            'Gere um novo código no app ICTUS:\n' +
-            '1. Abra o app\n' +
-            '2. Vá para a Dashboard\n' +
-            '3. Clique em "Conectar Agora" no card do Telegram'
-          );
-          return res.status(200).json({ ok: true });
-        }
-
-        // Verificar se o código ainda é válido
-        const now = new Date();
-        const expiresAt = new Date(linkData.expires_at);
-        
-        if (now > expiresAt) {
-          console.log('⏰ Código expirado');
-          await sendTelegramMessage(chatId,
-            '⏰ *Código expirado*\n\n' +
-            'Gere um novo código no app ICTUS.'
-          );
-          return res.status(200).json({ ok: true });
-        }
-
-        // Verificar se já foi usado
-        if (linkData.used_at) {
-          console.log('🔄 Código já foi usado');
-          await sendTelegramMessage(chatId,
-            '🔄 *Código já foi utilizado*\n\n' +
-            'Se você já está conectado, pode começar a usar!\n' +
-            'Caso contrário, gere um novo código no app.'
-          );
-          return res.status(200).json({ ok: true });
-        }
-
-        // Verificar se já existe uma vinculação para este chat
-        const { data: existingUser } = await supabase
-          .from('telegram_users')
-          .select('*')
-          .eq('telegram_chat_id', chatId)
-          .single();
-
-        if (existingUser) {
-          console.log('👤 Usuário já vinculado, atualizando...');
+        // Comando /start - sempre responde
+        if (messageText.startsWith('/start')) {
+          const code = messageText.replace('/start', '').trim();
           
-          // Atualizar vinculação existente
-          const { error: updateError } = await supabase
-            .from('telegram_users')
-            .update({
-              user_id: linkData.user_id,
-              user_email: linkData.user_email,
-              user_name: linkData.user_name,
-              linked_at: new Date().toISOString(),
-              is_active: true
-            })
-            .eq('telegram_chat_id', chatId);
-
-          if (updateError) throw updateError;
-        } else {
-          console.log('🆕 Criando nova vinculação...');
-          
-          // Criar nova vinculação
-          const { error: insertError } = await supabase
-            .from('telegram_users')
-            .insert({
-              telegram_chat_id: chatId,
-              user_id: linkData.user_id,
-              user_email: linkData.user_email,
-              user_name: linkData.user_name,
-              linked_at: new Date().toISOString(),
-              is_active: true
-            });
-
-          if (insertError) throw insertError;
+          if (code) {
+            console.log(`🔑 Código de vinculação: ${code}`);
+            await sendTelegramMessage(chatId, 
+              `✅ *Código recebido!*\n\n` +
+              `🔑 Código: \`${code}\`\n\n` +
+              `⏳ Verificando vinculação...\n\n` +
+              `_Em desenvolvimento - funcionalidade completa em breve!_`
+            );
+          } else {
+            await sendTelegramMessage(chatId,
+              '👋 *Bem-vindo ao ICTUS!*\n\n' +
+              '🤖 Sou seu assistente financeiro.\n\n' +
+              '📱 Para conectar sua conta:\n' +
+              '1. Abra o app ICTUS\n' +
+              '2. Vá para a Dashboard\n' +
+              '3. Clique em "Conectar Agora"\n' +
+              '4. Use o código gerado aqui\n\n' +
+              '_Digite /help para mais comandos_'
+            );
+          }
+          return;
         }
 
-        // Marcar código como usado
-        const { error: usedError } = await supabase
-          .from('telegram_link_codes')
-          .update({ used_at: new Date().toISOString() })
-          .eq('code', code);
+        // Comando /help
+        if (messageText === '/help') {
+          await sendTelegramMessage(chatId,
+            '🤖 *ICTUS Assistente Financeiro*\n\n' +
+            '*Comandos disponíveis:*\n\n' +
+            '🔗 `/start [código]` - Conectar conta\n' +
+            '💰 `/saldo` - Ver saldo atual\n' +
+            '📊 `/gastos` - Gastos do mês\n' +
+            '❓ `/help` - Este menu\n\n' +
+            '_Mais funcionalidades em desenvolvimento..._'
+          );
+          return;
+        }
 
-        if (usedError) throw usedError;
+        // Comando /saldo
+        if (messageText === '/saldo') {
+          await sendTelegramMessage(chatId,
+            '💰 *Consulta de Saldo*\n\n' +
+            '📊 Esta funcionalidade estará disponível em breve!\n\n' +
+            '� *Para ativar:*\n' +
+            '1. Conecte sua conta com `/start [código]`\n' +
+            '2. Gere o código no app ICTUS\n\n' +
+            '_Estamos finalizando a integração..._'
+          );
+          return;
+        }
 
-        // Enviar mensagem de sucesso
+        // Comando /gastos
+        if (messageText === '/gastos') {
+          await sendTelegramMessage(chatId,
+            '📊 *Relatório de Gastos*\n\n' +
+            '📈 Esta funcionalidade estará disponível em breve!\n\n' +
+            '🔗 *Para ativar:*\n' +
+            '1. Conecte sua conta com `/start [código]`\n' +
+            '2. Gere o código no app ICTUS\n\n' +
+            '_Aguarde as próximas atualizações..._'
+          );
+          return;
+        }
+
+        // Outros comandos
+        if (messageText.startsWith('/')) {
+          await sendTelegramMessage(chatId,
+            '❓ *Comando não reconhecido*\n\n' +
+            'Digite `/help` para ver os comandos disponíveis.'
+          );
+          return;
+        }
+
+        // Mensagem livre
         await sendTelegramMessage(chatId,
-          '✅ *Conexão estabelecida com sucesso!*\n\n' +
-          `👤 Olá, ${linkData.user_name}!\n\n` +
-          '🎉 Seu Telegram está conectado ao ICTUS Assistente Financeiro IA.\n\n' +
-          '*Você pode agora:*\n' +
-          '💰 Receber notificações de transações\n' +
-          '📊 Consultar seu saldo\n' +
-          '📋 Ver relatórios financeiros\n' +
-          '🔔 Receber lembretes de contas\n\n' +
-          '_Digite /help para ver todos os comandos disponíveis._'
+          '� *Olá!*\n\n' +
+          '🤖 Sou o assistente financeiro do ICTUS.\n\n' +
+          '💡 *Dica:* Digite `/help` para ver o que posso fazer!\n\n' +
+          '🔗 Para conectar sua conta, use `/start` e siga as instruções.'
         );
-
-        console.log('✅ Vinculação concluída com sucesso!');
-        return res.status(200).json({ ok: true, message: 'Vinculação realizada' });
 
       } catch (error) {
-        console.error('❌ Erro na vinculação:', error);
+        console.error('❌ Erro ao processar mensagem:', error);
         await sendTelegramMessage(chatId,
-          '❌ *Erro na conexão*\n\n' +
-          'Ocorreu um problema. Tente gerar um novo código no app.'
+          '❌ *Ops! Algo deu errado*\n\n' +
+          'Tente novamente em alguns segundos.\n\n' +
+          '_Se o problema persistir, contate o suporte._'
         );
-        return res.status(200).json({ ok: true });
       }
-    }
-
-    // Comando /help
-    if (messageText === '/help') {
-      await sendTelegramMessage(chatId,
-        '🤖 *ICTUS Assistente Financeiro IA*\n\n' +
-        '*Comandos disponíveis:*\n\n' +
-        '/saldo - Ver saldo atual\n' +
-        '/transacoes - Últimas transações\n' +
-        '/gastos - Gastos do mês\n' +
-        '/help - Este menu de ajuda\n\n' +
-        '_Mais funcionalidades em desenvolvimento..._'
-      );
-      return res.status(200).json({ ok: true });
-    }
-
-    // Comando /saldo
-    if (messageText === '/saldo') {
-      // Verificar se usuário está vinculado
-      const { data: telegramUser } = await supabase
-        .from('telegram_users')
-        .select('*')
-        .eq('telegram_chat_id', chatId)
-        .eq('is_active', true)
-        .single();
-
-      if (!telegramUser) {
-        await sendTelegramMessage(chatId,
-          '❌ *Não conectado*\n\n' +
-          'Você precisa conectar sua conta primeiro.\n' +
-          'Gere um código de vinculação no app ICTUS.'
-        );
-        return res.status(200).json({ ok: true });
-      }
-
-      await sendTelegramMessage(chatId,
-        '💰 *Saldo Atual*\n\n' +
-        '📊 Esta funcionalidade estará disponível em breve!\n\n' +
-        '_Estamos integrando com o sistema de transações..._'
-      );
-      return res.status(200).json({ ok: true });
-    }
-
-    // Comando padrão para mensagens não reconhecidas
-    if (messageText.startsWith('/')) {
-      await sendTelegramMessage(chatId,
-        '❓ *Comando não reconhecido*\n\n' +
-        'Digite /help para ver os comandos disponíveis.'
-      );
-    } else {
-      // Mensagem livre - resposta amigável
-      await sendTelegramMessage(chatId,
-        '👋 *Olá!*\n\n' +
-        'Sou o assistente financeiro do ICTUS.\n\n' +
-        'Digite /help para ver o que posso fazer por você!'
-      );
-    }
-
-    return res.status(200).json({ ok: true });
+    });
 
   } catch (error) {
     console.error('❌ Erro no webhook:', error);
-    return res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }

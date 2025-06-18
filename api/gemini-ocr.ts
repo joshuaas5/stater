@@ -179,25 +179,48 @@ FORMATO JSON OBRIGATÓRIO:
     "period": "Período detectado",
     "fileFormat": "${fileType}"
   },
-  "transactions": [
-    {
+  "transactions": [    {
       "description": "Descrição clara da transação",
       "amount": 150.50,
       "type": "expense",
-      "category": "alimentacao",
+      "category": "Alimentação",
       "date": "2024-12-25",
       "confidence": 0.9
     }
   ]
 }
 
-CATEGORIAS VÁLIDAS:
-- "alimentacao": supermercados, restaurantes, delivery
-- "transporte": combustível, uber, pedágios, estacionamento
-- "saude": farmácias, consultas, planos de saúde
-- "lazer": entretenimento, viagens, streaming, cinema
-- "moradia": aluguel, condomínio, água, luz, gás
-- "educacao": cursos, livros, mensalidades escolares
+CATEGORIAS VÁLIDAS (use exatamente esses nomes):
+- "Alimentação": supermercados, restaurantes, delivery, padarias, açougues
+- "Transporte": combustível, uber, táxi, ônibus, pedágios, estacionamento
+- "Saúde": farmácias, consultas médicas, planos de saúde, clínicas
+- "Entretenimento": cinema, streaming, jogos, viagens, bares, baladas
+- "Habitação": aluguel, condomínio, água, luz, gás, internet, telefone
+- "Educação": cursos, livros, mensalidades escolares, material escolar
+- "Cuidados Pessoais": salão, barbeiro, cosméticos, produtos de higiene
+- "Impostos": taxas governamentais, IPTU, multas
+- "Poupança e Investimentos": aplicações, transferências para poupança
+- "Pagamentos de Dívidas": empréstimos, financiamentos, cartão de crédito
+- "Outros": categoria genérica para itens não categorizados
+
+REGRAS DE CATEGORIZAÇÃO AUTOMÁTICA:
+- MERCADO/SUPERMERCADO/EXTRA/CARREFOUR/PÃO DE AÇÚCAR → "Alimentação"
+- POSTO/SHELL/PETROBRAS/IPIRANGA/BR → "Transporte"  
+- FARMÁCIA/DROGARIA/RAIA/PACHECO → "Saúde"
+- CINEMA/NETFLIX/SPOTIFY/AMAZON PRIME → "Entretenimento"
+- ENEL/SABESP/COMGÁS/NET/VIVO/TIM → "Habitação"
+- ESCOLA/FACULDADE/CURSO/LIVRARIA → "Educação"
+- SALÃO/BARBEARIA/O BOTICÁRIO/NATURA → "Cuidados Pessoais"
+- RECEITA FEDERAL/DETRAN/PREFEITURA → "Impostos"
+- BANCO/INVEST/POUPANÇA/APLICAÇÃO → "Poupança e Investimentos"
+- EMPRÉSTIMO/FINANCIAMENTO/CARTÃO → "Pagamentos de Dívidas"
+- Outros casos → "Outros"
+
+CATEGORIZAÇÃO INTELIGENTE:
+- Analise a DESCRIÇÃO da transação
+- Use palavras-chave para identificar a categoria
+- Sempre atribua uma categoria válida da lista acima
+- NÃO deixe "category" vazio ou com valores inexistentes
 - "tecnologia": eletrônicos, software, internet, telefone
 - "servicos": bancos, seguros, manutenções, taxas
 - "compras": roupas, casa, presentes, diversos
@@ -223,7 +246,7 @@ EXEMPLO DE SAÍDA VÁLIDA:
       "description": "Supermercado Extra",
       "amount": 285.90,
       "type": "expense",
-      "category": "alimentacao",
+      "category": "Alimentação",
       "date": "2024-12-15",
       "confidence": 0.95
     }

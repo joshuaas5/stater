@@ -523,7 +523,7 @@ const Dashboard: React.FC = () => {
           <TrendingDown size={18} />
           Adicionar Saída
         </Button>
-      </div>      {/* Destaque do Telegram - Design Chamativo */}
+      </div>      {/* Destaque do Telegram - Design Chamativo e Responsivo */}
       <div className="px-4 mb-4">
         {!isTelegramLinked ? (
           <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-300">
@@ -532,20 +532,20 @@ const Dashboard: React.FC = () => {
               🚀 NOVO
             </div>
             
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
                 {/* Ícone customizado sem logo */}
-                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                  <MessageCircle className="h-6 w-6 text-white" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm flex-shrink-0">
+                  <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="text-white font-bold text-base">
+                <div className="flex-1">
+                  <h3 className="text-white font-bold text-sm sm:text-base">
                     💬 Assistente Financeiro IA
                   </h3>
-                  <p className="text-blue-100 text-sm">
+                  <p className="text-blue-100 text-xs sm:text-sm">
                     Controle suas finanças direto no Telegram
                   </p>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
                     <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs">
                       Notificações em tempo real
                     </span>
@@ -559,15 +559,15 @@ const Dashboard: React.FC = () => {
               <Button
                 onClick={generateTelegramCode}
                 disabled={isGeneratingCode}
-                className="bg-white hover:bg-gray-100 text-blue-600 px-6 py-2 rounded-lg font-bold shadow-md hover:shadow-lg transition-all duration-200 min-w-[100px]"
+                className="bg-white hover:bg-gray-100 text-blue-600 px-4 sm:px-6 py-2 rounded-lg font-bold shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto sm:min-w-[100px] text-sm sm:text-base"
               >
                 {isGeneratingCode ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
                     <span>Conectando...</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
                     <span>Conectar Agora</span>
                     <ArrowRight className="h-4 w-4" />
                   </div>

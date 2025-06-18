@@ -1616,29 +1616,31 @@ const handleImageUpload = async (imageBase64: string) => {
     } catch {
       // Não é JSON, continuar como imagem/PDF
       console.log('🖼️ Arquivo de imagem/PDF detectado');
-    }
-
-    // Adicionar mensagem de upload com feedback visual adequado
+    }    // Adicionar mensagem de upload com feedback visual adequado
     const isPdf = !isTextFile && imageBase64.startsWith('data:application/pdf');
     const processingMessageId = uuidv4();
-      let processingMessage = "";
+    let processingMessage = "";
+    
     if (isTextFile) {
-      const fileType = fileData?.fileType || 'text/plain';      if (fileType.includes('csv')) {
-        processingMessage = "Processando arquivo...";
+      const fileType = fileData?.fileType || 'text/plain';
+      if (fileType.includes('csv')) {
+        processingMessage = "📊 Analisando planilha CSV...";
       } else if (fileType.includes('excel') || fileType.includes('sheet')) {
-        processingMessage = "Processando arquivo...";
+        processingMessage = "📋 Processando planilha Excel...";
       } else if (fileType.includes('text')) {
-        processingMessage = "Processando arquivo...";
+        processingMessage = "📄 Lendo arquivo de texto...";
       } else {
-        processingMessage = "Processando arquivo...";
+        processingMessage = "🔍 Analisando arquivo...";
       }
     } else if (isPdf) {
-      processingMessage = "Processando arquivo...";
+      processingMessage = "📑 Processando documento PDF...";
     } else {
-      processingMessage = "Processando arquivo...";
-    }setMessages(prev => [...prev, {
+      processingMessage = "🖼️ Analisando imagem...";
+    }
+
+    setMessages(prev => [...prev, {
       id: processingMessageId,
-      text: processingMessage,
+      text: processingMessage + "\n\n⏳ *Aguarde alguns segundos, estamos analisando seu documento...*",
       sender: 'system',
       timestamp: new Date(),
       avatarUrl: IA_AVATAR
@@ -2753,10 +2755,10 @@ function getProcessingIcon(content: string): string {
 }
 
 function getProcessingDetails(content: string): string {
-  if (content.includes('PDF')) return 'Processando arquivo...';
-  if (content.includes('imagem')) return 'Processando arquivo...';
-  if (content.includes('texto')) return 'Processando arquivo...';
-  return 'Processando arquivo...';
+  if (content.includes('PDF')) return '📑 Analisando documento PDF...';
+  if (content.includes('imagem')) return '🖼️ Processando imagem...';
+  if (content.includes('texto')) return '📄 Lendo texto...';
+  return '🔍 Analisando conteúdo...';
 }
 
 function formatMessageContent(content: string): React.ReactNode {

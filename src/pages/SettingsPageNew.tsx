@@ -21,18 +21,20 @@ const SettingsPage: React.FC = () => {
   const [telegramLinkCode, setTelegramLinkCode] = useState<string>('');
   const [isTelegramLinked, setIsTelegramLinked] = useState(false);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
-  const [telegramInfo, setTelegramInfo] = useState<any>(null);
-  // Conectar ao Telegram de forma simples
+  const [telegramInfo, setTelegramInfo] = useState<any>(null);  // Conectar ao Telegram de forma ULTRA simples
   const connectToTelegram = async () => {
     if (!user) return;
     
     setIsGeneratingCode(true);
     
     try {
-      // Gerar código único simples (4 dígitos)
-      const code = Math.floor(1000 + Math.random() * 9000).toString();
+      // Gerar código único simples (apenas 2 dígitos + 2 letras)
+      const numbers = Math.floor(10 + Math.random() * 90).toString();
+      const letters = Math.random().toString(36).substring(2, 4).toUpperCase();
+      const code = numbers + letters;
+      
       const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + 30); // Expira em 30 minutos
+      expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Expira em 15 minutos
       
       // Salvar no Supabase
       const { error } = await supabase
@@ -56,20 +58,20 @@ const SettingsPage: React.FC = () => {
       window.open(telegramUrl, '_blank');
       
       toast({
-        title: "Conectando...",
-        description: "O Telegram foi aberto. Clique em 'Iniciar' no bot para conectar!"
+        title: "Telegram aberto! 📱",
+        description: "Clique em 'Iniciar' no bot. É só isso! ✨"
       });
       
-      // Limpar código após 30 minutos
+      // Limpar código após 15 minutos
       setTimeout(() => {
         setTelegramLinkCode('');
-      }, 30 * 60 * 1000);
+      }, 15 * 60 * 1000);
       
     } catch (error) {
       console.error('Erro ao conectar:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível conectar. Tente novamente.",
+        title: "Ops! 😅",
+        description: "Algo deu errado. Tenta de novo?",
         variant: "destructive"
       });
     } finally {
@@ -392,26 +394,33 @@ const SettingsPage: React.FC = () => {
                           Desvincular
                         </Button>
                       </div>
-                    </div>                  ) : (
-                    // Conta não vinculada - Interface super simples
-                    <div className="space-y-6">
-                      <div className="text-center space-y-3">
-                        <MessageCircle size={64} className="mx-auto text-blue-500" />
-                        <h3 className="text-xl font-semibold">Conecte-se ao Telegram</h3>
-                        <p className="text-muted-foreground">
-                          Acesse seu assistente financeiro diretamente no Telegram. 
-                          É rápido e fácil!
-                        </p>
+                    </div>                  ) : (                    // Conta não vinculada - Interface ULTRA simples
+                    <div className="space-y-8">
+                      <div className="text-center space-y-4">
+                        <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
+                          <MessageCircle size={40} className="text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                            Use o ICTUS no Telegram
+                          </h3>
+                          <p className="text-lg text-gray-600">
+                            Acesse seu assistente financeiro em qualquer lugar
+                          </p>
+                        </div>
                       </div>
                       
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="font-medium text-blue-800 mb-2">O que você pode fazer:</h4>
-                        <ul className="text-sm text-blue-700 space-y-1">
-                          <li>📷 Enviar fotos de extratos para análise automática</li>
-                          <li>💬 Fazer perguntas sobre suas finanças</li>
-                          <li>📊 Receber relatórios personalizados</li>
-                          <li>🔔 Receber notificações importantes</li>
-                        </ul>
+                      <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-xl p-6">
+                        <div className="grid grid-cols-2 gap-4 text-center">
+                          <div className="space-y-2">
+                            <div className="text-2xl">📷</div>
+                            <p className="text-sm font-medium">Análise de Extratos</p>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="text-2xl">💬</div>
+                            <p className="text-sm font-medium">Chat com IA</p>
+                          </div>
+                        </div>
                       </div>
                       
                       <div className="text-center">
@@ -419,25 +428,34 @@ const SettingsPage: React.FC = () => {
                           onClick={connectToTelegram}
                           disabled={isGeneratingCode}
                           size="lg"
-                          className="w-full max-w-xs mx-auto text-lg py-6"
+                          className="w-full max-w-sm mx-auto text-xl py-8 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 shadow-lg"
                         >
                           {isGeneratingCode ? (
-                            <span className="flex items-center gap-2">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span className="flex items-center gap-3">
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                               Conectando...
                             </span>
                           ) : (
-                            <span className="flex items-center gap-2">
-                              <MessageCircle size={20} />
-                              Conectar ao Telegram
+                            <span className="flex items-center gap-3">
+                              <MessageCircle size={24} />
+                              Conectar Agora
                             </span>
                           )}
                         </Button>
                       </div>
                       
-                      <div className="text-center text-sm text-muted-foreground">
-                        <p>Ao clicar, o Telegram será aberto automaticamente.</p>
-                        <p>Basta clicar em "Iniciar" no bot para conectar!</p>
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="bg-green-100 rounded-full p-1">
+                            <Check size={16} className="text-green-600" />
+                          </div>
+                          <div className="text-sm">
+                            <p className="font-semibold text-green-800 mb-1">É super fácil!</p>
+                            <p className="text-green-700">
+                              Clique no botão → o Telegram abre → aperte "Iniciar" → pronto! ✨
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}

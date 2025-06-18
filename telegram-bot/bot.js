@@ -21,51 +21,34 @@ console.log('🤖 ICTUS Telegram Bot iniciado!');
 bot.onText(/\/start(.*)/, async (msg, match) => {
     const chatId = msg.chat.id;
     const linkCode = match[1] ? match[1].trim() : null;
-    
-    // Se veio com código de vinculação do app
+      // Se veio com código de vinculação do app
     if (linkCode) {
         const linkResult = await linkTelegramWithCode(chatId, linkCode);
         if (linkResult.success) {
-            const welcomeMessage = `🎉 *Conta vinculada com sucesso!*
+            const welcomeMessage = `🎉 *Conectado com sucesso!*
 
-Olá ${linkResult.userName}! 👋
+Oi ${linkResult.userName}! 👋
 
-🔗 *Seu Telegram agora está conectado ao ICTUS*
+✨ *Agora você pode:*
+� Enviar foto do seu extrato
+💬 Fazer perguntas sobre dinheiro
+� Ver suas transações
 
-📱 *Como usar:*
-• Envie uma foto do seu extrato bancário
-• Eu analiso automaticamente com IA
-• Confirme as transações
-• Elas aparecem no seu app ICTUS
-• Converse comigo como no app principal!
-
-💡 *Comandos:*
-/help - Ajuda
-/dashboard - Ver transações no app
-/chat - Conversar com o assistente IA
-
-📷 *Envie uma foto do extrato ou uma mensagem para começar!*`;
+🚀 *Vamos começar?*
+Mande uma foto do seu extrato ou pergunte algo!`;
             
             await bot.sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
             return;
         }
     }
-      const welcomeMessage = `🤖 *Olá! Sou o Assistente Financeiro ICTUS*
+      const welcomeMessage = `👋 *Oi! Sou seu assistente financeiro*
 
-Para usar todas as funcionalidades, conecte sua conta:
+Para conectar sua conta:
+🔗 Acesse: ${process.env.APP_URL}
+📱 Vá em Configurações > Telegram  
+✨ Clique em "Conectar Agora"
 
-🔗 *Como conectar (super fácil):*
-1. Acesse: ${process.env.APP_URL}
-2. Vá em Configurações > Telegram  
-3. Clique em "Conectar ao Telegram"
-4. Você será direcionado automaticamente!
-
-⚡ *Sem conexão você pode:*
-• Enviar fotos de extratos
-• Análise básica com IA
-• Testar as funcionalidades
-
-📷 *Envie uma foto do extrato para começar!*`;
+Sem conexão você pode testar enviando uma foto!`;
     
     await bot.sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
 });
@@ -74,34 +57,28 @@ Para usar todas as funcionalidades, conecte sua conta:
 bot.onText(/\/help/, async (msg) => {
     const chatId = msg.chat.id;
     const userSession = userSessions.get(chatId);
-    
-    let helpMessage = `🆘 *Como usar o Assistente Financeiro:*
+      let helpMessage = `🆘 *Como usar:*
 
-📷 *1. Análise de Extratos:*
-• Tire foto clara do extrato
-• Envie a imagem
-• Aguarde análise da IA
-• Confirme as transações
+📷 *Enviar foto de extrato*
+• Tire uma foto clara
+• Mande pra mim
+• Eu analiso tudo!
 
-💬 *2. Chat com IA:*
-• Faça perguntas sobre finanças
-• Peça análises e relatórios
-• Obtenha dicas personalizadas
+💬 *Fazer perguntas*
+• "Como estão meus gastos?"
+• "Onde mais gasto dinheiro?"
+• "Dicas para economizar?"
 
-🔗 *3. Ver no App:*
-• Use /dashboard para abrir o app
-• Suas transações estarão lá
+🔗 *Ver no app*
+• /dashboard abre o app
+• Suas transações ficam lá
 
-💡 *Dicas:*
-• Foto bem iluminada
-• Texto legível
-• Sem reflexos ou sombras`;
+💡 *Dica: foto bem iluminada funciona melhor!*`;
 
     if (!userSession) {
-        helpMessage += `\n\n⚠️ *Para funcionalidades completas:*
-• Vincule sua conta ICTUS
-• Acesse: ${process.env.APP_URL}
-• Vá em Configurações > Telegram`;
+        helpMessage += `\n\n⚠️ *Para usar tudo:*
+• Conecte sua conta no app
+• Configurações > Telegram`;
     }
     
     await bot.sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
@@ -111,41 +88,31 @@ bot.onText(/\/help/, async (msg) => {
 bot.onText(/\/chat/, async (msg) => {
     const chatId = msg.chat.id;
     const userSession = userSessions.get(chatId);
-    
-    if (!userSession) {
-        await bot.sendMessage(chatId, `🔗 *Para usar o chat, vincule sua conta ICTUS:*
+      if (!userSession) {
+        await bot.sendMessage(chatId, `🔗 *Para usar o chat, conecte sua conta:*
 
-1. Acesse: ${process.env.APP_URL}
-2. Vá em Configurações > Telegram
-3. Clique em "Vincular Telegram"
+Acesse o app > Configurações > Telegram > "Conectar Agora"
 
-📷 *Ou envie uma foto de extrato para demonstração!*`, { parse_mode: 'Markdown' });
+📷 *Ou mande uma foto de extrato para testar!*`, { parse_mode: 'Markdown' });
         return;
     }
-    
-    await bot.sendMessage(chatId, `💬 *Chat ativado com o Assistente IA!*
+      await bot.sendMessage(chatId, `💬 *Chat ativado!*
 
-Agora você pode:
-• Fazer perguntas sobre suas finanças
-• Pedir análises e relatórios
-• Obter dicas personalizadas
-• Conversar naturalmente
+Pode perguntar qualquer coisa:
+• "Como estão meus gastos?"
+• "Onde mais gasto?"
+• "Dicas para economizar"
 
-🎯 *Exemplos:*
-"Como estão meus gastos este mês?"
-"Qual categoria gasto mais?"
-"Dicas para economizar"
-
-💡 *Digite sua pergunta:*`, { parse_mode: 'Markdown' });
+🚀 *Vamos conversar!*`, { parse_mode: 'Markdown' });
 });
 
 // Comando /dashboard
 bot.onText(/\/dashboard/, async (msg) => {
-    const dashboardMessage = `📊 *Acesse seu Dashboard ICTUS:*
+    const dashboardMessage = `📊 *Abrir seu app ICTUS:*
 
-🔗 ${process.env.APP_URL}/dashboard
+🔗 ${process.env.APP_URL}
 
-💰 Veja todas suas transações, gráficos e análises financeiras no app completo!`;
+💰 Veja suas transações e gráficos!`;
     
     await bot.sendMessage(msg.chat.id, dashboardMessage, { 
         parse_mode: 'Markdown',

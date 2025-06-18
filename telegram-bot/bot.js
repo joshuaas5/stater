@@ -50,21 +50,20 @@ Olá ${linkResult.userName}! 👋
             return;
         }
     }
-    
-    const welcomeMessage = `🤖 *Olá! Sou o Assistente Financeiro*
+      const welcomeMessage = `🤖 *Olá! Sou o Assistente Financeiro ICTUS*
 
-Para usar todas as funcionalidades, você precisa vincular sua conta ICTUS:
+Para usar todas as funcionalidades, conecte sua conta:
 
-🔗 *Como vincular:*
+🔗 *Como conectar (super fácil):*
 1. Acesse: ${process.env.APP_URL}
-2. Vá em Configurações > Telegram
-3. Clique em "Vincular Telegram"
-4. Use o código que aparecerá
+2. Vá em Configurações > Telegram  
+3. Clique em "Conectar ao Telegram"
+4. Você será direcionado automaticamente!
 
-⚡ *Sem vinculação você pode:*
+⚡ *Sem conexão você pode:*
 • Enviar fotos de extratos
-• Análise com IA
-• Demonstração das funcionalidades
+• Análise básica com IA
+• Testar as funcionalidades
 
 📷 *Envie uma foto do extrato para começar!*`;
     

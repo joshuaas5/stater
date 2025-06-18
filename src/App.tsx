@@ -19,7 +19,7 @@ import SecurityPage from "./pages/SecurityPage";
 import ChartsPage from "./pages/ChartsPage";
 import { FinancialAdvisorPage } from "./pages/FinancialAdvisorPage";
 import RecommendationsPage from "./pages/RecommendationsPage";
-import SettingsPage from "./pages/SettingsPage";
+import SettingsPage from "./pages/SettingsPageNew";
 import ExportReportPage from "./pages/ExportReportPage";
 import FinancialAnalysisPage from "./pages/FinancialAnalysisPage"; // Nova página
 import NotFound from "./pages/NotFound";

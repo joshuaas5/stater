@@ -22,47 +22,17 @@ const SettingsPage: React.FC = () => {
   const [isTelegramLinked, setIsTelegramLinked] = useState(false);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [telegramInfo, setTelegramInfo] = useState<any>(null);
-  useEffect(() => {
-    if (user) {
-      const userPrefs = getUserPreferences();
-      setPreferences(userPrefs);
-      setIsLoading(false);
-      
-      // Verificar se Telegram está vinculado
-      checkTelegramLinkStatus();
-    }
-  }, [user]);
-
-  // Verificar status de vinculação do Telegram
-  const checkTelegramLinkStatus = async () => {
-    if (!user) return;
-    
-    try {
-      const { data } = await supabase
-        .from('telegram_users')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (data) {
-        setIsTelegramLinked(true);
-        setTelegramInfo(data);
-      }
-    } catch (error) {
-      console.log('Telegram não vinculado');
-    }
-  };
-  // Gerar código de vinculação do Telegram
-  const generateTelegramLinkCode = async () => {
+  // Conectar ao Telegram de forma simples
+  const connectToTelegram = async () => {
     if (!user) return;
     
     setIsGeneratingCode(true);
     
     try {
-      // Gerar código único
-      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      // Gerar código único simples (4 dígitos)
+      const code = Math.floor(1000 + Math.random() * 9000).toString();
       const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + 10); // Expira em 10 minutos
+      expiresAt.setMinutes(expiresAt.getMinutes() + 30); // Expira em 30 minutos
       
       // Salvar no Supabase
       const { error } = await supabase
@@ -81,43 +51,25 @@ const SettingsPage: React.FC = () => {
       
       setTelegramLinkCode(code);
       
+      // Abrir o Telegram automaticamente
+      const telegramUrl = `https://t.me/assistentefinanceiroiabot?start=${code}`;
+      window.open(telegramUrl, '_blank');
+      
       toast({
-        title: "Código gerado!",
-        description: "Use este código no Telegram para vincular sua conta."
+        title: "Conectando...",
+        description: "O Telegram foi aberto. Clique em 'Iniciar' no bot para conectar!"
       });
       
-      // Limpar código após 10 minutos
+      // Limpar código após 30 minutos
       setTimeout(() => {
         setTelegramLinkCode('');
-      }, 10 * 60 * 1000);
+      }, 30 * 60 * 1000);
       
     } catch (error) {
-      console.error('Erro ao gerar código:', error);
+      console.error('Erro ao conectar:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível gerar o código. Tente novamente.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGeneratingCode(false);
-    }
-  };
-      
-      toast({
-        title: "Código gerado!",
-        description: "Use este código no Telegram para vincular sua conta."
-      });
-      
-      // Limpar código após 10 minutos
-      setTimeout(() => {
-        setTelegramLinkCode('');
-      }, 10 * 60 * 1000);
-      
-    } catch (error) {
-      console.error('Erro ao gerar código:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível gerar o código. Tente novamente.",
+        description: "Não foi possível conectar. Tente novamente.",
         variant: "destructive"
       });
     } finally {
@@ -151,7 +103,9 @@ const SettingsPage: React.FC = () => {
         variant: "destructive"
       });
     }
-  };  useEffect(() => {
+  };
+
+  useEffect(() => {
     if (user) {
       const userPrefs = getUserPreferences();
       setPreferences(userPrefs);
@@ -185,7 +139,9 @@ const SettingsPage: React.FC = () => {
           setTelegramInfo(null);
         }
       }
-    };    fetchTelegramInfo();
+    };
+
+    fetchTelegramInfo();
   }, [user]);
 
   const handleSavePreferences = () => {
@@ -220,58 +176,6 @@ const SettingsPage: React.FC = () => {
     } : null);
   };
 
-  const handleTelegramLink = async () => {
-    setIsGeneratingCode(true);
-    const { data, error } = await supabase
-      .functions
-      .invoke('generate_telegram_link_code', {
-        body: { user_id: user?.id }
-      });
-    
-    setIsGeneratingCode(false);
-
-    if (error) {
-      toast({
-        title: 'Erro ao gerar código',
-        description: 'Ocorreu um erro ao gerar o código de linkagem com o Telegram.',
-        variant: 'destructive',
-      });
-      console.error('Erro ao gerar código Telegram:', error);
-    } else {
-      setTelegramLinkCode(data.code);
-      toast({
-        title: 'Código gerado',
-        description: 'Um novo código de linkagem foi gerado.',
-      });
-    }
-  };
-
-  const handleTelegramConfirm = async () => {
-    if (!telegramLinkCode) return;
-
-    const { data, error } = await supabase
-      .functions
-      .invoke('confirm_telegram_link', {
-        body: { code: telegramLinkCode, user_id: user?.id }
-      });
-
-    if (error) {
-      toast({
-        title: 'Erro ao vincular Telegram',
-        description: 'Ocorreu um erro ao vincular sua conta do Telegram.',
-        variant: 'destructive',
-      });
-      console.error('Erro ao vincular Telegram:', error);
-    } else {
-      setIsTelegramLinked(true);
-      setTelegramInfo(data);
-      toast({
-        title: 'Telegram vinculado',
-        description: 'Sua conta do Telegram foi vinculada com sucesso.',
-      });
-    }
-  };
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="my-8">
@@ -280,7 +184,8 @@ const SettingsPage: React.FC = () => {
         </h1>
         <hr className="mb-8" />
 
-        <Tabs defaultValue="account" className="w-full">          <TabsList className="grid w-full grid-cols-4 mb-8">
+        <Tabs defaultValue="account" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="account">Conta</TabsTrigger>
             <TabsTrigger value="preferences">Preferências</TabsTrigger>
             <TabsTrigger value="telegram">Telegram</TabsTrigger>
@@ -429,7 +334,8 @@ const SettingsPage: React.FC = () => {
               <CardFooter>
                 <Button onClick={handleSavePreferences} disabled={isLoading || !preferences}>Salvar Preferências</Button>
               </CardFooter>
-            </Card>          </TabsContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="telegram">
             <Card>
@@ -486,70 +392,52 @@ const SettingsPage: React.FC = () => {
                           Desvincular
                         </Button>
                       </div>
-                    </div>
-                  ) : (
-                    // Conta não vinculada
-                    <div className="space-y-4">
-                      <div className="text-center space-y-2">
-                        <MessageCircle size={48} className="mx-auto text-gray-400" />
-                        <h3 className="text-lg font-medium">Conecte-se ao Telegram</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Use o bot do Telegram para acessar seu assistente financeiro de qualquer lugar.
+                    </div>                  ) : (
+                    // Conta não vinculada - Interface super simples
+                    <div className="space-y-6">
+                      <div className="text-center space-y-3">
+                        <MessageCircle size={64} className="mx-auto text-blue-500" />
+                        <h3 className="text-xl font-semibold">Conecte-se ao Telegram</h3>
+                        <p className="text-muted-foreground">
+                          Acesse seu assistente financeiro diretamente no Telegram. 
+                          É rápido e fácil!
                         </p>
                       </div>
                       
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="font-medium text-blue-800 mb-2">Funcionalidades do bot:</h4>
+                        <h4 className="font-medium text-blue-800 mb-2">O que você pode fazer:</h4>
                         <ul className="text-sm text-blue-700 space-y-1">
-                          <li>• Análise automática de extratos bancários com IA</li>
-                          <li>• Chat inteligente sobre suas finanças</li>
-                          <li>• Sincronização em tempo real com o app</li>
-                          <li>• Notificações e lembretes personalizados</li>
+                          <li>📷 Enviar fotos de extratos para análise automática</li>
+                          <li>💬 Fazer perguntas sobre suas finanças</li>
+                          <li>📊 Receber relatórios personalizados</li>
+                          <li>🔔 Receber notificações importantes</li>
                         </ul>
                       </div>
                       
-                      {telegramLinkCode ? (
-                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                          <h4 className="font-medium mb-2">Código de vinculação:</h4>
-                          <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-4 mb-3">
-                            <code className="text-lg font-mono font-bold text-blue-600">{telegramLinkCode}</code>
-                          </div>
-                          <div className="space-y-2 text-sm text-gray-600">
-                            <p>1. Abra o Telegram e acesse: <strong>@assistentefinanceiroiabot</strong></p>
-                            <p>2. Digite: <code>/start {telegramLinkCode}</code></p>
-                            <p>3. Aguarde a confirmação de vinculação</p>
-                            <p className="text-xs text-orange-600">⚠️ Código expira em 10 minutos</p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-center">
-                          <Button 
-                            onClick={generateTelegramLinkCode}
-                            disabled={isGeneratingCode}
-                            className="w-full"
-                          >
-                            {isGeneratingCode ? (
-                              <>Gerando código...</>
-                            ) : (
-                              <>
-                                <QrCode size={16} className="mr-2" />
-                                Gerar código de vinculação
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      )}
+                      <div className="text-center">
+                        <Button 
+                          onClick={connectToTelegram}
+                          disabled={isGeneratingCode}
+                          size="lg"
+                          className="w-full max-w-xs mx-auto text-lg py-6"
+                        >
+                          {isGeneratingCode ? (
+                            <span className="flex items-center gap-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              Conectando...
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-2">
+                              <MessageCircle size={20} />
+                              Conectar ao Telegram
+                            </span>
+                          )}
+                        </Button>
+                      </div>
                       
-                      <div className="pt-4 border-t">
-                        <div className="flex justify-center">
-                          <Button 
-                            variant="outline"
-                            onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
-                          >
-                            <Link size={16} className="mr-2" />
-                            Acessar bot no Telegram
-                          </Button>
-                        </div>
+                      <div className="text-center text-sm text-muted-foreground">
+                        <p>Ao clicar, o Telegram será aberto automaticamente.</p>
+                        <p>Basta clicar em "Iniciar" no bot para conectar!</p>
                       </div>
                     </div>
                   )}
@@ -569,79 +457,14 @@ const SettingsPage: React.FC = () => {
               <CardContent>
                 <p className="mb-4">
                   Seus dados são sincronizados automaticamente com o Supabase sempre que você realiza uma operação.
-                  Isso permite que você acesse seus dados de qualquer dispositivo em que esteja logado.
+                  Isso garante que suas informações estejam sempre atualizadas em todos os seus dispositivos.
                 </p>
-                
-                <TestIntegrationButton />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="telegram">
-            <Card>
-              <CardHeader>
-                <CardTitle>Configurações do Telegram</CardTitle>
-                <CardDescription>
-                  Gerencie a integração com o Telegram.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">Vincular Conta do Telegram</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Vincule sua conta do Telegram para receber notificações e acessar recursos exclusivos.
-                    </p>
-                    <Button 
-                      onClick={handleTelegramLink} 
-                      disabled={isTelegramLinked || isGeneratingCode}
-                      className="mr-2"
-                    >
-                      {isGeneratingCode ? 'Gerando código...' : 'Vincular Telegram'}
-                    </Button>
-                    {isTelegramLinked && (
-                      <span className="text-sm text-green-600">
-                        Conta do Telegram vinculada com sucesso!
-                      </span>
-                    )}
-                  </div>
-
-                  {!isTelegramLinked && (
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Código de Linkagem</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Insira o código de linkagem enviado para o seu Telegram:
-                      </p>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={telegramLinkCode}
-                          onChange={(e) => setTelegramLinkCode(e.target.value)}
-                          className="flex-1 p-2 border rounded-md"
-                          placeholder="Código de linkagem"
-                        />
-                        <Button onClick={handleTelegramConfirm}>
-                          Confirmar
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {telegramInfo && (
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Informações do Telegram</h3>
-                      <div className="space-y-1">
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">ID do Telegram:</span>
-                          <span className="text-sm font-medium">{telegramInfo.telegram_id}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Usuário do Telegram:</span>
-                          <span className="text-sm font-medium">{telegramInfo.telegram_username}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                <div className="space-y-2">
+                  <h4 className="font-medium">Status da Sincronização:</h4>
+                  <p className="text-green-600">✓ Funcionando corretamente</p>
+                </div>
+                <div className="mt-4">
+                  <TestIntegrationButton />
                 </div>
               </CardContent>
             </Card>

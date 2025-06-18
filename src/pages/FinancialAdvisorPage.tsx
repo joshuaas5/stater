@@ -486,20 +486,22 @@ const handleSendMessage = async (message: string) => {
               id: activeUserId,
               email: user.email || '',
               username: user.user_metadata?.username || user.email || ''
-            };
-            console.log('Salvando usuário no localStorage:', userToSave);
+            };            console.log('Salvando usuário no localStorage:', userToSave);
             saveUser(userToSave);
           }
             saveTransactionUtil(transactionToSave);
           window.dispatchEvent(new Event('transactionsUpdated'));
           // Forçar recarga da localStorage
-          window.dispatchEvent(new Event('storage'));setMessages((prevMessages: ChatMessage[]) => [
+          window.dispatchEvent(new Event('storage'));
+          
+          setMessages((prevMessages: ChatMessage[]) => [
             ...prevMessages,
             { id: uuidv4(), text: `✅ ${pendingAction.tipo === 'income' ? 'Receita' : 'Despesa'} registrada com sucesso!`, sender: 'system', timestamp: new Date() }
-          ]);
-        } else if (pendingAction.tipo === 'bill') {
+          ]);        } else if (pendingAction.tipo === 'bill') {
           // Exemplo para contas
-          const { valor, descricao, vencimento } = pendingAction.dados;          await supabase.from('bills').insert([
+          const { valor, descricao, vencimento } = pendingAction.dados;
+          
+          await supabase.from('bills').insert([
             {
               amount: valor,
               title: descricao,

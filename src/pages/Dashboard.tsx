@@ -11,7 +11,7 @@ import { Eye, EyeOff, Edit } from 'lucide-react';
 import SpendingChart from '@/components/dashboard/SpendingChart';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { DollarSign, ArrowRight } from 'lucide-react';
+import { DollarSign, ArrowRight, MessageCircle, Check } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { MonthSelector } from '@/components/ui/month-selector';
@@ -38,10 +38,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  
+  // Estados existentes
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [balance, setBalance] = useState(0);
   const [percentChange, setPercentChange] = useState(0);
@@ -58,8 +63,78 @@ const Dashboard: React.FC = () => {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [showDateFilters, setShowDateFilters] = useState(false);
-  const [nameFilter, setNameFilter] = useState<string>(''); // Novo filtro por nome
+  const [nameFilter, setNameFilter] = useState<string>('');
+
+  // Estados do Telegram
+  const [isTelegramLinked, setIsTelegramLinked] = useState(false);
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [telegramInfo, setTelegramInfo] = useState<any>(null);
+
+  // Funções do Telegram
+  const checkTelegramStatus = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data } = await supabase
+        .from('telegram_users')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (data) {
+        setIsTelegramLinked(true);
+        setTelegramInfo(data);
+      }
+    } catch (error) {
+      console.log('Telegram não conectado ainda');
+    }
+  };
+
+  const generateTelegramCode = async () => {
+    if (!user?.id) return;
+    
+    setIsGeneratingCode(true);
+    try {
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      
+      const { error } = await supabase
+        .from('telegram_codes')
+        .insert({
+          user_id: user.id,
+          code: code,
+          expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+        });
+
+      if (error) throw error;
+
+      // Abrir Telegram automaticamente
+      const telegramUrl = `https://t.me/ictus_financeiro_bot?start=${code}`;
+      window.open(telegramUrl, '_blank');
+      
+      toast({
+        title: "✅ Código gerado!",
+        description: "O Telegram foi aberto automaticamente. Clique em 'Iniciar' no bot!",
+      });
+
+    } catch (error: any) {
+      toast({
+        title: "❌ Erro",
+        description: error.message || "Erro ao gerar código",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingCode(false);
+    }
+  };
+
+  // Verificar status do Telegram no carregamento
+  useEffect(() => {
+    if (user?.id) {
+      checkTelegramStatus();
+    }
+  }, [user?.id]);
   
+  // Novo filtro por nome
   const [newTransaction, setNewTransaction] = useState({
     title: '',
     amount: '',
@@ -377,11 +452,10 @@ const Dashboard: React.FC = () => {
       
       // Recalcular o saldo total
       calculateTotalBalance();
-    }, 100);
-  };
+    }, 100);  };
   
-  const user = getCurrentUser();
-  const userName = user ? user.username : "Usuário";
+  const currentUser = getCurrentUser();
+  const userName = currentUser ? currentUser.username : "Usuário";
   
   return (
     <div className="bg-galileo-background min-h-screen pb-20">
@@ -430,9 +504,7 @@ const Dashboard: React.FC = () => {
           <DollarSign className="h-5 w-5 text-green-600" />
           <span className="text-xs">Análise Financeira</span>
         </Link>
-      </div>
-
-      <div className="flex justify-center gap-4 mb-6">
+      </div>      <div className="flex justify-center gap-4 mb-6">
         <Button 
           onClick={() => handleAddTransaction('income')}
           className="bg-galileo-positive hover:bg-galileo-positive/80 text-white flex items-center gap-2"
@@ -447,6 +519,69 @@ const Dashboard: React.FC = () => {
           <TrendingDown size={18} />
           Adicionar Saída
         </Button>
+      </div>
+
+      {/* Botão do Telegram - Destaque Principal */}
+      <div className="px-4 mb-6">
+        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl p-6 shadow-xl border-2 border-blue-300 relative overflow-hidden">
+          {/* Efeito de brilho de fundo */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 animate-pulse"></div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-white rounded-full p-2 shadow-lg">
+                  <MessageCircle className="h-6 w-6 text-blue-500" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-lg">
+                    {isTelegramLinked ? '✅ Telegram Conectado!' : '📱 Conectar ao Telegram'}
+                  </h3>
+                  <p className="text-blue-100 text-sm">
+                    {isTelegramLinked 
+                      ? `Conectado como @${telegramInfo?.username || 'usuário'}`
+                      : 'Receba suas transações automaticamente!'
+                    }
+                  </p>
+                </div>
+              </div>
+              
+              {isTelegramLinked && (
+                <div className="bg-green-500 rounded-full p-2">
+                  <Check className="h-5 w-5 text-white" />
+                </div>
+              )}
+            </div>
+            
+            {!isTelegramLinked && (
+              <Button
+                onClick={generateTelegramCode}
+                disabled={isGeneratingCode}
+                className="w-full bg-white hover:bg-gray-100 text-blue-600 font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-white/20 transition-all duration-200 transform hover:scale-105"
+              >
+                {isGeneratingCode ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                    Conectando...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5" />
+                    CONECTAR AGORA - 1 CLIQUE!
+                  </div>
+                )}
+              </Button>
+            )}
+            
+            {isTelegramLinked && (
+              <div className="bg-white/10 rounded-lg p-3 text-center">
+                <p className="text-white text-sm">
+                  🎉 Pronto! Agora você receberá notificações e poderá enviar comprovantes diretamente pelo Telegram!
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={(open: boolean) => {

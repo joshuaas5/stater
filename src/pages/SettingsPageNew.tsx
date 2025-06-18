@@ -11,99 +11,13 @@ import { toast } from '@/hooks/use-toast';
 import { Sun, Moon, Monitor, DollarSign, Calendar, MessageCircle, QrCode, Link, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-const SettingsPage: React.FC = () => {
-  const { user } = useAuth();
+const SettingsPage: React.FC = () => {  const { user } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Estado da aba ativa
-  const [activeTab, setActiveTab] = useState('telegram');
-  
-  // Estados para Telegram
-  const [telegramLinkCode, setTelegramLinkCode] = useState<string>('');
-  const [isTelegramLinked, setIsTelegramLinked] = useState(false);
-  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
-  const [telegramInfo, setTelegramInfo] = useState<any>(null);
-
-  // Conectar ao Telegram de forma ULTRA simples
-  const connectToTelegram = async () => {
-    if (!user) return;
-    
-    setIsGeneratingCode(true);
-    
-    try {
-      // Gerar código único simples (apenas 2 dígitos + 2 letras)
-      const numbers = Math.floor(10 + Math.random() * 90).toString();
-      const letters = Math.random().toString(36).substring(2, 4).toUpperCase();
-      const code = numbers + letters;
-      
-      const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Expira em 15 minutos
-      
-      // Salvar no Supabase
-      const { error } = await supabase
-        .from('telegram_link_codes')
-        .insert({
-          code: code,
-          user_id: user.id,
-          user_email: user.email || '',
-          user_name: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário',
-          expires_at: expiresAt.toISOString()
-        });
-      
-      if (error) {
-        throw error;
-      }
-      
-      setTelegramLinkCode(code);
-      
-      // Abrir o Telegram automaticamente
-      const telegramUrl = `https://t.me/assistentefinanceiroiabot?start=${code}`;
-      window.open(telegramUrl, '_blank');
-      
-      toast({
-        title: "Telegram aberto! 📱",
-        description: "Clique em 'Iniciar' no bot. É só isso! ✨"
-      });
-      
-      // Limpar código após 15 minutos
-      setTimeout(() => {
-        setTelegramLinkCode('');
-      }, 15 * 60 * 1000);
-      
-    } catch (error) {
-      console.error('Erro ao conectar:', error);
-      toast({
-        title: "Ops! 😅",
-        description: "Algo deu errado. Tenta de novo?",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGeneratingCode(false);
-    }
-  };
-
-  // Desvincular Telegram
-  const unlinkTelegram = async () => {
-    try {
-      const { error } = await supabase
-        .from('telegram_users')
-        .delete()
-        .eq('user_id', user?.id);
-      
-      setIsTelegramLinked(false);
-      setTelegramInfo(null);
-      
-      toast({
-        title: "Desconectado",
-        description: "Sua conta Telegram foi desvinculada com sucesso."
-      });
-    } catch (error) {
-      console.error('Erro ao desvincular:', error);
-    }
-  };
-
-  useEffect(() => {    const loadPreferences = async () => {
+    // Estado da aba ativa
+  const [activeTab, setActiveTab] = useState('account');
+  useEffect(() => {
+    const loadPreferences = async () => {
       if (user) {
         const userPrefs = getUserPreferences();
         setPreferences(userPrefs);
@@ -111,33 +25,7 @@ const SettingsPage: React.FC = () => {
       setIsLoading(false);
     };
 
-    // Verificar status do Telegram
-    const fetchTelegramInfo = async () => {
-      if (user) {
-        try {
-          const { data, error } = await supabase
-            .from('telegram_users')
-            .select('telegram_chat_id, user_email, user_name, linked_at')
-            .eq('user_id', user.id)
-            .single();
-
-          if (error) {
-            console.error('Erro ao verificar Telegram:', error);
-            setIsTelegramLinked(false);
-            setTelegramInfo(null);
-          } else {
-            setTelegramInfo(data);
-            setIsTelegramLinked(true);
-          }
-        } catch (error) {
-          setIsTelegramLinked(false);
-          setTelegramInfo(null);
-        }
-      }
-    };
-
     loadPreferences();
-    fetchTelegramInfo();
   }, [user]);
   const handleSavePreferences = (updatedPreferences: UserPreferences) => {
     if (user) {
@@ -191,9 +79,7 @@ const SettingsPage: React.FC = () => {
         {/* DEBUG: Verificar se está renderizando */}
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
           ✅ COMPONENTE FUNCIONANDO! Aba do Telegram está aqui embaixo! 👇
-        </div>
-
-        {/* Sistema de abas simplificado */}
+        </div>        {/* Sistema de abas simplificado */}
         <div className="border-b border-gray-200 mb-6">
           <nav className="-mb-px flex space-x-8">
             <button
@@ -215,17 +101,6 @@ const SettingsPage: React.FC = () => {
               }`}
             >
               Preferências
-            </button>
-            <button
-              onClick={() => setActiveTab('telegram')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center bg-blue-50 px-4 rounded-t-lg ${
-                activeTab === 'telegram'
-                  ? 'border-blue-500 text-blue-600 bg-blue-100'
-                  : 'border-transparent text-blue-600 hover:text-blue-700 hover:border-blue-300'
-              }`}
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              🚀 TELEGRAM 🚀
             </button>
             <button
               onClick={() => setActiveTab('sync')}
@@ -410,155 +285,7 @@ const SettingsPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-        )}
-
-        {activeTab === 'telegram' && (
-          <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl flex items-center justify-center gap-2">
-                <MessageCircle className="w-8 h-8 text-blue-600" />
-                Integração com Telegram
-              </CardTitle>
-              <CardDescription className="text-lg">
-                Conecte sua conta ao Telegram para usar o bot assistente financeiro.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-8">
-                {isTelegramLinked ? (
-                  // Conta já vinculada
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-center space-x-2 text-green-600 bg-green-50 p-4 rounded-lg">
-                      <Check size={24} />
-                      <span className="font-bold text-lg">Telegram conectado!</span>
-                    </div>
-                    
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                      <h4 className="font-bold text-green-800 mb-3 text-lg">Sua conta está vinculada ✅</h4>
-                      <p className="text-green-700 mb-4">
-                        Você pode agora usar o bot do Telegram para interagir com seu assistente financeiro.
-                      </p>
-                      <div className="space-y-2 text-sm text-green-600">
-                        <p><strong>Chat ID:</strong> {telegramInfo?.telegram_chat_id}</p>
-                        <p><strong>Vinculado em:</strong> {telegramInfo?.linked_at ? new Date(telegramInfo.linked_at).toLocaleString('pt-BR') : 'N/A'}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <h4 className="font-bold text-lg">Como usar o bot:</h4>
-                      <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-                        <div className="flex items-center gap-3">
-                          <div className="text-2xl">📷</div>
-                          <p><strong>Análise de extratos:</strong> Envie fotos de extratos bancários</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-2xl">💬</div>
-                          <p><strong>Chat com IA:</strong> Faça perguntas sobre suas finanças</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-2xl">📊</div>
-                          <p><strong>Relatórios:</strong> Solicite análises personalizadas</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-2xl">🔗</div>
-                          <p><strong>Sincronização:</strong> Dados aparecem automaticamente no app</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-4">
-                      <Button 
-                        onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-lg py-6"
-                        size="lg"
-                      >
-                        <MessageCircle size={20} className="mr-2" />
-                        Abrir Bot Telegram
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        onClick={unlinkTelegram}
-                        className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
-                        size="lg"
-                      >
-                        Desconectar
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  // Conta não vinculada - Interface ULTRA simples
-                  <div className="space-y-8">
-                    <div className="text-center space-y-4">
-                      <div className="bg-blue-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto">
-                        <MessageCircle size={48} className="text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                          Use o ICTUS no Telegram
-                        </h3>
-                        <p className="text-xl text-gray-600">
-                          Acesse seu assistente financeiro em qualquer lugar
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-xl p-8">
-                      <div className="grid grid-cols-2 gap-6 text-center">
-                        <div className="space-y-3">
-                          <div className="text-4xl">📷</div>
-                          <p className="font-bold">Análise de Extratos</p>
-                          <p className="text-sm text-gray-600">Envie foto → IA analisa → pronto!</p>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="text-4xl">💬</div>
-                          <p className="font-bold">Chat com IA</p>
-                          <p className="text-sm text-gray-600">Pergunte sobre suas finanças</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="text-center">
-                      <Button 
-                        onClick={connectToTelegram}
-                        disabled={isGeneratingCode}
-                        size="lg"
-                        className="w-full max-w-md mx-auto text-2xl py-8 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 shadow-xl transform hover:scale-105 transition-all"
-                      >
-                        {isGeneratingCode ? (
-                          <span className="flex items-center gap-3">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                            Conectando...
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-3">
-                            <MessageCircle size={28} />
-                            🚀 CONECTAR AGORA 🚀
-                          </span>
-                        )}
-                      </Button>
-                    </div>
-                    
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="bg-green-100 rounded-full p-2 mt-1">
-                          <Check size={20} className="text-green-600" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-green-800 mb-2 text-lg">É super fácil! ✨</p>
-                          <p className="text-green-700 text-lg">
-                            Clique no botão 👆 → o Telegram abre automaticamente → aperte "Iniciar" → pronto! 🎉
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {activeTab === 'sync' && (
+        )}        {activeTab === 'sync' && (
           <Card>
             <CardHeader>
               <CardTitle>Sincronização</CardTitle>

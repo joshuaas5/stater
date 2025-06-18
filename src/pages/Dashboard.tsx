@@ -89,20 +89,27 @@ const Dashboard: React.FC = () => {
       console.log('Telegram não conectado ainda');
     }
   };
-
   const generateTelegramCode = async () => {
     if (!user?.id) return;
     
     setIsGeneratingCode(true);
     try {
-      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      // Gerar código único simples
+      const numbers = Math.floor(10 + Math.random() * 90).toString();
+      const letters = Math.random().toString(36).substring(2, 4).toUpperCase();
+      const code = numbers + letters;
+      
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Expira em 15 minutos
       
       const { error } = await supabase
-        .from('telegram_codes')
+        .from('telegram_link_codes')
         .insert({
-          user_id: user.id,
           code: code,
-          expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+          user_id: user.id,
+          user_email: user.email || '',
+          user_name: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário',
+          expires_at: expiresAt.toISOString()
         });
 
       if (error) throw error;
@@ -112,14 +119,15 @@ const Dashboard: React.FC = () => {
       window.open(telegramUrl, '_blank');
       
       toast({
-        title: "✅ Código gerado!",
-        description: "O Telegram foi aberto automaticamente. Clique em 'Iniciar' no bot!",
+        title: "✅ Telegram aberto!",
+        description: "Clique em 'Iniciar' no bot. É só isso! ✨",
       });
 
     } catch (error: any) {
+      console.error('Erro ao gerar código:', error);
       toast({
         title: "❌ Erro",
-        description: error.message || "Erro ao gerar código",
+        description: error.message || "Erro ao conectar. Tente novamente.",
         variant: "destructive"
       });
     } finally {
@@ -519,65 +527,58 @@ const Dashboard: React.FC = () => {
           <TrendingDown size={18} />
           Adicionar Saída
         </Button>
-      </div>
-
-      {/* Botão do Telegram - Destaque Principal */}
+      </div>      {/* Botão do Telegram - Compacto e Elegante */}
       <div className="px-4 mb-6">
-        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl p-6 shadow-xl border-2 border-blue-300 relative overflow-hidden">
-          {/* Efeito de brilho de fundo */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 animate-pulse"></div>
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 shadow-lg border border-blue-400 relative overflow-hidden">
+          {/* Efeito sutil de brilho */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-blue-500/10"></div>
           
           <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-white rounded-full p-2 shadow-lg">
-                  <MessageCircle className="h-6 w-6 text-blue-500" />
+            {!isTelegramLinked ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {/* Logo do Telegram */}
+                  <div className="bg-white rounded-full p-2 shadow-md">
+                    <svg className="w-6 h-6 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 0C5.374 0 0 5.373 0 12s5.374 12 12 12 12-5.373 12-12S18.626 0 12 0zm5.568 8.16c-.085.638-.483 3.23-.683 4.281-.085.446-.255.595-.42.61-.357.032-.595-.236-.922-.463l-2.388-1.548c-.806-.546-1.267-.875-.66-1.383.638-.532 3.319-3.036 3.387-3.298.009-.032.018-.15-.063-.213-.081-.064-.2-.042-.287-.025-.122.024-2.065 1.311-5.84 3.856-.553.38-.796.565-1.278.565-.427 0-1.24-.241-1.846-.44-.745-.244-1.337-.374-1.288-.792.025-.217.305-.44.841-.669 3.316-1.444 5.535-2.398 6.656-2.861 3.175-1.323 3.833-1.554 4.261-1.563.095-.002.307.022.444.134.115.094.147.22.162.309.014.088.032.289.018.446z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold text-base">
+                      Controle suas finanças pelo Telegram
+                    </h3>
+                    <p className="text-blue-100 text-xs">
+                      Conecte agora e receba tudo em tempo real!
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-white font-bold text-lg">
-                    {isTelegramLinked ? '✅ Telegram Conectado!' : '📱 Conectar ao Telegram'}
-                  </h3>
-                  <p className="text-blue-100 text-sm">
-                    {isTelegramLinked 
-                      ? `Conectado como @${telegramInfo?.username || 'usuário'}`
-                      : 'Receba suas transações automaticamente!'
-                    }
-                  </p>
-                </div>
+                
+                <Button
+                  onClick={generateTelegramCode}
+                  disabled={isGeneratingCode}
+                  className="bg-white hover:bg-gray-50 text-blue-600 font-medium py-2 px-4 rounded-md shadow-sm transition-all duration-200 hover:shadow-md"
+                >
+                  {isGeneratingCode ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-600 border-t-transparent"></div>
+                      <span className="text-sm">Conectando...</span>
+                    </div>
+                  ) : (
+                    <span className="text-sm font-medium">Conectar</span>
+                  )}
+                </Button>
               </div>
-              
-              {isTelegramLinked && (
+            ) : (
+              <div className="flex items-center gap-3">
                 <div className="bg-green-500 rounded-full p-2">
                   <Check className="h-5 w-5 text-white" />
                 </div>
-              )}
-            </div>
-            
-            {!isTelegramLinked && (
-              <Button
-                onClick={generateTelegramCode}
-                disabled={isGeneratingCode}
-                className="w-full bg-white hover:bg-gray-100 text-blue-600 font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-white/20 transition-all duration-200 transform hover:scale-105"
-              >
-                {isGeneratingCode ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
-                    Conectando...
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="h-5 w-5" />
-                    CONECTAR AGORA - 1 CLIQUE!
-                  </div>
-                )}
-              </Button>
-            )}
-            
-            {isTelegramLinked && (
-              <div className="bg-white/10 rounded-lg p-3 text-center">
-                <p className="text-white text-sm">
-                  🎉 Pronto! Agora você receberá notificações e poderá enviar comprovantes diretamente pelo Telegram!
-                </p>
+                <div>
+                  <h3 className="text-white font-semibold text-base">✅ Telegram Conectado!</h3>
+                  <p className="text-blue-100 text-xs">
+                    Conectado como @{telegramInfo?.username || 'usuário'} • Recebendo notificações
+                  </p>
+                </div>
               </div>
             )}
           </div>

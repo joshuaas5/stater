@@ -8,7 +8,7 @@ const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Token do bot - IMPORTANTE: configurar no Vercel
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7774906065:AAGnHNWKAmj9xj-KxKs8SnQi5l3SJ4MrFgQ';
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7971646954:AAHpeNAzvg3kq7A1uER58XRms94sTjWZy5g';
 
 // Função para enviar mensagem via Telegram Bot API
 async function sendTelegramMessage(chatId: string, message: string) {

@@ -524,25 +524,26 @@ PADRÕES ESPECÍFICOS POR BANCO BRASILEIRO:
 
 🏦 ITAÚ:
 - Formato: "Data | Lançamento | Valor | Saldo"
-- SAÍDAS: "DÉBITO", "SAQUE", "TEV ELETRÔNICA ENVIADA"
+- SAÍDAS: "DÉBITO", "SAQUE", "TEV ELETRÔNICA ENVIADA", "PAC ELETRÔNICO"
 - ENTRADAS: "CRÉDITO", "DEPÓSITO", "TEV ELETRÔNICA RECEBIDA"
 - Ignore: "SALDO ANTERIOR", taxas já debitadas em outras linhas
 
-PADRÕES ESPECÍFICOS NUBANK:
-- "Pix enviado para": SAÍDA/expense
-- "Pix recebido de": ENTRADA/income  
-- "Transferência enviada": SAÍDA/expense
-- "Transferência recebida": ENTRADA/income
-- "Pagamento no débito": SAÍDA/expense
-- "Compra no cartão": SAÍDA/expense
-- Rendimentos da conta: geralmente MUITO BAIXOS (ignore se < R$ 1,00)
+🔴 FATURA ITAÚ - REGRAS ESPECIAIS:
+EXAMINE TODA A PÁGINA, ESPECIALMENTE O LADO DIREITO que pode conter:
+- "Lançamentos: compras e saques" (seção principal de transações)
+- "Compras parceladas - próximas faturas" (compras futuras, IGNORE)
+- "Lançamentos no cartão" com DATA, ESTABELECIMENTO e VALOR
+- Valores na coluna da direita são os valores das transações
+- Procure por seções como "Limite de crédito", "Compras presenciais", "Compras com Contactless"
+- SEMPRE examine ambos os lados da página - esquerda E direita
+- FOQUE na seção "LANÇAMENTOS" que contém as transações reais
 
-VALIDAÇÃO ESPECÍFICA PARA EXTRATOS BRASILEIROS:
-- Extratos bancários BR têm MÚLTIPLAS transações diárias
-- Valores típicos: compras R$ 10-500, transferências R$ 50-5000, salários R$ 1000+
-- Se encontrar apenas 1 transação baixa (ex: R$ 0,01), PROCURE MAIS no documento
-- Bancos digitais (Nubank, Inter, C6) têm layout diferente de bancos tradicionais
-- PIX é muito comum: analise direção ("para" = saída, "de" = entrada)
+PADRÕES ESPECÍFICOS FATURA ITAÚ:
+- Data formato DD/MM 
+- Estabelecimentos comerciais (MERCADO, FARMÁCIA, POSTO, etc.)
+- Valores sempre como DESPESAS (type: "expense")
+- Ignore: pagamentos da fatura, limites, saldos anteriores
+- Categorize por tipo de estabelecimento
 
 RETORNE APENAS JSON VÁLIDO no formato:
 

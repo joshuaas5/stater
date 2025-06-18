@@ -110,10 +110,8 @@ const Dashboard: React.FC = () => {
       
       // Salvar no localStorage temporariamente
       localStorage.setItem('telegram_temp_code', JSON.stringify(codeData));
-      console.log('Código salvo no localStorage:', codeData);
-
-      // Abrir Telegram automaticamente
-      const telegramUrl = `https://t.me/ictus_financeiro_bot?start=${code}`;
+      console.log('Código salvo no localStorage:', codeData);      // Abrir Telegram automaticamente
+      const telegramUrl = `https://t.me/assistentefinanceiroiabot?start=${code}`;
       window.open(telegramUrl, '_blank');
       
       toast({
@@ -525,44 +523,57 @@ const Dashboard: React.FC = () => {
           <TrendingDown size={18} />
           Adicionar Saída
         </Button>
-      </div>      {/* Botão do Telegram - Minimalista */}
+      </div>      {/* Destaque do Telegram - Design Chamativo */}
       <div className="px-4 mb-4">
         {!isTelegramLinked ? (
-          <div className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-3">
-              {/* Logo oficial do Telegram */}
-              <div className="w-8 h-8 rounded-full overflow-hidden">
-                <img 
-                  src="/telegram-logo.svg" 
-                  alt="Telegram" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div>
-                <h3 className="text-gray-900 font-medium text-sm">
-                  Controle suas finanças pelo Telegram
-                </h3>
-                <p className="text-gray-500 text-xs">
-                  Conecte e receba notificações em tempo real
-                </p>
-              </div>
+          <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-300">
+            {/* Destaque visual superior */}
+            <div className="absolute -top-2 left-4 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold shadow-md">
+              🚀 NOVO
             </div>
             
-            <Button
-              onClick={generateTelegramCode}
-              disabled={isGeneratingCode}
-              size="sm"
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-xs font-medium min-w-[80px]"
-            >
-              {isGeneratingCode ? (
-                <div className="flex items-center gap-1">
-                  <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
-                  <span>...</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {/* Ícone customizado sem logo */}
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                  <MessageCircle className="h-6 w-6 text-white" />
                 </div>
-              ) : (
-                "Conectar"
-              )}
-            </Button>
+                <div>
+                  <h3 className="text-white font-bold text-base">
+                    💬 Assistente Financeiro IA
+                  </h3>
+                  <p className="text-blue-100 text-sm">
+                    Controle suas finanças direto no Telegram
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs">
+                      Notificações em tempo real
+                    </span>
+                    <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs">
+                      1 clique
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <Button
+                onClick={generateTelegramCode}
+                disabled={isGeneratingCode}
+                className="bg-white hover:bg-gray-100 text-blue-600 px-6 py-2 rounded-lg font-bold shadow-md hover:shadow-lg transition-all duration-200 min-w-[100px]"
+              >
+                {isGeneratingCode ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                    <span>Conectando...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span>Conectar Agora</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
+                )}
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="flex items-center gap-3 bg-green-50 rounded-lg p-3 border border-green-200">

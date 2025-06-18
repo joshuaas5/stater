@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { Sun, Moon, Monitor, DollarSign, Calendar, MessageCircle, QrCode, Link, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -17,11 +16,16 @@ const SettingsPage: React.FC = () => {
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Estado da aba ativa
+  const [activeTab, setActiveTab] = useState('telegram');
+  
   // Estados para Telegram
   const [telegramLinkCode, setTelegramLinkCode] = useState<string>('');
   const [isTelegramLinked, setIsTelegramLinked] = useState(false);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
-  const [telegramInfo, setTelegramInfo] = useState<any>(null);  // Conectar ao Telegram de forma ULTRA simples
+  const [telegramInfo, setTelegramInfo] = useState<any>(null);
+
+  // Conectar ao Telegram de forma ULTRA simples
   const connectToTelegram = async () => {
     if (!user) return;
     
@@ -81,39 +85,32 @@ const SettingsPage: React.FC = () => {
 
   // Desvincular Telegram
   const unlinkTelegram = async () => {
-    if (!user) return;
-    
     try {
-      await supabase
+      const { error } = await supabase
         .from('telegram_users')
         .delete()
-        .eq('user_id', user.id);
+        .eq('user_id', user?.id);
       
       setIsTelegramLinked(false);
       setTelegramInfo(null);
       
       toast({
-        title: "Desvinculado!",
+        title: "Desconectado",
         description: "Sua conta Telegram foi desvinculada com sucesso."
       });
-      
     } catch (error) {
       console.error('Erro ao desvincular:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível desvincular. Tente novamente.",
-        variant: "destructive"
-      });
     }
   };
 
-  useEffect(() => {
-    if (user) {
-      const userPrefs = getUserPreferences();
-      setPreferences(userPrefs);
+  useEffect(() => {    const loadPreferences = async () => {
+      if (user) {
+        const userPrefs = getUserPreferences();
+        setPreferences(userPrefs);
+      }
       setIsLoading(false);
-    }
-    
+    };
+
     // Verificar status do Telegram
     const fetchTelegramInfo = async () => {
       if (user) {
@@ -123,60 +120,65 @@ const SettingsPage: React.FC = () => {
             .select('telegram_chat_id, user_email, user_name, linked_at')
             .eq('user_id', user.id)
             .single();
-          
-          if (error && error.code !== 'PGRST116') {
+
+          if (error) {
             console.error('Erro ao verificar Telegram:', error);
             setIsTelegramLinked(false);
             setTelegramInfo(null);
-          } else if (data) {
+          } else {
             setTelegramInfo(data);
             setIsTelegramLinked(true);
-          } else {
-            setIsTelegramLinked(false);
-            setTelegramInfo(null);
           }
         } catch (error) {
-          console.log('Erro ao verificar Telegram:', error);
           setIsTelegramLinked(false);
           setTelegramInfo(null);
         }
       }
     };
 
+    loadPreferences();
     fetchTelegramInfo();
   }, [user]);
-
-  const handleSavePreferences = () => {
-    if (preferences) {
-      saveUserPreferences(preferences);
+  const handleSavePreferences = (updatedPreferences: UserPreferences) => {
+    if (user) {
+      saveUserPreferences(updatedPreferences);
+      setPreferences(updatedPreferences);
       toast({
-        title: 'Preferências salvas',
-        description: 'Suas preferências foram salvas com sucesso.',
+        title: "Preferências salvas",
+        description: "Suas configurações foram atualizadas com sucesso."
       });
     }
   };
 
-  const handleThemeChange = (value: 'light' | 'dark' | 'system') => {
-    setPreferences(prev => prev ? { ...prev, theme: value } : null);
+  const updatePreference = (key: keyof UserPreferences, value: any) => {
+    if (preferences) {
+      const updated = { ...preferences, [key]: value };
+      handleSavePreferences(updated);
+    }
   };
 
-  const handleCurrencyChange = (value: string) => {
-    setPreferences(prev => prev ? { ...prev, currency: value } : null);
+  const updateNotificationPreference = (key: string, value: boolean) => {
+    if (preferences) {
+      const updated = {
+        ...preferences,
+        notifications: {
+          ...preferences.notifications,
+          [key]: value
+        }
+      };
+      handleSavePreferences(updated);
+    }
   };
 
-  const handleDateFormatChange = (value: string) => {
-    setPreferences(prev => prev ? { ...prev, dateFormat: value } : null);
-  };
-
-  const handleNotificationChange = (key: 'billsDueSoon' | 'largeTransactions', value: boolean) => {
-    setPreferences(prev => prev ? {
-      ...prev,
-      notifications: {
-        ...prev.notifications,
-        [key]: value
-      }
-    } : null);
-  };
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -186,308 +188,393 @@ const SettingsPage: React.FC = () => {
         </h1>
         <hr className="mb-8" />
 
-        <Tabs defaultValue="account" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
-            <TabsTrigger value="account">Conta</TabsTrigger>
-            <TabsTrigger value="preferences">Preferências</TabsTrigger>
-            <TabsTrigger value="telegram">Telegram</TabsTrigger>
-            <TabsTrigger value="sync">Sincronização</TabsTrigger>
-          </TabsList>
+        {/* DEBUG: Verificar se está renderizando */}
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+          ✅ COMPONENTE FUNCIONANDO! Aba do Telegram está aqui embaixo! 👇
+        </div>
 
-          <TabsContent value="account">
-            <Card>
-              <CardHeader>
-                <CardTitle>Informações do Usuário</CardTitle>
-                <CardDescription>
-                  Visualize as informações da sua conta.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {user ? (
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="font-medium">Nome de usuário</span>
-                      <span>{user.user_metadata?.username || user.email?.split('@')[0] || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="font-medium">Email</span>
-                      <span>{user.email || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2">
-                      <span className="font-medium">ID</span>
-                      <span className="text-sm text-muted-foreground font-mono">{user.id}</span>
-                    </div>
+        {/* Sistema de abas simplificado */}
+        <div className="border-b border-gray-200 mb-6">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('account')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'account'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Conta
+            </button>
+            <button
+              onClick={() => setActiveTab('preferences')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'preferences'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Preferências
+            </button>
+            <button
+              onClick={() => setActiveTab('telegram')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center bg-blue-50 px-4 rounded-t-lg ${
+                activeTab === 'telegram'
+                  ? 'border-blue-500 text-blue-600 bg-blue-100'
+                  : 'border-transparent text-blue-600 hover:text-blue-700 hover:border-blue-300'
+              }`}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              🚀 TELEGRAM 🚀
+            </button>
+            <button
+              onClick={() => setActiveTab('sync')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'sync'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Sincronização
+            </button>
+          </nav>
+        </div>
+
+        {/* Conteúdo das abas */}
+        {activeTab === 'account' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Informações do Usuário</CardTitle>
+              <CardDescription>
+                Visualize as informações da sua conta.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {user ? (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="font-medium">Nome de usuário</span>
+                    <span>{user.user_metadata?.username || user.email?.split('@')[0] || 'N/A'}</span>
                   </div>
-                ) : (
-                  <p className="text-muted-foreground">
-                    Você precisa estar logado para ver suas informações.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="font-medium">Email</span>
+                    <span>{user.email || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="font-medium">ID do Usuário</span>
+                    <span className="text-xs text-muted-foreground">{user.id}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="font-medium">Criado em</span>
+                    <span>{user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                  </div>
+                </div>
+              ) : (
+                <p>Nenhum usuário logado.</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
-          <TabsContent value="preferences">
-            <Card>
-              <CardHeader>
-                <CardTitle>Preferências do Usuário</CardTitle>
-                <CardDescription>
-                  Personalize sua experiência no aplicativo.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <p>Carregando preferências...</p>
-                ) : preferences ? (
+        {activeTab === 'preferences' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Preferências do Usuário</CardTitle>
+              <CardDescription>
+                Personalize sua experiência no aplicativo.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Tema */}
+              <div className="space-y-2">
+                <Label htmlFor="theme" className="text-base font-medium">Tema</Label>
+                <Select value={preferences?.theme || 'system'} onValueChange={(value) => updatePreference('theme', value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione um tema" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">
+                      <div className="flex items-center">
+                        <Sun className="mr-2 h-4 w-4" />
+                        Claro
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="dark">
+                      <div className="flex items-center">
+                        <Moon className="mr-2 h-4 w-4" />
+                        Escuro
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="system">
+                      <div className="flex items-center">
+                        <Monitor className="mr-2 h-4 w-4" />
+                        Sistema
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Moeda */}
+              <div className="space-y-2">
+                <Label htmlFor="currency" className="text-base font-medium">Moeda</Label>
+                <Select value={preferences?.currency || 'BRL'} onValueChange={(value) => updatePreference('currency', value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione uma moeda" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="BRL">
+                      <div className="flex items-center">
+                        <DollarSign className="mr-2 h-4 w-4" />
+                        Real (R$)
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="USD">
+                      <div className="flex items-center">
+                        <DollarSign className="mr-2 h-4 w-4" />
+                        Dólar ($)
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="EUR">
+                      <div className="flex items-center">
+                        <DollarSign className="mr-2 h-4 w-4" />
+                        Euro (€)
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Formato de Data */}
+              <div className="space-y-2">
+                <Label htmlFor="dateFormat" className="text-base font-medium">Formato de Data</Label>
+                <Select value={preferences?.dateFormat || 'DD/MM/YYYY'} onValueChange={(value) => updatePreference('dateFormat', value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione um formato" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DD/MM/YYYY">
+                      <div className="flex items-center">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        DD/MM/YYYY
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="MM/DD/YYYY">
+                      <div className="flex items-center">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        MM/DD/YYYY
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="YYYY-MM-DD">
+                      <div className="flex items-center">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        YYYY-MM-DD
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Notificações */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Notificações</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="notifications-email" className="text-sm font-normal">
+                      Notificações por email
+                    </Label>                    <Switch
+                      id="notifications-email"
+                      checked={preferences?.notifications?.emailNotifications || false}
+                      onCheckedChange={(value) => updateNotificationPreference('emailNotifications', value)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="notifications-push" className="text-sm font-normal">
+                      Notificações push
+                    </Label>                    <Switch
+                      id="notifications-push"
+                      checked={preferences?.notifications?.pushNotifications || false}
+                      onCheckedChange={(value) => updateNotificationPreference('pushNotifications', value)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="notifications-bills" className="text-sm font-normal">
+                      Lembrete de contas
+                    </Label>                    <Switch
+                      id="notifications-bills"
+                      checked={preferences?.notifications?.billsDueSoon || false}
+                      onCheckedChange={(value) => updateNotificationPreference('billsDueSoon', value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'telegram' && (
+          <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl flex items-center justify-center gap-2">
+                <MessageCircle className="w-8 h-8 text-blue-600" />
+                Integração com Telegram
+              </CardTitle>
+              <CardDescription className="text-lg">
+                Conecte sua conta ao Telegram para usar o bot assistente financeiro.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-8">
+                {isTelegramLinked ? (
+                  // Conta já vinculada
                   <div className="space-y-6">
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-medium">Aparência</h3>
-                      <div className="grid grid-cols-3 gap-4">
-                        <div 
-                          className={`p-4 rounded-lg border flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors ${preferences.theme === 'light' ? 'bg-accent text-accent-foreground' : ''}`}
-                          onClick={() => handleThemeChange('light')}
-                        >
-                          <Sun size={24} />
-                          <span>Claro</span>
+                    <div className="flex items-center justify-center space-x-2 text-green-600 bg-green-50 p-4 rounded-lg">
+                      <Check size={24} />
+                      <span className="font-bold text-lg">Telegram conectado!</span>
+                    </div>
+                    
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                      <h4 className="font-bold text-green-800 mb-3 text-lg">Sua conta está vinculada ✅</h4>
+                      <p className="text-green-700 mb-4">
+                        Você pode agora usar o bot do Telegram para interagir com seu assistente financeiro.
+                      </p>
+                      <div className="space-y-2 text-sm text-green-600">
+                        <p><strong>Chat ID:</strong> {telegramInfo?.telegram_chat_id}</p>
+                        <p><strong>Vinculado em:</strong> {telegramInfo?.linked_at ? new Date(telegramInfo.linked_at).toLocaleString('pt-BR') : 'N/A'}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <h4 className="font-bold text-lg">Como usar o bot:</h4>
+                      <div className="bg-gray-50 rounded-lg p-6 space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">📷</div>
+                          <p><strong>Análise de extratos:</strong> Envie fotos de extratos bancários</p>
                         </div>
-                        <div 
-                          className={`p-4 rounded-lg border flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors ${preferences.theme === 'dark' ? 'bg-accent text-accent-foreground' : ''}`}
-                          onClick={() => handleThemeChange('dark')}
-                        >
-                          <Moon size={24} />
-                          <span>Escuro</span>
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">💬</div>
+                          <p><strong>Chat com IA:</strong> Faça perguntas sobre suas finanças</p>
                         </div>
-                        <div 
-                          className={`p-4 rounded-lg border flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors ${preferences.theme === 'system' ? 'bg-accent text-accent-foreground' : ''}`}
-                          onClick={() => handleThemeChange('system')}
-                        >
-                          <Monitor size={24} />
-                          <span>Sistema</span>
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">📊</div>
+                          <p><strong>Relatórios:</strong> Solicite análises personalizadas</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">🔗</div>
+                          <p><strong>Sincronização:</strong> Dados aparecem automaticamente no app</p>
                         </div>
                       </div>
                     </div>
-
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-medium">Moeda</h3>
-                      <Select
-                        value={preferences.currency}
-                        onValueChange={handleCurrencyChange}
+                    
+                    <div className="flex gap-4">
+                      <Button 
+                        onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-lg py-6"
+                        size="lg"
                       >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Selecione uma moeda" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="BRL">Real Brasileiro (R$)</SelectItem>
-                          <SelectItem value="USD">Dólar Americano ($)</SelectItem>
-                          <SelectItem value="EUR">Euro (€)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-medium">Formato de Data</h3>
-                      <Select
-                        value={preferences.dateFormat}
-                        onValueChange={handleDateFormatChange}
+                        <MessageCircle size={20} className="mr-2" />
+                        Abrir Bot Telegram
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={unlinkTelegram}
+                        className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
+                        size="lg"
                       >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Selecione um formato de data" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="dd/MM/yyyy">DD/MM/AAAA</SelectItem>
-                          <SelectItem value="MM/dd/yyyy">MM/DD/AAAA</SelectItem>
-                          <SelectItem value="yyyy-MM-dd">AAAA-MM-DD</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-medium">Notificações</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <Label htmlFor="billsDueSoon">Contas a vencer em breve</Label>
-                            <p className="text-sm text-muted-foreground">Receba notificações sobre contas que vencem nos próximos dias</p>
-                          </div>
-                          <Switch
-                            id="billsDueSoon"
-                            checked={preferences.notifications.billsDueSoon}
-                            onCheckedChange={(value) => handleNotificationChange('billsDueSoon', value)}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <Label htmlFor="largeTransactions">Transações de grande valor</Label>
-                            <p className="text-sm text-muted-foreground">Receba notificações sobre transações com valores acima do normal</p>
-                          </div>
-                          <Switch
-                            id="largeTransactions"
-                            checked={preferences.notifications.largeTransactions}
-                            onCheckedChange={(value) => handleNotificationChange('largeTransactions', value)}
-                          />
-                        </div>
-                      </div>
+                        Desconectar
+                      </Button>
                     </div>
                   </div>
                 ) : (
-                  <p>Erro ao carregar preferências.</p>
-                )}
-              </CardContent>
-              <CardFooter>
-                <Button onClick={handleSavePreferences} disabled={isLoading || !preferences}>Salvar Preferências</Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="telegram">
-            <Card>
-              <CardHeader>
-                <CardTitle>Integração com Telegram</CardTitle>
-                <CardDescription>
-                  Conecte sua conta ao Telegram para usar o bot assistente financeiro.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {isTelegramLinked ? (
-                    // Conta já vinculada
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-2 text-green-600">
-                        <Check size={20} />
-                        <span className="font-medium">Telegram conectado!</span>
+                  // Conta não vinculada - Interface ULTRA simples
+                  <div className="space-y-8">
+                    <div className="text-center space-y-4">
+                      <div className="bg-blue-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto">
+                        <MessageCircle size={48} className="text-blue-600" />
                       </div>
-                      
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <h4 className="font-medium text-green-800 mb-2">Sua conta está vinculada</h4>
-                        <p className="text-sm text-green-700 mb-3">
-                          Você pode agora usar o bot do Telegram para interagir com seu assistente financeiro.
+                      <div>
+                        <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                          Use o ICTUS no Telegram
+                        </h3>
+                        <p className="text-xl text-gray-600">
+                          Acesse seu assistente financeiro em qualquer lugar
                         </p>
-                        <div className="space-y-1 text-xs text-green-600">
-                          <p><strong>Chat ID:</strong> {telegramInfo?.telegram_chat_id}</p>
-                          <p><strong>Vinculado em:</strong> {telegramInfo?.linked_at ? new Date(telegramInfo.linked_at).toLocaleString('pt-BR') : 'N/A'}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-xl p-8">
+                      <div className="grid grid-cols-2 gap-6 text-center">
+                        <div className="space-y-3">
+                          <div className="text-4xl">📷</div>
+                          <p className="font-bold">Análise de Extratos</p>
+                          <p className="text-sm text-gray-600">Envie foto → IA analisa → pronto!</p>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="text-4xl">💬</div>
+                          <p className="font-bold">Chat com IA</p>
+                          <p className="text-sm text-gray-600">Pergunte sobre suas finanças</p>
                         </div>
                       </div>
-                      
-                      <div className="space-y-3">
-                        <h4 className="font-medium">Como usar o bot:</h4>
-                        <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                          <p>• 📷 <strong>Análise de extratos:</strong> Envie fotos de extratos bancários</p>
-                          <p>• 💬 <strong>Chat com IA:</strong> Faça perguntas sobre suas finanças</p>
-                          <p>• 📊 <strong>Relatórios:</strong> Solicite análises personalizadas</p>
-                          <p>• 🔗 <strong>Sincronização:</strong> Dados aparecem automaticamente no app</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex space-x-3">
-                        <Button 
-                          onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
-                          className="flex-1"
-                        >
-                          <MessageCircle size={16} className="mr-2" />
-                          Abrir Bot Telegram
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          onClick={unlinkTelegram}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Desvincular
-                        </Button>
-                      </div>
-                    </div>                  ) : (                    // Conta não vinculada - Interface ULTRA simples
-                    <div className="space-y-8">
-                      <div className="text-center space-y-4">
-                        <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
-                          <MessageCircle size={40} className="text-blue-600" />
+                    </div>
+                    
+                    <div className="text-center">
+                      <Button 
+                        onClick={connectToTelegram}
+                        disabled={isGeneratingCode}
+                        size="lg"
+                        className="w-full max-w-md mx-auto text-2xl py-8 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 shadow-xl transform hover:scale-105 transition-all"
+                      >
+                        {isGeneratingCode ? (
+                          <span className="flex items-center gap-3">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                            Conectando...
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-3">
+                            <MessageCircle size={28} />
+                            🚀 CONECTAR AGORA 🚀
+                          </span>
+                        )}
+                      </Button>
+                    </div>
+                    
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                      <div className="flex items-start gap-4">
+                        <div className="bg-green-100 rounded-full p-2 mt-1">
+                          <Check size={20} className="text-green-600" />
                         </div>
                         <div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                            Use o ICTUS no Telegram
-                          </h3>
-                          <p className="text-lg text-gray-600">
-                            Acesse seu assistente financeiro em qualquer lugar
+                          <p className="font-bold text-green-800 mb-2 text-lg">É super fácil! ✨</p>
+                          <p className="text-green-700 text-lg">
+                            Clique no botão 👆 → o Telegram abre automaticamente → aperte "Iniciar" → pronto! 🎉
                           </p>
                         </div>
                       </div>
-                      
-                      <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-xl p-6">
-                        <div className="grid grid-cols-2 gap-4 text-center">
-                          <div className="space-y-2">
-                            <div className="text-2xl">📷</div>
-                            <p className="text-sm font-medium">Análise de Extratos</p>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="text-2xl">💬</div>
-                            <p className="text-sm font-medium">Chat com IA</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="text-center">
-                        <Button 
-                          onClick={connectToTelegram}
-                          disabled={isGeneratingCode}
-                          size="lg"
-                          className="w-full max-w-sm mx-auto text-xl py-8 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 shadow-lg"
-                        >
-                          {isGeneratingCode ? (
-                            <span className="flex items-center gap-3">
-                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                              Conectando...
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-3">
-                              <MessageCircle size={24} />
-                              Conectar Agora
-                            </span>
-                          )}
-                        </Button>
-                      </div>
-                      
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="bg-green-100 rounded-full p-1">
-                            <Check size={16} className="text-green-600" />
-                          </div>
-                          <div className="text-sm">
-                            <p className="font-semibold text-green-800 mb-1">É super fácil!</p>
-                            <p className="text-green-700">
-                              Clique no botão → o Telegram abre → aperte "Iniciar" → pronto! ✨
-                            </p>
-                          </div>
-                        </div>
-                      </div>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-          <TabsContent value="sync">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sincronização de Dados</CardTitle>
-                <CardDescription>
-                  Gerencie como seus dados são sincronizados entre dispositivos.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-4">
-                  Seus dados são sincronizados automaticamente com o Supabase sempre que você realiza uma operação.
-                  Isso garante que suas informações estejam sempre atualizadas em todos os seus dispositivos.
-                </p>
-                <div className="space-y-2">
-                  <h4 className="font-medium">Status da Sincronização:</h4>
-                  <p className="text-green-600">✓ Funcionando corretamente</p>
+        {activeTab === 'sync' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Sincronização</CardTitle>
+              <CardDescription>
+                Gerencie a sincronização dos seus dados.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Funcionalidades de sincronização em desenvolvimento.</p>
                 </div>
-                <div className="mt-4">
-                  <TestIntegrationButton />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

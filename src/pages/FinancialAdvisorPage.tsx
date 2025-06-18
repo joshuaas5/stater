@@ -391,11 +391,13 @@ const handleSendMessage = async (message: string) => {
             window.dispatchEvent(new Event('transactionsUpdated'));
             window.dispatchEvent(new CustomEvent('transactionsUpdated'));
           }, 500);
-          
-          // Mensagem de resultado
+            // Mensagem de resultado
           let resultMessage = '';
           if (successCount > 0) {
-            resultMessage += `✅ ${successCount} transações salvas com sucesso!`;
+            // Calcular total das transações salvas
+            const totalAmount = editableTransactions.reduce((sum, tx) => sum + tx.amount, 0);
+            resultMessage += `✅ ${successCount} transações salvas com sucesso!\n`;
+            resultMessage += `💰 **Total processado:** R$ ${totalAmount.toFixed(2)}`;
           }
           if (errorCount > 0) {
             resultMessage += `${successCount > 0 ? '\n' : ''}❌ ${errorCount} transações falharam ao salvar.`;

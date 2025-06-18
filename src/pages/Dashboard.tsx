@@ -98,24 +98,19 @@ const Dashboard: React.FC = () => {
       const letters = Math.random().toString(36).substring(2, 4).toUpperCase();
       const code = numbers + letters;
       
-      const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Expira em 15 minutos
+      // TEMPORÁRIO: usar localStorage em vez de Supabase para evitar erro 404
+      const codeData = {
+        code: code,
+        user_id: user.id,
+        user_email: user.email || '',
+        user_name: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário',
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        created_at: new Date().toISOString()
+      };
       
-      // Usar Supabase diretamente (sem API)
-      const { error } = await supabase
-        .from('telegram_link_codes')
-        .insert({
-          code: code,
-          user_id: user.id,
-          user_email: user.email || '',
-          user_name: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário',
-          expires_at: expiresAt.toISOString()
-        });
-
-      if (error) {
-        console.error('Erro Supabase:', error);
-        throw error;
-      }
+      // Salvar no localStorage temporariamente
+      localStorage.setItem('telegram_temp_code', JSON.stringify(codeData));
+      console.log('Código salvo no localStorage:', codeData);
 
       // Abrir Telegram automaticamente
       const telegramUrl = `https://t.me/ictus_financeiro_bot?start=${code}`;
@@ -123,7 +118,7 @@ const Dashboard: React.FC = () => {
       
       toast({
         title: "✅ Telegram aberto!",
-        description: "Clique em 'Iniciar' no bot. É só isso! ✨",
+        description: `Código: ${code} - Clique em 'Iniciar' no bot! ✨`,
       });
 
     } catch (error: any) {

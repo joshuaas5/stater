@@ -311,9 +311,10 @@ export default async function handler(req: any, res: any) {
     console.log('❌ Método não é POST');
     return res.status(405).json({ error: 'Método não permitido' });
   }
-
   try {
-    const update = req.body;    // Verificar se há uma mensagem
+    const update = req.body;
+
+    // Verificar se há uma mensagem
     if (!update || !update.message || !update.message.text) {
       console.log('📭 Sem mensagem de texto no update');
       // Responder OK mesmo assim para evitar reenvios
@@ -352,38 +353,33 @@ export default async function handler(req: any, res: any) {
               `📝 Registro de novas transações\n\n` +
               `💬 Digite qualquer pergunta sobre suas finanças e eu responderei com base nos seus dados reais!\n\n` +
               `Assistente IA ICTUS ativo! 🚀`
-            );
-          } else {
+            );          } else {
             console.log('❌ Falha na vinculação');
             await sendTelegramMessage(chatId, 
-              `❌ Código inválido ou expirado\n\n` +
-              `🔑 Código: ${code}\n\n` +
-              `💡 Para gerar um novo código:\n` +
-              `1. Abra o app ICTUS\n` +
-              `2. Vá para Dashboard\n` +
-              `3. Clique em "Conectar Telegram"\n` +
-              `4. Use o código gerado aqui\n\n` +
-              `Códigos expiram em 15 minutos`
+              `❌ <b>Código inválido ou expirado</b>\n\n` +
+              `🔑 Código tentado: <code>${code}</code>\n\n` +
+              `💡 <b>Soluções:</b>\n` +
+              `• Digite <b>/conectar</b> para instruções completas\n` +
+              `• Gere um novo código no app ICTUS\n` +
+              `• Códigos expiram em 15 minutos\n\n` +
+              `🔗 App: <a href="https://sprout-spending-hub-vb4x.vercel.app">sprout-spending-hub-vb4x.vercel.app</a>`
             );
-          }
-        } else {
+          }} else {
           console.log('🆕 Comando /start sem código');
           await sendTelegramMessage(chatId,
-            '👋 Bem-vindo ao Assistente IA do ICTUS!\n\n' +
+            '👋 <b>Bem-vindo ao Assistente IA do ICTUS!</b>\n\n' +
             '🤖 Sou seu assistente financeiro pessoal inteligente.\n\n' +
-            '🔗 Para conectar sua conta:\n' +
-            '1️⃣ Abra o app ICTUS\n' +
-            '2️⃣ Vá para a Dashboard\n' +
-            '3️⃣ Clique em "Conectar Telegram"\n' +
-            '4️⃣ Use o código aqui: /start SEU_CODIGO\n\n' +
-            '💡 Após conectar, poderei analisar suas finanças reais e dar conselhos personalizados!\n\n' +
-            'Digite /help para mais informações'
+            '⚡ <b>Conecte sua conta facilmente:</b>\n' +
+            '• Digite: <b>/conectar</b>\n\n' +
+            '💬 <b>Ou use agora mesmo:</b>\n' +
+            '• Digite: <b>/help</b> - Ver comandos\n' +
+            '• Digite: <b>/dashboard</b> - Acessar app\n' +
+            '• Exemplo: "Como economizar dinheiro?"\n\n' +
+            '💡 <i>Após conectar sua conta, terei acesso aos seus dados reais para análises personalizadas!</i>'
           );
         }
         return res.status(200).json({ ok: true, message: 'Comando /start processado' });
-      }
-
-      // Comando /help
+      }      // Comando /help
       if (messageText === '/help') {
         console.log('❓ Processando comando /help');
         await sendTelegramMessage(chatId,
@@ -393,20 +389,36 @@ export default async function handler(req: any, res: any) {
           '• Exemplo: "Como economizar dinheiro?"\n' +
           '• Exemplo: "Dicas de investimento"\n\n' +
           '🔗 <b>Para conectar sua conta:</b>\n' +
-          '1. Abra o app ICTUS\n' +
-          '2. Dashboard → "Conectar Telegram"\n' +
-          '3. Use: /start SEU_CODIGO\n\n' +
+          '• Use: <b>/conectar</b> (mais fácil!)\n' +
+          '• Ou abra o app → Dashboard → "Conectar Telegram"\n\n' +
           '💡 <i>Após conectar, terei acesso aos seus dados para análises personalizadas!</i>'
         );
         return res.status(200).json({ ok: true, message: 'Comando /help processado' });
       }
 
-      // Comando /dashboard (novo)
+      // Comando /conectar - NOVO SISTEMA INTUITIVO
+      if (messageText === '/conectar') {
+        console.log('🔗 Processando comando /conectar');
+        await sendTelegramMessage(chatId,
+          '🔗 <b>Conectar Conta ICTUS</b>\n\n' +
+          '✨ <b>Método Rápido:</b>\n' +
+          '1️⃣ Abra: <a href="https://sprout-spending-hub-vb4x.vercel.app">sprout-spending-hub-vb4x.vercel.app</a>\n' +
+          '2️⃣ Faça login na sua conta\n' +
+          '3️⃣ Vá para Dashboard\n' +
+          '4️⃣ Clique em "Conectar Telegram"\n' +
+          '5️⃣ Cole o código aqui no chat\n\n' +
+          '💡 <b>Seu Chat ID:</b> <code>' + chatId + '</code>\n' +
+          '📋 <i>Use este ID se precisar conectar manualmente</i>\n\n' +
+          '⏱️ <b>Códigos expiram em 15 minutos</b>\n' +
+          '🔄 Digite /conectar novamente se precisar de ajuda'
+        );
+        return res.status(200).json({ ok: true, message: 'Comando /conectar processado' });
+      }// Comando /dashboard (novo)
       if (messageText === '/dashboard') {
         console.log('📊 Processando comando /dashboard');
         await sendTelegramMessage(chatId,
           '📊 <b>Dashboard ICTUS</b>\n\n' +
-          '🔗 Acesse: <a href="https://ictus-six.vercel.app">ictus-six.vercel.app</a>\n\n' +
+          '🔗 Acesse: <a href="https://sprout-spending-hub-vb4x.vercel.app">sprout-spending-hub-vb4x.vercel.app</a>\n\n' +
           '📱 <b>No dashboard você pode:</b>\n' +
           '• Ver suas transações\n' +
           '• Gerar códigos do Telegram\n' +
@@ -433,11 +445,14 @@ export default async function handler(req: any, res: any) {
             `🤖 Agora posso analisar suas finanças reais e dar conselhos personalizados!\n\n` +
             `💬 Faça qualquer pergunta sobre suas finanças!\n\n` +
             `Assistente IA ICTUS ativo! 🚀`
-          );
-        } else {
+          );        } else {
           await sendTelegramMessage(chatId, 
-            `❌ Código inválido: ${code}\n\n` +
-            `💡 Gere um novo código no app ICTUS`
+            `❌ <b>Código inválido: ${code}</b>\n\n` +
+            `💡 <b>Tente:</b>\n` +
+            `• Digite <b>/conectar</b> para instruções\n` +
+            `• Gere um novo código no app\n` +
+            `• Verifique se não expirou (15 min)\n\n` +
+            `🔗 <a href="https://sprout-spending-hub-vb4x.vercel.app">Abrir App ICTUS</a>`
           );
         }
         return res.status(200).json({ ok: true, message: 'Código processado' });
@@ -449,13 +464,13 @@ export default async function handler(req: any, res: any) {
       // Verificar se usuário está vinculado
       const userData = await getTelegramUserData(chatId);
       console.log('👤 Status do usuário:', userData);
-      
-      if (!userData.linked) {
+        if (!userData.linked) {
         console.log('🔓 Usuário não vinculado - resposta genérica');
         // Usuário não vinculado - resposta genérica da IA
         const aiResponse = await callGeminiAPI(messageText);
         const responseWithTip = aiResponse + 
-          '\n\n💡 Conecte sua conta ICTUS para análises personalizadas! Digite /help para saber como.';
+          '\n\n💡 <b>Conecte sua conta para análises personalizadas!</b>\n' +
+          'Digite <b>/conectar</b> para instruções fáceis.';
         await sendTelegramMessage(chatId, responseWithTip);
       } else {
         console.log('🔒 Usuário vinculado - resposta personalizada');

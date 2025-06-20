@@ -1,26 +1,15 @@
 {
-  "name": "assistente-financeiro-telegram-bot",
+  "name": "telegram-bot",
   "version": "1.0.0",
-  "description": "Bot Telegram do Assistente Financeiro - Análise automática de extratos bancários com IA",
-  "main": "bot.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node bot.js",
-    "dev": "node bot.js",
-    "test": "echo \"Bot funcionando!\" && exit 0"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "telegram",
-    "bot",
-    "financeiro",
-    "IA",
-    "extrato",
-    "bancário",
-    "assistente"
-  ],
-  "author": "ICTUS Finance",
+  "keywords": [],
+  "author": "",
   "license": "ISC",
+  "description": "",
   "dependencies": {
-    "@supabase/supabase-js": "^2.50.0",
     "axios": "^1.10.0",
     "dotenv": "^16.5.0",
     "node-telegram-bot-api": "^0.66.0"

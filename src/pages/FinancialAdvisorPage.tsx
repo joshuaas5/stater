@@ -2755,10 +2755,7 @@ function getProcessingIcon(content: string): string {
 }
 
 function getProcessingDetails(content: string): string {
-  if (content.includes('PDF')) return '📑 Analisando documento PDF...';
-  if (content.includes('imagem')) return '🖼️ Processando imagem...';
-  if (content.includes('texto')) return '📄 Lendo texto...';
-  return '🔍 Analisando conteúdo...';
+  return '� Analisando documento...';
 }
 
 function formatMessageContent(content: string): React.ReactNode {

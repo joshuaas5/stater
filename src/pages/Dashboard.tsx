@@ -110,14 +110,42 @@ const Dashboard: React.FC = () => {
       
       // Salvar no localStorage temporariamente
       localStorage.setItem('telegram_temp_code', JSON.stringify(codeData));
-      console.log('Código salvo no localStorage:', codeData);      // Abrir Telegram automaticamente
-      const telegramUrl = `https://t.me/assistentefinanceiroiabot?start=${code}`;
-      window.open(telegramUrl, '_blank');
-      
+      console.log('Código salvo no localStorage:', codeData);
+
+      // Mostrar código primeiro para o usuário copiar
       toast({
-        title: "✅ Telegram aberto!",
-        description: `Código: ${code} - Clique em 'Iniciar' no bot! ✨`,
+        title: "🔗 Código de Conexão Gerado!",
+        description: `Código: ${code} - Copie este código primeiro!`,
+        duration: 10000 // 10 segundos para dar tempo de copiar
       });
+
+      // Aguardar um pouco para o usuário ver o código
+      setTimeout(() => {
+        // Perguntar se quer abrir o Telegram agora
+        const shouldOpenTelegram = confirm(
+          `Código gerado: ${code}\n\n` +
+          `1. Copie este código\n` +
+          `2. Clique OK para abrir o Telegram\n` +
+          `3. Cole o código no bot\n\n` +
+          `Deseja abrir o Telegram agora?`
+        );
+
+        if (shouldOpenTelegram) {
+          const telegramUrl = `https://t.me/assistentefinanceiroiabot?start=${code}`;
+          window.open(telegramUrl, '_blank');
+          
+          toast({
+            title: "✅ Telegram aberto!",
+            description: "Cole o código no bot e clique em 'Iniciar'!",
+          });
+        } else {
+          toast({
+            title: "📋 Código salvo!",
+            description: `Use este código no Telegram: ${code}`,
+            duration: 15000
+          });
+        }
+      }, 2000); // 2 segundos para o usuário ler o primeiro toast
 
     } catch (error: any) {
       console.error('Erro ao gerar código:', error);

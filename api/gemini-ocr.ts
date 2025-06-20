@@ -461,10 +461,26 @@ ANALISE ESTE DOCUMENTO e extraia TODAS as transações com MÁXIMA PRECISÃO, id
 TIPOS DE DOCUMENTOS SUPORTADOS:
 - Faturas de cartão de crédito (APENAS saídas/despesas - NÃO incluir pagamentos da fatura)
 - Extratos bancários (entradas E saídas)
-- Extratos de conta corrente (entradas E saídas)
+- Extratos de conta corrente (entradas E saídas)  
 - Extratos de poupança (entradas E saídas)
 - Relatórios de investimentos (entradas E saídas)
 - Extratos de carteira digital/PIX (entradas E saídas)
+- LISTAS MANUSCRITAS: fotos de papel com gastos, entradas ou saídas escritos à mão
+
+ANÁLISE DE LISTAS MANUSCRITAS:
+✅ RECONHEÇA que usuários podem fotografar:
+- Listas de gastos escritas à mão em papel
+- Anotações de despesas/receitas manuscritas  
+- Cadernos com registros financeiros
+- Papéis com valores e descrições escritos
+- Blocos de notas com transações anotadas
+
+REGRAS PARA LISTAS MANUSCRITAS:
+- Identifique valores escritos à mão (R$ 50, 100,00, etc.)
+- Reconheça descrições manuscritas (mercado, posto, farmácia)
+- Considere como transações válidas mesmo que escritas de forma simples
+- Se houver símbolos (+/-) ou palavras (gasto/receita), identifique o tipo
+- Categorize automaticamente baseado na descrição escrita
 
 REGRAS CRÍTICAS PARA FATURAS DE CARTÃO:
 ❌ NÃO INCLUIR como transações:

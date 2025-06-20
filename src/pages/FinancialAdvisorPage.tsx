@@ -1329,11 +1329,22 @@ const handleSendMessage = async (message: string) => {
         desc.includes('doméstico') || desc.includes('residencial') || desc.includes('casa')) {
       return 'Serviços';
     }
-    
-    // Alimentação (mantendo os anteriores)
+      // Alimentação (mantendo os anteriores)
     if (desc.includes('mercado') || desc.includes('supermercado') || desc.includes('feira') ||
-        desc.includes('restaurante') || desc.includes('lanche') || desc.includes('comida')) {
+        desc.includes('restaurante') || desc.includes('lanche') || desc.includes('comida') ||
+        desc.includes('padaria') || desc.includes('açougue') || desc.includes('delivery') ||
+        desc.includes('ifood') || desc.includes('uber eats') || desc.includes('pizza') ||
+        desc.includes('hamburguer') || desc.includes('sanduiche') || desc.includes('café') ||
+        desc.includes('almoço') || desc.includes('jantar') || desc.includes('bebida')) {
       return 'Alimentação';
+    }
+    
+    // Transporte (mais abrangente)
+    if (desc.includes('uber') || desc.includes('99') || desc.includes('táxi') ||
+        desc.includes('ônibus') || desc.includes('metro') || desc.includes('combustível') ||
+        desc.includes('gasolina') || desc.includes('posto') || desc.includes('pedágio') ||
+        desc.includes('estacionamento') || desc.includes('carro') || desc.includes('moto')) {
+      return 'Transporte';
     }
     
     // Contas (mantendo os anteriores)

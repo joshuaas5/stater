@@ -85,8 +85,7 @@ async function callGeminiAPI(userMessage: string, userId?: string): Promise<stri
                                  userMessage.toLowerCase().includes('financeira');
 
     const contextToUse = needsFinancialContext ? financialContextText : "Dados financeiros disponíveis mediante solicitação.";
-    
-    const fullPrompt = `Você é o Assistente IA do ICTUS, consultor financeiro direto e conciso.
+      const fullPrompt = `Você é o Assistente IA do ICTUS, consultor financeiro direto e conciso via Telegram.
 
 DATA: ${today}
 USUÁRIO: ${userName}
@@ -100,8 +99,7 @@ INSTRUÇÕES DE RESPOSTA:
 - Responda apenas o que foi perguntado  
 - NÃO use asteriscos (*) ou markdown nas respostas
 - Use emojis moderadamente apenas no início da resposta
-- NÃO faça análise financeira automática
-- SÓ analise finanças se explicitamente solicitado
+- NÃO mencione limitações sobre fotos ou documentos
 - Complete suas respostas - não corte no meio
 - Sempre calcule e mostre o SALDO ATUAL do usuário quando relevante
 
@@ -110,16 +108,16 @@ CÁLCULO DO SALDO:
 - Formato: "💰 Seu saldo atual é R$ X,XX"
 
 DETECÇÃO DE TRANSAÇÕES:
-Se detectar transação (ganhar/receber/gastar/pagar + valor), responda APENAS com JSON:
+Se detectar uma transação clara (ganhar/receber/gastar/pagar + valor específico), responda APENAS com JSON limpo:
 {
   "tipo": "receita" ou "despesa", 
-  "descrição": "descrição_breve",
-  "valor": valor_numerico,
+  "descrição": "descrição_clara",
+  "valor": valor_numerico_sem_simbolos,
   "data": "${today}",
-  "categoria": "categoria_automatica_obrigatoria"
+  "categoria": "categoria_automatica"
 }
 
-CATEGORIAS OBRIGATÓRIAS PARA AUTO-CATEGORIZAÇÃO:
+CATEGORIAS PARA AUTO-CATEGORIZAÇÃO:
 - "Alimentação": supermercados, restaurantes, delivery, padarias
 - "Transporte": combustível, uber, taxi, ônibus, pedágios  
 - "Saúde": farmácias, consultas médicas, planos de saúde
@@ -129,7 +127,9 @@ CATEGORIAS OBRIGATÓRIAS PARA AUTO-CATEGORIZAÇÃO:
 - "Cuidados Pessoais": salão, barbeiro, cosméticos, higiene
 - "Outros": categoria genérica quando não se encaixa
 
-Resposta direta (SEM asteriscos):`;
+IMPORTANTE: Só gere JSON se for uma transação ESPECÍFICA com valor claro. Para perguntas gerais, responda normalmente.
+
+Resposta:`;
 
     const geminiPayload = {
       contents: [{ 
@@ -521,12 +521,47 @@ export default async function handler(req: any, res: any) {
         const responseWithTip = aiResponse + 
           '\n\n💡 <b>Conecte sua conta para análises personalizadas!</b>\n' +
           'Digite <b>/conectar</b> para instruções fáceis.';
-        await sendTelegramMessage(chatId, responseWithTip);
-      } else {
+        await sendTelegramMessage(chatId, responseWithTip);      } else {
         console.log('🔒 Usuário vinculado - resposta personalizada');
         // Usuário vinculado - resposta personalizada com dados reais
         const aiResponse = await callGeminiAPI(messageText, userData.userId);
-        await sendTelegramMessage(chatId, aiResponse);
+        
+        // Verificar se a resposta é uma transação JSON
+        if (aiResponse.trim().startsWith('{') && aiResponse.includes('"tipo"')) {
+          console.log('💰 Detectada transação JSON, processando...');
+          
+          try {
+            const transactionData = JSON.parse(aiResponse.trim());
+            
+            // Validar dados da transação
+            if (transactionData.tipo && transactionData.valor && transactionData.descrição) {
+              console.log('📊 Dados da transação:', transactionData);
+              
+              // Enviar confirmação ao usuário
+              await sendTelegramMessage(chatId, 
+                `✅ <b>Transação detectada!</b>\n\n` +
+                `📝 <b>Descrição:</b> ${transactionData.descrição}\n` +
+                `💰 <b>Valor:</b> R$ ${transactionData.valor}\n` +
+                `📂 <b>Categoria:</b> ${transactionData.categoria}\n` +
+                `📅 <b>Data:</b> ${transactionData.data}\n` +
+                `🏷️ <b>Tipo:</b> ${transactionData.tipo === 'receita' ? 'Receita' : 'Despesa'}\n\n` +
+                `🎯 <b>Para salvar esta transação:</b>\n` +
+                `Vá para o app ICTUS e adicione manualmente.\n\n` +
+                `💡 <i>Em breve, poderei salvar automaticamente!</i>`
+              );
+            } else {
+              // Dados incompletos, enviar resposta normal
+              await sendTelegramMessage(chatId, aiResponse);
+            }
+          } catch (jsonError) {
+            console.log('❌ Erro ao processar JSON:', jsonError);
+            // Se não for JSON válido, enviar resposta normal
+            await sendTelegramMessage(chatId, aiResponse);
+          }
+        } else {
+          // Resposta normal da IA
+          await sendTelegramMessage(chatId, aiResponse);
+        }
       }
 
       return res.status(200).json({ ok: true, message: 'Mensagem IA processada' });

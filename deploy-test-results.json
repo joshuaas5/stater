@@ -1,0 +1,76 @@
+{
+  "timestamp": "2025-06-20T14:29:21.671Z",
+  "domain": "sprout-spending-hub-vb4x.vercel.app",
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "access-control-allow-origin": "*",
+        "age": "2466",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-disposition": "inline",
+        "content-length": "2587",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Fri, 20 Jun 2025 14:29:20 GMT",
+        "etag": "\"2d878904497666ae72b986dea0c499f8\"",
+        "last-modified": "Fri, 20 Jun 2025 13:48:14 GMT",
+        "server": "Vercel",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "x-vercel-cache": "HIT",
+        "x-vercel-id": "gru1::jzg8m-1750429760529-9e22371a3504"
+      },
+      "bodySize": 2577,
+      "success": true
+    },
+    {
+      "path": "/api/telegram-webhook",
+      "status": 405,
+      "headers": {
+        "age": "0",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-length": "34",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Fri, 20 Jun 2025 14:29:20 GMT",
+        "etag": "W/\"22-9ebfgLHlMx7rAmP/KrtJw/0hwLU\"",
+        "server": "Vercel",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "x-vercel-cache": "MISS",
+        "x-vercel-id": "gru1::iad1::ng6p5-1750429760564-daaa0e145c6d"
+      },
+      "bodySize": 32,
+      "success": false
+    },
+    {
+      "path": "/api/debug-connection",
+      "status": 405,
+      "headers": {
+        "age": "0",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-length": "30",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Fri, 20 Jun 2025 14:29:20 GMT",
+        "etag": "W/\"1e-iziTnYcqoJggpt2KVA8fS/so0II\"",
+        "server": "Vercel",
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "x-vercel-cache": "MISS",
+        "x-vercel-id": "gru1::iad1::vx7bb-1750429760777-0376ab4a90c3"
+      },
+      "bodySize": 30,
+      "success": false
+    },
+    {
+      "path": "/api/telegram-webhook (POST)",
+      "status": 200,
+      "response": "{\"ok\":true,\"message\":\"Comando /start processado\"}",
+      "success": true
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "successful": 2,
+    "failed": 2,
+    "success_rate": 50
+  }
+}

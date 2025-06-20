@@ -93,33 +93,28 @@ const Dashboard: React.FC = () => {
     
     setIsGeneratingCode(true);
     try {
-      // Gerar código único simples
-      const numbers = Math.floor(10 + Math.random() * 90).toString();
-      const letters = Math.random().toString(36).substring(2, 4).toUpperCase();
-      const code = numbers + letters;
-      
-      // Salvar no Supabase corretamente
-      const codeData = {
-        code: code,
-        user_id: user.id,
-        user_email: user.email || '',
-        user_name: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário',
-        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-        created_at: new Date().toISOString(),
-        used_at: null
-      };
-      
-      // Salvar no Supabase usando supabaseAdmin
-      const { error } = await supabase
-        .from('telegram_link_codes')
-        .insert(codeData);
-      
-      if (error) {
-        console.error('Erro ao salvar código no Supabase:', error);
-        throw new Error('Erro ao gerar código. Tente novamente.');
+      // Chamar API para gerar código
+      const response = await fetch('/api/telegram-link-codes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          user_email: user.email || '',
+          user_name: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao gerar código');
       }
+
+      const result = await response.json();
+      const code = result.code;
       
-      console.log('✅ Código salvo no Supabase:', codeData);
+      console.log('✅ Código gerado via API:', result);
 
       // Mostrar código primeiro para o usuário copiar
       toast({

@@ -809,22 +809,26 @@ export default async function handler(req: any, res: any) {
             console.log('✅ Resultado da API OCR:', ocrResult);
             
             // Processar o resultado da API
-            let responseMessage = '';
-              // Se retornou transações estruturadas
-            if (ocrResult.transactions && Array.isArray(ocrResult.transactions) && ocrResult.transactions.length > 0) {
-              console.log('📊 Transações estruturadas encontradas:', ocrResult.transactions.length);
+            let responseMessage = '';            // Se retornou transações estruturadas (a API OCR retorna em data.transactions)
+            const transactions = ocrResult.data?.transactions || ocrResult.transactions;
+            const summary = ocrResult.data?.summary || ocrResult.summary;
+            
+            if (transactions && Array.isArray(transactions) && transactions.length > 0) {
+              console.log('📊 Transações estruturadas encontradas:', transactions.length);
               
               // Verificar se usuário está conectado para salvar
               const userData = await getTelegramUserData(chatId);
-                if (!userData.linked) {
+                
+              if (!userData.linked) {
                 // Usuário não conectado - mostrar transações mas sem salvar
                 responseMessage = `📄 <b>Documento analisado!</b>\n\n`;
-                responseMessage += `� <b>Encontrei ${ocrResult.transactions.length} transações:</b>\n\n`;
-                  // Mostrar as transações com emojis e cálculos
+                responseMessage += `💡 <b>Encontrei ${transactions.length} transações:</b>\n\n`;
+                
+                // Mostrar as transações com emojis e cálculos
                 let totalAmount = 0;
                 const categoryTotals: {[key: string]: number} = {};
                 
-                ocrResult.transactions.slice(0, 15).forEach((t: any, index: number) => {
+                transactions.slice(0, 15).forEach((t: any, index: number) => {
                   const emoji = getCategoryEmoji(t.category);
                   const amount = Number(t.amount);
                   totalAmount += t.type === 'income' ? amount : -amount;
@@ -858,28 +862,28 @@ export default async function handler(req: any, res: any) {
               console.log('🔒 Usuário conectado - preparando lista para confirmação');
               
               // Salvar transações como pendentes
-              savePendingTransactions(chatId, ocrResult.transactions, ocrResult.summary, fileName);
+              savePendingTransactions(chatId, transactions, summary, fileName);
               
               // Preparar mensagem de listagem completa com emojis
               responseMessage = `📄 <b>Documento analisado com sucesso!</b>\n\n`;
               
               // Resumo do documento
-              if (ocrResult.summary) {
-                if (ocrResult.summary.establishment) {
-                  responseMessage += `🏦 <b>Estabelecimento:</b> ${ocrResult.summary.establishment}\n`;
+              if (summary) {
+                if (summary.establishment) {
+                  responseMessage += `🏦 <b>Estabelecimento:</b> ${summary.establishment}\n`;
                 }
-                if (ocrResult.summary.period) {
-                  responseMessage += `📅 <b>Período:</b> ${ocrResult.summary.period}\n`;
+                if (summary.period) {
+                  responseMessage += `📅 <b>Período:</b> ${summary.period}\n`;
                 }
               }
               
-              responseMessage += `📊 <b>Encontrei ${ocrResult.transactions.length} transações:</b>\n\n`;
+              responseMessage += `📊 <b>Encontrei ${transactions.length} transações:</b>\n\n`;
               
               // Listar TODAS as transações com emojis (igual ao app)
               let totalAmount = 0;
               const categoryTotals: {[key: string]: number} = {};
               
-              ocrResult.transactions.forEach((t: any, index: number) => {
+              transactions.forEach((t: any, index: number) => {
                 const emoji = getCategoryEmoji(t.category);
                 const amount = Number(t.amount);
                 const date = new Date(t.date).toLocaleDateString('pt-BR');
@@ -903,39 +907,16 @@ export default async function handler(req: any, res: any) {
               
               responseMessage += `\n💰 <b>TOTAL GERAL: R$ ${Math.abs(totalAmount).toFixed(2)}</b>\n\n`;
               
-              // PERGUNTA DE CONFIRMAÇÃO (igual ao app)
-              responseMessage += `❓ <b>Deseja adicionar essas ${ocrResult.transactions.length} transações?</b>\n\n`;
-              responseMessage += `📝 <b>Responda:</b>\n`;
-              responseMessage += `• <b>SIM</b> - Salvar todas as transações\n`;
-              responseMessage += `• <b>NÃO</b> - Cancelar e não salvar nada\n`;
-              responseMessage += `• <b>REVISAR</b> - Ver cada transação individualmente\n\n`;
-              responseMessage += `⏰ <i>Você tem 10 minutos para decidir</i>`;
+              // BOTÕES DE CONFIRMAÇÃO (igual ao app)
+              responseMessage += `❓ <b>Deseja adicionar essas ${transactions.length} transações?</b>\n\n`;
+              responseMessage += `💬 Digite:\n`;
+              responseMessage += `• <b>SIM</b> ou <b>CONFIRMAR</b> - Para salvar todas\n`;
+              responseMessage += `• <b>NÃO</b> ou <b>CANCELAR</b> - Para descartar\n\n`;
+              responseMessage += `⏰ <i>Aguardando sua confirmação...</i>`;
               
               await sendTelegramMessage(chatId, responseMessage);
-              
+              return res.status(200).json({ ok: true, message: 'Transações listadas - aguardando confirmação' });
             }
-            // Se retornou análise de texto
-            else if (ocrResult.extractedText || ocrResult.analysis) {
-              const analysisText = ocrResult.extractedText || ocrResult.analysis;
-              responseMessage = `📄 <b>Análise do documento concluída!</b>\n\n${analysisText}`;
-            }
-            // Resposta genérica
-            else {
-              responseMessage = `📄 <b>Documento processado!</b>\n\nAnalise realizada com sucesso. O documento foi examinado e as informações relevantes foram extraídas.`;
-            }
-            
-            // Adicionar sugestões se necessário
-            if (ocrResult.suggestions && Array.isArray(ocrResult.suggestions)) {
-              responseMessage += `\n\n� <b>Sugestões:</b>\n`;
-              ocrResult.suggestions.forEach((suggestion: string) => {
-                responseMessage += `• ${suggestion}\n`;
-              });
-            }
-            
-            responseMessage += `\n\n� <i>Posso ajudar com mais alguma coisa sobre este documento?</i>`;
-            
-            await sendTelegramMessage(chatId, responseMessage);
-            
           } else {
             const errorResult = await ocrResponse.json().catch(() => ({})) as any;
             console.error('❌ Erro na API OCR:', ocrResponse.status, errorResult);
@@ -1290,8 +1271,7 @@ export default async function handler(req: any, res: any) {
         await sendTelegramMessage(chatId, aiResponse);} else {
         console.log('🔒 Usuário vinculado - resposta personalizada');
         // Usuário vinculado - resposta personalizada com dados reais
-        const aiResponse = await callGeminiAPI(messageText, userData.userId);
-          // Verificar se a resposta é uma transação JSON
+        const aiResponse = await callGeminiAPI(messageText, userData.userId);        // Verificar se a resposta é uma transação JSON
         if (aiResponse.trim().startsWith('{') && aiResponse.includes('"tipo"')) {
           console.log('💰 Detectada transação JSON, processando...');
           
@@ -1302,44 +1282,27 @@ export default async function handler(req: any, res: any) {
             if (transactionData.tipo && transactionData.valor && transactionData.descrição) {
               console.log('📊 Dados da transação:', transactionData);
               
-              // Tentar salvar automaticamente
-              const saved = await saveTransactionToSupabase(userData.userId!, transactionData);
+              // MOSTRAR TRANSAÇÃO PARA CONFIRMAÇÃO (igual ao app)
+              const emoji = getCategoryEmoji(transactionData.categoria);
+              const amount = Number(transactionData.valor);
+              const typeText = transactionData.tipo === 'receita' ? '📈 Receita' : '📉 Despesa';
               
-              if (saved) {
-                // Sucesso ao salvar
-                const balance = await getUserBalance(userData.userId!);
-                
-                await sendTelegramMessage(chatId, 
-                  `✅ <b>TRANSAÇÃO SALVA COM SUCESSO!</b>\n\n` +
-                  `📝 <b>Descrição:</b> ${transactionData.descrição}\n` +
-                  `💰 <b>Valor:</b> R$ ${transactionData.valor}\n` +
-                  `📂 <b>Categoria:</b> ${transactionData.categoria}\n` +
-                  `📅 <b>Data:</b> ${transactionData.data}\n` +
-                  `🏷️ <b>Tipo:</b> ${transactionData.tipo === 'receita' ? 'Receita' : 'Despesa'}\n\n` +
-                  `💾 <b>Transação adicionada ao seu ICTUS!</b>\n\n` +
-                  `💰 <b>SEU SALDO ATUAL:</b> R$ ${balance.balance.toFixed(2)}\n` +
-                  `📈 <b>Total Receitas:</b> R$ ${balance.totalIncome.toFixed(2)}\n` +
-                  `📉 <b>Total Despesas:</b> R$ ${balance.totalExpense.toFixed(2)}\n\n` +
-                  `📱 <i>Abra seu app ICTUS para ver a transação!</i>`
-                );
-              } else {
-                // Erro ao salvar
-                await sendTelegramMessage(chatId, 
-                  `❌ <b>Erro ao salvar transação</b>\n\n` +
-                  `📝 <b>Descrição:</b> ${transactionData.descrição}\n` +
-                  `💰 <b>Valor:</b> R$ ${transactionData.valor}\n` +
-                  `📂 <b>Categoria:</b> ${transactionData.categoria}\n` +
-                  `📅 <b>Data:</b> ${transactionData.data}\n` +
-                  `🏷️ <b>Tipo:</b> ${transactionData.tipo === 'receita' ? 'Receita' : 'Despesa'}\n\n` +
-                  `⚠️ <b>Houve um problema ao salvar no banco de dados.</b>\n\n` +
-                  `💡 <b>Tente:</b>\n` +
-                  `• Verificar sua conexão\n` +
-                  `• Tentar novamente\n` +
-                  `• Ou adicionar manualmente no app ICTUS`
-                );
-              }
+              // Salvar como pendente
+              savePendingTransactions(chatId, [transactionData], null, 'manual_entry');
+              
+              const confirmMessage = 
+                `💡 <b>Transação detectada!</b>\n\n` +
+                `${emoji} <b>${transactionData.descrição}</b>\n` +
+                `💰 R$ ${amount.toFixed(2)} | 📂 ${transactionData.categoria}\n` +
+                `📅 ${transactionData.data} | ${typeText}\n\n` +
+                `❓ <b>Deseja confirmar e salvar esta transação?</b>\n\n` +
+                `� Digite:\n` +
+                `• <b>SIM</b> ou <b>CONFIRMAR</b> - Para salvar\n` +
+                `• <b>NÃO</b> ou <b>CANCELAR</b> - Para descartar\n\n` +
+                `⏰ <i>Aguardando sua confirmação...</i>`;
+                await sendTelegramMessage(chatId, confirmMessage);
             } else {
-              // Dados incompletos, enviar resposta normal
+              // JSON inválido, tratar como resposta normal
               await sendTelegramMessage(chatId, aiResponse);
             }
           } catch (jsonError) {
@@ -1351,7 +1314,7 @@ export default async function handler(req: any, res: any) {
           // Resposta normal da IA
           await sendTelegramMessage(chatId, aiResponse);
         }
-      }      return res.status(200).json({ ok: true, message: 'Mensagem IA processada' });
+      }return res.status(200).json({ ok: true, message: 'Mensagem IA processada' });
 
       } catch (processingError) {
         console.error('❌ Erro ao processar mensagem:', processingError);

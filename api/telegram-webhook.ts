@@ -202,31 +202,43 @@ async function getTelegramUserData(chatId: string): Promise<{ userId?: string, l
   return { linked: false };
 }
 
-// Função para salvar vinculação do usuário
+// Função para salvar vinculação do usuário - VERSÃO MELHORADA
 async function saveTelegramLink(chatId: string, code: string, username: string): Promise<boolean> {
   try {
-    console.log('💾 Tentando salvar vinculação:', { chatId, code, username });
+    console.log('💾 [DEBUG] Tentando salvar vinculação:', { chatId, code, username });
+    console.log('💾 [DEBUG] Timestamp atual:', new Date().toISOString());
     
     // Primeiro, verificar se o código existe e é válido
     const { data: codeData, error: codeError } = await supabaseAdmin
       .from('telegram_link_codes')
-      .select('user_id, user_email, user_name, expires_at')
+      .select('user_id, user_email, user_name, expires_at, created_at, used_at')
       .eq('code', code)
-      .is('used_at', null) // Código não usado ainda
       .single();
     
+    console.log('🔍 [DEBUG] Busca do código:', { codeData, error: codeError?.message });
+    
     if (codeError || !codeData) {
-      console.log('❌ Código não encontrado ou já usado:', codeError?.message);
+      console.log('❌ [DEBUG] Código não encontrado:', codeError?.message);
+      return false;
+    }
+    
+    // Verificar se já foi usado
+    if (codeData.used_at) {
+      console.log('❌ [DEBUG] Código já foi usado em:', codeData.used_at);
       return false;
     }
     
     // Verificar se não expirou
-    if (new Date(codeData.expires_at) < new Date()) {
-      console.log('❌ Código expirado');
+    const now = new Date();
+    const expiresAt = new Date(codeData.expires_at);
+    console.log('⏰ [DEBUG] Comparação de tempo:', { now: now.toISOString(), expiresAt: expiresAt.toISOString() });
+    
+    if (expiresAt < now) {
+      console.log('❌ [DEBUG] Código expirado. Criado em:', codeData.created_at);
       return false;
     }
     
-    console.log('✅ Código válido encontrado para usuário:', codeData.user_id);
+    console.log('✅ [DEBUG] Código válido encontrado para usuário:', codeData.user_id);
     
     // Salvar vinculação na tabela de usuários do Telegram
     const { error: linkError } = await supabaseAdmin
@@ -241,7 +253,7 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
       });
     
     if (linkError) {
-      console.error('❌ Erro ao salvar vinculação:', linkError.message);
+      console.error('❌ [DEBUG] Erro ao salvar vinculação:', linkError.message);
       return false;
     }
     
@@ -252,14 +264,14 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
       .eq('code', code);
     
     if (updateError) {
-      console.error('❌ Erro ao marcar código como usado:', updateError.message);
+      console.error('❌ [DEBUG] Erro ao marcar código como usado:', updateError.message);
     }
     
-    console.log('✅ Vinculação salva com sucesso!');
+    console.log('✅ [DEBUG] Vinculação salva com sucesso!');
     return true;
     
   } catch (error) {
-    console.error('❌ Exceção ao salvar vinculação:', error);
+    console.error('❌ [DEBUG] Exceção ao salvar vinculação:', error);
     return false;
   }
 }

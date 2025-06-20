@@ -98,19 +98,28 @@ const Dashboard: React.FC = () => {
       const letters = Math.random().toString(36).substring(2, 4).toUpperCase();
       const code = numbers + letters;
       
-      // TEMPORÁRIO: usar localStorage em vez de Supabase para evitar erro 404
+      // Salvar no Supabase corretamente
       const codeData = {
         code: code,
         user_id: user.id,
         user_email: user.email || '',
         user_name: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário',
         expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        used_at: null
       };
       
-      // Salvar no localStorage temporariamente
-      localStorage.setItem('telegram_temp_code', JSON.stringify(codeData));
-      console.log('Código salvo no localStorage:', codeData);
+      // Salvar no Supabase usando supabaseAdmin
+      const { error } = await supabase
+        .from('telegram_link_codes')
+        .insert(codeData);
+      
+      if (error) {
+        console.error('Erro ao salvar código no Supabase:', error);
+        throw new Error('Erro ao gerar código. Tente novamente.');
+      }
+      
+      console.log('✅ Código salvo no Supabase:', codeData);
 
       // Mostrar código primeiro para o usuário copiar
       toast({

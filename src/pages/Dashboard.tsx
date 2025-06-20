@@ -92,9 +92,8 @@ const Dashboard: React.FC = () => {
     if (!user?.id) return;
     
     setIsGeneratingCode(true);
-    try {
-      // Chamar API para gerar código
-      const response = await fetch('/api/telegram-link-codes', {
+    try {      // Chamar API para gerar código
+      const response = await fetch('/api/telegram-codes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

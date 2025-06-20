@@ -1,8 +1,8 @@
 // Script para verificar status do deploy e endpoint do Vercel
 // Executa teste completo das APIs e webhook do Telegram
 
-import https from 'https';
-import fs from 'fs';
+const https = require('https');
+const fs = require('fs');
 
 const VERCEL_DOMAIN = 'sprout-spending-hub-vb4x.vercel.app';
 const ENDPOINTS_TO_TEST = [

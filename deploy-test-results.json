@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-06-20T14:38:45.158Z",
+  "timestamp": "2025-06-20T14:45:47.838Z",
   "domain": "sprout-spending-hub-vb4x.vercel.app",
   "results": [
     {
@@ -8,18 +8,18 @@
       "headers": {
         "accept-ranges": "bytes",
         "access-control-allow-origin": "*",
-        "age": "14",
+        "age": "0",
         "cache-control": "public, max-age=0, must-revalidate",
         "content-disposition": "inline",
         "content-length": "2587",
         "content-type": "text/html; charset=utf-8",
-        "date": "Fri, 20 Jun 2025 14:38:43 GMT",
-        "etag": "\"2d878904497666ae72b986dea0c499f8\"",
-        "last-modified": "Fri, 20 Jun 2025 14:38:28 GMT",
+        "date": "Fri, 20 Jun 2025 14:45:45 GMT",
+        "etag": "\"518330ccc027ba798d86575aa22a7cf5\"",
+        "last-modified": "Fri, 20 Jun 2025 14:45:45 GMT",
         "server": "Vercel",
         "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
         "x-vercel-cache": "HIT",
-        "x-vercel-id": "gru1::zpttr-1750430323288-c1474f1a6ae7"
+        "x-vercel-id": "gru1::jpmqg-1750430745696-521c9e7a0028"
       },
       "bodySize": 2577,
       "success": true
@@ -32,12 +32,12 @@
         "cache-control": "public, max-age=0, must-revalidate",
         "content-length": "34",
         "content-type": "application/json; charset=utf-8",
-        "date": "Fri, 20 Jun 2025 14:38:43 GMT",
+        "date": "Fri, 20 Jun 2025 14:45:46 GMT",
         "etag": "W/\"22-9ebfgLHlMx7rAmP/KrtJw/0hwLU\"",
         "server": "Vercel",
         "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
         "x-vercel-cache": "MISS",
-        "x-vercel-id": "gru1::iad1::sh2zm-1750430323315-d95ef328ecf2"
+        "x-vercel-id": "gru1::iad1::jpmqg-1750430746003-7adbc524277e"
       },
       "bodySize": 32,
       "success": false
@@ -50,12 +50,12 @@
         "cache-control": "public, max-age=0, must-revalidate",
         "content-length": "30",
         "content-type": "application/json; charset=utf-8",
-        "date": "Fri, 20 Jun 2025 14:38:44 GMT",
+        "date": "Fri, 20 Jun 2025 14:45:46 GMT",
         "etag": "W/\"1e-iziTnYcqoJggpt2KVA8fS/so0II\"",
         "server": "Vercel",
         "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
         "x-vercel-cache": "MISS",
-        "x-vercel-id": "gru1::iad1::5kdpt-1750430323861-0a3d0ed4ccc7"
+        "x-vercel-id": "gru1::iad1::vtznz-1750430746380-ceb1e601608e"
       },
       "bodySize": 30,
       "success": false

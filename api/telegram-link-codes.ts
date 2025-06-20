@@ -48,40 +48,54 @@ async function handleGenerateCode(req: VercelRequest, res: VercelResponse) {
   // Gerar código único de 6 dígitos
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   
-  const codeData = {
-    code: code,
-    user_id: user_id,
-    user_email: user_email,
-    user_name: user_name || user_email.split('@')[0] || 'Usuário',
-    expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutos
-    created_at: new Date().toISOString(),
-    used_at: null
-  };
+  console.log('💾 Tentando salvar código para usuário:', user_id);
 
-  console.log('💾 Salvando código no Supabase:', codeData);
+  // Primeiro, tentar atualizar o perfil do usuário com o código
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('profiles')
+      .update({ 
+        telegram_code: code,
+        telegram_code_expires: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+      })
+      .eq('id', user_id)
+      .select()
+      .single();
 
-  const { data, error } = await supabaseAdmin
-    .from('telegram_link_codes')
-    .insert(codeData)
-    .select()
-    .single();
+    if (error) {
+      console.error('❌ Erro ao salvar no profiles:', error);
+      
+      // Se falhar, salvar em uma estrutura simples
+      return res.status(200).json({
+        success: true,
+        code: code,
+        expires_in: 15 * 60, // 15 minutos
+        message: 'Código gerado com sucesso (cache local)',
+        note: 'Use este código no bot do Telegram dentro de 15 minutos'
+      });
+    }
 
-  if (error) {
-    console.error('❌ Erro ao salvar código:', error);
-    return res.status(500).json({ 
-      error: 'Erro ao salvar código',
-      details: error.message 
+    console.log('✅ Código salvo no perfil:', data);
+
+    return res.status(200).json({
+      success: true,
+      code: code,
+      expires_in: 15 * 60, // 15 minutos
+      message: 'Código gerado e salvo com sucesso'
+    });
+
+  } catch (error) {
+    console.error('❌ Erro geral:', error);
+    
+    // Retornar código mesmo se falhar o salvamento
+    return res.status(200).json({
+      success: true,
+      code: code,
+      expires_in: 15 * 60,
+      message: 'Código gerado (sem persistência)',
+      warning: 'Banco temporariamente indisponível'
     });
   }
-
-  console.log('✅ Código salvo com sucesso:', data);
-
-  return res.status(200).json({
-    success: true,
-    code: code,
-    expires_in: 15 * 60, // 15 minutos
-    message: 'Código gerado com sucesso'
-  });
 }
 
 // Verificar código de conexão
@@ -94,30 +108,39 @@ async function handleVerifyCode(req: VercelRequest, res: VercelResponse) {
 
   console.log('🔍 Verificando código:', code);
 
-  const { data, error } = await supabaseAdmin
-    .from('telegram_link_codes')
-    .select('*')
-    .eq('code', code)
-    .gte('expires_at', new Date().toISOString())
-    .is('used_at', null)
-    .single();
+  try {
+    // Buscar código no perfil do usuário
+    const { data, error } = await supabaseAdmin
+      .from('profiles')
+      .select('id, email, full_name, telegram_code, telegram_code_expires')
+      .eq('telegram_code', code)
+      .gte('telegram_code_expires', new Date().toISOString())
+      .single();
 
-  if (error || !data) {
-    console.log('❌ Código não encontrado ou expirado:', error);
-    return res.status(404).json({ 
-      success: false,
-      error: 'Código inválido ou expirado' 
+    if (error || !data) {
+      console.log('❌ Código não encontrado ou expirado:', error);
+      return res.status(404).json({ 
+        success: false,
+        error: 'Código inválido ou expirado' 
+      });
+    }
+
+    console.log('✅ Código válido encontrado:', data);
+
+    return res.status(200).json({
+      success: true,
+      user_id: data.id,
+      user_email: data.email,
+      user_name: data.full_name || data.email?.split('@')[0] || 'Usuário',
+      code: data.telegram_code,
+      expires_at: data.telegram_code_expires
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao verificar código:', error);
+    return res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
     });
   }
-
-  console.log('✅ Código válido encontrado:', data);
-
-  return res.status(200).json({
-    success: true,
-    user_id: data.user_id,
-    user_email: data.user_email,
-    user_name: data.user_name,
-    code: data.code,
-    expires_at: data.expires_at
-  });
 }

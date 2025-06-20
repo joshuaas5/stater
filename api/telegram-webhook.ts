@@ -1,4 +1,4 @@
-// API Webhook do Telegram - Integração Completa com Assistente IA
+// API Webhook do Telegram - Integração Completa com Assistente IA (CORRIGIDO)
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from './supabase-admin';
 
@@ -153,7 +153,9 @@ Resposta direta (SEM asteriscos):`;
 
     if (!response.ok) {
       throw new Error(`Gemini API error: ${response.status}`);
-    }    const data: any = await response.json();
+    }
+
+    const data: any = await response.json();
     
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       const aiResponse = data.candidates[0].content.parts[0].text;
@@ -174,78 +176,90 @@ Resposta direta (SEM asteriscos):`;
 // Função para verificar se usuário está vinculado
 async function getTelegramUserData(chatId: string): Promise<{ userId?: string, linked: boolean }> {
   try {
-    const { data } = await supabaseAdmin
+    console.log('🔍 Verificando vinculação para chat:', chatId);
+    
+    // Verificar na tabela correta do SQL
+    const { data, error } = await supabaseAdmin
       .from('telegram_users')
       .select('user_id, linked_at')
-      .eq('chat_id', chatId)
+      .eq('telegram_chat_id', chatId)
       .single();
     
+    if (error) {
+      console.log('❌ Erro ao verificar vinculação:', error.message);
+      return { linked: false };
+    }
+    
     if (data && data.user_id) {
+      console.log('✅ Usuário vinculado encontrado:', data.user_id);
       return { userId: data.user_id, linked: true };
     }
   } catch (error) {
-    console.log('Usuário não vinculado ainda');
+    console.log('❌ Exceção ao verificar vinculação:', error);
   }
   
+  console.log('❌ Usuário não vinculado');
   return { linked: false };
 }
 
 // Função para salvar vinculação do usuário
 async function saveTelegramLink(chatId: string, code: string, username: string): Promise<boolean> {
   try {
-    // Verificar se o código existe no localStorage (método temporário)
-    const storedCode = localStorage.getItem('telegram_temp_code');
-    if (storedCode) {
-      const codeData = JSON.parse(storedCode);
-      if (codeData.code === code && new Date(codeData.expires_at) > new Date()) {
-        // Salvar vinculação no Supabase
-        await supabaseAdmin
-          .from('telegram_users')
-          .upsert({
-            chat_id: chatId,
-            user_id: codeData.user_id,
-            username: username,
-            linked_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-        
-        // Remover código usado
-        localStorage.removeItem('telegram_temp_code');
-        return true;
-      }
-    }
+    console.log('💾 Tentando salvar vinculação:', { chatId, code, username });
     
-    // Verificar no Supabase também (quando implementado)
-    const { data } = await supabaseAdmin
-      .from('telegram_codes')
-      .select('user_id')
+    // Primeiro, verificar se o código existe e é válido
+    const { data: codeData, error: codeError } = await supabaseAdmin
+      .from('telegram_link_codes')
+      .select('user_id, user_email, user_name, expires_at')
       .eq('code', code)
-      .gt('expires_at', new Date().toISOString())
+      .is('used_at', null) // Código não usado ainda
       .single();
     
-    if (data) {
-      await supabaseAdmin
-        .from('telegram_users')
-        .upsert({
-          chat_id: chatId,
-          user_id: data.user_id,
-          username: username,
-          linked_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
-      
-      // Marcar código como usado
-      await supabaseAdmin
-        .from('telegram_codes')
-        .update({ used_at: new Date().toISOString() })
-        .eq('code', code);
-      
-      return true;
+    if (codeError || !codeData) {
+      console.log('❌ Código não encontrado ou já usado:', codeError?.message);
+      return false;
     }
     
-    return false;
+    // Verificar se não expirou
+    if (new Date(codeData.expires_at) < new Date()) {
+      console.log('❌ Código expirado');
+      return false;
+    }
+    
+    console.log('✅ Código válido encontrado para usuário:', codeData.user_id);
+    
+    // Salvar vinculação na tabela de usuários do Telegram
+    const { error: linkError } = await supabaseAdmin
+      .from('telegram_users')
+      .upsert({
+        telegram_chat_id: chatId,
+        user_id: codeData.user_id,
+        user_email: codeData.user_email,
+        user_name: codeData.user_name,
+        linked_at: new Date().toISOString(),
+        is_active: true
+      });
+    
+    if (linkError) {
+      console.error('❌ Erro ao salvar vinculação:', linkError.message);
+      return false;
+    }
+    
+    // Marcar código como usado
+    const { error: updateError } = await supabaseAdmin
+      .from('telegram_link_codes')
+      .update({ used_at: new Date().toISOString() })
+      .eq('code', code);
+    
+    if (updateError) {
+      console.error('❌ Erro ao marcar código como usado:', updateError.message);
+    }
+    
+    console.log('✅ Vinculação salva com sucesso!');
+    return true;
+    
   } catch (error) {
-    console.error('Erro ao salvar vinculação:', error);
+    console.error('❌ Exceção ao salvar vinculação:', error);
     return false;
   }
 }
@@ -263,7 +277,7 @@ async function sendTelegramMessage(chatId: string, message: string) {
       body: JSON.stringify({
         chat_id: chatId,
         text: message,
-        parse_mode: 'Markdown'
+        parse_mode: 'HTML' // Mudado para HTML para evitar problemas com Markdown
       })
     });
 
@@ -287,8 +301,8 @@ export default async function handler(req: any, res: any) {
   // Log detalhado para debug
   console.log('🤖 =================================');
   console.log('🤖 Webhook Telegram recebido');
+  console.log('🤖 Timestamp:', new Date().toISOString());
   console.log('🤖 Método:', req.method);
-  console.log('🤖 Headers:', JSON.stringify(req.headers, null, 2));
   console.log('🤖 Body:', JSON.stringify(req.body, null, 2));
   console.log('🤖 =================================');
 
@@ -297,30 +311,34 @@ export default async function handler(req: any, res: any) {
     console.log('❌ Método não é POST');
     return res.status(405).json({ error: 'Método não permitido' });
   }
-  // Responder imediatamente para evitar timeout
-  res.status(200).json({ ok: true, message: 'Webhook recebido' });
 
   try {
     const update = req.body;
 
     // Verificar se há uma mensagem
     if (!update || !update.message || !update.message.text) {
-      console.log('📭 Sem mensagem de texto');
-      return;
+      console.log('📭 Sem mensagem de texto no update');
+      // Responder OK mesmo assim para evitar reenvios
+      return res.status(200).json({ ok: true, message: 'Update recebido mas sem mensagem de texto' });
     }
 
     const chatId = update.message.chat.id.toString();
     const messageText = update.message.text.trim();
     const username = update.message.from.username || update.message.from.first_name || 'Usuário';
 
-    console.log(`💬 Mensagem de ${username} (${chatId}): ${messageText}`);    // Processar comandos de forma assíncrona
+    console.log(`💬 Mensagem de ${username} (${chatId}): ${messageText}`);
+
+    // Responder imediatamente para evitar timeout
+    res.status(200).json({ ok: true, message: 'Webhook recebido e processando' });
+
+    // Processar comandos de forma assíncrona
     setImmediate(async () => {
       try {
-        // Verificar se usuário está vinculado
-        const userData = await getTelegramUserData(chatId);
+        console.log('🔄 Iniciando processamento assíncrono...');
         
         // Comando /start - sempre responde
         if (messageText.startsWith('/start')) {
+          console.log('🚀 Processando comando /start');
           const code = messageText.replace('/start', '').trim();
           
           if (code) {
@@ -329,6 +347,7 @@ export default async function handler(req: any, res: any) {
             const linkSuccess = await saveTelegramLink(chatId, code, username);
             
             if (linkSuccess) {
+              console.log('✅ Vinculação bem-sucedida');
               await sendTelegramMessage(chatId, 
                 `✅ Conta vinculada com sucesso!\n\n` +
                 `🎉 Olá ${username}! Sua conta ICTUS foi conectada ao Telegram.\n\n` +
@@ -338,23 +357,25 @@ export default async function handler(req: any, res: any) {
                 `💡 Dicas e conselhos financeiros\n` +
                 `📝 Registro de novas transações\n\n` +
                 `💬 Digite qualquer pergunta sobre suas finanças e eu responderei com base nos seus dados reais!\n\n` +
-                `_Assistente IA ICTUS ativo! 🚀_`
+                `Assistente IA ICTUS ativo! 🚀`
               );
               return;
             } else {
+              console.log('❌ Falha na vinculação');
               await sendTelegramMessage(chatId, 
                 `❌ Código inválido ou expirado\n\n` +
-                `🔑 Código: \`${code}\`\n\n` +
+                `🔑 Código: ${code}\n\n` +
                 `💡 Para gerar um novo código:\n` +
                 `1. Abra o app ICTUS\n` +
                 `2. Vá para Dashboard\n` +
                 `3. Clique em "Conectar Telegram"\n` +
                 `4. Use o código gerado aqui\n\n` +
-                `_Códigos expiram em 15 minutos_`
+                `Códigos expiram em 15 minutos`
               );
               return;
             }
           } else {
+            console.log('🆕 Comando /start sem código');
             await sendTelegramMessage(chatId,
               '👋 Bem-vindo ao Assistente IA do ICTUS!\n\n' +
               '🤖 Sou seu assistente financeiro pessoal inteligente.\n\n' +
@@ -362,9 +383,9 @@ export default async function handler(req: any, res: any) {
               '1️⃣ Abra o app ICTUS\n' +
               '2️⃣ Vá para a Dashboard\n' +
               '3️⃣ Clique em "Conectar Telegram"\n' +
-              '4️⃣ Use o código aqui: `/start SEU_CODIGO`\n\n' +
+              '4️⃣ Use o código aqui: /start SEU_CODIGO\n\n' +
               '💡 Após conectar, poderei analisar suas finanças reais e dar conselhos personalizados!\n\n' +
-              '_Digite /help para mais informações_'
+              'Digite /help para mais informações'
             );
           }
           return;
@@ -372,34 +393,26 @@ export default async function handler(req: any, res: any) {
 
         // Comando /help
         if (messageText === '/help') {
-          const helpMessage = userData.linked ? 
-            '🤖 Assistente IA - ICTUS (Conectado)\n\n' +
-            '✅ Sua conta está vinculada! Posso ajudar com:\n\n' +
-            '� Perguntas livres sobre finanças\n' +
-            '💰 "Qual meu saldo atual?"\n' +
-            '📊 "Como estão meus gastos?"\n' +
-            '� "Dicas para economizar"\n' +
-            '📝 "Gastei R$ 50 no supermercado"\n' +
-            '📈 "Análise da minha situação financeira"\n\n' +
-            '🧠 Uso inteligência artificial com seus dados reais para dar respostas personalizadas!\n\n' +
-            '_Faça qualquer pergunta sobre finanças!_'
-            :
-            '🤖 Assistente IA - ICTUS (Não conectado)\n\n' +
-            '❌ Conta não vinculada\n\n' +
-            '� Para vincular:\n' +
+          console.log('❓ Processando comando /help');
+          await sendTelegramMessage(chatId,
+            '🤖 <b>Assistente IA - ICTUS</b>\n\n' +
+            '💬 <b>Como usar:</b>\n' +
+            '• Digite qualquer pergunta sobre finanças\n' +
+            '• Exemplo: "Como economizar dinheiro?"\n' +
+            '• Exemplo: "Dicas de investimento"\n\n' +
+            '🔗 <b>Para conectar sua conta:</b>\n' +
             '1. Abra o app ICTUS\n' +
             '2. Dashboard → "Conectar Telegram"\n' +
-            '3. Use: `/start SEU_CODIGO`\n\n' +
-            '💡 Após vincular, terei acesso aos seus dados financeiros para dar conselhos personalizados!\n\n' +
-            '_Conecte-se para aproveitar todo o potencial da IA!_';
-          
-          await sendTelegramMessage(chatId, helpMessage);
+            '3. Use: /start SEU_CODIGO\n\n' +
+            '💡 <i>Após conectar, terei acesso aos seus dados para análises personalizadas!</i>'
+          );
           return;
         }
 
         // Verificar se é um código de conexão (sem /start)
         const codePattern = /^[0-9]{2}[A-Z]{2}$/;
         if (codePattern.test(messageText.toUpperCase())) {
+          console.log('🔑 Código direto detectado');
           const code = messageText.toUpperCase();
           console.log(`🔑 Código direto recebido: ${code}`);
           
@@ -410,8 +423,8 @@ export default async function handler(req: any, res: any) {
               `✅ Conta vinculada com sucesso!\n\n` +
               `🎉 Olá ${username}! Sua conta ICTUS foi conectada.\n\n` +
               `🤖 Agora posso analisar suas finanças reais e dar conselhos personalizados!\n\n` +
-              `� Faça qualquer pergunta sobre suas finanças!\n\n` +
-              `_Assistente IA ICTUS ativo! 🚀_`
+              `💬 Faça qualquer pergunta sobre suas finanças!\n\n` +
+              `Assistente IA ICTUS ativo! 🚀`
             );
           } else {
             await sendTelegramMessage(chatId, 
@@ -422,32 +435,39 @@ export default async function handler(req: any, res: any) {
           return;
         }
 
-        // NOVA FUNCIONALIDADE: Qualquer outra mensagem vai para a IA
+        // FUNCIONALIDADE PRINCIPAL: Qualquer outra mensagem vai para a IA
         console.log(`🧠 Processando mensagem com IA: ${messageText}`);
         
+        // Verificar se usuário está vinculado
+        const userData = await getTelegramUserData(chatId);
+        console.log('👤 Status do usuário:', userData);
+        
         if (!userData.linked) {
+          console.log('🔓 Usuário não vinculado - resposta genérica');
           // Usuário não vinculado - resposta genérica da IA
           const aiResponse = await callGeminiAPI(messageText);
           const responseWithTip = aiResponse + 
-            '\n\n💡 _Conecte sua conta ICTUS para análises personalizadas! Digite /help para saber como._';
+            '\n\n💡 Conecte sua conta ICTUS para análises personalizadas! Digite /help para saber como.';
           await sendTelegramMessage(chatId, responseWithTip);
         } else {
+          console.log('🔒 Usuário vinculado - resposta personalizada');
           // Usuário vinculado - resposta personalizada com dados reais
           const aiResponse = await callGeminiAPI(messageText, userData.userId);
           await sendTelegramMessage(chatId, aiResponse);
         }
 
       } catch (error) {
-        console.error('❌ Erro ao processar mensagem:', error);
+        console.error('❌ Erro crítico ao processar mensagem:', error);
         await sendTelegramMessage(chatId,
           '❌ Desculpe, ocorreu um erro ao processar sua mensagem.\n\n' +
           'Tente novamente em alguns instantes.\n\n' +
-          '_Se o problema persistir, digite /help_'
+          'Se o problema persistir, digite /help'
         );
       }
     });
 
   } catch (error) {
-    console.error('❌ Erro no webhook:', error);
+    console.error('❌ Erro crítico no webhook:', error);
+    return res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }

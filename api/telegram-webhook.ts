@@ -320,11 +320,13 @@ export default async function handler(req: any, res: any) {
       console.log('📭 Sem mensagem de texto no update');
       // Responder OK mesmo assim para evitar reenvios
       return res.status(200).json({ ok: true, message: 'Update recebido mas sem mensagem de texto' });
-    }
-
-    const chatId = update.message.chat.id.toString();
+    }    const chatId = update.message.chat.id.toString();
     const messageText = update.message.text.trim();
-    const username = update.message.from.username || update.message.from.first_name || 'Usuário';    console.log(`💬 Mensagem de ${username} (${chatId}): ${messageText}`);    // Processar comandos de forma SÍNCRONA (corrigido para Vercel)
+    const username = update.message.from.username || update.message.from.first_name || 'Usuário';
+
+    console.log(`💬 Mensagem de ${username} (${chatId}): ${messageText}`);
+
+    // Processar comandos de forma SÍNCRONA (corrigido para Vercel)
     try {
       console.log('🔄 Processando mensagem...');
       

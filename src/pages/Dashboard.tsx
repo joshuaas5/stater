@@ -146,15 +146,9 @@ const Dashboard: React.FC = () => {
 
     } catch (error: any) {
       console.error('Erro ao conectar:', error);
-      toast({
-        title: "❌ Erro na conexão",
+      toast({        title: "❌ Erro na conexão",
         description: error.message || "Tente novamente. Verifique se digitou o Chat ID correto.",
         variant: "destructive"
-      });
-    } finally {
-      setIsGeneratingCode(false);
-    }
-  };
       });
     } finally {
       setIsGeneratingCode(false);

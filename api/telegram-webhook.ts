@@ -523,54 +523,175 @@ export default async function handler(req: any, res: any) {
         }
         
         console.log('✅ Arquivo baixado:', fileBuffer.length, 'bytes');
+          // Processar qualquer tipo de documento usando a API do app ICTUS
+        console.log('📄 Processando documento usando API do ICTUS...');
         
-        // Verificar se é PDF - usar a API do app ICTUS
-        if (mimeType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
-          console.log('📄 PDF detectado - usando API do app ICTUS...');
+        try {
+          // Converter para base64 para enviar para a API
+          const base64Data = fileBuffer.toString('base64');
           
-          try {
-            // Converter para base64 para enviar para a API
-            const base64Data = fileBuffer.toString('base64');
+          // Determinar o tipo de processamento baseado no arquivo
+          let processingPayload: any = {
+            fileName: fileName,
+            fileType: mimeType
+          };
+          
+          // Para PDFs
+          if (mimeType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
+            processingPayload.imageBase64 = base64Data;
+            console.log('📄 Enviando PDF para API OCR...');
+          }
+          // Para imagens
+          else if (mimeType.startsWith('image/')) {
+            processingPayload.imageBase64 = base64Data;
+            console.log('📸 Enviando imagem para API OCR...');
+          }
+          // Para arquivos de texto/CSV/Excel
+          else if (fileName.toLowerCase().includes('.csv') || 
+                   fileName.toLowerCase().includes('.txt') ||
+                   fileName.toLowerCase().includes('.xls')) {
             
-            // Chamar a API de OCR do app ICTUS
-            const ocrResponse = await fetch('https://sprout-spending-hub-vb4x.vercel.app/api/gemini-ocr', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                fileType: 'pdf',
-                fileData: base64Data,
-                fileName: fileName,
-                prompt: 'Analise este documento e extraia todas as informações financeiras (valores, datas, transações, estabelecimentos). Organize de forma clara e estruturada.'
-              })
-            });
-              if (ocrResponse.ok) {
-              const ocrResult = await ocrResponse.json() as any;
-              const analysisText = ocrResult.extractedText || ocrResult.analysis || 'Análise concluída com sucesso.';
+            // Tentar ler como texto
+            const textContent = fileBuffer.toString('utf-8');
+            
+            if (fileName.toLowerCase().includes('.csv')) {
+              processingPayload.csvData = textContent;
+              processingPayload.fileType = 'text/csv';
+            } else if (fileName.toLowerCase().includes('.xls')) {
+              processingPayload.excelData = base64Data;
+              processingPayload.fileType = 'application/excel';
+            } else {
+              processingPayload.textData = textContent;
+              processingPayload.fileType = 'text/plain';
+            }
+            
+            console.log('📊 Enviando arquivo texto/planilha para API OCR...');
+          }
+          // Outros tipos - tentar como imagem
+          else {
+            processingPayload.imageBase64 = base64Data;
+            console.log('📎 Enviando arquivo genérico como imagem para API OCR...');
+          }
+          
+          // Chamar a API de OCR do app ICTUS
+          const ocrResponse = await fetch('https://sprout-spending-hub-vb4x.vercel.app/api/gemini-ocr', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(processingPayload)
+          });
+          
+          console.log('📡 Resposta da API OCR:', ocrResponse.status);
+          
+          if (ocrResponse.ok) {
+            const ocrResult = await ocrResponse.json() as any;
+            console.log('✅ Resultado da API OCR:', ocrResult);
+            
+            // Processar o resultado da API
+            let responseMessage = '';
+            
+            // Se retornou transações estruturadas
+            if (ocrResult.transactions && Array.isArray(ocrResult.transactions) && ocrResult.transactions.length > 0) {
+              console.log('📊 Transações estruturadas encontradas:', ocrResult.transactions.length);
               
+              responseMessage = `📄 <b>Documento analisado com sucesso!</b>\n\n`;
+              
+              // Resumo do documento
+              if (ocrResult.summary) {
+                responseMessage += `📋 <b>Resumo:</b>\n`;
+                if (ocrResult.summary.establishment) {
+                  responseMessage += `🏦 <b>Estabelecimento:</b> ${ocrResult.summary.establishment}\n`;
+                }
+                if (ocrResult.summary.period) {
+                  responseMessage += `📅 <b>Período:</b> ${ocrResult.summary.period}\n`;
+                }
+                if (ocrResult.summary.totalIncome > 0) {
+                  responseMessage += `💰 <b>Total Receitas:</b> R$ ${ocrResult.summary.totalIncome.toFixed(2)}\n`;
+                }
+                if (ocrResult.summary.totalExpense > 0) {
+                  responseMessage += `💸 <b>Total Despesas:</b> R$ ${ocrResult.summary.totalExpense.toFixed(2)}\n`;
+                }
+                responseMessage += `\n`;
+              }
+              
+              // Mostrar transações (máximo 10 para não ultrapassar limite do Telegram)
+              responseMessage += `📝 <b>Transações encontradas (${ocrResult.transactions.length}):</b>\n\n`;
+              
+              const transactionsToShow = ocrResult.transactions.slice(0, 10);
+              transactionsToShow.forEach((t: any, index: number) => {
+                const emoji = t.type === 'income' ? '💰' : '💸';
+                const date = new Date(t.date).toLocaleDateString('pt-BR');
+                responseMessage += `${emoji} <b>R$ ${Number(t.amount).toFixed(2)}</b> - ${t.description}\n`;
+                responseMessage += `   📅 ${date} | 📂 ${t.category}\n\n`;
+              });
+              
+              if (ocrResult.transactions.length > 10) {
+                responseMessage += `<i>... e mais ${ocrResult.transactions.length - 10} transações</i>\n\n`;
+              }
+              
+              responseMessage += `💡 <b>Para registrar essas transações:</b>\n`;
+              responseMessage += `1️⃣ Acesse o app ICTUS\n`;
+              responseMessage += `2️⃣ Vá em "Adicionar Transação"\n`;
+              responseMessage += `3️⃣ Use os dados acima\n\n`;
+              responseMessage += `🚀 <i>Em breve, poderei registrar automaticamente!</i>`;
+              
+            } 
+            // Se retornou análise de texto
+            else if (ocrResult.extractedText || ocrResult.analysis) {
+              const analysisText = ocrResult.extractedText || ocrResult.analysis;
+              responseMessage = `📄 <b>Análise do documento concluída!</b>\n\n${analysisText}`;
+            }
+            // Resposta genérica
+            else {
+              responseMessage = `📄 <b>Documento processado!</b>\n\nAnalise realizada com sucesso. O documento foi examinado e as informações relevantes foram extraídas.`;
+            }
+            
+            // Adicionar sugestões se necessário
+            if (ocrResult.suggestions && Array.isArray(ocrResult.suggestions)) {
+              responseMessage += `\n\n� <b>Sugestões:</b>\n`;
+              ocrResult.suggestions.forEach((suggestion: string) => {
+                responseMessage += `• ${suggestion}\n`;
+              });
+            }
+            
+            responseMessage += `\n\n� <i>Posso ajudar com mais alguma coisa sobre este documento?</i>`;
+            
+            await sendTelegramMessage(chatId, responseMessage);
+            
+          } else {
+            const errorResult = await ocrResponse.json().catch(() => ({})) as any;
+            console.error('❌ Erro na API OCR:', ocrResponse.status, errorResult);
+            
+            // Tratar erros específicos
+            if (errorResult.error && errorResult.error.includes('PDF protegido')) {
               await sendTelegramMessage(chatId, 
-                `📄 <b>Análise do PDF concluída!</b>\n\n${analysisText}\n\n💡 <i>Posso ajudar com mais alguma coisa sobre este documento?</i>`
+                `� <b>PDF Protegido Detectado</b>\n\n❌ Este PDF está protegido por senha e não pode ser processado automaticamente.\n\n💡 <b>Soluções:</b>\n• Remova a proteção do PDF\n• Tire fotos das páginas importantes\n• Solicite uma versão não protegida\n\nDesculpe pelo inconveniente!`
               );
+            } else if (errorResult.suggestions && Array.isArray(errorResult.suggestions)) {
+              let errorMessage = `❌ <b>Problema ao processar o documento</b>\n\n`;
+              errorMessage += `💡 <b>Soluções sugeridas:</b>\n`;
+              errorResult.suggestions.forEach((suggestion: string) => {
+                errorMessage += `• ${suggestion}\n`;
+              });
+              await sendTelegramMessage(chatId, errorMessage);
             } else {
               throw new Error('Erro na API de OCR');
             }
-            
-          } catch (pdfError) {
-            console.error('❌ Erro ao processar PDF:', pdfError);
-            await sendTelegramMessage(chatId, 
-              '📄 PDF recebido!\n\n❌ Infelizmente, tive um problema ao processar este PDF.\n\n💡 Soluções:\n• Tire uma foto das páginas importantes\n• Verifique se o PDF não está protegido por senha\n• Tente novamente em alguns instantes\n\nDesculpe pelo inconveniente!'
-            );
           }
           
-        } else {
-          // Para imagens e outros documentos - usar Gemini Vision diretamente
-          console.log('🖼️ Processando imagem com Gemini Vision...');
-          
-          const analysis = await processDocumentWithAI(fileBuffer, fileName, mimeType);
-          
+        } catch (apiError) {
+          console.error('❌ Erro ao chamar API OCR:', apiError);
           await sendTelegramMessage(chatId, 
-            `📸 <b>Análise concluída!</b>\n\n${analysis}\n\n💡 <i>Posso ajudar com mais alguma coisa sobre este documento?</i>`
+            `❌ <b>Erro ao processar documento</b>\n\n` +
+            `📄 Arquivo: <code>${fileName}</code>\n` +
+            `📊 Tamanho: ${(fileBuffer.length / 1024).toFixed(1)} KB\n\n` +
+            `💡 <b>Tente:</b>\n` +
+            `• Enviar uma foto mais clara\n` +
+            `• Verificar se o arquivo não está corrompido\n` +
+            `• Para PDFs: tire fotos das páginas\n` +
+            `• Tentar novamente em alguns instantes\n\n` +
+            `Se o problema persistir, entre em contato com o suporte.`
           );
         }
         

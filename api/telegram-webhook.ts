@@ -282,6 +282,142 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
   }
 }
 
+// Função para baixar arquivo do Telegram
+async function downloadTelegramFile(fileId: string): Promise<Buffer | null> {
+  try {
+    console.log('📥 Baixando arquivo do Telegram:', fileId);
+      // Primeiro, obter o file_path
+    const fileResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
+    const fileData = await fileResponse.json() as any;
+    
+    if (!fileResponse.ok || !fileData.ok) {
+      console.error('❌ Erro ao obter informações do arquivo:', fileData);
+      return null;
+    }
+    
+    const filePath = fileData.result.file_path;
+    const fileSize = fileData.result.file_size;
+    
+    console.log('📄 Arquivo encontrado:', { filePath, fileSize });
+    
+    // Verificar se o arquivo não é muito grande (limite de 20MB)
+    if (fileSize > 20 * 1024 * 1024) {
+      console.log('⚠️ Arquivo muito grande:', fileSize);
+      return null;
+    }
+    
+    // Baixar o arquivo
+    const downloadResponse = await fetch(`https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`);
+    
+    if (!downloadResponse.ok) {
+      console.error('❌ Erro ao baixar arquivo');
+      return null;
+    }
+    
+    const buffer = Buffer.from(await downloadResponse.arrayBuffer());
+    console.log('✅ Arquivo baixado com sucesso:', buffer.length, 'bytes');
+    
+    return buffer;
+  } catch (error) {
+    console.error('❌ Erro ao baixar arquivo:', error);
+    return null;
+  }
+}
+
+// Função para processar imagem/documento com OCR (usando Gemini Vision)
+async function processDocumentWithAI(fileBuffer: Buffer, fileName: string, mimeType: string): Promise<string> {
+  try {
+    console.log('🔍 Processando documento com IA:', { fileName, mimeType, size: fileBuffer.length });
+    
+    // Converter buffer para base64
+    const base64Data = fileBuffer.toString('base64');
+    
+    // Configurar o prompt para análise financeira
+    const analysisPrompt = `Analise esta imagem/documento e extraia TODAS as informações financeiras relevantes.
+
+INSTRUÇÕES ESPECÍFICAS:
+- Identifique comprovantes, notas fiscais, extratos bancários, recibos
+- Extraia valores, datas, estabelecimentos, descrições
+- Para cada transação encontrada, forneça: valor, data, descrição, tipo (receita/despesa)
+- Se for extrato bancário, liste todas as transações
+- Se for nota fiscal, extraia: estabelecimento, data, valor total, itens (se relevante)
+- Organize as informações de forma clara e estruturada
+- Se não encontrar informações financeiras, diga que não identificou dados financeiros
+
+FORMATO DA RESPOSTA:
+Se encontrar transações, liste cada uma assim:
+🧾 TRANSAÇÃO IDENTIFICADA:
+- Valor: R$ X,XX
+- Data: DD/MM/AAAA
+- Descrição: [descrição]
+- Tipo: Receita/Despesa
+- Estabelecimento: [nome]
+
+Se for um extrato, liste todas as transações encontradas.
+
+IMPORTANTE: Seja preciso e detalhado. Se houver dúvidas sobre algum valor ou data, mencione.`;
+
+    // Determinar o tipo MIME correto para o Gemini
+    let geminiMimeType = mimeType;
+    if (mimeType.startsWith('image/')) {
+      // Imagens são suportadas diretamente
+    } else if (mimeType === 'application/pdf') {
+      // PDFs não são suportados pelo Gemini Vision, vamos informar isso
+      return '📄 Arquivo PDF detectado!\n\n❌ Infelizmente, ainda não posso processar arquivos PDF diretamente.\n\n💡 Soluções:\n• Tire uma foto do documento\n• Converta o PDF em imagem\n• Digite as informações manualmente\n\nEm breve terei suporte completo para PDFs!';
+    } else {
+      return '📄 Formato de arquivo não suportado para análise automática.\n\n✅ Formatos suportados:\n• Imagens (JPG, PNG, WEBP)\n• Em breve: PDF\n\n💡 Tente enviar uma foto do documento!';
+    }
+    
+    const geminiPayload = {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: analysisPrompt },
+            {
+              inline_data: {
+                mime_type: geminiMimeType,
+                data: base64Data
+              }
+            }
+          ]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.3,
+        topK: 32,
+        topP: 1,
+        maxOutputTokens: 2048,
+      }
+    };
+
+    console.log('📡 Enviando para Gemini Vision API...');
+    const response = await fetch(GEMINI_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(geminiPayload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Erro na API Gemini:', response.status, errorText);
+      throw new Error(`Gemini API error: ${response.status}`);
+    }    const data = await response.json() as any;
+    
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      const analysis = data.candidates[0].content.parts[0].text;
+      console.log('✅ Análise do documento concluída');
+      return analysis;
+    } else {
+      throw new Error('Resposta inválida da API Gemini');
+    }
+
+  } catch (error: any) {
+    console.error('❌ Erro ao processar documento:', error);
+    return `❌ Erro ao analisar o documento.\n\nDetalhes técnicos: ${error.message}\n\n💡 Tente:\n• Enviar uma foto mais clara\n• Verificar se o arquivo não está corrompido\n• Tentar novamente em alguns instantes`;
+  }
+}
+
 // Função para enviar mensagem via Telegram Bot API
 async function sendTelegramMessage(chatId: string, message: string) {
   try {
@@ -330,24 +466,128 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: 'Método não permitido' });
   }
   try {
-    const update = req.body;
-
-    // Verificar se há uma mensagem
-    if (!update || !update.message || !update.message.text) {
-      console.log('📭 Sem mensagem de texto no update');
+    const update = req.body;    // Verificar se há uma mensagem
+    if (!update || !update.message) {
+      console.log('📭 Sem mensagem no update');
       // Responder OK mesmo assim para evitar reenvios
-      return res.status(200).json({ ok: true, message: 'Update recebido mas sem mensagem de texto' });
+      return res.status(200).json({ ok: true, message: 'Update recebido mas sem mensagem' });
     }
 
     const chatId = update.message.chat.id.toString();
-    const messageText = update.message.text.trim();
+    const messageText = update.message.text?.trim() || '';
     const username = update.message.from.username || update.message.from.first_name || 'Usuário';
 
     console.log(`💬 Mensagem de ${username} (${chatId}): ${messageText}`);
 
-    // Processar comandos de forma SÍNCRONA (corrigido para Vercel)
-    try {
-      console.log('🔄 Processando mensagem...');
+    // VERIFICAR SE É FOTO OU DOCUMENTO
+    if (update.message.photo || update.message.document) {
+      console.log('📸 Foto ou documento detectado!');
+      
+      try {
+        let fileId = '';
+        let fileName = 'arquivo';
+        let mimeType = '';
+        
+        // Processar foto
+        if (update.message.photo) {
+          console.log('📷 Processando foto...');
+          // Pegar a foto de maior resolução (última no array)
+          const photos = update.message.photo;
+          const bestPhoto = photos[photos.length - 1];
+          fileId = bestPhoto.file_id;
+          fileName = `foto_${Date.now()}.jpg`;
+          mimeType = 'image/jpeg';
+          
+          await sendTelegramMessage(chatId, '📷 Analisando sua foto... Por favor, aguarde alguns segundos...');
+        }
+        
+        // Processar documento
+        if (update.message.document) {
+          console.log('📄 Processando documento...');
+          const document = update.message.document;
+          fileId = document.file_id;
+          fileName = document.file_name || `documento_${Date.now()}`;
+          mimeType = document.mime_type || 'application/octet-stream';
+          
+          await sendTelegramMessage(chatId, `📄 Analisando seu documento "${fileName}"... Por favor, aguarde alguns segundos...`);
+        }
+        
+        console.log('📥 Baixando arquivo:', { fileId, fileName, mimeType });
+        
+        // Baixar o arquivo
+        const fileBuffer = await downloadTelegramFile(fileId);
+        
+        if (!fileBuffer) {
+          await sendTelegramMessage(chatId, '❌ Erro ao baixar o arquivo. Tente enviar novamente.');
+          return res.status(200).json({ ok: true, message: 'Erro ao baixar arquivo' });
+        }
+        
+        console.log('✅ Arquivo baixado:', fileBuffer.length, 'bytes');
+        
+        // Verificar se é PDF - usar a API do app ICTUS
+        if (mimeType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
+          console.log('📄 PDF detectado - usando API do app ICTUS...');
+          
+          try {
+            // Converter para base64 para enviar para a API
+            const base64Data = fileBuffer.toString('base64');
+            
+            // Chamar a API de OCR do app ICTUS
+            const ocrResponse = await fetch('https://sprout-spending-hub-vb4x.vercel.app/api/gemini-ocr', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                fileType: 'pdf',
+                fileData: base64Data,
+                fileName: fileName,
+                prompt: 'Analise este documento e extraia todas as informações financeiras (valores, datas, transações, estabelecimentos). Organize de forma clara e estruturada.'
+              })
+            });
+              if (ocrResponse.ok) {
+              const ocrResult = await ocrResponse.json() as any;
+              const analysisText = ocrResult.extractedText || ocrResult.analysis || 'Análise concluída com sucesso.';
+              
+              await sendTelegramMessage(chatId, 
+                `📄 <b>Análise do PDF concluída!</b>\n\n${analysisText}\n\n💡 <i>Posso ajudar com mais alguma coisa sobre este documento?</i>`
+              );
+            } else {
+              throw new Error('Erro na API de OCR');
+            }
+            
+          } catch (pdfError) {
+            console.error('❌ Erro ao processar PDF:', pdfError);
+            await sendTelegramMessage(chatId, 
+              '📄 PDF recebido!\n\n❌ Infelizmente, tive um problema ao processar este PDF.\n\n💡 Soluções:\n• Tire uma foto das páginas importantes\n• Verifique se o PDF não está protegido por senha\n• Tente novamente em alguns instantes\n\nDesculpe pelo inconveniente!'
+            );
+          }
+          
+        } else {
+          // Para imagens e outros documentos - usar Gemini Vision diretamente
+          console.log('🖼️ Processando imagem com Gemini Vision...');
+          
+          const analysis = await processDocumentWithAI(fileBuffer, fileName, mimeType);
+          
+          await sendTelegramMessage(chatId, 
+            `📸 <b>Análise concluída!</b>\n\n${analysis}\n\n💡 <i>Posso ajudar com mais alguma coisa sobre este documento?</i>`
+          );
+        }
+        
+        return res.status(200).json({ ok: true, message: 'Arquivo processado com sucesso' });
+        
+      } catch (fileError) {
+        console.error('❌ Erro ao processar arquivo:', fileError);
+        await sendTelegramMessage(chatId, 
+          '❌ Ocorreu um erro ao analisar seu arquivo.\n\n💡 Tente:\n• Enviar uma imagem mais clara\n• Verificar se o arquivo não está corrompido\n• Tentar novamente em alguns instantes\n\nDesculpe pelo inconveniente!'
+        );
+        return res.status(200).json({ ok: true, message: 'Erro ao processar arquivo' });
+      }
+    }    // Processar comandos de forma SÍNCRONA (corrigido para Vercel)
+    // Só processar texto se não houver foto/documento
+    if (messageText && !update.message.photo && !update.message.document) {
+      try {
+        console.log('🔄 Processando mensagem de texto...');
       
       // Comando /start - sempre responde PRIMEIRO
       if (messageText.startsWith('/start')) {
@@ -562,18 +802,21 @@ export default async function handler(req: any, res: any) {
           // Resposta normal da IA
           await sendTelegramMessage(chatId, aiResponse);
         }
+      }      return res.status(200).json({ ok: true, message: 'Mensagem IA processada' });
+
+      } catch (processingError) {
+        console.error('❌ Erro ao processar mensagem:', processingError);
+        await sendTelegramMessage(chatId,
+          '❌ Desculpe, ocorreu um erro ao processar sua mensagem.\n\n' +
+          'Tente novamente em alguns instantes.\n\n' +
+          'Se o problema persistir, digite /help'
+        );
+        return res.status(200).json({ ok: true, message: 'Erro tratado' });
       }
-
-      return res.status(200).json({ ok: true, message: 'Mensagem IA processada' });
-
-    } catch (processingError) {
-      console.error('❌ Erro ao processar mensagem:', processingError);
-      await sendTelegramMessage(chatId,
-        '❌ Desculpe, ocorreu um erro ao processar sua mensagem.\n\n' +
-        'Tente novamente em alguns instantes.\n\n' +
-        'Se o problema persistir, digite /help'
-      );
-      return res.status(200).json({ ok: true, message: 'Erro tratado' });
+    } else if (!update.message.photo && !update.message.document) {
+      // Se não há texto nem foto/documento, não fazer nada
+      console.log('📭 Mensagem sem texto, foto ou documento');
+      return res.status(200).json({ ok: true, message: 'Mensagem vazia processada' });
     }
   } catch (error) {
     console.error('❌ Erro crítico no webhook:', error);

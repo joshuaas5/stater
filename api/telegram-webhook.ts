@@ -431,22 +431,16 @@ export default async function handler(req: any, res: any) {
           }        } catch (error) {
           console.error('❌ Erro ao gerar código:', error);
           await sendTelegramMessage(chatId,
-            '🔗 <b>Conectar Conta ICTUS</b>\n\n' +
-            '⚠️ Erro ao gerar código automático, mas você pode conectar manualmente!\n\n' +
-            '✨ <b>Método Manual:</b>\n' +
-            '1️⃣ Abra: <a href="https://sprout-spending-hub-vb4x.vercel.app">App ICTUS</a>\n' +
-            '2️⃣ Faça login na sua conta\n' +
-            '3️⃣ Vá para Dashboard\n' +
-            '4️⃣ Clique em "Conectar Telegram"\n' +
-            '5️⃣ Cole seu Chat ID no campo correspondente\n\n' +
-            '🆔 <b>Seu Chat ID:</b> <code>' + chatId + '</code>\n\n' +
-            '❓ <b>O que é Chat ID?</b>\n' +
-            'É o identificador único desta conversa. Copie e cole exatamente como mostrado acima.\n\n' +
-            '📱 <b>Como usar no app:</b>\n' +
-            '• Cole o Chat ID no campo "ID do Chat"\n' +
-            '• Clique em "Conectar"\n' +
-            '• Volte aqui no Telegram para confirmar\n\n' +
-            '🔄 Digite /conectar novamente para tentar código automático'
+            '🔗 <b>Conectar sua conta ICTUS - SIMPLES!</b>\n\n' +
+            '📱 <b>PASSO 1:</b> Copie este número:\n' +
+            '👉 <code>' + chatId + '</code>\n\n' +
+            '📱 <b>PASSO 2:</b> Abra este link:\n' +
+            '👉 <a href="https://sprout-spending-hub-vb4x.vercel.app">sprout-spending-hub-vb4x.vercel.app</a>\n\n' +
+            '📱 <b>PASSO 3:</b> Faça login\n\n' +
+            '📱 <b>PASSO 4:</b> Clique "Conectar Agora"\n\n' +
+            '📱 <b>PASSO 5:</b> Cole o número do PASSO 1\n\n' +
+            '📱 <b>PASSO 6:</b> Volte aqui e teste: "Qual meu saldo?"\n\n' +
+            '✅ <b>Pronto!</b> Super fácil!'
           );
         }
         

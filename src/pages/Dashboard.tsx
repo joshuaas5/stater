@@ -92,69 +92,61 @@ const Dashboard: React.FC = () => {
     if (!user?.id) return;
     
     setIsGeneratingCode(true);
-    try {      // Chamar API para gerar código
-      const response = await fetch('/api/telegram-codes-simple', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          user_email: user.email || '',
-          user_name: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário'
-        })
-      });
+    try {
+      // Primeiro, obter o chat ID do usuário pelo Telegram Web
+      const chatId = prompt(
+        `🔗 CONECTAR TELEGRAM\n\n` +
+        `Para conectar sua conta:\n\n` +
+        `1. Abra o Telegram\n` +
+        `2. Procure: @assistentefinanceiroiabot\n` +
+        `3. Digite: /conectar\n` +
+        `4. Copie o número que aparece como "Chat ID"\n` +
+        `5. Cole aqui embaixo:\n\n` +
+        `Digite seu Chat ID:`
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao gerar código');
+      if (!chatId || chatId.trim() === '') {
+        toast({
+          title: "❌ Cancelado",
+          description: "Conexão cancelada. Digite /conectar no bot primeiro.",
+          variant: "destructive"
+        });
+        return;
       }
 
-      const result = await response.json();
-      const code = result.code;
-      
-      console.log('✅ Código gerado via API:', result);
+      // Conectar diretamente via Chat ID
+      const { error } = await supabase
+        .from('telegram_users')
+        .upsert({
+          telegram_chat_id: chatId.trim(),
+          user_id: user.id,
+          user_email: user.email || '',
+          user_name: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário',
+          linked_at: new Date().toISOString(),
+          is_active: true
+        }, {
+          onConflict: 'telegram_chat_id'
+        });
 
-      // Mostrar código primeiro para o usuário copiar
+      if (error) {
+        throw new Error('Erro ao conectar: ' + error.message);
+      }
+
+      // Sucesso!
+      setIsTelegramLinked(true);
       toast({
-        title: "🔗 Código de Conexão Gerado!",
-        description: `Código: ${code} - Copie este código primeiro!`,
-        duration: 10000 // 10 segundos para dar tempo de copiar
+        title: "✅ Conectado com sucesso!",
+        description: "Agora você pode usar o bot do Telegram para consultar suas finanças!",
       });
 
-      // Aguardar um pouco para o usuário ver o código
-      setTimeout(() => {
-        // Perguntar se quer abrir o Telegram agora
-        const shouldOpenTelegram = confirm(
-          `Código gerado: ${code}\n\n` +
-          `1. Copie este código\n` +
-          `2. Clique OK para abrir o Telegram\n` +
-          `3. Cole o código no bot\n\n` +
-          `Deseja abrir o Telegram agora?`
-        );
-
-        if (shouldOpenTelegram) {
-          const telegramUrl = `https://t.me/assistentefinanceiroiabot?start=${code}`;
-          window.open(telegramUrl, '_blank');
-          
-          toast({
-            title: "✅ Telegram aberto!",
-            description: "Cole o código no bot e clique em 'Iniciar'!",
-          });
-        } else {
-          toast({
-            title: "📋 Código salvo!",
-            description: `Use este código no Telegram: ${code}`,
-            duration: 15000
-          });
-        }
-      }, 2000); // 2 segundos para o usuário ler o primeiro toast
+      // Verificar status atualizado
+      checkTelegramStatus();
 
     } catch (error: any) {
-      console.error('Erro ao gerar código:', error);
+      console.error('Erro ao conectar:', error);
       toast({
-        title: "❌ Erro",
-        description: error.message || "Erro ao conectar. Tente novamente.",
+        title: "❌ Erro na conexão",
+        description: error.message || "Tente novamente. Verifique se digitou o Chat ID correto.",
         variant: "destructive"
       });
     } finally {

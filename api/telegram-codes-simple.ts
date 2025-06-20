@@ -7,14 +7,14 @@ const codesMemory = new Map();
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  console.log('🔗 API Telegram Codes Simple:', req.method, req.body);
+  console.log('🔗 API Telegram Codes Simple:', req.method, req.body, req.query);
 
   try {
     if (req.method === 'POST') {
@@ -23,6 +23,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     if (req.method === 'GET') {
       return await handleVerifyCode(req, res);
+    }
+
+    if (req.method === 'PUT') {
+      return await handleMarkUsed(req, res);
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
@@ -45,9 +49,11 @@ async function handleGenerateCode(req: VercelRequest, res: VercelResponse) {
   if (!user_id || !user_email) {
     return res.status(400).json({ error: 'user_id e user_email obrigatórios' });
   }
-
-  // Gerar código de 6 dígitos
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  // Gerar código formato: 2 números + 2 letras (ex: 12AB)
+  const numbers = Math.floor(10 + Math.random() * 90).toString(); // 10-99
+  const letters = String.fromCharCode(65 + Math.floor(Math.random() * 26)) + 
+                  String.fromCharCode(65 + Math.floor(Math.random() * 26)); // A-Z
+  const code = numbers + letters;
   
   // Salvar em memória com expiração de 15 minutos
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
@@ -142,5 +148,39 @@ async function handleVerifyCode(req: VercelRequest, res: VercelResponse) {
     code: codeData.code,
     expires_at: codeData.expires_at,
     storage: 'memory'
+  });
+}
+
+// Marcar código como usado
+async function handleMarkUsed(req: VercelRequest, res: VercelResponse) {
+  const { code } = req.body;
+
+  console.log('🔒 Marcando código como usado:', code);
+
+  if (!code || typeof code !== 'string') {
+    return res.status(400).json({ error: 'Código obrigatório' });
+  }
+
+  const codeData = codesMemory.get(code);
+
+  if (!codeData) {
+    console.log('❌ Código não encontrado para marcar como usado');
+    return res.status(404).json({ 
+      success: false,
+      error: 'Código não encontrado'
+    });
+  }
+
+  // Marcar como usado
+  codeData.used_at = new Date().toISOString();
+  codesMemory.set(code, codeData);
+
+  console.log('✅ Código marcado como usado:', code);
+
+  return res.status(200).json({
+    success: true,
+    message: 'Código marcado como usado',
+    code: code,
+    used_at: codeData.used_at
   });
 }

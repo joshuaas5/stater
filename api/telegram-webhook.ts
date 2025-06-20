@@ -224,8 +224,7 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
     const { user_id, user_email, user_name } = result as any;
     
     console.log('✅ [DEBUG] Código válido encontrado para usuário:', user_id);
-    
-    // Salvar vinculação na tabela de usuários do Telegram
+      // Salvar vinculação na tabela de usuários do Telegram
     const { error: linkError } = await supabaseAdmin
       .from('telegram_users')
       .upsert({
@@ -233,8 +232,11 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
         user_id: user_id,
         user_email: user_email,
         user_name: user_name,
+        telegram_username: username,
         linked_at: new Date().toISOString(),
         is_active: true
+      }, {
+        onConflict: 'telegram_chat_id'
       });
     
     if (linkError) {
@@ -242,14 +244,21 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
       return false;
     }
     
-    // Marcar código como usado
-    const { error: updateError } = await supabaseAdmin
-      .from('telegram_link_codes')
-      .update({ used_at: new Date().toISOString() })
-      .eq('code', code);
-    
-    if (updateError) {
-      console.error('❌ [DEBUG] Erro ao marcar código como usado:', updateError.message);
+    // Marcar código como usado via API
+    try {
+      const markUsedResponse = await fetch('https://sprout-spending-hub-vb4x.vercel.app/api/telegram-codes-simple', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      });
+      
+      if (markUsedResponse.ok) {
+        console.log('✅ [DEBUG] Código marcado como usado');
+      } else {
+        console.log('⚠️ [DEBUG] Erro ao marcar código como usado, mas vinculação foi salva');
+      }
+    } catch (markError) {
+      console.log('⚠️ [DEBUG] Exceção ao marcar código como usado:', markError);
     }
     
     console.log('✅ [DEBUG] Vinculação salva com sucesso!');
@@ -391,24 +400,56 @@ export default async function handler(req: any, res: any) {
           '💡 <i>Após conectar, terei acesso aos seus dados para análises personalizadas!</i>'
         );
         return res.status(200).json({ ok: true, message: 'Comando /help processado' });
-      }
-
-      // Comando /conectar - NOVO SISTEMA INTUITIVO
+      }      // Comando /conectar - NOVO SISTEMA INTUITIVO
       if (messageText === '/conectar') {
         console.log('🔗 Processando comando /conectar');
-        await sendTelegramMessage(chatId,
-          '🔗 <b>Conectar Conta ICTUS</b>\n\n' +
-          '✨ <b>Método Rápido:</b>\n' +
-          '1️⃣ Abra: <a href="https://sprout-spending-hub-vb4x.vercel.app">sprout-spending-hub-vb4x.vercel.app</a>\n' +
-          '2️⃣ Faça login na sua conta\n' +
-          '3️⃣ Vá para Dashboard\n' +
-          '4️⃣ Clique em "Conectar Telegram"\n' +
-          '5️⃣ Cole o código aqui no chat\n\n' +
-          '💡 <b>Seu Chat ID:</b> <code>' + chatId + '</code>\n' +
-          '📋 <i>Use este ID se precisar conectar manualmente</i>\n\n' +
-          '⏱️ <b>Códigos expiram em 15 minutos</b>\n' +
-          '🔄 Digite /conectar novamente se precisar de ajuda'
-        );
+        
+        // Gerar código automaticamente para este chat ID
+        try {
+          const response = await fetch('https://sprout-spending-hub-vb4x.vercel.app/api/telegram-codes-simple?action=generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chatId })
+          });
+            if (response.ok) {
+            const result: any = await response.json();
+            await sendTelegramMessage(chatId,
+              '🔗 <b>Código de Conexão Gerado!</b>\n\n' +
+              '🎯 <b>Seu código:</b> <code>' + result.code + '</code>\n\n' +
+              '📋 <b>Como usar:</b>\n' +
+              '1️⃣ Copie o código acima\n' +
+              '2️⃣ Abra: <a href="https://sprout-spending-hub-vb4x.vercel.app">sprout-spending-hub-vb4x.vercel.app</a>\n' +
+              '3️⃣ Faça login na sua conta\n' +
+              '4️⃣ Vá para Dashboard\n' +
+              '5️⃣ Clique em "Conectar Telegram"\n' +
+              '6️⃣ Cole o código\n\n' +
+              '⏰ <b>Válido por 15 minutos</b>\n' +
+              '💡 <i>Após conectar, terei acesso aos seus dados para análises personalizadas!</i>'
+            );
+          } else {
+            throw new Error('Erro ao gerar código');
+          }        } catch (error) {
+          console.error('❌ Erro ao gerar código:', error);
+          await sendTelegramMessage(chatId,
+            '🔗 <b>Conectar Conta ICTUS</b>\n\n' +
+            '⚠️ Erro ao gerar código automático, mas você pode conectar manualmente!\n\n' +
+            '✨ <b>Método Manual:</b>\n' +
+            '1️⃣ Abra: <a href="https://sprout-spending-hub-vb4x.vercel.app">App ICTUS</a>\n' +
+            '2️⃣ Faça login na sua conta\n' +
+            '3️⃣ Vá para Dashboard\n' +
+            '4️⃣ Clique em "Conectar Telegram"\n' +
+            '5️⃣ Cole seu Chat ID no campo correspondente\n\n' +
+            '🆔 <b>Seu Chat ID:</b> <code>' + chatId + '</code>\n\n' +
+            '❓ <b>O que é Chat ID?</b>\n' +
+            'É o identificador único desta conversa. Copie e cole exatamente como mostrado acima.\n\n' +
+            '📱 <b>Como usar no app:</b>\n' +
+            '• Cole o Chat ID no campo "ID do Chat"\n' +
+            '• Clique em "Conectar"\n' +
+            '• Volte aqui no Telegram para confirmar\n\n' +
+            '🔄 Digite /conectar novamente para tentar código automático'
+          );
+        }
+        
         return res.status(200).json({ ok: true, message: 'Comando /conectar processado' });
       }// Comando /dashboard (novo)
       if (messageText === '/dashboard') {
@@ -424,9 +465,7 @@ export default async function handler(req: any, res: any) {
           '💡 <i>Conecte sua conta aqui no Telegram para acesso direto!</i>'
         );
         return res.status(200).json({ ok: true, message: 'Comando /dashboard processado' });
-      }
-
-      // Verificar se é um código de conexão (sem /start)
+      }      // Verificar se é um código de conexão (formato: 2 números + 2 letras)
       const codePattern = /^[0-9]{2}[A-Z]{2}$/;
       if (codePattern.test(messageText.toUpperCase())) {
         console.log('🔑 Código direto detectado');
@@ -437,18 +476,26 @@ export default async function handler(req: any, res: any) {
         
         if (linkSuccess) {
           await sendTelegramMessage(chatId, 
-            `✅ Conta vinculada com sucesso!\n\n` +
+            `✅ <b>Conta vinculada com sucesso!</b>\n\n` +
             `🎉 Olá ${username}! Sua conta ICTUS foi conectada.\n\n` +
             `🤖 Agora posso analisar suas finanças reais e dar conselhos personalizados!\n\n` +
-            `💬 Faça qualquer pergunta sobre suas finanças!\n\n` +
+            `💬 <b>Experimente:</b>\n` +
+            `• "Qual meu saldo atual?"\n` +
+            `• "Análise dos meus gastos"\n` +
+            `• "Como economizar dinheiro?"\n\n` +
             `Assistente IA ICTUS ativo! 🚀`
-          );        } else {
+          );
+        } else {
           await sendTelegramMessage(chatId, 
             `❌ <b>Código inválido: ${code}</b>\n\n` +
-            `💡 <b>Tente:</b>\n` +
-            `• Digite <b>/conectar</b> para instruções\n` +
-            `• Gere um novo código no app\n` +
-            `• Verifique se não expirou (15 min)\n\n` +
+            `💡 <b>Possíveis causas:</b>\n` +
+            `• Código expirado (válido por 15 min)\n` +
+            `• Código já foi usado\n` +
+            `• Código digitado incorretamente\n\n` +
+            `🔧 <b>Soluções:</b>\n` +
+            `• Digite <b>/conectar</b> para gerar novo código\n` +
+            `• Verifique se copiou corretamente\n` +
+            `• Use o formato: 2 números + 2 letras (ex: 12AB)\n\n` +
             `🔗 <a href="https://sprout-spending-hub-vb4x.vercel.app">Abrir App ICTUS</a>`
           );
         }

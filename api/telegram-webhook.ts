@@ -15,6 +15,97 @@ const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models
 // Token do bot - IMPORTANTE: configurar no Vercel
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7971646954:AAHpeNAzvg3kq7A1uER58XRms94sTjWZy5g';
 
+// Função para salvar transação no Supabase
+async function saveTransactionToSupabase(userId: string, transactionData: any): Promise<boolean> {
+  try {
+    console.log('💾 Salvando transação no Supabase:', transactionData);
+    
+    const { data, error } = await supabaseAdmin
+      .from('transactions')
+      .insert([{
+        user_id: userId,
+        title: transactionData.description || transactionData.descrição,
+        amount: parseFloat(transactionData.amount || transactionData.valor),
+        type: transactionData.type === 'receita' ? 'income' : 'expense',
+        category: transactionData.category || transactionData.categoria || 'Outros',
+        date: transactionData.date || transactionData.data || new Date().toISOString().split('T')[0],
+        created_at: new Date().toISOString()
+      }]);
+    
+    if (error) {
+      console.error('❌ Erro ao salvar transação:', error);
+      return false;
+    }
+    
+    console.log('✅ Transação salva com sucesso:', data);
+    return true;
+  } catch (error) {
+    console.error('❌ Exceção ao salvar transação:', error);
+    return false;
+  }
+}
+
+// Função para salvar múltiplas transações
+async function saveMultipleTransactions(userId: string, transactions: any[]): Promise<{saved: number, failed: number}> {
+  let saved = 0;
+  let failed = 0;
+  
+  for (const transaction of transactions) {
+    const success = await saveTransactionToSupabase(userId, transaction);
+    if (success) {
+      saved++;
+    } else {
+      failed++;
+    }
+  }
+  
+  return { saved, failed };
+}
+
+// Função para buscar transações recentes do usuário
+async function getUserTransactions(userId: string, limit: number = 10): Promise<any[]> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('date', { ascending: false })
+      .limit(limit);
+    
+    if (error) {
+      console.error('❌ Erro ao buscar transações:', error);
+      return [];
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error('❌ Exceção ao buscar transações:', error);
+    return [];
+  }
+}
+
+// Função para calcular saldo do usuário
+async function getUserBalance(userId: string): Promise<{balance: number, totalIncome: number, totalExpense: number}> {
+  try {
+    const transactions = await getUserTransactions(userId, 1000); // Buscar todas
+    
+    const totalIncome = transactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    
+    const totalExpense = transactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    
+    const balance = totalIncome - totalExpense;
+    
+    return { balance, totalIncome, totalExpense };
+  } catch (error) {
+    console.error('❌ Erro ao calcular saldo:', error);
+    return { balance: 0, totalIncome: 0, totalExpense: 0 };
+  }
+}
+
 // Função para chamar a API Gemini (mesmo processamento do Assistente IA)
 async function callGeminiAPI(userMessage: string, userId?: string): Promise<string> {
   try {
@@ -22,8 +113,7 @@ async function callGeminiAPI(userMessage: string, userId?: string): Promise<stri
     
     let financialContextText = '';
     let userName = 'Usuário';
-    
-    // Se temos userId, buscar dados financeiros
+      // Se temos userId, buscar dados financeiros COMPLETOS
     if (userId) {
       try {
         // Buscar dados do usuário
@@ -37,37 +127,50 @@ async function callGeminiAPI(userMessage: string, userId?: string): Promise<stri
           userName = userData.full_name || userData.email?.split('@')[0] || 'Usuário';
         }
 
-        // Buscar transações recentes
-        const { data: recentTransactions } = await supabaseAdmin
-          .from('transactions')
-          .select('title, amount, type, category, date')
-          .eq('user_id', userId)
-          .order('date', { ascending: false })
-          .limit(10);
+        // Buscar TODAS as transações recentes (50 para análise completa)
+        const recentTransactions = await getUserTransactions(userId, 50);
 
         if (recentTransactions && recentTransactions.length > 0) {
-          financialContextText += "\nÚltimas Transações:\n";
-          recentTransactions.forEach(t => {
+          financialContextText += "\n=== DADOS FINANCEIROS COMPLETOS ===\n";
+          
+          // Calcular totais
+          const balance = await getUserBalance(userId);
+          financialContextText += `SALDO ATUAL: R$ ${balance.balance.toFixed(2)}\n`;
+          financialContextText += `TOTAL RECEITAS: R$ ${balance.totalIncome.toFixed(2)}\n`;
+          financialContextText += `TOTAL DESPESAS: R$ ${balance.totalExpense.toFixed(2)}\n\n`;
+          
+          // Últimas transações detalhadas
+          financialContextText += "ÚLTIMAS TRANSAÇÕES:\n";
+          recentTransactions.slice(0, 20).forEach(t => {
             const date = new Date(t.date).toLocaleDateString('pt-BR');
-            financialContextText += `- ${date}: ${t.type === 'income' ? 'Receita' : 'Despesa'} de R$ ${Number(t.amount).toFixed(2)} em "${t.title}" (${t.category})\n`;
+            const type = t.type === 'income' ? 'RECEITA' : 'DESPESA';
+            financialContextText += `- ${date}: ${type} de R$ ${Number(t.amount).toFixed(2)} - "${t.title}" (${t.category})\n`;
           });
-        }
-
-        // Calcular saldo atual
-        if (recentTransactions && recentTransactions.length > 0) {
-          const totalReceitas = recentTransactions
-            .filter(t => t.type === 'income')
-            .reduce((sum, t) => sum + Number(t.amount), 0);
           
-          const totalDespesas = recentTransactions
-            .filter(t => t.type === 'expense')
-            .reduce((sum, t) => sum + Number(t.amount), 0);
+          // Análise por categoria
+          const categoryTotals: {[key: string]: number} = {};
+          recentTransactions.forEach(t => {
+            if (t.type === 'expense') {
+              categoryTotals[t.category] = (categoryTotals[t.category] || 0) + Number(t.amount);
+            }
+          });
           
-          const saldoAtual = totalReceitas - totalDespesas;
-          financialContextText += `\nSaldo Atual: R$ ${saldoAtual.toFixed(2)}\n`;
+          if (Object.keys(categoryTotals).length > 0) {
+            financialContextText += "\nGASTOS POR CATEGORIA:\n";
+            Object.entries(categoryTotals)
+              .sort(([,a], [,b]) => b - a)
+              .forEach(([category, amount]) => {
+                financialContextText += `- ${category}: R$ ${amount.toFixed(2)}\n`;
+              });
+          }
+          
+          financialContextText += "\n=== FIM DOS DADOS FINANCEIROS ===\n";
+        } else {
+          financialContextText += "\nNenhuma transação encontrada ainda.\n";
         }
       } catch (error) {
         console.log('Erro ao buscar dados financeiros:', error);
+        financialContextText += "\nErro ao acessar dados financeiros.\n";
       }
     }
 
@@ -84,38 +187,55 @@ async function callGeminiAPI(userMessage: string, userId?: string): Promise<stri
                                  userMessage.toLowerCase().includes('dinheiro') ||
                                  userMessage.toLowerCase().includes('financeira');
 
-    const contextToUse = needsFinancialContext ? financialContextText : "Dados financeiros disponíveis mediante solicitação.";
-      const fullPrompt = `Você é o Assistente IA do ICTUS, consultor financeiro direto e conciso via Telegram.
+    const contextToUse = needsFinancialContext ? financialContextText : "Dados financeiros disponíveis mediante solicitação.";      const fullPrompt = `Você é o Assistente IA do ICTUS - VERSÃO TELEGRAM com AUTONOMIA COMPLETA.
+
+VOCÊ TEM TOTAL AUTONOMIA PARA:
+- SALVAR transações automaticamente no banco de dados
+- LER todos os dados financeiros do usuário em tempo real
+- CALCULAR saldos, totais e análises completas
+- RESPONDER com base nos dados REAIS do usuário
+- FUNCIONAR EXATAMENTE como o Assistente IA do app
 
 DATA: ${today}
 USUÁRIO: ${userName}
-PLATAFORMA: Telegram
+PLATAFORMA: Telegram (COM AUTONOMIA TOTAL)
+USER_ID: ${userId || 'Não conectado'}
 
-${needsFinancialContext ? `DADOS FINANCEIROS:${contextToUse}\n` : ''}
-PERGUNTA: ${userMessage}
+${financialContextText}
 
-INSTRUÇÕES DE RESPOSTA:
-- Seja DIRETO e CONCISO (máximo 4000 caracteres para Telegram)
-- Responda apenas o que foi perguntado  
-- NÃO use asteriscos (*) ou markdown nas respostas
-- Use emojis moderadamente apenas no início da resposta
-- NÃO mencione limitações sobre fotos ou documentos
-- Complete suas respostas - não corte no meio
-- Sempre calcule e mostre o SALDO ATUAL do usuário quando relevante
+PERGUNTA/SOLICITAÇÃO: ${userMessage}
 
-CÁLCULO DO SALDO:
-- Total de receitas MENOS total de despesas das transações recentes
-- Formato: "💰 Seu saldo atual é R$ X,XX"
+INSTRUÇÕES CRÍTICAS:
+- Você tem acesso COMPLETO aos dados financeiros do usuário acima
+- CALCULE sempre o saldo atual: Receitas MENOS Despesas
+- RESPONDA baseado nos dados REAIS, não em suposições
+- Se solicitado para adicionar transação, gere JSON para salvamento automático
+- SEMPRE mostre o saldo atual quando relevante
+- Seja DIRETO e PRECISO como no app principal
+- Use os dados financeiros fornecidos para análises detalhadas
 
 DETECÇÃO DE TRANSAÇÕES:
 Se detectar uma transação clara (ganhar/receber/gastar/pagar + valor específico), responda APENAS com JSON limpo:
 {
   "tipo": "receita" ou "despesa", 
-  "descrição": "descrição_clara",
+  "descrição": "descrição_clara_da_transação",
   "valor": valor_numerico_sem_simbolos,
   "data": "${today}",
-  "categoria": "categoria_automatica"
+  "categoria": "categoria_automatica_precisa"
 }
+
+ANÁLISES FINANCEIRAS:
+- Use TODOS os dados fornecidos acima
+- Calcule percentuais, médias, tendências
+- Compare períodos se possível
+- Identifique padrões nos gastos
+- Sugira melhorias baseadas nos dados reais
+
+RESPOSTAS PARA CONSULTAS:
+- "Qual meu saldo?" → Use os dados REAIS acima
+- "Meus gastos" → Analise as transações listadas
+- "Situação financeira" → Análise completa com os dados
+- "Últimas transações" → Liste as transações dos dados
 
 CATEGORIAS PARA AUTO-CATEGORIZAÇÃO:
 - "Alimentação": supermercados, restaurantes, delivery, padarias
@@ -127,7 +247,12 @@ CATEGORIAS PARA AUTO-CATEGORIZAÇÃO:
 - "Cuidados Pessoais": salão, barbeiro, cosméticos, higiene
 - "Outros": categoria genérica quando não se encaixa
 
-IMPORTANTE: Só gere JSON se for uma transação ESPECÍFICA com valor claro. Para perguntas gerais, responda normalmente.
+IMPORTANTE: 
+- Você é um assistente com AUTONOMIA TOTAL
+- SALVE transações automaticamente (via JSON)
+- LEIA dados reais do usuário
+- CALCULE tudo baseado nos dados fornecidos
+- Funcione EXATAMENTE como o assistente do app principal
 
 Resposta:`;
 
@@ -137,10 +262,10 @@ Resposta:`;
         parts: [{text: fullPrompt}] 
       }],
       generationConfig: {
-        temperature: 0.7,
+        temperature: 0.3, // Mais preciso para dados financeiros
         topK: 32,
-        topP: 1,
-        maxOutputTokens: 1024, // Limitado para Telegram
+        topP: 0.9,
+        maxOutputTokens: 2048, // Mais espaço para análises detalhadas
       }
     };
 
@@ -590,53 +715,103 @@ export default async function handler(req: any, res: any) {
             
             // Processar o resultado da API
             let responseMessage = '';
-            
-            // Se retornou transações estruturadas
+              // Se retornou transações estruturadas
             if (ocrResult.transactions && Array.isArray(ocrResult.transactions) && ocrResult.transactions.length > 0) {
               console.log('📊 Transações estruturadas encontradas:', ocrResult.transactions.length);
               
+              // Verificar se usuário está conectado para salvar
+              const userData = await getTelegramUserData(chatId);
+              
+              if (!userData.linked) {
+                // Usuário não conectado - mostrar apenas análise
+                responseMessage = `📄 <b>Documento analisado!</b>\n\n`;
+                responseMessage += `📊 <b>Encontrei ${ocrResult.transactions.length} transações, mas você precisa conectar sua conta para eu poder salvá-las.</b>\n\n`;
+                responseMessage += `🔗 <b>Para conectar:</b>\n`;
+                responseMessage += `• Digite /conectar\n`;
+                responseMessage += `• Siga as instruções\n\n`;
+                responseMessage += `💡 <i>Após conectar, poderei salvar transações automaticamente!</i>`;
+                
+                await sendTelegramMessage(chatId, responseMessage);
+                return res.status(200).json({ ok: true, message: 'Usuário não conectado' });
+              }
+              
+              // Usuário conectado - processar transações uma por uma
               responseMessage = `📄 <b>Documento analisado com sucesso!</b>\n\n`;
               
               // Resumo do documento
               if (ocrResult.summary) {
                 responseMessage += `📋 <b>Resumo:</b>\n`;
                 if (ocrResult.summary.establishment) {
-                  responseMessage += `🏦 <b>Estabelecimento:</b> ${ocrResult.summary.establishment}\n`;
+                  responseMessage += `🏦 <b>Banco/Estabelecimento:</b> ${ocrResult.summary.establishment}\n`;
                 }
                 if (ocrResult.summary.period) {
                   responseMessage += `📅 <b>Período:</b> ${ocrResult.summary.period}\n`;
                 }
-                if (ocrResult.summary.totalIncome > 0) {
-                  responseMessage += `💰 <b>Total Receitas:</b> R$ ${ocrResult.summary.totalIncome.toFixed(2)}\n`;
-                }
-                if (ocrResult.summary.totalExpense > 0) {
-                  responseMessage += `💸 <b>Total Despesas:</b> R$ ${ocrResult.summary.totalExpense.toFixed(2)}\n`;
-                }
-                responseMessage += `\n`;
+                responseMessage += `� <b>Total de transações:</b> ${ocrResult.transactions.length}\n\n`;
               }
               
-              // Mostrar transações (máximo 10 para não ultrapassar limite do Telegram)
-              responseMessage += `📝 <b>Transações encontradas (${ocrResult.transactions.length}):</b>\n\n`;
+              responseMessage += `� <b>Vou salvar cada transação automaticamente. Confirme cada uma:</b>\n\n`;
               
-              const transactionsToShow = ocrResult.transactions.slice(0, 10);
-              transactionsToShow.forEach((t: any, index: number) => {
-                const emoji = t.type === 'income' ? '💰' : '💸';
-                const date = new Date(t.date).toLocaleDateString('pt-BR');
-                responseMessage += `${emoji} <b>R$ ${Number(t.amount).toFixed(2)}</b> - ${t.description}\n`;
-                responseMessage += `   📅 ${date} | 📂 ${t.category}\n\n`;
-              });
+              // Enviar resumo primeiro
+              await sendTelegramMessage(chatId, responseMessage);
               
-              if (ocrResult.transactions.length > 10) {
-                responseMessage += `<i>... e mais ${ocrResult.transactions.length - 10} transações</i>\n\n`;
+              // Processar cada transação individualmente
+              let savedCount = 0;
+              let skippedCount = 0;
+              
+              for (let i = 0; i < ocrResult.transactions.length; i++) {
+                const transaction = ocrResult.transactions[i];
+                const emoji = transaction.type === 'income' ? '💰' : '💸';
+                const date = new Date(transaction.date).toLocaleDateString('pt-BR');
+                
+                // Mensagem de confirmação para cada transação
+                let confirmMessage = `${emoji} <b>Transação ${i + 1}/${ocrResult.transactions.length}</b>\n\n`;
+                confirmMessage += `📝 <b>Descrição:</b> ${transaction.description}\n`;
+                confirmMessage += `💰 <b>Valor:</b> R$ ${Number(transaction.amount).toFixed(2)}\n`;
+                confirmMessage += `📂 <b>Categoria:</b> ${transaction.category}\n`;
+                confirmMessage += `📅 <b>Data:</b> ${date}\n`;
+                confirmMessage += `🏷️ <b>Tipo:</b> ${transaction.type === 'income' ? 'Receita' : 'Despesa'}\n\n`;
+                
+                // Tentar salvar automaticamente
+                const saved = await saveTransactionToSupabase(userData.userId!, transaction);
+                
+                if (saved) {
+                  confirmMessage += `✅ <b>SALVA COM SUCESSO!</b>\n`;
+                  confirmMessage += `💾 Transação adicionada ao seu ICTUS\n\n`;
+                  savedCount++;
+                } else {
+                  confirmMessage += `❌ <b>Erro ao salvar</b>\n`;
+                  confirmMessage += `⚠️ Verifique sua conexão\n\n`;
+                  skippedCount++;
+                }
+                
+                // Adicionar informações de progresso
+                if (i < ocrResult.transactions.length - 1) {
+                  confirmMessage += `⏳ <i>Processando próxima transação...</i>`;
+                } else {
+                  confirmMessage += `🎉 <b>PROCESSAMENTO CONCLUÍDO!</b>\n`;
+                  confirmMessage += `✅ <b>Salvas:</b> ${savedCount}\n`;
+                  if (skippedCount > 0) {
+                    confirmMessage += `❌ <b>Falharam:</b> ${skippedCount}\n`;
+                  }
+                  
+                  // Mostrar saldo atualizado
+                  const balance = await getUserBalance(userData.userId!);
+                  confirmMessage += `\n💰 <b>SEU SALDO ATUAL:</b> R$ ${balance.balance.toFixed(2)}\n`;
+                  confirmMessage += `📈 <b>Total Receitas:</b> R$ ${balance.totalIncome.toFixed(2)}\n`;
+                  confirmMessage += `📉 <b>Total Despesas:</b> R$ ${balance.totalExpense.toFixed(2)}\n\n`;
+                  confirmMessage += `� <i>Abra seu app ICTUS para ver todas as transações!</i>`;
+                }
+                
+                await sendTelegramMessage(chatId, confirmMessage);
+                
+                // Pequena pausa entre transações para não sobrecarregar
+                if (i < ocrResult.transactions.length - 1) {
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                }
               }
               
-              responseMessage += `💡 <b>Para registrar essas transações:</b>\n`;
-              responseMessage += `1️⃣ Acesse o app ICTUS\n`;
-              responseMessage += `2️⃣ Vá em "Adicionar Transação"\n`;
-              responseMessage += `3️⃣ Use os dados acima\n\n`;
-              responseMessage += `🚀 <i>Em breve, poderei registrar automaticamente!</i>`;
-              
-            } 
+            }
             // Se retornou análise de texto
             else if (ocrResult.extractedText || ocrResult.analysis) {
               const analysisText = ocrResult.extractedText || ocrResult.analysis;
@@ -762,18 +937,27 @@ export default async function handler(req: any, res: any) {
       if (messageText === '/help') {
         console.log('❓ Processando comando /help');
         await sendTelegramMessage(chatId,
-          '🤖 <b>Assistente IA - ICTUS</b>\n\n' +
-          '💬 <b>Como usar:</b>\n' +
-          '• Digite qualquer pergunta sobre finanças\n' +
-          '• Exemplo: "Como economizar dinheiro?"\n' +
-          '• Exemplo: "Dicas de investimento"\n\n' +
-          '🔗 <b>Para conectar sua conta:</b>\n' +
-          '• Use: <b>/conectar</b> (mais fácil!)\n' +
-          '• Ou abra o app → Dashboard → "Conectar Telegram"\n\n' +
-          '💡 <i>Após conectar, terei acesso aos seus dados para análises personalizadas!</i>'
+          '🤖 <b>Assistente IA ICTUS - TELEGRAM</b>\n\n' +
+          '✨ <b>EU TENHO AUTONOMIA TOTAL!</b>\n' +
+          '• Salvo transações automaticamente\n' +
+          '• Leio seus dados financeiros reais\n' +
+          '• Processo fotos e documentos\n' +
+          '• Sincronizo 100% com o app\n\n' +
+          '📋 <b>COMANDOS:</b>\n' +
+          '• <b>/conectar</b> - Conectar sua conta\n' +
+          '• <b>/saldo</b> - Ver saldo atual\n' +
+          '• <b>/dashboard</b> - Abrir app\n' +
+          '• <b>/help</b> - Esta ajuda\n\n' +
+          '� <b>FUNCIONALIDADES:</b>\n' +
+          '• Digite: "adicione 50 reais de almoço"\n' +
+          '• Envie fotos de extratos/faturas\n' +
+          '• Envie arquivos PDF/Excel\n' +
+          '• Pergunte: "qual meu saldo?"\n' +
+          '• Pergunte: "meus gastos do mês"\n\n' +
+          '🚀 <b>TUDO É SALVO AUTOMATICAMENTE!</b>'
         );
         return res.status(200).json({ ok: true, message: 'Comando /help processado' });
-      }      // Comando /conectar - NOVO SISTEMA INTUITIVO
+      }// Comando /conectar - NOVO SISTEMA INTUITIVO
       if (messageText === '/conectar') {
         console.log('🔗 Processando comando /conectar');
         
@@ -818,7 +1002,45 @@ export default async function handler(req: any, res: any) {
         }
         
         return res.status(200).json({ ok: true, message: 'Comando /conectar processado' });
-      }// Comando /dashboard (novo)
+      }      // Comando /saldo - mostrar saldo atual
+      if (messageText === '/saldo') {
+        console.log('💰 Processando comando /saldo');
+        
+        const userData = await getTelegramUserData(chatId);
+        if (!userData.linked) {
+          await sendTelegramMessage(chatId,
+            '💰 <b>Consulta de Saldo</b>\n\n' +
+            '❌ Você precisa conectar sua conta primeiro\n\n' +
+            '🔗 Digite <b>/conectar</b> para instruções'
+          );
+          return res.status(200).json({ ok: true, message: 'Comando /saldo - não conectado' });
+        }
+        
+        const balance = await getUserBalance(userData.userId!);
+        const recentTransactions = await getUserTransactions(userData.userId!, 5);
+        
+        let balanceMessage = `💰 <b>SEU SALDO ATUAL</b>\n\n`;
+        balanceMessage += `💎 <b>Saldo:</b> R$ ${balance.balance.toFixed(2)}\n`;
+        balanceMessage += `📈 <b>Total Receitas:</b> R$ ${balance.totalIncome.toFixed(2)}\n`;
+        balanceMessage += `📉 <b>Total Despesas:</b> R$ ${balance.totalExpense.toFixed(2)}\n\n`;
+        
+        if (recentTransactions.length > 0) {
+          balanceMessage += `📝 <b>Últimas transações:</b>\n`;
+          recentTransactions.forEach(t => {
+            const emoji = t.type === 'income' ? '💰' : '💸';
+            const date = new Date(t.date).toLocaleDateString('pt-BR');
+            balanceMessage += `${emoji} R$ ${Number(t.amount).toFixed(2)} - ${t.title}\n`;
+            balanceMessage += `   📅 ${date} | 📂 ${t.category}\n\n`;
+          });
+        }
+        
+        balanceMessage += `📱 <i>Dados sincronizados com seu app ICTUS!</i>`;
+        
+        await sendTelegramMessage(chatId, balanceMessage);
+        return res.status(200).json({ ok: true, message: 'Comando /saldo processado' });
+      }
+
+      // Comando /dashboard (atualizado)
       if (messageText === '/dashboard') {
         console.log('📊 Processando comando /dashboard');
         await sendTelegramMessage(chatId,
@@ -886,8 +1108,7 @@ export default async function handler(req: any, res: any) {
         console.log('🔒 Usuário vinculado - resposta personalizada');
         // Usuário vinculado - resposta personalizada com dados reais
         const aiResponse = await callGeminiAPI(messageText, userData.userId);
-        
-        // Verificar se a resposta é uma transação JSON
+          // Verificar se a resposta é uma transação JSON
         if (aiResponse.trim().startsWith('{') && aiResponse.includes('"tipo"')) {
           console.log('💰 Detectada transação JSON, processando...');
           
@@ -898,18 +1119,42 @@ export default async function handler(req: any, res: any) {
             if (transactionData.tipo && transactionData.valor && transactionData.descrição) {
               console.log('📊 Dados da transação:', transactionData);
               
-              // Enviar confirmação ao usuário
-              await sendTelegramMessage(chatId, 
-                `✅ <b>Transação detectada!</b>\n\n` +
-                `📝 <b>Descrição:</b> ${transactionData.descrição}\n` +
-                `💰 <b>Valor:</b> R$ ${transactionData.valor}\n` +
-                `📂 <b>Categoria:</b> ${transactionData.categoria}\n` +
-                `📅 <b>Data:</b> ${transactionData.data}\n` +
-                `🏷️ <b>Tipo:</b> ${transactionData.tipo === 'receita' ? 'Receita' : 'Despesa'}\n\n` +
-                `🎯 <b>Para salvar esta transação:</b>\n` +
-                `Vá para o app ICTUS e adicione manualmente.\n\n` +
-                `💡 <i>Em breve, poderei salvar automaticamente!</i>`
-              );
+              // Tentar salvar automaticamente
+              const saved = await saveTransactionToSupabase(userData.userId!, transactionData);
+              
+              if (saved) {
+                // Sucesso ao salvar
+                const balance = await getUserBalance(userData.userId!);
+                
+                await sendTelegramMessage(chatId, 
+                  `✅ <b>TRANSAÇÃO SALVA COM SUCESSO!</b>\n\n` +
+                  `📝 <b>Descrição:</b> ${transactionData.descrição}\n` +
+                  `💰 <b>Valor:</b> R$ ${transactionData.valor}\n` +
+                  `📂 <b>Categoria:</b> ${transactionData.categoria}\n` +
+                  `📅 <b>Data:</b> ${transactionData.data}\n` +
+                  `🏷️ <b>Tipo:</b> ${transactionData.tipo === 'receita' ? 'Receita' : 'Despesa'}\n\n` +
+                  `💾 <b>Transação adicionada ao seu ICTUS!</b>\n\n` +
+                  `💰 <b>SEU SALDO ATUAL:</b> R$ ${balance.balance.toFixed(2)}\n` +
+                  `📈 <b>Total Receitas:</b> R$ ${balance.totalIncome.toFixed(2)}\n` +
+                  `📉 <b>Total Despesas:</b> R$ ${balance.totalExpense.toFixed(2)}\n\n` +
+                  `📱 <i>Abra seu app ICTUS para ver a transação!</i>`
+                );
+              } else {
+                // Erro ao salvar
+                await sendTelegramMessage(chatId, 
+                  `❌ <b>Erro ao salvar transação</b>\n\n` +
+                  `📝 <b>Descrição:</b> ${transactionData.descrição}\n` +
+                  `💰 <b>Valor:</b> R$ ${transactionData.valor}\n` +
+                  `📂 <b>Categoria:</b> ${transactionData.categoria}\n` +
+                  `📅 <b>Data:</b> ${transactionData.data}\n` +
+                  `🏷️ <b>Tipo:</b> ${transactionData.tipo === 'receita' ? 'Receita' : 'Despesa'}\n\n` +
+                  `⚠️ <b>Houve um problema ao salvar no banco de dados.</b>\n\n` +
+                  `💡 <b>Tente:</b>\n` +
+                  `• Verificar sua conexão\n` +
+                  `• Tentar novamente\n` +
+                  `• Ou adicionar manualmente no app ICTUS`
+                );
+              }
             } else {
               // Dados incompletos, enviar resposta normal
               await sendTelegramMessage(chatId, aiResponse);

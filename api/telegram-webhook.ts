@@ -313,14 +313,14 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const update = req.body;
-
-    // Verificar se há uma mensagem
+    const update = req.body;    // Verificar se há uma mensagem
     if (!update || !update.message || !update.message.text) {
       console.log('📭 Sem mensagem de texto no update');
       // Responder OK mesmo assim para evitar reenvios
       return res.status(200).json({ ok: true, message: 'Update recebido mas sem mensagem de texto' });
-    }    const chatId = update.message.chat.id.toString();
+    }
+
+    const chatId = update.message.chat.id.toString();
     const messageText = update.message.text.trim();
     const username = update.message.from.username || update.message.from.first_name || 'Usuário';
 

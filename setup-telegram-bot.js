@@ -1,6 +1,6 @@
 // Script para configurar webhook do Telegram Bot
 const BOT_TOKEN = '7971646954:AAHpeNAzvg3kq7A1uER58XRms94sTjWZy5g'; // Token correto do @assistentefinanceiroiabot
-const WEBHOOK_URL = 'https://ictus-six.vercel.app/api/telegram-webhook';
+const WEBHOOK_URL = 'https://sprout-spending-hub-vb4x.vercel.app/api/telegram-webhook';
 
 async function setWebhook() {
   try {

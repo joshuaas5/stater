@@ -1,11 +1,13 @@
 {
   "name": "vite_react_shadcn_ts",
   "private": true,
-  "version": "0.0.0",  "scripts": {
+  "version": "0.0.0",
+  "type": "module","scripts": {
     "dev": "vite --mode development",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "build:vercel": "vite build",
+    "postbuild": "echo 'Build completed successfully'",
     "lint": "eslint .",
     "preview": "vite preview"
   },

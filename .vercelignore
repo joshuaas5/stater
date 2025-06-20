@@ -1,0 +1,22 @@
+# Ignorar arquivos desnecessários no deploy
+node_modules
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+Thumbs.db
+
+# Arquivos de teste e desenvolvimento
+test-*.js
+test-*.mjs
+test-*.ts
+setup-*.js
+setup-*.cmd
+*.md
+!README.md
+
+# Arquivos de configuração local
+.vscode/
+bun.lockb
+eslint.config.js

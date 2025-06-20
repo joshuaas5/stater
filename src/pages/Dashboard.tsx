@@ -93,7 +93,7 @@ const Dashboard: React.FC = () => {
     
     setIsGeneratingCode(true);
     try {      // Chamar API para gerar código
-      const response = await fetch('/api/telegram-codes', {
+      const response = await fetch('/api/telegram-codes-simple', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

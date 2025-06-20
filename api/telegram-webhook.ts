@@ -202,52 +202,37 @@ async function getTelegramUserData(chatId: string): Promise<{ userId?: string, l
   return { linked: false };
 }
 
-// Função para salvar vinculação do usuário - VERSÃO MELHORADA
+// Função para salvar vinculação do usuário - USANDO API SIMPLES
 async function saveTelegramLink(chatId: string, code: string, username: string): Promise<boolean> {
   try {
     console.log('💾 [DEBUG] Tentando salvar vinculação:', { chatId, code, username });
-    console.log('💾 [DEBUG] Timestamp atual:', new Date().toISOString());
     
-    // Primeiro, verificar se o código existe e é válido
-    const { data: codeData, error: codeError } = await supabaseAdmin
-      .from('telegram_link_codes')
-      .select('user_id, user_email, user_name, expires_at, created_at, used_at')
-      .eq('code', code)
-      .single();
+    // Verificar código via API interna
+    const verifyUrl = `https://sprout-spending-hub-vb4x.vercel.app/api/telegram-codes-simple?code=${code}`;
     
-    console.log('🔍 [DEBUG] Busca do código:', { codeData, error: codeError?.message });
+    console.log('🔍 [DEBUG] Verificando código via API:', verifyUrl);
     
-    if (codeError || !codeData) {
-      console.log('❌ [DEBUG] Código não encontrado:', codeError?.message);
+    const response = await fetch(verifyUrl);
+    const result = await response.json();
+    
+    console.log('� [DEBUG] Resposta da verificação:', { status: response.status, result });
+      if (!response.ok || !(result as any).success) {
+      console.log('❌ [DEBUG] Código inválido ou expirado');
       return false;
     }
     
-    // Verificar se já foi usado
-    if (codeData.used_at) {
-      console.log('❌ [DEBUG] Código já foi usado em:', codeData.used_at);
-      return false;
-    }
+    const { user_id, user_email, user_name } = result as any;
     
-    // Verificar se não expirou
-    const now = new Date();
-    const expiresAt = new Date(codeData.expires_at);
-    console.log('⏰ [DEBUG] Comparação de tempo:', { now: now.toISOString(), expiresAt: expiresAt.toISOString() });
-    
-    if (expiresAt < now) {
-      console.log('❌ [DEBUG] Código expirado. Criado em:', codeData.created_at);
-      return false;
-    }
-    
-    console.log('✅ [DEBUG] Código válido encontrado para usuário:', codeData.user_id);
+    console.log('✅ [DEBUG] Código válido encontrado para usuário:', user_id);
     
     // Salvar vinculação na tabela de usuários do Telegram
     const { error: linkError } = await supabaseAdmin
       .from('telegram_users')
       .upsert({
         telegram_chat_id: chatId,
-        user_id: codeData.user_id,
-        user_email: codeData.user_email,
-        user_name: codeData.user_name,
+        user_id: user_id,
+        user_email: user_email,
+        user_name: user_name,
         linked_at: new Date().toISOString(),
         is_active: true
       });

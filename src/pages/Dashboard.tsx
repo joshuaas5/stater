@@ -114,22 +114,24 @@ const Dashboard: React.FC = () => {
         return;
       }
 
-      // Conectar diretamente via Chat ID
-      const { error } = await supabase
-        .from('telegram_users')
-        .upsert({
-          telegram_chat_id: chatId.trim(),
-          user_id: user.id,
-          user_email: user.email || '',
-          user_name: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário',
-          linked_at: new Date().toISOString(),
-          is_active: true
-        }, {
-          onConflict: 'telegram_chat_id'
-        });
+      // Conectar via API (corrigido)
+      const response = await fetch('/api/telegram-connect-chatid', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatId: chatId.trim(),
+          userId: user.id,
+          userEmail: user.email || '',
+          userName: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário'
+        })
+      });
 
-      if (error) {
-        throw new Error('Erro ao conectar: ' + error.message);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao conectar');
       }
 
       // Sucesso!
@@ -148,6 +150,11 @@ const Dashboard: React.FC = () => {
         title: "❌ Erro na conexão",
         description: error.message || "Tente novamente. Verifique se digitou o Chat ID correto.",
         variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingCode(false);
+    }
+  };
       });
     } finally {
       setIsGeneratingCode(false);

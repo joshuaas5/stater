@@ -112,10 +112,8 @@ const Dashboard: React.FC = () => {
           variant: "destructive"
         });
         return;
-      }
-
-      // Conectar via API (corrigido)
-      const response = await fetch('/api/telegram-connect-chatid', {
+      }      // Conectar via API temporária (enquanto não configuramos SERVICE_ROLE_KEY)
+      const response = await fetch('/api/telegram-connect-simple', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -176,9 +176,21 @@ Resposta direta (SEM asteriscos):`;
 // Função para verificar se usuário está vinculado
 async function getTelegramUserData(chatId: string): Promise<{ userId?: string, linked: boolean }> {
   try {
-    console.log('🔍 Verificando vinculação para chat:', chatId);
+    console.log('🔍 [DEBUG] Verificando vinculação para chat:', chatId);
+      // Verificar via API temporária primeiro
+    try {
+      const response = await fetch(`https://sprout-spending-hub-vb4x.vercel.app/api/telegram-connect-simple?chatId=${chatId}`);
+      const result = await response.json() as any;
+      
+      if (response.ok && result.success && result.connected) {
+        console.log('✅ [DEBUG] Usuário encontrado na API temporária:', result.data);
+        return { userId: result.data.user_id, linked: true };
+      }
+    } catch (apiError) {
+      console.log('⚠️ [DEBUG] API temporária falhou, tentando Supabase:', apiError);
+    }
     
-    // Verificar na tabela correta do SQL
+    // Fallback para Supabase (se SERVICE_ROLE_KEY estiver configurada)
     const { data, error } = await supabaseAdmin
       .from('telegram_users')
       .select('user_id, linked_at')
@@ -186,19 +198,19 @@ async function getTelegramUserData(chatId: string): Promise<{ userId?: string, l
       .single();
     
     if (error) {
-      console.log('❌ Erro ao verificar vinculação:', error.message);
+      console.log('❌ [DEBUG] Erro Supabase:', error.message);
       return { linked: false };
     }
     
     if (data && data.user_id) {
-      console.log('✅ Usuário vinculado encontrado:', data.user_id);
+      console.log('✅ [DEBUG] Usuário encontrado no Supabase:', data.user_id);
       return { userId: data.user_id, linked: true };
     }
   } catch (error) {
-    console.log('❌ Exceção ao verificar vinculação:', error);
+    console.log('❌ [DEBUG] Exceção ao verificar vinculação:', error);
   }
   
-  console.log('❌ Usuário não vinculado');
+  console.log('❌ [DEBUG] Usuário não vinculado');
   return { linked: false };
 }
 

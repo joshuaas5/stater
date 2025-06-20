@@ -15,7 +15,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
-
   console.log('🔗 API Connect Chat ID:', req.body);
 
   try {
@@ -29,6 +28,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     console.log('💾 Salvando conexão:', { chatId, userId, userEmail, userName });
+
+    // Verificar se temos as variáveis de ambiente necessárias
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey) {
+      console.error('❌ SUPABASE_SERVICE_ROLE_KEY não configurada!');
+      return res.status(500).json({
+        error: 'Configuração do servidor incompleta',
+        details: 'SUPABASE_SERVICE_ROLE_KEY não configurada no Vercel',
+        hint: 'Configure a variável de ambiente SUPABASE_SERVICE_ROLE_KEY no painel do Vercel'
+      });
+    }
 
     // Verificar se a tabela existe, se não, tentar criar
     const { data: existingConnection, error: selectError } = await supabaseAdmin

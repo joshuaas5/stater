@@ -1,0 +1,22 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" fill="#007AFF" rx="24"/>
+  <g transform="translate(32, 32)">
+    <!-- Ícone de dinheiro/gráfico estilizado -->
+    <circle cx="64" cy="48" r="28" fill="white" opacity="0.9"/>
+    <path d="M64 32 L64 64" stroke="#007AFF" stroke-width="3" stroke-linecap="round"/>
+    <path d="M52 44 L76 44" stroke="#007AFF" stroke-width="3" stroke-linecap="round"/>
+    <path d="M52 52 L76 52" stroke="#007AFF" stroke-width="3" stroke-linecap="round"/>
+    
+    <!-- Gráfico de barras -->
+    <rect x="24" y="100" width="8" height="20" fill="white" opacity="0.8"/>
+    <rect x="36" y="90" width="8" height="30" fill="white" opacity="0.8"/>
+    <rect x="48" y="80" width="8" height="40" fill="white" opacity="0.8"/>
+    <rect x="60" y="85" width="8" height="35" fill="white" opacity="0.8"/>
+    <rect x="72" y="75" width="8" height="45" fill="white" opacity="0.8"/>
+    <rect x="84" y="95" width="8" height="25" fill="white" opacity="0.8"/>
+    <rect x="96" y="85" width="8" height="35" fill="white" opacity="0.8"/>
+    
+    <!-- Texto ICTUS -->
+    <text x="64" y="140" text-anchor="middle" fill="white" font-family="sans-serif" font-size="14" font-weight="bold">ICTUS</text>
+  </g>
+</svg>

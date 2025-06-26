@@ -241,11 +241,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
             <button
               type="submit"
               disabled={loading || !message.trim()}
-              title="Enviar"
-              style={{
+              title="Enviar"              style={{
                 width: '50px',
                 height: '50px',
-                background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                 border: 'none',
                 borderRadius: '50%',
                 color: 'white',
@@ -312,11 +311,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
             }}
           />
           
-          <div style={{ marginTop: '20px', display: 'flex', gap: '20px' }}>
-            <button
+          <div style={{ marginTop: '20px', display: 'flex', gap: '20px' }}>            <button
               onClick={capturePhoto}
               style={{
-                background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '50%',
@@ -366,7 +364,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           }
           .input-actions button[type="submit"]:hover:not(:disabled) {
             transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 5px 20px rgba(59, 130, 246, 0.4);
           }
           @media (max-width: 768px) {
             .input-container {

@@ -1964,7 +1964,7 @@ return (
             color: '#ffffff',
             fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
             letterSpacing: '1px',
-            textShadow: '2px 2px 0px #4f46e5, 4px 4px 0px #7c3aed, 0 0 20px rgba(79, 70, 229, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
+            textShadow: '2px 2px 0px #3b82f6, 4px 4px 0px #1d4ed8, 0 0 20px rgba(59, 130, 246, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
             textTransform: 'uppercase',
             position: 'relative',
             filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))'
@@ -2507,7 +2507,7 @@ return (
               <button
                 onClick={() => handleSendMessage('sim')}
                 style={{
-                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                  background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                   border: 'none',
                   borderRadius: '12px',
                   color: 'white',
@@ -2516,16 +2516,16 @@ return (
                   fontSize: '16px',
                   fontWeight: '600',
                   flex: 2,
-                  boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)',
+                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(79, 70, 229, 0.4)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(79, 70, 229, 0.3)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
                 }}
               >
                 ✅ Salvar {editableTransactions.length} Transação{editableTransactions.length > 1 ? 'ões' : ''}
@@ -2609,10 +2609,9 @@ return (
             >
               ❌ Cancelar
             </button>
-            <button
-              onClick={() => handleSendMessage('sim')}
+            <button              onClick={() => handleSendMessage('sim')}
               style={{
-                background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
@@ -2626,7 +2625,7 @@ return (
                 gap: '4px',
                 flex: 1,
                 justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(79, 70, 229, 0.3)'
+                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
               }}
             >
               ✅ Confirmar

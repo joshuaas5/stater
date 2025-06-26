@@ -302,7 +302,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 style={{
                   width: '58px', // Aumentado mais para 58px
                   height: '58px',
-                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                  background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                   border: 'none',
                   borderRadius: '50%',
                   color: 'white',
@@ -312,7 +312,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   justifyContent: 'center',
                   transition: 'all 0.3s ease',
                   opacity: (loading || !message.trim()) ? 0.5 : 1,
-                  boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)'
+                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
                 }}
               >
                 {loading ? (
@@ -427,7 +427,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             <button
               onClick={capturePhoto}
               style={{
-                background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '50%',
@@ -435,7 +435,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 height: '70px',
                 fontSize: '28px',
                 cursor: 'pointer',
-                boxShadow: '0 8px 25px rgba(79, 70, 229, 0.4)',
+                boxShadow: '0 8px 25px rgba(59, 130, 246, 0.4)',
                 transition: 'all 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
@@ -444,11 +444,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'scale(1.1)';
-                e.currentTarget.style.boxShadow = '0 12px 30px rgba(79, 70, 229, 0.6)';
+                e.currentTarget.style.boxShadow = '0 12px 30px rgba(59, 130, 246, 0.6)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.boxShadow = '0 8px 25px rgba(79, 70, 229, 0.4)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.4)';
               }}
             >
               📷
@@ -490,7 +490,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           }
           .input-actions button[type="submit"]:hover:not(:disabled) {
             transform: scale(1.05);
-            box-shadow: 0 6px 25px rgba(79, 70, 229, 0.5) !important;
+            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5) !important;
           }
             /* Responsividade mobile melhorada */
           @media (max-width: 768px) {

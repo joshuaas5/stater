@@ -40,18 +40,17 @@ const onboardingSteps: OnboardingStep[] = [
       "📷 Tire fotos de notas",
       "🤖 Use o bot Telegram"
     ]
-  },
-  {
+  },  {
     id: 3,
-    title: "Bot Telegram Inteligente",
-    subtitle: "Seu assistente no bolso",
-    description: "Envie fotos de comprovantes pelo Telegram e receba análises completas automaticamente",
-    icon: <Bot className="w-16 h-16" />,
-    color: "from-orange-500 to-red-600",
+    title: "🎉 Sua Vida Financeira Transformada!",
+    subtitle: "A revolução chegou ao seu bolso",
+    description: "Com IA avançada e automação inteligente, você terá o controle total das suas finanças sem esforço",
+    icon: <Target className="w-16 h-16" />,
+    color: "from-purple-600 to-pink-600",
     features: [
-      "📱 Funciona pelo Telegram",
-      "🔍 Extrai dados automaticamente",
-      "💡 Categoriza inteligentemente"
+      "� Transformação digital completa",
+      "⚡ Decisões financeiras inteligentes",
+      "🎯 Objetivos financeiros alcançáveis"
     ]
   }
 ];
@@ -143,11 +142,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
             <Button
               onClick={handleNext}
               className="w-full py-3 text-lg font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
-            >
-              {currentStep === onboardingSteps.length - 1 ? (
+            >              {currentStep === onboardingSteps.length - 1 ? (
                 <>
-                  Começar a usar
-                  <ChevronRight className="w-5 h-5 ml-2" />
+                  🚀 Transformar Minhas Finanças!
                 </>
               ) : (
                 <>

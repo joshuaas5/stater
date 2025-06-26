@@ -41,11 +41,14 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
+import { useOnboarding } from '@/hooks/useOnboarding';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { shouldShowOnboarding } = useOnboarding();
   
   // Estados existentes
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -480,10 +483,15 @@ const Dashboard: React.FC = () => {
       // Recalcular o saldo total
       calculateTotalBalance();
     }, 100);  };
-  
-  const currentUser = getCurrentUser();
+    const currentUser = getCurrentUser();
   const userName = currentUser ? currentUser.username : "Usuário";
-    return (
+  
+  // Se deve mostrar onboarding, renderizar apenas ele
+  if (shouldShowOnboarding) {
+    return <OnboardingFlow />;
+  }
+  
+  return (
     <div className="bg-galileo-background min-h-screen">
       {/* Mobile Header */}
       <MobileHeader title="Dashboard" />

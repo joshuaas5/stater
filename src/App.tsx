@@ -25,139 +25,8 @@ import FinancialAnalysisPage from "./pages/FinancialAnalysisPage"; // Nova pági
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-import OnboardingFlow from "./components/onboarding/OnboardingFlow";
-import { useOnboarding } from "./hooks/useOnboarding";
 
 const queryClient = new QueryClient();
-
-const AppContent = () => {
-  const { shouldShowOnboarding } = useOnboarding();
-  
-  if (shouldShowOnboarding) {
-    return <OnboardingFlow />;
-  }
-
-  return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route 
-        path="/dashboard" 
-        element={
-          <PrivateRoute>
-            <Dashboard />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/transactions" 
-        element={
-          <PrivateRoute>
-            <Transactions />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/profile" 
-        element={
-          <PrivateRoute>
-            <Profile />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/bills" 
-        element={
-          <PrivateRoute>
-            <BillsPage />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/add-bill" 
-        element={
-          <PrivateRoute>
-            <AddBillPage />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/notifications" 
-        element={
-          <PrivateRoute>
-            <NotificationsPage />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/analise-financeira"
-        element={ 
-          <PrivateRoute>
-            <FinancialAnalysisPage />
-          </PrivateRoute>
-        }
-      />
-      <Route 
-        path="/preferences" 
-        element={
-          <PrivateRoute>
-            <PreferencesPage />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/security" 
-        element={
-          <PrivateRoute>
-            <SecurityPage />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/charts" 
-        element={
-          <PrivateRoute>
-            <ChartsPage />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/financial-advisor" 
-        element={
-          <PrivateRoute>
-            <FinancialAdvisorPage />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/recomendacoes" 
-        element={
-          <PrivateRoute>
-            <RecommendationsPage />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/settings" 
-        element={
-          <PrivateRoute>
-            <SettingsPage />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/export-report" 
-        element={
-          <PrivateRoute>
-            <ExportReportPage />
-          </PrivateRoute>
-        } 
-      />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
-};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -169,9 +38,125 @@ const App = () => (
               <Toaster />
               <Sonner />
               <NotificationToastManager />
-              <AppContent />
-            </TooltipProvider>
-          </NotificationProvider>
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <PrivateRoute>
+                      <Dashboard />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/transactions" 
+                  element={
+                    <PrivateRoute>
+                      <Transactions />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <PrivateRoute>
+                      <Profile />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/bills" 
+                  element={
+                    <PrivateRoute>
+                      <BillsPage />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/add-bill" 
+                  element={
+                    <PrivateRoute>
+                      <AddBillPage />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/notifications" 
+                  element={
+                    <PrivateRoute>
+                      <NotificationsPage />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/analise-financeira"
+                  element={ 
+                    <PrivateRoute>
+                      <FinancialAnalysisPage />
+                    </PrivateRoute>
+                  }
+                />
+                <Route 
+                  path="/preferences" 
+                  element={
+                    <PrivateRoute>
+                      <PreferencesPage />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/security" 
+                  element={
+                    <PrivateRoute>
+                      <SecurityPage />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/charts" 
+                  element={
+                    <PrivateRoute>
+                      <ChartsPage />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/financial-advisor" 
+                  element={
+                    <PrivateRoute>
+                      <FinancialAdvisorPage />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/recomendacoes" 
+                  element={
+                    <PrivateRoute>
+                      <RecommendationsPage />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/settings" 
+                  element={
+                    <PrivateRoute>
+                      <SettingsPage />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/export-report" 
+                  element={
+                    <PrivateRoute>
+                      <ExportReportPage />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </TooltipProvider>          </NotificationProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

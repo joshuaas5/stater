@@ -6,7 +6,6 @@ import PageHeader from '@/components/header/PageHeader';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
 import NavBar from '@/components/navigation/NavBar';
-import MobileHeader from '@/components/navigation/MobileHeader';
 import BalanceCard from '@/components/dashboard/BalanceCard';
 import { Eye, EyeOff, Edit } from 'lucide-react';
 import SpendingChart from '@/components/dashboard/SpendingChart';
@@ -41,14 +40,11 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
-import { useOnboarding } from '@/hooks/useOnboarding';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { shouldShowOnboarding } = useOnboarding();
   
   // Estados existentes
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -483,29 +479,31 @@ const Dashboard: React.FC = () => {
       // Recalcular o saldo total
       calculateTotalBalance();
     }, 100);  };
-    const currentUser = getCurrentUser();
+  
+  const currentUser = getCurrentUser();
   const userName = currentUser ? currentUser.username : "Usuário";
   
-  // Se deve mostrar onboarding, renderizar apenas ele
-  if (shouldShowOnboarding) {
-    return <OnboardingFlow />;
-  }
-  
   return (
-    <div className="bg-galileo-background min-h-screen">
-      {/* Mobile Header */}
-      <MobileHeader title="Dashboard" />
-      
-      {/* Content */}
-      <div className="px-4 pt-4 pb-20">
-        {/* Month Selector */}
-        <div className="mb-4">
-          <MonthSelector onMonthChange={handleMonthChange} />
+    <div className="bg-galileo-background min-h-screen pb-20">
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center">
+          <h2 className="text-galileo-text text-lg font-bold leading-tight">
+            Olá, {userName}!
+          </h2>
         </div>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <ThemeToggle />
+        </div>
+      </div>
 
-        {/* Balance Card */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
+      <div className="px-4 mb-4">
+        <MonthSelector onMonthChange={handleMonthChange} />
+      </div>
+
+      <div className="flex flex-wrap gap-4 px-4 mb-6">
+        <div className="w-full">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-galileo-secondaryText text-base font-medium leading-normal">Saldo da Conta</span>
               <button
@@ -523,73 +521,67 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Link para Análise Financeira Pessoal Section */}
-      <div className="px-4 mb-6 flex justify-end">        {/* Quick Action Cards */}
-        <div className="grid grid-cols-1 gap-3 mb-6">
-          {/* Análise Financeira Card */}
-          <Link
-            to="/analise-financeira"
-            className="flex items-center gap-3 p-4 rounded-lg border border-green-200 bg-green-50 hover:bg-green-100 shadow-sm text-green-700 transition-all duration-150"
-            style={{ textDecoration: 'none' }}
-          >
-            <DollarSign className="h-6 w-6 text-green-600 flex-shrink-0" />
-            <div>
-              <span className="font-semibold text-sm">Análise Financeira</span>
-              <p className="text-xs text-green-600 mt-1">Insights sobre seus gastos</p>
-            </div>
-          </Link>
-        </div>
-
-        {/* Add Transaction Buttons */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <Button 
-            onClick={() => handleAddTransaction('income')}
-            className="bg-galileo-positive hover:bg-galileo-positive/80 text-white flex items-center justify-center gap-2 py-3"
-          >
-            <TrendingUp size={18} />
-            <span className="text-sm">Entrada</span>
-          </Button>
-          <Button 
-            onClick={() => handleAddTransaction('expense')}
-            className="bg-galileo-negative hover:bg-galileo-negative/80 text-white flex items-center justify-center gap-2 py-3"
-          >
-            <TrendingDown size={18} />
-            <span className="text-sm">Saída</span>
-          </Button>
-        </div>        {/* Telegram Integration Section */}
+      <div className="px-4 mb-6 flex justify-end">
+        <Link
+          to="/analise-financeira"
+          className="flex items-center gap-1 px-3 py-1 rounded-md border border-green-200 bg-green-50 hover:bg-green-100 shadow-sm text-base font-semibold text-green-700 transition-all duration-150"
+          style={{ textDecoration: 'none' }}
+        >
+          <DollarSign className="h-5 w-5 text-green-600" />
+          <span className="text-xs">Análise Financeira</span>
+        </Link>
+      </div>      <div className="flex justify-center gap-4 mb-6">
+        <Button 
+          onClick={() => handleAddTransaction('income')}
+          className="bg-galileo-positive hover:bg-galileo-positive/80 text-white flex items-center gap-2"
+        >
+          <TrendingUp size={18} />
+          Adicionar Entrada
+        </Button>
+        <Button 
+          onClick={() => handleAddTransaction('expense')}
+          className="bg-galileo-negative hover:bg-galileo-negative/80 text-white flex items-center gap-2"
+        >
+          <TrendingDown size={18} />
+          Adicionar Saída
+        </Button>
+      </div>      {/* Destaque do Telegram - Design Chamativo e Responsivo */}
+      <div className="px-4 mb-4">
         {!isTelegramLinked ? (
-          <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 shadow-lg mb-6">
+          <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-300">
+            {/* Destaque visual superior */}
             <div className="absolute -top-2 left-4 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold shadow-md">
               🚀 NOVO
             </div>
             
-            <div className="flex flex-col gap-4 pt-2">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm flex-shrink-0">
-                  <MessageCircle className="h-5 w-5 text-white" />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                {/* Ícone customizado sem logo */}
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm flex-shrink-0">
+                  <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-white font-bold text-sm">
+                  <h3 className="text-white font-bold text-sm sm:text-base">
                     💬 Assistente Financeiro IA
                   </h3>
-                  <p className="text-blue-100 text-xs">
+                  <p className="text-blue-100 text-xs sm:text-sm">
                     Controle suas finanças direto no Telegram
                   </p>
+                  <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
+                    <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs">
+                      Notificações em tempo real
+                    </span>
+                    <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs">
+                      1 clique
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                <span className="bg-white/20 text-white px-2 py-1 rounded-full text-xs">
-                  Notificações em tempo real
-                </span>
-                <span className="bg-white/20 text-white px-2 py-1 rounded-full text-xs">
-                  Conexão em 1 clique
-                </span>
               </div>
               
               <Button
                 onClick={generateTelegramCode}
                 disabled={isGeneratingCode}
-                className="bg-white hover:bg-gray-100 text-blue-600 py-3 rounded-lg font-bold shadow-md hover:shadow-lg transition-all duration-200 w-full"
+                className="bg-white hover:bg-gray-100 text-blue-600 px-4 sm:px-6 py-2 rounded-lg font-bold shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto sm:min-w-[100px] text-sm sm:text-base"
               >
                 {isGeneratingCode ? (
                   <div className="flex items-center justify-center gap-2">
@@ -606,8 +598,8 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-3 bg-green-50 rounded-lg p-4 border border-green-200 mb-6">
-            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+          <div className="flex items-center gap-3 bg-green-50 rounded-lg p-3 border border-green-200">
+            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
               <Check className="h-4 w-4 text-white" />
             </div>
             <div>
@@ -618,6 +610,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         )}
+      </div>
 
       <Dialog open={dialogOpen} onOpenChange={(open: boolean) => {
         setDialogOpen(open);
@@ -1016,10 +1009,10 @@ const Dashboard: React.FC = () => {
           >
             {showAllTransactionsInMonth ? 'Ver Menos' : 'Ver Todas as Transações do Mês'}
           </Button>
-        </div>        )}
-        
-        <NavBar />
-      </div>
+        </div>
+      )}
+      
+      <NavBar />
     </div>
   );
 };

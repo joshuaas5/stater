@@ -25,6 +25,7 @@ import FinancialAnalysisPage from "./pages/FinancialAnalysisPage"; // Nova pági
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import OnboardingWrapper from "./components/onboarding/OnboardingWrapper";
 
 const queryClient = new QueryClient();
 
@@ -41,12 +42,13 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
-                <Route 
+                <Route path="/reset-password" element={<ResetPasswordPage />} />                <Route 
                   path="/dashboard" 
                   element={
                     <PrivateRoute>
-                      <Dashboard />
+                      <OnboardingWrapper>
+                        <Dashboard />
+                      </OnboardingWrapper>
                     </PrivateRoute>
                   } 
                 />

@@ -46,8 +46,9 @@ const onboardingSteps: OnboardingStep[] = [
     subtitle: "A revolução chegou ao seu bolso",
     description: "Com IA avançada e automação inteligente, você terá o controle total das suas finanças sem esforço",
     icon: <Target className="w-16 h-16" />,
-    color: "from-purple-600 to-pink-600",    features: [
-      "💎 Transformação digital completa",
+    color: "from-purple-600 to-pink-600",
+    features: [
+      "� Transformação digital completa",
       "⚡ Decisões financeiras inteligentes",
       "🎯 Objetivos financeiros alcançáveis"
     ]
@@ -61,47 +62,24 @@ interface OnboardingFlowProps {
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const { completeOnboarding } = useOnboarding();  const handleNext = () => {
-    console.log('handleNext called, currentStep:', currentStep, 'total steps:', onboardingSteps.length);
-    
+    console.log('handleNext called, currentStep:', currentStep);
     if (currentStep < onboardingSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       console.log('Completing onboarding...');
-      
-      // Marcar como concluído no localStorage
       completeOnboarding();
-      
-      // Chamar callback se fornecido
-      if (onComplete) {
-        console.log('Calling onComplete callback');
-        onComplete();
-      }
-      
+      onComplete?.();
       // Forçar reload para garantir que o estado seja atualizado
-      console.log('Reloading page...');
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      window.location.reload();
     }
   };
   
   const handleSkip = () => {
     console.log('handleSkip called');
-    
-    // Marcar como concluído no localStorage
     completeOnboarding();
-    
-    // Chamar callback se fornecido
-    if (onComplete) {
-      console.log('Calling onComplete callback from skip');
-      onComplete();
-    }
-    
+    onComplete?.();
     // Forçar reload para garantir que o estado seja atualizado
-    console.log('Reloading page from skip...');
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
+    window.location.reload();
   };
 
   const step = onboardingSteps[currentStep];

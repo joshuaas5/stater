@@ -25,6 +25,15 @@ git push origin main  # OBRIGATÓRIO - evita loop infinito
 - **Chat**: Sempre salvar no localStorage com chave específica por usuário
 - **Transações**: Forçar reload do dashboard após qualquer mudança
 - **Estados**: Usar useEffect duplo para garantia de persistência
+- **Onboarding**: OBRIGATÓRIO usar Supabase para persistência global (não localStorage)
+
+### 👋 **Onboarding - PERSISTÊNCIA GLOBAL**
+- **Tabela**: `user_onboarding` no Supabase para controle global
+- **Migração**: Execute `migrate-onboarding-supabase.sql` no Supabase Dashboard
+- **Hook**: `useOnboarding` usa Supabase para verificar status
+- **Regra**: Onboarding aparece APENAS na primeira vez que usuário loga NA VIDA
+- **Não depende**: localStorage, navegador, dispositivo ou sessão
+- **Teste**: Use `test-onboarding-supabase.js` para validar funcionamento
 
 ### 🔧 **Debugging**
 - **Console logs**: Sempre adicionar logs detalhados para troubleshooting
@@ -57,10 +66,33 @@ src/
 - **Variáveis**: Configurar no dashboard do Vercel
 - **Domínio**: Configurado e funcionando
 
-## 🐛 **Troubleshooting Comum**
+## � **Setup Inicial - Migração de Onboarding**
+
+### 1. **Executar Migração no Supabase**
+```sql
+-- No Supabase Dashboard > SQL Editor, execute:
+-- Copie e cole todo o conteúdo de migrate-onboarding-supabase.sql
+```
+
+### 2. **Testar a Migração**
+```bash
+# No terminal do projeto:
+node test-onboarding-supabase.js
+```
+
+### 3. **Verificar Funcionamento**
+```bash
+# Build e teste local:
+npm run build
+npm run preview
+```
+
+## �🐛 **Troubleshooting Comum**
 1. **Chat não persiste**: Verificar localStorage e useEffect
 2. **Fundo branco**: Aplicar CSS inline com !important
 3. **Loading não aparece**: Verificar estados e condicionais
+4. **Onboarding sempre aparece**: Verificar se migração foi executada no Supabase
+5. **Erro de tabela user_onboarding**: Execute migrate-onboarding-supabase.sql
 4. **Deploy falha**: Verificar limite de APIs (máx 12)
 5. **IA confunde consulta com registro**: Verificar prompt e detecção de intenções
 

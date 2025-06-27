@@ -30,9 +30,9 @@ bot.onText(/\/start(.*)/, async (msg, match) => {
 Oi ${linkResult.userName}! 👋
 
 ✨ *Agora você pode:*
-� Enviar foto do seu extrato
+📸 Enviar foto do seu extrato
 💬 Fazer perguntas sobre dinheiro
-� Ver suas transações
+📊 Ver suas transações
 
 🚀 *Vamos começar?*
 Mande uma foto do seu extrato ou pergunte algo!`;

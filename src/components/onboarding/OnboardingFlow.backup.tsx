@@ -48,7 +48,7 @@ const onboardingSteps: OnboardingStep[] = [
     icon: <Target className="w-16 h-16" />,
     color: "from-purple-600 to-pink-600",
     features: [
-      "� Transformação digital completa",
+      "🚀 Transformação digital completa",
       "⚡ Decisões financeiras inteligentes",
       "🎯 Objetivos financeiros alcançáveis"
     ]

@@ -408,7 +408,7 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
     const response = await fetch(verifyUrl);
     const result = await response.json();
     
-    console.log('� [DEBUG] Resposta da verificação:', { status: response.status, result });
+    console.log('🔍 [DEBUG] Resposta da verificação:', { status: response.status, result });
       if (!response.ok || !(result as any).success) {
       console.log('❌ [DEBUG] Código inválido ou expirado');
       return false;
@@ -924,7 +924,7 @@ export default async function handler(req: any, res: any) {
             // Tratar erros específicos
             if (errorResult.error && errorResult.error.includes('PDF protegido')) {
               await sendTelegramMessage(chatId, 
-                `� <b>PDF Protegido Detectado</b>\n\n❌ Este PDF está protegido por senha e não pode ser processado automaticamente.\n\n💡 <b>Soluções:</b>\n• Remova a proteção do PDF\n• Tire fotos das páginas importantes\n• Solicite uma versão não protegida\n\nDesculpe pelo inconveniente!`
+                `🔒 <b>PDF Protegido Detectado</b>\n\n❌ Este PDF está protegido por senha e não pode ser processado automaticamente.\n\n💡 <b>Soluções:</b>\n• Remova a proteção do PDF\n• Tire fotos das páginas importantes\n• Solicite uma versão não protegida\n\nDesculpe pelo inconveniente!`
               );
             } else if (errorResult.suggestions && Array.isArray(errorResult.suggestions)) {
               let errorMessage = `❌ <b>Problema ao processar o documento</b>\n\n`;
@@ -1031,7 +1031,7 @@ export default async function handler(req: any, res: any) {
           '• <b>/saldo</b> - Ver saldo atual\n' +
           '• <b>/dashboard</b> - Abrir app\n' +
           '• <b>/help</b> - Esta ajuda\n\n' +
-          '� <b>FUNCIONALIDADES:</b>\n' +
+          '🚀 <b>FUNCIONALIDADES:</b>\n' +
           '• Digite: "adicione 50 reais de almoço"\n' +
           '• Envie fotos de extratos/faturas\n' +
           '• Envie arquivos PDF/Excel\n' +
@@ -1296,7 +1296,7 @@ export default async function handler(req: any, res: any) {
                 `💰 R$ ${amount.toFixed(2)} | 📂 ${transactionData.categoria}\n` +
                 `📅 ${transactionData.data} | ${typeText}\n\n` +
                 `❓ <b>Deseja confirmar e salvar esta transação?</b>\n\n` +
-                `� Digite:\n` +
+                `💬 Digite:\n` +
                 `• <b>SIM</b> ou <b>CONFIRMAR</b> - Para salvar\n` +
                 `• <b>NÃO</b> ou <b>CANCELAR</b> - Para descartar\n\n` +
                 `⏰ <i>Aguardando sua confirmação...</i>`;

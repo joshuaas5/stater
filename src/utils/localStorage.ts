@@ -204,7 +204,7 @@ export const saveTransaction = (transaction: Transaction): void => {
     transaction.date = new Date(transaction.date || new Date());
   }
   
-  console.log('� [SUPABASE FIRST] Iniciando salvamento - SUPABASE É PRIORIDADE!');
+  console.log('💾 [SUPABASE FIRST] Iniciando salvamento - SUPABASE É PRIORIDADE!');
   console.log('💾 [SUPABASE FIRST] Dados da transação:', JSON.stringify(transaction));
   
   // 1. PRIMEIRO: SALVAR NO SUPABASE (CRÍTICO!)
@@ -221,7 +221,7 @@ export const saveTransaction = (transaction: Transaction): void => {
       console.log('✅ [SUPABASE FIRST] SUCESSO no Supabase:', result.data);
       
       // 2. DEPOIS: Salvar no localStorage como backup
-      console.log('� [BACKUP LOCAL] ETAPA 2: Salvando backup local...');
+      console.log('💾 [BACKUP LOCAL] ETAPA 2: Salvando backup local...');
       const transactionsStr = localStorage.getItem(`transactions_${user.id}`);
       let transactions: Transaction[] = [];
       if (transactionsStr) {
@@ -247,7 +247,7 @@ export const saveTransaction = (transaction: Transaction): void => {
       console.log('✅ [BACKUP LOCAL] Backup salvo. Total:', transactions.length);
       
       // 3. FORÇAR ATUALIZAÇÃO DA UI
-      console.log('� [UI UPDATE] Disparando eventos de atualização...');
+      console.log('🔄 [UI UPDATE] Disparando eventos de atualização...');
       window.dispatchEvent(new Event('transactionsUpdated'));
       window.dispatchEvent(new CustomEvent('transactionsUpdated', { detail: { newTransaction: transaction } }));
       
@@ -339,7 +339,7 @@ export const getTransactions = (): Transaction[] => {
   
   // SEMPRE tentar sincronizar, quase sem intervalo
   if (!isSyncing && (now - lastSync > syncInterval)) {
-    console.log('� [SUPABASE FIRST] EXECUTANDO BUSCA NO SUPABASE...');
+    console.log('🔍 [SUPABASE FIRST] EXECUTANDO BUSCA NO SUPABASE...');
     
     // Marcar sincronização
     isSyncingTransactions[user.id] = true;
@@ -355,7 +355,7 @@ export const getTransactions = (): Transaction[] => {
       }
       
       if (data && data.length > 0) {
-        console.log(`� [SUPABASE FIRST] SUCESSO! ${data.length} transações do Supabase`);
+        console.log(`✅ [SUPABASE FIRST] SUCESSO! ${data.length} transações do Supabase`);
         
         const supabaseTransactions = data.map(mapSupabaseToTransaction);
         
@@ -388,7 +388,7 @@ export const getTransactions = (): Transaction[] => {
         }, 200);
         
       } else {
-        console.log('� [SUPABASE FIRST] Nenhuma transação no Supabase');
+        console.log('📭 [SUPABASE FIRST] Nenhuma transação no Supabase');
         
         // Verificar se temos dados locais para sincronizar
         if (localTransactions.length > 0) {

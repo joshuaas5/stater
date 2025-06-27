@@ -1678,7 +1678,7 @@ const handleImageUpload = async (imageBase64: string) => {
     } else if (isPdf) {
       processingMessage = "📑 Analisando documento...";
     } else {
-      processingMessage = "� Analisando documento...";
+      processingMessage = "📄 Analisando documento...";
     }
 
     setMessages(prev => [...prev, {
@@ -2807,7 +2807,7 @@ function getProcessingIcon(content: string): string {
 }
 
 function getProcessingDetails(content: string): string {
-  return '� Analisando documento...';
+  return '📄 Analisando documento...';
 }
 
 function formatMessageContent(content: string): React.ReactNode {

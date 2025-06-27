@@ -118,7 +118,7 @@ const SettingsPage: React.FC = () => {
         try {
           const { data, error } = await supabase
             .from('telegram_users')
-            .select('telegram_chat_id, user_email, user_name, linked_at')
+            .select('*')
             .eq('user_id', user.id)
             .single();
 
@@ -444,8 +444,14 @@ const SettingsPage: React.FC = () => {
                         Você pode agora usar o bot do Telegram para interagir com seu assistente financeiro.
                       </p>
                       <div className="space-y-2 text-sm text-green-600">
-                        <p><strong>Chat ID:</strong> {telegramInfo?.telegram_chat_id}</p>
-                        <p><strong>Vinculado em:</strong> {telegramInfo?.linked_at ? new Date(telegramInfo.linked_at).toLocaleString('pt-BR') : 'N/A'}</p>
+                        {telegramInfo?.first_name && (
+                          <p><strong>👤 Nome:</strong> {telegramInfo.first_name} {telegramInfo.last_name || ''}</p>
+                        )}
+                        {telegramInfo?.username && (
+                          <p><strong>👤 Username:</strong> @{telegramInfo.username}</p>
+                        )}
+                        <p><strong>💬 Chat ID:</strong> {telegramInfo?.telegram_chat_id}</p>
+                        <p><strong>📅 Vinculado em:</strong> {telegramInfo?.linked_at ? new Date(telegramInfo.linked_at).toLocaleString('pt-BR') : 'N/A'}</p>
                       </div>
                     </div>
                     

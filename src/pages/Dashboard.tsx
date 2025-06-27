@@ -648,16 +648,60 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-3 bg-green-50 rounded-lg p-3 border border-green-200">
-            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-              <Check className="h-4 w-4 text-white" />
+          <div className="flex items-center justify-between gap-3 bg-green-50 rounded-lg p-3 border border-green-200">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                <Check className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <h3 className="text-green-800 font-medium text-sm">Telegram Conectado</h3>
+                <p className="text-green-600 text-xs">
+                  {telegramInfo?.first_name ? (
+                    <>
+                      👤 {telegramInfo.first_name} {telegramInfo.last_name || ''} 
+                      {telegramInfo.username && ` (@${telegramInfo.username})`}
+                      <br />
+                      ✅ Recebendo notificações
+                    </>
+                  ) : (
+                    <>@{telegramInfo?.username || 'usuário'} • Recebendo notificações</>
+                  )}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-green-800 font-medium text-sm">Telegram Conectado</h3>
-              <p className="text-green-600 text-xs">
-                @{telegramInfo?.username || 'usuário'} • Recebendo notificações
-              </p>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                if (confirm('🔌 Desconectar do Telegram?\n\nVocê não receberá mais notificações até conectar novamente.')) {
+                  try {
+                    const { error } = await supabase
+                      .from('telegram_users')
+                      .delete()
+                      .eq('user_id', user?.id);
+                    
+                    if (error) throw error;
+                    
+                    setIsTelegramLinked(false);
+                    setTelegramInfo(null);
+                    
+                    toast({
+                      title: "🔌 Desconectado",
+                      description: "Telegram desconectado com sucesso!",
+                    });
+                  } catch (error: any) {
+                    toast({
+                      title: "❌ Erro",
+                      description: "Erro ao desconectar: " + error.message,
+                      variant: "destructive"
+                    });
+                  }
+                }
+              }}
+              className="text-xs px-2 py-1 h-7 text-gray-600 hover:text-red-600 border-gray-300 hover:border-red-300"
+            >
+              Desconectar
+            </Button>
           </div>
         )}
       </div>

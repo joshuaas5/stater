@@ -34,6 +34,13 @@ git push origin main  # OBRIGATÓRIO - evita loop infinito
 - **Regra**: Onboarding aparece APENAS na primeira vez que usuário loga NA VIDA
 - **Não depende**: localStorage, navegador, dispositivo ou sessão
 - **Teste**: Use `test-onboarding-supabase.js` para validar funcionamento
+- **Responsivo**: Otimizado para celular com tamanhos adaptativos
+
+### 📱 **Telegram Bot - Informações Detalhadas**
+- **Mostrar usuário**: Nome completo + username do Telegram conectado
+- **Opção desconectar**: Botão direto no Dashboard e Configurações
+- **Dados exibidos**: Nome, username, Chat ID, data de vinculação
+- **Query completa**: SELECT * para carregar todos os dados do usuário
 
 ### 🔧 **Debugging**
 - **Console logs**: Sempre adicionar logs detalhados para troubleshooting

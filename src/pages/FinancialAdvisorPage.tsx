@@ -1271,17 +1271,17 @@ const handleSendMessage = async (message: string) => {
           // Remover o valor da linha para pegar a descrição
           description = cleanLine
             .replace(/r\$\s*\d+(?:[.,]\d{3})*(?:[.,]\d{2})?/i, '')
-            .replace(/\s*-\s*.*$/i, '') // Remove tudo após o dash
-            .replace(/^\s*-\s*/, '') // Remove dash no início
+            .replace(/\s*-\s*.*$/i, '') // Removes everything after the dash
+            .replace(/^\s*-\s*/, '') // Removes dash at the beginning
             .trim();
           
-          // Se a descrição está vazia, tentar pegar a primeira parte
+          // If description is empty, try to take the first part
           if (!description) {
             const parts = cleanLine.split(/\s*-\s*/);
             description = parts[0].trim();
           }
           
-          // Limitar descrição a algo razoável
+          // Limit description to a reasonable length
           if (description.length > 50) {
             description = description.substring(0, 50) + '...';
           }
@@ -2016,62 +2016,62 @@ const deleteTransaction = (index: number) => {
 };
 
 return (
-  <>    <div 
-      className="financial-advisor-page"
-      style={{
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important',
-        minHeight: '100vh',
-        width: '100vw',
-        color: 'white',
-        display: 'flex',
-        flexDirection: 'column',
-        paddingBottom: '0px', // Removido espaço extra
-        overflow: 'hidden', // Evita scroll horizontal
-        position: 'relative'
-      }}
-    >      {/* Header - CORRIGIDO */}
-      <div 
-        className="header"
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '12px 30px',
-          background: 'rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1001,
-          height: '60px'
-        }}
-      >        <div 
-          className="logo"
-          style={{
-            fontSize: '24px',
-            fontWeight: 800,
-            color: '#ffffff',
-            fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
-            letterSpacing: '1px',
-            textShadow: '2px 2px 0px #3b82f6, 4px 4px 0px #1d4ed8, 0 0 20px rgba(59, 130, 246, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
-            textTransform: 'uppercase',
-            position: 'relative',
-            filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))'
-          }}
-        >
-          Assistente IA
-        </div>
-        <div 
-          className="user-info"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '15px'
-          }}
-        >
+  <>    {/* CSS ULTRA AGRESSIVO - FORÇA AZUL EM TUDO - VERSÃO NUCLEAR */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          /* FORÇA AZUL EM TODOS OS ELEMENTOS */
+          *, *::before, *::after {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            background-color: #3b82f6 !important;
+          }
+          
+          /* ELEMENTOS RAIZ */
+          body, html, #root, .App, main, section, div, .container, .mx-auto {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            background-color: #3b82f6 !important;
+          }
+          
+          /* CONTAINER PRINCIPAL */
+          .financial-advisor-container {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            background-color: #3b82f6 !important;
+            min-height: 100vh !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            z-index: 1 !important;
+            overflow-y: auto !important;
+          }
+          
+          .financial-advisor-content {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            background-color: #3b82f6 !important;
+            position: relative !important;
+            z-index: 10 !important;
+            min-height: 100vh !important;
+          }
+          
+          /* MATA TODOS OS GRADIENTES ROXOS ESPECÍFICOS */
+          .bg-gradient-to-br, .bg-gradient-to-r, .bg-gradient-to-l, .bg-gradient-to-t, .bg-gradient-to-b,
+          [class*="from-purple"], [class*="to-purple"], [class*="from-indigo"], [class*="to-indigo"],
+          [class*="purple-500"], [class*="indigo-500"], [class*="bg-gradient"],
+          [style*="background"], [class*="bg-"], div[class*="absolute inset-0"] {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            background-color: #3b82f6 !important;
+          }
+          
+          /* FORÇA AZUL EM CARDS E CONTAINERS */
+          [class*="Card"], [class*="card"], .p-1, .rounded-xl, .backdrop-blur-md,
+          .chat-container, [class*="chat"], [class*="Chat"] {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            background-color: #3b82f6 !important;
+          }
+        `
+      }} />
+      
+      <div className="financial-advisor-container">
           <button 
             className="cancel-button"
             onClick={() => navigate('/dashboard')}

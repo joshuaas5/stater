@@ -233,7 +233,13 @@ const FinancialInsights: React.FC = () => {
             backdropFilter: 'blur(20px)',
             border: '1px solid rgba(255, 255, 255, 0.2)'
           }}>
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10" />
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+          backgroundColor: '#3b82f6'
+        }}
+      />
       
       <CardHeader className="relative">
         <div className="flex items-center justify-between">

@@ -16,7 +16,7 @@ const FinancialAnalysisPage: React.FC = () => {
     <div 
       className="min-h-screen relative overflow-hidden"
       style={{
-        background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+        background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important',
         minHeight: '100vh'
       }}
     >

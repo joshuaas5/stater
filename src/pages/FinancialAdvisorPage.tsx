@@ -1960,7 +1960,7 @@ return (
       className="financial-advisor-page"
       style={{
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+        background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important',
         minHeight: '100vh',
         width: '100vw',
         color: 'white',
@@ -2728,6 +2728,7 @@ return (
           
           .financial-advisor-page {
             overflow-x: hidden !important;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
           }          /* Responsividade melhorada */
           @media (max-width: 768px) {
             .header {

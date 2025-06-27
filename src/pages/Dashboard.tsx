@@ -220,10 +220,28 @@ const Dashboard: React.FC = () => {
     
     window.addEventListener('transactionsUpdated', handler);
     
+    // Listener adicional para força reload das transações criadas via IA
+    const forceReloadHandler = (event: any) => {
+      console.log('🚀 [Dashboard] Force reload trigger from:', event.detail?.source || 'unknown');
+      setTimeout(() => {
+        loadTransactions(selectedMonth, selectedYear);
+        
+        // Recalcular saldo total
+        const allTransactions = getTransactions();
+        if (allTransactions && allTransactions.length > 0) {
+          const totalBalance = calculateBalance(allTransactions, []);
+          setBalance(totalBalance);
+        }
+      }, 200); // Delay maior para garantir que os dados foram salvos
+    };
+    
+    window.addEventListener('forceTransactionReload', forceReloadHandler);
+    
     return () => {
       console.log('🛑 [Dashboard] Cleanup - parando sincronização automática');
       stopAutoSync(); // PARAR sincronização automática na limpeza
       window.removeEventListener('transactionsUpdated', handler);
+      window.removeEventListener('forceTransactionReload', forceReloadHandler);
     };
   }, [navigate, selectedMonth, selectedYear]);
 

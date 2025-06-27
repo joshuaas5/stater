@@ -122,6 +122,32 @@ export const FinancialAdvisorPage: React.FC = () => {
       setSpeechRecognition(recognition);
     }
     
+    // Carregar mensagens salvas do localStorage quando o usuário for identificado
+    if (currentUserId !== undefined) {
+      const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
+      const savedMessages = localStorage.getItem(storageKey);
+      
+      if (savedMessages) {
+        try {
+          const parsedMessages = JSON.parse(savedMessages).map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }));
+          
+          // Verificar se há mensagens válidas diferentes da inicial
+          if (parsedMessages.length > 0) {
+            console.log(`💬 [CHAT RESTORE] Carregadas ${parsedMessages.length} mensagens do localStorage`);
+            setMessages(parsedMessages);
+          }
+        } catch (error) {
+          console.error('❌ [CHAT RESTORE] Erro ao carregar mensagens:', error);
+          // Manter mensagem inicial se houver erro
+        }
+      } else {
+        console.log('💬 [CHAT RESTORE] Nenhuma mensagem salva encontrada, usando mensagem inicial');
+      }
+    }
+    
     console.log(`FinancialAdvisorPage: Loaded messages for user ${currentUserId}`);
   }, [currentUserId]); // Reload messages when currentUserId changes
 
@@ -397,10 +423,12 @@ const handleSendMessage = async (message: string) => {
               console.error('Erro ao salvar transação OCR:', transactionError);
               errorCount++;
             }
-          }          // Atualizar interface com APENAS UM evento
-          console.log('🔄 Disparando evento único transactionsUpdated...');
+          }          // Atualizar interface com eventos múltiplos para garantir reload
+          console.log('🔄 Disparando eventos de atualização...');
           window.dispatchEvent(new Event('transactionsUpdated'));
-          console.log('✅ Evento transactionsUpdated disparado');
+          window.dispatchEvent(new Event('storage')); // Para forçar reload de localStorage
+          window.dispatchEvent(new CustomEvent('forceTransactionReload', { detail: { source: 'ai_upload' } }));
+          console.log('✅ Eventos de atualização disparados');
             // Mensagem de resultado
           let resultMessage = '';
           if (successCount > 0) {
@@ -524,9 +552,11 @@ const handleSendMessage = async (message: string) => {
             saveUser(userToSave);
           }
             saveTransactionUtil(transactionToSave);
+          
+          // Múltiplos eventos para garantir atualização imediata do dashboard
           window.dispatchEvent(new Event('transactionsUpdated'));
-          // Forçar recarga da localStorage
-          window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new Event('storage')); // Forçar recarga da localStorage
+          window.dispatchEvent(new CustomEvent('forceTransactionReload', { detail: { source: 'ai_manual' } }));
           
           setMessages((prevMessages: ChatMessage[]) => [
             ...prevMessages,
@@ -695,17 +725,26 @@ const handleSendMessage = async (message: string) => {
       // --- NOVO: Montar prompt detalhado com dados reais do usuário ---
       let userPrompt = message;
       try {
-        // Buscar transações recentes do usuário
+        // Buscar TODAS as transações para calcular saldo corretamente
+        const { data: allTransactions } = await supabase
+          .from('transactions')
+          .select('title, amount, type, category, date')
+          .eq('user_id', activeUserId)
+          .order('date', { ascending: false });
+        
+        // Buscar transações recentes para mostrar no contexto (até 10 para melhor contexto)
         const { data: recentTransactions, error: txError } = await supabase
           .from('transactions')
           .select('title, amount, type, category, date')
           .eq('user_id', activeUserId)
           .order('date', { ascending: false })
-          .limit(5);
+          .limit(10);
+        
         let balance = 0;
-        if (recentTransactions && recentTransactions.length > 0) {
-          // Calcular saldo simples
-          balance = recentTransactions.reduce((acc, tx) => acc + (tx.type === 'income' ? tx.amount : -tx.amount), 0);
+        if (allTransactions && allTransactions.length > 0) {
+          // Calcular saldo usando TODAS as transações
+          balance = allTransactions.reduce((acc, tx) => acc + (tx.type === 'income' ? tx.amount : -tx.amount), 0);
+          console.log(`💰 [SALDO] Calculado com ${allTransactions.length} transações: R$ ${balance.toFixed(2)}`);
         }        // Montar prompt rico
         userPrompt = `Você é um consultor financeiro realista e responsável. Analise a situação abaixo e responda de forma personalizada, citando números, regras de saúde financeira e sugerindo ações realistas.\n\n` +
           `INSTRUÇÕES ESPECIAIS PARA LISTAS DE TRANSAÇÕES:\n` +
@@ -714,8 +753,8 @@ const handleSendMessage = async (message: string) => {
           `- Use "expense" para gastos/saídas e "income" para receitas/entradas\n` +
           `- Categorias sugeridas: "alimentacao", "transporte", "saude", "lazer", "moradia", "educacao", "tecnologia", "servicos", "outros"\n` +
           `- Após o JSON, você pode adicionar comentários e análises normalmente\n\n` +
-          `Saldo atual: R$ ${balance.toFixed(2)}\n` +
-          `Transações recentes:\n` +
+          `Saldo atual: R$ ${balance.toFixed(2)} (baseado em ${allTransactions?.length || 0} transações totais)\n` +
+          `Transações recentes (últimas 10):\n` +
           (recentTransactions && recentTransactions.length > 0
             ? recentTransactions.map(tx => `- ${tx.type === 'income' ? 'Receita' : 'Despesa'}: ${tx.title} (${tx.category || 'Sem categoria'}) R$ ${tx.amount} em ${new Date(tx.date).toLocaleDateString('pt-BR')}`).join('\n')
             : 'Nenhuma transação encontrada.') +
@@ -1831,17 +1870,12 @@ const handleImageUpload = async (imageBase64: string) => {
     
     resultMessage += `\n🔍 **${transactions.length} transações identificadas:**\n\n`;
     
-    // Mostrar apenas primeiras 3 transações na mensagem para não poluir
-    const transactionsToShow = transactions.slice(0, 3);
-    for (let i = 0; i < transactionsToShow.length; i++) {
-      const transaction = transactionsToShow[i];
+    // Mostrar TODAS as transações identificadas (removido limite de 3)
+    for (let i = 0; i < transactions.length; i++) {
+      const transaction = transactions[i];
       resultMessage += `${i + 1}. **${transaction.description}**\n`;
       resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? '✅ Receita' : '❌ Despesa'})\n`;
       resultMessage += `   📁 ${transaction.category} • 📅 ${transaction.date || 'Hoje'}\n\n`;
-    }
-    
-    if (transactions.length > 3) {
-      resultMessage += `... e mais ${transactions.length - 3} transações\n\n`;
     }
     
     resultMessage += `👇 **PRÓXIMOS PASSOS:**\n`;

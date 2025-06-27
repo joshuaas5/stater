@@ -236,6 +236,10 @@ export const FinancialAdvisorPage: React.FC = () => {
       };
       
       setMessages(prev => [...prev, userMessage, aiResponse]);
+    } else if (suggestion === 'Verificar Saldo' || suggestion === 'Resumo Financeiro') {
+      // Para consultas de saldo/resumo, chamar diretamente sem esperar JSON
+      console.log('🔍 [SALDO] Processando consulta de saldo - NÃO deve retornar JSON');
+      handleSendMessage(suggestion);
     } else {
       handleSendMessage(suggestion);
     }
@@ -773,12 +777,18 @@ const handleSendMessage = async (message: string) => {
           console.log(`💰 [SALDO] Calculado com ${allTransactions.length} transações: R$ ${balance.toFixed(2)}`);
         }        // Montar prompt rico
         userPrompt = `Você é um consultor financeiro realista e responsável. Analise a situação abaixo e responda de forma personalizada, citando números, regras de saúde financeira e sugerindo ações realistas.\n\n` +
-          `INSTRUÇÕES ESPECIAIS PARA LISTAS DE TRANSAÇÕES:\n` +
-          `- Se o usuário pedir para "adicionar", "incluir", "registrar" uma LISTA de transações (2 ou more itens), SEMPRE retorne um JSON válido no formato:\n` +
-          `[{"description":"Nome da transação","amount":123.45,"type":"expense","category":"categoria","date":"YYYY-MM-DD"},...]\n` +
+          `INSTRUÇÕES CRÍTICAS:\n` +
+          `- Se o usuário perguntar sobre SALDO, GASTOS, ANÁLISE ou CONSULTA: RESPONDA NORMALMENTE em texto\n` +
+          `- APENAS retorne JSON quando o usuário EXPLICITAMENTE pedir para "adicionar", "incluir", "registrar" uma LISTA de transações (2 ou mais itens)\n` +
+          `- JSON FORMAT: [{"description":"Nome","amount":123.45,"type":"expense/income","category":"categoria","date":"YYYY-MM-DD"},...]\n` +
           `- Use "expense" para gastos/saídas e "income" para receitas/entradas\n` +
-          `- Categorias sugeridas: "alimentacao", "transporte", "saude", "lazer", "moradia", "educacao", "tecnologia", "servicos", "outros"\n` +
-          `- Após o JSON, você pode adicionar comentários e análises normalmente\n\n` +
+          `- Categorias: "alimentacao", "transporte", "saude", "lazer", "moradia", "educacao", "tecnologia", "servicos", "outros"\n\n` +
+          `PERGUNTAS SOBRE CONSULTA (responder em TEXTO):\n` +
+          `- "Verificar saldo", "Qual meu saldo", "Como estão minhas finanças" = TEXTO NORMAL\n` +
+          `- "Resumo financeiro", "Análise", "Gastos do mês" = TEXTO NORMAL\n\n` +
+          `REGISTROS EM LISTA (responder em JSON):\n` +
+          `- "Adicione: 50 reais mercado, 30 reais posto, 20 reais farmácia" = JSON\n` +
+          `- "Registre essas transações: X, Y, Z" = JSON\n\n` +
           `Saldo atual: R$ ${balance.toFixed(2)} (baseado em ${allTransactions?.length || 0} transações totais)\n` +
           `Transações recentes (últimas 10):\n` +
           (recentTransactions && recentTransactions.length > 0
@@ -868,15 +878,21 @@ const handleSendMessage = async (message: string) => {
         setLoading(false);
         return; // Return early if response format is wrong
       }
-      let confirmationMessageForChat: string = botResponseText;      // Attempt to parse AI response for transaction JSON
+      let confirmationMessageForChat: string = botResponseText;      
+      
+      // Verificar se a pergunta é sobre consulta (saldo, resumo, análise) - NÃO deve processar JSON
+      const isConsultaQuery = /\b(saldo|resumo|financeiro|análise|gastos|receitas|balanço|verificar|consultar|como estão|situação)\b/i.test(message);
+      
+      // Attempt to parse AI response for transaction JSON APENAS se NÃO for consulta
       let isTransactionJson = false;
-      try {
-        let jsonStringToParse = botResponseText;
-        const jsonBlockMatch = botResponseText.match(/```json\s*([\s\S]*?)\s*```/);
+      if (!isConsultaQuery) {
+        try {
+          let jsonStringToParse = botResponseText;
+          const jsonBlockMatch = botResponseText.match(/```json\s*([\s\S]*?)\s*```/);
 
-        if (jsonBlockMatch && jsonBlockMatch[1]) {
-          jsonStringToParse = jsonBlockMatch[1].trim();
-        } else {
+          if (jsonBlockMatch && jsonBlockMatch[1]) {
+            jsonStringToParse = jsonBlockMatch[1].trim();
+          } else {
           const firstBrace = botResponseText.indexOf('[');
           const lastBrace = botResponseText.lastIndexOf(']');
           if (firstBrace !== -1 && lastBrace > firstBrace) {
@@ -984,9 +1000,13 @@ const handleSendMessage = async (message: string) => {
              setWaitingConfirmation(true);
              isTransactionJson = true;
           }
-        }      } catch (e: any) {
-        console.log("AI response not a transaction JSON or parse failed: ", e.message, "\nResponse: ", botResponseText);
-        isTransactionJson = false;
+        }      
+        } catch (e: any) {
+          console.log("AI response not a transaction JSON or parse failed: ", e.message, "\nResponse: ", botResponseText);
+          isTransactionJson = false;
+        }
+      } else {
+        console.log('🔍 [CONSULTA] Pergunta identificada como consulta - pulando detecção de JSON');
       }
 
       // NOVO: Se não conseguiu detectar JSON, tentar detectar lista na resposta da IA em texto livre
@@ -1271,17 +1291,17 @@ const handleSendMessage = async (message: string) => {
           // Remover o valor da linha para pegar a descrição
           description = cleanLine
             .replace(/r\$\s*\d+(?:[.,]\d{3})*(?:[.,]\d{2})?/i, '')
-            .replace(/\s*-\s*.*$/i, '') // Removes everything after the dash
-            .replace(/^\s*-\s*/, '') // Removes dash at the beginning
+            .replace(/\s*-\s*.*$/i, '') // Remove tudo após o dash
+            .replace(/^\s*-\s*/, '') // Remove dash no início
             .trim();
           
-          // If description is empty, try to take the first part
+          // Se a descrição está vazia, tentar pegar a primeira parte
           if (!description) {
             const parts = cleanLine.split(/\s*-\s*/);
             description = parts[0].trim();
           }
           
-          // Limit description to a reasonable length
+          // Limitar descrição a algo razoável
           if (description.length > 50) {
             description = description.substring(0, 50) + '...';
           }
@@ -2016,62 +2036,62 @@ const deleteTransaction = (index: number) => {
 };
 
 return (
-  <>    {/* CSS ULTRA AGRESSIVO - FORÇA AZUL EM TUDO - VERSÃO NUCLEAR */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          /* FORÇA AZUL EM TODOS OS ELEMENTOS */
-          *, *::before, *::after {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
-            background-color: #3b82f6 !important;
-          }
-          
-          /* ELEMENTOS RAIZ */
-          body, html, #root, .App, main, section, div, .container, .mx-auto {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
-            background-color: #3b82f6 !important;
-          }
-          
-          /* CONTAINER PRINCIPAL */
-          .financial-advisor-container {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
-            background-color: #3b82f6 !important;
-            min-height: 100vh !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            z-index: 1 !important;
-            overflow-y: auto !important;
-          }
-          
-          .financial-advisor-content {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
-            background-color: #3b82f6 !important;
-            position: relative !important;
-            z-index: 10 !important;
-            min-height: 100vh !important;
-          }
-          
-          /* MATA TODOS OS GRADIENTES ROXOS ESPECÍFICOS */
-          .bg-gradient-to-br, .bg-gradient-to-r, .bg-gradient-to-l, .bg-gradient-to-t, .bg-gradient-to-b,
-          [class*="from-purple"], [class*="to-purple"], [class*="from-indigo"], [class*="to-indigo"],
-          [class*="purple-500"], [class*="indigo-500"], [class*="bg-gradient"],
-          [style*="background"], [class*="bg-"], div[class*="absolute inset-0"] {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
-            background-color: #3b82f6 !important;
-          }
-          
-          /* FORÇA AZUL EM CARDS E CONTAINERS */
-          [class*="Card"], [class*="card"], .p-1, .rounded-xl, .backdrop-blur-md,
-          .chat-container, [class*="chat"], [class*="Chat"] {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
-            background-color: #3b82f6 !important;
-          }
-        `
-      }} />
-      
-      <div className="financial-advisor-container">
+  <>    <div 
+      className="financial-advisor-page"
+      style={{
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important',
+        minHeight: '100vh',
+        width: '100vw',
+        color: 'white',
+        display: 'flex',
+        flexDirection: 'column',
+        paddingBottom: '0px', // Removido espaço extra
+        overflow: 'hidden', // Evita scroll horizontal
+        position: 'relative'
+      }}
+    >      {/* Header - CORRIGIDO */}
+      <div 
+        className="header"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '12px 30px',
+          background: 'rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1001,
+          height: '60px'
+        }}
+      >        <div 
+          className="logo"
+          style={{
+            fontSize: '24px',
+            fontWeight: 800,
+            color: '#ffffff',
+            fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
+            letterSpacing: '1px',
+            textShadow: '2px 2px 0px #3b82f6, 4px 4px 0px #1d4ed8, 0 0 20px rgba(59, 130, 246, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
+            textTransform: 'uppercase',
+            position: 'relative',
+            filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))'
+          }}
+        >
+          Assistente IA
+        </div>
+        <div 
+          className="user-info"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '15px'
+          }}
+        >
           <button 
             className="cancel-button"
             onClick={() => navigate('/dashboard')}

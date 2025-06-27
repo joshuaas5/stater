@@ -62,8 +62,10 @@ src/
 2. **Fundo branco**: Aplicar CSS inline com !important
 3. **Loading não aparece**: Verificar estados e condicionais
 4. **Deploy falha**: Verificar limite de APIs (máx 12)
+5. **IA confunde consulta com registro**: Verificar prompt e detecção de intenções
 
 ## 📝 **Notas de Desenvolvimento**
 - Sempre seguir as regras acima
 - Quando adicionar algo na memória, atualizar este arquivo
 - Manter documentação sempre atualizada
+- IA não deve processar JSON para consultas de saldo/resumo

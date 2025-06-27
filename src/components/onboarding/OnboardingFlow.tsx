@@ -137,8 +137,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
         <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
           {/* Ícone com gradiente */}
           <div className={`w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto mb-4 sm:mb-6 rounded-full bg-gradient-to-br ${step.color} flex items-center justify-center text-white shadow-lg`}>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12">
-              {step.icon}
+            <div className="flex items-center justify-center">
+              {React.cloneElement(step.icon as React.ReactElement, {
+                className: "w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12"
+              })}
             </div>
           </div>
 

@@ -1,0 +1,122 @@
+TERMOS DE USO E POLÍTICA DE PRIVACIDADE - ICTUS
+==================================================
+
+ÚLTIMA ATUALIZAÇÃO: 27 de junho de 2025
+
+1. SOBRE O APLICATIVO
+1.1. O ICTUS é um aplicativo de assistente financeiro inteligente que utiliza Inteligência Artificial para ajudar usuários a gerenciar suas finanças pessoais.
+
+1.2. O aplicativo oferece funcionalidades como análise de extratos, chat com IA, controle de gastos, relatórios financeiros e integração com bot do Telegram.
+
+2. ACEITAÇÃO DOS TERMOS
+2.1. Ao criar uma conta no ICTUS, você concorda integralmente com estes Termos de Uso e Política de Privacidade.
+
+2.2. O uso continuado do aplicativo implica na aceitação de eventuais atualizações destes termos.
+
+3. FUNCIONALIDADES GRATUITAS E PAGAS
+3.1. O ICTUS oferece funcionalidades básicas gratuitas e recursos premium pagos.
+
+3.2. PAGAMENTOS VIA GOOGLE PLAY:
+- Todos os pagamentos de funcionalidades premium são processados exclusivamente através do Google Play Billing
+- A Google é responsável por toda a parte de cobrança, faturamento e processamento de pagamentos
+- Devoluções, estornos, contestações e questões de pagamento devem ser direcionadas diretamente à Google Play Store
+- O ICTUS não tem acesso direto aos dados de pagamento dos usuários
+- As políticas de reembolso seguem os termos e condições da Google Play Store
+- Para cancelar assinaturas, o usuário deve acessar sua conta Google Play
+
+3.3. O ICTUS não armazena dados de cartão de crédito ou informações financeiras de pagamento.
+
+4. COLETA E TRATAMENTO DE DADOS (LGPD)
+4.1. DADOS COLETADOS:
+- Informações de cadastro (nome, email)
+- Dados financeiros inseridos pelo usuário
+- Conversas com a IA
+- Dados de uso do aplicativo
+- Informações do Telegram (quando conectado)
+
+4.2. FINALIDADE DO TRATAMENTO:
+- Fornecer o serviço de assistente financeiro
+- Melhorar a experiência do usuário
+- Treinar e aprimorar a IA
+- Comunicações importantes sobre o serviço
+
+4.3. BASE LEGAL (LGPD):
+- Consentimento do titular
+- Execução de contrato
+- Legítimo interesse
+
+5. COMPARTILHAMENTO DE DADOS
+5.1. Não vendemos, alugamos ou compartilhamos dados pessoais com terceiros para fins comerciais.
+
+5.2. Dados podem ser compartilhados apenas para:
+- Cumprimento de obrigações legais
+- Prevenção de fraudes
+- Proteção dos direitos do ICTUS
+
+6. SEGURANÇA DOS DADOS
+6.1. Implementamos medidas técnicas e organizacionais para proteger seus dados.
+6.2. Utilizamos criptografia e armazenamento seguro em servidores confiáveis.
+6.3. Acesso aos dados é restrito apenas a pessoal autorizado.
+
+7. SEUS DIREITOS (LGPD)
+Você tem direito a:
+- Confirmação da existência de tratamento
+- Acesso aos dados
+- Correção de dados incompletos/incorretos
+- Anonimização, bloqueio ou eliminação
+- Portabilidade dos dados
+- Eliminação dos dados
+- Informações sobre compartilhamento
+- Revogação do consentimento
+
+8. ENCARREGADO DE DADOS
+8.1. Para exercer seus direitos ou esclarecer dúvidas sobre tratamento de dados:
+Email: financeictus@gmail.com
+Assunto: [LGPD] + sua solicitação
+
+9. RETENÇÃO DE DADOS
+9.1. Dados serão mantidos pelo tempo necessário para as finalidades informadas.
+9.2. Após exclusão da conta, dados serão removidos em até 30 dias.
+
+10. RESPONSABILIDADES DO USUÁRIO
+10.1. Manter credenciais de acesso seguras
+10.2. Não compartilhar sua conta
+10.3. Inserir informações verdadeiras
+10.4. Não usar o app para atividades ilegais
+
+11. LIMITAÇÃO DE RESPONSABILIDADE
+11.1. O ICTUS não se responsabiliza por:
+- Decisões financeiras baseadas nas análises do app
+- Perda de dados por falha do usuário
+- Problemas de conectividade
+- Ações de terceiros
+
+12. PROPRIEDADE INTELECTUAL
+12.1. Todo conteúdo do ICTUS é protegido por direitos autorais.
+12.2. É proibida a reprodução sem autorização expressa.
+
+13. CANCELAMENTO E SUSPENSÃO
+13.1. Podemos suspender contas por violação destes termos.
+13.2. Usuários podem excluir sua conta a qualquer momento.
+
+14. ALTERAÇÕES NOS TERMOS
+14.1. Reservamo-nos o direito de alterar estes termos.
+14.2. Usuários serão notificados sobre mudanças significativas.
+
+15. CONTATO
+Para dúvidas, sugestões ou solicitações relacionadas aos dados:
+Email: financeictus@gmail.com
+
+16. LEI APLICÁVEL
+16.1. Estes termos são regidos pela legislação brasileira.
+16.2. Foro competente: comarca da sede da empresa.
+
+==================================================
+
+CONSENTIMENTO:
+☐ Li e aceito os Termos de Uso e Política de Privacidade do ICTUS
+☐ Autorizo o tratamento dos meus dados pessoais conforme descrito
+☐ Estou ciente das funcionalidades pagas processadas via Google Play
+
+Data: _____/_____/_____
+Usuário: ________________________________

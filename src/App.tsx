@@ -26,6 +26,7 @@ import NotFound from "./pages/NotFound";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingWrapper from "./components/onboarding/OnboardingWrapper";
+import TermsWrapper from "./components/terms/TermsWrapper";
 
 const queryClient = new QueryClient();
 
@@ -34,11 +35,12 @@ const App = () => (
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <NotificationProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <NotificationToastManager />
+          <TermsWrapper>
+            <NotificationProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <NotificationToastManager />
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/login" element={<Login />} />
@@ -158,11 +160,13 @@ const App = () => (
                 />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </TooltipProvider>          </NotificationProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
+            </TooltipProvider>
+          </NotificationProvider>
+        </TermsWrapper>
+      </AuthProvider>
+    </ThemeProvider>
+  </BrowserRouter>
+</QueryClientProvider>
 );
 
 export default App;

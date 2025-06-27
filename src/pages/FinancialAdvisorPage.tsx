@@ -164,41 +164,51 @@ export const FinancialAdvisorPage: React.FC = () => {
     }
   }, [navigate, currentUserId, isLoggedIn]); // Depend on currentUserId as well
 
-  // Forçar salvamento imediatamente sempre que uma nova mensagem for adicionada
+  // Persistência do Chat: Salvar mensagens no localStorage (CONSOLIDADO)
   useEffect(() => {
-    if (currentUserId && messages.length > 0) {
-      const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
-      
-      const messagesToSave = messages.slice(-20);
-      localStorage.setItem(storageKey, JSON.stringify(
-        messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
-      ));
-      console.log(`🔥 [FORCE SAVE] Salvamento forçado! ${messagesToSave.length} mensagens para ${storageKey}`);
-    }
-  }, [messages.length, currentUserId]); // Dependência apenas no length para evitar loops
-
-  // Persistência do Chat: Salvar mensagens no localStorage
-  useEffect(() => {
+    // Não salvar se o currentUserId ainda não foi determinado
     if (currentUserId === undefined) {
-        // Don't save if user ID isn't determined yet
-        console.log('💬 [CHAT SAVE] User ID não determinado ainda, aguardando...');
+        console.log('� [CHAT SAVE] User ID não determinado ainda, aguardando...');
         return;
     }
 
-    // Sempre salvar se há mais de 1 mensagem ou se a mensagem foi modificada do texto inicial
-    if (messages.length > 1 || (messages.length === 1 && messages[0].text !== INITIAL_SYSTEM_MESSAGE_TEXT)) {
+    // Não salvar se só há a mensagem inicial padrão
+    if (messages.length === 1 && messages[0].text === INITIAL_SYSTEM_MESSAGE_TEXT) {
+      console.log('💬 [CHAT SAVE] Apenas mensagem inicial padrão, não salvando');
+      return;
+    }
+
+    // Salvar quando há mensagens válidas
+    if (messages.length > 0) {
       const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
       
-      const messagesToSave = messages.slice(-20); // Salvar últimas 20 mensagens
-      localStorage.setItem(storageKey, JSON.stringify(
-        messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
-      ));
-      console.log(`💬 [CHAT SAVE] Salvou ${messagesToSave.length} mensagens para ${storageKey}`);
-      console.log(`💬 [CHAT SAVE] Primeiras 2 mensagens:`, messagesToSave.slice(0, 2).map(m => m.text.substring(0, 50)));
-    } else {
-      console.log('💬 [CHAT SAVE] Apenas mensagem inicial, não salvando');
+      try {
+        const messagesToSave = messages.slice(-30); // Manter 30 mensagens mais recentes
+        const serializedMessages = JSON.stringify(
+          messagesToSave.map((msg: ChatMessage) => ({ 
+            ...msg, 
+            timestamp: msg.timestamp.toISOString() 
+          }))
+        );
+        
+        localStorage.setItem(storageKey, serializedMessages);
+        
+        console.log(`💬 [CHAT SAVE] ✅ Salvou ${messagesToSave.length} mensagens para ${storageKey}`);
+        console.log(`💬 [CHAT SAVE] Última mensagem: "${messagesToSave[messagesToSave.length - 1]?.text?.substring(0, 50)}..."`);
+        
+        // Verificar se foi realmente salvo
+        const verification = localStorage.getItem(storageKey);
+        if (verification) {
+          console.log(`💬 [CHAT SAVE] ✅ Verificação: ${verification.length} caracteres salvos`);
+        } else {
+          console.error('💬 [CHAT SAVE] ❌ Falha na verificação do salvamento');
+        }
+        
+      } catch (error) {
+        console.error('💬 [CHAT SAVE] ❌ Erro ao salvar:', error);
+      }
     }
-  }, [messages, currentUserId]);
+  }, [messages, currentUserId]); // Dependências: messages completo e currentUserId
   useEffect(() => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -652,7 +662,19 @@ const handleSendMessage = async (message: string) => {
 
     // Adiciona a mensagem do usuário à interface
     const newUserMessage: ChatMessage = { id: uuidv4(), text: message, sender: 'user', timestamp: new Date(), avatarUrl: USER_AVATAR };
-    setMessages(prevMessages => [...prevMessages, newUserMessage]);
+    setMessages(prevMessages => {
+      const updatedMessages = [...prevMessages, newUserMessage];
+      // Forçar salvamento imediato após adicionar mensagem do usuário
+      if (currentUserId) {
+        const storageKey = `financialAdvisorChatMessages_${currentUserId}`;
+        const messagesToSave = updatedMessages.slice(-20);
+        localStorage.setItem(storageKey, JSON.stringify(
+          messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
+        ));
+        console.log(`💬 [IMMEDIATE SAVE] Salvou mensagem do usuário: "${message.substring(0, 50)}..."`);
+      }
+      return updatedMessages;
+    });
     setLoading(true);
     setError('');
     setShowSuggestions(false);
@@ -1291,7 +1313,7 @@ const handleSendMessage = async (message: string) => {
           // Remover o valor da linha para pegar a descrição
           description = cleanLine
             .replace(/r\$\s*\d+(?:[.,]\d{3})*(?:[.,]\d{2})?/i, '')
-            .replace(/\s*-\s*.*$/i, '') // Remove tudo após o dash
+            .replace(/\s*-\s*.*$/i, '') // Removes tudo após o dash
             .replace(/^\s*-\s*/, '') // Remove dash no início
             .trim();
           
@@ -1534,7 +1556,7 @@ const handleSendMessage = async (message: string) => {
           if (description && amountStr) {
             // Limpar descrição de formatação desnecessária
             description = description
-              .replace(/^\d+\.\s*/, '') // Remove numeração
+              .replace(/^\d+\.\s*/, '') // Removes numeração
               .replace(/^[•\-*]\s*/, '') // Remove marcadores
               .replace(/:\s*$/, '') // Remove dois pontos finais
               .trim();

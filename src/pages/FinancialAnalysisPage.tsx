@@ -13,13 +13,42 @@ const FinancialAnalysisPage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div 
-      className="min-h-screen relative overflow-hidden"
-      style={{
-        background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important',
-        minHeight: '100vh'
-      }}
-    >
+    <>
+      {/* CSS Inline Forçado para sobrepor qualquer estilo */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .financial-analysis-page {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            min-height: 100vh !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            z-index: -1 !important;
+          }
+          .financial-analysis-content {
+            position: relative !important;
+            z-index: 10 !important;
+            overflow-y: auto !important;
+            height: 100vh !important;
+          }
+          body, html, #root {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+          }
+        `
+      }} />
+      
+      {/* Background fixo */}
+      <div className="financial-analysis-page"></div>
+      
+      <div 
+        className="financial-analysis-content"
+        style={{
+          background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important',
+          minHeight: '100vh'
+        }}
+      >
       {/* Animated background elements with blue tones */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl animate-pulse" />
@@ -112,6 +141,7 @@ const FinancialAnalysisPage: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

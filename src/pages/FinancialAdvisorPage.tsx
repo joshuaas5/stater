@@ -54,6 +54,9 @@ interface PendingAction {
   dados: any; 
 }
 
+// Mover para fora do componente para evitar recriação
+const INITIAL_SYSTEM_MESSAGE_TEXT = `Olá, sou sua IA de gestão financeira. Como posso lhe ajudar hoje?\n\nPosso ajudá-lo a:\n• Registrar receitas e despesas\n• Analisar seus gastos\n• Criar orçamentos\n• Dar dicas de economia\n• Gerenciar suas contas\n\nSempre pedirei confirmação antes de registrar qualquer transação.`;
+
 export const FinancialAdvisorPage: React.FC = () => {
   // const [showAddBillModal, setShowAddBillModal] = useState(false);
 
@@ -61,7 +64,7 @@ export const FinancialAdvisorPage: React.FC = () => {
   const { t } = useTranslation();
   const [showSuggestions, setShowSuggestions] = useState(true);  const initialSystemMessage: ChatMessage = {
     id: uuidv4(),
-    text: `Olá, sou sua IA de gestão financeira. Como posso lhe ajudar hoje?\n\nPosso ajudá-lo a:\n• Registrar receitas e despesas\n• Analisar seus gastos\n• Criar orçamentos\n• Dar dicas de economia\n• Gerenciar suas contas\n\nSempre pedirei confirmação antes de registrar qualquer transação.`,
+    text: INITIAL_SYSTEM_MESSAGE_TEXT,
     sender: "system",
     timestamp: new Date()
   };
@@ -161,6 +164,19 @@ export const FinancialAdvisorPage: React.FC = () => {
     }
   }, [navigate, currentUserId, isLoggedIn]); // Depend on currentUserId as well
 
+  // Forçar salvamento imediatamente sempre que uma nova mensagem for adicionada
+  useEffect(() => {
+    if (currentUserId && messages.length > 0) {
+      const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
+      
+      const messagesToSave = messages.slice(-20);
+      localStorage.setItem(storageKey, JSON.stringify(
+        messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
+      ));
+      console.log(`🔥 [FORCE SAVE] Salvamento forçado! ${messagesToSave.length} mensagens para ${storageKey}`);
+    }
+  }, [messages.length, currentUserId]); // Dependência apenas no length para evitar loops
+
   // Persistência do Chat: Salvar mensagens no localStorage
   useEffect(() => {
     if (currentUserId === undefined) {
@@ -169,8 +185,8 @@ export const FinancialAdvisorPage: React.FC = () => {
         return;
     }
 
-    // Sempre salvar se há mais de 1 mensagem ou se a mensagem foi modificada
-    if (messages.length > 1 || (messages.length === 1 && messages[0].text !== initialSystemMessage.text)) {
+    // Sempre salvar se há mais de 1 mensagem ou se a mensagem foi modificada do texto inicial
+    if (messages.length > 1 || (messages.length === 1 && messages[0].text !== INITIAL_SYSTEM_MESSAGE_TEXT)) {
       const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
       
       const messagesToSave = messages.slice(-20); // Salvar últimas 20 mensagens
@@ -178,10 +194,11 @@ export const FinancialAdvisorPage: React.FC = () => {
         messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
       ));
       console.log(`💬 [CHAT SAVE] Salvou ${messagesToSave.length} mensagens para ${storageKey}`);
+      console.log(`💬 [CHAT SAVE] Primeiras 2 mensagens:`, messagesToSave.slice(0, 2).map(m => m.text.substring(0, 50)));
     } else {
       console.log('💬 [CHAT SAVE] Apenas mensagem inicial, não salvando');
     }
-  }, [messages, currentUserId, initialSystemMessage.id, initialSystemMessage.text]);
+  }, [messages, currentUserId]);
   useEffect(() => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -2590,29 +2607,48 @@ return (
               
               <button
                 onClick={() => handleSendMessage('sim')}
+                disabled={savingTransactions}
                 style={{
-                  background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                  background: savingTransactions 
+                    ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
+                    : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                   border: 'none',
                   borderRadius: '12px',
                   color: 'white',
                   padding: '12px 24px',
-                  cursor: 'pointer',
+                  cursor: savingTransactions ? 'not-allowed' : 'pointer',
                   fontSize: '16px',
                   fontWeight: '600',
                   flex: 2,
                   boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  opacity: savingTransactions ? 0.7 : 1
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
+                  if (!savingTransactions) {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
+                  if (!savingTransactions) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
+                  }
                 }}
               >
-                ✅ Salvar {editableTransactions.length} Transaç{editableTransactions.length > 1 ? 'ões' : 'ão'}
+                {savingTransactions ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Salvando {editableTransactions.length} Transaç{editableTransactions.length > 1 ? 'ões' : 'ão'}...
+                  </>
+                ) : (
+                  `✅ Salvar ${editableTransactions.length} Transaç${editableTransactions.length > 1 ? 'ões' : 'ão'}`
+                )}
               </button>
             </div>
           </div>

@@ -16,26 +16,15 @@ const FinancialAnalysisPage: React.FC = () => {
     <div 
       className="min-h-screen relative overflow-hidden"
       style={{
-        background: `
-          linear-gradient(135deg, 
-            rgba(99, 102, 241, 0.1) 0%, 
-            rgba(168, 85, 247, 0.1) 25%, 
-            rgba(236, 72, 153, 0.1) 50%, 
-            rgba(59, 130, 246, 0.1) 75%, 
-            rgba(16, 185, 129, 0.1) 100%
-          ),
-          radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 40% 80%, rgba(198, 119, 255, 0.3) 0%, transparent 50%),
-          linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)
-        `
+        background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+        minHeight: '100vh'
       }}
     >
-      {/* Animated background elements */}
+      {/* Animated background elements with blue tones */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-3/4 right-1/4 w-80 h-80 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-gradient-to-r from-green-400/20 to-teal-400/20 rounded-full blur-3xl animate-pulse delay-2000" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-3/4 right-1/4 w-80 h-80 bg-gradient-to-r from-indigo-400/10 to-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse delay-2000" />
       </div>
 
       <div className="relative z-10 container mx-auto p-4 md:p-6 lg:p-8 space-y-8">        {/* Header com botão voltar e título */}

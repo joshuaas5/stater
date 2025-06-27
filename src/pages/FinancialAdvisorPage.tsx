@@ -70,6 +70,7 @@ export const FinancialAdvisorPage: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([initialSystemMessage]);
 
   const [loading, setLoading] = useState(false);
+  const [savingTransactions, setSavingTransactions] = useState(false); // Novo estado para loading de salvamento
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [waitingConfirmation, setWaitingConfirmation] = useState(false);
@@ -162,18 +163,24 @@ export const FinancialAdvisorPage: React.FC = () => {
 
   // Persistência do Chat: Salvar mensagens no localStorage
   useEffect(() => {
-    if (currentUserId === undefined || messages.length === 1 && messages[0].id === initialSystemMessage.id && messages[0].text === initialSystemMessage.text) {
-        // Don't save if user ID isn't determined yet or if it's just the initial system message unmodified
+    if (currentUserId === undefined) {
+        // Don't save if user ID isn't determined yet
+        console.log('💬 [CHAT SAVE] User ID não determinado ainda, aguardando...');
         return;
     }
 
-    const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
-    
-    const messagesToSave = messages.slice(-10);
-    localStorage.setItem(storageKey, JSON.stringify(
-      messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
-    ));
-    console.log(`FinancialAdvisorPage: Saved messages to ${storageKey}`);
+    // Sempre salvar se há mais de 1 mensagem ou se a mensagem foi modificada
+    if (messages.length > 1 || (messages.length === 1 && messages[0].text !== initialSystemMessage.text)) {
+      const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
+      
+      const messagesToSave = messages.slice(-20); // Salvar últimas 20 mensagens
+      localStorage.setItem(storageKey, JSON.stringify(
+        messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
+      ));
+      console.log(`💬 [CHAT SAVE] Salvou ${messagesToSave.length} mensagens para ${storageKey}`);
+    } else {
+      console.log('💬 [CHAT SAVE] Apenas mensagem inicial, não salvando');
+    }
   }, [messages, currentUserId, initialSystemMessage.id, initialSystemMessage.text]);
   useEffect(() => {
     setTimeout(() => {
@@ -328,6 +335,7 @@ const handleSendMessage = async (message: string) => {
     const lowerMsg = message.trim().toLowerCase();    // Se aguardando confirmação e usuário diz sim
     if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim')) {
       setLoading(true);
+      setSavingTransactions(true); // Ativar loading específico para salvamento
       setError("");
       try {        // Processar transações (OCR, texto, IA)
         if (pendingAction.tipo === 'generic_confirmation' && (pendingAction.dados.ocrTransactions || editableTransactions.length > 0)) {
@@ -592,6 +600,7 @@ const handleSendMessage = async (message: string) => {
         setPendingAction(null);      // Reset pendingAction on error
       } finally { // Finally for the 'sim' block's try
         setLoading(false);
+        setSavingTransactions(false); // Desativar loading específico para salvamento
       }
       return; // Crucial: return after 'sim' processing is fully handled
     } // Closes 'if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim'))'
@@ -2684,26 +2693,38 @@ return (
             >
               ❌ Cancelar
             </button>
-            <button              onClick={() => handleSendMessage('sim')}
+            <button              
+              onClick={() => handleSendMessage('sim')}
+              disabled={savingTransactions}
               style={{
-                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                background: savingTransactions 
+                  ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
+                  : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
                 padding: '8px 16px',
                 fontWeight: '600',
                 fontSize: '12px',
-                cursor: 'pointer',
+                cursor: savingTransactions ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s ease',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
                 flex: 1,
                 justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)',
+                opacity: savingTransactions ? 0.7 : 1
               }}
             >
-              ✅ Confirmar
+              {savingTransactions ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                '✅ Confirmar'
+              )}
             </button>
           </div>
         </div>

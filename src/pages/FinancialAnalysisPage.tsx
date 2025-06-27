@@ -108,7 +108,8 @@ const FinancialAnalysisPage: React.FC = () => {
                 <BookOfTheWeek />
               </div>
             </section>
-          </div>        </div>
+          </div>        
+        </div>
       </div>
     </div>
   );

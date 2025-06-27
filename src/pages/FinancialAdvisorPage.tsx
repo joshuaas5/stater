@@ -78,49 +78,51 @@ export const FinancialAdvisorPage: React.FC = () => {
 
   const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined); // undefined: not yet checked, null: checked and no user, string: user ID
   const [activeTab, setActiveTab] = useState("chat"); // Novo estado para aba ativa
+  
+  // Estados para funcionalidades de voz
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [speechRecognition, setSpeechRecognition] = useState<any>(null);
+  const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
 
+  // Inicializar Web Speech API
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError) {
-          console.error('FinancialAdvisorPage: Error fetching user:', authError.message);
-          setCurrentUserId(null); // Treat error as guest/logged out
-        } else if (user) {
-          setCurrentUserId(user.id);
-          console.log('FinancialAdvisorPage: User ID set on mount:', user.id);
-        } else {
-          console.log('FinancialAdvisorPage: No user session found.');
-          setCurrentUserId(null); // No user session
-        }
-      } catch (e: any) {
-        console.error('FinancialAdvisorPage: Critical exception fetching user:', e.message);
-        setCurrentUserId(null); // Critical error, treat as guest/logged out
-      }
-    };
-    fetchUser();
-  }, []); // Runs once on mount to get the user ID
-
-  // Effect to load messages once currentUserId is known
-  useEffect(() => {
-    if (currentUserId === undefined) return; // Don't load if user ID isn't determined yet
-
-    const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
-    const savedMessages = localStorage.getItem(storageKey);
-    let loadedMessages = [initialSystemMessage];
-
-    if (savedMessages) {
-      try {
-        const parsed = JSON.parse(savedMessages) as ChatMessage[];
-        loadedMessages = parsed.map((msg: ChatMessage) => ({ ...msg, timestamp: new Date(msg.timestamp) })).slice(-10);
-        if (loadedMessages.length === 0) loadedMessages = [initialSystemMessage];
-      } catch (e) {
-        console.error(`Erro ao parsear mensagens salvas do chat para ${storageKey}:`, e);
-        // Mantém loadedMessages como [initialSystemMessage]
-      }
+    // Verificar se o navegador suporta Web Speech API
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognitionAPI = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const recognition = new SpeechRecognitionAPI();
+      
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'pt-BR';
+      
+      recognition.onstart = () => {
+        console.log('🎤 Speech recognition started');
+        setIsListening(true);
+      };
+      
+      recognition.onend = () => {
+        console.log('🎤 Speech recognition ended');
+        setIsListening(false);
+      };
+      
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        console.log('🎤 Speech recognized:', transcript);
+        // O transcript será usado pelo ChatInput component
+        setIsListening(false);
+      };
+      
+      recognition.onerror = (event: any) => {
+        console.error('🎤 Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+      
+      setSpeechRecognition(recognition);
     }
-    setMessages(loadedMessages);
-    console.log(`FinancialAdvisorPage: Loaded messages from ${storageKey}`);
+    
+    console.log(`FinancialAdvisorPage: Loaded messages for user ${currentUserId}`);
   }, [currentUserId]); // Reload messages when currentUserId changes
 
   useEffect(() => {
@@ -177,7 +179,7 @@ export const FinancialAdvisorPage: React.FC = () => {
       // Resposta da IA perguntando pelos detalhes
       const aiResponse: ChatMessage = {
         id: uuidv4(),
-        text: `Perfeito! Vou te ajudar a registrar uma ${transactionType}. 📝\n\n**Por favor, me informe:**\n• Qual o valor da ${transactionType}?\n• Qual a descrição/motivo?\n• (Opcional) Qual a categoria?\n\nPor exemplo: "R$ 50,00 para supermercado na categoria alimentação"`,
+        text: `Perfeito! Vou te ajudar a registrar uma ${transactionType}. 📝\n\nPor favor, me informe:\n• Qual o valor da ${transactionType}?\n• Qual a descrição/motivo?\n• (Opcional) Qual a categoria?\n\nPor exemplo: "R$ 50,00 para supermercado na categoria alimentação"`,
         sender: 'system',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR
@@ -249,7 +251,7 @@ const handleSendMessage = async (message: string) => {
       },
       {
         id: uuidv4(),
-        text: "📝 Para adicionar uma nova conta, basta clicar no menu **Contas** no ICTUS! Assim você pode registrar e organizar todas as suas contas de forma fácil e rápida. 😃",
+        text: "📝 Para adicionar uma nova conta, basta clicar no menu Contas no ICTUS! Assim você pode registrar e organizar todas as suas contas de forma fácil e rápida. 😃",
         sender: 'system',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR
@@ -311,7 +313,20 @@ const handleSendMessage = async (message: string) => {
           console.log(`🔄 PROCESSANDO ${transactionsToProcess.length} transações:`, JSON.stringify(transactionsToProcess));
           console.log('👤 User ID ativo:', activeUserId);
           console.log('📋 editableTransactions:', editableTransactions.length);
-          console.log('📋 pendingAction.dados.ocrTransactions:', pendingAction.dados.ocrTransactions?.length || 0);// Processar cada transação
+          console.log('📋 pendingAction.dados.ocrTransactions:', pendingAction.dados.ocrTransactions?.length || 0);
+          
+          // Log detalhado das transações
+          transactionsToProcess.forEach((tx: any, index: number) => {
+            console.log(`📋 Transação ${index + 1}:`, {
+              description: tx.description,
+              amount: tx.amount,
+              type: tx.type,
+              category: tx.category,
+              date: tx.date
+            });
+          });
+          
+          // Processar cada transação
           for (const transaction of transactionsToProcess) {
             try {
               // Preparar data da transação
@@ -320,7 +335,7 @@ const handleSendMessage = async (message: string) => {
                 : new Date();
 
               // Salvar no Supabase (única fonte da verdade)
-              await supabase.from('transactions').insert([
+              const supabaseInsert = await supabase.from('transactions').insert([
                 {
                   type: transaction.type,
                   amount: transaction.amount,
@@ -330,7 +345,14 @@ const handleSendMessage = async (message: string) => {
                   created_at: new Date().toISOString(),
                   user_id: activeUserId
                 }
-              ]);              // NOVO: Salvar também no localStorage para aparecer em "últimas transações"
+              ]).select();
+              
+              console.log('✅ Supabase insert result:', supabaseInsert);
+              
+              if (supabaseInsert.error) {
+                console.error('❌ Erro no Supabase:', supabaseInsert.error);
+                throw new Error(`Erro ao salvar no Supabase: ${supabaseInsert.error.message}`);
+              }              // NOVO: Salvar também no localStorage para aparecer em "últimas transações"
               const transactionToSave: Transaction = {
                 id: uuidv4(),
                 title: transaction.description,
@@ -359,6 +381,16 @@ const handleSendMessage = async (message: string) => {
               }                console.log('🔄 Chamando saveTransactionUtil...');
               saveTransactionUtil(transactionToSave);
               console.log('✅ saveTransactionUtil chamado com sucesso');
+              
+              // NOVA ADIÇÃO: Forçar sincronização imediata do Supabase
+              console.log('🔄 Forçando sincronização Supabase...');
+              try {
+                const { forceSupabaseSync } = await import('@/utils/localStorage');
+                await forceSupabaseSync();
+                console.log('✅ Sincronização Supabase forçada com sucesso');
+              } catch (syncError) {
+                console.error('❌ Erro na sincronização forçada:', syncError);
+              }
               
               // Forçar múltiplas atualizações para garantir que o Dashboard seja atualizado
               setTimeout(() => {
@@ -397,13 +429,35 @@ const handleSendMessage = async (message: string) => {
             // Calcular total das transações salvas
             const totalAmount = editableTransactions.reduce((sum, tx) => sum + tx.amount, 0);
             resultMessage += `✅ ${successCount} transações salvas com sucesso!\n`;
-            resultMessage += `💰 **Total processado:** R$ ${totalAmount.toFixed(2)}`;
+            resultMessage += `💰 Total processado: R$ ${totalAmount.toFixed(2)}`;
           }
           if (errorCount > 0) {
             resultMessage += `${successCount > 0 ? '\n' : ''}❌ ${errorCount} transações falharam ao salvar.`;
           }
           
-          console.log(`📊 Resultado final: ${successCount} sucessos, ${errorCount} erros`);          setMessages((prevMessages: ChatMessage[]) => [
+          console.log(`📊 Resultado final: ${successCount} sucessos, ${errorCount} erros`);
+          
+          // NOVA VALIDAÇÃO: Verificar se as transações foram realmente salvas
+          console.log('🔍 Verificando se transações foram salvas no Supabase...');
+          try {
+            const { data: savedTransactions, error: verifyError } = await supabase
+              .from('transactions')
+              .select('*')
+              .eq('user_id', activeUserId)
+              .order('created_at', { ascending: false })
+              .limit(transactionsToProcess.length);
+              
+            if (verifyError) {
+              console.error('❌ Erro ao verificar transações salvas:', verifyError);
+            } else {
+              console.log(`✅ Verificação: ${savedTransactions?.length || 0} transações encontradas no Supabase`);
+              console.log('📋 Últimas transações no Supabase:', savedTransactions);
+            }
+          } catch (verifyError) {
+            console.error('❌ Erro na verificação:', verifyError);
+          }
+          
+          setMessages((prevMessages: ChatMessage[]) => [
             ...prevMessages,
             { 
               id: uuidv4(), 
@@ -821,14 +875,14 @@ const handleSendMessage = async (message: string) => {
 
             // Criar mensagem de resumo
             const totalAmount = transactionList.reduce((sum, tx) => sum + tx.amount, 0);
-            let resultMessage = `🤖 **A IA detectou ${transactionList.length} transações na sua lista!**\n\n`;
-            resultMessage += `💰 **Total:** R$ ${totalAmount.toFixed(2)}\n\n`;
-            resultMessage += `**Transações processadas:**\n\n`;
+            let resultMessage = `🤖 A IA detectou ${transactionList.length} transações na sua lista!\n\n`;
+            resultMessage += `💰 Total: R$ ${totalAmount.toFixed(2)}\n\n`;
+            resultMessage += `Transações processadas:\n\n`;
 
             // Listar cada transação
             for (let i = 0; i < transactionList.length; i++) {
               const transaction = transactionList[i];
-              resultMessage += `${i + 1}. **${transaction.description}**\n`;
+              resultMessage += `${i + 1}. ${transaction.description}\n`;
               resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
               resultMessage += `   📁 Categoria: ${transaction.category}\n`;
               resultMessage += `   📅 Data: ${transaction.date === new Date().toISOString().split('T')[0] ? 'Hoje' : transaction.date}\n\n`;
@@ -899,16 +953,16 @@ const handleSendMessage = async (message: string) => {
           console.log("🤖 Lista de transações detectada na resposta da IA:", aiTransactionList);
           
           // Criar mensagem de confirmação similar ao fluxo do JSON
-          let resultMessage = `🤖 **Detectei ${aiTransactionList.length} transações na resposta!**\n\n`;
+          let resultMessage = `🤖 Detectei ${aiTransactionList.length} transações na resposta!\n\n`;
           
           const totalAmount = aiTransactionList.reduce((sum: number, tx: any) => sum + tx.amount, 0);
-          resultMessage += `💰 **Total:** R$ ${totalAmount.toFixed(2)}\n\n`;
-          resultMessage += `**Transações encontradas:**\n\n`;
+          resultMessage += `💰 Total: R$ ${totalAmount.toFixed(2)}\n\n`;
+          resultMessage += `Transações encontradas:\n\n`;
 
           // Listar cada transação
           for (let i = 0; i < aiTransactionList.length; i++) {
             const transaction = aiTransactionList[i];
-            resultMessage += `${i + 1}. **${transaction.description}**\n`;
+            resultMessage += `${i + 1}. ${transaction.description}\n`;
             resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
             resultMessage += `   📁 Categoria: ${transaction.category}\n`;
             resultMessage += `   📅 Data: ${transaction.date === new Date().toISOString().split('T')[0] ? 'Hoje' : transaction.date}\n\n`;
@@ -993,16 +1047,16 @@ const handleSendMessage = async (message: string) => {
         
         if (detectedTransactionList.length >= 2) {
           // Detectou uma lista de transações - mostrar interface de revisão
-          let resultMessage = `🤖 **Detectei ${detectedTransactionList.length} transações na sua mensagem!**\n\n`;
+          let resultMessage = `🤖 Detectei ${detectedTransactionList.length} transações na sua mensagem!\n\n`;
           
           const totalAmount = detectedTransactionList.reduce((sum, tx) => sum + tx.amount, 0);
-          resultMessage += `💰 **Total:** R$ ${totalAmount.toFixed(2)}\n\n`;
-          resultMessage += `**Transações encontradas:**\n\n`;
+          resultMessage += `💰 Total: R$ ${totalAmount.toFixed(2)}\n\n`;
+          resultMessage += `Transações encontradas:\n\n`;
 
           // Listar cada transação
           for (let i = 0; i < detectedTransactionList.length; i++) {
             const transaction = detectedTransactionList[i];
-            resultMessage += `${i + 1}. **${transaction.description}**\n`;
+            resultMessage += `${i + 1}. ${transaction.description}\n`;
             resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
             resultMessage += `   📁 Categoria: ${transaction.category}\n`;
             resultMessage += `   📅 Data: Hoje\n\n`;
@@ -1644,9 +1698,9 @@ const handleImageUpload = async (imageBase64: string) => {
         processingMessage = "🔍 Analisando arquivo...";
       }
     } else if (isPdf) {
-      processingMessage = "📑 Processando documento PDF...";
+      processingMessage = "📑 Analisando documento...";
     } else {
-      processingMessage = "🖼️ Analisando imagem...";
+      processingMessage = "� Analisando documento...";
     }
 
     setMessages(prev => [...prev, {
@@ -1699,7 +1753,7 @@ const handleImageUpload = async (imageBase64: string) => {
       // Verificar se é erro de abort (timeout do cliente)
       if (controller.signal.aborted) {        setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: "⏱️ **Timeout no Processamento (1 minuto)**\n\nO documento demorou muito para processar.\n\n💡 **Soluções recomendadas:**\n• **Para PDFs grandes:** Divida em seções menores ou use imagens\n• **Para extratos longos:** Faça capturas de tela de partes específicas\n• **Alternativa rápida:** Tire fotos das páginas importantes\n• **Documentos complexos:** Simplifique removendo páginas extras\n\n🔄 **Quer tentar novamente?** Envie um documento menor ou em formato de imagem.",
+          text: "⏱️ Timeout no Processamento (1 minuto)\n\nO documento demorou muito para processar.\n\n💡 Soluções recomendadas:\n• Para PDFs grandes: Divida em seções menores ou use imagens\n• Para extratos longos: Faça capturas de tela de partes específicas\n• Alternativa rápida: Tire fotos das páginas importantes\n• Documentos complexos: Simplifique removendo páginas extras\n\n🔄 Quer tentar novamente? Envie um documento menor ou em formato de imagem.",
           sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
@@ -1712,7 +1766,7 @@ const handleImageUpload = async (imageBase64: string) => {
       if (response.status === 504 || response.status === 502 || errorData.error?.includes('timeout') || errorData.error?.includes('504') || errorData.error?.includes('502')) {
         setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: "🔄 **Servidor Sobrecarregado**\n\nO servidor está processando muitos documentos no momento.\n\n💡 **Soluções:**\n• **Aguarde 2-3 minutos** e tente novamente\n• **Use imagens** ao invés de PDFs (mais rápido)\n• **Divida documentos grandes** em partes menores\n• **Horários alternativos:** Tente em horários de menor uso\n\n✨ **Dica:** Imagens (JPG/PNG) são processadas mais rapidamente que PDFs!",
+          text: "🔄 Servidor Sobrecarregado\n\nO servidor está processando muitos documentos no momento.\n\n💡 Soluções:\n• Aguarde 2-3 minutos e tente novamente\n• Use imagens ao invés de PDFs (mais rápido)\n• Divida documentos grandes em partes menores\n• Horários alternativos: Tente em horários de menor uso\n\n✨ Dica: Imagens (JPG/PNG) são processadas mais rapidamente que PDFs!",
           sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
@@ -1725,7 +1779,7 @@ const handleImageUpload = async (imageBase64: string) => {
       if (errorData.isPdfProtected || errorData.error?.includes('PDF protegido')) {
         setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: errorData.message || "🔒 **PDF Protegido Detectado**\n\nEste PDF está protegido por senha e não pode ser processado.\n\n💡 **Solução:** Faça uma captura de tela (screenshot) do PDF aberto e envie a imagem.",
+          text: errorData.message || "🔒 PDF Protegido Detectado\n\nEste PDF está protegido por senha e não pode ser processado.\n\n💡 Solução: Faça uma captura de tela (screenshot) do PDF aberto e envie a imagem.",
           sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
@@ -1738,7 +1792,7 @@ const handleImageUpload = async (imageBase64: string) => {
       if (errorData.details?.includes('The document has no pages')) {
         setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: "📄 **Erro ao processar PDF**\n\nEste PDF não pôde ser processado. Possíveis causas:\n• PDF protegido por senha\n• PDF corrompido\n• Formato não suportado\n\n💡 **Solução:** Faça uma captura de tela (screenshot) do PDF e envie a imagem.",
+          text: "📄 Erro ao processar PDF\n\nEste PDF não pôde ser processado. Possíveis causas:\n• PDF protegido por senha\n• PDF corrompido\n• Formato não suportado\n\n💡 Solução: Faça uma captura de tela (screenshot) do PDF e envie a imagem.",
           sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
@@ -1747,16 +1801,16 @@ const handleImageUpload = async (imageBase64: string) => {
         return;      }
         // Verificar se precisa de revisão manual (documento mal processado)
       if (errorData.needsManualReview) {
-        let suggestionText = "❌ **Arquivo não foi lido corretamente**\n\n";
+        let suggestionText = "❌ Arquivo não foi lido corretamente\n\n";
         suggestionText += errorData.details || "O sistema não conseguiu processar este arquivo.";
         
         if (errorData.suggestions && errorData.suggestions.length > 0) {
-          suggestionText += "\n\n**Como resolver:**\n";
+          suggestionText += "\n\nComo resolver:\n";
           errorData.suggestions.forEach((suggestion: string) => {
             suggestionText += `${suggestion}\n`;
           });
         } else {
-          suggestionText += "\n\n**Como resolver:**\n";
+          suggestionText += "\n\nComo resolver:\n";
           suggestionText += "✅ OPÇÃO 1: Tire uma FOTO clara do extrato com seu celular\n";
           suggestionText += "✅ OPÇÃO 2: Copie o texto do extrato e cole aqui no chat\n";
           suggestionText += "✅ OPÇÃO 3: Salve como PDF e tente novamente\n";
@@ -2286,7 +2340,15 @@ return (
                   fontSize: '14px',
                   opacity: 0.8
                 }}>
-                  {editableTransactions.length} transação{editableTransactions.length > 1 ? 'ões' : ''} encontrada{editableTransactions.length > 1 ? 's' : ''}
+                  {editableTransactions.length} transaç{editableTransactions.length > 1 ? 'ões' : 'ão'} encontrada{editableTransactions.length > 1 ? 's' : ''}
+                </p>
+                <p style={{
+                  margin: '3px 0 0 0',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#60a5fa'
+                }}>
+                  Total: R$ {editableTransactions.reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0).toFixed(2)}
                 </p>
               </div>
               <button
@@ -2528,7 +2590,7 @@ return (
                   e.currentTarget.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
                 }}
               >
-                ✅ Salvar {editableTransactions.length} Transação{editableTransactions.length > 1 ? 'ões' : ''}
+                ✅ Salvar {editableTransactions.length} Transaç{editableTransactions.length > 1 ? 'ões' : 'ão'}
               </button>
             </div>
           </div>
@@ -2769,15 +2831,49 @@ function getProcessingDetails(content: string): string {
 }
 
 function formatMessageContent(content: string): React.ReactNode {
+  // Função para processar texto com formatação
+  const processText = (text: string): React.ReactNode[] => {
+    const parts: React.ReactNode[] = [];
+    let currentIndex = 0;
+    
+    // Regex para encontrar texto entre ** (negrito)
+    const boldRegex = /\*\*(.*?)\*\*/g;
+    let match;
+    
+    while ((match = boldRegex.exec(text)) !== null) {
+      // Adicionar texto antes do match
+      if (match.index > currentIndex) {
+        parts.push(text.slice(currentIndex, match.index));
+      }
+      
+      // Adicionar texto em negrito
+      parts.push(
+        <strong key={`bold-${match.index}`} style={{ fontWeight: '700' }}>
+          {match[1]}
+        </strong>
+      );
+      
+      currentIndex = match.index + match[0].length;
+    }
+    
+    // Adicionar texto restante
+    if (currentIndex < text.length) {
+      parts.push(text.slice(currentIndex));
+    }
+    
+    return parts;
+  };
+  
   if (content.includes('\n')) {
     return content.split('\n').map((line, index) => (
       <React.Fragment key={index}>
-        {line}
+        {processText(line)}
         {index < content.split('\n').length - 1 && <br />}
       </React.Fragment>
     ));
   }
-  return content;
+  
+  return processText(content);
 }
 };
 

@@ -1,0 +1,32 @@
+{
+  "name": "ICTUS - Assistente Financeiro IA",
+  "short_name": "ICTUS",
+  "description": "Assistente financeiro inteligente com IA para controle de gastos e análise de extratos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007AFF",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-app.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "label": "Tela principal do ICTUS"
+    }
+  ]
+}

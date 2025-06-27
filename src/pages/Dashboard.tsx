@@ -648,60 +648,74 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between gap-3 bg-green-50 rounded-lg p-3 border border-green-200">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                <Check className="h-4 w-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-green-800 font-medium text-sm">Telegram Conectado</h3>
-                <p className="text-green-600 text-xs">
-                  {telegramInfo?.first_name ? (
-                    <>
-                      👤 {telegramInfo.first_name} {telegramInfo.last_name || ''} 
-                      {telegramInfo.username && ` (@${telegramInfo.username})`}
-                      <br />
-                      ✅ Recebendo notificações
-                    </>
-                  ) : (
-                    <>@{telegramInfo?.username || 'usuário'} • Recebendo notificações</>
-                  )}
-                </p>
+          <div className="bg-green-50 rounded-lg p-4 border border-green-200 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                  <Check className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-green-800 font-medium text-sm">Telegram Conectado ✅</h3>
+                  <p className="text-green-600 text-xs">
+                    {telegramInfo?.first_name ? (
+                      <>
+                        👤 {telegramInfo.first_name} {telegramInfo.last_name || ''} 
+                        {telegramInfo.username && ` (@${telegramInfo.username})`}
+                        <br />
+                        📱 Recebendo notificações no bot
+                      </>
+                    ) : (
+                      <>@{telegramInfo?.username || 'usuário'} • Recebendo notificações</>
+                    )}
+                  </p>
+                </div>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                if (confirm('🔌 Desconectar do Telegram?\n\nVocê não receberá mais notificações até conectar novamente.')) {
-                  try {
-                    const { error } = await supabase
-                      .from('telegram_users')
-                      .delete()
-                      .eq('user_id', user?.id);
-                    
-                    if (error) throw error;
-                    
-                    setIsTelegramLinked(false);
-                    setTelegramInfo(null);
-                    
-                    toast({
-                      title: "🔌 Desconectado",
-                      description: "Telegram desconectado com sucesso!",
-                    });
-                  } catch (error: any) {
-                    toast({
-                      title: "❌ Erro",
-                      description: "Erro ao desconectar: " + error.message,
-                      variant: "destructive"
-                    });
+            
+            {/* Botões de ação */}
+            <div className="flex gap-2 pt-2 border-t border-green-200">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
+                className="flex-1 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+              >
+                💬 Abrir Bot
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  if (confirm('🔌 Desconectar do Telegram?\n\nVocê não receberá mais notificações até conectar novamente.\n\nPara reconectar, vá em Configurações > Telegram.')) {
+                    try {
+                      const { error } = await supabase
+                        .from('telegram_users')
+                        .delete()
+                        .eq('user_id', user?.id);
+                      
+                      if (error) throw error;
+                      
+                      setIsTelegramLinked(false);
+                      setTelegramInfo(null);
+                      
+                      toast({
+                        title: "🔌 Desconectado",
+                        description: "Telegram desconectado! Para reconectar, vá em Configurações.",
+                      });
+                    } catch (error: any) {
+                      toast({
+                        title: "❌ Erro",
+                        description: "Erro ao desconectar: " + error.message,
+                        variant: "destructive"
+                      });
+                    }
                   }
-                }
-              }}
-              className="text-xs px-2 py-1 h-7 text-gray-600 hover:text-red-600 border-gray-300 hover:border-red-300"
-            >
-              Desconectar
-            </Button>
+                }}
+                className="text-xs px-2 py-1 h-7 text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
+              >
+                🔌 Desconectar
+              </Button>
+            </div>
           </div>
         )}
       </div>

@@ -22,7 +22,7 @@ import {
   formatCurrency, 
   getTransactionsFromLastDays 
 } from '@/utils/dataProcessing';
-import { getCurrentUser, getTransactions, isLoggedIn, saveTransaction, updateTransaction, deleteTransaction, uuidv4 } from '@/utils/localStorage';
+import { getCurrentUser, getTransactions, isLoggedIn, saveTransaction, updateTransaction, deleteTransaction, uuidv4, forceSupabaseSync, startAutoSync, stopAutoSync } from '@/utils/localStorage';
 import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -176,6 +176,14 @@ const Dashboard: React.FC = () => {
       return;
     }
 
+    console.log('🚀 [Dashboard] INICIANDO SINCRONIZAÇÃO AGRESSIVA PARA TELEGRAM/IA');
+    
+    // INICIAR sincronização automática agressiva
+    startAutoSync();
+    
+    // FORÇAR sincronização imediata
+    forceSupabaseSync();
+
     // Agendar lembretes de contas a vencer (notificações push)
     import('@/utils/localStorage').then(({ getBills }) => {
       import('@/services/NotificationService').then(({ NotificationService }) => {
@@ -239,10 +247,15 @@ const Dashboard: React.FC = () => {
     };
     
     window.addEventListener('transactionsUpdated', handler);
-    window.addEventListener('transactionsUpdated', customHandler);    return () => {
+    window.addEventListener('transactionsUpdated', customHandler);
+    
+    return () => {
+      console.log('🛑 [Dashboard] Cleanup - parando sincronização automática');
+      stopAutoSync(); // PARAR sincronização automática na limpeza
       window.removeEventListener('transactionsUpdated', handler);
       window.removeEventListener('transactionsUpdated', customHandler);
-    };}, [navigate, selectedMonth, selectedYear]);
+    };
+  }, [navigate, selectedMonth, selectedYear]);
 
   // UseEffect para reagir às mudanças no filtro de nome
   useEffect(() => {

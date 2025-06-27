@@ -16,8 +16,17 @@ export const useOnboarding = () => {
           return;
         }
 
-        const hasSeenOnboarding = localStorage.getItem('ictus_onboarding_completed');
+        // Usar o ID do usuário para criar uma chave única de onboarding
+        const userOnboardingKey = `ictus_onboarding_completed_${user.id}`;
+        const hasSeenOnboarding = localStorage.getItem(userOnboardingKey);
         const isFirstVisit = !hasSeenOnboarding;
+        
+        console.log('Onboarding check:', { 
+          userId: user.id, 
+          hasSeenOnboarding: !!hasSeenOnboarding, 
+          isFirstVisit,
+          userOnboardingKey 
+        });
         
         // Mostrar onboarding apenas se for primeira visita E estiver logado
         setShowOnboarding(isFirstVisit);
@@ -36,12 +45,20 @@ export const useOnboarding = () => {
   }, [user, loading]);
 
   const completeOnboarding = () => {
-    localStorage.setItem('ictus_onboarding_completed', 'true');
+    if (user?.id) {
+      const userOnboardingKey = `ictus_onboarding_completed_${user.id}`;
+      localStorage.setItem(userOnboardingKey, 'true');
+      console.log('Onboarding completed for user:', user.id);
+    }
     setShowOnboarding(false);
   };
 
   const resetOnboarding = () => {
-    localStorage.removeItem('ictus_onboarding_completed');
+    if (user?.id) {
+      const userOnboardingKey = `ictus_onboarding_completed_${user.id}`;
+      localStorage.removeItem(userOnboardingKey);
+      console.log('Onboarding reset for user:', user.id);
+    }
     setShowOnboarding(true);
   };
   return {

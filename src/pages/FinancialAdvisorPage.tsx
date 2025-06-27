@@ -1928,7 +1928,7 @@ return (
       className="financial-advisor-page"
       style={{
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
         minHeight: '100vh',
         width: '100vw',
         color: 'white',
@@ -2246,7 +2246,7 @@ return (
           <div 
             className="modal-content"
             style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
               borderRadius: '20px',
               width: '100%',
               maxWidth: '500px',

@@ -391,38 +391,16 @@ const handleSendMessage = async (message: string) => {
               } catch (syncError) {
                 console.error('❌ Erro na sincronização forçada:', syncError);
               }
-              
-              // Forçar múltiplas atualizações para garantir que o Dashboard seja atualizado
-              setTimeout(() => {
-                console.log('🔄 Disparando eventos adicionais para Dashboard...');
-                window.dispatchEvent(new Event('transactionsUpdated'));
-                window.dispatchEvent(new CustomEvent('transactionsUpdated', { 
-                  detail: { source: 'ocr', transaction: transactionToSave } 
-                }));
-                // Forçar recarga da localStorage
-                window.dispatchEvent(new Event('storage'));
-              }, 100);
-              
-              setTimeout(() => {
-                console.log('🔄 Disparando eventos finais para Dashboard...');
-                window.dispatchEvent(new Event('transactionsUpdated'));
-              }, 500);
 
               successCount++;
             } catch (transactionError) {
               console.error('Erro ao salvar transação OCR:', transactionError);
               errorCount++;
             }
-          }          // Atualizar interface
-          console.log('🔄 Disparando evento transactionsUpdated...');
+          }          // Atualizar interface com APENAS UM evento
+          console.log('🔄 Disparando evento único transactionsUpdated...');
           window.dispatchEvent(new Event('transactionsUpdated'));
           console.log('✅ Evento transactionsUpdated disparado');
-          
-          // FORÇAR atualização do Dashboard
-          setTimeout(() => {
-            window.dispatchEvent(new Event('transactionsUpdated'));
-            window.dispatchEvent(new CustomEvent('transactionsUpdated'));
-          }, 500);
             // Mensagem de resultado
           let resultMessage = '';
           if (successCount > 0) {
@@ -2345,8 +2323,9 @@ return (
                 <p style={{
                   margin: '3px 0 0 0',
                   fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#60a5fa'
+                  fontWeight: '700',
+                  color: '#fbbf24',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.5)'
                 }}>
                   Total: R$ {editableTransactions.reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0).toFixed(2)}
                 </p>

@@ -9,8 +9,11 @@ export const useOnboarding = () => {
   useEffect(() => {
     const checkOnboardingStatus = () => {
       try {
+        console.log('🔍 [ONBOARDING DEBUG] Iniciando verificação...');
+        
         // Só verificar onboarding se o usuário estiver logado
         if (!user || loading) {
+          console.log('🔍 [ONBOARDING DEBUG] Usuário não logado ou loading, escondendo onboarding');
           setShowOnboarding(false);
           setIsChecking(false);
           return;
@@ -21,20 +24,24 @@ export const useOnboarding = () => {
         const hasSeenOnboarding = localStorage.getItem(userOnboardingKey);
         const isFirstVisit = !hasSeenOnboarding;
         
-        console.log('Onboarding check:', { 
+        console.log('🔍 [ONBOARDING DEBUG] Status:', { 
           userId: user.id, 
-          hasSeenOnboarding: !!hasSeenOnboarding, 
+          userOnboardingKey,
+          hasSeenOnboarding: hasSeenOnboarding,
+          hasSeenOnboardingBoolean: !!hasSeenOnboarding, 
           isFirstVisit,
-          userOnboardingKey 
+          localStorage_content: Object.keys(localStorage).filter(k => k.includes('onboarding'))
         });
         
         // Mostrar onboarding apenas se for primeira visita E estiver logado
         setShowOnboarding(isFirstVisit);
+        console.log('🔍 [ONBOARDING DEBUG] setShowOnboarding definido para:', isFirstVisit);
       } catch (error) {
-        console.error('Erro ao verificar status do onboarding:', error);
+        console.error('❌ [ONBOARDING DEBUG] Erro ao verificar status do onboarding:', error);
         setShowOnboarding(false);
       } finally {
         setIsChecking(false);
+        console.log('🔍 [ONBOARDING DEBUG] isChecking definido para false');
       }
     };
 
@@ -45,12 +52,18 @@ export const useOnboarding = () => {
   }, [user, loading]);
 
   const completeOnboarding = () => {
+    console.log('✅ [ONBOARDING DEBUG] completeOnboarding chamado');
     if (user?.id) {
       const userOnboardingKey = `ictus_onboarding_completed_${user.id}`;
       localStorage.setItem(userOnboardingKey, 'true');
-      console.log('Onboarding completed for user:', user.id);
+      console.log('✅ [ONBOARDING DEBUG] Onboarding marcado como completo para user:', user.id);
+      console.log('✅ [ONBOARDING DEBUG] Chave salva:', userOnboardingKey);
+      console.log('✅ [ONBOARDING DEBUG] Valor salvo:', localStorage.getItem(userOnboardingKey));
+    } else {
+      console.error('❌ [ONBOARDING DEBUG] Usuário não encontrado para salvar onboarding');
     }
     setShowOnboarding(false);
+    console.log('✅ [ONBOARDING DEBUG] setShowOnboarding(false) executado');
   };
 
   const resetOnboarding = () => {

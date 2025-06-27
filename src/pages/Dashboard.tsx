@@ -201,59 +201,29 @@ const Dashboard: React.FC = () => {
     }
     
     // Carregar as transações do mês/ano selecionado
-    loadTransactions(selectedMonth, selectedYear);    // Listener para atualizar transações quando houver novas
+    loadTransactions(selectedMonth, selectedYear);    // Listener para atualizar transações quando houver novas (apenas uma vez)
     const handler = () => {
       console.log('📊 [Dashboard] Evento transactionsUpdated recebido!');
-      console.log('📊 [Dashboard] selectedMonth:', selectedMonth, 'selectedYear:', selectedYear);
-      console.log('📊 [Dashboard] startDate:', startDate, 'endDate:', endDate);
       
-      // Forçar atualização imediata para transações OCR/IA
+      // Simples atualização sem loops
       setTimeout(() => {
-        console.log('📊 [Dashboard] Recarregando transações (primeira tentativa)...');
-        loadTransactions(selectedMonth, selectedYear);
-      }, 50);
-      
-      // Se um filtro de período estiver ativo, não recarrega automaticamente com o mês/ano
-      if (!startDate || !endDate) {
-        console.log('📊 [Dashboard] Recarregando transações...');
         loadTransactions(selectedMonth, selectedYear);
         
-        // Segunda tentativa para garantir
-        setTimeout(() => {
-          console.log('📊 [Dashboard] Segunda tentativa de recarga...');
-          loadTransactions(selectedMonth, selectedYear);
-        }, 300);
-      } else {
-        console.log('📊 [Dashboard] Filtro de período ativo, não recarregando automaticamente');
-      }
-      
-      // Sempre recalcular o saldo total quando houver novas transações
-      const allTransactions = getTransactions();
-      console.log(`📊 [Dashboard] Total de transações encontradas: ${allTransactions.length}`);
-      if (allTransactions && allTransactions.length > 0) {
-        console.log('📊 [Dashboard] Últimas 3 transações:', allTransactions.slice(0, 3).map(t => ({ title: t.title, amount: t.amount, date: t.date })));
-        const totalBalance = calculateBalance(allTransactions, []);
-        setBalance(totalBalance);
-      }
-    };
-    
-    // Listener específico para eventos customizados (OCR/IA)
-    const customHandler = (event: any) => {
-      console.log('📊 [Dashboard] Evento customizado recebido!', event.detail);
-      // Forçar múltiplas atualizações para transações OCR/IA
-      setTimeout(() => loadTransactions(selectedMonth, selectedYear), 100);
-      setTimeout(() => loadTransactions(selectedMonth, selectedYear), 500);
-      setTimeout(() => loadTransactions(selectedMonth, selectedYear), 1000);
+        // Recalcular saldo total
+        const allTransactions = getTransactions();
+        if (allTransactions && allTransactions.length > 0) {
+          const totalBalance = calculateBalance(allTransactions, []);
+          setBalance(totalBalance);
+        }
+      }, 100);
     };
     
     window.addEventListener('transactionsUpdated', handler);
-    window.addEventListener('transactionsUpdated', customHandler);
     
     return () => {
       console.log('🛑 [Dashboard] Cleanup - parando sincronização automática');
       stopAutoSync(); // PARAR sincronização automática na limpeza
       window.removeEventListener('transactionsUpdated', handler);
-      window.removeEventListener('transactionsUpdated', customHandler);
     };
   }, [navigate, selectedMonth, selectedYear]);
 

@@ -329,7 +329,7 @@ export const getTransactions = (): Transaction[] => {
   const now = Date.now();
   const lastSync = lastTransactionsSyncTime[user.id] || 0;
   const isSyncing = isSyncingTransactions[user.id] || false;
-  const syncInterval = 1000; // 1 segundo apenas! Muito mais agressivo
+  const syncInterval = 30000; // 30 SEGUNDOS para evitar loops infinitos!
   
   // Carregar localStorage como fallback inicial
   const transactionsStr = localStorage.getItem(`transactions_${user.id}`);
@@ -2178,13 +2178,14 @@ let autoSyncInterval: NodeJS.Timeout | null = null;
 export const startAutoSync = () => {
   if (autoSyncInterval) return; // Já está rodando
   
-  console.log('🔄 [AUTO SYNC] Iniciando sincronização automática a cada 3 segundos...');
+  console.log('🔄 [AUTO SYNC] Iniciando sincronização automática a cada 60 segundos...');
   autoSyncInterval = setInterval(() => {
     const user = getCurrentUser();
     if (user) {
+      // Apenas sincronizar se realmente necessário
       forceSupabaseSync();
     }
-  }, 3000); // A cada 3 segundos
+  }, 60000); // A cada 60 segundos (1 minuto) em vez de 3 segundos
 };
 
 export const stopAutoSync = () => {

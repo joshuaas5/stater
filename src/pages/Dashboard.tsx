@@ -274,45 +274,94 @@ const Dashboard: React.FC = () => {
     const allTransactions = getTransactions();
     console.log(`📊 [loadTransactions] Total encontrado: ${allTransactions.length}`);
     
-    let filteredTransactions = allTransactions;
+    // LOG: Mostrar as últimas 5 transações para debug
+    if (allTransactions.length > 0) {
+      const sortedByDate = [...allTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      console.log('📊 [DEBUG] Últimas 5 transações por data:', sortedByDate.slice(0, 5).map(t => ({
+        title: t.title,
+        date: t.date,
+        dateStr: new Date(t.date).toISOString(),
+        month: new Date(t.date).getMonth(),
+        year: new Date(t.date).getFullYear()
+      })));
+    }
     
-    // Filtrar por período
+    let filteredTransactionsForDisplay = allTransactions;
+    let filteredTransactionsForCalculation = allTransactions;
+    
+    // Para os cálculos de receitas/gastos, usar sempre o filtro de mês/ano
+    filteredTransactionsForCalculation = allTransactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
+    });
+    console.log(`📊 [loadTransactions] Para cálculos - mês ${month + 1}/${year}: ${filteredTransactionsForCalculation.length}`);
+    
+    // Para exibição: se não há filtros específicos, mostrar transações mais recentes independente do mês
     if (useCustomPeriod && startDate && endDate) {
+      // Se há filtro de período personalizado, aplicar ele
       const start = new Date(startDate + 'T00:00:00');
       const end = new Date(endDate + 'T23:59:59');
-      filteredTransactions = allTransactions.filter(t => {
+      filteredTransactionsForDisplay = allTransactions.filter(t => {
         const transactionDate = new Date(t.date);
         return transactionDate >= start && transactionDate <= end;
       });
-      console.log(`📊 [loadTransactions] Após filtro por período personalizado: ${filteredTransactions.length}`);
-    } else {
-      // Filtrar por mês/ano selecionado
-      filteredTransactions = allTransactions.filter(t => {
-        const transactionDate = new Date(t.date);
-        return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
-      });
-      console.log(`📊 [loadTransactions] Após filtro por mês ${month + 1}/${year}: ${filteredTransactions.length}`);
-    }
-    
-    // Filtrar por nome se houver filtro
-    if (nameFilter.trim()) {
-      filteredTransactions = filteredTransactions.filter(t => 
+      console.log(`📊 [loadTransactions] Exibição - período personalizado: ${filteredTransactionsForDisplay.length}`);
+    } else if (nameFilter.trim()) {
+      // Se há filtro de nome, aplicar sobre todas as transações
+      filteredTransactionsForDisplay = allTransactions.filter(t => 
         t.title.toLowerCase().includes(nameFilter.toLowerCase()) ||
         t.category.toLowerCase().includes(nameFilter.toLowerCase())
       );
-      console.log(`📊 [loadTransactions] Após filtro por nome: ${filteredTransactions.length}`);
+      console.log(`📊 [loadTransactions] Exibição - filtro por nome: ${filteredTransactionsForDisplay.length}`);
+    } else {
+      // NOVA LÓGICA SIMPLIFICADA: Sempre mostrar as 20 transações mais recentes
+      // Isso garante que transações criadas via PDF/AI apareçam imediatamente
+      filteredTransactionsForDisplay = [...allTransactions];
+      
+      // Ordenar por data (mais recentes primeiro)
+      filteredTransactionsForDisplay.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      // Limitar a 20 transações para performance
+      filteredTransactionsForDisplay = filteredTransactionsForDisplay.slice(0, 20);
+      
+      // LOG: Mostrar detalhes das transações que serão exibidas
+      console.log(`📊 [DEBUG] NOVA LÓGICA - Mostrando 20 transações mais recentes de TODAS as datas`);
+      console.log(`📊 [DEBUG] Primeiras 5 transações:`, filteredTransactionsForDisplay.slice(0, 5).map(t => ({
+        title: t.title,
+        date: new Date(t.date).toISOString(),
+        month: new Date(t.date).getMonth() + 1,
+        year: new Date(t.date).getFullYear()
+      })));
+      
+      // Separar entre mês atual e outros para informação
+      const currentMonthCount = filteredTransactionsForDisplay.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
+      }).length;
+      
+      const otherMonthsCount = filteredTransactionsForDisplay.length - currentMonthCount;
+      
+      console.log(`📊 [loadTransactions] Exibição - ${currentMonthCount} do mês atual + ${otherMonthsCount} de outros meses = ${filteredTransactionsForDisplay.length} total`);
     }
     
-    // Sort transactions by date in descending order (most recent first)
-    filteredTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // Sort final by date in descending order (most recent first)
+    filteredTransactionsForDisplay.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
-    console.log(`📊 [loadTransactions] Definindo ${filteredTransactions.length} transações`);
-    setTransactions(filteredTransactions);
+    // LOG: Mostrar as transações finais que serão exibidas
+    console.log(`📊 [DEBUG] Transações FINAIS para exibição (primeiras 5):`, filteredTransactionsForDisplay.slice(0, 5).map(t => ({
+      title: t.title,
+      date: new Date(t.date).toISOString(),
+      amount: t.amount,
+      type: t.type
+    })));
+    
+    console.log(`📊 [loadTransactions] Definindo ${filteredTransactionsForDisplay.length} transações para exibição`);
+    setTransactions(filteredTransactionsForDisplay);
 
-    // Calcular incomes e expenses para o mês selecionado
-    const incomes = filteredTransactions.filter(t => t.type === 'income')
+    // Calcular incomes e expenses APENAS para o mês selecionado (para os cards de resumo)
+    const incomes = filteredTransactionsForCalculation.filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
-    const expenses = filteredTransactions.filter(t => t.type === 'expense')
+    const expenses = filteredTransactionsForCalculation.filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
 
     setTotalIncomes(incomes);
@@ -836,7 +885,9 @@ const Dashboard: React.FC = () => {
       
       <h2 className="text-galileo-text text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-2">
         Últimas Transações
-      </h2>      <div className="px-4 mb-4 flex flex-col gap-2">
+      </h2>
+      
+      <div className="px-4 mb-4 flex flex-col gap-2">
         <div className="flex flex-col sm:flex-row gap-2">
           <Button 
             onClick={() => setShowDateFilters(!showDateFilters)} 
@@ -887,8 +938,35 @@ const Dashboard: React.FC = () => {
         )}
       </div>
       
-      {transactions.length > 0 ? (
-        (showAllTransactionsInMonth ? transactions : transactions.slice(0, 5)).map((transaction: Transaction) => (
+      {(() => {
+        const displayTransactions = showAllTransactionsInMonth ? transactions : transactions.slice(0, 5);
+        console.log(`🎨 [RENDER] Renderizando ${displayTransactions.length} transações (de ${transactions.length} total)`);
+        console.log(`🎨 [RENDER] Estado showAllTransactionsInMonth: ${showAllTransactionsInMonth}`);
+        console.log(`🎨 [RENDER] Estado nameFilter: "${nameFilter}"`);
+        console.log(`🎨 [RENDER] Estado startDate: ${startDate}, endDate: ${endDate}`);
+        console.log(`🎨 [RENDER] Mês selecionado: ${selectedMonth + 1}/${selectedYear}`);
+        
+        if (displayTransactions.length > 0) {
+          console.log('🎨 [RENDER] Primeiras 3 transações a serem renderizadas:', displayTransactions.slice(0, 3).map(t => ({
+            id: t.id,
+            title: t.title,
+            date: new Date(t.date).toISOString(),
+            amount: t.amount,
+            type: t.type,
+            category: t.category
+          })));
+        } else {
+          console.log('🎨 [RENDER] PROBLEMA: Nenhuma transação para renderizar!');
+          console.log('🎨 [RENDER] Array transactions completo:', transactions.map(t => ({
+            id: t.id,
+            title: t.title,
+            date: new Date(t.date).toISOString(),
+            month: new Date(t.date).getMonth(),
+            year: new Date(t.date).getFullYear()
+          })));
+        }
+        
+        return displayTransactions.length > 0 ? displayTransactions.map((transaction: Transaction) => (
           <div key={transaction.id} className="flex items-center gap-4 bg-galileo-background px-4 min-h-[72px] py-2 justify-between border-t border-galileo-border">
             <div className="flex items-center gap-4">
               <div className="text-galileo-text flex items-center justify-center rounded-lg bg-galileo-accent shrink-0 size-12">
@@ -979,18 +1057,19 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         ))
-      ) : (
-        <div className="flex flex-col items-center justify-center p-8">
-          <p className="text-galileo-secondaryText mb-4">Nenhuma transação encontrada para este mês</p>
-        </div>
-      )}
+        : (
+          <div className="flex flex-col items-center justify-center p-8">
+            <p className="text-galileo-secondaryText mb-4">Nenhuma transação encontrada</p>
+          </div>
+        );
+      })()}
       {transactions.length > 5 && (
         <div className="px-4 mt-4 mb-2 flex justify-center">
           <Button 
             variant="outline" 
             onClick={() => setShowAllTransactionsInMonth(!showAllTransactionsInMonth)}
           >
-            {showAllTransactionsInMonth ? 'Ver Menos' : 'Ver Todas as Transações do Mês'}
+            {showAllTransactionsInMonth ? 'Ver Menos' : 'Ver Todas as Transações'}
           </Button>
         </div>
       )}

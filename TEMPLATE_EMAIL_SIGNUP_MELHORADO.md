@@ -1,4 +1,20 @@
-<!-- TEMPLATE DE CONFIRMAÇÃO DE EMAIL - STATER -->
+# 📧 TEMPLATES DE EMAIL ATUALIZADOS - STATER
+
+## 🎨 TEMPLATE DE CONFIRMAÇÃO DE SIGNUP ATUALIZADO
+
+### Para aplicar no Supabase:
+
+1. **Acesse**: `Authentication > Email Templates > Confirm signup`
+
+2. **Subject**:
+```
+Confirme sua conta no Stater - Bem-vindo! 🎉
+```
+
+3. **Template HTML** (copie exatamente este código):
+
+```html
+<!-- TEMPLATE DE CONFIRMAÇÃO DE EMAIL - STATER (VERSÃO ANTI-SPAM) -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -136,3 +152,37 @@
     </div>
 </body>
 </html>
+```
+
+## ✨ MELHORIAS APLICADAS:
+
+### 🎨 **Design Profissional**:
+- ✅ Mesmo padrão visual dos outros templates
+- ✅ Tipografia Space Grotesk (marca Stater)
+- ✅ Cores da identidade visual (#2E4A6B)
+- ✅ Layout responsivo e moderno
+- ✅ Sombras e bordas arredondadas
+
+### ⚠️ **Anti-SPAM**:
+- ✅ Aviso destacado em amarelo sobre pasta de spam
+- ✅ Instruções claras para verificar LIXO ELETRÔNICO
+- ✅ Texto explicativo sobre filtragem de emails
+
+### 🔒 **Segurança**:
+- ✅ Aviso sobre validade do link (24h)
+- ✅ Informação sobre uso único
+- ✅ Orientação para ignorar se não foi o usuário
+
+### 📋 **Informativo**:
+- ✅ Lista dos recursos disponíveis após confirmação
+- ✅ Link alternativo para copiar/colar
+- ✅ Informações de contato completas
+
+## 🚀 RESULTADO:
+
+Agora o template de confirmação de signup tem:
+- **Visual profissional** igual aos outros templates
+- **Aviso anti-spam** bem visível
+- **Informações completas** sobre o produto
+- **Design responsivo** para todos os dispositivos
+- **Branding consistente** com a identidade Stater

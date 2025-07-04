@@ -146,27 +146,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Verificar se o usuário já existe na tabela profiles (método mais confiável)
-      const { data: existingUsers, error: queryError } = await supabase
-        .from('profiles')
-        .select('email, auth_provider')
-        .eq('email', email);
-      
-      if (queryError) {
-        console.error("Erro ao verificar usuário existente:", queryError);
-        // Continuar mesmo com erro, o próprio Supabase vai detectar duplicatas
-      } else if (existingUsers && existingUsers.length > 0) {
-        const existingUser = existingUsers[0];
+      // VERIFICAÇÃO PRÉVIA SIMPLES - Tentar função RPC simples primeiro
+      try {
+        const { data: emailExists, error: rpcError } = await supabase.rpc('email_exists', {
+          email_input: email
+        });
         
-        if (existingUser.auth_provider === 'google') {
-          toast({
-            title: "Email já registrado",
-            description: "Este email já possui uma conta criada via Google. Use o botão 'Continuar com Google' para fazer login.",
-            variant: "destructive",
-            duration: 8000
-          });
-          return;
-        } else {
+        if (!rpcError && emailExists === true) {
           toast({
             title: "Email já registrado",
             description: "Este email já possui uma conta. Faça login ou recupere sua senha se necessário.",
@@ -175,41 +161,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
           return;
         }
+      } catch (error) {
+        console.log("Função RPC email_exists não disponível, continuando...");
       }
       
-      // Tentar verificar usando RPC como backup (se disponível)
-      try {
-        const { data: userCheck, error: rpcError } = await supabase.rpc('check_user_exists', {
-          email_param: email
-        });
-        
-        if (!rpcError && userCheck && userCheck.exists && !existingUsers?.length) {
-          // RPC encontrou usuário que não estava na tabela profiles
-          const provider = userCheck.auth_provider || 'unknown';
-          
-          if (provider === 'google') {
-            toast({
-              title: "Email já registrado",
-              description: "Este email já possui uma conta criada via Google. Use o botão 'Continuar com Google' para fazer login.",
-              variant: "destructive",
-              duration: 8000
-            });
-            return;
-          } else if (provider === 'email') {
-            toast({
-              title: "Email já registrado",
-              description: "Este email já possui uma conta. Faça login ou recupere sua senha se necessário.",
-              variant: "destructive",
-              duration: 8000
-            });
-            return;
-          }
-        }
-      } catch (rpcError) {
-        console.log("RPC check_user_exists não disponível, continuando com verificação básica");
-      }
-      
-      // Tentar criar nova conta
+      // Tentar criar nova conta diretamente - deixar o Supabase detectar duplicatas
       const { data, error } = await supabase.auth.signUp({ 
         email, 
         password,
@@ -224,21 +180,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) {
         // Tratar erros específicos do Supabase
-        if (error.message?.includes("User already registered")) {
+        if (error.message?.includes("User already registered") || 
+            error.message?.includes("already been registered") ||
+            error.message?.includes("already exists")) {
           toast({
-            title: "📧 Email já registrado",
-            description: "Este email já possui uma conta. Verifique sua caixa de entrada para emails de confirmação anteriores ou faça login.",
+            title: "Email já registrado",
+            description: "Este email já possui uma conta. Faça login ou recupere sua senha se necessário.",
             variant: "destructive",
             duration: 8000
           });
           return;
         }
+        
+        // Outros erros
         throw error;
       }
       
-      // Se o usuário foi criado mas precisa de confirmação
+      // Se chegou aqui, verificar se realmente criou o usuário ou se já existia
       if (data.user && !data.session) {
-        // Tentar criar perfil mesmo sem confirmação (para preparar)
+        // Usuário criado, aguardando confirmação
         const { error: profileError } = await supabase.from('profiles').insert([
           { 
             id: data.user.id,
@@ -250,7 +210,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (profileError) {
           console.error("Erro ao criar perfil:", profileError);
-          // Não falhar por causa disso, perfil será criado na confirmação
         }
         
         toast({
@@ -280,6 +239,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Conta criada com sucesso! 🎉",
           description: "Bem-vindo ao Stater!"
         });
+      }
+      
+      // Se não criou usuário nem sessão, pode ser email já existente
+      if (!data.user && !data.session) {
+        toast({
+          title: "Email já registrado",
+          description: "Este email já possui uma conta. Faça login ou recupere sua senha se necessário.",
+          variant: "destructive",
+          duration: 8000
+        });
+        return;
       }
       
     } catch (error: any) {

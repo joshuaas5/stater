@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -56,6 +56,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           username: session.user.user_metadata.username || session.user.email?.split('@')[0] || '',
           email: session.user.email || '',
         });
+        
+        // Se é um novo login via Google ou email confirmado, garantir que o perfil existe
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          try {
+            const { data: existingProfile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (!existingProfile) {
+              // Determinar o auth_provider baseado no provider do usuário
+              const authProvider = session.user.app_metadata.provider || 'email';
+              
+              // Criar perfil se não existir
+              const { error: profileError } = await supabase.from('profiles').insert([
+                { 
+                  id: session.user.id,
+                  username: session.user.user_metadata.username || session.user.email?.split('@')[0] || '',
+                  email: session.user.email || '',
+                  auth_provider: authProvider
+                }
+              ]);
+              
+              if (profileError) {
+                console.error("Erro ao criar perfil automaticamente:", profileError);
+              } else {
+                console.log("Perfil criado automaticamente para usuário:", session.user.email);
+              }
+            }
+          } catch (error) {
+            console.error("Erro ao verificar/criar perfil:", error);
+          }
+        }
       } else {
         clearUserData();
       }
@@ -95,49 +129,101 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Verificar se o usuário já existe
-      const { data: existingUser } = await supabase
+      // Primeiro, verificar se o usuário já existe no sistema
+      const { data: existingUsers, error: queryError } = await supabase
         .from('profiles')
-        .select('email')
-        .eq('email', email)
-        .single();
+        .select('email, auth_provider')
+        .eq('email', email);
       
-      if (existingUser) {
-        throw new Error('Este email já está registrado');
+      if (queryError) {
+        console.error("Erro ao verificar usuário existente:", queryError);
       }
       
+      // Se encontrou usuário, verificar como ele foi criado
+      if (existingUsers && existingUsers.length > 0) {
+        const existingUser = existingUsers[0];
+        
+        // Se foi criado via Google OAuth
+        if (existingUser.auth_provider === 'google') {
+          toast({
+            title: "📧 Email já registrado",
+            description: "Este email já possui uma conta criada via Google. Use o botão 'Continuar com Google' para fazer login.",
+            variant: "destructive",
+            duration: 6000
+          });
+          return;
+        }
+        
+        // Se foi criado via email mas não confirmado, pode tentar reenviar
+        toast({
+          title: "📧 Email já registrado",
+          description: "Este email já possui uma conta. Faça login ou recupere sua senha se não lembrar.",
+          variant: "destructive",
+          duration: 6000
+        });
+        return;
+      }
+      
+      // Tentar criar nova conta
       const { data, error } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
           data: {
             username,
+            auth_provider: 'email'
           },
           emailRedirectTo: `${window.location.origin}/login?confirmed=true`
         }
       });
       
       if (error) {
+        // Tratar erros específicos do Supabase
+        if (error.message?.includes("User already registered")) {
+          toast({
+            title: "📧 Email já registrado",
+            description: "Este email já possui uma conta. Verifique sua caixa de entrada para emails de confirmação anteriores ou faça login.",
+            variant: "destructive",
+            duration: 6000
+          });
+          return;
+        }
         throw error;
       }
       
       // Se o usuário foi criado mas precisa de confirmação
       if (data.user && !data.session) {
-        toast({
-          title: "Quase lá! 📧",
-          description: "Enviamos um email de confirmação. Verifique sua caixa de entrada e spam."
-        });
-        return;
-      }
-      
-      // Se o usuário foi criado e já está autenticado (email confirmation desabilitada)
-      if (data.user && data.session) {
-        // Criar perfil no banco de dados
+        // Tentar criar perfil mesmo sem confirmação (para preparar)
         const { error: profileError } = await supabase.from('profiles').insert([
           { 
             id: data.user.id,
             username, 
-            email 
+            email,
+            auth_provider: 'email'
+          }
+        ]);
+        
+        if (profileError) {
+          console.error("Erro ao criar perfil:", profileError);
+          // Não falhar por causa disso, perfil será criado na confirmação
+        }
+        
+        toast({
+          title: "Quase lá! 📧",
+          description: "Enviamos um email de confirmação para " + email + ". Verifique sua caixa de entrada e spam.",
+          duration: 8000
+        });
+        return;
+      }
+      
+      // Se o usuário foi criado e já está autenticado (confirmação desabilitada)
+      if (data.user && data.session) {
+        const { error: profileError } = await supabase.from('profiles').insert([
+          { 
+            id: data.user.id,
+            username, 
+            email,
+            auth_provider: 'email'
           }
         ]);
         
@@ -156,16 +242,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       let errorMessage = "Erro ao criar conta";
       
-      if (error.message === "Este email já está registrado") {
-        errorMessage = "Este email já está registrado. Faça login ou recupere sua senha.";
-      } else if (error.message?.includes("User already registered")) {
-        errorMessage = "Este email já está registrado. Verifique sua caixa de entrada para confirmar sua conta.";
+      if (error.message?.includes("Invalid email")) {
+        errorMessage = "Por favor, insira um email válido";
       } else if (error.message?.includes("Password")) {
         errorMessage = "A senha deve ter pelo menos 6 caracteres";
-      } else if (error.message?.includes("Email")) {
-        errorMessage = "Por favor, insira um email válido";
-      } else if (error.message?.includes("Invalid email")) {
-        errorMessage = "Email inválido";
+      } else if (error.message?.includes("already registered")) {
+        errorMessage = "Este email já está registrado. Faça login ou recupere sua senha.";
       }
       
       toast({

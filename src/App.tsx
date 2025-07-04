@@ -24,6 +24,7 @@ import ExportReportPage from "./pages/ExportReportPage";
 import FinancialAnalysisPage from "./pages/FinancialAnalysisPage"; // Nova página
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
+import TestPage from "./pages/TestPage";
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -48,7 +49,8 @@ const App = () => (
                 <Route path="/login" element={<Login />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
-                <Route path="/terms" element={<TermsPage />} />                <Route 
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/test" element={<TestPage />} />                <Route 
                   path="/dashboard" 
                   element={
                     <PrivateRoute>

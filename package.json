@@ -1,7 +1,9 @@
 {
   "name": "stater_financial_assistant",
   "private": true,
-  "version": "0.0.0","scripts": {
+  "version": "1.0.0",
+  "description": "Stater - Assistente financeiro inteligente com IA",
+  "homepage": "https://staterbills.vercel.app","scripts": {
     "dev": "vite --mode development",
     "build": "vite build",
     "build:dev": "vite build --mode development",

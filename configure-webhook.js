@@ -2,7 +2,7 @@
 const configureWebhook = async () => {
   // Token do bot (usar o que está configurado no Vercel)
   const BOT_TOKEN = '7774906065:AAGnHNWKAmj9xj-KxKs8SnQi5l3SJ4MrFgQ';
-  const WEBHOOK_URL = 'https://ictus-six.vercel.app/api/telegram-webhook';
+  const WEBHOOK_URL = 'https://staterbills.vercel.app/api/telegram-webhook';
 
   console.log('🤖 Configurando webhook do bot Telegram...');
   console.log('🔗 Bot: https://t.me/stater');

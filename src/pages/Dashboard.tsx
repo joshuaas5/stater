@@ -15,6 +15,7 @@ import { DollarSign, ArrowRight, MessageCircle, Check } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { MonthSelector } from '@/components/ui/month-selector';
+import { TelegramConnectModal } from '@/components/telegram/TelegramConnectModal';
 import { Transaction } from '@/types';
 import { 
   calculateBalance, 
@@ -67,6 +68,7 @@ const Dashboard: React.FC = () => {
 
   // Estados do Telegram
   const [isTelegramLinked, setIsTelegramLinked] = useState(false);
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [telegramInfo, setTelegramInfo] = useState<any>(null);
 
@@ -88,31 +90,26 @@ const Dashboard: React.FC = () => {
     } catch (error) {
       console.log('Telegram não conectado ainda');
     }
-  };  const generateTelegramCode = async () => {
+  };  const generateTelegramCode = () => {
     if (!user?.id) return;
+    setShowTelegramModal(true);
+  };
+
+  const handleTelegramConnect = async (chatId: string) => {
+    setShowTelegramModal(false);
+    
+    if (!user?.id) {
+      toast({
+        title: "❌ Erro",
+        description: "Usuário não encontrado",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsGeneratingCode(true);
     try {
-      // Primeiro, obter o chat ID do usuário pelo Telegram Web
-      const chatId = prompt(
-        `🔗 CONECTAR TELEGRAM\n\n` +
-        `Para conectar sua conta:\n\n` +
-        `1. Abra o Telegram\n` +
-        `2. Procure: @assistentefinanceiroiabot\n` +
-        `3. Digite: /conectar\n` +
-        `4. Copie o número que aparece como "Chat ID"\n` +
-        `5. Cole aqui embaixo:\n\n` +
-        `Digite seu Chat ID:`
-      );
-
-      if (!chatId || chatId.trim() === '') {
-        toast({
-          title: "❌ Cancelado",
-          description: "Conexão cancelada. Digite /conectar no bot primeiro.",
-          variant: "destructive"
-        });
-        return;
-      }      // Conectar via API temporária (enquanto não configuramos SERVICE_ROLE_KEY)
+      // Conectar via API temporária (enquanto não configuramos SERVICE_ROLE_KEY)
       const response = await fetch('/api/telegram-connect-simple', {
         method: 'POST',
         headers: {
@@ -677,7 +674,7 @@ const Dashboard: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
+                onClick={() => window.open('https://t.me/stater', '_blank')}
                 className="flex-1 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
               >
                 💬 Abrir Bot
@@ -1151,6 +1148,12 @@ const Dashboard: React.FC = () => {
       )}
       
       <NavBar />
+      
+      <TelegramConnectModal
+        isOpen={showTelegramModal}
+        onClose={() => setShowTelegramModal(false)}
+        onConnect={handleTelegramConnect}
+      />
     </div>
   );
 };

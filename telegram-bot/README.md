@@ -1,8 +1,8 @@
-# 🤖 Assistente Financeiro - Telegram Bot
+# 🤖 Stater IA - Telegram Bot
 
 ## 🔗 Acesso ao Bot
 
-**Link:** https://t.me/assistentefinanceiroiabot
+**Link:** https://t.me/stater
 
 ## 📱 Funcionalidades
 
@@ -24,7 +24,7 @@
 3. Copie o código gerado (expira em 10 minutos)
 
 ### 2. **No Telegram:**
-1. Acesse: [@assistentefinanceiroiabot](https://t.me/assistentefinanceiroiabot)
+1. Acesse: [@stater](https://t.me/stater)
 2. Digite: `/start SEU_CODIGO_AQUI`
 3. Aguarde a confirmação de vinculação
 
@@ -135,11 +135,11 @@ CREATE TABLE telegram_users (
 
 ## 🔗 Acesso ao Bot
 
-**Link:** https://t.me/assistentefinanceiroiabot
+**Link:** https://t.me/stater
 
 ## 📱 Como Usar
 
-1. **Acesse o bot:** [t.me/assistentefinanceiroiabot](https://t.me/assistentefinanceiroiabot)
+1. **Acesse o bot:** [t.me/stater](https://t.me/stater)
 2. **Digite `/start`** para iniciar
 3. **Envie uma foto** do seu extrato bancário
 4. **Aguarde o processamento** da IA
@@ -165,7 +165,7 @@ dashboard - Ver suas transações
 ```
 /setdescription
 Selecione seu bot e cole:
-Assistente Financeiro com IA para análise automática de extratos bancários. Envie foto do extrato e receba as transações processadas automaticamente!
+Stater IA - Assistente financeiro inteligente para análise automática de extratos bancários. Envie foto do extrato e receba as transações processadas automaticamente!
 ```
 
 ### 8. Executar o bot

@@ -169,7 +169,17 @@ async function callGeminiAPI(userMessage: string, userId?: string): Promise<stri
     
     let financialContextText = '';
     let userName = 'Usuário';
-      // Se temos userId, buscar dados financeiros COMPLETOS
+    
+    // Pegar nome do usuário do Telegram primeiro
+    const telegramUser = update.message?.from;
+    if (telegramUser) {
+      userName = telegramUser.first_name || telegramUser.username || 'Usuário';
+      if (telegramUser.last_name) {
+        userName += ` ${telegramUser.last_name}`;
+      }
+    }
+    
+    // Se temos userId, buscar dados financeiros COMPLETOS
     if (userId) {
       try {
         // Buscar dados do usuário
@@ -179,9 +189,10 @@ async function callGeminiAPI(userMessage: string, userId?: string): Promise<stri
           .eq('id', userId)
           .single();
         
-        if (userData) {
-          userName = userData.full_name || userData.email?.split('@')[0] || 'Usuário';
+        if (userData && userData.full_name) {
+          userName = userData.full_name; // Usar nome do perfil se disponível
         }
+        // Senão, manter o nome do Telegram já capturado acima
 
         // Buscar TODAS as transações recentes (50 para análise completa)
         const recentTransactions = await getUserTransactions(userId, 50);
@@ -1030,6 +1041,7 @@ export default async function handler(req: any, res: any) {
           '• <b>/conectar</b> - Conectar sua conta\n' +
           '• <b>/saldo</b> - Ver saldo atual\n' +
           '• <b>/dashboard</b> - Abrir app\n' +
+          '• <b>/sair</b> - Desconectar conta\n' +
           '• <b>/help</b> - Esta ajuda\n\n' +
           '🚀 <b>FUNCIONALIDADES:</b>\n' +
           '• Digite: "adicione 50 reais de almoço"\n' +
@@ -1137,6 +1149,64 @@ export default async function handler(req: any, res: any) {
           '💡 <i>Conecte sua conta aqui no Telegram para acesso direto!</i>'
         );
         return res.status(200).json({ ok: true, message: 'Comando /dashboard processado' });
+      }
+
+      // Comando /sair - desconectar conta do Telegram
+      if (messageText === '/sair') {
+        console.log('👋 Processando comando /sair');
+        
+        const userData = await getTelegramUserData(chatId);
+        if (!userData.linked) {
+          await sendTelegramMessage(chatId,
+            '❌ <b>Você não está conectado</b>\n\n' +
+            '💡 Para conectar sua conta, use:\n' +
+            '• Digite <b>/conectar</b>\n\n' +
+            '🤖 <i>Posso continuar respondendo perguntas gerais!</i>'
+          );
+          return res.status(200).json({ ok: true, message: 'Comando /sair - não conectado' });
+        }
+
+        try {
+          // Remover vinculação do banco de dados
+          const { error } = await supabaseAdmin
+            .from('telegram_connections')
+            .delete()
+            .eq('telegram_chat_id', chatId);
+
+          if (error) {
+            console.error('❌ Erro ao desconectar:', error);
+            await sendTelegramMessage(chatId,
+              '❌ <b>Erro ao desconectar</b>\n\n' +
+              '🔧 Tente novamente em alguns instantes.\n' +
+              '💬 Se o problema persistir, entre em contato com o suporte.'
+            );
+            return res.status(200).json({ ok: true, message: 'Erro ao desconectar' });
+          }
+
+          await sendTelegramMessage(chatId,
+            '👋 <b>Conta desconectada com sucesso!</b>\n\n' +
+            '✅ Sua conta Stater foi desvinculada do Telegram.\n\n' +
+            '🔒 <b>Sua privacidade:</b>\n' +
+            '• Não tenho mais acesso aos seus dados\n' +
+            '• Suas informações permanecem seguras no app\n' +
+            '• Posso responder apenas perguntas gerais\n\n' +
+            '🔗 <b>Para reconectar:</b>\n' +
+            '• Digite <b>/conectar</b> a qualquer momento\n\n' +
+            '💙 Obrigado por usar o Stater IA!'
+          );
+          
+          console.log('✅ Usuário desconectado com sucesso');
+          return res.status(200).json({ ok: true, message: 'Comando /sair processado' });
+          
+        } catch (error) {
+          console.error('❌ Erro interno ao desconectar:', error);
+          await sendTelegramMessage(chatId,
+            '❌ <b>Erro interno</b>\n\n' +
+            '🔧 Tente novamente em alguns instantes.\n' +
+            '💬 Se persistir, contate o suporte.'
+          );
+          return res.status(200).json({ ok: true, message: 'Erro interno' });
+        }
       }      // Verificar se é um código de conexão (formato: 2 números + 2 letras)
       const codePattern = /^[0-9]{2}[A-Z]{2}$/;
       if (codePattern.test(messageText.toUpperCase())) {

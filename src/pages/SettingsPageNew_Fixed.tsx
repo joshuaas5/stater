@@ -58,7 +58,7 @@ const SettingsPage: React.FC = () => {
       setTelegramLinkCode(code);
       
       // Abrir o Telegram automaticamente
-      const telegramUrl = `https://t.me/assistentefinanceiroiabot?start=${code}`;
+      const telegramUrl = `https://t.me/stater?start=${code}`;
       window.open(telegramUrl, '_blank');
       
       toast({
@@ -479,7 +479,7 @@ const SettingsPage: React.FC = () => {
                     
                     <div className="flex gap-4">
                       <Button 
-                        onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
+                        onClick={() => window.open('https://t.me/stater', '_blank')}
                         className="flex-1 bg-blue-600 hover:bg-blue-700 text-lg py-6"
                         size="lg"
                       >

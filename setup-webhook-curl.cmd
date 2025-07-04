@@ -18,5 +18,5 @@ curl -X GET "https://api.telegram.org/bot7971646954:AAHpeNAzvg3kq7A1uER58XRms94s
 
 echo.
 echo.
-echo 🎉 Concluído! Teste no bot: https://t.me/assistentefinanceiroiabot
+echo 🎉 Concluído! Teste no bot: https://t.me/stater
 pause

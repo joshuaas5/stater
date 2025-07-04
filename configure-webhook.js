@@ -5,7 +5,7 @@ const configureWebhook = async () => {
   const WEBHOOK_URL = 'https://ictus-six.vercel.app/api/telegram-webhook';
 
   console.log('🤖 Configurando webhook do bot Telegram...');
-  console.log('🔗 Bot: https://t.me/assistentefinanceiroiabot');
+  console.log('🔗 Bot: https://t.me/stater');
   console.log('📡 Webhook URL:', WEBHOOK_URL);
 
   try {
@@ -57,7 +57,7 @@ const configureWebhook = async () => {
       console.log(`\n✅ Bot @${meResult.result.username} está ativo!`);
       console.log('🎉 Configuração completa!');
       console.log('\n📱 Para testar:');
-      console.log('1. Acesse: https://t.me/assistentefinanceiroiabot');
+      console.log('1. Acesse: https://t.me/stater');
       console.log('2. Digite: /start');
       console.log('3. Digite: /help');
       console.log('4. Teste: qualquer mensagem');

@@ -41,7 +41,7 @@ async function testeRapido() {
     console.log('❌ Erro na requisição:', error.message);
   }
   
-  console.log('\n🎯 Teste no Telegram: https://t.me/assistentefinanceiroiabot');
+  console.log('\n🎯 Teste no Telegram: https://t.me/stater');
   console.log('💬 Comandos para testar:');
   console.log('• /start - Boas vindas');
   console.log('• /help - Ajuda');

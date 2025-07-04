@@ -138,7 +138,8 @@ const ResetPasswordPage = () => {
     <div className="min-h-screen bg-galileo-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-galileo-text">Voyb Gestão</h1>
+          <h1 className="text-3xl font-bold text-galileo-text">Stater</h1>
+          <p className="text-galileo-secondaryText mt-2">Inteligência para prosperar</p>
           <p className="text-galileo-secondaryText mt-2">
             {t('resetPassword')}
           </p>

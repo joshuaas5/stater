@@ -147,39 +147,71 @@ export const saveSupabaseTransaction = async (transaction: Transaction): Promise
     // Log detalhado para debugging
     console.log("Tentando salvar transação no Supabase:", JSON.stringify(supabaseTransaction));
     
-    // Salvar no Supabase
-    const { data, error } = await supabase
-      .from('transactions')
-      .insert(supabaseTransaction)
-      .select()
-      .single();
+    // Usar RPC para garantir timestamp correto do servidor
+    console.log("🔄 Tentando salvar com RPC timestamp do servidor...");
     
-    if (error) {
-      console.error("Erro ao salvar transação no Supabase:", error);
-      // Tentar determinar a causa do erro
-      if (error.code === '23505') {
-        console.log("Transação já existe, tentando atualizar...");
-        // Se for um erro de chave duplicada, tente atualizar em vez de inserir
-        const { data: updateData, error: updateError } = await supabase
-          .from('transactions')
-          .update(supabaseTransaction)
-          .eq('id', supabaseTransaction.id)
-          .select()
-          .single();
+    // Primeiro, tentar usar RPC para timestamp correto
+    const { data: rpcData, error: rpcError } = await supabase
+      .rpc('insert_transaction_with_timestamp', {
+        p_user_id: user.id,
+        p_description: transaction.title,
+        p_amount: transaction.type === 'expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount),
+        p_type: transaction.type,
+        p_category: transaction.category || 'outros'
+      })
+      .single();
+
+    if (rpcError) {
+      console.warn("⚠️ RPC falhou, usando insert tradicional:", rpcError);
+      
+      // Fallback: inserção tradicional
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert({
+          ...supabaseTransaction,
+          date: new Date().toISOString().split('T')[0], // Data atual do servidor
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("Erro ao salvar transação no Supabase (fallback):", error);
+        // Tentar determinar a causa do erro
+        if (error.code === '23505') {
+          console.log("Transação já existe, tentando atualizar...");
+          // Se for um erro de chave duplicada, tente atualizar em vez de inserir
+          const { data: updateData, error: updateError } = await supabase
+            .from('transactions')
+            .update({
+              ...supabaseTransaction,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', supabaseTransaction.id)
+            .select()
+            .single();
+            
+          if (updateError) {
+            console.error("Erro ao atualizar transação existente:", updateError);
+            return { data: null, error: updateError };
+          }
           
-        if (updateError) {
-          console.error("Erro ao atualizar transação existente:", updateError);
-          return { data: null, error: updateError };
+          console.log("Transação atualizada com sucesso:", updateData);
+          return { data: updateData, error: null };
         }
-        
-        console.log("Transação atualizada com sucesso:", updateData);
-        return { data: updateData, error: null };
+        return { data: null, error };
       }
-      return { data: null, error };
+      
+      console.log("✅ Transação salva com fallback:", data);
+      return { data, error: null };
     }
     
-    console.log("Transação salva com sucesso no Supabase:", data);
-    return { data, error: null };
+    console.log("✅ Transação salva com RPC timestamp:", rpcData);
+    return { data: rpcData, error: null };
+    
+    console.log("✅ Transação salva com RPC timestamp:", rpcData);
+    return { data: rpcData, error: null };
   } catch (error: any) {
     console.error("Erro inesperado ao salvar transação no Supabase:", error);
     return { data: null, error };

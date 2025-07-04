@@ -164,51 +164,41 @@ export const FinancialAdvisorPage: React.FC = () => {
     }
   }, [navigate, currentUserId, isLoggedIn]); // Depend on currentUserId as well
 
-  // Persistência do Chat: Salvar mensagens no localStorage (CONSOLIDADO)
+  // Forçar salvamento imediatamente sempre que uma nova mensagem for adicionada
   useEffect(() => {
-    // Não salvar se o currentUserId ainda não foi determinado
+    if (currentUserId && messages.length > 0) {
+      const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
+      
+      const messagesToSave = messages.slice(-20);
+      localStorage.setItem(storageKey, JSON.stringify(
+        messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
+      ));
+      console.log(`🔥 [FORCE SAVE] Salvamento forçado! ${messagesToSave.length} mensagens para ${storageKey}`);
+    }
+  }, [messages.length, currentUserId]); // Dependência apenas no length para evitar loops
+
+  // Persistência do Chat: Salvar mensagens no localStorage
+  useEffect(() => {
     if (currentUserId === undefined) {
-        console.log('� [CHAT SAVE] User ID não determinado ainda, aguardando...');
+        // Don't save if user ID isn't determined yet
+        console.log('💬 [CHAT SAVE] User ID não determinado ainda, aguardando...');
         return;
     }
 
-    // Não salvar se só há a mensagem inicial padrão
-    if (messages.length === 1 && messages[0].text === INITIAL_SYSTEM_MESSAGE_TEXT) {
-      console.log('💬 [CHAT SAVE] Apenas mensagem inicial padrão, não salvando');
-      return;
-    }
-
-    // Salvar quando há mensagens válidas
-    if (messages.length > 0) {
+    // Sempre salvar se há mais de 1 mensagem ou se a mensagem foi modificada do texto inicial
+    if (messages.length > 1 || (messages.length === 1 && messages[0].text !== INITIAL_SYSTEM_MESSAGE_TEXT)) {
       const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
       
-      try {
-        const messagesToSave = messages.slice(-30); // Manter 30 mensagens mais recentes
-        const serializedMessages = JSON.stringify(
-          messagesToSave.map((msg: ChatMessage) => ({ 
-            ...msg, 
-            timestamp: msg.timestamp.toISOString() 
-          }))
-        );
-        
-        localStorage.setItem(storageKey, serializedMessages);
-        
-        console.log(`💬 [CHAT SAVE] ✅ Salvou ${messagesToSave.length} mensagens para ${storageKey}`);
-        console.log(`💬 [CHAT SAVE] Última mensagem: "${messagesToSave[messagesToSave.length - 1]?.text?.substring(0, 50)}..."`);
-        
-        // Verificar se foi realmente salvo
-        const verification = localStorage.getItem(storageKey);
-        if (verification) {
-          console.log(`💬 [CHAT SAVE] ✅ Verificação: ${verification.length} caracteres salvos`);
-        } else {
-          console.error('💬 [CHAT SAVE] ❌ Falha na verificação do salvamento');
-        }
-        
-      } catch (error) {
-        console.error('💬 [CHAT SAVE] ❌ Erro ao salvar:', error);
-      }
+      const messagesToSave = messages.slice(-20); // Salvar últimas 20 mensagens
+      localStorage.setItem(storageKey, JSON.stringify(
+        messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
+      ));
+      console.log(`💬 [CHAT SAVE] Salvou ${messagesToSave.length} mensagens para ${storageKey}`);
+      console.log(`💬 [CHAT SAVE] Primeiras 2 mensagens:`, messagesToSave.slice(0, 2).map(m => m.text.substring(0, 50)));
+    } else {
+      console.log('💬 [CHAT SAVE] Apenas mensagem inicial, não salvando');
     }
-  }, [messages, currentUserId]); // Dependências: messages completo e currentUserId
+  }, [messages, currentUserId]);
   useEffect(() => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -399,18 +389,35 @@ const handleSendMessage = async (message: string) => {
                 ? new Date(transaction.date) 
                 : new Date();
 
-              // Salvar no Supabase (única fonte da verdade)
-              const supabaseInsert = await supabase.from('transactions').insert([
-                {
-                  type: transaction.type,
-                  amount: transaction.amount,
-                  category: transaction.category || null,
-                  title: transaction.description,
-                  date: transactionDate.toISOString(),
-                  created_at: new Date().toISOString(),
-                  user_id: activeUserId
+              // Salvar no Supabase com timestamp correto do servidor
+              console.log('🔄 Salvando transação com RPC timestamp do servidor...');
+              const supabaseInsert = await supabase.rpc('insert_transaction_with_timestamp', {
+                p_user_id: activeUserId,
+                p_description: transaction.description,
+                p_amount: transaction.amount,
+                p_type: transaction.type,
+                p_category: transaction.category || 'outros'
+              });
+              
+              // Fallback se RPC falhar
+              if (supabaseInsert.error) {
+                console.warn('⚠️ RPC falhou, usando insert tradicional:', supabaseInsert.error);
+                const fallbackInsert = await supabase.from('transactions').insert([
+                  {
+                    type: transaction.type,
+                    amount: transaction.amount,
+                    category: transaction.category || null,
+                    title: transaction.description,
+                    date: new Date().toISOString().split('T')[0], // Data atual do servidor
+                    created_at: new Date().toISOString(),
+                    user_id: activeUserId
+                  }
+                ]).select();
+                
+                if (fallbackInsert.error) {
+                  throw new Error(`Erro ao salvar: ${fallbackInsert.error.message}`);
                 }
-              ]).select();
+              }
               
               console.log('✅ Supabase insert result:', supabaseInsert);
               
@@ -554,17 +561,31 @@ const handleSendMessage = async (message: string) => {
 
           const transactionDate = getValidDate(date);
 
-          // Salva no Supabase
-          await supabase.from('transactions').insert([
-            {
-              type: pendingAction.tipo === 'income' ? 'income' : 'expense',
-              amount: amount,
-              category: category || null,
-              title: capitalizedDescription, // Usa a descrição capitalizada
-              date: transactionDate.toISOString(),
-              created_at: new Date().toISOString(),
-            }
-          ]);          // Salva no localStorage usando a função utilitária
+          // Salva no Supabase com timestamp correto do servidor
+          console.log('🔄 Salvando transação manual com RPC timestamp...');
+          const supabaseResult = await supabase.rpc('insert_transaction_with_timestamp', {
+            p_user_id: activeUserId,
+            p_description: capitalizedDescription,
+            p_amount: amount,
+            p_type: pendingAction.tipo === 'income' ? 'income' : 'expense',
+            p_category: category || 'outros'
+          });
+
+          // Fallback se RPC falhar
+          if (supabaseResult.error) {
+            console.warn('⚠️ RPC falhou, usando insert tradicional:', supabaseResult.error);
+            await supabase.from('transactions').insert([
+              {
+                type: pendingAction.tipo === 'income' ? 'income' : 'expense',
+                amount: amount,
+                category: category || null,
+                title: capitalizedDescription,
+                date: new Date().toISOString().split('T')[0], // Data atual
+                created_at: new Date().toISOString(),
+                user_id: activeUserId
+              }
+            ]);
+          }          // Salva no localStorage usando a função utilitária
           const transactionToSave: Transaction = {
             id: uuidv4(), 
             title: capitalizedDescription, // Usa a descrição capitalizada
@@ -662,19 +683,7 @@ const handleSendMessage = async (message: string) => {
 
     // Adiciona a mensagem do usuário à interface
     const newUserMessage: ChatMessage = { id: uuidv4(), text: message, sender: 'user', timestamp: new Date(), avatarUrl: USER_AVATAR };
-    setMessages(prevMessages => {
-      const updatedMessages = [...prevMessages, newUserMessage];
-      // Forçar salvamento imediato após adicionar mensagem do usuário
-      if (currentUserId) {
-        const storageKey = `financialAdvisorChatMessages_${currentUserId}`;
-        const messagesToSave = updatedMessages.slice(-20);
-        localStorage.setItem(storageKey, JSON.stringify(
-          messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
-        ));
-        console.log(`💬 [IMMEDIATE SAVE] Salvou mensagem do usuário: "${message.substring(0, 50)}..."`);
-      }
-      return updatedMessages;
-    });
+    setMessages(prevMessages => [...prevMessages, newUserMessage]);
     setLoading(true);
     setError('');
     setShowSuggestions(false);
@@ -1313,7 +1322,7 @@ const handleSendMessage = async (message: string) => {
           // Remover o valor da linha para pegar a descrição
           description = cleanLine
             .replace(/r\$\s*\d+(?:[.,]\d{3})*(?:[.,]\d{2})?/i, '')
-            .replace(/\s*-\s*.*$/i, '') // Removes tudo após o dash
+            .replace(/\s*-\s*.*$/i, '') // Remove tudo após o dash
             .replace(/^\s*-\s*/, '') // Remove dash no início
             .trim();
           
@@ -1556,7 +1565,7 @@ const handleSendMessage = async (message: string) => {
           if (description && amountStr) {
             // Limpar descrição de formatação desnecessária
             description = description
-              .replace(/^\d+\.\s*/, '') // Removes numeração
+              .replace(/^\d+\.\s*/, '') // Remove numeração
               .replace(/^[•\-*]\s*/, '') // Remove marcadores
               .replace(/:\s*$/, '') // Remove dois pontos finais
               .trim();

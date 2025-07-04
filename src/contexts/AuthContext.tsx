@@ -94,14 +94,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, username: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signUp({ 
+      
+      // Verificar se o usuário já existe
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', email)
+        .single();
+      
+      if (existingUser) {
+        throw new Error('Este email já está registrado');
+      }
+      
+      const { data, error } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
           data: {
             username,
           },
-          emailRedirectTo: `${window.location.origin}/login`
+          emailRedirectTo: `${window.location.origin}/login?confirmed=true`
         }
       });
       
@@ -109,24 +121,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      // Criar perfil no banco de dados
-      const { error: profileError } = await supabase.from('profiles').insert([
-        { 
-          id: (await supabase.auth.getUser()).data.user?.id,
-          username, 
-          email 
-        }
-      ]);
-      
-      if (profileError) {
-        console.error("Erro ao criar perfil:", profileError);
+      // Se o usuário foi criado mas precisa de confirmação
+      if (data.user && !data.session) {
+        toast({
+          title: "Quase lá! 📧",
+          description: "Enviamos um email de confirmação. Verifique sua caixa de entrada e spam."
+        });
+        return;
       }
       
-      toast({
-        title: "Conta criada com sucesso!",
-        description: "Verifique seu email para confirmar sua conta"
-      });
+      // Se o usuário foi criado e já está autenticado (email confirmation desabilitada)
+      if (data.user && data.session) {
+        // Criar perfil no banco de dados
+        const { error: profileError } = await supabase.from('profiles').insert([
+          { 
+            id: data.user.id,
+            username, 
+            email 
+          }
+        ]);
+        
+        if (profileError) {
+          console.error("Erro ao criar perfil:", profileError);
+        }
+        
+        toast({
+          title: "Conta criada com sucesso! 🎉",
+          description: "Bem-vindo ao Stater!"
+        });
+      }
+      
     } catch (error: any) {
+      console.error("Erro no cadastro:", error);
+      
+      let errorMessage = "Erro ao criar conta";
+      
+      if (error.message === "Este email já está registrado") {
+        errorMessage = "Este email já está registrado. Faça login ou recupere sua senha.";
+      } else if (error.message?.includes("User already registered")) {
+        errorMessage = "Este email já está registrado. Verifique sua caixa de entrada para confirmar sua conta.";
+      } else if (error.message?.includes("Password")) {
+        errorMessage = "A senha deve ter pelo menos 6 caracteres";
+      } else if (error.message?.includes("Email")) {
+        errorMessage = "Por favor, insira um email válido";
+      } else if (error.message?.includes("Invalid email")) {
+        errorMessage = "Email inválido";
+      }
+      
       toast({
         title: "Erro no cadastro",
         description: error.message,

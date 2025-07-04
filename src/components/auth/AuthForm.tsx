@@ -172,7 +172,10 @@ const AuthForm: React.FC = () => {
             }
           </p>
           <Button 
-            onClick={() => navigate('/login')}
+            onClick={() => {
+              setEmailSent(false);
+              setMode('login');
+            }}
             className="bg-galileo-accent hover:bg-galileo-secondaryText text-galileo-text"
           >
             Voltar para o login

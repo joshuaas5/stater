@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTermsAcceptance } from '@/hooks/useTermsAcceptance';
 import { TermsModal } from '@/components/terms/TermsModal';
 
@@ -7,7 +8,12 @@ interface TermsWrapperProps {
 }
 
 export const TermsWrapper: React.FC<TermsWrapperProps> = ({ children }) => {
+  const location = useLocation();
   const { showTermsModal, isChecking, acceptTerms } = useTermsAcceptance();
+
+  // Páginas públicas que não precisam de verificação de termos
+  const publicPages = ['/login', '/reset-password', '/privacy', '/terms', '/test'];
+  const isPublicPage = publicPages.includes(location.pathname);
 
   const handleAcceptTerms = async () => {
     const success = await acceptTerms();
@@ -16,7 +22,12 @@ export const TermsWrapper: React.FC<TermsWrapperProps> = ({ children }) => {
     }
   };
 
-  // Enquanto verifica o status dos termos, não renderizar nada para evitar flash
+  // Para páginas públicas, renderizar sempre
+  if (isPublicPage) {
+    return <>{children}</>;
+  }
+
+  // Enquanto verifica o status dos termos para páginas privadas, não renderizar nada para evitar flash
   if (isChecking) {
     return null;
   }

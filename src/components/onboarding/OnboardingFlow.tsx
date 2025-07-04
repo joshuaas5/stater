@@ -17,7 +17,7 @@ interface OnboardingStep {
 const onboardingSteps: OnboardingStep[] = [
   {
     id: 1,
-    title: "Bem-vindo ao ICTUS",
+    title: "Bem-vindo ao Stater",
     subtitle: "Seu assistente financeiro inteligente",
     description: "Controle suas finanças de forma simples e automática com ajuda da Inteligência Artificial",
     icon: <Target className="w-16 h-16" />,

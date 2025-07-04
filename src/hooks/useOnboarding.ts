@@ -97,7 +97,7 @@ export const useOnboarding = () => {
       console.log('✅ [ONBOARDING DEBUG] Dados salvos:', data);
       
       // Remover qualquer entrada do localStorage como cleanup (migração)
-      const userOnboardingKey = `ictus_onboarding_completed_${user.id}`;
+      const userOnboardingKey = `stater_onboarding_completed_${user.id}`;
       if (localStorage.getItem(userOnboardingKey)) {
         localStorage.removeItem(userOnboardingKey);
         console.log('✅ [ONBOARDING DEBUG] Limpeza: removido localStorage antigo');

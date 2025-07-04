@@ -36,7 +36,7 @@ export const useTermsAcceptance = () => {
         if (error && error.code !== 'PGRST116') { // PGRST116 = row not found
           console.warn('⚠️ [TERMS DEBUG] Erro ao buscar dados dos termos, usando fallback localStorage:', error);
           // Fallback para localStorage se a tabela não existir ainda
-          const localKey = `ictus_terms_accepted_${user.id}`;
+          const localKey = `stater_terms_accepted_${user.id}`;
           hasAccepted = localStorage.getItem(localKey) === 'true';
         } else {
           hasAccepted = !!termsData?.accepted_at;
@@ -96,7 +96,7 @@ export const useTermsAcceptance = () => {
       if (error) {
         console.warn('⚠️ [TERMS DEBUG] Erro ao salvar no Supabase, usando fallback localStorage:', error);
         // Fallback para localStorage se a tabela não existir
-        const localKey = `ictus_terms_accepted_${user.id}`;
+        const localKey = `stater_terms_accepted_${user.id}`;
         localStorage.setItem(localKey, 'true');
         console.log('✅ [TERMS DEBUG] Aceite dos termos salvo em localStorage para user:', user.id);
       } else {

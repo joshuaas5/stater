@@ -1,12 +1,12 @@
-# ICTUS Project
+# Stater Project
 
-**[Nota: Adicione aqui uma breve descrição do que é o projeto ICTUS e seus principais objetivos.]**
+**[Nota: Adicione aqui uma breve descrição do que é o projeto Stater e seus principais objetivos.]**
 
 Este projeto foi desenvolvido utilizando uma stack moderna de tecnologias web e mobile, com foco em fornecer [descrever o propósito principal, ex: uma rica experiência de usuário, uma plataforma de gerenciamento, etc.].
 
 ## Visão Geral das Tecnologias
 
-O projeto ICTUS é construído com:
+O projeto Stater é construído com:
 
 -   **Frontend Framework**: [React](https://reactjs.org/) com [Vite](https://vitejs.dev/) para um desenvolvimento rápido e eficiente.
 -   **Linguagem**: [TypeScript](https://www.typescriptlang.org/) para tipagem estática e maior robustez do código.

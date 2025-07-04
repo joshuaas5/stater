@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ictus-v1.0.0';
+const CACHE_NAME = 'stater-v1.0.0';
 const STATIC_ASSETS = [
   '/',
   '/static/js/bundle.js',
@@ -116,7 +116,7 @@ self.addEventListener('push', (event) => {
   console.log('Service Worker: Push received');
   
   const options = {
-    body: event.data ? event.data.text() : 'Nova notificação do ICTUS',
+    body: event.data ? event.data.text() : 'Nova notificação do Stater',
     icon: '/icon-192.png',
     badge: '/icon-96.png',
     vibrate: [200, 100, 200],
@@ -138,7 +138,7 @@ self.addEventListener('push', (event) => {
   };
   
   event.waitUntil(
-    self.registration.showNotification('ICTUS - Assistente Financeiro', options)
+    self.registration.showNotification('Stater - Assistente Financeiro', options)
   );
 });
 

@@ -73,7 +73,7 @@ export const MobileMenu: React.FC = () => {
           <div className="flex flex-col h-full">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-bold text-gray-900">ICTUS</h2>
+              <h2 className="text-xl font-bold text-gray-900">Stater</h2>
               <Button
                 variant="ghost"
                 size="icon"
@@ -123,7 +123,7 @@ export const MobileMenu: React.FC = () => {
             {/* Footer */}
             <div className="p-4 border-t bg-gray-50">
               <p className="text-sm text-gray-600 text-center">
-                ICTUS v1.0.0
+                Stater v1.0.0
               </p>
             </div>
           </div>

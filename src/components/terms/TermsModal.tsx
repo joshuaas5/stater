@@ -31,7 +31,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
       
       toast({
         title: "Termos aceitos com sucesso",
-        description: "Bem-vindo ao ICTUS! Você pode começar a usar o aplicativo."
+        description: "Bem-vindo ao Stater! Você pode começar a usar o aplicativo."
       });
     } catch (error) {
       console.error('❌ [TERMS MODAL] Erro ao aceitar termos:', error);
@@ -53,7 +53,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
       >
         <DialogHeader className="p-4 pb-2 flex-shrink-0 bg-white border-b shadow-sm">
           <DialogTitle className="text-lg md:text-xl font-bold text-center text-black bg-white px-2 py-1 rounded-sm" style={{ color: '#000000', backgroundColor: '#ffffff' }}>
-            Termos de Uso e Política de Privacidade - ICTUS
+            Termos de Uso e Política de Privacidade - Stater
           </DialogTitle>
         </DialogHeader>
         
@@ -65,19 +65,19 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
 
             <section>
               <h3 className="font-bold text-lg mb-2">1. SOBRE O APLICATIVO</h3>
-              <p className="mb-2">1.1. O ICTUS é um aplicativo de assistente financeiro inteligente que utiliza Inteligência Artificial para ajudar usuários a gerenciar suas finanças pessoais.</p>
+              <p className="mb-2">1.1. O Stater é um aplicativo de assistente financeiro inteligente que utiliza Inteligência Artificial para ajudar usuários a gerenciar suas finanças pessoais.</p>
               <p>1.2. O aplicativo oferece funcionalidades como análise de extratos, chat com IA, controle de gastos, relatórios financeiros e integração com bot do Telegram.</p>
             </section>
 
             <section>
               <h3 className="font-bold text-lg mb-2">2. ACEITAÇÃO DOS TERMOS</h3>
-              <p className="mb-2">2.1. Ao criar uma conta no ICTUS, você concorda integralmente com estes Termos de Uso e Política de Privacidade.</p>
+              <p className="mb-2">2.1. Ao criar uma conta no Stater, você concorda integralmente com estes Termos de Uso e Política de Privacidade.</p>
               <p>2.2. O uso continuado do aplicativo implica na aceitação de eventuais atualizações destes termos.</p>
             </section>
 
             <section>
               <h3 className="font-bold text-lg mb-2 text-blue-600">3. FUNCIONALIDADES GRATUITAS E PAGAS</h3>
-              <p className="mb-2">3.1. O ICTUS oferece funcionalidades básicas gratuitas e recursos premium pagos.</p>
+              <p className="mb-2">3.1. O Stater oferece funcionalidades básicas gratuitas e recursos premium pagos.</p>
               
               <div className="bg-blue-50 p-4 rounded-lg mb-2">
                 <p className="font-semibold text-blue-800 mb-2">3.2. PAGAMENTOS VIA GOOGLE PLAY:</p>
@@ -85,13 +85,13 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
                   <li>Todos os pagamentos de funcionalidades premium são processados exclusivamente através do Google Play Billing</li>
                   <li>A Google é responsável por toda a parte de cobrança, faturamento e processamento de pagamentos</li>
                   <li>Devoluções, estornos, contestações e questões de pagamento devem ser direcionadas diretamente à Google Play Store</li>
-                  <li>O ICTUS não tem acesso direto aos dados de pagamento dos usuários</li>
+                  <li>O Stater não tem acesso direto aos dados de pagamento dos usuários</li>
                   <li>As políticas de reembolso seguem os termos e condições da Google Play Store</li>
                   <li>Para cancelar assinaturas, o usuário deve acessar sua conta Google Play</li>
                 </ul>
               </div>
               
-              <p>3.3. O ICTUS não armazena dados de cartão de crédito ou informações financeiras de pagamento.</p>
+              <p>3.3. O Stater não armazena dados de cartão de crédito ou informações financeiras de pagamento.</p>
             </section>
 
             <section>
@@ -125,7 +125,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
             <section className="bg-yellow-50 p-4 rounded-lg">
               <h3 className="font-bold text-lg mb-2 text-yellow-800">📧 CONTATO E ENCARREGADO DE DADOS</h3>
               <p className="text-yellow-700">Para exercer seus direitos, dúvidas ou solicitações relacionadas aos dados:</p>
-              <p className="font-bold text-yellow-800">Email: financeictus@gmail.com</p>
+              <p className="font-bold text-yellow-800">Email: staterbills@gmail.com</p>
               <p className="text-sm text-yellow-600">Assunto: [LGPD] + sua solicitação</p>
             </section>
 
@@ -151,7 +151,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
                 className="mt-0.5"
               />
               <label htmlFor="terms" className="text-sm font-medium leading-5 cursor-pointer text-black select-none">
-                Li e aceito os Termos de Uso e Política de Privacidade do ICTUS
+                Li e aceito os Termos de Uso e Política de Privacidade do Stater
               </label>
             </div>
 

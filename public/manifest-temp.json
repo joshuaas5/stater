@@ -1,6 +1,6 @@
 {
-  "name": "ICTUS - Assistente Financeiro IA",
-  "short_name": "ICTUS",
+  "name": "Stater - Assistente Financeiro IA",
+  "short_name": "Stater",
   "description": "Assistente financeiro inteligente com IA para controle de gastos e análise de extratos",
   "start_url": "/",
   "display": "standalone",
@@ -26,7 +26,7 @@
       "src": "/screenshot-app.png",
       "sizes": "390x844",
       "type": "image/png",
-      "label": "Tela principal do ICTUS"
+      "label": "Tela principal do Stater"
     }
   ]
 }

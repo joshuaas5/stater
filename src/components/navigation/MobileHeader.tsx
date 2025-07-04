@@ -18,7 +18,7 @@ interface MobileHeaderProps {
 }
 
 export const MobileHeader: React.FC<MobileHeaderProps> = ({
-  title = 'ICTUS',
+  title = 'Stater',
   showBackButton = false,
   className
 }) => {

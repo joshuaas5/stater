@@ -48,14 +48,14 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-        <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="text-xl font-bold text-center">
+      <DialogContent className="w-full max-w-4xl h-[95vh] max-h-[95vh] p-0 m-2 flex flex-col">
+        <DialogHeader className="p-4 pb-2 flex-shrink-0">
+          <DialogTitle className="text-lg md:text-xl font-bold text-center">
             Termos de Uso e Política de Privacidade - ICTUS
           </DialogTitle>
         </DialogHeader>
         
-        <ScrollArea className="h-[60vh] px-6">
+        <ScrollArea className="flex-1 px-4 md:px-6">
           <div className="space-y-4 text-sm">
             <div className="text-center text-gray-500 text-xs">
               ÚLTIMA ATUALIZAÇÃO: 27 de junho de 2025
@@ -139,7 +139,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           </div>
         </ScrollArea>
 
-        <div className="p-6 pt-4 border-t space-y-4">
+        <div className="p-4 pt-2 border-t space-y-4 flex-shrink-0">
           <div className="space-y-3">
             <div className="flex items-start space-x-3">
               <Checkbox 
@@ -147,7 +147,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
                 checked={termsAccepted}
                 onCheckedChange={(checked) => setTermsAccepted(checked === true)}
               />
-              <label htmlFor="terms" className="text-sm font-medium leading-5">
+              <label htmlFor="terms" className="text-sm font-medium leading-5 cursor-pointer">
                 Li e aceito os Termos de Uso e Política de Privacidade do ICTUS
               </label>
             </div>
@@ -158,7 +158,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
                 checked={dataProcessingAccepted}
                 onCheckedChange={(checked) => setDataProcessingAccepted(checked === true)}
               />
-              <label htmlFor="data" className="text-sm font-medium leading-5">
+              <label htmlFor="data" className="text-sm font-medium leading-5 cursor-pointer">
                 Autorizo o tratamento dos meus dados pessoais conforme descrito acima (LGPD)
               </label>
             </div>
@@ -169,17 +169,17 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
                 checked={googlePlayAccepted}
                 onCheckedChange={(checked) => setGooglePlayAccepted(checked === true)}
               />
-              <label htmlFor="google" className="text-sm font-medium leading-5">
+              <label htmlFor="google" className="text-sm font-medium leading-5 cursor-pointer">
                 Estou ciente das funcionalidades pagas processadas via Google Play Billing
               </label>
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Button 
               variant="outline" 
               onClick={onClose}
-              className="flex-1"
+              className="flex-1 order-2 sm:order-1"
               disabled={isAccepting}
             >
               Cancelar
@@ -187,7 +187,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
             <Button 
               onClick={handleAccept}
               disabled={!allAccepted || isAccepting}
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 order-1 sm:order-2"
             >
               {isAccepting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isAccepting 

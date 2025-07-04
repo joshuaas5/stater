@@ -15,7 +15,36 @@ const pendingTransactions = new Map();
 // Storage para associações de usuários
 const userSessions = new Map(); // chatId -> { userId, userEmail, linkCode }
 
-console.log('🤖 Stater Telegram Bot iniciado!');
+console.log('🤖 Stater Telegram Bot iniciado!' );
+
+// Recarregar sessões ativas ao iniciar
+async function reloadActiveSessions() {
+    try {
+        console.log('🔄 Recarregando sessões ativas...');
+        
+        const { data: activeUsers } = await supabase
+            .from('telegram_users')
+            .select('telegram_chat_id, user_id, user_email, user_name')
+            .eq('is_active', true);
+        
+        if (activeUsers) {
+            activeUsers.forEach(user => {
+                userSessions.set(parseInt(user.telegram_chat_id), {
+                    userId: user.user_id,
+                    userEmail: user.user_email,
+                    userName: user.user_name
+                });
+            });
+            
+            console.log(`✅ ${activeUsers.length} sessões recarregadas`);
+        }
+    } catch (error) {
+        console.error('❌ Erro ao recarregar sessões:', error);
+    }
+}
+
+// Carregar sessões na inicialização
+reloadActiveSessions();
 
 // Comando /start
 bot.onText(/\/start(.*)/, async (msg, match) => {
@@ -57,7 +86,7 @@ Sem conexão você pode testar enviando uma foto!`;
 bot.onText(/\/help/, async (msg) => {
     const chatId = msg.chat.id;
     const userSession = userSessions.get(chatId);
-      let helpMessage = `🆘 *Como usar:*
+      let helpMessage = `🆘 *Como usar o Stater Bot:*
 
 📷 *Enviar foto de extrato*
 • Tire uma foto clara
@@ -69,16 +98,23 @@ bot.onText(/\/help/, async (msg) => {
 • "Onde mais gasto dinheiro?"
 • "Dicas para economizar?"
 
-🔗 *Ver no app*
-• /dashboard abre o app
-• Suas transações ficam lá
+🤖 *Comandos disponíveis:*
+• /start - Iniciar ou vincular conta
+• /conectar - Ver Chat ID para conexão
+• /conta - Ver informações da conta
+• /dashboard - Abrir app Stater
+• /chat - Ativar modo conversa
+• /sair - Desconectar conta
+• /help - Esta ajuda
 
 💡 *Dica: foto bem iluminada funciona melhor!*`;
 
     if (!userSession) {
         helpMessage += `\n\n⚠️ *Para usar tudo:*
-• Conecte sua conta no app
-• Configurações > Telegram`;
+• Use /conectar para ver seu Chat ID
+• Conecte no app: Configurações > Telegram`;
+    } else {
+        helpMessage += `\n\n✅ *Conectado como:* ${userSession.userName}`;
     }
     
     await bot.sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
@@ -122,6 +158,142 @@ bot.onText(/\/dashboard/, async (msg) => {
             ]]
         }
     });
+});
+
+// Comando /conectar - mostra Chat ID para vinculação
+bot.onText(/\/conectar/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userSession = userSessions.get(chatId);
+    
+    if (userSession) {
+        await bot.sendMessage(chatId, `✅ *Você já está conectado!*
+
+👤 *Conta:* ${userSession.userName}
+📧 *Email:* ${userSession.userEmail}
+
+Use /conta para ver detalhes ou /sair para desconectar.`, { parse_mode: 'Markdown' });
+        return;
+    }
+    
+    const connectMessage = `🔗 *Para conectar sua conta Stater:*
+
+**Seu Chat ID:** \`${chatId}\`
+
+**Como conectar:**
+1. Abra o app Stater
+2. Vá em Configurações > Telegram
+3. Clique em "Conectar Agora"
+4. Use este Chat ID: **${chatId}**
+
+💡 *Ou gere um código no app e use: /start CODIGO*`;
+    
+    await bot.sendMessage(chatId, connectMessage, { parse_mode: 'Markdown' });
+});
+
+// Comando /conta - mostra informações da conta logada
+bot.onText(/\/conta/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userSession = userSessions.get(chatId);
+    
+    if (!userSession) {
+        await bot.sendMessage(chatId, `🔓 *Você não está conectado ainda.*
+
+🔗 *Para conectar:*
+• Use /conectar para ver seu Chat ID
+• Ou acesse: ${process.env.APP_URL}
+• Vá em Configurações > Telegram
+
+📷 *Sem conexão você pode testar enviando uma foto!*`, { parse_mode: 'Markdown' });
+        return;
+    }
+    
+    try {
+        // Buscar dados atualizados do usuário
+        const userContext = await getUserContextForChat(userSession.userId);
+        
+        const accountMessage = `👤 *Sua Conta Stater:*
+
+**Nome:** ${userSession.userName}
+**Email:** ${userSession.userEmail}
+**Chat ID:** \`${chatId}\`
+
+💰 **Dados Financeiros:**
+• Saldo atual: R$ ${userContext.balance.toFixed(2).replace('.', ',')}
+• Transações: ${userContext.transactionCount}
+
+🔗 **Ações:**
+• /dashboard - Abrir app
+• /sair - Desconectar conta`;
+        
+        await bot.sendMessage(chatId, accountMessage, { 
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [[
+                    { text: '📱 Abrir Stater App', url: process.env.APP_URL }
+                ]]
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Erro ao buscar conta:', error);
+        await bot.sendMessage(chatId, `👤 *Sua Conta Stater:*
+
+**Nome:** ${userSession.userName}
+**Email:** ${userSession.userEmail}
+**Chat ID:** \`${chatId}\`
+
+✅ *Conta conectada com sucesso!*`, { parse_mode: 'Markdown' });
+    }
+});
+
+// Comando /sair - desconectar usuário
+bot.onText(/\/sair/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userSession = userSessions.get(chatId);
+    
+    if (!userSession) {
+        await bot.sendMessage(chatId, `🤔 *Você não está conectado.*
+
+Para conectar sua conta use /conectar`, { parse_mode: 'Markdown' });
+        return;
+    }
+    
+    try {
+        console.log(`🚪 Desconectando usuário ${userSession.userName} (${chatId})`);
+        
+        // Remover da sessão em memória
+        userSessions.delete(chatId);
+        
+        // Marcar como inativo no banco (não remover o registro)
+        await supabase
+            .from('telegram_users')
+            .update({ is_active: false })
+            .eq('telegram_chat_id', chatId.toString());
+        
+        const disconnectMessage = `👋 *Desconectado com sucesso!*
+
+Sua conta **${userSession.userName}** foi desvinculada deste chat.
+
+🔗 *Para reconectar:*
+• Use /conectar para ver seu Chat ID
+• Ou gere novo código no app Stater
+
+📷 *Você ainda pode enviar fotos para análise (modo demo).
+
+Obrigado por usar o Stater! 💙`;
+        
+        await bot.sendMessage(chatId, disconnectMessage, { parse_mode: 'Markdown' });
+        
+    } catch (error) {
+        console.error('❌ Erro ao desconectar:', error);
+        
+        // Mesmo com erro, remover da sessão
+        userSessions.delete(chatId);
+        
+        await bot.sendMessage(chatId, `🚪 *Desconectado!*
+
+Use /conectar para reconectar quando quiser.`, { parse_mode: 'Markdown' });
+    }
 });
 
 // Processar imagens
@@ -479,7 +651,7 @@ async function getUserContextForChat(userId) {
 // Chamar Gemini para chat (similar ao app principal)
 async function callGeminiForChat(message, userContext, userSession) {
     try {
-        let contextPrompt = `Você é o assistente financeiro do ${userSession.userName}.`;
+        let contextPrompt = `Você é o Stater IA, assistente financeiro pessoal do ${userSession.userName}.`;
         
         if (userContext.transactionCount > 0) {
             contextPrompt += `\n\nDados recentes do usuário:`;
@@ -492,7 +664,7 @@ async function callGeminiForChat(message, userContext, userSession) {
         }
         
         contextPrompt += `\n\nPergunta do usuário: ${message}`;
-        contextPrompt += `\n\nResponda de forma útil, personalizada e em português brasileiro. Use emojis e seja amigável.`;
+        contextPrompt += `\n\nResponda de forma útil, personalizada e em português brasileiro. Use emojis e seja amigável. Sempre se refira ao usuário pelo nome "${userSession.userName}" quando apropriado.`;
         
         const response = await axios.post(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GEMINI_API_KEY}`,
@@ -521,11 +693,12 @@ async function getUserIdFromTelegram(chatId) {
             return userSession.userId;
         }
         
-        // Buscar no banco de dados
+        // Buscar no banco de dados (apenas usuários ativos)
         const { data } = await supabase
             .from('telegram_users')
             .select('user_id, user_email, user_name')
             .eq('telegram_chat_id', chatId.toString())
+            .eq('is_active', true)
             .single();
         
         if (data) {

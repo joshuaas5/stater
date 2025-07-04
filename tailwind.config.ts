@@ -137,7 +137,8 @@ export default {
 			},
 			fontFamily: {
 				'plus-jakarta': ['"Plus Jakarta Sans"', 'sans-serif'],
-				'noto-sans': ['"Noto Sans"', 'sans-serif']
+				'noto-sans': ['"Noto Sans"', 'sans-serif'],
+				'space-grotesk': ['"Space Grotesk"', 'sans-serif']
 			}
 		}
 	},

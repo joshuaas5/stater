@@ -27,7 +27,7 @@ const configureWebhook = async () => {
         allowed_updates: ['message', 'callback_query'],
         drop_pending_updates: true,
         max_connections: 40,
-        secret_token: 'ictus_webhook_secret_2025'
+        secret_token: 'stater_webhook_secret_2025'
       })
     });
 

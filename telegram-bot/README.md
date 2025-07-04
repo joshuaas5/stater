@@ -9,7 +9,7 @@
 ### 🎯 **Para usuários com conta vinculada:**
 - 📷 **Análise de extratos:** Envie fotos de extratos bancários para análise automática com IA
 - 💬 **Chat inteligente:** Converse com o assistente IA sobre suas finanças pessoais
-- 📊 **Dados em tempo real:** Acesso aos seus dados financeiros do app ICTUS
+- 📊 **Dados em tempo real:** Acesso aos seus dados financeiros do app Stater
 - 🔄 **Sincronização automática:** Transações aparecem no app instantaneamente
 
 ### ⚡ **Para usuários sem conta:**
@@ -18,7 +18,7 @@
 
 ## 🔗 Como Vincular sua Conta
 
-### 1. **No App ICTUS:**
+### 1. **No App Stater:**
 1. Acesse **Configurações > Telegram**
 2. Clique em **"Gerar código de vinculação"**
 3. Copie o código gerado (expira em 10 minutos)
@@ -33,7 +33,7 @@
 - `/start` - Iniciar bot ou vincular conta
 - `/help` - Lista de comandos e ajuda
 - `/chat` - Ativar modo de conversação com IA
-- `/dashboard` - Link para acessar o app ICTUS
+- `/dashboard` - Link para acessar o app Stater
 
 ## 🚀 Como Usar
 
@@ -111,7 +111,7 @@ CREATE TABLE telegram_users (
 
 ## 🎯 Fluxo de Integração
 
-1. **Usuário gera código** no app ICTUS
+1. **Usuário gera código** no app Stater
 2. **Bot recebe comando** `/start CODIGO`
 3. **Sistema valida** código no Supabase
 4. **Vinculação é salva** permanentemente
@@ -180,7 +180,7 @@ node bot.js
 3. Bot processa com IA Gemini
 4. Bot retorna transações encontradas
 5. Usuário confirma: SIM
-6. Transações são salvas no app ICTUS
+6. Transações são salvas no app Stater
 
 ## Comandos disponíveis:
 - `/start` - Iniciar bot
@@ -190,6 +190,6 @@ node bot.js
 ## Recursos:
 - ✅ Análise automática com IA
 - ✅ Suporte a extratos brasileiros
-- ✅ Integração com app ICTUS
+- ✅ Integração com app Stater
 - ✅ Interface amigável
 - ✅ Totalmente gratuito

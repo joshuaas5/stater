@@ -243,7 +243,7 @@ async function callGeminiAPI(userMessage: string, userId?: string): Promise<stri
                                  userMessage.toLowerCase().includes('dinheiro') ||
                                  userMessage.toLowerCase().includes('financeira');
 
-    const contextToUse = needsFinancialContext ? financialContextText : "Dados financeiros disponíveis mediante solicitação.";      const fullPrompt = `Você é o Assistente IA do ICTUS - VERSÃO TELEGRAM com AUTONOMIA COMPLETA.
+    const contextToUse = needsFinancialContext ? financialContextText : "Dados financeiros disponíveis mediante solicitação.";      const fullPrompt = `Você é o Assistente IA do Stater - VERSÃO TELEGRAM com AUTONOMIA COMPLETA.
 
 VOCÊ TEM TOTAL AUTONOMIA PARA:
 - SALVAR transações automaticamente no banco de dados
@@ -743,8 +743,8 @@ export default async function handler(req: any, res: any) {
         }
         
         console.log('✅ Arquivo baixado:', fileBuffer.length, 'bytes');
-          // Processar qualquer tipo de documento usando a API do app ICTUS
-        console.log('📄 Processando documento usando API do ICTUS...');
+          // Processar qualquer tipo de documento usando a API do app Stater
+        console.log('📄 Processando documento usando API do Stater...');
         
         try {
           // Converter para base64 para enviar para a API
@@ -793,7 +793,7 @@ export default async function handler(req: any, res: any) {
             console.log('📎 Enviando arquivo genérico como imagem para API OCR...');
           }
           
-          // Chamar a API de OCR do app ICTUS
+          // Chamar a API de OCR do app Stater
           const ocrResponse = await fetch('https://sprout-spending-hub-vb4x.vercel.app/api/gemini-ocr', {
             method: 'POST',
             headers: {
@@ -982,14 +982,14 @@ export default async function handler(req: any, res: any) {
             console.log('✅ Vinculação bem-sucedida');
             await sendTelegramMessage(chatId, 
               `✅ Conta vinculada com sucesso!\n\n` +
-              `🎉 Olá ${username}! Sua conta ICTUS foi conectada ao Telegram.\n\n` +
+              `🎉 Olá ${username}! Sua conta Stater foi conectada ao Telegram.\n\n` +
               `🤖 Agora posso ajudar você com:\n` +
               `💰 Consultas de saldo e transações\n` +
               `📊 Análises financeiras personalizadas\n` +
               `💡 Dicas e conselhos financeiros\n` +
               `📝 Registro de novas transações\n\n` +
               `💬 Digite qualquer pergunta sobre suas finanças e eu responderei com base nos seus dados reais!\n\n` +
-              `Assistente IA ICTUS ativo! 🚀`
+              `Assistente IA Stater ativo! 🚀`
             );          } else {
             console.log('❌ Falha na vinculação');
             await sendTelegramMessage(chatId, 
@@ -997,14 +997,14 @@ export default async function handler(req: any, res: any) {
               `🔑 Código tentado: <code>${code}</code>\n\n` +
               `💡 <b>Soluções:</b>\n` +
               `• Digite <b>/conectar</b> para instruções completas\n` +
-              `• Gere um novo código no app ICTUS\n` +
+              `• Gere um novo código no app Stater\n` +
               `• Códigos expiram em 15 minutos\n\n` +
               `🔗 App: <a href="https://sprout-spending-hub-vb4x.vercel.app">sprout-spending-hub-vb4x.vercel.app</a>`
             );
           }} else {
           console.log('🆕 Comando /start sem código');
           await sendTelegramMessage(chatId,
-            '👋 <b>Bem-vindo ao Assistente IA do ICTUS!</b>\n\n' +
+            '👋 <b>Bem-vindo ao Assistente IA do Stater!</b>\n\n' +
             '🤖 Sou seu assistente financeiro pessoal inteligente.\n\n' +
             '⚡ <b>Conecte sua conta facilmente:</b>\n' +
             '• Digite: <b>/conectar</b>\n\n' +
@@ -1020,7 +1020,7 @@ export default async function handler(req: any, res: any) {
       if (messageText === '/help') {
         console.log('❓ Processando comando /help');
         await sendTelegramMessage(chatId,
-          '🤖 <b>Assistente IA ICTUS - TELEGRAM</b>\n\n' +
+          '🤖 <b>Assistente IA Stater - TELEGRAM</b>\n\n' +
           '✨ <b>EU TENHO AUTONOMIA TOTAL!</b>\n' +
           '• Salvo transações automaticamente\n' +
           '• Leio seus dados financeiros reais\n' +
@@ -1071,7 +1071,7 @@ export default async function handler(req: any, res: any) {
           }        } catch (error) {
           console.error('❌ Erro ao gerar código:', error);
           await sendTelegramMessage(chatId,
-            '🔗 <b>Conectar sua conta ICTUS - SIMPLES!</b>\n\n' +
+            '🔗 <b>Conectar sua conta Stater - SIMPLES!</b>\n\n' +
             '📱 <b>PASSO 1:</b> Copie este número:\n' +
             '👉 <code>' + chatId + '</code>\n\n' +
             '📱 <b>PASSO 2:</b> Abra este link:\n' +
@@ -1117,7 +1117,7 @@ export default async function handler(req: any, res: any) {
           });
         }
         
-        balanceMessage += `📱 <i>Dados sincronizados com seu app ICTUS!</i>`;
+        balanceMessage += `📱 <i>Dados sincronizados com seu app Stater!</i>`;
         
         await sendTelegramMessage(chatId, balanceMessage);
         return res.status(200).json({ ok: true, message: 'Comando /saldo processado' });
@@ -1127,7 +1127,7 @@ export default async function handler(req: any, res: any) {
       if (messageText === '/dashboard') {
         console.log('📊 Processando comando /dashboard');
         await sendTelegramMessage(chatId,
-          '📊 <b>Dashboard ICTUS</b>\n\n' +
+          '📊 <b>Dashboard Stater</b>\n\n' +
           '🔗 Acesse: <a href="https://sprout-spending-hub-vb4x.vercel.app">sprout-spending-hub-vb4x.vercel.app</a>\n\n' +
           '📱 <b>No dashboard você pode:</b>\n' +
           '• Ver suas transações\n' +
@@ -1149,13 +1149,13 @@ export default async function handler(req: any, res: any) {
         if (linkSuccess) {
           await sendTelegramMessage(chatId, 
             `✅ <b>Conta vinculada com sucesso!</b>\n\n` +
-            `🎉 Olá ${username}! Sua conta ICTUS foi conectada.\n\n` +
+            `🎉 Olá ${username}! Sua conta Stater foi conectada.\n\n` +
             `🤖 Agora posso analisar suas finanças reais e dar conselhos personalizados!\n\n` +
             `💬 <b>Experimente:</b>\n` +
             `• "Qual meu saldo atual?"\n` +
             `• "Análise dos meus gastos"\n` +
             `• "Como economizar dinheiro?"\n\n` +
-            `Assistente IA ICTUS ativo! 🚀`
+            `Assistente IA Stater ativo! 🚀`
           );
         } else {
           await sendTelegramMessage(chatId, 
@@ -1168,7 +1168,7 @@ export default async function handler(req: any, res: any) {
             `• Digite <b>/conectar</b> para gerar novo código\n` +
             `• Verifique se copiou corretamente\n` +
             `• Use o formato: 2 números + 2 letras (ex: 12AB)\n\n` +
-            `🔗 <a href="https://sprout-spending-hub-vb4x.vercel.app">Abrir App ICTUS</a>`
+            `🔗 <a href="https://sprout-spending-hub-vb4x.vercel.app">Abrir App Stater</a>`
           );
         }
         return res.status(200).json({ ok: true, message: 'Código processado' });
@@ -1204,7 +1204,7 @@ export default async function handler(req: any, res: any) {
             confirmMessage += `\n💰 <b>SEU SALDO ATUAL:</b> R$ ${balance.balance.toFixed(2)}\n`;
             confirmMessage += `📈 <b>Total Receitas:</b> R$ ${balance.totalIncome.toFixed(2)}\n`;
             confirmMessage += `📉 <b>Total Despesas:</b> R$ ${balance.totalExpense.toFixed(2)}\n\n`;
-            confirmMessage += `🎉 <b>Todas as transações foram adicionadas ao seu ICTUS!</b>\n`;
+            confirmMessage += `🎉 <b>Todas as transações foram adicionadas ao seu Stater!</b>\n`;
             confirmMessage += `📱 <i>Abra seu app para ver todas as transações!</i>`;
             
             await sendTelegramMessage(chatId, confirmMessage);

@@ -1,4 +1,4 @@
-// Script para testar sistema completo de conexão Telegram-ICTUS
+// Script para testar sistema completo de conexão Telegram-Stater
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = 'https://hlemutzuubhrkuhevsxo.supabase.co';

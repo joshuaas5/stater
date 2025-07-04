@@ -15,7 +15,7 @@ const pendingTransactions = new Map();
 // Storage para associações de usuários
 const userSessions = new Map(); // chatId -> { userId, userEmail, linkCode }
 
-console.log('🤖 ICTUS Telegram Bot iniciado!');
+console.log('🤖 Stater Telegram Bot iniciado!');
 
 // Comando /start
 bot.onText(/\/start(.*)/, async (msg, match) => {
@@ -108,7 +108,7 @@ Pode perguntar qualquer coisa:
 
 // Comando /dashboard
 bot.onText(/\/dashboard/, async (msg) => {
-    const dashboardMessage = `📊 *Abrir seu app ICTUS:*
+    const dashboardMessage = `📊 *Abrir seu app Stater:*
 
 🔗 ${process.env.APP_URL}
 
@@ -118,7 +118,7 @@ bot.onText(/\/dashboard/, async (msg) => {
         parse_mode: 'Markdown',
         reply_markup: {
             inline_keyboard: [[
-                { text: '📱 Abrir ICTUS App', url: process.env.APP_URL }
+                { text: '📱 Abrir Stater App', url: process.env.APP_URL }
             ]]
         }
     });
@@ -206,7 +206,7 @@ bot.on('message', async (msg) => {
         await processChatMessage(chatId, text, userSession);
     } else {
         // Usuário não vinculado - resposta genérica
-        await bot.sendMessage(chatId, `🤖 *Olá! Para conversas personalizadas, vincule sua conta ICTUS:*
+        await bot.sendMessage(chatId, `🤖 *Olá! Para conversas personalizadas, vincule sua conta Stater:*
 
 🔗 *Vincular conta:*
 1. Acesse: ${process.env.APP_URL}
@@ -335,7 +335,7 @@ async function confirmTransactions(chatId) {
         // Limpar pendentes
         pendingTransactions.delete(chatId);
         
-        const successMessage = `✅ *Perfeito! Salvei ${pending.transactions.length} transação(ões) no seu ICTUS!*
+        const successMessage = `✅ *Perfeito! Salvei ${pending.transactions.length} transação(ões) no seu Stater!*
 
 🔗 *Acesse seu dashboard:*
 ${process.env.APP_URL}/dashboard
@@ -347,7 +347,7 @@ ${process.env.APP_URL}/dashboard
             reply_markup: { 
                 remove_keyboard: true,
                 inline_keyboard: [[
-                    { text: '📱 Abrir ICTUS App', url: process.env.APP_URL }
+                    { text: '📱 Abrir Stater App', url: process.env.APP_URL }
                 ]]
             }
         });

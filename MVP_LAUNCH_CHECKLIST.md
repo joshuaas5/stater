@@ -1,4 +1,4 @@
-# ICTUS MVP - Lançamento Play Store
+# Stater MVP - Lançamento Play Store
 
 ## ✅ Funcionalidades Implementadas
 

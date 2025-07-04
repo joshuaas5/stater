@@ -1,4 +1,4 @@
-# ICTUS - Instruções de Desenvolvimento
+# Stater - Instruções de Desenvolvimento
 
 ## 🚨 REGRAS CRÍTICAS - NUNCA ESQUECER
 

@@ -505,7 +505,7 @@ const SettingsPage: React.FC = () => {
                       </div>
                       <div>
                         <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                          Use o ICTUS no Telegram
+                          Use o Stater no Telegram
                         </h3>
                         <p className="text-xl text-gray-600">
                           Acesse seu assistente financeiro em qualquer lugar

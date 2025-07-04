@@ -113,7 +113,7 @@ INSTRUÇÕES ESPECIAIS PARA TELEGRAM:
 Se o usuário perguntar sobre "deslogar", "sair da conta", "desconectar telegram", "logout" ou similar, explique como fazer:
 
 **🔌 Para desconectar do Telegram:**
-1. **No App ICTUS:** Vá em Dashboard → encontre o card "Telegram Conectado" → clique em "🔌 Desconectar"
+1. **No App Stater:** Vá em Dashboard → encontre o card "Telegram Conectado" → clique em "🔌 Desconectar"
 2. **Ou em Configurações:** Vá em Configurações → aba Telegram → botão "Desconectar"
 3. **Para reconectar:** Vá em Configurações → Telegram → "Conectar ao Telegram"
 

@@ -146,43 +146,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Verificar se o usuário já existe usando função RPC segura
-      const { data: userCheck, error: checkError } = await supabase.rpc('check_user_exists', {
-        email_param: email
-      });
+      // Verificar se o usuário já existe na tabela profiles (método mais confiável)
+      const { data: existingUsers, error: queryError } = await supabase
+        .from('profiles')
+        .select('email, auth_provider')
+        .eq('email', email);
       
-      if (checkError) {
-        console.error("Erro ao verificar usuário existente:", checkError);
-        // Continuar mesmo com erro, a verificação no próprio signUp do Supabase capturará duplicatas
-      } else if (userCheck && userCheck.exists) {
-        const provider = userCheck.auth_provider || 'unknown';
+      if (queryError) {
+        console.error("Erro ao verificar usuário existente:", queryError);
+        // Continuar mesmo com erro, o próprio Supabase vai detectar duplicatas
+      } else if (existingUsers && existingUsers.length > 0) {
+        const existingUser = existingUsers[0];
         
-        if (provider === 'google') {
+        if (existingUser.auth_provider === 'google') {
           toast({
-            title: "📧 Email já registrado via Google",
+            title: "Email já registrado",
             description: "Este email já possui uma conta criada via Google. Use o botão 'Continuar com Google' para fazer login.",
             variant: "destructive",
             duration: 8000
           });
           return;
-        } else if (provider === 'email') {
-          toast({
-            title: "📧 Email já registrado",
-            description: "Este email já possui uma conta. Faça login ou recupere sua senha se não lembrar.",
-            variant: "destructive",
-            duration: 8000
-          });
-          return;
         } else {
-          // Provider desconhecido, dar mensagem genérica
           toast({
-            title: "📧 Email já registrado",
-            description: "Este email já possui uma conta. Tente fazer login ou recuperar sua senha.",
+            title: "Email já registrado",
+            description: "Este email já possui uma conta. Faça login ou recupere sua senha se necessário.",
             variant: "destructive",
             duration: 8000
           });
           return;
         }
+      }
+      
+      // Tentar verificar usando RPC como backup (se disponível)
+      try {
+        const { data: userCheck, error: rpcError } = await supabase.rpc('check_user_exists', {
+          email_param: email
+        });
+        
+        if (!rpcError && userCheck && userCheck.exists && !existingUsers?.length) {
+          // RPC encontrou usuário que não estava na tabela profiles
+          const provider = userCheck.auth_provider || 'unknown';
+          
+          if (provider === 'google') {
+            toast({
+              title: "Email já registrado",
+              description: "Este email já possui uma conta criada via Google. Use o botão 'Continuar com Google' para fazer login.",
+              variant: "destructive",
+              duration: 8000
+            });
+            return;
+          } else if (provider === 'email') {
+            toast({
+              title: "Email já registrado",
+              description: "Este email já possui uma conta. Faça login ou recupere sua senha se necessário.",
+              variant: "destructive",
+              duration: 8000
+            });
+            return;
+          }
+        }
+      } catch (rpcError) {
+        console.log("RPC check_user_exists não disponível, continuando com verificação básica");
       }
       
       // Tentar criar nova conta
@@ -230,9 +254,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         toast({
-          title: "Quase lá! 📧",
-          description: `Enviamos um email de confirmação para ${email}. IMPORTANTE: Verifique também a pasta de SPAM/LIXO ELETRÔNICO. Se não encontrar o email, ele pode ter sido filtrado pelo seu provedor.`,
-          duration: 12000
+          title: "Confirmação enviada",
+          description: `Enviamos um email de confirmação para ${email}. Verifique sua caixa de entrada e, se necessário, a pasta de spam.`,
+          duration: 8000
         });
         return;
       }

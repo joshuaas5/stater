@@ -85,14 +85,14 @@ Confirme sua conta no Stater - Bem-vindo! 🎉
             border-left: 4px solid #2E4A6B;
             margin: 20px 0;
         }
-        .spam-warning {
-            background-color: #fef3c7;
-            border: 1px solid #f59e0b;
+        .spam-notice {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
-            padding: 15px;
+            padding: 12px;
             margin: 20px 0;
-            text-align: center;
-            font-weight: 600;
+            font-size: 14px;
+            color: #64748b;
         }
     </style>
 </head>
@@ -116,14 +116,12 @@ Confirme sua conta no Stater - Bem-vindo! 🎉
                 <a href="{{ .ConfirmationURL }}" class="button">Confirmar minha conta</a>
             </div>
             
-            <div class="spam-warning">
-                <strong>⚠️ IMPORTANTE:</strong> Se você não encontrar este email na sua caixa de entrada, 
-                <strong>verifique a pasta de SPAM ou LIXO ELETRÔNICO</strong>. 
-                Emails de confirmação às vezes são filtrados pelos provedores.
-            </div>
-            
             <div class="security-notice">
                 <strong>🔒 Segurança:</strong> Este link é válido por 24 horas e só pode ser usado uma vez. Se você não criou uma conta no Stater, pode ignorar este email com segurança.
+            </div>
+            
+            <div class="spam-notice">
+                <strong>Nota:</strong> Se este email não aparecer na sua caixa de entrada, verifique também a pasta de spam ou lixo eletrônico.
             </div>
             
             <p>Após confirmar seu email, você terá acesso a:</p>

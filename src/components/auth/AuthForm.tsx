@@ -172,18 +172,12 @@ const AuthForm: React.FC = () => {
             }
           </p>
           
-          {/* Aviso sobre spam - mais visível */}
-          <Alert className="mb-6 border-yellow-500 bg-yellow-50">
-            <AlertTitle className="text-yellow-800 font-semibold">
-              ⚠️ IMPORTANTE: Verifique a pasta de SPAM
-            </AlertTitle>
-            <AlertDescription className="text-yellow-700">
-              {mode === 'register' 
-                ? "O email de confirmação pode ter ido para sua pasta de spam/lixo eletrônico. Se não encontrar na caixa de entrada, verifique essas pastas."
-                : "O email de redefinição pode ter ido para sua pasta de spam/lixo eletrônico. Se não encontrar na caixa de entrada, verifique essas pastas."
-              }
-            </AlertDescription>
-          </Alert>
+          {/* Aviso sobre spam - mais discreto */}
+          <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-blue-800 text-sm">
+              <strong>Dica:</strong> Se o email não aparecer em alguns minutos, verifique também a pasta de spam ou lixo eletrônico.
+            </p>
+          </div>
           
           <Button 
             onClick={() => {

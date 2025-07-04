@@ -15,11 +15,10 @@ interface TermsModalProps {
 export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccept }) => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [dataProcessingAccepted, setDataProcessingAccepted] = useState(false);
-  const [googlePlayAccepted, setGooglePlayAccepted] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const { toast } = useToast();
 
-  const allAccepted = termsAccepted && dataProcessingAccepted && googlePlayAccepted;
+  const allAccepted = termsAccepted && dataProcessingAccepted;
 
   const handleAccept = async () => {
     if (!allAccepted) return;
@@ -48,9 +47,12 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-4xl h-[95vh] max-h-[95vh] p-0 m-2 flex flex-col">
-        <DialogHeader className="p-4 pb-2 flex-shrink-0">
-          <DialogTitle className="text-lg md:text-xl font-bold text-center">
+      <DialogContent 
+        className="w-full max-w-4xl h-[95vh] max-h-[95vh] p-0 m-2 flex flex-col bg-white"
+        style={{ backgroundColor: '#ffffff', color: '#000000' }}
+      >
+        <DialogHeader className="p-4 pb-2 flex-shrink-0 bg-white border-b shadow-sm">
+          <DialogTitle className="text-lg md:text-xl font-bold text-center text-black bg-white px-2 py-1 rounded-sm" style={{ color: '#000000', backgroundColor: '#ffffff' }}>
             Termos de Uso e Política de Privacidade - ICTUS
           </DialogTitle>
         </DialogHeader>
@@ -139,47 +141,38 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           </div>
         </ScrollArea>
 
-        <div className="p-4 pt-2 border-t space-y-4 flex-shrink-0">
+        <div className="p-4 pt-2 border-t space-y-4 flex-shrink-0 bg-white">
           <div className="space-y-3">
-            <div className="flex items-start space-x-3">
+            <div className="flex items-start space-x-3 bg-white p-2 rounded-md">
               <Checkbox 
                 id="terms" 
                 checked={termsAccepted}
                 onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                className="mt-0.5"
               />
-              <label htmlFor="terms" className="text-sm font-medium leading-5 cursor-pointer">
+              <label htmlFor="terms" className="text-sm font-medium leading-5 cursor-pointer text-black select-none">
                 Li e aceito os Termos de Uso e Política de Privacidade do ICTUS
               </label>
             </div>
 
-            <div className="flex items-start space-x-3">
+            <div className="flex items-start space-x-3 bg-white p-2 rounded-md">
               <Checkbox 
                 id="data" 
                 checked={dataProcessingAccepted}
                 onCheckedChange={(checked) => setDataProcessingAccepted(checked === true)}
+                className="mt-0.5"
               />
-              <label htmlFor="data" className="text-sm font-medium leading-5 cursor-pointer">
+              <label htmlFor="data" className="text-sm font-medium leading-5 cursor-pointer text-black select-none">
                 Autorizo o tratamento dos meus dados pessoais conforme descrito acima (LGPD)
-              </label>
-            </div>
-
-            <div className="flex items-start space-x-3">
-              <Checkbox 
-                id="google" 
-                checked={googlePlayAccepted}
-                onCheckedChange={(checked) => setGooglePlayAccepted(checked === true)}
-              />
-              <label htmlFor="google" className="text-sm font-medium leading-5 cursor-pointer">
-                Estou ciente das funcionalidades pagas processadas via Google Play Billing
               </label>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 bg-white p-2 rounded-md">
             <Button 
               variant="outline" 
               onClick={onClose}
-              className="flex-1 order-2 sm:order-1"
+              className="flex-1 order-2 sm:order-1 border-gray-300 text-gray-700 hover:bg-gray-50"
               disabled={isAccepting}
             >
               Cancelar
@@ -187,14 +180,15 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
             <Button 
               onClick={handleAccept}
               disabled={!allAccepted || isAccepting}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 order-1 sm:order-2"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium order-1 sm:order-2"
+              style={{ backgroundColor: !allAccepted || isAccepting ? '#9CA3AF' : '#2563EB' }}
             >
               {isAccepting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isAccepting 
                 ? 'Salvando...' 
                 : allAccepted 
                   ? 'Aceitar e Continuar' 
-                  : 'Aceite todos os termos'
+                  : 'Aceite ambos os termos'
               }
             </Button>
           </div>

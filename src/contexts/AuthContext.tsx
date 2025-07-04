@@ -146,39 +146,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Primeiro, verificar se o usuário já existe no sistema
+      // PRIMEIRO: Verificar se o usuário já existe via Supabase Auth (mais confiável)
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.error("Erro ao verificar usuários:", authError);
+        // Continuar mesmo com erro, mas tentar verificação alternativa
+      }
+      
+      // Verificar se email já existe no sistema de autenticação
+      const existingAuthUser = authUsers?.users?.find(user => user.email === email);
+      
+      if (existingAuthUser) {
+        const provider = existingAuthUser.app_metadata?.provider || 'email';
+        
+        if (provider === 'google') {
+          toast({
+            title: "📧 Email já registrado via Google",
+            description: "Este email já possui uma conta criada via Google. Use o botão 'Continuar com Google' para fazer login.",
+            variant: "destructive",
+            duration: 8000
+          });
+          return;
+        } else {
+          toast({
+            title: "📧 Email já registrado",
+            description: "Este email já possui uma conta. Faça login ou recupere sua senha se não lembrar.",
+            variant: "destructive",
+            duration: 8000
+          });
+          return;
+        }
+      }
+      
+      // ALTERNATIVA: Verificar na tabela profiles também (backup)
       const { data: existingUsers, error: queryError } = await supabase
         .from('profiles')
         .select('email, auth_provider')
         .eq('email', email);
       
       if (queryError) {
-        console.error("Erro ao verificar usuário existente:", queryError);
+        console.error("Erro ao verificar usuário existente na tabela profiles:", queryError);
       }
       
-      // Se encontrou usuário, verificar como ele foi criado
+      // Se encontrou usuário na tabela profiles
       if (existingUsers && existingUsers.length > 0) {
         const existingUser = existingUsers[0];
         
-        // Se foi criado via Google OAuth
         if (existingUser.auth_provider === 'google') {
           toast({
-            title: "📧 Email já registrado",
+            title: "📧 Email já registrado via Google",
             description: "Este email já possui uma conta criada via Google. Use o botão 'Continuar com Google' para fazer login.",
             variant: "destructive",
-            duration: 6000
+            duration: 8000
+          });
+          return;
+        } else {
+          toast({
+            title: "📧 Email já registrado",
+            description: "Este email já possui uma conta. Faça login ou recupere sua senha se não lembrar.",
+            variant: "destructive",
+            duration: 8000
           });
           return;
         }
-        
-        // Se foi criado via email mas não confirmado, pode tentar reenviar
-        toast({
-          title: "📧 Email já registrado",
-          description: "Este email já possui uma conta. Faça login ou recupere sua senha se não lembrar.",
-          variant: "destructive",
-          duration: 6000
-        });
-        return;
       }
       
       // Tentar criar nova conta
@@ -201,7 +232,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             title: "📧 Email já registrado",
             description: "Este email já possui uma conta. Verifique sua caixa de entrada para emails de confirmação anteriores ou faça login.",
             variant: "destructive",
-            duration: 6000
+            duration: 8000
           });
           return;
         }
@@ -227,8 +258,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         toast({
           title: "Quase lá! 📧",
-          description: "Enviamos um email de confirmação para " + email + ". Verifique sua caixa de entrada e spam.",
-          duration: 8000
+          description: `Enviamos um email de confirmação para ${email}. IMPORTANTE: Verifique também a pasta de SPAM/LIXO ELETRÔNICO.`,
+          duration: 10000
         });
         return;
       }
@@ -269,7 +300,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       toast({
         title: "Erro no cadastro",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;

@@ -56,8 +56,8 @@ const Login: React.FC = () => {
     <div className="min-h-screen bg-galileo-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-space-grotesk font-bold text-galileo-text">Stater</h1>
-          <p className="text-galileo-secondaryText mt-2 font-space-grotesk font-bold">Inteligência para prosperar</p>
+          <h1 className="text-6xl font-space-grotesk font-bold text-galileo-text">Stater</h1>
+          <p className="text-galileo-secondaryText mt-2 font-space-grotesk font-bold text-lg">Inteligência para prosperar</p>
         </div>
         
         <AuthForm />

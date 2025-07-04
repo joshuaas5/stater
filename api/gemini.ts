@@ -317,7 +317,7 @@ const handler = async (req: any, res: any) => {
                                originalPrompt.toLowerCase().includes('financeira');
 
   const contextToUse = needsFinancialContext ? financialContextText : "Dados financeiros disponíveis mediante solicitação.";
-  const fullPrompt = `Você é o Assistente IA do ICTUS, consultor financeiro direto e conciso.
+  const fullPrompt = `Você é o Stater IA, consultor financeiro direto e conciso.
 
 DATA: ${todayFormatted}
 USUÁRIO: ${userName}

@@ -1,4 +1,4 @@
-// API Webhook do Telegram - Integração Completa com Assistente IA (CORRIGIDO)
+// API Webhook do Telegram - Integração Completa com Stater IA (CORRIGIDO)
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from './supabase-admin';
 
@@ -162,7 +162,7 @@ async function getUserBalance(userId: string): Promise<{balance: number, totalIn
   }
 }
 
-// Função para chamar a API Gemini (mesmo processamento do Assistente IA)
+// Função para chamar a API Gemini (mesmo processamento do Stater IA)
 async function callGeminiAPI(userMessage: string, userId?: string): Promise<string> {
   try {
     console.log('🤖 Chamando API Gemini para resposta inteligente...');
@@ -243,14 +243,14 @@ async function callGeminiAPI(userMessage: string, userId?: string): Promise<stri
                                  userMessage.toLowerCase().includes('dinheiro') ||
                                  userMessage.toLowerCase().includes('financeira');
 
-    const contextToUse = needsFinancialContext ? financialContextText : "Dados financeiros disponíveis mediante solicitação.";      const fullPrompt = `Você é o Assistente IA do Stater - VERSÃO TELEGRAM com AUTONOMIA COMPLETA.
+    const contextToUse = needsFinancialContext ? financialContextText : "Dados financeiros disponíveis mediante solicitação.";      const fullPrompt = `Você é o Stater IA - VERSÃO TELEGRAM com AUTONOMIA COMPLETA.
 
 VOCÊ TEM TOTAL AUTONOMIA PARA:
 - SALVAR transações automaticamente no banco de dados
 - LER todos os dados financeiros do usuário em tempo real
 - CALCULAR saldos, totais e análises completas
 - RESPONDER com base nos dados REAIS do usuário
-- FUNCIONAR EXATAMENTE como o Assistente IA do app
+- FUNCIONAR EXATAMENTE como o Stater IA do app
 
 DATA: ${today}
 USUÁRIO: ${userName}
@@ -989,7 +989,7 @@ export default async function handler(req: any, res: any) {
               `💡 Dicas e conselhos financeiros\n` +
               `📝 Registro de novas transações\n\n` +
               `💬 Digite qualquer pergunta sobre suas finanças e eu responderei com base nos seus dados reais!\n\n` +
-              `Assistente IA Stater ativo! 🚀`
+              `Stater IA ativo! 🚀`
             );          } else {
             console.log('❌ Falha na vinculação');
             await sendTelegramMessage(chatId, 
@@ -1004,7 +1004,7 @@ export default async function handler(req: any, res: any) {
           }} else {
           console.log('🆕 Comando /start sem código');
           await sendTelegramMessage(chatId,
-            '👋 <b>Bem-vindo ao Assistente IA do Stater!</b>\n\n' +
+            '👋 <b>Bem-vindo ao Stater IA!</b>\n\n' +
             '🤖 Sou seu assistente financeiro pessoal inteligente.\n\n' +
             '⚡ <b>Conecte sua conta facilmente:</b>\n' +
             '• Digite: <b>/conectar</b>\n\n' +
@@ -1020,7 +1020,7 @@ export default async function handler(req: any, res: any) {
       if (messageText === '/help') {
         console.log('❓ Processando comando /help');
         await sendTelegramMessage(chatId,
-          '🤖 <b>Assistente IA Stater - TELEGRAM</b>\n\n' +
+          '🤖 <b>Stater IA - TELEGRAM</b>\n\n' +
           '✨ <b>EU TENHO AUTONOMIA TOTAL!</b>\n' +
           '• Salvo transações automaticamente\n' +
           '• Leio seus dados financeiros reais\n' +
@@ -1133,7 +1133,7 @@ export default async function handler(req: any, res: any) {
           '• Ver suas transações\n' +
           '• Gerar códigos do Telegram\n' +
           '• Analisar seus gastos\n' +
-          '• Usar o Assistente IA\n\n' +
+          '• Usar o Stater IA\n\n' +
           '💡 <i>Conecte sua conta aqui no Telegram para acesso direto!</i>'
         );
         return res.status(200).json({ ok: true, message: 'Comando /dashboard processado' });
@@ -1155,7 +1155,7 @@ export default async function handler(req: any, res: any) {
             `• "Qual meu saldo atual?"\n` +
             `• "Análise dos meus gastos"\n` +
             `• "Como economizar dinheiro?"\n\n` +
-            `Assistente IA Stater ativo! 🚀`
+            `Stater IA ativo! 🚀`
           );
         } else {
           await sendTelegramMessage(chatId, 

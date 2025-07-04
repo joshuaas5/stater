@@ -24,7 +24,7 @@ const onboardingSteps: OnboardingStep[] = [
     color: "from-blue-500 to-purple-600",
     features: [
       "📊 Dashboard completo",
-      "🤖 Assistente IA",
+      "🤖 Stater IA",
       "📈 Relatórios automáticos"
     ]
   },

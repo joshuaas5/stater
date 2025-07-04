@@ -2113,7 +2113,7 @@ return (
             filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))'
           }}
         >
-          Assistente IA
+          Stater IA
         </div>
         <div 
           className="user-info"
@@ -2922,7 +2922,7 @@ return (
         `      }} />
     </div>
     
-    {/* NavBar removido do assistente IA para melhor experiência */}
+    {/* NavBar removido do Stater IA para melhor experiência */}
   </>
 );
 

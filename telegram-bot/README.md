@@ -8,7 +8,7 @@
 
 ### 🎯 **Para usuários com conta vinculada:**
 - 📷 **Análise de extratos:** Envie fotos de extratos bancários para análise automática com IA
-- 💬 **Chat inteligente:** Converse com o assistente IA sobre suas finanças pessoais
+- 💬 **Chat inteligente:** Converse com o Stater IA sobre suas finanças pessoais
 - 📊 **Dados em tempo real:** Acesso aos seus dados financeiros do app Stater
 - 🔄 **Sincronização automática:** Transações aparecem no app instantaneamente
 

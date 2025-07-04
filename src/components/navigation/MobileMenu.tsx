@@ -35,7 +35,7 @@ const menuItems: MenuItem[] = [
   },
   {
     icon: <Bot className="h-5 w-5" />,
-    label: 'Assistente IA',
+    label: 'Stater IA',
     path: '/financial-advisor'
   },
   {

@@ -114,9 +114,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Bem-vindo de volta"
       });
     } catch (error: any) {
+      console.error("Erro no login:", error);
+      
+      let errorMessage = "Erro ao fazer login";
+      
+      // Traduzir mensagens de erro do Supabase
+      if (error.message?.includes("Invalid login credentials")) {
+        errorMessage = "Email ou senha incorretos. Verifique suas credenciais e tente novamente.";
+      } else if (error.message?.includes("Email not confirmed")) {
+        errorMessage = "Email não confirmado. Verifique sua caixa de entrada para confirmar sua conta.";
+      } else if (error.message?.includes("Invalid email")) {
+        errorMessage = "Email inválido. Por favor, insira um email válido.";
+      } else if (error.message?.includes("Too many requests")) {
+        errorMessage = "Muitas tentativas de login. Aguarde alguns minutos e tente novamente.";
+      } else if (error.message?.includes("Network")) {
+        errorMessage = "Problema de conexão. Verifique sua internet e tente novamente.";
+      }
+      
       toast({
         title: "Erro no login",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;

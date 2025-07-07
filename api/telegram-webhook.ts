@@ -1288,8 +1288,8 @@ export default async function handler(req: any, res: any) {
             }
             
             confirmMessage += `\n💰 <b>SEU SALDO ATUALIZADO:</b> R$ ${balance.balance.toFixed(2)}\n`;
-            confirmMessage += `� <b>Total Receitas:</b> R$ ${balance.totalIncome.toFixed(2)}\n`;
-            confirmMessage += `� <b>Total Despesas:</b> R$ ${balance.totalExpense.toFixed(2)}\n\n`;
+            confirmMessage += `💚 <b>Total Receitas:</b> R$ ${balance.totalIncome.toFixed(2)}\n`;
+            confirmMessage += `💔 <b>Total Despesas:</b> R$ ${balance.totalExpense.toFixed(2)}\n\n`;
             confirmMessage += `🎉 <b>Todas as transações foram processadas corretamente!</b>\n`;
             confirmMessage += `📱 <i>Abra seu app para ver o detalhamento completo!</i>`;
             
@@ -1362,42 +1362,63 @@ export default async function handler(req: any, res: any) {
         const aiResponse = await callGeminiAPI(messageText, userData.userId, update.message.from);        // Verificar se a resposta é uma transação JSON
         const cleanResponse = aiResponse.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
         
-        console.log('🔍 Verificando se é transação JSON:', cleanResponse.substring(0, 50));
+        console.log('🔍 Resposta da IA (primeiros 100 chars):', cleanResponse.substring(0, 100));
+        console.log('🔍 Verificando se é JSON:', cleanResponse.startsWith('{'));
+        console.log('🔍 Contém tipo:', cleanResponse.includes('"tipo"'));
         
-        if (cleanResponse.startsWith('{') && (cleanResponse.includes('"tipo"') || cleanResponse.includes('"action"'))) {
+        // Verificar se é um JSON de transação válido
+        if (cleanResponse.startsWith('{') && cleanResponse.endsWith('}') && 
+            (cleanResponse.includes('"tipo"') || cleanResponse.includes('"action"'))) {
           console.log('💰 Detectada transação JSON, processando...');
           
           try {
             const transactionData = JSON.parse(cleanResponse);
+            console.log('📊 JSON parseado:', transactionData);
             
-            // Validar dados da transação
-            if (transactionData.tipo && transactionData.valor && transactionData.descrição) {
-              console.log('📊 Dados da transação:', transactionData);
+            // Validar se tem os campos obrigatórios
+            const hasRequiredFields = (transactionData.tipo && transactionData.valor && transactionData.descrição) ||
+                                    (transactionData.action && transactionData.amount && transactionData.description);
+            
+            if (hasRequiredFields) {
+              console.log('✅ Transação válida detectada');
+              
+              // Normalizar dados (garantir que estejam no formato correto)
+              const normalizedData = {
+                tipo: transactionData.tipo || (transactionData.transaction_type === 'income' ? 'receita' : 'despesa'),
+                descrição: transactionData.descrição || transactionData.description,
+                valor: transactionData.valor || transactionData.amount,
+                data: transactionData.data || transactionData.date || new Date().toISOString().split('T')[0],
+                categoria: transactionData.categoria || transactionData.category || 'Outros'
+              };
+              
+              console.log('📋 Dados normalizados:', normalizedData);
               
               // MOSTRAR TRANSAÇÃO PARA CONFIRMAÇÃO (igual ao app)
-              const emoji = getCategoryEmoji(transactionData.categoria);
-              const amount = Number(transactionData.valor);
-              const typeText = transactionData.tipo === 'receita' ? '📈 RECEITA (aumenta saldo)' : '📉 DESPESA (diminui saldo)';
-              const typeEmoji = transactionData.tipo === 'receita' ? '💚' : '�';
+              const emoji = getCategoryEmoji(normalizedData.categoria);
+              const amount = Number(normalizedData.valor);
+              const typeText = normalizedData.tipo === 'receita' ? '📈 RECEITA (aumenta saldo)' : '📉 DESPESA (diminui saldo)';
+              const typeEmoji = normalizedData.tipo === 'receita' ? '💚' : '💸';
               
-              console.log('📊 Tipo detectado:', transactionData.tipo, '→', typeText);
+              console.log('📊 Tipo detectado:', normalizedData.tipo, '→', typeText);
               
-              // Salvar como pendente
-              savePendingTransactions(chatId, [transactionData], null, 'manual_entry');
+              // Salvar como pendente usando dados normalizados
+              savePendingTransactions(chatId, [normalizedData], null, 'manual_entry');
               
               const confirmMessage = 
                 `💡 <b>Transação detectada!</b>\n\n` +
-                `${emoji} <b>${transactionData.descrição}</b>\n` +
-                `${typeEmoji} <b>R$ ${amount.toFixed(2)}</b> | 📂 ${transactionData.categoria}\n` +
-                `📅 ${transactionData.data}\n` +
+                `${emoji} <b>${normalizedData.descrição}</b>\n` +
+                `${typeEmoji} <b>R$ ${amount.toFixed(2)}</b> | 📂 ${normalizedData.categoria}\n` +
+                `📅 ${normalizedData.data}\n` +
                 `📊 <b>Tipo: ${typeText}</b>\n\n` +
                 `❓ <b>Confirma que está correto?</b>\n\n` +
                 `💬 Digite:\n` +
-                `• <b>SIM</b> ou <b>CONFIRMAR</b> - Para salvar como ${transactionData.tipo.toUpperCase()}\n` +
+                `• <b>SIM</b> ou <b>CONFIRMAR</b> - Para salvar como ${normalizedData.tipo.toUpperCase()}\n` +
                 `• <b>NÃO</b> ou <b>CANCELAR</b> - Para descartar\n\n` +
                 `⏰ <i>Aguardando sua confirmação...</i>`;
-                await sendTelegramMessage(chatId, confirmMessage);
+                
+              await sendTelegramMessage(chatId, confirmMessage);
             } else {
+              console.log('❌ JSON inválido - campos obrigatórios ausentes');
               // JSON inválido, tratar como resposta normal
               await sendTelegramMessage(chatId, aiResponse);
             }
@@ -1407,6 +1428,7 @@ export default async function handler(req: any, res: any) {
             await sendTelegramMessage(chatId, aiResponse);
           }
         } else {
+          console.log('📝 Resposta normal da IA (não é JSON de transação)');
           // Resposta normal da IA
           await sendTelegramMessage(chatId, aiResponse);
         }

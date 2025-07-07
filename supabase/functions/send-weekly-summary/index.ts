@@ -127,7 +127,7 @@ const generateWeeklySummaryEmail = async (userId: string, userEmail: string): Pr
       <html>
       <head>
         <meta charset="utf-8">
-        <title>Resumo Semanal - ICTUS</title>
+        <title>Resumo Semanal - Stater</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -194,8 +194,8 @@ const generateWeeklySummaryEmail = async (userId: string, userEmail: string): Pr
       </head>
       <body>
         <div class="header">
-          <div class="logo">ICTUS</div>
-          <p>Seu Assistente Financeiro Pessoal</p>
+          <div class="logo">Stater</div>
+          <p>Inteligência para Prosperar</p>
         </div>
         
         <div class="summary">
@@ -255,7 +255,7 @@ const generateWeeklySummaryEmail = async (userId: string, userEmail: string): Pr
         </div>
       
         <div class="footer">
-          <p>Este email foi enviado automaticamente pelo ICTUS - Seu Assistente Financeiro Pessoal.</p>
+          <p>Este email foi enviado automaticamente pelo Stater - Inteligência para Prosperar.</p>
           <p>Para ajustar suas preferências de notificação, acesse a página de Preferências no aplicativo.</p>
         </div>
       </body>
@@ -264,7 +264,7 @@ const generateWeeklySummaryEmail = async (userId: string, userEmail: string): Pr
     
     return {
       to: userEmail,
-      subject: 'Seu Resumo Semanal - ICTUS',
+      subject: 'Seu Resumo Semanal - Stater',
       html: emailHtml,
       userId: userId
     };
@@ -294,7 +294,7 @@ const sendEmail = async (emailData: EmailData) => {
           subject: emailData.subject,
         },
       ],
-      from: { email: 'noreply@ictusapp.com', name: 'ICTUS - Assistente Financeiro' },
+      from: { email: 'staterbills@gmail.com', name: 'Stater - Inteligência para Prosperar' },
       content: [
         {
           type: 'text/html',

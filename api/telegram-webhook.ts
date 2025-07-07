@@ -371,7 +371,7 @@ async function getTelegramUserData(chatId: string): Promise<{ userId?: string, l
     console.log('🔍 [DEBUG] Verificando vinculação para chat:', chatId);
       // Verificar via API temporária primeiro
     try {
-      const response = await fetch(`https://sprout-spending-hub-vb4x.vercel.app/api/telegram-connect-simple?chatId=${chatId}`);
+      const response = await fetch(`https://staterbills.vercel.app/api/telegram-connect-simple?chatId=${chatId}`);
       const result = await response.json() as any;
       
       if (response.ok && result.success && result.connected) {
@@ -412,7 +412,7 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
     console.log('💾 [DEBUG] Tentando salvar vinculação:', { chatId, code, username });
     
     // Verificar código via API interna
-    const verifyUrl = `https://sprout-spending-hub-vb4x.vercel.app/api/telegram-codes-simple?code=${code}`;
+    const verifyUrl = `https://staterbills.vercel.app/api/telegram-codes-simple?code=${code}`;
     
     console.log('🔍 [DEBUG] Verificando código via API:', verifyUrl);
     
@@ -450,7 +450,7 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
     
     // Marcar código como usado via API
     try {
-      const markUsedResponse = await fetch('https://sprout-spending-hub-vb4x.vercel.app/api/telegram-codes-simple', {
+      const markUsedResponse = await fetch('https://staterbills.vercel.app/api/telegram-codes-simple', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code })
@@ -805,7 +805,7 @@ export default async function handler(req: any, res: any) {
           }
           
           // Chamar a API de OCR do app Stater
-          const ocrResponse = await fetch('https://sprout-spending-hub-vb4x.vercel.app/api/gemini-ocr', {
+          const ocrResponse = await fetch('https://staterbills.vercel.app/api/gemini-ocr', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1010,13 +1010,13 @@ export default async function handler(req: any, res: any) {
               `• Digite <b>/conectar</b> para instruções completas\n` +
               `• Gere um novo código no app Stater\n` +
               `• Códigos expiram em 15 minutos\n\n` +
-              `🔗 App: <a href="https://sprout-spending-hub-vb4x.vercel.app">sprout-spending-hub-vb4x.vercel.app</a>`
+              `🔗 App: <a href="https://staterbills.vercel.app">staterbills.vercel.app</a>`
             );
           }} else {
           console.log('🆕 Comando /start sem código');
           await sendTelegramMessage(chatId,
             '👋 <b>Bem-vindo ao Stater IA!</b>\n\n' +
-            '🤖 Sou seu assistente financeiro pessoal inteligente.\n\n' +
+            '🤖 Sou seu assistente financeiro pessoal com Inteligência para Prosperar.\n\n' +
             '⚡ <b>Conecte sua conta facilmente:</b>\n' +
             '• Digite: <b>/conectar</b>\n\n' +
             '💬 <b>Ou use agora mesmo:</b>\n' +
@@ -1058,7 +1058,7 @@ export default async function handler(req: any, res: any) {
         
         // Gerar código automaticamente para este chat ID
         try {
-          const response = await fetch('https://sprout-spending-hub-vb4x.vercel.app/api/telegram-codes-simple?action=generate', {
+          const response = await fetch('https://staterbills.vercel.app/api/telegram-codes-simple?action=generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chatId })
@@ -1070,7 +1070,7 @@ export default async function handler(req: any, res: any) {
               '🎯 <b>Seu código:</b> <code>' + result.code + '</code>\n\n' +
               '📋 <b>Como usar:</b>\n' +
               '1️⃣ Copie o código acima\n' +
-              '2️⃣ Abra: <a href="https://sprout-spending-hub-vb4x.vercel.app">sprout-spending-hub-vb4x.vercel.app</a>\n' +
+              '2️⃣ Abra: <a href="https://staterbills.vercel.app">staterbills.vercel.app</a>\n' +
               '3️⃣ Faça login na sua conta\n' +
               '4️⃣ Vá para Dashboard\n' +
               '5️⃣ Clique em "Conectar Telegram"\n' +
@@ -1087,7 +1087,7 @@ export default async function handler(req: any, res: any) {
             '📱 <b>PASSO 1:</b> Copie este número:\n' +
             '👉 <code>' + chatId + '</code>\n\n' +
             '📱 <b>PASSO 2:</b> Abra este link:\n' +
-            '👉 <a href="https://sprout-spending-hub-vb4x.vercel.app">sprout-spending-hub-vb4x.vercel.app</a>\n\n' +
+            '👉 <a href="https://staterbills.vercel.app">staterbills.vercel.app</a>\n\n' +
             '📱 <b>PASSO 3:</b> Faça login\n\n' +
             '📱 <b>PASSO 4:</b> Clique "Conectar Agora"\n\n' +
             '📱 <b>PASSO 5:</b> Cole o número do PASSO 1\n\n' +
@@ -1140,7 +1140,7 @@ export default async function handler(req: any, res: any) {
         console.log('📊 Processando comando /dashboard');
         await sendTelegramMessage(chatId,
           '📊 <b>Dashboard Stater</b>\n\n' +
-          '🔗 Acesse: <a href="https://sprout-spending-hub-vb4x.vercel.app">sprout-spending-hub-vb4x.vercel.app</a>\n\n' +
+          '🔗 Acesse: <a href="https://staterbills.vercel.app">staterbills.vercel.app</a>\n\n' +
           '📱 <b>No dashboard você pode:</b>\n' +
           '• Ver suas transações\n' +
           '• Gerar códigos do Telegram\n' +
@@ -1238,7 +1238,7 @@ export default async function handler(req: any, res: any) {
             `• Digite <b>/conectar</b> para gerar novo código\n` +
             `• Verifique se copiou corretamente\n` +
             `• Use o formato: 2 números + 2 letras (ex: 12AB)\n\n` +
-            `🔗 <a href="https://sprout-spending-hub-vb4x.vercel.app">Abrir App Stater</a>`
+            `🔗 <a href="https://staterbills.vercel.app">Abrir App Stater</a>`
           );
         }
         return res.status(200).json({ ok: true, message: 'Código processado' });

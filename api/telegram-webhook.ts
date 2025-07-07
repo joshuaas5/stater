@@ -279,9 +279,11 @@ INSTRUÇÕES CRÍTICAS:
 - SEMPRE mostre o saldo atual quando relevante
 - Seja DIRETO e PRECISO como no app principal
 - Use os dados financeiros fornecidos para análises detalhadas
+- NUNCA use asteriscos (*) ou markdown para formatação
+- Use apenas texto simples e emojis para Telegram
 
 DETECÇÃO DE TRANSAÇÕES:
-Se detectar uma transação clara (ganhar/receber/gastar/pagar + valor específico), responda APENAS com JSON limpo:
+Se detectar uma transação clara (ganhar/receber/gastar/pagar + valor específico), responda APENAS com JSON limpo SEM blocos de código:
 {
   "tipo": "receita" ou "despesa", 
   "descrição": "descrição_clara_da_transação",
@@ -289,6 +291,8 @@ Se detectar uma transação clara (ganhar/receber/gastar/pagar + valor específi
   "data": "${today}",
   "categoria": "categoria_automatica_precisa"
 }
+
+IMPORTANTE: NÃO use blocos de código markdown, asteriscos ou qualquer formatação especial. Apenas texto limpo.
 
 ANÁLISES FINANCEIRAS:
 - Use TODOS os dados fornecidos acima
@@ -319,6 +323,8 @@ IMPORTANTE:
 - LEIA dados reais do usuário
 - CALCULE tudo baseado nos dados fornecidos
 - Funcione EXATAMENTE como o assistente do app principal
+- NUNCA use asteriscos, markdown ou formatação especial
+- Apenas texto limpo e emojis quando apropriado
 
 Resposta:`;
 
@@ -349,8 +355,11 @@ Resposta:`;
     const data: any = await response.json();
     
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-      const aiResponse = data.candidates[0].content.parts[0].text;
+      let aiResponse = data.candidates[0].content.parts[0].text;
       console.log('✅ Resposta da IA recebida:', aiResponse.substring(0, 100) + '...');
+      
+      // Remover asteriscos das respostas
+      aiResponse = aiResponse.replace(/\*\*/g, '').replace(/\*/g, '');
       
       // Limitar resposta para Telegram (4096 caracteres max)
       return aiResponse.length > 4000 ? aiResponse.substring(0, 3997) + '...' : aiResponse;
@@ -1326,15 +1335,21 @@ export default async function handler(req: any, res: any) {
         console.log('🔓 Usuário não vinculado - resposta genérica');
         // Usuário não vinculado - resposta genérica da IA SEM forçar conexão
         const aiResponse = await callGeminiAPI(messageText, undefined, update.message.from);
-        await sendTelegramMessage(chatId, aiResponse);} else {
+        await sendTelegramMessage(chatId, aiResponse);
+        return res.status(200).json({ ok: true, message: 'Mensagem IA processada' });
+      } else {
         console.log('🔒 Usuário vinculado - resposta personalizada');
         // Usuário vinculado - resposta personalizada com dados reais
         const aiResponse = await callGeminiAPI(messageText, userData.userId, update.message.from);        // Verificar se a resposta é uma transação JSON
-        if (aiResponse.trim().startsWith('{') && aiResponse.includes('"tipo"')) {
+        const cleanResponse = aiResponse.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        
+        console.log('🔍 Verificando se é transação JSON:', cleanResponse.substring(0, 50));
+        
+        if (cleanResponse.startsWith('{') && (cleanResponse.includes('"tipo"') || cleanResponse.includes('"action"'))) {
           console.log('💰 Detectada transação JSON, processando...');
           
           try {
-            const transactionData = JSON.parse(aiResponse.trim());
+            const transactionData = JSON.parse(cleanResponse);
             
             // Validar dados da transação
             if (transactionData.tipo && transactionData.valor && transactionData.descrição) {

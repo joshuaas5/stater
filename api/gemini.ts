@@ -328,8 +328,8 @@ PERGUNTA: ${originalPrompt}
 INSTRUÇÕES DE RESPOSTA:
 - Seja DIRETO e CONCISO
 - Responda apenas o que foi perguntado  
-- NÃO use asteriscos (*) ou markdown nas respostas
-- Use emojis moderadamente apenas no início da resposta
+- NUNCA use asteriscos (*), duplos asteriscos (**) ou markdown nas respostas
+- Use apenas texto limpo e emojis quando apropriado
 - NÃO faça análise financeira automática
 - SÓ analise finanças se explicitamente solicitado
 - Complete suas respostas - não corte no meio
@@ -359,7 +359,7 @@ CATEGORIAS OBRIGATÓRIAS PARA AUTO-CATEGORIZAÇÃO:
 - "Cuidados Pessoais": salão, barbeiro, cosméticos, higiene
 - "Outros": categoria genérica quando não se encaixa
 
-Resposta direta (SEM asteriscos):`;
+Resposta direta (SEM asteriscos ou markdown):`;
   console.log('[GEMINI_API] Full prompt constructed. Length:', fullPrompt.length);
 
   const geminiPayload = {
@@ -415,6 +415,9 @@ try {
       outputText = data.candidates[0]?.content?.parts[0]?.text || "";
       console.log('[GEMINI_API] Extracted outputText from Gemini response. Length:', outputText.length);
       console.log('[GEMINI_API] finishReason:', data.candidates[0].finishReason);
+      
+      // Remover asteriscos das respostas
+      outputText = outputText.replace(/\*\*/g, '').replace(/\*/g, '');
       
       // Log se a resposta foi truncada por limite de tokens
       if (data.candidates[0].finishReason === 'MAX_TOKENS') {

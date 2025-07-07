@@ -664,7 +664,7 @@ async function callGeminiForChat(message, userContext, userSession) {
         }
         
         contextPrompt += `\n\nPergunta do usuário: ${message}`;
-        contextPrompt += `\n\nResponda de forma útil, personalizada e em português brasileiro. Use emojis e seja amigável. Sempre se refira ao usuário pelo nome "${userSession.userName}" quando apropriado.`;
+        contextPrompt += `\n\nResponda de forma útil, personalizada e em português brasileiro. Use emojis quando apropriado e seja amigável. NUNCA use asteriscos (*) ou duplos asteriscos (**) nas suas respostas. Sempre se refira ao usuário pelo nome "${userSession.userName}" quando apropriado.`;
         
         const response = await axios.post(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GEMINI_API_KEY}`,
@@ -676,7 +676,11 @@ async function callGeminiForChat(message, userContext, userSession) {
         );
         
         const aiResponse = response.data.candidates[0].content.parts[0].text;
-        return aiResponse;
+        
+        // Remover asteriscos das respostas
+        const cleanResponse = aiResponse.replace(/\*\*/g, '').replace(/\*/g, '');
+        
+        return cleanResponse;
         
     } catch (error) {
         console.error('❌ Erro Gemini chat:', error);

@@ -76,13 +76,25 @@ async function saveTransactionToSupabase(userId: string, transactionData: any): 
   try {
     console.log('💾 Salvando transação no Supabase:', transactionData);
     
+    // Log detalhado para debug
+    const tipo = transactionData.tipo || transactionData.type;
+    const valor = parseFloat(transactionData.amount || transactionData.valor);
+    const tipoFinal = (tipo === 'receita' || tipo === 'income') ? 'income' : 'expense';
+    
+    console.log('🔍 Debug transação:', {
+      tipoOriginal: tipo,
+      valor: valor,
+      tipoFinal: tipoFinal,
+      impactoSaldo: tipoFinal === 'income' ? '+' : '-'
+    });
+    
     const { data, error } = await supabaseAdmin
       .from('transactions')
       .insert([{
         user_id: userId,
         title: transactionData.description || transactionData.descrição,
-        amount: parseFloat(transactionData.amount || transactionData.valor),
-        type: transactionData.type === 'receita' ? 'income' : 'expense',
+        amount: valor,
+        type: tipoFinal,
         category: transactionData.category || transactionData.categoria || 'Outros',
         date: transactionData.date || transactionData.data || new Date().toISOString().split('T')[0],
         created_at: new Date().toISOString()
@@ -1262,17 +1274,24 @@ export default async function handler(req: any, res: any) {
             
             const balance = await getUserBalance(userData.userId!);
             
+            // Analisar as transações salvas para dar feedback detalhado
+            const savedTransactions = pendingData.transactions.slice(0, saved);
+            const receitas = savedTransactions.filter(t => t.tipo === 'receita').length;
+            const despesas = savedTransactions.filter(t => t.tipo === 'despesa').length;
+            
             let confirmMessage = `✅ <b>TRANSAÇÕES SALVAS COM SUCESSO!</b>\n\n`;
             confirmMessage += `💾 <b>Salvas:</b> ${saved}/${pendingData.transactions.length}\n`;
+            if (receitas > 0) confirmMessage += `📈 <b>Receitas:</b> ${receitas} (aumentaram o saldo)\n`;
+            if (despesas > 0) confirmMessage += `📉 <b>Despesas:</b> ${despesas} (diminuíram o saldo)\n`;
             if (failed > 0) {
               confirmMessage += `❌ <b>Falharam:</b> ${failed}\n`;
             }
             
-            confirmMessage += `\n💰 <b>SEU SALDO ATUAL:</b> R$ ${balance.balance.toFixed(2)}\n`;
-            confirmMessage += `📈 <b>Total Receitas:</b> R$ ${balance.totalIncome.toFixed(2)}\n`;
-            confirmMessage += `📉 <b>Total Despesas:</b> R$ ${balance.totalExpense.toFixed(2)}\n\n`;
-            confirmMessage += `🎉 <b>Todas as transações foram adicionadas ao seu Stater!</b>\n`;
-            confirmMessage += `📱 <i>Abra seu app para ver todas as transações!</i>`;
+            confirmMessage += `\n💰 <b>SEU SALDO ATUALIZADO:</b> R$ ${balance.balance.toFixed(2)}\n`;
+            confirmMessage += `� <b>Total Receitas:</b> R$ ${balance.totalIncome.toFixed(2)}\n`;
+            confirmMessage += `� <b>Total Despesas:</b> R$ ${balance.totalExpense.toFixed(2)}\n\n`;
+            confirmMessage += `🎉 <b>Todas as transações foram processadas corretamente!</b>\n`;
+            confirmMessage += `📱 <i>Abra seu app para ver o detalhamento completo!</i>`;
             
             await sendTelegramMessage(chatId, confirmMessage);
             clearPendingTransactions(chatId);
@@ -1358,7 +1377,10 @@ export default async function handler(req: any, res: any) {
               // MOSTRAR TRANSAÇÃO PARA CONFIRMAÇÃO (igual ao app)
               const emoji = getCategoryEmoji(transactionData.categoria);
               const amount = Number(transactionData.valor);
-              const typeText = transactionData.tipo === 'receita' ? '📈 Receita' : '📉 Despesa';
+              const typeText = transactionData.tipo === 'receita' ? '📈 RECEITA (aumenta saldo)' : '📉 DESPESA (diminui saldo)';
+              const typeEmoji = transactionData.tipo === 'receita' ? '💚' : '�';
+              
+              console.log('📊 Tipo detectado:', transactionData.tipo, '→', typeText);
               
               // Salvar como pendente
               savePendingTransactions(chatId, [transactionData], null, 'manual_entry');
@@ -1366,11 +1388,12 @@ export default async function handler(req: any, res: any) {
               const confirmMessage = 
                 `💡 <b>Transação detectada!</b>\n\n` +
                 `${emoji} <b>${transactionData.descrição}</b>\n` +
-                `💰 R$ ${amount.toFixed(2)} | 📂 ${transactionData.categoria}\n` +
-                `📅 ${transactionData.data} | ${typeText}\n\n` +
-                `❓ <b>Deseja confirmar e salvar esta transação?</b>\n\n` +
+                `${typeEmoji} <b>R$ ${amount.toFixed(2)}</b> | 📂 ${transactionData.categoria}\n` +
+                `📅 ${transactionData.data}\n` +
+                `📊 <b>Tipo: ${typeText}</b>\n\n` +
+                `❓ <b>Confirma que está correto?</b>\n\n` +
                 `💬 Digite:\n` +
-                `• <b>SIM</b> ou <b>CONFIRMAR</b> - Para salvar\n` +
+                `• <b>SIM</b> ou <b>CONFIRMAR</b> - Para salvar como ${transactionData.tipo.toUpperCase()}\n` +
                 `• <b>NÃO</b> ou <b>CANCELAR</b> - Para descartar\n\n` +
                 `⏰ <i>Aguardando sua confirmação...</i>`;
                 await sendTelegramMessage(chatId, confirmMessage);

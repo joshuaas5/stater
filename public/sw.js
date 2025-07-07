@@ -1,34 +1,15 @@
-const CACHE_NAME = 'stater-v1.0.0';
-const STATIC_ASSETS = [
-  '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
-  '/manifest.json',
-  '/favicon.ico'
-];
+// Service Worker para Stater - Anti-Loop v2.0.0
+const CACHE_NAME = 'stater-v2.0.0-no-loop';
 
-// Install event - cache static assets
+// Install - limpo e rápido
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
-  
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Service Worker: Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
-      })
-      .catch((error) => {
-        console.error('Service Worker: Failed to cache static assets', error);
-      })
-  );
-  
-  // Force the waiting service worker to become the active service worker
-  self.skipWaiting();
+  console.log('SW: Installing v2.0.0 (Anti-Loop)');
+  self.skipWaiting(); // Ativar imediatamente sem cache inicial
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
+  console.log('SW: Activating v2.0.0');
   
   event.waitUntil(
     caches.keys()
@@ -36,7 +17,7 @@ self.addEventListener('activate', (event) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
             if (cacheName !== CACHE_NAME) {
-              console.log('Service Worker: Deleting old cache', cacheName);
+              console.log('SW: Deleting old cache', cacheName);
               return caches.delete(cacheName);
             }
           })
@@ -60,17 +41,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // ANTI-LOOP: Não interceptar páginas principais e APIs críticas
+  const url = new URL(event.request.url);
+  const pathname = url.pathname;
+  
+  // Não interceptar rotas do app que podem causar loop
+  if (pathname === '/' || 
+      pathname.startsWith('/dashboard') || 
+      pathname.startsWith('/api/') ||
+      pathname.includes('auth') ||
+      pathname.includes('supabase') ||
+      url.searchParams.has('token') ||
+      url.searchParams.has('code')) {
+    console.log('SW: Skipping interception for:', pathname);
+    return; // Deixa passar direto
+  }
+  
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {
         // Return cached version if available
         if (cachedResponse) {
-          console.log('Service Worker: Serving from cache', event.request.url);
+          console.log('SW: Serving from cache', event.request.url);
           return cachedResponse;
         }
         
         // Otherwise fetch from network
-        console.log('Service Worker: Fetching from network', event.request.url);
+        console.log('SW: Fetching from network', event.request.url);
         return fetch(event.request)
           .then((response) => {
             // Don't cache if response is not ok
@@ -90,11 +87,30 @@ self.addEventListener('fetch', (event) => {
             return response;
           })
           .catch((error) => {
-            console.error('Service Worker: Fetch failed', error);
+            console.error('SW: Fetch failed', error);
             
             // Return a custom offline page if available
             if (event.request.destination === 'document') {
-              return caches.match('/offline.html') || new Response('Offline');
+              return new Response(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <title>Stater - Offline</title>
+                  <meta charset="utf-8">
+                  <style>
+                    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+                    .offline { color: #666; }
+                  </style>
+                </head>
+                <body>
+                  <h1>Stater</h1>
+                  <p class="offline">Você está offline. Conecte-se à internet para usar o app.</p>
+                  <button onclick="window.location.reload()">Tentar novamente</button>
+                </body>
+                </html>
+              `, {
+                headers: { 'Content-Type': 'text/html' }
+              });
             }
             
             throw error;
@@ -103,84 +119,19 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Background sync for offline transactions
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'background-sync-transactions') {
-    console.log('Service Worker: Background sync for transactions');
-    event.waitUntil(syncTransactions());
+// Message handler para debug
+self.addEventListener('message', (event) => {
+  console.log('SW: Message received:', event.data);
+  
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  
+  if (event.data?.type === 'CLEAR_CACHE') {
+    caches.keys().then((cacheNames) => {
+      cacheNames.forEach(cacheName => caches.delete(cacheName));
+    });
   }
 });
 
-// Push notifications
-self.addEventListener('push', (event) => {
-  console.log('Service Worker: Push received');
-  
-  const options = {
-    body: event.data ? event.data.text() : 'Nova notificação do Stater',
-    icon: '/icon-192.png',
-    badge: '/icon-96.png',
-    vibrate: [200, 100, 200],
-    data: {
-      url: '/'
-    },
-    actions: [
-      {
-        action: 'open',
-        title: 'Abrir App',
-        icon: '/icon-open.png'
-      },
-      {
-        action: 'close',
-        title: 'Fechar',
-        icon: '/icon-close.png'
-      }
-    ]
-  };
-  
-  event.waitUntil(
-    self.registration.showNotification('Stater - Assistente Financeiro', options)
-  );
-});
-
-// Notification click handler
-self.addEventListener('notificationclick', (event) => {
-  console.log('Service Worker: Notification clicked');
-  
-  event.notification.close();
-  
-  if (event.action === 'open' || !event.action) {
-    event.waitUntil(
-      clients.matchAll({ type: 'window' })
-        .then((clientList) => {
-          // If app is already open, focus it
-          for (const client of clientList) {
-            if (client.url === self.location.origin && 'focus' in client) {
-              return client.focus();
-            }
-          }
-          
-          // Otherwise open new window
-          if (clients.openWindow) {
-            return clients.openWindow('/');
-          }
-        })
-    );
-  }
-});
-
-// Helper function to sync offline transactions
-async function syncTransactions() {
-  try {
-    // Get pending transactions from IndexedDB or localStorage
-    // This would integrate with your offline storage strategy
-    console.log('Service Worker: Syncing offline transactions...');
-    
-    // Implementation would depend on your offline storage solution
-    // For now, just log that sync was attempted
-    
-    return Promise.resolve();
-  } catch (error) {
-    console.error('Service Worker: Failed to sync transactions', error);
-    throw error;
-  }
-}
+console.log('SW: v2.0.0 Anti-Loop loaded successfully');

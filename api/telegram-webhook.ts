@@ -163,15 +163,14 @@ async function getUserBalance(userId: string): Promise<{balance: number, totalIn
 }
 
 // Função para chamar a API Gemini (mesmo processamento do Stater IA)
-async function callGeminiAPI(userMessage: string, userId?: string): Promise<string> {
+async function callGeminiAPI(userMessage: string, userId?: string, telegramUser?: any): Promise<string> {
   try {
     console.log('🤖 Chamando API Gemini para resposta inteligente...');
     
     let financialContextText = '';
     let userName = 'Usuário';
     
-    // Pegar nome do usuário do Telegram primeiro
-    const telegramUser = update.message?.from;
+    // Pegar nome do usuário do Telegram se fornecido
     if (telegramUser) {
       userName = telegramUser.first_name || telegramUser.username || 'Usuário';
       if (telegramUser.last_name) {
@@ -369,33 +368,22 @@ Resposta:`;
 async function getTelegramUserData(chatId: string): Promise<{ userId?: string, linked: boolean }> {
   try {
     console.log('🔍 [DEBUG] Verificando vinculação para chat:', chatId);
-      // Verificar via API temporária primeiro
-    try {
-      const response = await fetch(`https://staterbills.vercel.app/api/telegram-connect-simple?chatId=${chatId}`);
-      const result = await response.json() as any;
-      
-      if (response.ok && result.success && result.connected) {
-        console.log('✅ [DEBUG] Usuário encontrado na API temporária:', result.data);
-        return { userId: result.data.user_id, linked: true };
-      }
-    } catch (apiError) {
-      console.log('⚠️ [DEBUG] API temporária falhou, tentando Supabase:', apiError);
-    }
     
-    // Fallback para Supabase (se SERVICE_ROLE_KEY estiver configurada)
+    // Verificar diretamente no Supabase
     const { data, error } = await supabaseAdmin
       .from('telegram_users')
-      .select('user_id, linked_at')
+      .select('user_id, linked_at, is_active')
       .eq('telegram_chat_id', chatId)
+      .eq('is_active', true)
       .single();
     
     if (error) {
-      console.log('❌ [DEBUG] Erro Supabase:', error.message);
+      console.log('❌ [DEBUG] Erro Supabase ao verificar vinculação:', error.message);
       return { linked: false };
     }
     
     if (data && data.user_id) {
-      console.log('✅ [DEBUG] Usuário encontrado no Supabase:', data.user_id);
+      console.log('✅ [DEBUG] Usuário encontrado e vinculado:', data.user_id);
       return { userId: data.user_id, linked: true };
     }
   } catch (error) {
@@ -451,9 +439,9 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
     // Marcar código como usado via API
     try {
       const markUsedResponse = await fetch('https://staterbills.vercel.app/api/telegram-codes-simple', {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
+        body: JSON.stringify({ code, chatId })
       });
       
       if (markUsedResponse.ok) {
@@ -1337,11 +1325,11 @@ export default async function handler(req: any, res: any) {
       console.log('👤 Status do usuário:', userData);      if (!userData.linked) {
         console.log('🔓 Usuário não vinculado - resposta genérica');
         // Usuário não vinculado - resposta genérica da IA SEM forçar conexão
-        const aiResponse = await callGeminiAPI(messageText);
+        const aiResponse = await callGeminiAPI(messageText, undefined, update.message.from);
         await sendTelegramMessage(chatId, aiResponse);} else {
         console.log('🔒 Usuário vinculado - resposta personalizada');
         // Usuário vinculado - resposta personalizada com dados reais
-        const aiResponse = await callGeminiAPI(messageText, userData.userId);        // Verificar se a resposta é uma transação JSON
+        const aiResponse = await callGeminiAPI(messageText, userData.userId, update.message.from);        // Verificar se a resposta é uma transação JSON
         if (aiResponse.trim().startsWith('{') && aiResponse.includes('"tipo"')) {
           console.log('💰 Detectada transação JSON, processando...');
           

@@ -1169,7 +1169,7 @@ export default async function handler(req: any, res: any) {
         try {
           // Remover vinculação do banco de dados
           const { error } = await supabaseAdmin
-            .from('telegram_connections')
+            .from('telegram_users')
             .delete()
             .eq('telegram_chat_id', chatId);
 

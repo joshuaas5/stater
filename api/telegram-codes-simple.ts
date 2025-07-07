@@ -20,10 +20,10 @@ export default async function handler(req: any, res: any) {
       
       // Buscar código no banco
       const { data, error } = await supabaseAdmin
-        .from('telegram_codes')
+        .from('telegram_link_codes')
         .select('*')
         .eq('code', code)
-        .eq('is_used', false)
+        .is('used_at', null)
         .gte('expires_at', new Date().toISOString())
         .single();
       
@@ -52,11 +52,9 @@ export default async function handler(req: any, res: any) {
       // Marcar código como usado
       if (action !== 'generate' && code && chatId) {
         const { error } = await supabaseAdmin
-          .from('telegram_codes')
+          .from('telegram_link_codes')
           .update({ 
-            is_used: true, 
-            used_at: new Date().toISOString(),
-            chat_id: chatId
+            used_at: new Date().toISOString()
           })
           .eq('code', code);
         
@@ -77,17 +75,17 @@ export default async function handler(req: any, res: any) {
         
         // Invalidar códigos antigos do usuário
         await supabaseAdmin
-          .from('telegram_codes')
-          .update({ is_used: true })
+          .from('telegram_link_codes')
+          .update({ used_at: new Date().toISOString() })
           .eq('user_id', userId)
-          .eq('is_used', false);
+          .is('used_at', null);
         
         // Gerar novo código
         const newCode = generateCode();
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
         
         const { data, error } = await supabaseAdmin
-          .from('telegram_codes')
+          .from('telegram_link_codes')
           .insert([{
             code: newCode,
             user_id: userId,

@@ -293,6 +293,9 @@ INSTRUÇÕES CRÍTICAS:
 - Use os dados financeiros fornecidos para análises detalhadas
 - NUNCA use asteriscos (*) ou markdown para formatação
 - Use apenas texto simples e emojis para Telegram
+- NUNCA diga que uma transação foi salva sem confirmação real do usuário
+- NUNCA invente que o saldo foi atualizado sem ter salvado uma transação
+- NUNCA confirme transações automaticamente
 
 DETECÇÃO DE TRANSAÇÕES:
 APENAS gere JSON se o usuário CLARAMENTE solicitar para adicionar, registrar, salvar, remover, gastar ou receber um valor específico em reais.
@@ -318,7 +321,10 @@ Para transações válidas, responda APENAS com JSON limpo SEM blocos de código
   "categoria": "categoria_automatica_precisa"
 }
 
-IMPORTANTE: NÃO use blocos de código markdown, asteriscos ou qualquer formatação especial. Apenas texto limpo.
+IMPORTANTE: 
+- NÃO use blocos de código markdown, asteriscos ou qualquer formatação especial
+- NUNCA diga "transação salva" ou "saldo atualizado" - isso só acontece após confirmação do usuário
+- Se não for para adicionar transação, responda normalmente SEM JSON
 
 ANÁLISES FINANCEIRAS:
 - Use TODOS os dados fornecidos acima
@@ -1380,76 +1386,79 @@ export default async function handler(req: any, res: any) {
         console.log('🔍 Resposta da IA completa:', cleanResponse);
         console.log('🔍 É JSON?:', cleanResponse.startsWith('{') && cleanResponse.endsWith('}'));
         console.log('🔍 Contém "tipo"?:', cleanResponse.includes('"tipo"'));
-        console.log('🔍 Contém "action"?:', cleanResponse.includes('"action"'));
+        
+        // VERIFICAÇÃO ANTI-JSON BRUTO: Se parece com JSON mas não é transação válida, não enviar JSON
+        const looksLikeJson = cleanResponse.startsWith('{') && cleanResponse.endsWith('}') && cleanResponse.length > 20;
+        let isValidTransaction = false;
+        let transactionData = null;
         
         // CRITÉRIO RÍGIDO: Só é transação se for JSON válido E tiver campos específicos
-        if (cleanResponse.startsWith('{') && cleanResponse.endsWith('}') && cleanResponse.length > 50 &&
+        if (looksLikeJson && 
             (cleanResponse.includes('"tipo":') && cleanResponse.includes('"valor":') && cleanResponse.includes('"descrição":'))) {
-          console.log('💰 Detectada transação JSON válida, processando...');
+          console.log('💰 Detectada possível transação JSON, validando...');
           
           try {
-            const transactionData = JSON.parse(cleanResponse);
+            transactionData = JSON.parse(cleanResponse);
             console.log('📊 JSON parseado:', transactionData);
             
             // Validação MUITO rígida
             if (transactionData.tipo && transactionData.valor && transactionData.descrição && 
-                typeof transactionData.valor === 'number' && transactionData.valor > 0) {
+                typeof transactionData.valor === 'number' && transactionData.valor > 0 &&
+                (transactionData.tipo === 'receita' || transactionData.tipo === 'despesa')) {
               console.log('✅ Transação 100% válida detectada');
-              
-              // Normalizar dados
-              const normalizedData = {
-                tipo: transactionData.tipo,
-                descrição: transactionData.descrição,
-                valor: transactionData.valor,
-                data: transactionData.data || new Date().toISOString().split('T')[0],
-                categoria: transactionData.categoria || 'Outros'
-              };
-              
-              console.log('📋 Dados normalizados:', normalizedData);
-              
-              // MOSTRAR TRANSAÇÃO PARA CONFIRMAÇÃO (igual ao app)
-              const emoji = getCategoryEmoji(normalizedData.categoria);
-              const amount = Number(normalizedData.valor);
-              const typeText = normalizedData.tipo === 'receita' ? '📈 RECEITA (aumenta saldo)' : '📉 DESPESA (diminui saldo)';
-              const typeEmoji = normalizedData.tipo === 'receita' ? '💚' : '💸';
-              
-              console.log('📊 Tipo detectado:', normalizedData.tipo, '→', typeText);
-              
-              // Salvar como pendente usando dados normalizados
-              savePendingTransactions(chatId, [normalizedData], null, 'manual_entry');
-              
-              const confirmMessage = 
-                `💡 <b>Transação detectada!</b>\n\n` +
-                `${emoji} <b>${normalizedData.descrição}</b>\n` +
-                `${typeEmoji} <b>R$ ${amount.toFixed(2)}</b> | 📂 ${normalizedData.categoria}\n` +
-                `📅 ${normalizedData.data}\n` +
-                `📊 <b>Tipo: ${typeText}</b>\n\n` +
-                `❓ <b>Confirma que está correto?</b>\n\n` +
-                `💬 Digite:\n` +
-                `• <b>SIM</b> ou <b>CONFIRMAR</b> - Para salvar como ${normalizedData.tipo.toUpperCase()}\n` +
-                `• <b>NÃO</b> ou <b>CANCELAR</b> - Para descartar\n\n` +
-                `⏰ <i>Aguardando sua confirmação...</i>`;
-                
-              await sendTelegramMessage(chatId, confirmMessage);
+              isValidTransaction = true;
             } else {
-              console.log('❌ JSON inválido - campos obrigatórios ausentes');
-              // JSON inválido, tratar como resposta normal
-              await sendTelegramMessage(chatId, aiResponse);
+              console.log('❌ JSON inválido - campos obrigatórios ausentes ou incorretos');
             }
           } catch (jsonError) {
             console.log('❌ Erro ao processar JSON:', jsonError);
-            // Se não for JSON válido, enviar resposta normal
-            await sendTelegramMessage(chatId, aiResponse);
           }
-        } else {
-          console.log('📝 Resposta normal da IA (não é JSON de transação)');
-          console.log('📝 Conteúdo da resposta:', aiResponse);
+        }
+        
+        if (isValidTransaction && transactionData) {
+          console.log('💰 Processando transação válida...');
           
-          // Verificar se a IA está inventando confirmações falsas
-          if (aiResponse.includes('transação') && 
-              (aiResponse.includes('salva') || aiResponse.includes('registrada') || 
-               aiResponse.includes('adicionada') || aiResponse.includes('saldo é'))) {
-            console.log('⚠️  IA tentou inventar confirmação de transação! Corrigindo...');
+          // Normalizar dados
+          const normalizedData = {
+            tipo: transactionData.tipo,
+            descrição: transactionData.descrição,
+            valor: transactionData.valor,
+            data: transactionData.data || new Date().toISOString().split('T')[0],
+            categoria: transactionData.categoria || 'Outros'
+          };
+          
+          console.log('📋 Dados normalizados:', normalizedData);
+          
+          // MOSTRAR TRANSAÇÃO PARA CONFIRMAÇÃO (igual ao app)
+          const emoji = getCategoryEmoji(normalizedData.categoria);
+          const amount = Number(normalizedData.valor);
+          const typeText = normalizedData.tipo === 'receita' ? '📈 RECEITA (aumenta saldo)' : '📉 DESPESA (diminui saldo)';
+          const typeEmoji = normalizedData.tipo === 'receita' ? '💚' : '💸';
+          
+          console.log('📊 Tipo detectado:', normalizedData.tipo, '→', typeText);
+          
+          // Salvar como pendente usando dados normalizados
+          savePendingTransactions(chatId, [normalizedData], null, 'manual_entry');
+          
+          const confirmMessage = 
+            `💡 <b>Transação detectada!</b>\n\n` +
+            `${emoji} <b>${normalizedData.descrição}</b>\n` +
+            `${typeEmoji} <b>R$ ${amount.toFixed(2)}</b> | 📂 ${normalizedData.categoria}\n` +
+            `📅 ${normalizedData.data}\n` +
+            `📊 <b>Tipo: ${typeText}</b>\n\n` +
+            `❓ <b>Confirma que está correto?</b>\n\n` +
+            `💬 Digite:\n` +
+            `• <b>SIM</b> ou <b>CONFIRMAR</b> - Para salvar como ${normalizedData.tipo.toUpperCase()}\n` +
+            `• <b>NÃO</b> ou <b>CANCELAR</b> - Para descartar\n\n` +
+            `⏰ <i>Aguardando sua confirmação...</i>`;
+            
+          await sendTelegramMessage(chatId, confirmMessage);
+        } else {
+          console.log('📝 Resposta normal da IA (não é JSON de transação válida)');
+          
+          // FILTRO ANTI-JSON BRUTO: Se parece com JSON mas não é transação válida, corrigir
+          if (looksLikeJson) {
+            console.log('⚠️  JSON detectado mas inválido para transação! Não enviando JSON bruto.');
             
             const correctedResponse = "💡 Para adicionar uma transação, seja mais específico:\n\n" +
               "📝 Exemplos corretos:\n" +
@@ -1460,8 +1469,25 @@ export default async function handler(req: any, res: any) {
             
             await sendTelegramMessage(chatId, correctedResponse);
           } else {
-            // Resposta normal da IA
-            await sendTelegramMessage(chatId, aiResponse);
+            // Verificar se a IA está inventando confirmações falsas
+            if (aiResponse.includes('transação') && 
+                (aiResponse.includes('salva') || aiResponse.includes('registrada') || 
+                 aiResponse.includes('adicionada') || aiResponse.includes('saldo é') ||
+                 aiResponse.includes('saldo atualizado') || aiResponse.includes('transação registrada'))) {
+              console.log('⚠️  IA tentou inventar confirmação de transação! Corrigindo...');
+              
+              const correctedResponse = "💡 Para adicionar uma transação, seja mais específico:\n\n" +
+                "📝 Exemplos corretos:\n" +
+                "• \"adicione uma despesa de 50 reais com almoço\"\n" +
+                "• \"gastei 30 reais com uber\"\n" +
+                "• \"recebi 1000 reais de salário\"\n\n" +
+                "❓ Precisa de ajuda com suas finanças? Posso analisar seus gastos, dar dicas ou responder perguntas!";
+              
+              await sendTelegramMessage(chatId, correctedResponse);
+            } else {
+              // Resposta normal da IA (garantidamente não é JSON)
+              await sendTelegramMessage(chatId, aiResponse);
+            }
           }
         }
       }return res.status(200).json({ ok: true, message: 'Mensagem IA processada' });

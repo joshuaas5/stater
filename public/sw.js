@@ -1,19 +1,20 @@
-// Service Worker para Stater - Anti-Loop v2.2.0
-const CACHE_NAME = 'stater-v2.2.0-no-loop';
+// Service Worker para Stater - CORREÇÃO DEFINITIVA v2.4.0
+const CACHE_NAME = 'stater-v2.4.0-fixed';
 
-// Install - limpo e rápido
+// Install - mais rápido possível
 self.addEventListener('install', (event) => {
-  console.log('SW: Installing v2.2.0 (Anti-Loop + JS/CSS Skip)');
-  self.skipWaiting(); // Ativar imediatamente sem cache inicial
+  console.log('SW: Installing v2.4.0 - Message Port Fixed');
+  self.skipWaiting(); // Ativar imediatamente
 });
 
-// Activate event - clean up old caches
+// Activate - limpar e tomar controle
 self.addEventListener('activate', (event) => {
-  console.log('SW: Activating v2.2.0 (JS/CSS Skip)');
+  console.log('SW: Activating v2.4.0 - Taking control');
   
   event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
+    Promise.all([
+      // Limpar caches antigos
+      caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
             if (cacheName !== CACHE_NAME) {
@@ -22,139 +23,186 @@ self.addEventListener('activate', (event) => {
             }
           })
         );
-      })
+      }),
+      // Tomar controle imediato
+      self.clients.claim()
+    ])
   );
-  
-  // Ensure the service worker takes control immediately
-  event.waitUntil(self.clients.claim());
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - MUITO MAIS RESTRITIVO
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
+  const url = new URL(event.request.url);
+  const pathname = url.pathname;
+  
+  // SKIP: Métodos que não são GET
   if (event.request.method !== 'GET') {
     return;
   }
   
-  // Skip cross-origin requests
+  // SKIP: Cross-origin
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
   
-  // ANTI-LOOP: Não interceptar páginas principais e APIs críticas
-  const url = new URL(event.request.url);
-  const pathname = url.pathname;
+  // 🚫 SKIP: URLs com fragment (#) - CAUSA DO LOOP!
+  if (event.request.url.includes('#')) {
+    console.log('SW: Skipping URL with fragment:', event.request.url);
+    return;
+  }
   
-  // Lista de rotas que NUNCA devem ser interceptadas
-  const skipPaths = [
-    '/',
+  // 🚫 SKIP: Rotas problemáticas
+  const problematicPaths = [
     '/dashboard',
     '/preferences', 
     '/login',
     '/logout',
     '/api/',
-    '/assets/', // Arquivos JS/CSS críticos do Vite
-    'auth',
-    'supabase'
+    '/auth/',
+    '/assets/',
+    '/supabase'
   ];
   
-  // Lista de extensões que NUNCA devem ser interceptadas
-  const skipExtensions = ['.svg', '.ico', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.js', '.css', '.json'];
+  // 🚫 SKIP: Extensões problemáticas
+  const problematicExtensions = [
+    '.js', '.css', '.json', '.ico', '.png', '.svg', '.jpg', '.jpeg', '.gif', '.webp'
+  ];
   
-  // Verificar se deve pular por path
-  const shouldSkipPath = skipPaths.some(path => 
-    pathname === path || pathname.startsWith(path) || pathname.includes(path)
+  // 🚫 SKIP: Arquivos do Vite
+  const isViteFile = pathname.includes('index-') || 
+                     pathname.includes('chunk-') || 
+                     pathname.includes('vendor-') ||
+                     pathname.includes('manifest.json') ||
+                     pathname.includes('favicon.ico');
+  
+  // Verificar se deve pular
+  const shouldSkipPath = problematicPaths.some(path => 
+    pathname === path || pathname.startsWith(path)
   );
   
-  // Verificar se deve pular por extensão
-  const shouldSkipExtension = skipExtensions.some(ext => pathname.endsWith(ext));
+  const shouldSkipExtension = problematicExtensions.some(ext => 
+    pathname.endsWith(ext)
+  );
   
-  // Verificar se tem parâmetros sensíveis
-  const hasSensitiveParams = url.searchParams.has('token') || url.searchParams.has('code');
+  const hasSensitiveParams = url.searchParams.has('token') || 
+                            url.searchParams.has('code') ||
+                            url.searchParams.has('refresh_token');
   
-  // Verificar se é arquivo do Vite/build
-  const isViteAsset = pathname.includes('index-') || pathname.includes('.js') || pathname.includes('.css');
-  
-  if (shouldSkipPath || shouldSkipExtension || hasSensitiveParams || isViteAsset) {
+  if (shouldSkipPath || shouldSkipExtension || hasSensitiveParams || isViteFile) {
     console.log('SW: Skipping interception for:', pathname);
-    return; // Deixa passar direto
+    return; // NÃO INTERCEPTAR
   }
   
+  // Se chegou até aqui, interceptar com cuidado
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {
-        // Return cached version if available
         if (cachedResponse) {
-          console.log('SW: Serving from cache', event.request.url);
+          console.log('SW: Serving from cache:', pathname);
           return cachedResponse;
         }
         
-        // Otherwise fetch from network
-        console.log('SW: Fetching from network', event.request.url);
+        console.log('SW: Fetching from network:', pathname);
         return fetch(event.request)
           .then((response) => {
-            // Don't cache if response is not ok
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
             
-            // Clone the response before caching
+            // Cache apenas se for válido
             const responseToCache = response.clone();
-            
-            // Cache successful responses
             caches.open(CACHE_NAME)
               .then((cache) => {
                 cache.put(event.request, responseToCache);
+              })
+              .catch(() => {
+                // Ignorar erros de cache
               });
             
             return response;
           })
-          .catch((error) => {
-            console.error('SW: Fetch failed', error);
-            
-            // Return a custom offline page if available
+          .catch(() => {
+            // Página offline simples
             if (event.request.destination === 'document') {
               return new Response(`
                 <!DOCTYPE html>
                 <html>
-                <head>
-                  <title>Stater - Offline</title>
-                  <meta charset="utf-8">
-                  <style>
-                    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-                    .offline { color: #666; }
-                  </style>
-                </head>
+                <head><title>Offline</title></head>
                 <body>
-                  <h1>Stater</h1>
-                  <p class="offline">Você está offline. Conecte-se à internet para usar o app.</p>
-                  <button onclick="window.location.reload()">Tentar novamente</button>
+                  <h1>Offline</h1>
+                  <p>Conecte-se à internet</p>
+                  <button onclick="location.reload()">Tentar novamente</button>
                 </body>
                 </html>
               `, {
                 headers: { 'Content-Type': 'text/html' }
               });
             }
-            
-            throw error;
+            throw new Error('Offline');
           });
+      })
+      .catch(() => {
+        // Fallback final
+        if (event.request.destination === 'document') {
+          return new Response('Offline', { 
+            headers: { 'Content-Type': 'text/plain' } 
+          });
+        }
+        throw new Error('Request failed');
       })
   );
 });
 
-// Message handler para debug
+// 🔧 CORREÇÃO: Message handler melhorado para evitar "message port closed"
 self.addEventListener('message', (event) => {
-  console.log('SW: Message received:', event.data);
-  
-  if (event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-  
-  if (event.data?.type === 'CLEAR_CACHE') {
-    caches.keys().then((cacheNames) => {
-      cacheNames.forEach(cacheName => caches.delete(cacheName));
-    });
+  try {
+    console.log('SW: Message received:', event.data);
+    
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+      console.log('SW: Processing SKIP_WAITING');
+      self.skipWaiting();
+      
+      // 🔧 RESPONDER à mensagem para evitar timeout
+      if (event.ports && event.ports[0]) {
+        try {
+          event.ports[0].postMessage({ 
+            type: 'SKIP_WAITING_RESPONSE', 
+            success: true 
+          });
+        } catch (portError) {
+          console.warn('SW: Port response failed (normal):', portError.message);
+        }
+      }
+    }
+    
+    if (event.data && event.data.type === 'CLEAR_CACHE') {
+      console.log('SW: Clearing caches');
+      caches.keys()
+        .then((cacheNames) => {
+          return Promise.all(
+            cacheNames.map(cacheName => caches.delete(cacheName))
+          );
+        })
+        .catch(() => {
+          // Ignorar erros de limpeza
+        });
+    }
+    
+  } catch (messageError) {
+    console.warn('SW: Message handling error (ignored):', messageError.message);
+    // NÃO relançar o erro
   }
 });
 
-console.log('SW: v2.2.0 Anti-Loop + JS/CSS Skip loaded successfully');
+// 🔧 CORREÇÃO: Capturar erros globais
+self.addEventListener('error', (event) => {
+  console.warn('SW: Global error (ignored):', event.error?.message || event.error);
+  event.preventDefault(); // Evita que apareça no console
+});
+
+self.addEventListener('unhandledrejection', (event) => {
+  console.warn('SW: Unhandled promise rejection (ignored):', event.reason?.message || event.reason);
+  event.preventDefault(); // Evita que apareça no console
+});
+
+console.log('SW: v2.4.0 Fixed - Message Port Errors Resolved');

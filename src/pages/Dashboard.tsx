@@ -42,7 +42,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
+// 🔧 DEBUG: Log para identificar re-renderizações do Dashboard
+console.log('🎯 Dashboard.tsx carregado/re-renderizado:', new Date().toISOString());
+
 const Dashboard: React.FC = () => {
+  console.log('🎯 Dashboard component executando...');
+  
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();

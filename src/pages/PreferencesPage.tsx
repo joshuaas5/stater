@@ -106,8 +106,12 @@ const PreferencesPage: React.FC = () => {
     setPreferences(newPreferences);
     saveUserPreferences(newPreferences);
     
-    // Force reload to apply translations
-    window.location.reload();
+    // Show success toast instead of forcing reload
+    toast({
+      title: 'Idioma alterado!',
+      description: 'Suas preferências de idioma foram salvas.',
+      variant: 'default',
+    });
   };
   
   const handleSavePreferences = async () => {

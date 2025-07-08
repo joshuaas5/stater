@@ -1,15 +1,15 @@
-// Service Worker para Stater - Anti-Loop v2.0.0
-const CACHE_NAME = 'stater-v2.0.0-no-loop';
+// Service Worker para Stater - Anti-Loop v2.1.0
+const CACHE_NAME = 'stater-v2.1.0-no-loop';
 
 // Install - limpo e rápido
 self.addEventListener('install', (event) => {
-  console.log('SW: Installing v2.0.0 (Anti-Loop)');
+  console.log('SW: Installing v2.1.0 (Anti-Loop)');
   self.skipWaiting(); // Ativar imediatamente sem cache inicial
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('SW: Activating v2.0.0');
+  console.log('SW: Activating v2.1.0');
   
   event.waitUntil(
     caches.keys()
@@ -45,22 +45,33 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   const pathname = url.pathname;
   
-  // Verificar se é logout para evitar interferências
-  if (pathname.includes('/login') || pathname.includes('/logout') || pathname.includes('preferences')) {
-    console.log('SW: Skipping interception for login/logout/preferences:', pathname);
-    return; // Deixa passar direto durante logout/login
-  }
+  // Lista de rotas que NUNCA devem ser interceptadas
+  const skipPaths = [
+    '/',
+    '/dashboard',
+    '/preferences', 
+    '/login',
+    '/logout',
+    '/api/',
+    'auth',
+    'supabase'
+  ];
   
-  // Não interceptar rotas do app que podem causar loop
-  if (pathname === '/' || 
-      pathname.startsWith('/dashboard') || 
-      pathname.startsWith('/api/') ||
-      pathname.includes('auth') ||
-      pathname.includes('supabase') ||
-      pathname.endsWith('.svg') || // Ignorar SVGs problemáticos
-      pathname.endsWith('.ico') || // Ignorar favicons
-      url.searchParams.has('token') ||
-      url.searchParams.has('code')) {
+  // Lista de extensões que NUNCA devem ser interceptadas
+  const skipExtensions = ['.svg', '.ico', '.png', '.jpg', '.jpeg', '.gif', '.webp'];
+  
+  // Verificar se deve pular por path
+  const shouldSkipPath = skipPaths.some(path => 
+    pathname === path || pathname.startsWith(path) || pathname.includes(path)
+  );
+  
+  // Verificar se deve pular por extensão
+  const shouldSkipExtension = skipExtensions.some(ext => pathname.endsWith(ext));
+  
+  // Verificar se tem parâmetros sensíveis
+  const hasSensitiveParams = url.searchParams.has('token') || url.searchParams.has('code');
+  
+  if (shouldSkipPath || shouldSkipExtension || hasSensitiveParams) {
     console.log('SW: Skipping interception for:', pathname);
     return; // Deixa passar direto
   }
@@ -142,4 +153,4 @@ self.addEventListener('message', (event) => {
   }
 });
 
-console.log('SW: v2.0.0 Anti-Loop loaded successfully');
+console.log('SW: v2.1.0 Anti-Loop loaded successfully');

@@ -1,9 +1,44 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { saveUser, clearUserData, getCurrentUser } from '@/utils/localStorage';
 import { BiometricService } from '@/services/BiometricService';
+
+// 🔧 CORREÇÃO: Função para limpar URL após processamento de tokens
+const cleanUrlAfterAuth = (delay = 500) => {
+  // Verificar se há fragmentos na URL
+  if (window.location.hash) {
+    const fragment = window.location.hash;
+    if (fragment.includes('access_token=') || 
+        fragment.includes('refresh_token=') ||
+        fragment.includes('error=') ||
+        fragment.includes('type=')) {
+      
+      console.log('🔧 [AUTH] Login processado - limpando tokens da URL');
+      
+      // Aguardar para garantir que tudo foi processado pelo Supabase
+      setTimeout(() => {
+        try {
+          const cleanUrl = window.location.href.split('#')[0]; // Remove tudo após #
+          window.history.replaceState({}, document.title, cleanUrl);
+          console.log('🔧 [AUTH] URL limpa após login:', window.location.href);
+        } catch (error) {
+          console.error('🔧 [AUTH] Erro ao limpar URL:', error);
+        }
+      }, delay);
+    } else if (fragment === '#' || fragment === '#/') {
+      // Fragment vazio - remover imediatamente
+      try {
+        const cleanUrl = window.location.href.split('#')[0]; // Remove tudo após #
+        window.history.replaceState({}, document.title, cleanUrl);
+        console.log('🔧 [AUTH] Fragment vazio removido:', window.location.href);
+      } catch (error) {
+        console.error('🔧 [AUTH] Erro ao remover fragment vazio:', error);
+      }
+    }
+  }
+};
 
 type AuthContextType = {
   session: Session | null;
@@ -25,39 +60,76 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+  
+  // 🔧 CORREÇÃO: Manter controle de login para evitar recargas duplicadas
+  const [isProcessingAuth, setIsProcessingAuth] = useState(false);
+  
+  // 🔧 CORREÇÃO: Função para processar login de forma segura
+  const processLogin = useCallback((session: Session | null) => {
+    if (isProcessingAuth) {
+      console.log('🔧 [AUTH] Já está processando autenticação - ignorando');
+      return;
+    }
+    
+    setIsProcessingAuth(true);
+    
+    try {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        console.log('🔧 [AUTH] Usuário autenticado:', session.user.id);
+        
         // Store user in local storage for offline access
         saveUser({
           id: session.user.id,
           username: session.user.user_metadata.username || session.user.email?.split('@')[0] || '',
           email: session.user.email || '',
         });
+        
+        // Limpar URL de tokens depois que o login for processado
+        cleanUrlAfterAuth(800);
       }
-      
+    } catch (error) {
+      console.error('🔧 [AUTH] Erro ao processar login:', error);
+    } finally {
+      setIsProcessingAuth(false);
       setLoading(false);
+    }
+  }, [isProcessingAuth]);
+  
+  useEffect(() => {
+    console.log('🔧 [AUTH] Inicializando AuthProvider');
+    
+    // Limpar fragments vazios imediatamente
+    if (window.location.hash === '#' || window.location.hash === '#/') {
+      const cleanUrl = window.location.href.split('#')[0];
+      window.history.replaceState({}, document.title, cleanUrl);
+      console.log('🔧 [AUTH] Fragment vazio removido na inicialização');
+    }
+    
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('🔧 [AUTH] Sessão inicial verificada');
+      processLogin(session);
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+      console.log('🔧 [AUTH] Evento de autenticação:', event);
       
-      // 🔧 LIMPAR fragment após processamento de tokens do Supabase
+      processLogin(session);
+      
+      // 🔧 LIMPAR fragment após processamento de tokens do Supabase - mantido por compatibilidade
       if (event === 'SIGNED_IN' && window.location.hash) {
         const fragment = window.location.hash;
         if (fragment.includes('access_token=') || 
             fragment.includes('refresh_token=') ||
-            fragment.includes('error=')) {
+            fragment.includes('error=') ||
+            fragment.includes('type=')) {
           console.log('🔧 [AUTH] Login processado - limpando tokens da URL');
           setTimeout(() => {
-            const cleanUrl = window.location.href.replace(window.location.hash, '');
+            const cleanUrl = window.location.href.split('#')[0];
             window.history.replaceState({}, document.title, cleanUrl);
             console.log('🔧 [AUTH] URL limpa após login:', window.location.href);
           }, 1000); // Aguardar 1 segundo para garantir que tudo foi processado
@@ -112,7 +184,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('🔧 [AUTH] Limpando subscription de auth');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -418,6 +493,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Limpar qualquer cache de autenticação que possa estar persistindo
       localStorage.removeItem('sb-auth-token');
       localStorage.removeItem('supabase.auth.token');
+      
+      // Limpar qualquer fragment da URL ao fazer logout
+      if (window.location.hash) {
+        try {
+          console.log('🔧 [AUTH] Removendo fragments ao fazer logout');
+          const cleanUrl = window.location.href.split('#')[0];
+          window.history.replaceState({}, document.title, cleanUrl);
+        } catch (error) {
+          console.error('🔧 [AUTH] Erro ao limpar URL no logout:', error);
+        }
+      }
       
       toast({
         title: "Logout realizado",

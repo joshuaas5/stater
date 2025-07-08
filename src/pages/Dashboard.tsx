@@ -52,6 +52,14 @@ const Dashboard: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   
+  // 🔧 DEBUG: Detectar mudanças que causam re-render
+  console.log('🔧 [DASHBOARD] Estado atual:', {
+    userLoaded: !!user,
+    userId: user?.id,
+    url: window.location.href,
+    timestamp: new Date().toISOString()
+  });
+  
   // Estados existentes
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [balance, setBalance] = useState(0);

@@ -64,11 +64,36 @@
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js')
             .then((registration) => {
-              console.log('SW registered: ', registration);
+              console.log('🔧 SW registrado com sucesso:', registration);
+              
+              // Configurar um canal de comunicação
+              if (registration.active) {
+                console.log('🔧 SW ativo e pronto');
+              }
+              
+              // Atualizar o SW se houver uma nova versão
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('🔧 Novo SW encontrado, instalando...');
+                
+                if (newWorker) {
+                  newWorker.addEventListener('statechange', () => {
+                    console.log('🔧 SW estado:', newWorker.state);
+                    if (newWorker.state === 'activated') {
+                      console.log('🔧 Novo SW ativado');
+                    }
+                  });
+                }
+              });
             })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
+            .catch((error) => {
+              console.error('🔧 Erro ao registrar SW:', error);
             });
+            
+          // Tratar erros de controllerchange
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('🔧 SW controller mudou');
+          });
         });
       }
     </script>

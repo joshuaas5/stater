@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stater - Offline</title>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      color: #333;
+      background-color: #f7f7f7;
+    }
+    
+    .container {
+      max-width: 500px;
+      padding: 30px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      color: #2E4A6B;
+      margin-bottom: 20px;
+    }
+    
+    p {
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    
+    button {
+      background: #2E4A6B;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    button:hover {
+      background: #1a3654;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Você está offline</h1>
+    <p>Parece que você está sem conexão com a internet. Algumas funcionalidades podem não estar disponíveis.</p>
+    <p>Seus dados estão seguros e sincronizaremos quando a conexão for restaurada.</p>
+    <button onclick="window.location.reload()">Tentar novamente</button>
+  </div>
+  
+  <script>
+    // Verificar conexão periodicamente
+    setInterval(() => {
+      if (navigator.onLine) {
+        window.location.reload();
+      }
+    }, 5000);
+  </script>
+</body>
+</html>

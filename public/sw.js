@@ -51,6 +51,8 @@ self.addEventListener('fetch', (event) => {
       pathname.startsWith('/api/') ||
       pathname.includes('auth') ||
       pathname.includes('supabase') ||
+      pathname.endsWith('.svg') || // Ignorar SVGs problemáticos
+      pathname.endsWith('.ico') || // Ignorar favicons
       url.searchParams.has('token') ||
       url.searchParams.has('code')) {
     console.log('SW: Skipping interception for:', pathname);

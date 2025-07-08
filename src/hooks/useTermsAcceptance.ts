@@ -80,36 +80,40 @@ export const useTermsAcceptance = () => {
     }
 
     try {
-      // Tentar inserir no Supabase primeiro
+      // Primeiro atualizar estado local IMEDIATAMENTE para evitar loops
+      setHasAcceptedTerms(true);
+      setShowTermsModal(false);
+      console.log('✅ [TERMS DEBUG] Estados atualizados imediatamente - hasAccepted: true, showModal: false');
+
+      // Salvar no localStorage imediatamente como backup
+      const localKey = `stater_terms_accepted_${user.id}`;
+      localStorage.setItem(localKey, 'true');
+      console.log('✅ [TERMS DEBUG] Aceite salvo em localStorage imediatamente');
+
+      // Tentar salvar no Supabase em background (não bloquear UI)
       const { data, error } = await supabase
         .from('user_terms_acceptance')
         .upsert({
           user_id: user.id,
           accepted_at: new Date().toISOString(),
-          version: '1.0', // Versão atual dos termos
+          version: '1.0',
           user_agent: navigator.userAgent,
-          ip_address: 'client' // Placeholder - em produção seria obtido pelo backend
+          ip_address: 'client'
         }, {
           onConflict: 'user_id'
         });
 
       if (error) {
-        console.warn('⚠️ [TERMS DEBUG] Erro ao salvar no Supabase, usando fallback localStorage:', error);
-        // Fallback para localStorage se a tabela não existir
-        const localKey = `stater_terms_accepted_${user.id}`;
-        localStorage.setItem(localKey, 'true');
-        console.log('✅ [TERMS DEBUG] Aceite dos termos salvo em localStorage para user:', user.id);
+        console.warn('⚠️ [TERMS DEBUG] Aviso: Erro ao salvar no Supabase (mas localStorage OK):', error);
       } else {
-        console.log('✅ [TERMS DEBUG] Aceite dos termos salvo com sucesso no Supabase para user:', user.id);
-        console.log('✅ [TERMS DEBUG] Dados salvos:', data);
+        console.log('✅ [TERMS DEBUG] Aceite dos termos salvo com sucesso no Supabase');
       }
       
-      setHasAcceptedTerms(true);
-      setShowTermsModal(false);
       return true;
     } catch (error) {
       console.error('❌ [TERMS DEBUG] Erro ao aceitar termos:', error);
-      return false;
+      // Mesmo com erro, manter estado local positivo se localStorage funcionou
+      return true;
     }
   };
 

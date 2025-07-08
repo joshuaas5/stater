@@ -66,66 +66,34 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
     if (currentStep < onboardingSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      console.log('Completing onboarding...');
+      console.log('Completing onboarding - apenas fechar popup...');
       
-      // PASSO 1: Marcar onboarding em progresso para evitar verificações de termos
-      localStorage.setItem('onboarding_in_progress', 'true');
-      
-      // PASSO 2: Marcar como concluído no hook
+      // SIMPLES: Apenas marcar como concluído e fechar
       completeOnboarding();
       
-      // PASSO 3: Limpar flags problemáticas
-      localStorage.removeItem('just_accepted_terms');
-      localStorage.removeItem('accepting_terms');
-      localStorage.removeItem('manual_logout');
+      // Chamar callback se fornecido (que vai esconder o onboarding)
+      if (onComplete) {
+        console.log('Calling onComplete callback - fechando popup');
+        onComplete();
+      }
       
-      // PASSO 4: Aguardar estabilização e remover flag
-      setTimeout(() => {
-        localStorage.removeItem('onboarding_in_progress');
-        console.log('✅ [ONBOARDING] Onboarding flags limpos');
-        
-        // Chamar callback se fornecido
-        if (onComplete) {
-          console.log('Calling onComplete callback');
-          onComplete();
-        }
-        
-        // Redirecionar para dashboard ao invés de reload
-        console.log('Redirecionando para dashboard...');
-        window.location.replace('/dashboard');
-      }, 1000);
+      console.log('✅ Onboarding concluído - popup fechado');
     }
   };
   
   const handleSkip = () => {
-    console.log('handleSkip called');
+    console.log('handleSkip called - apenas fechar popup...');
     
-    // PASSO 1: Marcar onboarding em progresso para evitar verificações de termos
-    localStorage.setItem('onboarding_in_progress', 'true');
-    
-    // PASSO 2: Marcar como concluído no hook
+    // SIMPLES: Apenas marcar como concluído e fechar
     completeOnboarding();
     
-    // PASSO 3: Limpar flags problemáticas
-    localStorage.removeItem('just_accepted_terms');
-    localStorage.removeItem('accepting_terms');
-    localStorage.removeItem('manual_logout');
+    // Chamar callback se fornecido (que vai esconder o onboarding)
+    if (onComplete) {
+      console.log('Calling onComplete callback from skip - fechando popup');
+      onComplete();
+    }
     
-    // PASSO 4: Aguardar estabilização e remover flag
-    setTimeout(() => {
-      localStorage.removeItem('onboarding_in_progress');
-      console.log('✅ [ONBOARDING] Onboarding flags limpos (skip)');
-      
-      // Chamar callback se fornecido
-      if (onComplete) {
-        console.log('Calling onComplete callback from skip');
-        onComplete();
-      }
-      
-      // Redirecionar para dashboard ao invés de reload
-      console.log('Redirecionando para dashboard (skip)...');
-      window.location.replace('/dashboard');
-    }, 1000);
+    console.log('✅ Onboarding pulado - popup fechado');
   };
 
   const step = onboardingSteps[currentStep];

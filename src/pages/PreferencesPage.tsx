@@ -4,10 +4,9 @@ import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
 import { isLoggedIn, getUserPreferences, saveUserPreferences, saveSupabaseUserPreferences } from '@/utils/localStorage';
 import { clearAllNotifications } from '@/utils/clearAllNotifications';
-import { sendWeeklySummaryEmail } from '@/utils/emailService';
 import { 
   Sun, Moon, Bell, Languages, DollarSign, 
-  Calendar, Paintbrush, Save, UserCircle2, Star, Trash2, Mail, FileText
+  Calendar, Paintbrush, Save, UserCircle2, Star, Trash2, FileText
 } from 'lucide-react';
 import { CURRENCIES, suggestCurrencyByCountry } from '@/utils/currencies';
 import { getCurrentUser } from '@/utils/localStorage';
@@ -272,53 +271,7 @@ const PreferencesPage: React.FC = () => {
           </div>
         </div>
           
-        <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
-          <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
-            <Bell size={18} className="mr-2" /> Notificações por Email
-          </h2>
-          <div className="space-y-3">
-            <p className="text-sm text-galileo-text mb-2">
-              Teste o envio de emails ou solicite um resumo semanal das suas finanças.
-            </p>
-            <div className="flex flex-col space-y-2">
-              <Button 
-                variant="outline"
-                className="w-full border border-galileo-accent text-galileo-accent hover:bg-galileo-accent/10"
-                onClick={async () => {
-                  try {
-                    toast({
-                      title: 'Enviando email de teste...',
-                      description: 'Aguarde enquanto processamos sua solicitação.'
-                    });
-                    
-                    const result = await sendWeeklySummaryEmail();
-                    
-                    toast({
-                      title: result.success ? 'Email enviado!' : 'Erro ao enviar email',
-                      description: result.message,
-                      variant: result.success ? 'default' : 'destructive'
-                    });
-                  } catch (error) {
-                    console.error('Erro ao solicitar email:', error);
-                    toast({
-                      title: 'Erro ao enviar email',
-                      description: 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
-                      variant: 'destructive'
-                    });
-                  }
-                }}
-                disabled={!(preferences.notifications?.emailNotifications) || !(preferences.notifications?.weeklyEmailSummary)}
-              >
-                <Mail size={16} className="mr-2" /> Solicitar resumo semanal agora
-              </Button>
-              {(!preferences.notifications?.emailNotifications || !preferences.notifications?.weeklyEmailSummary) && (
-                <p className="text-xs text-red-500 italic">
-                  Para solicitar emails, ative as notificações por email e resumos semanais nas configurações acima.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
+
           
         <div className="pt-2 pb-2">
           <Button 
@@ -358,19 +311,24 @@ const PreferencesPage: React.FC = () => {
           className="w-full border border-red-500 text-red-500 hover:bg-red-50 font-semibold"
           onClick={async () => {
             try {
-              // Desabilitar navegação automática para o dashboard no AuthContext
+              // Marcar logout manual para evitar verificações desnecessárias
               localStorage.setItem('manual_logout', 'true');
+              
               // Fazer logout
               await signOut();
-              // Pequeno atraso para garantir que o logout seja processado
-              setTimeout(() => {
-                // Remover o item após o redirecionamento
-                localStorage.removeItem('manual_logout');
-                // Redirecionar para a página de login
-                window.location.href = '/login';
-              }, 500);
+              
+              // Limpar cache local e redirecionar imediatamente
+              localStorage.clear();
+              sessionStorage.clear();
+              
+              // Usar replace para evitar voltar para página anterior
+              window.location.replace('/login');
             } catch (error) {
               console.error('Erro ao fazer logout:', error);
+              // Mesmo com erro, limpar e redirecionar
+              localStorage.clear();
+              sessionStorage.clear();
+              window.location.replace('/login');
             }
           }}
         >

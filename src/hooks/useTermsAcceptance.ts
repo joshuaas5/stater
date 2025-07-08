@@ -13,6 +13,16 @@ export const useTermsAcceptance = () => {
       try {
         console.log('🔍 [TERMS DEBUG] Iniciando verificação...');
         
+        // Verificar se é um logout manual para evitar execução
+        const isManualLogout = localStorage.getItem('manual_logout') === 'true';
+        if (isManualLogout) {
+          console.log('🔍 [TERMS DEBUG] Logout manual detectado, cancelando verificação');
+          setShowTermsModal(false);
+          setHasAcceptedTerms(false);
+          setIsChecking(false);
+          return;
+        }
+        
         // Só verificar termos se o usuário estiver logado
         if (!user || loading) {
           console.log('🔍 [TERMS DEBUG] Usuário não logado ou loading, escondendo modal');

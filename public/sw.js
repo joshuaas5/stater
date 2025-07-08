@@ -45,6 +45,12 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   const pathname = url.pathname;
   
+  // Verificar se é logout para evitar interferências
+  if (pathname.includes('/login') || pathname.includes('/logout') || pathname.includes('preferences')) {
+    console.log('SW: Skipping interception for login/logout/preferences:', pathname);
+    return; // Deixa passar direto durante logout/login
+  }
+  
   // Não interceptar rotas do app que podem causar loop
   if (pathname === '/' || 
       pathname.startsWith('/dashboard') || 

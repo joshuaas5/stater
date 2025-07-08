@@ -6,14 +6,25 @@ export const useTermsAcceptance = () => {
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [lastCheckTime, setLastCheckTime] = useState(0); // Para throttling
   const { user, loading } = useAuth();
 
   useEffect(() => {
     let isAborted = false; // Flag para cancelar verificação em andamento
+    let timeoutId: NodeJS.Timeout | null = null;
     
     const checkTermsAcceptance = async () => {
       try {
         console.log('🔍 [TERMS DEBUG] Iniciando verificação...');
+        
+        // Throttling: evitar execuções muito frequentes (máximo 1 por segundo)
+        const now = Date.now();
+        if (now - lastCheckTime < 1000) {
+          console.log('🔍 [TERMS DEBUG] Throttled - muito recente, pulando');
+          setIsChecking(false);
+          return;
+        }
+        setLastCheckTime(now);
         
         // Verificar se foi cancelada
         if (isAborted) {
@@ -34,7 +45,17 @@ export const useTermsAcceptance = () => {
           return;
         }
         
-        // PRIORIDADE 2: Só verificar termos se o usuário estiver REALMENTE logado e carregado
+        // PRIORIDADE 2: Verificar se estamos em processo de onboarding ou aceite
+        const isOnboardingInProgress = localStorage.getItem('onboarding_in_progress') === 'true';
+        const isAcceptingTerms = localStorage.getItem('accepting_terms') === 'true';
+        
+        if (isOnboardingInProgress || isAcceptingTerms) {
+          console.log('🔍 [TERMS DEBUG] Onboarding ou aceite em progresso, aguardando...');
+          setIsChecking(false);
+          return;
+        }
+        
+        // PRIORIDADE 3: Só verificar termos se o usuário estiver REALMENTE logado e carregado
         if (!user || loading || !user.id) {
           console.log('🔍 [TERMS DEBUG] Usuário não logado ou loading, escondendo modal');
           setShowTermsModal(false);
@@ -90,6 +111,7 @@ export const useTermsAcceptance = () => {
     const handleForceStop = () => {
       console.log('🔍 [TERMS DEBUG] Force stop recebido');
       isAborted = true;
+      if (timeoutId) clearTimeout(timeoutId);
       setShowTermsModal(false);
       setHasAcceptedTerms(false);
       setIsChecking(false);
@@ -97,15 +119,15 @@ export const useTermsAcceptance = () => {
     
     window.addEventListener('force-stop-terms-check', handleForceStop);
 
-    // Pequeno delay para evitar flash e garantir que user esteja pronto
-    const timer = setTimeout(checkTermsAcceptance, 300);
+    // Usar timeout mais longo para evitar execuções repetidas durante transições
+    timeoutId = setTimeout(checkTermsAcceptance, 500);
     
     return () => {
-      clearTimeout(timer);
+      if (timeoutId) clearTimeout(timeoutId);
       isAborted = true;
       window.removeEventListener('force-stop-terms-check', handleForceStop);
     };
-  }, [user, loading]);
+  }, [user?.id, loading]); // Dependências mais específicas para evitar loops
 
   const acceptTerms = async () => {
     console.log('✅ [TERMS DEBUG] acceptTerms chamado');
@@ -116,6 +138,10 @@ export const useTermsAcceptance = () => {
     }
 
     try {
+      // Marcar que está aceitando termos para evitar loops
+      localStorage.setItem('accepting_terms', 'true');
+      console.log('✅ [TERMS DEBUG] Marcado accepting_terms = true');
+
       // Primeiro atualizar estado local IMEDIATAMENTE para evitar loops
       setHasAcceptedTerms(true);
       setShowTermsModal(false);
@@ -145,10 +171,16 @@ export const useTermsAcceptance = () => {
         console.log('✅ [TERMS DEBUG] Aceite dos termos salvo com sucesso no Supabase');
       }
       
+      // Remover flag de aceite em progresso
+      localStorage.removeItem('accepting_terms');
+      console.log('✅ [TERMS DEBUG] Removido accepting_terms flag');
+      
       return true;
     } catch (error) {
       console.error('❌ [TERMS DEBUG] Erro ao aceitar termos:', error);
-      // Mesmo com erro, manter estado local positivo se localStorage funcionou
+      
+      // Mesmo com erro, remover flag e manter estado local positivo
+      localStorage.removeItem('accepting_terms');
       return true;
     }
   };

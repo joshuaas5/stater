@@ -68,40 +68,64 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
     } else {
       console.log('Completing onboarding...');
       
-      // Marcar como concluído no localStorage
+      // PASSO 1: Marcar onboarding em progresso para evitar verificações de termos
+      localStorage.setItem('onboarding_in_progress', 'true');
+      
+      // PASSO 2: Marcar como concluído no hook
       completeOnboarding();
       
-      // Chamar callback se fornecido
-      if (onComplete) {
-        console.log('Calling onComplete callback');
-        onComplete();
-      }
+      // PASSO 3: Limpar flags problemáticas
+      localStorage.removeItem('just_accepted_terms');
+      localStorage.removeItem('accepting_terms');
+      localStorage.removeItem('manual_logout');
       
-      // Forçar reload para garantir que o estado seja atualizado
-      console.log('Reloading page...');
+      // PASSO 4: Aguardar estabilização e remover flag
       setTimeout(() => {
-        window.location.reload();
-      }, 100);
+        localStorage.removeItem('onboarding_in_progress');
+        console.log('✅ [ONBOARDING] Onboarding flags limpos');
+        
+        // Chamar callback se fornecido
+        if (onComplete) {
+          console.log('Calling onComplete callback');
+          onComplete();
+        }
+        
+        // Redirecionar para dashboard ao invés de reload
+        console.log('Redirecionando para dashboard...');
+        window.location.replace('/dashboard');
+      }, 1000);
     }
   };
   
   const handleSkip = () => {
     console.log('handleSkip called');
     
-    // Marcar como concluído no localStorage
+    // PASSO 1: Marcar onboarding em progresso para evitar verificações de termos
+    localStorage.setItem('onboarding_in_progress', 'true');
+    
+    // PASSO 2: Marcar como concluído no hook
     completeOnboarding();
     
-    // Chamar callback se fornecido
-    if (onComplete) {
-      console.log('Calling onComplete callback from skip');
-      onComplete();
-    }
+    // PASSO 3: Limpar flags problemáticas
+    localStorage.removeItem('just_accepted_terms');
+    localStorage.removeItem('accepting_terms');
+    localStorage.removeItem('manual_logout');
     
-    // Forçar reload para garantir que o estado seja atualizado
-    console.log('Reloading page from skip...');
+    // PASSO 4: Aguardar estabilização e remover flag
     setTimeout(() => {
-      window.location.reload();
-    }, 100);
+      localStorage.removeItem('onboarding_in_progress');
+      console.log('✅ [ONBOARDING] Onboarding flags limpos (skip)');
+      
+      // Chamar callback se fornecido
+      if (onComplete) {
+        console.log('Calling onComplete callback from skip');
+        onComplete();
+      }
+      
+      // Redirecionar para dashboard ao invés de reload
+      console.log('Redirecionando para dashboard (skip)...');
+      window.location.replace('/dashboard');
+    }, 1000);
   };
 
   const step = onboardingSteps[currentStep];

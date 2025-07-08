@@ -117,6 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("Erro no login:", error);
       
       let errorMessage = "Erro ao fazer login";
+      let shouldRetry = false;
       
       // Traduzir mensagens de erro do Supabase
       if (error.message?.includes("Invalid login credentials")) {
@@ -125,16 +126,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         errorMessage = "Email não confirmado. Verifique sua caixa de entrada para confirmar sua conta.";
       } else if (error.message?.includes("Invalid email")) {
         errorMessage = "Email inválido. Por favor, insira um email válido.";
-      } else if (error.message?.includes("Too many requests")) {
+      } else if (error.status === 429 || error.message?.includes("Too many requests") || error.message?.includes("rate limit")) {
         errorMessage = "Muitas tentativas de login. Aguarde alguns minutos e tente novamente.";
-      } else if (error.message?.includes("Network")) {
+        shouldRetry = true;
+      } else if (error.message?.includes("Network") || error.message?.includes("fetch")) {
         errorMessage = "Problema de conexão. Verifique sua internet e tente novamente.";
+        shouldRetry = true;
+      } else if (error.status >= 500) {
+        errorMessage = "Erro temporário do servidor. Tente novamente em alguns minutos.";
+        shouldRetry = true;
       }
       
       toast({
         title: "Erro no login",
-        description: errorMessage,
-        variant: "destructive"
+        description: errorMessage + (shouldRetry ? " Você pode tentar novamente." : ""),
+        variant: "destructive",
+        duration: shouldRetry ? 8000 : 5000
       });
       throw error;
     } finally {
@@ -256,20 +263,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("Erro no cadastro:", error);
       
       let errorMessage = "Erro ao criar conta";
+      let shouldRetry = false;
       
-      if (error.message?.includes("Invalid email")) {
+      // Verificar se é um erro de rate limit
+      if (error.status === 429 || error.message?.includes("rate limit") || error.message?.includes("Too many requests")) {
+        errorMessage = "Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente.";
+        shouldRetry = true;
+      } else if (error.message?.includes("Invalid email")) {
         errorMessage = "Por favor, insira um email válido";
       } else if (error.message?.includes("Password")) {
         errorMessage = "A senha deve ter pelo menos 6 caracteres";
       } else if (error.message?.includes("already registered")) {
         errorMessage = "Este email já está registrado. Faça login ou recupere sua senha.";
+      } else if (error.message?.includes("network") || error.message?.includes("fetch")) {
+        errorMessage = "Erro de conexão. Verifique sua internet e tente novamente.";
+        shouldRetry = true;
+      } else if (error.status >= 500) {
+        errorMessage = "Erro temporário do servidor. Tente novamente em alguns minutos.";
+        shouldRetry = true;
       }
       
       toast({
         title: "Erro no cadastro",
-        description: errorMessage,
-        variant: "destructive"
+        description: errorMessage + (shouldRetry ? " Você pode tentar novamente." : ""),
+        variant: "destructive",
+        duration: shouldRetry ? 8000 : 5000
       });
+      
       throw error;
     } finally {
       setLoading(false);

@@ -41,9 +41,9 @@
       "url": "/transactions?action=add",
       "icons": [
         {
-          "src": "/icon-192.svg",
-          "sizes": "96x96",
-          "type": "image/svg+xml"
+          "src": "/favicon.ico",
+          "sizes": "48x48",
+          "type": "image/x-icon"
         }
       ]
     },
@@ -54,9 +54,9 @@
       "url": "/dashboard",
       "icons": [
         {
-          "src": "/icon-192.svg",
-          "sizes": "96x96",
-          "type": "image/svg+xml"
+          "src": "/favicon.ico",
+          "sizes": "48x48",
+          "type": "image/x-icon"
         }
       ]
     },
@@ -67,9 +67,9 @@
       "url": "/financial-advisor",
       "icons": [
         {
-          "src": "/icon-192.svg",
-          "sizes": "96x96",
-          "type": "image/svg+xml"
+          "src": "/favicon.ico",
+          "sizes": "48x48",
+          "type": "image/x-icon"
         }
       ]
     }

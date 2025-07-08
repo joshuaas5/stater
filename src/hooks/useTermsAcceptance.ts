@@ -6,46 +6,32 @@ export const useTermsAcceptance = () => {
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-  const [lastCheckTime, setLastCheckTime] = useState(0); // Para throttling
-  const [hasInitialized, setHasInitialized] = useState(false); // Flag de inicialização
+  const [hasInitialized, setHasInitialized] = useState(false);
   const { user, loading } = useAuth();
+
+  // 🧹 Função para limpar estado dos termos durante logout
+  const clearTermsState = useCallback(() => {
+    console.log('🧹 [TERMS DEBUG] Limpando estado dos termos...');
+    setHasAcceptedTerms(false);
+    setShowTermsModal(false);
+    setIsChecking(false);
+    setHasInitialized(false);
+    
+    // Remover flags temporárias (mas manter flags permanentes de verificação)
+    localStorage.removeItem('accepting_terms');
+    localStorage.removeItem('just_accepted_terms');
+    localStorage.removeItem('onboarding_in_progress');
+  }, []);
 
   const checkTermsAcceptance = useCallback(async () => {
     try {
-      console.log('🔍 [TERMS DEBUG] Iniciando verificação...');
+      console.log('🔍 [TERMS DEBUG] Iniciando verificação (ÚNICA VEZ)...');
       
       // PROTEÇÃO 0: Evitar múltiplas execuções durante inicialização
       if (!hasInitialized && (loading || !user)) {
         console.log('🔍 [TERMS DEBUG] Aguardando inicialização completa...');
         setIsChecking(false);
         return;
-      }
-      
-      // PROTEÇÃO 1: Throttling - evitar execuções muito frequentes (máximo 1 por 3 segundos)
-      const now = Date.now();
-      if (now - lastCheckTime < 3000) {
-        console.log('🔍 [TERMS DEBUG] Throttled - muito recente, pulando');
-        setIsChecking(false);
-        return;
-      }
-      setLastCheckTime(now);
-      
-      // PROTEÇÃO 2: Verificar se acabou de aceitar termos
-      const justAcceptedTerms = localStorage.getItem('just_accepted_terms');
-      if (justAcceptedTerms) {
-        const timestamp = parseInt(justAcceptedTerms);
-        const timeSinceAccepted = now - timestamp;
-        
-        if (timeSinceAccepted < 5000) { // 5 segundos
-          console.log('🔍 [TERMS DEBUG] Termos aceitos recentemente, pulando verificação');
-          setHasAcceptedTerms(true);
-          setShowTermsModal(false);
-          setIsChecking(false);
-          return;
-        } else {
-          // Limpar flag antigo
-          localStorage.removeItem('just_accepted_terms');
-        }
       }
       
       // PRIORIDADE 1: Verificar se é um logout manual ou navegação para login
@@ -61,17 +47,7 @@ export const useTermsAcceptance = () => {
         return;
       }
       
-      // PRIORIDADE 2: Verificar se estamos em processo de onboarding ou aceite
-      const isOnboardingInProgress = localStorage.getItem('onboarding_in_progress') === 'true';
-      const isAcceptingTermsFlag = localStorage.getItem('accepting_terms') === 'true';
-      
-      if (isOnboardingInProgress || isAcceptingTermsFlag) {
-        console.log('🔍 [TERMS DEBUG] Onboarding ou aceite em progresso, aguardando...');
-        setIsChecking(false);
-        return;
-      }
-      
-      // PRIORIDADE 3: Só verificar termos se o usuário estiver REALMENTE logado e carregado
+      // PRIORIDADE 2: Só verificar termos se o usuário estiver REALMENTE logado e carregado
       if (!user || loading || !user.id) {
         console.log('🔍 [TERMS DEBUG] Usuário não logado ou loading, escondendo modal');
         setShowTermsModal(false);
@@ -80,19 +56,22 @@ export const useTermsAcceptance = () => {
         return;
       }
 
-      console.log('🔍 [TERMS DEBUG] Verificando no Supabase para usuário:', user.id);
-
-      // Verificar localStorage primeiro para performance
-      const localKey = `stater_terms_accepted_${user.id}`;
-      const localAccepted = localStorage.getItem(localKey);
+      // 🎯 NOVA LÓGICA: VERIFICAÇÃO ÚNICA POR USUÁRIO NA VIDA
+      const termsCheckedKey = `terms_checked_${user.id}`;
+      const alreadyChecked = localStorage.getItem(termsCheckedKey);
       
-      if (localAccepted === 'true') {
-        console.log('🔍 [TERMS DEBUG] Termos aceitos no localStorage');
-        setHasAcceptedTerms(true);
-        setShowTermsModal(false);
+      if (alreadyChecked === 'true') {
+        console.log('🔍 [TERMS DEBUG] ✅ Usuário já foi verificado anteriormente, NUNCA MAIS verificar');
+        const localKey = `stater_terms_accepted_${user.id}`;
+        const hasAccepted = localStorage.getItem(localKey) === 'true';
+        
+        setHasAcceptedTerms(hasAccepted);
+        setShowTermsModal(!hasAccepted); // Só mostra se não aceitou ainda
         setIsChecking(false);
         return;
       }
+
+      console.log('🔍 [TERMS DEBUG] 🆕 PRIMEIRA VEZ verificando este usuário...');
 
       // Verificar no Supabase se o usuário já aceitou os termos
       const { data: termsData, error } = await supabase
@@ -105,25 +84,31 @@ export const useTermsAcceptance = () => {
       let shouldShowModal = false;
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = row not found
-        console.warn('⚠️ [TERMS DEBUG] Erro ao buscar dados dos termos, usando fallback localStorage:', error);
-        // Fallback para localStorage se a tabela não existir ainda
-        hasAccepted = localStorage.getItem(localKey) === 'true';
+        console.warn('⚠️ [TERMS DEBUG] Erro ao buscar dados dos termos, usando fallback:', error);
+        // Fallback: presumir que precisa aceitar
+        hasAccepted = false;
+        shouldShowModal = true;
       } else if (termsData) {
+        console.log('🔍 [TERMS DEBUG] ✅ Usuário já aceitou os termos no Supabase');
         hasAccepted = true;
+        shouldShowModal = false;
         // Salvar no localStorage para cache
+        const localKey = `stater_terms_accepted_${user.id}`;
         localStorage.setItem(localKey, 'true');
       } else {
-        // Usuário não aceitou ainda
+        console.log('🔍 [TERMS DEBUG] ⚠️ Usuário ainda não aceitou os termos');
         hasAccepted = false;
         shouldShowModal = true;
       }
+
+      // 🎯 MARCAR QUE ESTE USUÁRIO JÁ FOI VERIFICADO (NUNCA MAIS VERIFICAR)
+      localStorage.setItem(termsCheckedKey, 'true');
+      console.log('🔍 [TERMS DEBUG] 🔒 Marcado como verificado, NUNCA MAIS será checado');
         
-      console.log('🔍 [TERMS DEBUG] Status:', { 
+      console.log('🔍 [TERMS DEBUG] Status FINAL:', { 
         userId: user.id, 
-        termsData,
         hasAccepted,
-        shouldShowModal,
-        fallbackUsed: !!error
+        shouldShowModal
       });
       
       setHasAcceptedTerms(hasAccepted);
@@ -131,19 +116,24 @@ export const useTermsAcceptance = () => {
       console.log('🔍 [TERMS DEBUG] setShowTermsModal definido para:', shouldShowModal);
     } catch (error) {
       console.error('❌ [TERMS DEBUG] Erro geral ao verificar aceite dos termos:', error);
-      // Em caso de erro, mostrar termos para garantir conformidade
-      setShowTermsModal(true);
-      setHasAcceptedTerms(false);
+      // Em caso de erro, mostrar termos para garantir conformidade (SÓ NA PRIMEIRA VEZ)
+      if (user?.id) {
+        const termsCheckedKey = `terms_checked_${user.id}`;
+        const alreadyChecked = localStorage.getItem(termsCheckedKey);
+        
+        if (alreadyChecked !== 'true') {
+          setShowTermsModal(true);
+          setHasAcceptedTerms(false);
+          localStorage.setItem(termsCheckedKey, 'true'); // Marcar como verificado mesmo com erro
+        }
+      }
     } finally {
       setIsChecking(false);
       console.log('🔍 [TERMS DEBUG] isChecking definido para false');
     }
-  }, [user?.id, loading, lastCheckTime]);
+  }, [user?.id, loading, hasInitialized]);
 
   useEffect(() => {
-    let isAborted = false; // Flag para cancelar verificação em andamento
-    let timeoutId: NodeJS.Timeout | null = null;
-
     // Marcar como inicializado após o usuário estar carregado
     if (!loading && user && !hasInitialized) {
       console.log('🔍 [TERMS DEBUG] Sistema inicializado, habilitando verificações');
@@ -156,11 +146,27 @@ export const useTermsAcceptance = () => {
       return;
     }
 
+    // 🎯 VERIFICAÇÃO ÚNICA: só roda se o usuário ainda não foi verificado
+    if (user?.id) {
+      const termsCheckedKey = `terms_checked_${user.id}`;
+      const alreadyChecked = localStorage.getItem(termsCheckedKey);
+      
+      if (alreadyChecked === 'true') {
+        console.log('🔍 [TERMS DEBUG] ⏩ Usuário já verificado, pulando useEffect');
+        
+        // Ainda precisa carregar o estado dos termos do localStorage
+        const localKey = `stater_terms_accepted_${user.id}`;
+        const hasAccepted = localStorage.getItem(localKey) === 'true';
+        setHasAcceptedTerms(hasAccepted);
+        setShowTermsModal(!hasAccepted);
+        setIsChecking(false);
+        return;
+      }
+    }
+
     // Listener para parar verificação durante logout
     const handleForceStop = () => {
       console.log('🔍 [TERMS DEBUG] Force stop recebido');
-      isAborted = true;
-      if (timeoutId) clearTimeout(timeoutId);
       setShowTermsModal(false);
       setHasAcceptedTerms(false);
       setIsChecking(false);
@@ -168,17 +174,14 @@ export const useTermsAcceptance = () => {
     
     window.addEventListener('force-stop-terms-check', handleForceStop);
 
-    // Usar timeout mais longo para evitar execuções repetidas durante transições
-    if (!isAborted) {
-      timeoutId = setTimeout(checkTermsAcceptance, 1000);
-    }
+    // Executar verificação apenas UMA VEZ por usuário
+    const timeoutId = setTimeout(checkTermsAcceptance, 500);
     
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      isAborted = true;
+      clearTimeout(timeoutId);
       window.removeEventListener('force-stop-terms-check', handleForceStop);
     };
-  }, [checkTermsAcceptance, hasInitialized, loading, user]); // Dependência da flag de inicialização
+  }, [checkTermsAcceptance, hasInitialized, loading, user?.id]); // user?.id para detectar mudança de usuário
 
   const acceptTerms = async () => {
     console.log('✅ [TERMS DEBUG] acceptTerms chamado');
@@ -189,10 +192,7 @@ export const useTermsAcceptance = () => {
     }
 
     try {
-      // Marcar que está aceitando termos para evitar loops
-      localStorage.setItem('accepting_terms', 'true');
-      localStorage.setItem('just_accepted_terms', Date.now().toString());
-      console.log('✅ [TERMS DEBUG] Marcado accepting_terms = true');
+      console.log('✅ [TERMS DEBUG] Processando aceite dos termos...');
 
       // Primeiro atualizar estado local IMEDIATAMENTE para evitar loops
       setHasAcceptedTerms(true);
@@ -203,6 +203,11 @@ export const useTermsAcceptance = () => {
       const localKey = `stater_terms_accepted_${user.id}`;
       localStorage.setItem(localKey, 'true');
       console.log('✅ [TERMS DEBUG] Aceite salvo em localStorage imediatamente');
+
+      // 🎯 MARCAR QUE ESTE USUÁRIO JÁ FOI VERIFICADO (NUNCA MAIS VERIFICAR)
+      const termsCheckedKey = `terms_checked_${user.id}`;
+      localStorage.setItem(termsCheckedKey, 'true');
+      console.log('✅ [TERMS DEBUG] 🔒 Usuário marcado como verificado permanentemente');
 
       // Tentar salvar no Supabase em background (não bloquear UI)
       const { data, error } = await supabase
@@ -223,20 +228,22 @@ export const useTermsAcceptance = () => {
         console.log('✅ [TERMS DEBUG] Aceite dos termos salvo com sucesso no Supabase');
       }
       
-      // Remover flag de aceite em progresso após um delay
-      setTimeout(() => {
-        localStorage.removeItem('accepting_terms');
-        console.log('✅ [TERMS DEBUG] Removido accepting_terms flag');
-      }, 1000);
-      
       return true;
     } catch (error) {
       console.error('❌ [TERMS DEBUG] Erro ao aceitar termos:', error);
       
-      // Mesmo com erro, remover flag e manter estado local positivo
-      setTimeout(() => {
-        localStorage.removeItem('accepting_terms');
-      }, 1000);
+      // Mesmo com erro, garantir que o estado fica correto
+      setHasAcceptedTerms(true);
+      setShowTermsModal(false);
+      
+      // E marcar como verificado para não repetir
+      if (user?.id) {
+        const localKey = `stater_terms_accepted_${user.id}`;
+        const termsCheckedKey = `terms_checked_${user.id}`;
+        localStorage.setItem(localKey, 'true');
+        localStorage.setItem(termsCheckedKey, 'true');
+      }
+      
       return true;
     }
   };
@@ -245,6 +252,7 @@ export const useTermsAcceptance = () => {
     hasAcceptedTerms,
     showTermsModal,
     isChecking,
-    acceptTerms
+    acceptTerms,
+    clearTermsState
   };
 };

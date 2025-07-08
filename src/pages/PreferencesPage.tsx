@@ -270,8 +270,8 @@ const PreferencesPage: React.FC = () => {
             <Languages size={18} className="mr-2" /> {t('language')}
           </h2>
           <div className="flex space-x-4">
-            <Button variant={preferences.language === 'pt-BR' ? 'default' : 'outline'} onClick={() => handleLanguageChange('pt-BR')} className="flex-1">Português</Button>
-            <Button variant={preferences.language === 'en-US' ? 'default' : 'outline'} onClick={() => handleLanguageChange('en-US')} className="flex-1">English</Button>
+            <Button variant="default" className="flex-1 cursor-default">Português</Button>
+            <Button variant="outline" disabled className="flex-1 opacity-50">English (em breve)</Button>
           </div>
         </div>
           
@@ -315,21 +315,34 @@ const PreferencesPage: React.FC = () => {
           className="w-full border border-red-500 text-red-500 hover:bg-red-50 font-semibold"
           onClick={async () => {
             try {
-              // Marcar logout manual para evitar verificações desnecessárias
+              // PASSO 1: Marcar logout manual ANTES de qualquer operação
               localStorage.setItem('manual_logout', 'true');
+              console.log('🚪 [LOGOUT] Marcado como logout manual');
               
-              // Fazer logout
-              await signOut();
+              // PASSO 2: Parar qualquer verificação de termos em execução
+              window.dispatchEvent(new CustomEvent('force-stop-terms-check'));
               
-              // Limpar cache local e redirecionar imediatamente
+              // PASSO 3: Limpar TUDO imediatamente
               localStorage.clear();
               sessionStorage.clear();
+              console.log('🚪 [LOGOUT] Cache local limpo');
               
-              // Usar replace para evitar voltar para página anterior
+              // PASSO 4: Fazer logout do Supabase (pode falhar, mas não importa)
+              try {
+                await signOut();
+                console.log('🚪 [LOGOUT] Logout do Supabase executado');
+              } catch (error) {
+                console.log('🚪 [LOGOUT] Erro no logout do Supabase (ignorado):', error);
+              }
+              
+              // PASSO 5: Redirecionar IMEDIATAMENTE usando replace
+              console.log('🚪 [LOGOUT] Redirecionando para login...');
               window.location.replace('/login');
+              
             } catch (error) {
-              console.error('Erro ao fazer logout:', error);
-              // Mesmo com erro, limpar e redirecionar
+              console.error('🚪 [LOGOUT] Erro geral:', error);
+              
+              // FALLBACK: Mesmo com erro, limpar e redirecionar
               localStorage.clear();
               sessionStorage.clear();
               window.location.replace('/login');

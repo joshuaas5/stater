@@ -613,6 +613,7 @@ const Dashboard: React.FC = () => {
                   </h3>
                   <p className="text-blue-100 text-xs sm:text-sm">
                     Controle suas finanças direto no Telegram
+                    <span className="opacity-75"> • Em breve também no WhatsApp</span>
                   </p>
                   <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
                     <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs">

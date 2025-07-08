@@ -9,22 +9,33 @@ export const useTermsAcceptance = () => {
   const { user, loading } = useAuth();
 
   useEffect(() => {
+    let isAborted = false; // Flag para cancelar verificação em andamento
+    
     const checkTermsAcceptance = async () => {
       try {
         console.log('🔍 [TERMS DEBUG] Iniciando verificação...');
         
-        // Verificar se é um logout manual para evitar execução
+        // Verificar se foi cancelada
+        if (isAborted) {
+          console.log('🔍 [TERMS DEBUG] Verificação cancelada por abort');
+          return;
+        }
+        
+        // PRIORIDADE 1: Verificar se é um logout manual ou navegação para login
         const isManualLogout = localStorage.getItem('manual_logout') === 'true';
-        if (isManualLogout) {
-          console.log('🔍 [TERMS DEBUG] Logout manual detectado, cancelando verificação');
+        const currentPath = window.location.pathname;
+        const isLoginPage = currentPath === '/login' || currentPath === '/';
+        
+        if (isManualLogout || isLoginPage) {
+          console.log('🔍 [TERMS DEBUG] Logout manual ou página de login, cancelando verificação');
           setShowTermsModal(false);
           setHasAcceptedTerms(false);
           setIsChecking(false);
           return;
         }
         
-        // Só verificar termos se o usuário estiver logado
-        if (!user || loading) {
+        // PRIORIDADE 2: Só verificar termos se o usuário estiver REALMENTE logado e carregado
+        if (!user || loading || !user.id) {
           console.log('🔍 [TERMS DEBUG] Usuário não logado ou loading, escondendo modal');
           setShowTermsModal(false);
           setHasAcceptedTerms(false);
@@ -75,10 +86,25 @@ export const useTermsAcceptance = () => {
       }
     };
 
+    // Listener para parar verificação durante logout
+    const handleForceStop = () => {
+      console.log('🔍 [TERMS DEBUG] Force stop recebido');
+      isAborted = true;
+      setShowTermsModal(false);
+      setHasAcceptedTerms(false);
+      setIsChecking(false);
+    };
+    
+    window.addEventListener('force-stop-terms-check', handleForceStop);
+
     // Pequeno delay para evitar flash e garantir que user esteja pronto
     const timer = setTimeout(checkTermsAcceptance, 300);
     
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      isAborted = true;
+      window.removeEventListener('force-stop-terms-check', handleForceStop);
+    };
   }, [user, loading]);
 
   const acceptTerms = async () => {

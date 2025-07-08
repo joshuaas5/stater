@@ -1,15 +1,15 @@
-// Service Worker para Stater - Anti-Loop v2.1.0
-const CACHE_NAME = 'stater-v2.1.0-no-loop';
+// Service Worker para Stater - Anti-Loop v2.2.0
+const CACHE_NAME = 'stater-v2.2.0-no-loop';
 
 // Install - limpo e rápido
 self.addEventListener('install', (event) => {
-  console.log('SW: Installing v2.1.0 (Anti-Loop)');
+  console.log('SW: Installing v2.2.0 (Anti-Loop + JS/CSS Skip)');
   self.skipWaiting(); // Ativar imediatamente sem cache inicial
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('SW: Activating v2.1.0');
+  console.log('SW: Activating v2.2.0 (JS/CSS Skip)');
   
   event.waitUntil(
     caches.keys()
@@ -53,12 +53,13 @@ self.addEventListener('fetch', (event) => {
     '/login',
     '/logout',
     '/api/',
+    '/assets/', // Arquivos JS/CSS críticos do Vite
     'auth',
     'supabase'
   ];
   
   // Lista de extensões que NUNCA devem ser interceptadas
-  const skipExtensions = ['.svg', '.ico', '.png', '.jpg', '.jpeg', '.gif', '.webp'];
+  const skipExtensions = ['.svg', '.ico', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.js', '.css', '.json'];
   
   // Verificar se deve pular por path
   const shouldSkipPath = skipPaths.some(path => 
@@ -71,7 +72,10 @@ self.addEventListener('fetch', (event) => {
   // Verificar se tem parâmetros sensíveis
   const hasSensitiveParams = url.searchParams.has('token') || url.searchParams.has('code');
   
-  if (shouldSkipPath || shouldSkipExtension || hasSensitiveParams) {
+  // Verificar se é arquivo do Vite/build
+  const isViteAsset = pathname.includes('index-') || pathname.includes('.js') || pathname.includes('.css');
+  
+  if (shouldSkipPath || shouldSkipExtension || hasSensitiveParams || isViteAsset) {
     console.log('SW: Skipping interception for:', pathname);
     return; // Deixa passar direto
   }
@@ -153,4 +157,4 @@ self.addEventListener('message', (event) => {
   }
 });
 
-console.log('SW: v2.1.0 Anti-Loop loaded successfully');
+console.log('SW: v2.2.0 Anti-Loop + JS/CSS Skip loaded successfully');

@@ -7,15 +7,23 @@ export const useTermsAcceptance = () => {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   const [lastCheckTime, setLastCheckTime] = useState(0); // Para throttling
+  const [hasInitialized, setHasInitialized] = useState(false); // Flag de inicialização
   const { user, loading } = useAuth();
 
   const checkTermsAcceptance = useCallback(async () => {
     try {
       console.log('🔍 [TERMS DEBUG] Iniciando verificação...');
       
-      // PROTEÇÃO 1: Throttling - evitar execuções muito frequentes (máximo 1 por 2 segundos)
+      // PROTEÇÃO 0: Evitar múltiplas execuções durante inicialização
+      if (!hasInitialized && (loading || !user)) {
+        console.log('🔍 [TERMS DEBUG] Aguardando inicialização completa...');
+        setIsChecking(false);
+        return;
+      }
+      
+      // PROTEÇÃO 1: Throttling - evitar execuções muito frequentes (máximo 1 por 3 segundos)
       const now = Date.now();
-      if (now - lastCheckTime < 2000) {
+      if (now - lastCheckTime < 3000) {
         console.log('🔍 [TERMS DEBUG] Throttled - muito recente, pulando');
         setIsChecking(false);
         return;
@@ -136,6 +144,18 @@ export const useTermsAcceptance = () => {
     let isAborted = false; // Flag para cancelar verificação em andamento
     let timeoutId: NodeJS.Timeout | null = null;
 
+    // Marcar como inicializado após o usuário estar carregado
+    if (!loading && user && !hasInitialized) {
+      console.log('🔍 [TERMS DEBUG] Sistema inicializado, habilitando verificações');
+      setHasInitialized(true);
+    }
+
+    // Só executar verificação se estiver inicializado
+    if (!hasInitialized) {
+      setIsChecking(false);
+      return;
+    }
+
     // Listener para parar verificação durante logout
     const handleForceStop = () => {
       console.log('🔍 [TERMS DEBUG] Force stop recebido');
@@ -150,7 +170,7 @@ export const useTermsAcceptance = () => {
 
     // Usar timeout mais longo para evitar execuções repetidas durante transições
     if (!isAborted) {
-      timeoutId = setTimeout(checkTermsAcceptance, 500);
+      timeoutId = setTimeout(checkTermsAcceptance, 1000);
     }
     
     return () => {
@@ -158,7 +178,7 @@ export const useTermsAcceptance = () => {
       isAborted = true;
       window.removeEventListener('force-stop-terms-check', handleForceStop);
     };
-  }, [checkTermsAcceptance]); // Dependência do useCallback
+  }, [checkTermsAcceptance, hasInitialized, loading, user]); // Dependência da flag de inicialização
 
   const acceptTerms = async () => {
     console.log('✅ [TERMS DEBUG] acceptTerms chamado');

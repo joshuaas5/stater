@@ -662,8 +662,10 @@ const Dashboard: React.FC = () => {
                         <br />
                         📱 Recebendo notificações no bot
                       </>
+                    ) : telegramInfo?.username ? (
+                      <>@{telegramInfo.username} • Recebendo notificações</>
                     ) : (
-                      <>@{telegramInfo?.username || 'usuário'} • Recebendo notificações</>
+                      <>Usuário conectado • Recebendo notificações</>
                     )}
                   </p>
                 </div>

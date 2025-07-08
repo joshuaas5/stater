@@ -49,6 +49,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       
+      // 🔧 LIMPAR fragment após processamento de tokens do Supabase
+      if (event === 'SIGNED_IN' && window.location.hash) {
+        const fragment = window.location.hash;
+        if (fragment.includes('access_token=') || 
+            fragment.includes('refresh_token=') ||
+            fragment.includes('error=')) {
+          console.log('🔧 [AUTH] Login processado - limpando tokens da URL');
+          setTimeout(() => {
+            const cleanUrl = window.location.href.replace(window.location.hash, '');
+            window.history.replaceState({}, document.title, cleanUrl);
+            console.log('🔧 [AUTH] URL limpa após login:', window.location.href);
+          }, 1000); // Aguardar 1 segundo para garantir que tudo foi processado
+        }
+      }
+      
       if (session?.user) {
         // Store user in local storage for offline access
         saveUser({

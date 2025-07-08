@@ -45,10 +45,20 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // 🚫 SKIP: URLs com fragment (#) - CAUSA DO LOOP!
+  // � CORREÇÃO: URLs com fragment - permitir tokens de autenticação
   if (event.request.url.includes('#')) {
-    console.log('SW: Skipping URL with fragment:', event.request.url);
-    return;
+    const fragment = event.request.url.split('#')[1];
+    
+    // Permitir fragments com tokens de autenticação do Supabase
+    if (fragment && (fragment.includes('access_token=') || 
+                     fragment.includes('refresh_token=') ||
+                     fragment.includes('error='))) {
+      console.log('SW: Permitindo URL com tokens de autenticação:', event.request.url);
+      // NÃO pular - deixar passar para processamento
+    } else {
+      console.log('SW: Skipping URL with fragment:', event.request.url);
+      return;
+    }
   }
   
   // 🚫 SKIP: Rotas problemáticas

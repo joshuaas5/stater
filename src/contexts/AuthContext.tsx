@@ -74,9 +74,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     
-    // Verificar se é logout manual
+    // 🔧 CORREÇÃO CRÍTICA: Verificar se há tokens OAuth na URL
+    const hasOAuthTokens = window.location.hash.includes('access_token=') || 
+                           window.location.hash.includes('refresh_token=');
+    
+    if (hasOAuthTokens && session) {
+      console.log('🔧 [AUTH] Login OAuth detectado - limpando flag manual_logout');
+      localStorage.removeItem('manual_logout');
+    }
+    
+    // Verificar se é logout manual (só se não há tokens OAuth)
     const isManualLogout = localStorage.getItem('manual_logout') === 'true';
-    if (isManualLogout && !session) {
+    if (isManualLogout && !session && !hasOAuthTokens) {
       console.log('🔧 [AUTH] Logout manual detectado - finalizando sem processamento');
       setSession(null);
       setUser(null);
@@ -134,9 +143,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('🔧 [AUTH] Inicializando AuthProvider');
     
-    // Verificar se é logout manual
+    // 🔧 CORREÇÃO CRÍTICA: Verificar se há tokens OAuth na URL
+    const hasOAuthTokens = window.location.hash.includes('access_token=') || 
+                           window.location.hash.includes('refresh_token=');
+    
+    if (hasOAuthTokens) {
+      console.log('🔧 [AUTH] Tokens OAuth detectados - limpando flag manual_logout');
+      localStorage.removeItem('manual_logout');
+    }
+    
+    // Verificar se é logout manual (só se não há tokens OAuth)
     const isManualLogout = localStorage.getItem('manual_logout') === 'true';
-    if (isManualLogout) {
+    if (isManualLogout && !hasOAuthTokens) {
       console.log('🔧 [AUTH] Logout manual detectado - não restaurar sessão');
       setLoading(false);
       setAuthInitialized(true);

@@ -36,8 +36,18 @@ export const useTermsAcceptance = () => {
           .single();
         
         if (error && error.code !== 'PGRST116') {  // PGRST116 = not found
-          console.log('🔍 [TERMS] Tabela user_terms_acceptance não existe ou erro no Supabase:', error.message);
-          // Assumir que não aceitou ainda
+          console.log('🔍 [TERMS] Erro 406 ou outro na tabela user_terms_acceptance:', error.message);
+          // Para erro 406 (Not Acceptable), tratar como se tabela não existisse
+          // Verificar se já aceitou localmente
+          const localTermsAccepted = localStorage.getItem(`${TERMS_ACCEPTED_KEY}_${userId}`);
+          if (localTermsAccepted === 'true') {
+            console.log('🔍 [TERMS] Termos já aceitos localmente (ignorando erro 406)');
+            setHasAcceptedTerms(true);
+            setShowTermsModal(false);
+            setIsChecking(false);
+            return true;
+          }
+          // Se não aceitou localmente, mostrar modal
           setHasAcceptedTerms(false);
           setShowTermsModal(true);
           setIsChecking(false);
@@ -113,6 +123,12 @@ export const useTermsAcceptance = () => {
       setHasAcceptedTerms(true);
       setShowTermsModal(false);
       setIsChecking(false);
+      
+      // CORREÇÃO: Redirecionar para dashboard após aceitar termos
+      console.log('🔍 [TERMS] Redirecionando para dashboard após aceitar termos...');
+      setTimeout(() => {
+        window.location.replace('/dashboard');
+      }, 500); // Pequeno delay para garantir que o estado foi atualizado
       
       return true;
     } catch (error) {

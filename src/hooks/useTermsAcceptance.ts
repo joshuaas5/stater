@@ -30,13 +30,13 @@ export const useTermsAcceptance = () => {
       // Se não temos no localStorage, verificamos no Supabase (se a tabela existir)
       try {
         const { data, error } = await supabase
-          .from('terms_acceptance')
+          .from('user_terms_acceptance')
           .select('*')
           .eq('user_id', userId)
           .single();
         
         if (error && error.code !== 'PGRST116') {  // PGRST116 = not found
-          console.log('🔍 [TERMS] Tabela terms_acceptance não existe ou erro no Supabase:', error.message);
+          console.log('🔍 [TERMS] Tabela user_terms_acceptance não existe ou erro no Supabase:', error.message);
           // Assumir que não aceitou ainda
           setHasAcceptedTerms(false);
           setShowTermsModal(true);
@@ -58,9 +58,8 @@ export const useTermsAcceptance = () => {
           setShowTermsModal(true);
           setIsChecking(false);
           return false;
-        }
-      } catch (supabaseError) {
-        console.log('🔍 [TERMS] Tabela terms_acceptance não existe - usando apenas localStorage');
+        }        } catch (supabaseError) {
+        console.log('🔍 [TERMS] Tabela user_terms_acceptance não existe - usando apenas localStorage');
         // Se a tabela não existe, assumir que precisa aceitar
         setHasAcceptedTerms(false);
         setShowTermsModal(true);
@@ -90,7 +89,7 @@ export const useTermsAcceptance = () => {
       // Tentar salvar no Supabase (pode falhar se tabela não existir)
       try {
         const { error } = await supabase
-          .from('terms_acceptance')
+          .from('user_terms_acceptance')
           .insert([
             { 
               user_id: user.id,
@@ -106,7 +105,7 @@ export const useTermsAcceptance = () => {
           console.log('🔍 [TERMS] Termos salvos no Supabase também');
         }
       } catch (supabaseError) {
-        console.log('🔍 [TERMS] Tabela terms_acceptance não existe no Supabase - usando apenas localStorage');
+        console.log('🔍 [TERMS] Tabela user_terms_acceptance não existe no Supabase - usando apenas localStorage');
       }
       
       setHasAcceptedTerms(true);

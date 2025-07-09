@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotificationToastManager from "@/components/notifications/NotificationToastManager";
+import HomePage from "./pages/HomePage";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Transactions from "./pages/Transactions";
@@ -44,8 +45,9 @@ const App = () => (
                 <Sonner />
                 <NotificationToastManager />
               <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Login />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/terms" element={<TermsPage />} />

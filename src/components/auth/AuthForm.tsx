@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Label } from '@/components/ui/label';
 import { Loader2, Eye, EyeOff, Fingerprint } from 'lucide-react';
@@ -15,7 +14,13 @@ import { Info } from 'lucide-react';
 type AuthMode = 'login' | 'register' | 'reset';
 
 const AuthForm: React.FC = () => {
-  const [mode, setMode] = useState<AuthMode>('login');
+  const location = useLocation();
+  const [mode, setMode] = useState<AuthMode>(() => {
+    // Detectar modo baseado na rota
+    if (location.pathname === '/register') return 'register';
+    if (location.pathname === '/reset-password') return 'reset';
+    return 'login';
+  });
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,6 +34,17 @@ const AuthForm: React.FC = () => {
   const navigate = useNavigate();
   const { signIn, signUp, signInWithGoogle, signInWithBiometrics, resetPassword, loading, saveBiometricCredentials } = useAuth();
   const { t } = useTranslation();
+  
+  // Atualizar modo baseado na rota
+  useEffect(() => {
+    if (location.pathname === '/register') {
+      setMode('register');
+    } else if (location.pathname === '/reset-password') {
+      setMode('reset');
+    } else {
+      setMode('login');
+    }
+  }, [location.pathname]);
   
   useEffect(() => {
     // Verificar se a biometria está disponível
@@ -55,7 +71,15 @@ const AuthForm: React.FC = () => {
   }, [toast]);
   
   const toggleMode = (newMode: AuthMode) => {
-    setMode(newMode);
+    // Navegar para a rota correta
+    if (newMode === 'register') {
+      navigate('/register');
+    } else if (newMode === 'reset') {
+      navigate('/reset-password');
+    } else {
+      navigate('/login');
+    }
+    
     setEmailSent(false);
     // Limpar os campos ao alternar entre modos
     setUsername('');

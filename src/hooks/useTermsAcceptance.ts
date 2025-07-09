@@ -197,7 +197,7 @@ export const useTermsAcceptance = () => {
   }, [user, checkTermsAcceptance, clearTermsState]); // Removido hasAcceptedTerms da dependência
 
   return {
-    hasAcceptedTerms: !!hasAcceptedTerms, // Converter para booleano
+    hasAcceptedTerms: hasAcceptedTerms === true, // Exportar como booleano
     showTermsModal,
     isChecking,
     acceptTerms,

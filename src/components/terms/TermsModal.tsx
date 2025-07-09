@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,9 +16,17 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [dataProcessingAccepted, setDataProcessingAccepted] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
+  const [acceptComplete, setAcceptComplete] = useState(false);
   const { toast } = useToast();
 
   const allAccepted = termsAccepted && dataProcessingAccepted;
+  
+  // Reset state when modal opens or closes
+  useEffect(() => {
+    if (isOpen) {
+      setAcceptComplete(false);
+    }
+  }, [isOpen]);
 
   const handleAccept = async () => {
     if (!allAccepted) return;
@@ -27,11 +35,18 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
       setIsAccepting(true);
       console.log('✅ [TERMS MODAL] Aceitando termos...');
       
+      // Notificar usuário imediatamente que está sendo processado
+      toast({
+        title: "Salvando seus termos",
+        description: "Por favor, aguarde um momento..."
+      });
+      
       await onAccept();
+      setAcceptComplete(true);
       
       toast({
         title: "Termos aceitos com sucesso",
-        description: "Bem-vindo ao Stater! Você pode começar a usar o aplicativo."
+        description: "Bem-vindo ao Stater! Você está sendo redirecionado..."
       });
     } catch (error) {
       console.error('❌ [TERMS MODAL] Erro ao aceitar termos:', error);
@@ -40,13 +55,12 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
         description: "Tente novamente em alguns instantes.",
         variant: "destructive"
       });
-    } finally {
       setIsAccepting(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen && !acceptComplete} onOpenChange={onClose}>
       <DialogContent 
         className="w-full max-w-4xl h-[95vh] max-h-[95vh] p-0 m-2 flex flex-col bg-white"
         style={{ backgroundColor: '#ffffff', color: '#000000' }}

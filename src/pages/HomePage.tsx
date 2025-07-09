@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Shield, Smartphone, Brain } from 'lucide-react';
+import { TrendingUp, Shield, Smartphone } from 'lucide-react';
 
 const HomePage: React.FC = () => {
   return (
@@ -10,7 +10,6 @@ const HomePage: React.FC = () => {
       <header className="w-full py-6 px-4">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <Brain className="h-8 w-8 text-indigo-600" />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Stater</h1>
           </div>
           <div className="flex space-x-4">
@@ -102,7 +101,7 @@ const HomePage: React.FC = () => {
               Pronto para transformar suas finanças?
             </h3>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Comece sua jornada rumo à prosperidade financeira com inteligência artificial.
+              Comece sua jornada rumo a prosperidade financeira, com inteligência.
             </p>
             <Link to="/register">
               <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 px-8 py-4">
@@ -117,8 +116,21 @@ const HomePage: React.FC = () => {
       <footer className="w-full py-8 px-4 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-6xl mx-auto text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <Brain className="h-6 w-6 text-indigo-600" />
             <span className="text-lg font-semibold text-gray-900 dark:text-white">Stater</span>
+          </div>
+          <div className="flex justify-center space-x-6 mb-4">
+            <Link 
+              to="/terms" 
+              className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
+            >
+              Termos de Uso
+            </Link>
+            <Link 
+              to="/privacy" 
+              className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
+            >
+              Política de Privacidade
+            </Link>
           </div>
           <p className="text-gray-600 dark:text-gray-300">
             © 2025 Stater. Todos os direitos reservados.

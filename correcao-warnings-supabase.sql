@@ -194,5 +194,10 @@ WHERE routine_schema = 'public'
 -- ⚠️  IMPORTANTE: TESTAR LOGIN/LOGOUT APÓS EXECUTAR ESTE SCRIPT!
 -- ⚠️  MONITORAR LOGS POR 24H PARA DETECTAR PROBLEMAS!
 
-RAISE NOTICE '✅ Script de correção de segurança executado com sucesso!';
-RAISE NOTICE '⚠️  IMPORTANTE: Testar todas as funcionalidades de autenticação agora!';
+-- Mensagem final de conclusão
+DO $$
+BEGIN
+    RAISE NOTICE '✅ Script de correção de segurança executado com sucesso!';
+    RAISE NOTICE '⚠️  IMPORTANTE: Testar todas as funcionalidades de autenticação agora!';
+END;
+$$;

@@ -211,12 +211,21 @@ const Dashboard: React.FC = () => {
     }
     
     // Carregar as transações do mês/ano selecionado
-    loadTransactions(selectedMonth, selectedYear);    // Listener para atualizar transações quando houver novas (apenas uma vez)
+    loadTransactions(selectedMonth, selectedYear);
+
+    // DEBOUNCE para evitar múltiplas execuções
+    let debounceTimer: NodeJS.Timeout;
+    let telegramToastTimer: NodeJS.Timeout;
+    
+    // Listener para atualizar transações quando houver novas (com debounce)
     const handler = () => {
       console.log('📊 [Dashboard] Evento transactionsUpdated recebido!');
       
-      // Simples atualização sem loops
-      setTimeout(() => {
+      // Limpar timer anterior se existir
+      clearTimeout(debounceTimer);
+      
+      // Debounce de 1 segundo para evitar múltiplas execuções
+      debounceTimer = setTimeout(() => {
         loadTransactions(selectedMonth, selectedYear);
         
         // Recalcular saldo total
@@ -225,13 +234,21 @@ const Dashboard: React.FC = () => {
           const totalBalance = calculateBalance(allTransactions, []);
           setBalance(totalBalance);
         }
-      }, 100);
+      }, 1000);
     };
     
     // Listener adicional para força reload das transações criadas via IA
     const forceReloadHandler = (event: any) => {
       console.log('🚀 [Dashboard] Force reload trigger from:', event.detail?.source || 'unknown');
-      setTimeout(() => {
+      
+      // Apenas se não for de loop interno
+      if (event.detail?.source?.includes('force-sync')) {
+        console.log('🚀 [Dashboard] Ignorando reload de force-sync para evitar loop');
+        return;
+      }
+      
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
         loadTransactions(selectedMonth, selectedYear);
         
         // Recalcular saldo total
@@ -240,23 +257,29 @@ const Dashboard: React.FC = () => {
           const totalBalance = calculateBalance(allTransactions, []);
           setBalance(totalBalance);
         }
-      }, 200); // Delay maior para garantir que os dados foram salvos
+      }, 1000);
     };
     
-    // Listener específico para sincronização do Telegram
+    // Listener específico para sincronização do Telegram (com debounce no toast)
     const telegramSyncHandler = (event: any) => {
       console.log('📱 [Dashboard] Sincronização do Telegram detectada:', event.detail);
       
-      // Toast para mostrar que nova transação chegou
-      toast({
-        title: "💰 Nova transação do Telegram!",
-        description: "Sua transação foi sincronizada automaticamente.",
-        duration: 3000,
-      });
+      // Evitar spam de toasts
+      clearTimeout(telegramToastTimer);
+      telegramToastTimer = setTimeout(() => {
+        // Só mostrar toast se realmente há transações novas
+        if (event.detail?.transactions && event.detail.transactions.length > 0) {
+          toast({
+            title: "💰 Nova transação do Telegram!",
+            description: "Sua transação foi sincronizada automaticamente.",
+            duration: 3000,
+          });
+        }
+      }, 2000);
       
-      // Forçar nova sincronização e atualização
-      setTimeout(async () => {
-        await forceSupabaseSync();
+      // Atualização com debounce (SEM forceSupabaseSync para evitar loop)
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
         loadTransactions(selectedMonth, selectedYear);
         
         // Recalcular saldo total
@@ -265,7 +288,7 @@ const Dashboard: React.FC = () => {
           const totalBalance = calculateBalance(allTransactions, []);
           setBalance(totalBalance);
         }
-      }, 300);
+      }, 1500);
     };
     
     window.addEventListener('transactionsUpdated', handler);
@@ -275,6 +298,8 @@ const Dashboard: React.FC = () => {
     return () => {
       console.log('🛑 [Dashboard] Cleanup - parando sincronização automática');
       stopAutoSync();
+      clearTimeout(debounceTimer);
+      clearTimeout(telegramToastTimer);
       window.removeEventListener('transactionsUpdated', handler);
       window.removeEventListener('forceTransactionReload', forceReloadHandler);
       window.removeEventListener('telegram-transaction-sync', telegramSyncHandler);

@@ -2107,11 +2107,16 @@ export const getUserPreferences = (): UserPreferences => {
   return localPreferences;
 };
 
-// FUNÇÃO DE SINCRONIZAÇÃO AGRESSIVA PARA TELEGRAM/IA
+// FUNÇÃO DE SINCRONIZAÇÃO AGRESSIVA PARA TELEGRAM/IA (CORRIGIDA ANTI-LOOP)
+let isForceSync = false; // Flag para evitar execuções simultâneas
 export const forceSupabaseSync = async (): Promise<void> => {
   const user = getCurrentUser();
-  if (!user) return;
+  if (!user || isForceSync) {
+    console.log('🚀 [FORCE SYNC] Ignorando - já executando ou sem usuário');
+    return;
+  }
   
+  isForceSync = true;
   console.log('🚀 [FORCE SYNC] SINCRONIZAÇÃO FORÇADA INICIADA');
   
   try {
@@ -2131,30 +2136,27 @@ export const forceSupabaseSync = async (): Promise<void> => {
     localStorage.setItem(`transactions_${user.id}`, JSON.stringify(supabaseTransactions));
     console.log('💾 [FORCE SYNC] localStorage atualizado com dados do Supabase');
     
-    // MÚLTIPLOS eventos de atualização com delays maiores
-    for (let i = 0; i < 8; i++) {
-      setTimeout(() => {
-        window.dispatchEvent(new Event('transactionsUpdated'));
-        window.dispatchEvent(new CustomEvent('transactionsUpdated', { 
-          detail: { 
-            source: `force-sync-${i}`, 
-            total: supabaseTransactions.length,
-            forced: true,
-            telegram_sync: true
-          } 
-        }));
-        window.dispatchEvent(new CustomEvent('telegram-transaction-sync', { 
-          detail: { 
-            transactions: supabaseTransactions,
-            timestamp: Date.now()
-          } 
-        }));
-        console.log(`📢 [FORCE SYNC] Evento ${i + 1}/8 disparado`);
-      }, i * 200); // Intervalo maior para garantir processamento
-    }
+    // APENAS UM evento simples para evitar loops
+    setTimeout(() => {
+      window.dispatchEvent(new Event('transactionsUpdated'));
+      window.dispatchEvent(new CustomEvent('transactionsUpdated', { 
+        detail: { 
+          source: 'force-sync-single', 
+          total: supabaseTransactions.length,
+          forced: true,
+          telegram_sync: true
+        } 
+      }));
+      console.log('📢 [FORCE SYNC] Evento único disparado');
+    }, 500); // Um delay maior para garantir estabilidade
     
   } catch (error) {
     console.error('❌ [FORCE SYNC] Erro crítico:', error);
+  } finally {
+    // Limpar flag após 2 segundos para permitir nova execução se necessário
+    setTimeout(() => {
+      isForceSync = false;
+    }, 2000);
   }
 };
 

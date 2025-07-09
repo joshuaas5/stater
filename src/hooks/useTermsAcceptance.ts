@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 
 // Chave para armazenar no localStorage se os termos já foram aceitos
 const TERMS_ACCEPTED_KEY = 'stater_terms_accepted';
+// RESET ÚNICO - versão dos termos que força reaceitação
+const TERMS_VERSION = '2025_01_09'; // Data do reset único
 
 export const useTermsAcceptance = () => {
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState<boolean | null>(null);
@@ -16,38 +18,40 @@ export const useTermsAcceptance = () => {
     console.log('🔍 [TERMS] Verificando aceitação de termos para usuário:', userId);
     
     try {
-      // Primeiro verificamos no localStorage para evitar requisições desnecessárias
-      const localTermsAccepted = localStorage.getItem(`${TERMS_ACCEPTED_KEY}_${userId}`);
+      // PRIMEIRO: Verificar se é a nova versão dos termos
+      const localTermsAccepted = localStorage.getItem(`${TERMS_ACCEPTED_KEY}_${userId}_${TERMS_VERSION}`);
       
       if (localTermsAccepted === 'true') {
-        console.log('🔍 [TERMS] Termos já aceitos (localStorage)');
+        console.log('🔍 [TERMS] Termos da nova versão já aceitos (localStorage)');
         setHasAcceptedTerms(true);
         setShowTermsModal(false);
         setIsChecking(false);
         return true;
       }
       
-      // Se não temos no localStorage, verificamos no Supabase (se a tabela existir)
+      // RESET ÚNICO: Verificar se há versão antiga e removê-la
+      const oldTermsKeys = Object.keys(localStorage).filter(key => 
+        key.startsWith(`${TERMS_ACCEPTED_KEY}_${userId}`) && 
+        !key.includes(TERMS_VERSION)
+      );
+      
+      if (oldTermsKeys.length > 0) {
+        console.log('🔍 [TERMS] Removendo versões antigas dos termos para forçar reaceitação');
+        oldTermsKeys.forEach(key => localStorage.removeItem(key));
+      }
+      
+      // Se não temos a nova versão aceita, verificamos no Supabase (se a tabela existir)
       try {
         const { data, error } = await supabase
           .from('user_terms_acceptance')
           .select('*')
           .eq('user_id', userId)
+          .eq('version', TERMS_VERSION) // Verificar apenas a nova versão
           .single();
         
         if (error && error.code !== 'PGRST116') {  // PGRST116 = not found
           console.log('🔍 [TERMS] Erro 406 ou outro na tabela user_terms_acceptance:', error.message);
-          // Para erro 406 (Not Acceptable), tratar como se tabela não existisse
-          // Verificar se já aceitou localmente
-          const localTermsAccepted = localStorage.getItem(`${TERMS_ACCEPTED_KEY}_${userId}`);
-          if (localTermsAccepted === 'true') {
-            console.log('🔍 [TERMS] Termos já aceitos localmente (ignorando erro 406)');
-            setHasAcceptedTerms(true);
-            setShowTermsModal(false);
-            setIsChecking(false);
-            return true;
-          }
-          // Se não aceitou localmente, mostrar modal
+          // Para erro 406 (Not Acceptable), tratar como se termos não foram aceitos
           setHasAcceptedTerms(false);
           setShowTermsModal(true);
           setIsChecking(false);
@@ -55,21 +59,22 @@ export const useTermsAcceptance = () => {
         }
         
         if (data) {
-          console.log('🔍 [TERMS] Termos já aceitos (Supabase):', data);
+          console.log('🔍 [TERMS] Termos da nova versão já aceitos (Supabase):', data);
           // Armazenar no localStorage para futuras verificações
-          localStorage.setItem(`${TERMS_ACCEPTED_KEY}_${userId}`, 'true');
+          localStorage.setItem(`${TERMS_ACCEPTED_KEY}_${userId}_${TERMS_VERSION}`, 'true');
           setHasAcceptedTerms(true);
           setShowTermsModal(false);
           setIsChecking(false);
           return true;
         } else {
-          console.log('🔍 [TERMS] Termos não aceitos ainda');
+          console.log('🔍 [TERMS] Termos da nova versão não aceitos ainda');
           setHasAcceptedTerms(false);
           setShowTermsModal(true);
           setIsChecking(false);
           return false;
-        }        } catch (supabaseError) {
-        console.log('🔍 [TERMS] Tabela user_terms_acceptance não existe - usando apenas localStorage');
+        }
+      } catch (supabaseError) {
+        console.log('🔍 [TERMS] Tabela user_terms_acceptance não existe - mostrando termos');
         // Se a tabela não existe, assumir que precisa aceitar
         setHasAcceptedTerms(false);
         setShowTermsModal(true);
@@ -92,9 +97,9 @@ export const useTermsAcceptance = () => {
     try {
       console.log('🔍 [TERMS] Salvando aceitação de termos para:', user.id);
       
-      // Salvar no localStorage primeiro (sempre funciona)
-      localStorage.setItem(`${TERMS_ACCEPTED_KEY}_${user.id}`, 'true');
-      console.log('🔍 [TERMS] Termos salvos no localStorage');
+      // Salvar no localStorage primeiro (sempre funciona) com nova versão
+      localStorage.setItem(`${TERMS_ACCEPTED_KEY}_${user.id}_${TERMS_VERSION}`, 'true');
+      console.log('🔍 [TERMS] Termos salvos no localStorage com nova versão');
       
       // Tentar salvar no Supabase (pode falhar se tabela não existir)
       try {
@@ -104,7 +109,7 @@ export const useTermsAcceptance = () => {
             { 
               user_id: user.id,
               accepted_at: new Date().toISOString(),
-              version: '1.0', // Versão atual dos termos
+              version: TERMS_VERSION, // Nova versão dos termos
             }
           ], {
             onConflict: 'user_id'
@@ -165,16 +170,16 @@ export const useTermsAcceptance = () => {
     window.addEventListener('force-stop-terms-check', handleForceStop);
 
     if (user?.id && !stopCheck()) {
-      // Verificar se já temos informação no localStorage primeiro
-      const localTermsAccepted = localStorage.getItem(`${TERMS_ACCEPTED_KEY}_${user.id}`);
+      // Verificar se já temos informação no localStorage primeiro (nova versão)
+      const localTermsAccepted = localStorage.getItem(`${TERMS_ACCEPTED_KEY}_${user.id}_${TERMS_VERSION}`);
       
       if (localTermsAccepted === 'true') {
-        console.log('🔍 [TERMS] Termos já aceitos (localStorage - useEffect)');
+        console.log('🔍 [TERMS] Termos da nova versão já aceitos (localStorage - useEffect)');
         setHasAcceptedTerms(true);
         setShowTermsModal(false);
         setIsChecking(false);
       } else {
-        // Não temos no localStorage, precisamos verificar no Supabase
+        // Não temos a nova versão no localStorage, precisamos verificar no Supabase
         // Mas só fazemos isso UMA VEZ após o login
         if (hasAcceptedTerms === null) {
           checkTermsAcceptance(user.id);

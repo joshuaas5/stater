@@ -315,6 +315,8 @@ const PreferencesPage: React.FC = () => {
           className="w-full border border-red-500 text-red-500 hover:bg-red-50 font-semibold"
           onClick={async () => {
             try {
+              console.log('🚪 [LOGOUT] Iniciando processo de logout...');
+              
               // PASSO 1: Marcar logout manual ANTES de qualquer operação
               localStorage.setItem('manual_logout', 'true');
               console.log('🚪 [LOGOUT] Marcado como logout manual');
@@ -324,18 +326,27 @@ const PreferencesPage: React.FC = () => {
               window.dispatchEvent(new CustomEvent('force-stop-onboarding-check'));
               console.log('🚪 [LOGOUT] Eventos de parada enviados');
               
-              // PASSO 3: Aguardar um pouco para garantir que os hooks processem
-              await new Promise(resolve => setTimeout(resolve, 100));
+              // PASSO 3: Aguardar mais tempo para garantir que os hooks processem
+              await new Promise(resolve => setTimeout(resolve, 500));
               
-              // PASSO 4: Limpar TUDO imediatamente
+              // PASSO 4: Parar sincronização automática se estiver rodando
+              try {
+                const { stopAutoSync } = await import('@/utils/localStorage');
+                stopAutoSync();
+                console.log('🚪 [LOGOUT] Sincronização automática parada');
+              } catch (error) {
+                console.log('🚪 [LOGOUT] Erro ao parar sync (ignorado):', error);
+              }
+              
+              // PASSO 5: Limpar TUDO imediatamente
               localStorage.clear();
               sessionStorage.clear();
               
-              // PASSO 5: Remarcar logout após limpeza (para AuthContext)
+              // PASSO 6: Remarcar logout após limpeza (para AuthContext)
               localStorage.setItem('manual_logout', 'true');
               console.log('🚪 [LOGOUT] Cache local limpo e logout remarcado');
               
-              // PASSO 6: Fazer logout do Supabase (pode falhar, mas não importa)
+              // PASSO 7: Fazer logout do Supabase (pode falhar, mas não importa)
               try {
                 await signOut();
                 console.log('🚪 [LOGOUT] Logout do Supabase executado');
@@ -343,7 +354,10 @@ const PreferencesPage: React.FC = () => {
                 console.log('🚪 [LOGOUT] Erro no logout do Supabase (ignorado):', error);
               }
               
-              // PASSO 7: Redirecionar IMEDIATAMENTE usando replace
+              // PASSO 8: Aguardar um pouco antes de redirecionar
+              await new Promise(resolve => setTimeout(resolve, 200));
+              
+              // PASSO 9: Redirecionar IMEDIATAMENTE usando replace
               console.log('🚪 [LOGOUT] Redirecionando para login...');
               window.location.replace('/login');
               
@@ -354,7 +368,11 @@ const PreferencesPage: React.FC = () => {
               localStorage.clear();
               sessionStorage.clear();
               localStorage.setItem('manual_logout', 'true');
-              window.location.replace('/login');
+              
+              // Aguardar e redirecionar
+              setTimeout(() => {
+                window.location.replace('/login');
+              }, 500);
             }
           }}
         >

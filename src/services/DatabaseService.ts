@@ -238,28 +238,15 @@ class DatabaseServiceClass {
 
   async saveUserPreferences(userId: string, preferences: Record<string, any>) {
     try {
-      // Verificar se já existe preferências para este usuário
-      const { data: existingPrefs } = await supabase
+      // Usar upsert para evitar problemas de concorrência
+      const { error } = await supabase
         .from('preferences')
-        .select('*')
-        .eq('userId', userId)
-        .single();
-
-      if (existingPrefs) {
-        // Atualizar preferências existentes
-        const { error } = await supabase
-          .from('preferences')
-          .update({ preferences })
-          .eq('userId', userId);
-        if (error) throw error;
-      } else {
-        // Inserir novas preferências
-        const { error } = await supabase
-          .from('preferences')
-          .insert([{ userId, preferences }]);
-        if (error) throw error;
-      }
-
+        .upsert([{ userId, preferences }], {
+          onConflict: 'userId',
+          ignoreDuplicates: false
+        });
+        
+      if (error) throw error;
       return true;
     } catch (error) {
       console.error('Error saving user preferences:', error);

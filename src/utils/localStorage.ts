@@ -1898,64 +1898,26 @@ export const saveSupabaseUserPreferences = async (preferences: UserPreferences):
   const user = getCurrentUser();
   if (!user) return { data: null, error: "Usuário não autenticado" };
   
-  // Verificar se já existem preferências para este usuário
-  const { data: existingPrefs, error: fetchError } = await supabase
-    .from('user_preferences')
-    .select('id, user_id')
-    .eq('user_id', user.id)
-    .maybeSingle();
-  
-  if (fetchError) {
-    console.error("Erro ao verificar preferências existentes:", fetchError);
-    return { data: null, error: fetchError };
-  }
-  
-  // Preparar dados para o Supabase
-  const supabasePreferences = mapPreferencesToSupabase(preferences, user.id);
-  
   try {
-    if (existingPrefs) {
-      // Atualizar preferências existentes
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .update({
-          theme: preferences.theme,
-          currency: preferences.currency,
-          date_format: preferences.dateFormat,
-          notifications_bills_due_soon: preferences.notifications.billsDueSoon,
-          notifications_bills_overdue: preferences.notifications.billsOverdue,
-          notifications_large_transactions: preferences.notifications.largeTransactions,
-          notifications_weekly_email: preferences.notifications.weeklyEmailSummary,
-          notifications_push: preferences.notifications.pushNotifications,
-          notifications_in_app: preferences.notifications.inAppNotifications,
-          notifications_email: preferences.notifications.emailNotifications,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-        .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
-        .single();
-        
-      if (error) {
-        console.error("Erro ao atualizar preferências:", error);
-        return { data: null, error };
-      }
+    // Preparar dados para o Supabase
+    const supabasePreferences = mapPreferencesToSupabase(preferences, user.id);
+    
+    // Usar upsert para evitar conflitos de chave duplicada
+    const { data, error } = await supabase
+      .from('user_preferences')
+      .upsert(supabasePreferences, {
+        onConflict: 'user_id',
+        ignoreDuplicates: false
+      })
+      .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
+      .single();
       
-      return { data, error: null };
-    } else {
-      // Inserir novas preferências
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .insert(supabasePreferences)
-        .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
-        .single();
-        
-      if (error) {
-        console.error("Erro ao inserir preferências:", error);
-        return { data: null, error };
-      }
-      
-      return { data, error: null };
+    if (error) {
+      console.error("Erro ao salvar preferências:", error);
+      return { data: null, error };
     }
+    
+    return { data, error: null };
   } catch (error: any) {
     console.error("Erro ao salvar preferências:", error);
     return { data: null, error };
@@ -2052,37 +2014,22 @@ export const getSupabaseUserPreferences = async (userId: string): Promise<{ data
       try {
         console.log(`Tentando criar preferências padrão para o usuário ${userId}`);
         const newPrefs = mapPreferencesToSupabase(defaultPreferences, userId);
+        
+        // Usar upsert para evitar conflitos se outro processo criou o registro
         const { data: insertData, error: insertError } = await supabase
           .from('user_preferences')
-          .insert(newPrefs)
+          .upsert(newPrefs, {
+            onConflict: 'user_id',
+            ignoreDuplicates: false
+          })
           .select();
           
         if (insertError) {
-          // Se o erro for de chave duplicada, tentar buscar novamente
-          if (insertError.code === '23505') {
-            console.log("Detectada chave duplicada, buscando preferências existentes...");
-            try {
-              const { data: existingData } = await supabase
-                .from('user_preferences')
-                .select('id, user_id, theme, currency, date_format, notifications_bills_due_soon, notifications_large_transactions, created_at, updated_at')
-                .eq('user_id', userId)
-                .limit(1);
-                
-              if (existingData && existingData.length > 0) {
-                const mappedData = mapSupabaseToPreferences(existingData[0]);
-                userPreferencesCache[userId] = { data: mappedData, timestamp: Date.now() };
-                return { data: mappedData, error: null };
-              }
-            } catch (existingError) {
-              console.error("Erro ao buscar preferências existentes:", existingError);
-            }
-          }
-          
           console.error("Erro ao criar preferências no Supabase:", insertError);
           return { data: defaultPreferences, error: null };
         }
         
-        const mappedData = mapSupabaseToPreferences(insertData);
+        const mappedData = mapSupabaseToPreferences(insertData[0]);
         userPreferencesCache[userId] = { data: mappedData, timestamp: Date.now() };
         return { data: mappedData, error: null };
       } catch (insertCatchError) {

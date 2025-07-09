@@ -189,15 +189,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               // Determinar o auth_provider baseado no provider do usuário
               const authProvider = session.user.app_metadata.provider || 'email';
               
-              // Criar perfil se não existir
-              const { error: profileError } = await supabase.from('profiles').insert([
+              // Criar perfil se não existir - usar upsert para evitar conflitos
+              const { error: profileError } = await supabase.from('profiles').upsert([
                 { 
                   id: session.user.id,
                   username: session.user.user_metadata.username || session.user.email?.split('@')[0] || '',
                   email: session.user.email || '',
                   auth_provider: authProvider
                 }
-              ]);
+              ], {
+                onConflict: 'id'
+              });
               
               if (profileError) {
                 console.error("Erro ao criar perfil automaticamente:", profileError);
@@ -365,15 +367,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Se chegou aqui, verificar se realmente criou o usuário ou se já existia
       if (data.user && !data.session) {
-        // Usuário criado, aguardando confirmação
-        const { error: profileError } = await supabase.from('profiles').insert([
+        // Usuário criado, aguardando confirmação - usar upsert para evitar conflitos
+        const { error: profileError } = await supabase.from('profiles').upsert([
           { 
             id: data.user.id,
             username, 
             email,
             auth_provider: 'email'
           }
-        ]);
+        ], {
+          onConflict: 'id'
+        });
         
         if (profileError) {
           console.error("Erro ao criar perfil:", profileError);
@@ -389,14 +393,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Se o usuário foi criado e já está autenticado (confirmação desabilitada)
       if (data.user && data.session) {
-        const { error: profileError } = await supabase.from('profiles').insert([
+        const { error: profileError } = await supabase.from('profiles').upsert([
           { 
             id: data.user.id,
             username, 
             email,
             auth_provider: 'email'
           }
-        ]);
+        ], {
+          onConflict: 'id'
+        });
         
         if (profileError) {
           console.error("Erro ao criar perfil:", profileError);

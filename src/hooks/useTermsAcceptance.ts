@@ -90,13 +90,15 @@ export const useTermsAcceptance = () => {
       try {
         const { error } = await supabase
           .from('user_terms_acceptance')
-          .insert([
+          .upsert([
             { 
               user_id: user.id,
               accepted_at: new Date().toISOString(),
-              terms_version: '1.0', // Versão atual dos termos
+              version: '1.0', // Versão atual dos termos
             }
-          ]);
+          ], {
+            onConflict: 'user_id'
+          });
         
         if (error) {
           console.log('🔍 [TERMS] Aviso - erro ao salvar no Supabase (tabela pode não existir):', error.message);

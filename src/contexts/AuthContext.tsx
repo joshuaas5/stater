@@ -61,59 +61,74 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
-  // 🔧 CORREÇÃO: Manter controle de login para evitar recargas duplicadas
+  // 🔧 NOVA CORREÇÃO: Sistema de controle robusto para evitar loops
   const [isProcessingAuth, setIsProcessingAuth] = useState(false);
+  const [authInitialized, setAuthInitialized] = useState(false);
+  const authTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   
-  // 🔧 CORREÇÃO: Função para processar login de forma segura
-  const processLogin = useCallback((session: Session | null) => {
-    if (isProcessingAuth) {
-      console.log('🔧 [AUTH] Já está processando autenticação - ignorando');
+  // 🔧 NOVA CORREÇÃO: Função para processar login com debounce e controle rigoroso
+  const processLogin = useCallback((session: Session | null, forceProcess = false) => {
+    // Evitar processamento múltiplo simultâneo
+    if (isProcessingAuth && !forceProcess) {
+      console.log('🔧 [AUTH] Já processando auth - ignorando chamada duplicada');
       return;
     }
     
     // Verificar se é logout manual
     const isManualLogout = localStorage.getItem('manual_logout') === 'true';
     if (isManualLogout && !session) {
-      console.log('🔧 [AUTH] Logout manual detectado - não processar');
+      console.log('🔧 [AUTH] Logout manual detectado - finalizando sem processamento');
       setSession(null);
       setUser(null);
       setLoading(false);
+      setAuthInitialized(true);
       return;
+    }
+    
+    // Limpar timeout anterior se existir
+    if (authTimeoutRef.current) {
+      clearTimeout(authTimeoutRef.current);
     }
     
     setIsProcessingAuth(true);
     
-    try {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        console.log('🔧 [AUTH] Usuário autenticado:', session.user.id);
+    // Debounce para evitar mudanças rápidas demais
+    authTimeoutRef.current = setTimeout(() => {
+      try {
+        console.log('🔧 [AUTH] Processando sessão:', session ? 'Ativa' : 'Inativa');
         
-        // Limpar flag de logout manual se login bem-sucedido
-        localStorage.removeItem('manual_logout');
+        setSession(session);
+        setUser(session?.user ?? null);
         
-        // Store user in local storage for offline access
-        saveUser({
-          id: session.user.id,
-          username: session.user.user_metadata.username || session.user.email?.split('@')[0] || '',
-          email: session.user.email || '',
-        });
-        
-        // Limpar URL de tokens depois que o login for processado
-        cleanUrlAfterAuth(800);
-      } else {
-        // Sem sessão - limpar dados apenas se não foi logout manual
-        if (!isManualLogout) {
-          clearUserData();
+        if (session?.user) {
+          console.log('🔧 [AUTH] Usuário autenticado:', session.user.id);
+          
+          // Limpar flag de logout manual se login bem-sucedido
+          localStorage.removeItem('manual_logout');
+          
+          // Store user in local storage for offline access
+          saveUser({
+            id: session.user.id,
+            username: session.user.user_metadata.username || session.user.email?.split('@')[0] || '',
+            email: session.user.email || '',
+          });
+          
+          // Limpar URL de tokens depois que o login for processado
+          cleanUrlAfterAuth(800);
+        } else {
+          // Sem sessão - limpar dados apenas se não foi logout manual
+          if (!isManualLogout) {
+            clearUserData();
+          }
         }
+      } catch (error) {
+        console.error('🔧 [AUTH] Erro ao processar login:', error);
+      } finally {
+        setIsProcessingAuth(false);
+        setLoading(false);
+        setAuthInitialized(true);
       }
-    } catch (error) {
-      console.error('🔧 [AUTH] Erro ao processar login:', error);
-    } finally {
-      setIsProcessingAuth(false);
-      setLoading(false);
-    }
+    }, forceProcess ? 0 : 100); // Debounce de 100ms, ou imediato se forçado
   }, [isProcessingAuth]);
   
   useEffect(() => {
@@ -124,6 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isManualLogout) {
       console.log('🔧 [AUTH] Logout manual detectado - não restaurar sessão');
       setLoading(false);
+      setAuthInitialized(true);
       return;
     }
     
@@ -134,50 +150,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🔧 [AUTH] Fragment vazio removido na inicialização');
     }
     
-    // Tentar restaurar sessão do localStorage primeiro (para rapidez)
-    const savedUser = getCurrentUser();
-    if (savedUser) {
-      console.log('🔧 [AUTH] Usuário encontrado no localStorage:', savedUser.email);
-    }
-    
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔧 [AUTH] Sessão inicial verificada:', session ? 'Ativa' : 'Inativa');
-      processLogin(session);
-    });
+    // NOVA CORREÇÃO: Função de inicialização única
+    const initializeAuth = async () => {
+      try {
+        // Get initial session UMA VEZ
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('🔧 [AUTH] Erro ao obter sessão inicial:', error);
+          setLoading(false);
+          setAuthInitialized(true);
+          return;
+        }
+        
+        console.log('🔧 [AUTH] Sessão inicial verificada:', session ? 'Ativa' : 'Inativa');
+        processLogin(session, true); // Forçar processamento inicial
+      } catch (error) {
+        console.error('🔧 [AUTH] Erro na inicialização:', error);
+        setLoading(false);
+        setAuthInitialized(true);
+      }
+    };
 
-    // Listen for auth changes
+    // Chamar inicialização apenas uma vez
+    initializeAuth();
+
+    // Listen for auth changes com debounce
+    let lastEventTime = 0;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const now = Date.now();
+      
+      // Evitar eventos muito próximos (debounce de 500ms)
+      if (now - lastEventTime < 500) {
+        console.log('🔧 [AUTH] Evento muito próximo ignorado:', event);
+        return;
+      }
+      lastEventTime = now;
+      
       console.log('🔧 [AUTH] Evento de autenticação:', event);
       
-      processLogin(session);
-      
-      // 🔧 LIMPAR fragment após processamento de tokens do Supabase - mantido por compatibilidade
-      if (event === 'SIGNED_IN' && window.location.hash) {
-        const fragment = window.location.hash;
-        if (fragment.includes('access_token=') || 
-            fragment.includes('refresh_token=') ||
-            fragment.includes('error=') ||
-            fragment.includes('type=')) {
-          console.log('🔧 [AUTH] Login processado - limpando tokens da URL');
-          setTimeout(() => {
-            const cleanUrl = window.location.href.split('#')[0];
-            window.history.replaceState({}, document.title, cleanUrl);
-            console.log('🔧 [AUTH] URL limpa após login:', window.location.href);
-          }, 1000); // Aguardar 1 segundo para garantir que tudo foi processado
-        }
+      // Só processar depois que auth foi inicializado
+      if (!authInitialized && event !== 'INITIAL_SESSION') {
+        console.log('🔧 [AUTH] Auth não inicializado - aguardando');
+        return;
       }
       
-      if (session?.user) {
-        // Store user in local storage for offline access
-        saveUser({
-          id: session.user.id,
-          username: session.user.user_metadata.username || session.user.email?.split('@')[0] || '',
-          email: session.user.email || '',
-        });
-        
-        // Se é um novo login via Google ou email confirmado, garantir que o perfil existe
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+      processLogin(session);
+      
+      // Processar criação de perfil apenas em eventos específicos
+      if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+        // Fazer isso de forma assíncrona para não bloquear
+        setTimeout(async () => {
           try {
             const { data: existingProfile } = await supabase
               .from('profiles')
@@ -186,10 +209,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .single();
             
             if (!existingProfile) {
-              // Determinar o auth_provider baseado no provider do usuário
               const authProvider = session.user.app_metadata.provider || 'email';
               
-              // Criar perfil se não existir - usar upsert para evitar conflitos
               const { error: profileError } = await supabase.from('profiles').upsert([
                 { 
                   id: session.user.id,
@@ -202,31 +223,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               });
               
               if (profileError) {
-                console.error("Erro ao criar perfil automaticamente:", profileError);
+                console.error("Erro ao criar perfil:", profileError);
               } else {
-                console.log("Perfil criado automaticamente para usuário:", session.user.email);
+                console.log("Perfil criado para usuário:", session.user.email);
               }
             }
           } catch (error) {
             console.error("Erro ao verificar/criar perfil:", error);
           }
-        }
-      } else {
-        // Só limpar dados se não foi logout manual
-        const isManualLogout = localStorage.getItem('manual_logout') === 'true';
-        if (!isManualLogout) {
-          clearUserData();
-        }
+        }, 1000);
       }
-      
-      setLoading(false);
     });
 
+    // Cleanup
     return () => {
       console.log('🔧 [AUTH] Limpando subscription de auth');
+      if (authTimeoutRef.current) {
+        clearTimeout(authTimeoutRef.current);
+      }
       subscription.unsubscribe();
     };
-  }, []);
+  }, []); // Dependência vazia para executar apenas uma vez
 
   const signIn = async (email: string, password: string) => {
     try {

@@ -148,53 +148,55 @@ export const useTermsAcceptance = () => {
 
   // Efeito para verificar aceitação quando o usuário muda
   useEffect(() => {
-    // Verificar se devemos parar a verificação
-    const stopCheck = () => {
-      const shouldStop = localStorage.getItem('manual_logout') === 'true';
-      if (shouldStop) {
-        console.log('🔍 [TERMS] Parando verificação - logout manual detectado');
-        clearTermsState();
-        setIsChecking(false);
-        return true;
-      }
-      return false;
+    // 🔧 NOVA CORREÇÃO: Função de limpeza e controle
+    const cleanup = () => {
+      setHasAcceptedTerms(null);
+      setShowTermsModal(false);
+      setIsChecking(false);
     };
+
+    // Verificar se devemos parar a verificação
+    const shouldStop = localStorage.getItem('manual_logout') === 'true';
+    if (shouldStop) {
+      console.log('🔍 [TERMS] Parando verificação - logout manual detectado');
+      cleanup();
+      return;
+    }
 
     // Listener para parar verificação forçadamente
     const handleForceStop = () => {
       console.log('🔍 [TERMS] Parando verificação forçadamente');
-      clearTermsState();
-      setIsChecking(false);
+      cleanup();
     };
 
     window.addEventListener('force-stop-terms-check', handleForceStop);
 
-    if (user?.id && !stopCheck()) {
-      // Verificar se já temos informação no localStorage primeiro (nova versão)
+    // 🔧 NOVA CORREÇÃO: Só verificar se temos usuário E ainda não verificamos
+    if (user?.id && hasAcceptedTerms === null) {
+      console.log('🔍 [TERMS] Iniciando verificação única para usuário:', user.id);
+      
+      // Verificar localStorage primeiro (cache rápido)
       const localTermsAccepted = localStorage.getItem(`${TERMS_ACCEPTED_KEY}_${user.id}_${TERMS_VERSION}`);
       
       if (localTermsAccepted === 'true') {
-        console.log('🔍 [TERMS] Termos da nova versão já aceitos (localStorage - useEffect)');
+        console.log('🔍 [TERMS] Termos da nova versão já aceitos (cache localStorage)');
         setHasAcceptedTerms(true);
         setShowTermsModal(false);
         setIsChecking(false);
       } else {
-        // Não temos a nova versão no localStorage, precisamos verificar no Supabase
-        // Mas só fazemos isso UMA VEZ após o login
-        if (hasAcceptedTerms === null) {
-          checkTermsAcceptance(user.id);
-        }
+        // Só verificar no Supabase se não temos cache local
+        console.log('🔍 [TERMS] Cache não encontrado - verificando no Supabase');
+        checkTermsAcceptance(user.id);
       }
-    } else {
-      // Sem usuário, resetar estado
-      clearTermsState();
-      setIsChecking(false);
+    } else if (!user) {
+      // Sem usuário, resetar estado imediatamente
+      cleanup();
     }
 
     return () => {
       window.removeEventListener('force-stop-terms-check', handleForceStop);
     };
-  }, [user, checkTermsAcceptance, clearTermsState]); // Removido hasAcceptedTerms da dependência
+  }, [user?.id, checkTermsAcceptance]); // 🔧 CRÍTICO: removido hasAcceptedTerms das dependências para evitar loops
 
   return {
     hasAcceptedTerms: hasAcceptedTerms === true, // Exportar como booleano

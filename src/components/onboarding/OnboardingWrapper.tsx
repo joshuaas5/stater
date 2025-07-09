@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 import { useLocation } from 'react-router-dom';
@@ -10,48 +10,72 @@ interface OnboardingWrapperProps {
 export const OnboardingWrapper: React.FC<OnboardingWrapperProps> = ({ children }) => {
   const { shouldShowOnboarding, completeOnboarding, isChecking } = useOnboarding();
   const location = useLocation();
-  // Adicionamos um estado local para prevenir flash do onboarding
+  
+  // 🔧 NOVA CORREÇÃO: Controle rigoroso para evitar renderização desnecessária
   const [showOnboardingContent, setShowOnboardingContent] = useState(false);
+  const [hasShown, setHasShown] = useState(false);
+  const transitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Adicionamos um efeito para lidar com a transição suave
+  // 🔧 NOVA CORREÇÃO: Efeito com controle rigoroso
   useEffect(() => {
-    // Se deve mostrar onboarding e não está verificando, iniciar a transição
-    if (shouldShowOnboarding && !isChecking) {
-      // Pequeno delay para garantir que renderização do fundo esteja pronta
-      const timer = setTimeout(() => {
-        setShowOnboardingContent(true);
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    } else {
-      setShowOnboardingContent(false);
+    // Limpar timeout anterior
+    if (transitionTimeoutRef.current) {
+      clearTimeout(transitionTimeoutRef.current);
     }
-  }, [shouldShowOnboarding, isChecking]);
+
+    // Só mostrar onboarding se: deve mostrar, não está verificando, ainda não mostrou
+    if (shouldShowOnboarding && !isChecking && !hasShown) {
+      console.log('OnboardingWrapper: Preparando para mostrar onboarding...');
+      
+      setHasShown(true);
+      
+      // Delay para garantir que a renderização esteja estável
+      transitionTimeoutRef.current = setTimeout(() => {
+        setShowOnboardingContent(true);
+        console.log('OnboardingWrapper: Onboarding content ativado');
+      }, 200);
+    } else if (!shouldShowOnboarding) {
+      // Se não deve mostrar, esconder imediatamente
+      setShowOnboardingContent(false);
+      setHasShown(false);
+    }
+
+    return () => {
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+    };
+  }, [shouldShowOnboarding, isChecking, hasShown]);
 
   const handleOnboardingComplete = () => {
     console.log('OnboardingWrapper: handleOnboardingComplete called');
-    completeOnboarding();
+    
+    // Esconder onboarding imediatamente
     setShowOnboardingContent(false);
+    setHasShown(false);
+    
+    // Completar onboarding
+    completeOnboarding();
   };
 
   console.log('OnboardingWrapper render:', { 
     shouldShowOnboarding, 
     isChecking, 
     showOnboardingContent,
+    hasShown,
     pathname: location.pathname 
   });
 
-  // Se ainda está checando, mostrar o conteúdo principal enquanto verifica
+  // Se ainda está checando, mostrar o conteúdo principal
   if (isChecking) {
     return <>{children}</>;
   }
 
-  // Se deve mostrar onboarding, renderiza o onboarding sobrepondo o conteúdo
-  // mas só após o estado de transição estar pronto
+  // Renderizar conteúdo principal sempre, onboarding como overlay quando necessário
   return (
     <>
       {children}
-      {shouldShowOnboarding && showOnboardingContent && (
+      {showOnboardingContent && (
         <OnboardingFlow onComplete={handleOnboardingComplete} />
       )}
     </>

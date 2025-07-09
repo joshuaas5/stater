@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTermsAcceptance } from '@/hooks/useTermsAcceptance';
 import { TermsModal } from '@/components/terms/TermsModal';
@@ -11,45 +11,73 @@ export const TermsWrapper: React.FC<TermsWrapperProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { showTermsModal, isChecking, acceptTerms, hasAcceptedTerms } = useTermsAcceptance();
+  
+  // 🔧 NOVA CORREÇÃO: Controle rigoroso para evitar loops de redirecionamento
+  const [hasRedirected, setHasRedirected] = useState(false);
+  const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastPathRef = useRef(location.pathname);
 
   // Páginas públicas que não precisam de verificação de termos
   const publicPages = ['/login', '/reset-password', '/privacy', '/terms', '/test'];
   const isPublicPage = publicPages.includes(location.pathname);
 
-  // Efeito para redirecionar apenas quando vem de aceitação de termos (não para navegação normal)
+  // 🔧 NOVA CORREÇÃO: Efeito com controle rigoroso de redirecionamento
   useEffect(() => {
-    // Só redirecionar se está vindo diretamente da aceitação de termos
-    // Verificamos se há uma flag específica no sessionStorage
-    const justAcceptedTerms = sessionStorage.getItem('terms_just_accepted');
-    
-    if (!isChecking && !isPublicPage && hasAcceptedTerms && justAcceptedTerms && location.pathname !== '/dashboard') {
-      console.log('🚀 [TERMS WRAPPER] Redirecionando após aceitar termos pela primeira vez...');
-      // Remover a flag para não interferir na navegação futura
-      sessionStorage.removeItem('terms_just_accepted');
-      
-      const timer = setTimeout(() => {
-        navigate('/dashboard', { replace: true });
-      }, 200);
-      
-      return () => clearTimeout(timer);
+    // Limpar timeout anterior
+    if (redirectTimeoutRef.current) {
+      clearTimeout(redirectTimeoutRef.current);
     }
-  }, [hasAcceptedTerms, isChecking, isPublicPage, location.pathname, navigate]);
+
+    // Resetar flag se mudou de página
+    if (lastPathRef.current !== location.pathname) {
+      setHasRedirected(false);
+      lastPathRef.current = location.pathname;
+    }
+
+    // Só redirecionar se: não é página pública, não está verificando, termos aceitos, não redirecionou ainda, e não está no dashboard
+    if (!isPublicPage && 
+        !isChecking && 
+        hasAcceptedTerms && 
+        !hasRedirected && 
+        location.pathname !== '/dashboard') {
+      
+      console.log('🚀 [TERMS WRAPPER] Termos aceitos - iniciando redirecionamento controlado...');
+      
+      setHasRedirected(true);
+      
+      // Redirecionamento com delay para evitar conflitos
+      redirectTimeoutRef.current = setTimeout(() => {
+        console.log('🚀 [TERMS WRAPPER] Executando redirecionamento para dashboard');
+        navigate('/dashboard', { replace: true });
+      }, 300);
+    }
+
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, [hasAcceptedTerms, isChecking, isPublicPage, location.pathname, navigate, hasRedirected]);
 
   const handleAcceptTerms = async () => {
-    console.log('✅ [TERMS WRAPPER] Aceitando termos e preparando redirecionamento...');
-    const success = await acceptTerms();
+    console.log('✅ [TERMS WRAPPER] Aceitando termos...');
     
-    if (!success) {
-      console.error('❌ [TERMS WRAPPER] Falha ao aceitar termos');
-      return;
+    try {
+      const success = await acceptTerms();
+      
+      if (!success) {
+        console.error('❌ [TERMS WRAPPER] Falha ao aceitar termos');
+        return;
+      }
+      
+      console.log('✅ [TERMS WRAPPER] Termos aceitos com sucesso');
+      
+      // Não redirecionar imediatamente - deixar o useEffect cuidar disso
+      // O redirecionamento será feito quando hasAcceptedTerms mudar
+      
+    } catch (error) {
+      console.error('❌ [TERMS WRAPPER] Erro ao aceitar termos:', error);
     }
-    
-    // Marcar que acabamos de aceitar os termos para permitir redirecionamento
-    sessionStorage.setItem('terms_just_accepted', 'true');
-    
-    // Redirecionar imediatamente após aceitar termos para evitar tela branca
-    console.log('✅ [TERMS WRAPPER] Termos aceitos, redirecionando para dashboard...');
-    navigate('/dashboard', { replace: true });
   };
 
   // Para páginas públicas, renderizar sempre

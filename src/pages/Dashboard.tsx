@@ -180,6 +180,46 @@ const Dashboard: React.FC = () => {
     recurrenceFrequency: 'monthly' as 'weekly' | 'monthly' | 'yearly'
   });
   
+  // useEffect para SEMPRE executar na montagem do componente (incluindo F5)
+  useEffect(() => {
+    if (!isLoggedIn()) {
+      navigate('/login');
+      return;
+    }
+
+    console.log('🚀 [Dashboard] SINCRONIZAÇÃO FORÇADA AO RECARREGAR (F5) - INICIANDO...');
+    
+    // FORÇAR sincronização imediata sempre que o componente monta
+    const executarSincronizacaoCompleta = async () => {
+      try {
+        // 1. Iniciar sincronização automática agressiva
+        startAutoSync();
+        
+        // 2. Forçar sincronização imediata do Supabase
+        await forceSupabaseSync();
+        
+        // 3. Recarregar transações após sincronização
+        setTimeout(() => {
+          loadTransactions(selectedMonth, selectedYear);
+          
+          // 4. Recalcular saldo total
+          const allTransactions = getTransactions();
+          if (allTransactions && allTransactions.length > 0) {
+            const totalBalance = calculateBalance(allTransactions, []);
+            setBalance(totalBalance);
+            console.log('✅ [Dashboard] Saldo atualizado após F5:', totalBalance);
+          }
+        }, 1000);
+        
+        console.log('✅ [Dashboard] Sincronização completa executada com sucesso');
+      } catch (error) {
+        console.error('❌ [Dashboard] Erro na sincronização ao recarregar:', error);
+      }
+    };
+    
+    executarSincronizacaoCompleta();
+  }, []); // SEM dependências para executar sempre na montagem
+
   useEffect(() => {
     if (!isLoggedIn()) {
       navigate('/login');

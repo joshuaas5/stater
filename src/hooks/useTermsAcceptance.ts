@@ -113,7 +113,28 @@ export const useTermsAcceptance = () => {
 
   // Efeito para verificar aceitação quando o usuário muda
   useEffect(() => {
-    if (user?.id) {
+    // Verificar se devemos parar a verificação
+    const stopCheck = () => {
+      const shouldStop = localStorage.getItem('manual_logout') === 'true';
+      if (shouldStop) {
+        console.log('🔍 [TERMS] Parando verificação - logout manual detectado');
+        clearTermsState();
+        setIsChecking(false);
+        return true;
+      }
+      return false;
+    };
+
+    // Listener para parar verificação forçadamente
+    const handleForceStop = () => {
+      console.log('🔍 [TERMS] Parando verificação forçadamente');
+      clearTermsState();
+      setIsChecking(false);
+    };
+
+    window.addEventListener('force-stop-terms-check', handleForceStop);
+
+    if (user?.id && !stopCheck()) {
       // Verificar se já temos informação no localStorage primeiro
       const localTermsAccepted = localStorage.getItem(`${TERMS_ACCEPTED_KEY}_${user.id}`);
       
@@ -134,7 +155,11 @@ export const useTermsAcceptance = () => {
       clearTermsState();
       setIsChecking(false);
     }
-  }, [user, hasAcceptedTerms, checkTermsAcceptance, clearTermsState]);
+
+    return () => {
+      window.removeEventListener('force-stop-terms-check', handleForceStop);
+    };
+  }, [user, checkTermsAcceptance, clearTermsState]); // Removido hasAcceptedTerms da dependência
 
   return {
     hasAcceptedTerms: !!hasAcceptedTerms, // Converter para booleano

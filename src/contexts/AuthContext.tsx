@@ -71,6 +71,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     
+    // Verificar se é logout manual
+    const isManualLogout = localStorage.getItem('manual_logout') === 'true';
+    if (isManualLogout && !session) {
+      console.log('🔧 [AUTH] Logout manual detectado - não processar');
+      setSession(null);
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+    
     setIsProcessingAuth(true);
     
     try {
@@ -79,6 +89,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (session?.user) {
         console.log('🔧 [AUTH] Usuário autenticado:', session.user.id);
+        
+        // Limpar flag de logout manual se login bem-sucedido
+        localStorage.removeItem('manual_logout');
         
         // Store user in local storage for offline access
         saveUser({
@@ -89,6 +102,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Limpar URL de tokens depois que o login for processado
         cleanUrlAfterAuth(800);
+      } else {
+        // Sem sessão - limpar dados apenas se não foi logout manual
+        if (!isManualLogout) {
+          clearUserData();
+        }
       }
     } catch (error) {
       console.error('🔧 [AUTH] Erro ao processar login:', error);
@@ -101,6 +119,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('🔧 [AUTH] Inicializando AuthProvider');
     
+    // Verificar se é logout manual
+    const isManualLogout = localStorage.getItem('manual_logout') === 'true';
+    if (isManualLogout) {
+      console.log('🔧 [AUTH] Logout manual detectado - não restaurar sessão');
+      setLoading(false);
+      return;
+    }
+    
     // Limpar fragments vazios imediatamente
     if (window.location.hash === '#' || window.location.hash === '#/') {
       const cleanUrl = window.location.href.split('#')[0];
@@ -108,9 +134,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🔧 [AUTH] Fragment vazio removido na inicialização');
     }
     
+    // Tentar restaurar sessão do localStorage primeiro (para rapidez)
+    const savedUser = getCurrentUser();
+    if (savedUser) {
+      console.log('🔧 [AUTH] Usuário encontrado no localStorage:', savedUser.email);
+    }
+    
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔧 [AUTH] Sessão inicial verificada');
+      console.log('🔧 [AUTH] Sessão inicial verificada:', session ? 'Ativa' : 'Inativa');
       processLogin(session);
     });
 
@@ -178,7 +210,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       } else {
-        clearUserData();
+        // Só limpar dados se não foi logout manual
+        const isManualLogout = localStorage.getItem('manual_logout') === 'true';
+        if (!isManualLogout) {
+          clearUserData();
+        }
       }
       
       setLoading(false);

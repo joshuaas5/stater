@@ -16,13 +16,17 @@ export const TermsWrapper: React.FC<TermsWrapperProps> = ({ children }) => {
   const publicPages = ['/login', '/reset-password', '/privacy', '/terms', '/test'];
   const isPublicPage = publicPages.includes(location.pathname);
 
-  // Efeito para redirecionar após aceitar termos
+  // Efeito para redirecionar apenas quando vem de aceitação de termos (não para navegação normal)
   useEffect(() => {
-    // Se não está verificando, não está em uma página pública, termos foram aceitos,
-    // e não estamos no dashboard (para evitar loops), redirecionar para dashboard
-    if (!isChecking && !isPublicPage && hasAcceptedTerms && location.pathname !== '/dashboard') {
-      console.log('🚀 [TERMS WRAPPER] Termos aceitos e não estamos no dashboard, redirecionando...');
-      // Pequeno delay para garantir que tudo esteja pronto
+    // Só redirecionar se está vindo diretamente da aceitação de termos
+    // Verificamos se há uma flag específica no sessionStorage
+    const justAcceptedTerms = sessionStorage.getItem('terms_just_accepted');
+    
+    if (!isChecking && !isPublicPage && hasAcceptedTerms && justAcceptedTerms && location.pathname !== '/dashboard') {
+      console.log('🚀 [TERMS WRAPPER] Redirecionando após aceitar termos pela primeira vez...');
+      // Remover a flag para não interferir na navegação futura
+      sessionStorage.removeItem('terms_just_accepted');
+      
       const timer = setTimeout(() => {
         navigate('/dashboard', { replace: true });
       }, 200);
@@ -39,6 +43,9 @@ export const TermsWrapper: React.FC<TermsWrapperProps> = ({ children }) => {
       console.error('❌ [TERMS WRAPPER] Falha ao aceitar termos');
       return;
     }
+    
+    // Marcar que acabamos de aceitar os termos para permitir redirecionamento
+    sessionStorage.setItem('terms_just_accepted', 'true');
     
     // Redirecionar imediatamente após aceitar termos para evitar tela branca
     console.log('✅ [TERMS WRAPPER] Termos aceitos, redirecionando para dashboard...');

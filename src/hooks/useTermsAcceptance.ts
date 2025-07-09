@@ -27,32 +27,41 @@ export const useTermsAcceptance = () => {
         return true;
       }
       
-      // Se não temos no localStorage, verificamos no Supabase
-      const { data, error } = await supabase
-        .from('terms_acceptance')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') {  // PGRST116 = not found
-        console.error('🔍 [TERMS] Erro ao verificar termos:', error);
-        // Em caso de erro, assumimos que não aceitou para garantir
-        setHasAcceptedTerms(false);
-        setShowTermsModal(true);
-        setIsChecking(false);
-        return false;
-      }
-      
-      if (data) {
-        console.log('🔍 [TERMS] Termos já aceitos (Supabase):', data);
-        // Armazenar no localStorage para futuras verificações
-        localStorage.setItem(`${TERMS_ACCEPTED_KEY}_${userId}`, 'true');
-        setHasAcceptedTerms(true);
-        setShowTermsModal(false);
-        setIsChecking(false);
-        return true;
-      } else {
-        console.log('🔍 [TERMS] Termos não aceitos ainda');
+      // Se não temos no localStorage, verificamos no Supabase (se a tabela existir)
+      try {
+        const { data, error } = await supabase
+          .from('terms_acceptance')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') {  // PGRST116 = not found
+          console.log('🔍 [TERMS] Tabela terms_acceptance não existe ou erro no Supabase:', error.message);
+          // Assumir que não aceitou ainda
+          setHasAcceptedTerms(false);
+          setShowTermsModal(true);
+          setIsChecking(false);
+          return false;
+        }
+        
+        if (data) {
+          console.log('🔍 [TERMS] Termos já aceitos (Supabase):', data);
+          // Armazenar no localStorage para futuras verificações
+          localStorage.setItem(`${TERMS_ACCEPTED_KEY}_${userId}`, 'true');
+          setHasAcceptedTerms(true);
+          setShowTermsModal(false);
+          setIsChecking(false);
+          return true;
+        } else {
+          console.log('🔍 [TERMS] Termos não aceitos ainda');
+          setHasAcceptedTerms(false);
+          setShowTermsModal(true);
+          setIsChecking(false);
+          return false;
+        }
+      } catch (supabaseError) {
+        console.log('🔍 [TERMS] Tabela terms_acceptance não existe - usando apenas localStorage');
+        // Se a tabela não existe, assumir que precisa aceitar
         setHasAcceptedTerms(false);
         setShowTermsModal(true);
         setIsChecking(false);
@@ -74,24 +83,31 @@ export const useTermsAcceptance = () => {
     try {
       console.log('🔍 [TERMS] Salvando aceitação de termos para:', user.id);
       
-      const { error } = await supabase
-        .from('terms_acceptance')
-        .insert([
-          { 
-            user_id: user.id,
-            accepted_at: new Date().toISOString(),
-            terms_version: '1.0', // Versão atual dos termos
-          }
-        ]);
-      
-      if (error) {
-        console.error('🔍 [TERMS] Erro ao salvar aceitação:', error);
-        setIsChecking(false);
-        return false;
-      }
-      
-      // Salvar no localStorage também
+      // Salvar no localStorage primeiro (sempre funciona)
       localStorage.setItem(`${TERMS_ACCEPTED_KEY}_${user.id}`, 'true');
+      console.log('🔍 [TERMS] Termos salvos no localStorage');
+      
+      // Tentar salvar no Supabase (pode falhar se tabela não existir)
+      try {
+        const { error } = await supabase
+          .from('terms_acceptance')
+          .insert([
+            { 
+              user_id: user.id,
+              accepted_at: new Date().toISOString(),
+              terms_version: '1.0', // Versão atual dos termos
+            }
+          ]);
+        
+        if (error) {
+          console.log('🔍 [TERMS] Aviso - erro ao salvar no Supabase (tabela pode não existir):', error.message);
+          // Não retornar erro - localStorage já foi salvo
+        } else {
+          console.log('🔍 [TERMS] Termos salvos no Supabase também');
+        }
+      } catch (supabaseError) {
+        console.log('🔍 [TERMS] Tabela terms_acceptance não existe no Supabase - usando apenas localStorage');
+      }
       
       setHasAcceptedTerms(true);
       setShowTermsModal(false);

@@ -279,26 +279,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // VERIFICAÇÃO PRÉVIA SIMPLES - Tentar função RPC simples primeiro
+      // VERIFICAÇÃO PRÉVIA MAIS ROBUSTA
       try {
-        const { data: emailExists, error: rpcError } = await supabase.rpc('email_exists', {
-          email_input: email
-        });
+        // 1. Verificar na tabela profiles primeiro (mais confiável)
+        const { data: existingUsers } = await supabase
+          .from('profiles')
+          .select('email, auth_provider')
+          .eq('email', email);
         
-        if (!rpcError && emailExists === true) {
+        if (existingUsers && existingUsers.length > 0) {
+          const existingUser = existingUsers[0];
+          const provider = existingUser.auth_provider || 'desconhecido';
+          
+          let message = "Este email já possui uma conta";
+          if (provider === 'google') {
+            message += " criada com Google. Use 'Entrar com Google' para fazer login.";
+          } else if (provider === 'email') {
+            message += ". Faça login normalmente ou recupere sua senha se necessário.";
+          } else {
+            message += ". Faça login ou recupere sua senha se necessário.";
+          }
+          
           toast({
             title: "Email já registrado",
-            description: "Este email já possui uma conta. Faça login ou recupere sua senha se necessário.",
+            description: message,
             variant: "destructive",
             duration: 8000
           });
-          return;
+          return; // IMPORTANTE: sair da função aqui
         }
-      } catch (error) {
-        console.log("Função RPC email_exists não disponível, continuando...");
+        
+        // 2. Tentar função RPC como backup
+        try {
+          const { data: emailExists, error: rpcError } = await supabase.rpc('email_exists', {
+            email_input: email
+          });
+          
+          if (!rpcError && emailExists === true) {
+            toast({
+              title: "Email já registrado",
+              description: "Este email já possui uma conta. Faça login ou recupere sua senha se necessário.",
+              variant: "destructive",
+              duration: 8000
+            });
+            return; // IMPORTANTE: sair da função aqui
+          }
+        } catch (rpcError) {
+          console.log("Função RPC email_exists não disponível, continuando...");
+        }
+        
+      } catch (verificationError) {
+        console.log("Erro na verificação prévia, continuando com signup:", verificationError);
       }
       
-      // Tentar criar nova conta diretamente - deixar o Supabase detectar duplicatas
+      // Tentar criar nova conta diretamente
       const { data, error } = await supabase.auth.signUp({ 
         email, 
         password,
@@ -322,7 +356,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             variant: "destructive",
             duration: 8000
           });
-          return;
+          return; // IMPORTANTE: sair da função aqui em vez de ir para verificação de email
         }
         
         // Outros erros

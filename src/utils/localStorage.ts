@@ -2131,19 +2131,26 @@ export const forceSupabaseSync = async (): Promise<void> => {
     localStorage.setItem(`transactions_${user.id}`, JSON.stringify(supabaseTransactions));
     console.log('💾 [FORCE SYNC] localStorage atualizado com dados do Supabase');
     
-    // MÚLTIPLOS eventos de atualização
-    for (let i = 0; i < 5; i++) {
+    // MÚLTIPLOS eventos de atualização com delays maiores
+    for (let i = 0; i < 8; i++) {
       setTimeout(() => {
         window.dispatchEvent(new Event('transactionsUpdated'));
         window.dispatchEvent(new CustomEvent('transactionsUpdated', { 
           detail: { 
             source: `force-sync-${i}`, 
             total: supabaseTransactions.length,
-            forced: true
+            forced: true,
+            telegram_sync: true
           } 
         }));
-        console.log(`📢 [FORCE SYNC] Evento ${i + 1}/5 disparado`);
-      }, i * 100);
+        window.dispatchEvent(new CustomEvent('telegram-transaction-sync', { 
+          detail: { 
+            transactions: supabaseTransactions,
+            timestamp: Date.now()
+          } 
+        }));
+        console.log(`📢 [FORCE SYNC] Evento ${i + 1}/8 disparado`);
+      }, i * 200); // Intervalo maior para garantir processamento
     }
     
   } catch (error) {

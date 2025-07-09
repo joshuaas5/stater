@@ -319,15 +319,23 @@ const PreferencesPage: React.FC = () => {
               localStorage.setItem('manual_logout', 'true');
               console.log('🚪 [LOGOUT] Marcado como logout manual');
               
-              // PASSO 2: Parar qualquer verificação de termos em execução
+              // PASSO 2: Parar TODAS as verificações em execução
               window.dispatchEvent(new CustomEvent('force-stop-terms-check'));
+              window.dispatchEvent(new CustomEvent('force-stop-onboarding-check'));
+              console.log('🚪 [LOGOUT] Eventos de parada enviados');
               
-              // PASSO 3: Limpar TUDO imediatamente
+              // PASSO 3: Aguardar um pouco para garantir que os hooks processem
+              await new Promise(resolve => setTimeout(resolve, 100));
+              
+              // PASSO 4: Limpar TUDO imediatamente
               localStorage.clear();
               sessionStorage.clear();
-              console.log('🚪 [LOGOUT] Cache local limpo');
               
-              // PASSO 4: Fazer logout do Supabase (pode falhar, mas não importa)
+              // PASSO 5: Remarcar logout após limpeza (para AuthContext)
+              localStorage.setItem('manual_logout', 'true');
+              console.log('🚪 [LOGOUT] Cache local limpo e logout remarcado');
+              
+              // PASSO 6: Fazer logout do Supabase (pode falhar, mas não importa)
               try {
                 await signOut();
                 console.log('🚪 [LOGOUT] Logout do Supabase executado');
@@ -335,7 +343,7 @@ const PreferencesPage: React.FC = () => {
                 console.log('🚪 [LOGOUT] Erro no logout do Supabase (ignorado):', error);
               }
               
-              // PASSO 5: Redirecionar IMEDIATAMENTE usando replace
+              // PASSO 7: Redirecionar IMEDIATAMENTE usando replace
               console.log('🚪 [LOGOUT] Redirecionando para login...');
               window.location.replace('/login');
               
@@ -345,6 +353,7 @@ const PreferencesPage: React.FC = () => {
               // FALLBACK: Mesmo com erro, limpar e redirecionar
               localStorage.clear();
               sessionStorage.clear();
+              localStorage.setItem('manual_logout', 'true');
               window.location.replace('/login');
             }
           }}

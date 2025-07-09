@@ -17,34 +17,52 @@ const userSessions = new Map(); // chatId -> { userId, userEmail, linkCode }
 
 console.log('🤖 Stater Telegram Bot iniciado!' );
 
-// Recarregar sessões ativas ao iniciar
+// Recarregar sessões ativas ao iniciar (CORRIGIDO para persistência)
 async function reloadActiveSessions() {
     try {
-        console.log('🔄 Recarregando sessões ativas...');
+        console.log('🔄 [PERSISTÊNCIA] Recarregando sessões ativas...');
         
         const { data: activeUsers } = await supabase
             .from('telegram_users')
             .select('telegram_chat_id, user_id, user_email, user_name')
             .eq('is_active', true);
         
-        if (activeUsers) {
+        if (activeUsers && activeUsers.length > 0) {
             activeUsers.forEach(user => {
-                userSessions.set(parseInt(user.telegram_chat_id), {
+                const chatId = parseInt(user.telegram_chat_id);
+                userSessions.set(chatId, {
                     userId: user.user_id,
                     userEmail: user.user_email,
                     userName: user.user_name
                 });
+                console.log(`🔗 [PERSISTÊNCIA] Sessão restaurada: ${user.user_name} (Chat: ${chatId})`);
             });
             
-            console.log(`✅ ${activeUsers.length} sessões recarregadas`);
+            console.log(`✅ [PERSISTÊNCIA] ${activeUsers.length} sessões recarregadas com sucesso`);
+        } else {
+            console.log('📭 [PERSISTÊNCIA] Nenhuma sessão ativa encontrada');
         }
     } catch (error) {
-        console.error('❌ Erro ao recarregar sessões:', error);
+        console.error('❌ [PERSISTÊNCIA] Erro ao recarregar sessões:', error);
     }
 }
 
+// Recarregar sessões periodicamente para garantir persistência
+setInterval(async () => {
+    console.log('🔄 [PERSISTÊNCIA] Sincronização automática de sessões...');
+    await reloadActiveSessions();
+}, 3 * 60 * 1000); // A cada 3 minutos para ser mais frequente
+
 // Carregar sessões na inicialização
 reloadActiveSessions();
+
+// Também recarregar quando receber qualquer mensagem (para ser mais robusto)
+bot.on('message', async (msg) => {
+    if (!userSessions.has(msg.chat.id)) {
+        console.log('🔄 [PERSISTÊNCIA] Sessão não encontrada na memória, tentando recarregar...');
+        await reloadActiveSessions();
+    }
+});
 
 // Comando /start
 bot.onText(/\/start(.*)/, async (msg, match) => {
@@ -688,36 +706,51 @@ async function callGeminiForChat(message, userContext, userSession) {
     }
 }
 
-// Buscar user ID pelo Telegram
+// Buscar user ID pelo Telegram (CORRIGIDO para persistência)
 async function getUserIdFromTelegram(chatId) {
     try {
+        console.log(`🔍 [PERSISTÊNCIA] Buscando usuário para chat: ${chatId}`);
+        
         // Primeiro verificar sessão em memória
         const userSession = userSessions.get(chatId);
-        if (userSession) {
+        if (userSession && userSession.userId) {
+            console.log(`✅ [PERSISTÊNCIA] Encontrado na memória: ${userSession.userName}`);
             return userSession.userId;
         }
         
+        console.log(`🔍 [PERSISTÊNCIA] Não encontrado na memória, buscando no banco...`);
+        
         // Buscar no banco de dados (apenas usuários ativos)
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from('telegram_users')
             .select('user_id, user_email, user_name')
             .eq('telegram_chat_id', chatId.toString())
             .eq('is_active', true)
             .single();
         
-        if (data) {
-            // Restaurar sessão
+        if (error) {
+            console.log(`❌ [PERSISTÊNCIA] Erro no banco: ${error.message}`);
+            return null;
+        }
+        
+        if (data && data.user_id) {
+            console.log(`✅ [PERSISTÊNCIA] Encontrado no banco: ${data.user_name}`);
+            
+            // Restaurar sessão na memória para futuras consultas
             userSessions.set(chatId, {
                 userId: data.user_id,
                 userEmail: data.user_email,
                 userName: data.user_name
             });
+            
+            console.log(`🔗 [PERSISTÊNCIA] Sessão restaurada na memória para ${data.user_name}`);
             return data.user_id;
         }
         
+        console.log(`❌ [PERSISTÊNCIA] Usuário não encontrado no banco`);
         return null;
     } catch (error) {
-        console.error('❌ Erro ao buscar usuário:', error);
+        console.error('❌ [PERSISTÊNCIA] Erro ao buscar usuário:', error);
         return null;
     }
 }
@@ -752,6 +785,35 @@ async function saveTransactionToSupabase(userId, transaction) {
         }
         
         console.log(`✅ Transação salva: ${transaction.descricao} - R$ ${transaction.valor}`);
+        
+        // NOTIFICAR O APP SOBRE A NOVA TRANSAÇÃO
+        try {
+            console.log('📢 [SYNC] Notificando app sobre nova transação do Telegram...');
+            
+            // Fazer múltiplas tentativas de notificação para garantir que o app receba
+            const notificationPromises = [];
+            
+            // Tentar notificar via webhook se disponível
+            if (process.env.APP_URL) {
+                notificationPromises.push(
+                    axios.post(`${process.env.APP_URL}/api/telegram-sync-notification`, {
+                        userId: userId,
+                        transactionId: data.id,
+                        action: 'new_transaction',
+                        timestamp: Date.now()
+                    }, { timeout: 5000 }).catch(err => 
+                        console.log('⚠️ [SYNC] Webhook não disponível:', err.message)
+                    )
+                );
+            }
+            
+            await Promise.allSettled(notificationPromises);
+            console.log('📢 [SYNC] Notificações enviadas');
+            
+        } catch (syncError) {
+            console.log('⚠️ [SYNC] Erro ao notificar app (transação salva mesmo assim):', syncError.message);
+        }
+        
         return true;
         
     } catch (error) {

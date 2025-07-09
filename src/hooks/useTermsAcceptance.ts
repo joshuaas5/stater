@@ -124,11 +124,8 @@ export const useTermsAcceptance = () => {
       setShowTermsModal(false);
       setIsChecking(false);
       
-      // CORREÇÃO: Redirecionar para dashboard após aceitar termos
-      console.log('🔍 [TERMS] Redirecionando para dashboard após aceitar termos...');
-      setTimeout(() => {
-        window.location.replace('/dashboard');
-      }, 500); // Pequeno delay para garantir que o estado foi atualizado
+      // CORREÇÃO: NÃO redirecionar - deixar o fluxo normal funcionar
+      console.log('🔍 [TERMS] Termos aceitos - seguindo fluxo normal (sem redirecionamento forçado)');
       
       return true;
     } catch (error) {

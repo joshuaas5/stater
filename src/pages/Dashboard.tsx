@@ -228,8 +228,6 @@ const Dashboard: React.FC = () => {
       }, 100);
     };
     
-    window.addEventListener('transactionsUpdated', handler);
-    
     // Listener adicional para força reload das transações criadas via IA
     const forceReloadHandler = (event: any) => {
       console.log('🚀 [Dashboard] Force reload trigger from:', event.detail?.source || 'unknown');
@@ -245,13 +243,41 @@ const Dashboard: React.FC = () => {
       }, 200); // Delay maior para garantir que os dados foram salvos
     };
     
+    // Listener específico para sincronização do Telegram
+    const telegramSyncHandler = (event: any) => {
+      console.log('📱 [Dashboard] Sincronização do Telegram detectada:', event.detail);
+      
+      // Toast para mostrar que nova transação chegou
+      toast({
+        title: "💰 Nova transação do Telegram!",
+        description: "Sua transação foi sincronizada automaticamente.",
+        duration: 3000,
+      });
+      
+      // Forçar nova sincronização e atualização
+      setTimeout(async () => {
+        await forceSupabaseSync();
+        loadTransactions(selectedMonth, selectedYear);
+        
+        // Recalcular saldo total
+        const allTransactions = getTransactions();
+        if (allTransactions && allTransactions.length > 0) {
+          const totalBalance = calculateBalance(allTransactions, []);
+          setBalance(totalBalance);
+        }
+      }, 300);
+    };
+    
+    window.addEventListener('transactionsUpdated', handler);
     window.addEventListener('forceTransactionReload', forceReloadHandler);
+    window.addEventListener('telegram-transaction-sync', telegramSyncHandler);
     
     return () => {
       console.log('🛑 [Dashboard] Cleanup - parando sincronização automática');
-      stopAutoSync(); // PARAR sincronização automática na limpeza
+      stopAutoSync();
       window.removeEventListener('transactionsUpdated', handler);
       window.removeEventListener('forceTransactionReload', forceReloadHandler);
+      window.removeEventListener('telegram-transaction-sync', telegramSyncHandler);
     };
   }, [navigate, selectedMonth, selectedYear]);
 

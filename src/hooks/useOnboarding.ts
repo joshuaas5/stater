@@ -12,6 +12,15 @@ export const useOnboarding = () => {
       try {
         console.log('🔍 [ONBOARDING DEBUG] Iniciando verificação...');
         
+        // VERIFICAR SE É LOGOUT MANUAL PRIMEIRO
+        const isManualLogout = localStorage.getItem('manual_logout') === 'true';
+        if (isManualLogout) {
+          console.log('🔍 [ONBOARDING DEBUG] Logout manual detectado - abortando verificação');
+          setShowOnboarding(false);
+          setIsChecking(false);
+          return;
+        }
+        
         // Só verificar onboarding se o usuário estiver logado
         if (!user || loading) {
           console.log('🔍 [ONBOARDING DEBUG] Usuário não logado ou loading, escondendo onboarding');
@@ -70,7 +79,7 @@ export const useOnboarding = () => {
         console.log('🔍 [ONBOARDING DEBUG] setShowOnboarding definido para:', shouldShow);
       } catch (error) {
         console.error('❌ [ONBOARDING DEBUG] Erro geral ao verificar status do onboarding:', error);
-        // Em caso de erro, falhar de forma segura - não mostrar onboarding
+        // Em caso de erro, falir de forma segura - não mostrar onboarding
         setShowOnboarding(false);
       } finally {
         setIsChecking(false);
@@ -78,10 +87,36 @@ export const useOnboarding = () => {
       }
     };
 
+    // Listener para parar verificação forçadamente
+    const handleForceStop = () => {
+      console.log('🔍 [ONBOARDING] Parando verificação forçadamente');
+      setShowOnboarding(false);
+      setIsChecking(false);
+    };
+
+    // Adicionar listener para parar onboarding também
+    window.addEventListener('force-stop-terms-check', handleForceStop);
+    window.addEventListener('force-stop-onboarding-check', handleForceStop);
+
+    // Verificar logout manual antes de qualquer operação
+    const isManualLogout = localStorage.getItem('manual_logout') === 'true';
+    if (isManualLogout) {
+      console.log('🔍 [ONBOARDING] Logout manual detectado - abortando tudo');
+      setShowOnboarding(false);
+      setIsChecking(false);
+      window.removeEventListener('force-stop-terms-check', handleForceStop);
+      window.removeEventListener('force-stop-onboarding-check', handleForceStop);
+      return;
+    }
+
     // Pequeno delay para evitar flash e garantir que user esteja pronto
     const timer = setTimeout(checkOnboardingStatus, 300);
     
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('force-stop-terms-check', handleForceStop);
+      window.removeEventListener('force-stop-onboarding-check', handleForceStop);
+    };
   }, [user, loading]);
 
   const completeOnboarding = async () => {
@@ -151,6 +186,7 @@ export const useOnboarding = () => {
     
     setShowOnboarding(true);
   };
+
   return {
     shouldShowOnboarding: showOnboarding,
     showOnboarding,

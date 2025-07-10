@@ -2131,10 +2131,10 @@ export const forceSupabaseSync = async (): Promise<void> => {
   }
   
   isForceSync = true;
-  console.log('🚀 [FORCE SYNC] SINCRONIZAÇÃO FORÇADA INICIADA');
+  console.log('🚀 [FORCE SYNC] SINCRONIZAÇÃO INTELIGENTE INICIADA');
   
   try {
-    // Buscar SEMPRE do Supabase (corrigindo o await)
+    // Buscar do Supabase
     const result = await getSupabaseTransactions(user.id);
     
     if (result.error) {
@@ -2142,32 +2142,89 @@ export const forceSupabaseSync = async (): Promise<void> => {
       return;
     }
     
-    console.log(`✅ [FORCE SYNC] ${result.data?.length || 0} transações encontradas no Supabase`);
+    console.log(`📥 [FORCE SYNC] ${result.data?.length || 0} transações encontradas no Supabase`);
     
     const supabaseTransactions = result.data ? result.data.map(mapSupabaseToTransaction) : [];
     
-    // SEMPRE sobrescrever localStorage
-    localStorage.setItem(`transactions_${user.id}`, JSON.stringify(supabaseTransactions));
-    console.log('💾 [FORCE SYNC] localStorage atualizado com dados do Supabase');
+    // SINCRONIZAÇÃO INTELIGENTE: Mesclar dados locais com Supabase
+    const localTransactionsStr = localStorage.getItem(`transactions_${user.id}`);
+    let localTransactions: Transaction[] = [];
     
-    // APENAS UM evento simples para evitar loops
+    if (localTransactionsStr) {
+      try {
+        localTransactions = JSON.parse(localTransactionsStr);
+        console.log(`📱 [FORCE SYNC] ${localTransactions.length} transações encontradas localmente`);
+      } catch (err) {
+        console.error('❌ [FORCE SYNC] Erro ao ler localStorage:', err);
+        localTransactions = [];
+      }
+    }
+    
+    // Criar mapa de transações do Supabase por ID
+    const supabaseMap = new Map<string, Transaction>();
+    supabaseTransactions.forEach(t => supabaseMap.set(t.id, t));
+    
+    // Criar mapa de transações locais por ID 
+    const localMap = new Map<string, Transaction>();
+    localTransactions.forEach(t => localMap.set(t.id, t));
+    
+    // Mesclar: priorizar dados locais mais recentes, adicionar novos do Supabase
+    const mergedTransactions: Transaction[] = [];
+    const now = new Date().getTime();
+    
+    // Adicionar todas as transações locais (preservar recém-criadas)
+    localTransactions.forEach(localTx => {
+      const localDate = new Date(localTx.date).getTime();
+      const isRecent = (now - localDate) < 60000; // 1 minuto
+      
+      if (isRecent) {
+        // Transação muito recente - manter versão local
+        mergedTransactions.push(localTx);
+        console.log(`� [FORCE SYNC] Preservando transação local recente: ${localTx.title}`);
+      } else if (supabaseMap.has(localTx.id)) {
+        // Existe no Supabase - usar versão do Supabase (mais confiável)
+        mergedTransactions.push(supabaseMap.get(localTx.id)!);
+      } else {
+        // Não existe no Supabase - manter versão local
+        mergedTransactions.push(localTx);
+      }
+    });
+    
+    // Adicionar transações do Supabase que não existem localmente
+    supabaseTransactions.forEach(supabaseTx => {
+      if (!localMap.has(supabaseTx.id)) {
+        mergedTransactions.push(supabaseTx);
+        console.log(`📥 [FORCE SYNC] Adicionando nova transação do Supabase: ${supabaseTx.title}`);
+      }
+    });
+    
+    // Remover duplicatas por ID (priorizar a primeira ocorrência)
+    const uniqueTransactions = Array.from(
+      new Map(mergedTransactions.map(t => [t.id, t])).values()
+    );
+    
+    // Salvar resultado mesclado
+    localStorage.setItem(`transactions_${user.id}`, JSON.stringify(uniqueTransactions));
+    console.log(`✅ [FORCE SYNC] Sincronização concluída: ${uniqueTransactions.length} transações (${localTransactions.length} locais + ${supabaseTransactions.length} Supabase)`);
+    
+    // Evento único para atualizar UI
     setTimeout(() => {
       window.dispatchEvent(new Event('transactionsUpdated'));
       window.dispatchEvent(new CustomEvent('transactionsUpdated', { 
         detail: { 
-          source: 'force-sync-single', 
-          total: supabaseTransactions.length,
+          source: 'smart-sync', 
+          total: uniqueTransactions.length,
           forced: true,
-          telegram_sync: true
+          merged: true
         } 
       }));
-      console.log('📢 [FORCE SYNC] Evento único disparado');
-    }, 500); // Um delay maior para garantir estabilidade
+      console.log('📢 [FORCE SYNC] Evento de sincronização inteligente disparado');
+    }, 500);
     
   } catch (error) {
     console.error('❌ [FORCE SYNC] Erro crítico:', error);
   } finally {
-    // Limpar flag após 2 segundos para permitir nova execução se necessário
+    // Limpar flag após 2 segundos
     setTimeout(() => {
       isForceSync = false;
     }, 2000);

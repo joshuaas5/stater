@@ -1,22 +1,10 @@
--- Funções para garantir timestamps corretos do servidor
+-- CORREÇÃO CRÍTICA: Função RPC com timestamp correto
+-- Esta correção resolve o problema de transações aparecendo com data/hora incorreta
 
--- Função para obter timestamp atual do servidor
-CREATE OR REPLACE FUNCTION get_server_timestamp()
-RETURNS TIMESTAMP WITH TIME ZONE AS $$
-BEGIN
-    RETURN NOW();
-END;
-$$ LANGUAGE plpgsql;
+-- Remover função antiga se existir
+DROP FUNCTION IF EXISTS insert_transaction_with_timestamp(UUID, TEXT, DECIMAL, TEXT, TEXT);
 
--- Função para obter data atual do servidor (apenas data, sem hora)
-CREATE OR REPLACE FUNCTION get_server_date()
-RETURNS DATE AS $$
-BEGIN
-    RETURN CURRENT_DATE;
-END;
-$$ LANGUAGE plpgsql;
-
--- Função para inserir transação com timestamp correto
+-- Criar função corrigida que preserva timestamp completo
 CREATE OR REPLACE FUNCTION insert_transaction_with_timestamp(
     p_user_id UUID,
     p_description TEXT,
@@ -51,3 +39,15 @@ BEGIN
         transactions.user_id;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Garantir permissões corretas
+GRANT EXECUTE ON FUNCTION insert_transaction_with_timestamp(UUID, TEXT, DECIMAL, TEXT, TEXT) TO authenticated;
+
+-- Teste rápido da função (opcional - comentar se não quiser testar)
+-- SELECT * FROM insert_transaction_with_timestamp(
+--     auth.uid(),
+--     'Teste de timestamp',
+--     100.00,
+--     'expense',
+--     'teste'
+-- );

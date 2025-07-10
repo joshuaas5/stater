@@ -169,7 +169,7 @@ export const saveSupabaseTransaction = async (transaction: Transaction): Promise
         .from('transactions')
         .insert({
           ...supabaseTransaction,
-          date: new Date().toISOString().split('T')[0], // Data atual do servidor
+          date: new Date().toISOString(), // Manter timestamp completo
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })

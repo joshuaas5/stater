@@ -235,9 +235,17 @@ export const saveTransaction = (transaction: Transaction): void => {
   if (!(transaction.date instanceof Date)) {
     transaction.date = new Date(transaction.date || new Date());
   }
+
+  // VERIFICAR SE É TRANSAÇÃO RECORRENTE QUE NÃO DEVE AFETAR SALDO
+  const shouldAdjustBalance = !transaction.dontAdjustBalanceOnSave && 
+                             !(transaction.isRecurring && !transaction.isRecurringInstance);
   
   console.log('💾 [SUPABASE FIRST] Iniciando salvamento - SUPABASE É PRIORIDADE!');
   console.log('💾 [SUPABASE FIRST] Dados da transação:', JSON.stringify(transaction));
+  console.log('💰 [BALANCE CHECK] Deve afetar saldo:', shouldAdjustBalance, 
+              '(dontAdjust:', transaction.dontAdjustBalanceOnSave, 
+              'isRecurring:', transaction.isRecurring, 
+              'isInstance:', transaction.isRecurringInstance, ')');
   
   // 1. PRIMEIRO: SALVAR NO SUPABASE (CRÍTICO!)
   const saveToSupabase = async () => {
@@ -278,16 +286,22 @@ export const saveTransaction = (transaction: Transaction): void => {
       localStorage.setItem(`transactions_${user.id}`, JSON.stringify(transactions));
       console.log('✅ [BACKUP LOCAL] Backup salvo. Total:', transactions.length);
       
-      // 3. FORÇAR ATUALIZAÇÃO DA UI
-      console.log('🔄 [UI UPDATE] Disparando eventos de atualização...');
-      window.dispatchEvent(new Event('transactionsUpdated'));
-      window.dispatchEvent(new CustomEvent('transactionsUpdated', { detail: { newTransaction: transaction } }));
-      
-      // Evento adicional para garantir
-      setTimeout(() => {
+      // 3. ATUALIZAR UI - MAS SÓ DISPARAR EVENTOS SE DEVE AFETAR SALDO
+      if (shouldAdjustBalance) {
+        console.log('🔄 [UI UPDATE] Disparando eventos de atualização...');
         window.dispatchEvent(new Event('transactionsUpdated'));
-        window.dispatchEvent(new CustomEvent('forceRefresh'));
-      }, 100);
+        window.dispatchEvent(new CustomEvent('transactionsUpdated', { detail: { newTransaction: transaction } }));
+        
+        // Evento adicional para garantir
+        setTimeout(() => {
+          window.dispatchEvent(new Event('transactionsUpdated'));
+          window.dispatchEvent(new CustomEvent('forceRefresh'));
+        }, 100);
+      } else {
+        console.log('🚫 [UI UPDATE] Transação recorrente - NÃO disparando eventos de saldo');
+        // Apenas disparar evento específico para atualizar lista de recorrentes
+        window.dispatchEvent(new CustomEvent('recurringTransactionsUpdated', { detail: { newTransaction: transaction } }));
+      }
       
     } catch (error: any) {
       console.error('❌ [SUPABASE FIRST] ERRO CRÍTICO:', error);

@@ -206,12 +206,21 @@ const Dashboard: React.FC = () => {
         setTimeout(() => {
           loadTransactions(selectedMonth, selectedYear);
           
-          // 4. Recalcular saldo total
+          // 4. Recalcular saldo total com filtro correto
           const allTransactions = getTransactions();
           if (allTransactions && allTransactions.length > 0) {
-            const totalBalance = calculateBalance(allTransactions, []);
+            // Filtrar transações recorrentes não processadas antes de calcular saldo
+            const validTransactions = allTransactions.filter(t => {
+              if (t.isRecurring && !t.isRecurringInstance) {
+                return false; // Excluir recorrentes não processadas
+              }
+              return true;
+            });
+            
+            const totalBalance = calculateBalance(validTransactions, []);
             setBalance(totalBalance);
-            console.log('✅ [Dashboard] Saldo atualizado após F5:', totalBalance);
+            console.log('✅ [Dashboard] Saldo atualizado após F5:', totalBalance, 
+                       '(filtradas', allTransactions.length - validTransactions.length, 'recorrentes)');
           }
         }, 1000);
         
@@ -249,9 +258,19 @@ const Dashboard: React.FC = () => {
     // Forçar o carregamento de todas as transações e recalcular o saldo total
     const allTransactions = getTransactions();
     if (allTransactions && allTransactions.length > 0) {
-      // Calcular o saldo total com todas as transações
-      const totalBalance = calculateBalance(allTransactions, []);
+      // Filtrar transações recorrentes não processadas antes de calcular saldo
+      const validTransactions = allTransactions.filter(t => {
+        if (t.isRecurring && !t.isRecurringInstance) {
+          return false; // Excluir recorrentes não processadas
+        }
+        return true;
+      });
+      
+      // Calcular o saldo total apenas com transações válidas
+      const totalBalance = calculateBalance(validTransactions, []);
       setBalance(totalBalance);
+      console.log('✅ [Dashboard] Saldo inicial calculado:', totalBalance, 
+                 '(filtradas', allTransactions.length - validTransactions.length, 'recorrentes)');
     }
     
     // Carregar as transações do mês/ano selecionado
@@ -272,11 +291,20 @@ const Dashboard: React.FC = () => {
       debounceTimer = setTimeout(() => {
         loadTransactions(selectedMonth, selectedYear);
         
-        // Recalcular saldo total
+        // Recalcular saldo total COM FILTRO
         const allTransactions = getTransactions();
         if (allTransactions && allTransactions.length > 0) {
-          const totalBalance = calculateBalance(allTransactions, []);
+          // Filtrar transações recorrentes não processadas
+          const validTransactions = allTransactions.filter(t => {
+            if (t.isRecurring && !t.isRecurringInstance) {
+              return false;
+            }
+            return true;
+          });
+          
+          const totalBalance = calculateBalance(validTransactions, []);
           setBalance(totalBalance);
+          console.log('✅ [Dashboard] Saldo recalculado (handler):', totalBalance);
         }
       }, 1000);
     };
@@ -295,11 +323,20 @@ const Dashboard: React.FC = () => {
       debounceTimer = setTimeout(() => {
         loadTransactions(selectedMonth, selectedYear);
         
-        // Recalcular saldo total
+        // Recalcular saldo total COM FILTRO
         const allTransactions = getTransactions();
         if (allTransactions && allTransactions.length > 0) {
-          const totalBalance = calculateBalance(allTransactions, []);
+          // Filtrar transações recorrentes não processadas
+          const validTransactions = allTransactions.filter(t => {
+            if (t.isRecurring && !t.isRecurringInstance) {
+              return false;
+            }
+            return true;
+          });
+          
+          const totalBalance = calculateBalance(validTransactions, []);
           setBalance(totalBalance);
+          console.log('✅ [Dashboard] Saldo recalculado (forceReload):', totalBalance);
         }
       }, 1000);
     };
@@ -326,11 +363,20 @@ const Dashboard: React.FC = () => {
       debounceTimer = setTimeout(() => {
         loadTransactions(selectedMonth, selectedYear);
         
-        // Recalcular saldo total
+        // Recalcular saldo total COM FILTRO
         const allTransactions = getTransactions();
         if (allTransactions && allTransactions.length > 0) {
-          const totalBalance = calculateBalance(allTransactions, []);
+          // Filtrar transações recorrentes não processadas
+          const validTransactions = allTransactions.filter(t => {
+            if (t.isRecurring && !t.isRecurringInstance) {
+              return false;
+            }
+            return true;
+          });
+          
+          const totalBalance = calculateBalance(validTransactions, []);
           setBalance(totalBalance);
+          console.log('✅ [Dashboard] Saldo recalculado (telegram):', totalBalance);
         }
       }, 1500);
     };
@@ -1220,13 +1266,22 @@ const Dashboard: React.FC = () => {
                         // Recarregar transações
                         loadTransactions(selectedMonth, selectedYear);
                         
-                        // Atualizar o saldo total
+                        // Atualizar o saldo total COM FILTRO
                         const allTransactions = getTransactions();
-                        const totalBalance = calculateBalance(allTransactions, []);
+                        // Filtrar transações recorrentes não processadas
+                        const validTransactions = allTransactions.filter(t => {
+                          if (t.isRecurring && !t.isRecurringInstance) {
+                            return false;
+                          }
+                          return true;
+                        });
+                        
+                        const totalBalance = calculateBalance(validTransactions, []);
                         setBalance(totalBalance);
+                        console.log('✅ [Dashboard] Saldo recalculado (deleteTransaction):', totalBalance);
                         
                         // Recalcular incomes e expenses para o mês selecionado
-                        const filteredTransactions = allTransactions.filter(t => {
+                        const filteredTransactions = validTransactions.filter(t => {
                           const transactionDate = new Date(t.date);
                           return transactionDate.getMonth() === selectedMonth && 
                                  transactionDate.getFullYear() === selectedYear;

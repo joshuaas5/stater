@@ -201,6 +201,18 @@ export const calculateBalance = (transactions: Transaction[], skipBalanceAdjustm
       return total; // Mantém o saldo como estava
     }
     
+    // CRÍTICO: Filtrar transações recorrentes que não foram processadas
+    if (transaction.isRecurring && !transaction.isRecurringInstance) {
+      console.log('💰 [BALANCE] Ignorando transação recorrente não processada:', transaction.title);
+      return total; // Não incluir no saldo
+    }
+    
+    // CRÍTICO: Filtrar transações que explicitamente não devem afetar saldo
+    if (transaction.dontAdjustBalanceOnSave) {
+      console.log('💰 [BALANCE] Ignorando transação com dontAdjustBalanceOnSave:', transaction.title);
+      return total; // Não incluir no saldo
+    }
+    
     if (transaction.type === 'income') {
       return total + transaction.amount;
     } else {

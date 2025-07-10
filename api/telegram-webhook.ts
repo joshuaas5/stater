@@ -450,22 +450,24 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
     const result = await response.json();
     
     console.log('🔍 [DEBUG] Resposta da verificação:', { status: response.status, result });
-      if (!response.ok || !(result as any).success) {
+    
+    if (!response.ok || !(result as any).valid) {
       console.log('❌ [DEBUG] Código inválido ou expirado');
       return false;
     }
     
-    const { user_id, user_email, user_name } = result as any;
+    const { userId, userEmail, userName } = result as any;
     
-    console.log('✅ [DEBUG] Código válido encontrado para usuário:', user_id);
-      // Salvar vinculação na tabela de usuários do Telegram
+    console.log('✅ [DEBUG] Código válido encontrado para usuário:', userId);
+    
+    // Salvar vinculação na tabela de usuários do Telegram
     const { error: linkError } = await supabaseAdmin
       .from('telegram_users')
       .upsert({
         telegram_chat_id: chatId,
-        user_id: user_id,
-        user_email: user_email,
-        user_name: user_name,
+        user_id: userId,
+        user_email: userEmail,
+        user_name: userName,
         telegram_username: username,
         linked_at: new Date().toISOString(),
         is_active: true
@@ -1082,52 +1084,27 @@ export default async function handler(req: any, res: any) {
           '🚀 <b>TUDO É SALVO AUTOMATICAMENTE!</b>'
         );
         return res.status(200).json({ ok: true, message: 'Comando /help processado' });
-      }// Comando /conectar - NOVO SISTEMA INTUITIVO
+      }      // Comando /conectar - SISTEMA SIMPLIFICADO
       if (messageText === '/conectar') {
         console.log('🔗 Processando comando /conectar');
         
-        // Gerar código automaticamente para este chat ID
-        try {
-          const response = await fetch('https://staterbills.vercel.app/api/telegram-codes-simple?action=generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chatId })
-          });
-            if (response.ok) {
-            const result: any = await response.json();
-            await sendTelegramMessage(chatId,
-              '🔗 <b>Código de Conexão Gerado!</b>\n\n' +
-              '🎯 <b>Seu código:</b> <code>' + result.code + '</code>\n\n' +
-              '📋 <b>Como usar:</b>\n' +
-              '1️⃣ Copie o código acima\n' +
-              '2️⃣ Abra: <a href="https://staterbills.vercel.app">staterbills.vercel.app</a>\n' +
-              '3️⃣ Faça login na sua conta\n' +
-              '4️⃣ Vá para Dashboard\n' +
-              '5️⃣ Clique em "Conectar Telegram"\n' +
-              '6️⃣ Cole o código\n\n' +
-              '⏰ <b>Válido por 15 minutos</b>\n' +
-              '💡 <i>Após conectar, terei acesso aos seus dados para análises personalizadas!</i>'
-            );
-          } else {
-            throw new Error('Erro ao gerar código');
-          }        } catch (error) {
-          console.error('❌ Erro ao gerar código:', error);
-          await sendTelegramMessage(chatId,
-            '🔗 <b>Conectar sua conta Stater - SIMPLES!</b>\n\n' +
-            '📱 <b>PASSO 1:</b> Copie este número:\n' +
-            '👉 <code>' + chatId + '</code>\n\n' +
-            '📱 <b>PASSO 2:</b> Abra este link:\n' +
-            '👉 <a href="https://staterbills.vercel.app">staterbills.vercel.app</a>\n\n' +
-            '📱 <b>PASSO 3:</b> Faça login\n\n' +
-            '📱 <b>PASSO 4:</b> Clique "Conectar Agora"\n\n' +
-            '📱 <b>PASSO 5:</b> Cole o número do PASSO 1\n\n' +
-            '📱 <b>PASSO 6:</b> Volte aqui e teste: "Qual meu saldo?"\n\n' +
-            '✅ <b>Pronto!</b> Super fácil!'
-          );
-        }
+        await sendTelegramMessage(chatId,
+          '🔗 <b>Conectar sua conta Stater</b>\n\n' +
+          '📋 <b>Passo a passo:</b>\n\n' +
+          '1️⃣ Acesse: <a href="https://staterbills.vercel.app">staterbills.vercel.app</a>\n' +
+          '2️⃣ Faça login na sua conta\n' +
+          '3️⃣ Vá em <b>Configurações → Bot Telegram</b>\n' +
+          '4️⃣ Clique em <b>"Gerar Código de Vinculação"</b>\n' +
+          '5️⃣ <b>Copie</b> o código de 6 dígitos\n' +
+          '6️⃣ <b>Cole aqui</b> no Telegram\n\n' +
+          '✅ <b>Pronto!</b> Sua conta estará conectada.\n\n' +
+          '� <b>Dica:</b> O código é copiado automaticamente quando gerado!\n\n' +
+          '❓ <b>Exemplo:</b> Se o código for <code>123456</code>, envie apenas:\n' +
+          '<code>123456</code>'
+        );
         
         return res.status(200).json({ ok: true, message: 'Comando /conectar processado' });
-      }      // Comando /saldo - mostrar saldo atual
+      }// Comando /saldo - mostrar saldo atual
       if (messageText === '/saldo') {
         console.log('💰 Processando comando /saldo');
         
@@ -1182,7 +1159,7 @@ export default async function handler(req: any, res: any) {
       }
 
       // Comando /sair - desconectar conta do Telegram
-      if (messageText === '/sair') {
+      if (messageText === '/sair' || messageText === '/desconectar') {
         console.log('👋 Processando comando /sair');
         
         const userData = await getTelegramUserData(chatId);
@@ -1197,10 +1174,10 @@ export default async function handler(req: any, res: any) {
         }
 
         try {
-          // Remover vinculação do banco de dados
+          // Marcar como inativo em vez de deletar (melhor para histórico)
           const { error } = await supabaseAdmin
             .from('telegram_users')
-            .delete()
+            .update({ is_active: false })
             .eq('telegram_chat_id', chatId);
 
           if (error) {
@@ -1208,7 +1185,7 @@ export default async function handler(req: any, res: any) {
             await sendTelegramMessage(chatId,
               '❌ <b>Erro ao desconectar</b>\n\n' +
               '🔧 Tente novamente em alguns instantes.\n' +
-              '💬 Se o problema persistir, entre em contato com o suporte.'
+              '💬 Se o problema persistir, use <b>/conectar</b> para reconectar.'
             );
             return res.status(200).json({ ok: true, message: 'Erro ao desconectar' });
           }
@@ -1237,11 +1214,11 @@ export default async function handler(req: any, res: any) {
           );
           return res.status(200).json({ ok: true, message: 'Erro interno' });
         }
-      }      // Verificar se é um código de conexão (formato: 2 números + 2 letras)
-      const codePattern = /^[0-9]{2}[A-Z]{2}$/;
-      if (codePattern.test(messageText.toUpperCase())) {
+      }      // Verificar se é um código de conexão (formato: 6 dígitos numéricos)
+      const codePattern = /^[0-9]{6}$/;
+      if (codePattern.test(messageText.trim())) {
         console.log('🔑 Código direto detectado');
-        const code = messageText.toUpperCase();
+        const code = messageText.trim();
         console.log(`🔑 Código direto recebido: ${code}`);
         
         const linkSuccess = await saveTelegramLink(chatId, code, username);
@@ -1267,7 +1244,7 @@ export default async function handler(req: any, res: any) {
             `🔧 <b>Soluções:</b>\n` +
             `• Digite <b>/conectar</b> para gerar novo código\n` +
             `• Verifique se copiou corretamente\n` +
-            `• Use o formato: 2 números + 2 letras (ex: 12AB)\n\n` +
+            `• Use o formato: 6 números (ex: 123456)\n\n` +
             `🔗 <a href="https://staterbills.vercel.app">Abrir App Stater</a>`
           );
         }
@@ -1372,11 +1349,44 @@ export default async function handler(req: any, res: any) {
       // Verificar se usuário está vinculado
       const userData = await getTelegramUserData(chatId);
       console.log('👤 Status do usuário:', userData);      if (!userData.linked) {
-        console.log('🔓 Usuário não vinculado - resposta genérica');
-        // Usuário não vinculado - resposta genérica da IA SEM forçar conexão
-        const aiResponse = await callGeminiAPI(messageText, undefined, update.message.from);
-        await sendTelegramMessage(chatId, aiResponse);
-        return res.status(200).json({ ok: true, message: 'Mensagem IA processada' });
+        console.log('🔓 Usuário não vinculado - enviando mensagem de não conectado');
+        
+        // Verificar se está tentando acessar funcionalidades específicas
+        const needsConnectionCommands = [
+          'saldo', 'balanço', 'extrato', 'transações', 'gastos', 'receitas',
+          'qual meu saldo', 'quanto tenho', 'meus gastos', 'minhas contas',
+          'análise', 'relatório', 'resumo financeiro'
+        ];
+        
+        const needsConnection = needsConnectionCommands.some(cmd => 
+          messageText.toLowerCase().includes(cmd.toLowerCase())
+        );
+        
+        if (needsConnection) {
+          // Usuário tentando acessar dados financeiros - mostrar como conectar
+          await sendTelegramMessage(chatId,
+            '🔒 <b>Conta não conectada</b>\n\n' +
+            'Para que eu possa responder sobre suas finanças, você precisa conectar sua conta:\n\n' +
+            '<b>Como conectar:</b>\n' +
+            '1. Acesse: <a href="https://staterbills.vercel.app">staterbills.vercel.app</a>\n' +
+            '2. Faça login na sua conta\n' +
+            '3. Vá em Configurações → Bot Telegram\n' +
+            '4. Gere um código de vinculação\n' +
+            '5. Envie o código aqui\n\n' +
+            '⚠️ <b>Sem conexão, não posso:</b>\n' +
+            '• Acessar seus dados financeiros\n' +
+            '• Fazer análises personalizadas\n' +
+            '• Responder sobre suas contas\n\n' +
+            '💡 Use <b>/conectar</b> para gerar código automaticamente.\n\n' +
+            '<i>Stater - Assistente Financeiro IA</i>'
+          );
+        } else {
+          // Pergunta geral - resposta genérica da IA
+          const aiResponse = await callGeminiAPI(messageText, undefined, update.message.from);
+          await sendTelegramMessage(chatId, aiResponse);
+        }
+        
+        return res.status(200).json({ ok: true, message: 'Usuário não conectado' });
       } else {
         console.log('🔒 Usuário vinculado - resposta personalizada');
         // Usuário vinculado - resposta personalizada com dados reais

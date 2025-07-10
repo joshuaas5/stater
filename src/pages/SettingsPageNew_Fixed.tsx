@@ -120,15 +120,18 @@ const SettingsPage: React.FC = () => {
             .from('telegram_users')
             .select('*')
             .eq('user_id', user.id)
-            .single();
+            .eq('is_active', true);
 
           if (error) {
             console.error('Erro ao verificar Telegram:', error);
             setIsTelegramLinked(false);
             setTelegramInfo(null);
-          } else {
-            setTelegramInfo(data);
+          } else if (data && data.length > 0) {
+            setTelegramInfo(data[0]);
             setIsTelegramLinked(true);
+          } else {
+            setIsTelegramLinked(false);
+            setTelegramInfo(null);
           }
         } catch (error) {
           setIsTelegramLinked(false);

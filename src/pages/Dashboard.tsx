@@ -96,22 +96,21 @@ const Dashboard: React.FC = () => {
         .from('telegram_users')
         .select('*')
         .eq('user_id', user.id)
-        .eq('is_active', true)
-        .single();
+        .eq('is_active', true);
       
       if (error) {
-        console.log('🔍 [TELEGRAM] Não conectado ou erro:', error.message);
+        console.log('🔍 [TELEGRAM] Erro na consulta:', error.message);
         setIsTelegramLinked(false);
         setTelegramInfo(null);
         return;
       }
       
-      if (data) {
-        console.log('✅ [TELEGRAM] Conectado:', data);
+      if (data && data.length > 0) {
+        console.log('✅ [TELEGRAM] Conectado:', data[0]);
         setIsTelegramLinked(true);
-        setTelegramInfo(data);
+        setTelegramInfo(data[0]);
       } else {
-        console.log('📭 [TELEGRAM] Não conectado');
+        console.log('🔍 [TELEGRAM] Não conectado - nenhum registro encontrado');
         setIsTelegramLinked(false);
         setTelegramInfo(null);
       }

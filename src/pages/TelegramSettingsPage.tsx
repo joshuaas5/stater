@@ -34,17 +34,16 @@ const TelegramSettingsPage: React.FC = () => {
     if (!user) return;
     
     try {
-      // Verificar se usuário já está conectado
-      const { data: telegramUser, error } = await supabase
+      // Verificar se usuário já está conectado (sem .single() para evitar erro 406)
+      const { data: telegramUsers, error } = await supabase
         .from('telegram_users')
         .select('*')
         .eq('user_id', user.id)
-        .eq('is_active', true)
-        .single();
+        .eq('is_active', true);
       
-      if (telegramUser && !error) {
+      if (telegramUsers && telegramUsers.length > 0 && !error) {
         setIsConnected(true);
-        setTelegramInfo(telegramUser);
+        setTelegramInfo(telegramUsers[0]); // Pega o primeiro registro
       } else {
         setIsConnected(false);
       }

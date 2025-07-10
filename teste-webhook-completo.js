@@ -13,9 +13,9 @@ async function testeCompleto() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userId: 'test-user-123',
-                userEmail: 'test@test.com',
-                userName: 'Test User'
+                userId: '56d8f459-8650-4cd9-bf16-f7d70ddbc0a9', // UUID real do usuário
+                userEmail: 'joshuaas500@gmail.com',
+                userName: 'Joshua'
             })
         });
         

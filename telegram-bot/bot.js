@@ -637,7 +637,7 @@ async function processChatMessage(chatId, message, userSession) {
     }
 }
 
-// Buscar contexto do usuário para chat
+// Buscar contexto do usuário para chat (CORRIGIDO: incluir bills)
 async function getUserContextForChat(userId) {
     try {
         // Buscar transações recentes
@@ -648,21 +648,47 @@ async function getUserContextForChat(userId) {
             .order('date', { ascending: false })
             .limit(10);
         
-        // Calcular saldo
+        // CORREÇÃO CRÍTICA: Buscar contas a pagar (bills) também
+        const { data: bills } = await supabase
+            .from('bills')
+            .select('title, amount, due_date, category, is_paid, is_recurring, total_installments, current_installment')
+            .eq('user_id', userId)
+            .order('due_date', { ascending: true })
+            .limit(20);
+        
+        // Calcular saldo das transações
         let balance = 0;
         if (transactions) {
             balance = transactions.reduce((sum, t) => sum + (t.amount || 0), 0);
         }
         
+        // Calcular estatísticas das bills
+        const activeBills = bills?.filter(b => !b.is_paid) || [];
+        const totalBillsValue = activeBills.reduce((sum, b) => sum + (b.amount || 0), 0);
+        
         return {
             recentTransactions: transactions || [],
+            bills: bills || [],
+            activeBills: activeBills,
             balance: balance,
-            transactionCount: transactions?.length || 0
+            transactionCount: transactions?.length || 0,
+            billsCount: bills?.length || 0,
+            activeBillsCount: activeBills.length,
+            totalBillsValue: totalBillsValue
         };
         
     } catch (error) {
         console.error('❌ Erro ao buscar contexto:', error);
-        return { recentTransactions: [], balance: 0, transactionCount: 0 };
+        return { 
+            recentTransactions: [], 
+            bills: [],
+            activeBills: [],
+            balance: 0, 
+            transactionCount: 0,
+            billsCount: 0,
+            activeBillsCount: 0,
+            totalBillsValue: 0
+        };
     }
 }
 
@@ -671,18 +697,41 @@ async function callGeminiForChat(message, userContext, userSession) {
     try {
         let contextPrompt = `Você é o Stater IA, assistente financeiro pessoal do ${userSession.userName}.`;
         
-        if (userContext.transactionCount > 0) {
+        if (userContext.transactionCount > 0 || userContext.billsCount > 0) {
             contextPrompt += `\n\nDados recentes do usuário:`;
-            contextPrompt += `\n- Saldo atual: R$ ${userContext.balance.toFixed(2)}`;
-            contextPrompt += `\n- Transações recentes (${userContext.transactionCount}):`;
             
-            userContext.recentTransactions.forEach((t, i) => {
-                contextPrompt += `\n  ${i+1}. ${t.title}: R$ ${t.amount.toFixed(2)} (${t.category})`;
-            });
+            if (userContext.transactionCount > 0) {
+                contextPrompt += `\n- Saldo atual: R$ ${userContext.balance.toFixed(2)}`;
+                contextPrompt += `\n- Transações recentes (${userContext.transactionCount}):`;
+                
+                userContext.recentTransactions.forEach((t, i) => {
+                    contextPrompt += `\n  ${i+1}. ${t.title}: R$ ${t.amount.toFixed(2)} (${t.category})`;
+                });
+            }
+            
+            // CORREÇÃO CRÍTICA: Incluir bills/contas no contexto (igual ao Stater IA do app)
+            if (userContext.billsCount > 0) {
+                contextPrompt += `\n\nContas a pagar/receber (${userContext.billsCount}):`;
+                
+                userContext.bills.forEach((b, i) => {
+                    const status = b.is_paid ? '✅ Paga' : '⏰ Pendente';
+                    const installmentInfo = b.total_installments ? ` (${b.current_installment}/${b.total_installments})` : '';
+                    const recurringInfo = b.is_recurring ? ' 🔄 Recorrente' : '';
+                    contextPrompt += `\n  ${i+1}. ${b.title}: R$ ${b.amount.toFixed(2)} - Venc: ${new Date(b.due_date).toLocaleDateString()} - ${status}${installmentInfo}${recurringInfo}`;
+                });
+                
+                if (userContext.activeBillsCount > 0) {
+                    contextPrompt += `\n- Total contas pendentes: R$ ${userContext.totalBillsValue.toFixed(2)} (${userContext.activeBillsCount} contas)`;
+                }
+            }
+        } else {
+            contextPrompt += `\n\nO usuário ainda não possui transações ou contas registradas no sistema.`;
         }
         
         contextPrompt += `\n\nPergunta do usuário: ${message}`;
-        contextPrompt += `\n\nResponda de forma útil, personalizada e em português brasileiro. Use emojis quando apropriado e seja amigável. NUNCA use asteriscos (*) ou duplos asteriscos (**) nas suas respostas. Sempre se refira ao usuário pelo nome "${userSession.userName}" quando apropriado.`;
+        contextPrompt += `\n\nResponda de forma útil, personalizada e em português brasileiro. Use emojis quando apropriado e seja amigável. NUNCA use asteriscos (*) ou duplos asteriscos (**) nas suas respostas. Sempre se refira ao usuário pelo nome "${userSession.userName}" quando apropriado. 
+
+IMPORTANTE: Ao confirmar receitas ou transações, seja conciso e direto. NÃO mencione totais de receitas/despesas desnecessariamente - foque apenas na confirmação específica da ação solicitada.`;
         
         const response = await axios.post(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GEMINI_API_KEY}`,

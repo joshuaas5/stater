@@ -34,6 +34,8 @@ const TelegramSettingsPage: React.FC = () => {
     if (!user) return;
     
     try {
+      console.log('🔍 Verificando conexão Telegram para usuário:', user.id);
+      
       // Verificar se usuário já está conectado (sem .single() para evitar erro 406)
       const { data: telegramUsers, error } = await supabase
         .from('telegram_users')
@@ -41,10 +43,18 @@ const TelegramSettingsPage: React.FC = () => {
         .eq('user_id', user.id)
         .eq('is_active', true);
       
+      console.log('📊 Resultado da consulta:', { 
+        error: error?.message, 
+        count: telegramUsers?.length, 
+        data: telegramUsers 
+      });
+      
       if (telegramUsers && telegramUsers.length > 0 && !error) {
+        console.log('✅ Conexão encontrada:', telegramUsers[0]);
         setIsConnected(true);
         setTelegramInfo(telegramUsers[0]); // Pega o primeiro registro
       } else {
+        console.log('❌ Nenhuma conexão ativa encontrada');
         setIsConnected(false);
       }
     } catch (error) {
@@ -103,6 +113,30 @@ const TelegramSettingsPage: React.FC = () => {
           variant: 'default',
         });
       }
+      
+      // 🔄 Auto-verificar conexão a cada 3 segundos por 2 minutos
+      const maxChecks = 40; // 2 minutos = 40 checks de 3s
+      let checkCount = 0;
+      
+      const intervalId = setInterval(async () => {
+        checkCount++;
+        console.log(`🔄 Auto-verificação ${checkCount}/${maxChecks}`);
+        
+        await checkTelegramConnection();
+        
+        // Se conectou ou atingiu o limite, parar
+        if (isConnected || checkCount >= maxChecks) {
+          clearInterval(intervalId);
+          if (isConnected) {
+            console.log('✅ Conexão detectada automaticamente!');
+            toast({
+              title: '🎉 Conectado!',
+              description: 'Sua conta foi conectada ao Telegram com sucesso!',
+              variant: 'default',
+            });
+          }
+        }
+      }, 3000);
       
     } catch (error) {
       console.error('Erro ao gerar código:', error);

@@ -482,7 +482,7 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
     
     // Marcar código como usado via API
     try {
-      const markUsedResponse = await fetch('https://staterbills.vercel.app/api/telegram-codes-simple', {
+      const markUsedResponse = await fetch('https://staterbills.vercel.app/api/telegram-codes-simple?action=mark-used', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, chatId })
@@ -491,7 +491,8 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
       if (markUsedResponse.ok) {
         console.log('✅ [DEBUG] Código marcado como usado');
       } else {
-        console.log('⚠️ [DEBUG] Erro ao marcar código como usado, mas vinculação foi salva');
+        const errorText = await markUsedResponse.text();
+        console.log('⚠️ [DEBUG] Erro ao marcar código como usado:', markUsedResponse.status, errorText);
       }
     } catch (markError) {
       console.log('⚠️ [DEBUG] Exceção ao marcar código como usado:', markError);

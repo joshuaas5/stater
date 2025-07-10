@@ -50,7 +50,8 @@ export default async function handler(req: any, res: any) {
       const { code, chatId } = req.body;
       
       // Marcar código como usado
-      if (action !== 'generate' && code && chatId) {
+      if (action === 'mark-used' && code) {
+        console.log('📝 Marcando código como usado:', code);
         const { error } = await supabaseAdmin
           .from('telegram_link_codes')
           .update({ 
@@ -59,9 +60,11 @@ export default async function handler(req: any, res: any) {
           .eq('code', code);
         
         if (error) {
+          console.error('❌ Erro ao marcar código como usado:', error);
           return res.status(500).json({ error: 'Erro ao marcar código como usado' });
         }
         
+        console.log('✅ Código marcado como usado com sucesso');
         return res.status(200).json({ success: true });
       }
       
@@ -103,6 +106,56 @@ export default async function handler(req: any, res: any) {
         }
         
         console.log('✅ Código gerado:', newCode);
+        return res.status(200).json({
+          success: true,
+          code: newCode,
+          expiresAt: expiresAt.toISOString()
+        });
+      }
+      
+      // Default POST behavior without action - try to generate code
+      if (!action) {
+        const { user_id, userId, userEmail, userName } = req.body;
+        const finalUserId = user_id || userId; // Support both formats
+        
+        if (!finalUserId) {
+          return res.status(400).json({ 
+            error: 'user_id é obrigatório. Use ?action=generate ou forneça user_id no body' 
+          });
+        }
+        
+        console.log('🔑 Gerando código (ação padrão) para usuário:', finalUserId);
+        
+        // Invalidar códigos antigos do usuário
+        await supabaseAdmin
+          .from('telegram_link_codes')
+          .update({ used_at: new Date().toISOString() })
+          .eq('user_id', finalUserId)
+          .is('used_at', null);
+        
+        // Gerar novo código (6 dígitos simples)
+        const newCode = generateCode();
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+        
+        const { data, error } = await supabaseAdmin
+          .from('telegram_link_codes')
+          .insert([{
+            code: newCode,
+            user_id: finalUserId,
+            user_email: userEmail,
+            user_name: userName,
+            expires_at: expiresAt.toISOString(),
+            created_at: new Date().toISOString()
+          }])
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('❌ Erro ao gerar código:', error);
+          return res.status(500).json({ error: 'Erro ao gerar código' });
+        }
+        
+        console.log('✅ Código gerado (ação padrão):', newCode);
         return res.status(200).json({
           success: true,
           code: newCode,

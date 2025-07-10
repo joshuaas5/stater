@@ -58,10 +58,17 @@ const TelegramSettingsPage: React.FC = () => {
     
     setIsLoading(true);
     try {
-      // Gerar código único
-      const code = Math.random().toString(36).substring(2, 12).toUpperCase();
+      // Invalidar códigos antigos primeiro
+      await supabase
+        .from('telegram_link_codes')
+        .update({ used_at: new Date().toISOString() })
+        .eq('user_id', user.id)
+        .is('used_at', null);
+
+      // Gerar código único (formato mais simples: 6 dígitos)
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + 10); // Expira em 10 minutos
+      expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Expira em 15 minutos
       
       // Salvar no Supabase
       const { error } = await supabase
@@ -81,11 +88,22 @@ const TelegramSettingsPage: React.FC = () => {
       
       setLinkCode(code);
       
-      toast({
-        title: 'Código gerado!',
-        description: 'Use este código no Telegram para conectar sua conta.',
-        variant: 'default',
-      });
+      // 🔥 CÓPIA AUTOMÁTICA DO CÓDIGO
+      try {
+        await navigator.clipboard.writeText(code);
+        toast({
+          title: '✅ Código copiado automaticamente!',
+          description: `Código ${code} foi copiado. Cole no Telegram para conectar.`,
+          variant: 'default',
+        });
+      } catch (clipboardError) {
+        // Se falhar na cópia automática, avisar o usuário
+        toast({
+          title: 'Código gerado!',
+          description: `Código: ${code}. Clique no botão "Copiar" para usar no Telegram.`,
+          variant: 'default',
+        });
+      }
       
     } catch (error) {
       console.error('Erro ao gerar código:', error);
@@ -237,7 +255,7 @@ const TelegramSettingsPage: React.FC = () => {
                       </Button>
                     </div>
                     <p className="text-xs text-galileo-secondaryText mt-2">
-                      ⏰ Este código expira em 10 minutos
+                      ⏰ Este código expira em 15 minutos
                     </p>
                   </div>
                 ) : (

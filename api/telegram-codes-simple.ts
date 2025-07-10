@@ -80,7 +80,7 @@ export default async function handler(req: any, res: any) {
           .eq('user_id', userId)
           .is('used_at', null);
         
-        // Gerar novo código
+        // Gerar novo código (6 dígitos simples)
         const newCode = generateCode();
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
         

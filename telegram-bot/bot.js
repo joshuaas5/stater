@@ -104,7 +104,7 @@ Mande uma foto do seu extrato ou pergunte algo!`;
             return;
         }
     }
-      const welcomeMessage = `👋 *Olá! Sou o Stater Finance Bot*
+      const welcomeMessage = `👋 *Olá! Sou o Stater IA*
 
 🔒 *Para usar todos os recursos, conecte sua conta:*
 
@@ -125,7 +125,7 @@ Mande uma foto do seu extrato ou pergunte algo!`;
 bot.onText(/\/help/, async (msg) => {
     const chatId = msg.chat.id;
     const userSession = userSessions.get(chatId);
-      let helpMessage = `🆘 *Stater Finance Bot - Ajuda*
+      let helpMessage = `🆘 *Stater IA - Ajuda*
 
 � **COM CONTA CONECTADA:**
 📸 Análise automática de extratos bancários

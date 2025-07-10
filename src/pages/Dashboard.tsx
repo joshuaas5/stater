@@ -124,7 +124,7 @@ const Dashboard: React.FC = () => {
     setShowTelegramModal(true);
   };
 
-  const handleTelegramConnect = async (chatId: string) => {
+  const handleTelegramConnect = async (code: string) => {
     setShowTelegramModal(false);
     
     if (!user?.id) {
@@ -138,17 +138,30 @@ const Dashboard: React.FC = () => {
     
     setIsGeneratingCode(true);
     try {
-      // Conectar via API temporária (enquanto não configuramos SERVICE_ROLE_KEY)
-      const response = await fetch('/api/telegram-connect-simple', {
+      // Usar sistema de códigos unificado (simula envio para o webhook)
+      const response = await fetch(`/api/telegram-webhook`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          chatId: chatId.trim(),
-          userId: user.id,
-          userEmail: user.email || '',
-          userName: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário'
+          message: {
+            message_id: Date.now(),
+            from: {
+              id: Date.now(),
+              is_bot: false,
+              first_name: user.user_metadata?.username || "User",
+              username: user.user_metadata?.username || "user"
+            },
+            chat: {
+              id: Date.now(),
+              first_name: user.user_metadata?.username || "User",
+              username: user.user_metadata?.username || "user",
+              type: "private"
+            },
+            date: Math.floor(Date.now() / 1000),
+            text: `/start ${code}`
+          }
         })
       });
 
@@ -170,8 +183,9 @@ const Dashboard: React.FC = () => {
 
     } catch (error: any) {
       console.error('Erro ao conectar:', error);
-      toast({        title: "❌ Erro na conexão",
-        description: error.message || "Tente novamente. Verifique se digitou o Chat ID correto.",
+      toast({
+        title: "❌ Erro na conexão",
+        description: error.message || "Código inválido ou expirado. Gere um novo código na página de configurações.",
         variant: "destructive"
       });
     } finally {

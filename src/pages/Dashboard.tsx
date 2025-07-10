@@ -184,117 +184,80 @@ const Dashboard: React.FC = () => {
     recurringWeekday: 1
   });
   
-  // useEffect para SEMPRE executar na montagem do componente (incluindo F5)
+  // useEffect ÚNICO e CONSOLIDADO para inicialização do Dashboard
   useEffect(() => {
     if (!isLoggedIn()) {
       navigate('/login');
       return;
     }
 
-    console.log('🚀 [Dashboard] SINCRONIZAÇÃO FORÇADA AO RECARREGAR (F5) - INICIANDO...');
+    console.log('🚀 [Dashboard] INICIALIZAÇÃO ÚNICA E CONSOLIDADA - EVITANDO RACE CONDITIONS');
     
-    // FORÇAR sincronização imediata sempre que o componente monta
-    const executarSincronizacaoCompleta = async () => {
-      try {
-        // 1. Iniciar sincronização automática agressiva
-        startAutoSync();
-        
-        // 2. Forçar sincronização imediata do Supabase
-        await forceSupabaseSync();
-        
-        // 3. Recarregar transações após sincronização
-        setTimeout(() => {
-          loadTransactions(selectedMonth, selectedYear);
-          
-          // 4. Recalcular saldo total com filtro correto
-          const allTransactions = getTransactions();
-          if (allTransactions && allTransactions.length > 0) {
-            // Filtrar transações recorrentes não processadas antes de calcular saldo
-            const validTransactions = allTransactions.filter(t => {
-              if (t.isRecurring && !t.isRecurringInstance) {
-                return false; // Excluir recorrentes não processadas
-              }
-              return true;
-            });
-            
-            const totalBalance = calculateBalance(validTransactions, []);
-            setBalance(totalBalance);
-            console.log('✅ [Dashboard] Saldo atualizado após F5:', totalBalance, 
-                       '(filtradas', allTransactions.length - validTransactions.length, 'recorrentes)');
-          }
-        }, 1000);
-        
-        console.log('✅ [Dashboard] Sincronização completa executada com sucesso');
-      } catch (error) {
-        console.error('❌ [Dashboard] Erro na sincronização ao recarregar:', error);
-      }
-    };
-    
-    executarSincronizacaoCompleta();
-  }, []); // SEM dependências para executar sempre na montagem
-
-  useEffect(() => {
-    if (!isLoggedIn()) {
-      navigate('/login');
-      return;
-    }
-
-    console.log('🚀 [Dashboard] INICIANDO SINCRONIZAÇÃO AGRESSIVA PARA TELEGRAM/IA');
-    
-    // INICIAR sincronização automática agressiva
-    startAutoSync();
-    
-    // FORÇAR sincronização imediata
-    forceSupabaseSync();
-
-    // Agendar lembretes de contas a vencer (notificações push)
-    import('@/utils/localStorage').then(({ getBills }) => {
-      import('@/services/NotificationService').then(({ NotificationService }) => {
-        const bills = getBills();
-        NotificationService.scheduleBillReminders(bills);
-      });
-    });
-    
-    // Forçar o carregamento de todas as transações e recalcular o saldo total
-    const allTransactions = getTransactions();
-    if (allTransactions && allTransactions.length > 0) {
-      // Filtrar transações recorrentes não processadas antes de calcular saldo
-      const validTransactions = allTransactions.filter(t => {
-        if (t.isRecurring && !t.isRecurringInstance) {
-          return false; // Excluir recorrentes não processadas
-        }
-        return true;
-      });
-      
-      // Calcular o saldo total apenas com transações válidas
-      const totalBalance = calculateBalance(validTransactions, []);
-      setBalance(totalBalance);
-      console.log('✅ [Dashboard] Saldo inicial calculado:', totalBalance, 
-                 '(filtradas', allTransactions.length - validTransactions.length, 'recorrentes)');
-    }
-    
-    // Carregar as transações do mês/ano selecionado
-    loadTransactions(selectedMonth, selectedYear);
-
-    // DEBOUNCE para evitar múltiplas execuções
     let debounceTimer: NodeJS.Timeout;
     let telegramToastTimer: NodeJS.Timeout;
     
-    // Listener para atualizar transações quando houver novas (com debounce)
+    // Função de inicialização única
+    const executarInicializacaoCompleta = async () => {
+      try {
+        // 1. Iniciar sincronização automática
+        startAutoSync();
+        
+        // 2. Carregar transações LOCAL primeiro (para exibição imediata)
+        const allTransactions = getTransactions();
+        console.log(`📊 [Dashboard] Carregando ${allTransactions.length} transações locais primeiro`);
+        
+        if (allTransactions && allTransactions.length > 0) {
+          // Filtrar transações recorrentes não processadas
+          const validTransactions = allTransactions.filter(t => {
+            if (t.isRecurring && !t.isRecurringInstance) {
+              return false;
+            }
+            return true;
+          });
+          
+          // Calcular saldo inicial
+          const totalBalance = calculateBalance(validTransactions, []);
+          setBalance(totalBalance);
+          console.log('✅ [Dashboard] Saldo inicial (local):', totalBalance);
+        }
+        
+        // 3. Carregar transações para exibição (local primeiro)
+        loadTransactions(selectedMonth, selectedYear);
+        
+        // 4. DEPOIS sincronizar com Supabase (não bloquear UI)
+        setTimeout(async () => {
+          try {
+            await forceSupabaseSync();
+            console.log('✅ [Dashboard] Sincronização Supabase concluída (background)');
+          } catch (error) {
+            console.error('❌ [Dashboard] Erro na sincronização background:', error);
+          }
+        }, 1500); // Delay para não bloquear renderização inicial
+        
+        // 5. Agendar lembretes de contas
+        import('@/utils/localStorage').then(({ getBills }) => {
+          import('@/services/NotificationService').then(({ NotificationService }) => {
+            const bills = getBills();
+            NotificationService.scheduleBillReminders(bills);
+          });
+        });
+        
+        console.log('✅ [Dashboard] Inicialização consolidada concluída');
+      } catch (error) {
+        console.error('❌ [Dashboard] Erro na inicialização:', error);
+      }
+    };
+    
+    // Listeners para atualizações (com debounce)
     const handler = () => {
       console.log('📊 [Dashboard] Evento transactionsUpdated recebido!');
       
-      // Limpar timer anterior se existir
       clearTimeout(debounceTimer);
-      
-      // Debounce de 1 segundo para evitar múltiplas execuções
       debounceTimer = setTimeout(() => {
         loadTransactions(selectedMonth, selectedYear);
         
-        // Recalcular saldo total COM FILTRO
         const allTransactions = getTransactions();
         if (allTransactions && allTransactions.length > 0) {
-          // Filtrar transações recorrentes não processadas
           const validTransactions = allTransactions.filter(t => {
             if (t.isRecurring && !t.isRecurringInstance) {
               return false;
@@ -309,11 +272,9 @@ const Dashboard: React.FC = () => {
       }, 1000);
     };
     
-    // Listener adicional para força reload das transações criadas via IA
     const forceReloadHandler = (event: any) => {
       console.log('🚀 [Dashboard] Force reload trigger from:', event.detail?.source || 'unknown');
       
-      // Apenas se não for de loop interno
       if (event.detail?.source?.includes('force-sync')) {
         console.log('🚀 [Dashboard] Ignorando reload de force-sync para evitar loop');
         return;
@@ -323,10 +284,8 @@ const Dashboard: React.FC = () => {
       debounceTimer = setTimeout(() => {
         loadTransactions(selectedMonth, selectedYear);
         
-        // Recalcular saldo total COM FILTRO
         const allTransactions = getTransactions();
         if (allTransactions && allTransactions.length > 0) {
-          // Filtrar transações recorrentes não processadas
           const validTransactions = allTransactions.filter(t => {
             if (t.isRecurring && !t.isRecurringInstance) {
               return false;
@@ -341,14 +300,11 @@ const Dashboard: React.FC = () => {
       }, 1000);
     };
     
-    // Listener específico para sincronização do Telegram (com debounce no toast)
     const telegramSyncHandler = (event: any) => {
       console.log('📱 [Dashboard] Sincronização do Telegram detectada:', event.detail);
       
-      // Evitar spam de toasts
       clearTimeout(telegramToastTimer);
       telegramToastTimer = setTimeout(() => {
-        // Só mostrar toast se realmente há transações novas
         if (event.detail?.transactions && event.detail.transactions.length > 0) {
           toast({
             title: "💰 Nova transação do Telegram!",
@@ -358,15 +314,12 @@ const Dashboard: React.FC = () => {
         }
       }, 2000);
       
-      // Atualização com debounce (SEM forceSupabaseSync para evitar loop)
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         loadTransactions(selectedMonth, selectedYear);
         
-        // Recalcular saldo total COM FILTRO
         const allTransactions = getTransactions();
         if (allTransactions && allTransactions.length > 0) {
-          // Filtrar transações recorrentes não processadas
           const validTransactions = allTransactions.filter(t => {
             if (t.isRecurring && !t.isRecurringInstance) {
               return false;
@@ -381,10 +334,15 @@ const Dashboard: React.FC = () => {
       }, 1500);
     };
     
+    // Registrar listeners
     window.addEventListener('transactionsUpdated', handler);
     window.addEventListener('forceTransactionReload', forceReloadHandler);
     window.addEventListener('telegram-transaction-sync', telegramSyncHandler);
     
+    // Executar inicialização
+    executarInicializacaoCompleta();
+    
+    // Cleanup
     return () => {
       console.log('🛑 [Dashboard] Cleanup - parando sincronização automática');
       stopAutoSync();

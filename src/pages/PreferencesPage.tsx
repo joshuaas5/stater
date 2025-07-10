@@ -298,7 +298,7 @@ const PreferencesPage: React.FC = () => {
           </p>
           
           <div className="bg-galileo-background p-3 rounded-lg border border-galileo-border">
-            <p className="text-xs text-galileo-secondaryText mb-2">🤖 <strong>@StaterFinanceBot</strong></p>
+            <p className="text-xs text-galileo-secondaryText mb-2">🤖 <strong>@assistentefinanceiroiabot</strong> (STATER IA)</p>
             <p className="text-xs text-galileo-secondaryText mb-3">
               • Análise automática de extratos bancários<br/>
               • Chat inteligente sobre suas finanças<br/>

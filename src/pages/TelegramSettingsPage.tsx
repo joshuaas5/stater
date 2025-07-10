@@ -145,7 +145,7 @@ const TelegramSettingsPage: React.FC = () => {
 
   const openTelegram = () => {
     // Tentar abrir o Telegram
-    const telegramUrl = 'https://t.me/StaterFinanceBot';
+    const telegramUrl = 'https://t.me/assistentefinanceiroiabot';
     window.open(telegramUrl, '_blank');
   };
 
@@ -216,7 +216,7 @@ const TelegramSettingsPage: React.FC = () => {
                 onClick={openTelegram}
                 className="w-full bg-blue-500 hover:bg-blue-600 text-white"
               >
-                <MessageCircle size={16} className="mr-2" /> Abrir Telegram - @StaterFinanceBot
+                <MessageCircle size={16} className="mr-2" /> Abrir Telegram - @assistentefinanceiroiabot (STATER IA)
               </Button>
               
               <div className="border-t border-galileo-border pt-4">

@@ -205,9 +205,9 @@ const TelegramSettingsPage: React.FC = () => {
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                 <h3 className="font-medium text-galileo-text mb-2">📱 Passo a Passo:</h3>
                 <ol className="text-sm text-galileo-secondaryText space-y-2">
-                  <li>1. Clique em "Abrir Telegram" abaixo</li>
-                  <li>2. Gere um código de vinculação</li>
-                  <li>3. Envie o código para o bot no Telegram</li>
+                  <li>1. Gere um código de vinculação abaixo</li>
+                  <li>2. Clique em "Abrir Bot Telegram"</li>
+                  <li>3. Cole o código no bot do Telegram</li>
                   <li>4. Pronto! Sua conta estará conectada</li>
                 </ol>
               </div>

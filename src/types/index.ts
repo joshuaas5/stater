@@ -14,7 +14,13 @@ export interface Transaction {
   userId: string;
   // Campos adicionais para contas a pagar
   isRecurring?: boolean;
-  recurringDay?: number; // Dia do mês para transações recorrentes
+  recurringDay?: number; // Dia do mês para transações recorrentes mensais/anuais (1-31)
+  recurringWeekday?: number; // Dia da semana para transações semanais (0-6, domingo a sábado)
+  recurrenceFrequency?: 'weekly' | 'monthly' | 'yearly'; // Frequência de recorrência
+  nextOccurrence?: Date; // Próxima data de execução da recorrência
+  lastProcessed?: Date; // Última vez que a recorrência foi processada
+  isRecurringInstance?: boolean; // Indica se é uma instância criada pela recorrência
+  originalRecurringId?: string; // ID da transação recorrente original
   dueDate?: Date;
   isPaid?: boolean;
   totalInstallments?: number;
@@ -22,7 +28,6 @@ export interface Transaction {
   // Para cartões de crédito
   isCardBill?: boolean;
   cardItems?: CardItem[];
-  recurrenceFrequency?: 'weekly' | 'monthly' | 'yearly'; // Frequência de recorrência
   dontAdjustBalanceOnSave?: boolean; // Nova flag
 }
 

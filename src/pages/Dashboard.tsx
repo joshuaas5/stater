@@ -16,6 +16,7 @@ import NotificationBell from '@/components/notifications/NotificationBell';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { TelegramConnectModal } from '@/components/telegram/TelegramConnectModal';
+import { RecurrenceConfig } from '@/components/transactions/RecurrenceConfig';
 import { Transaction } from '@/types';
 import { 
   calculateBalance, 
@@ -671,8 +672,16 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Link para Análise Financeira Pessoal Section */}
-      <div className="px-4 mb-6 flex justify-end">
+      {/* Links para funcionalidades avançadas */}
+      <div className="px-4 mb-6 flex justify-end gap-3">
+        <Link
+          to="/recurring-transactions"
+          className="flex items-center gap-1 px-3 py-1 rounded-md border border-blue-200 bg-blue-50 hover:bg-blue-100 shadow-sm text-base font-semibold text-blue-700 transition-all duration-150"
+          style={{ textDecoration: 'none' }}
+        >
+          <CalendarRange className="h-5 w-5 text-blue-600" />
+          <span className="text-xs">Recorrentes</span>
+        </Link>
         <Link
           to="/analise-financeira"
           className="flex items-center gap-1 px-3 py-1 rounded-md border border-green-200 bg-green-50 hover:bg-green-100 shadow-sm text-base font-semibold text-green-700 transition-all duration-150"
@@ -895,44 +904,25 @@ const Dashboard: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="isRecurring" 
-                checked={editingTransaction ? editingTransaction.isRecurring : newTransaction.isRecurring}
-                onCheckedChange={(val: boolean) => {
-                  if (editingTransaction) setEditingTransaction({...editingTransaction, isRecurring: !!val});
-                  else handleRecurrenceChange(!!val);
-                }}
-              />
-              <Label 
-                htmlFor="isRecurring" 
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Transação recorrente
-              </Label>
-            </div>
             
-            {(editingTransaction ? editingTransaction.isRecurring : newTransaction.isRecurring) && (
-              <div className="grid gap-2">
-                <Label htmlFor="recurrenceFrequency">Frequência</Label>
-                <Select 
-                  value={editingTransaction ? (editingTransaction.recurrenceFrequency as 'weekly' | 'monthly' | 'yearly' || 'monthly') : newTransaction.recurrenceFrequency} 
-                  onValueChange={(val: string) => { 
-                    if (editingTransaction) setEditingTransaction({...editingTransaction, recurrenceFrequency: val as 'weekly' | 'monthly' | 'yearly'});
-                    else handleRecurrenceFrequencyChange(val as 'weekly' | 'monthly' | 'yearly');
-                  }}
-                >
-                  <SelectTrigger id="recurrenceFrequency">
-                    <SelectValue placeholder="Selecione a frequência" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="weekly">Semanal</SelectItem>
-                    <SelectItem value="monthly">Mensal</SelectItem>
-                    <SelectItem value="yearly">Anual</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            {/* Configuração de Recorrência */}
+            <RecurrenceConfig
+              transaction={editingTransaction || newTransaction}
+              onChange={(updated) => {
+                if (editingTransaction) {
+                  setEditingTransaction(prev => ({
+                    ...prev,
+                    ...updated
+                  }));
+                } else {
+                  setNewTransaction(prev => ({
+                    ...prev,
+                    ...updated
+                  }));
+                }
+              }}
+            />
+            
             {editingTransaction && (
               <div className="flex items-center space-x-2">
                 <Checkbox 

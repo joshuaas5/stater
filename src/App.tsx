@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotificationToastManager from "@/components/notifications/NotificationToastManager";
+import { startRecurringProcessor } from "@/utils/recurringProcessor";
 import HomePage from "./pages/HomePage";
 import HomeRedirect from "./components/auth/HomeRedirect";
 import Dashboard from "./pages/Dashboard";
@@ -24,6 +25,7 @@ import RecommendationsPage from "./pages/RecommendationsPage";
 import SettingsPage from "./pages/SettingsPageNew";
 import ExportReportPage from "./pages/ExportReportPage";
 import FinancialAnalysisPage from "./pages/FinancialAnalysisPage"; // Nova página
+import RecurringTransactionsPage from "./pages/RecurringTransactionsPage"; // Nova página de recorrentes
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import NotFound from "./pages/NotFound";
@@ -33,6 +35,9 @@ import OnboardingWrapper from "./components/onboarding/OnboardingWrapper";
 import TermsWrapper from "./components/terms/TermsWrapper";
 
 const queryClient = new QueryClient();
+
+// Iniciar o processador automático de transações recorrentes
+startRecurringProcessor();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -67,6 +72,14 @@ const App = () => (
                   element={
                     <PrivateRoute>
                       <Transactions />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/recurring-transactions" 
+                  element={
+                    <PrivateRoute>
+                      <RecurringTransactionsPage />
                     </PrivateRoute>
                   } 
                 />

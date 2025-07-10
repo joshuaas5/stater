@@ -513,33 +513,33 @@ const Dashboard: React.FC = () => {
       );
       console.log(`📊 [loadTransactions] Exibição - filtro por nome: ${filteredTransactionsForDisplay.length}`);
     } else {
-      // LÓGICA CORRIGIDA: Mostrar todas as transações válidas ordenadas por data
+      // LÓGICA MELHORADA: Mostrar histórico completo das últimas transações
+      // Esta é a seção "Últimas Transações" que deve ser acumulativa
       filteredTransactionsForDisplay = [...validTransactionsForDisplay];
       
       // Ordenar por data (mais recentes primeiro)
       filteredTransactionsForDisplay.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
-      // Limitar a 50 transações para performance e manter histórico visível
-      filteredTransactionsForDisplay = filteredTransactionsForDisplay.slice(0, 50);
+      // CORREÇÃO: Mostrar as últimas 100 transações para um histórico mais completo
+      // Isso garante que o usuário veja um histórico acumulativo e não perca transações
+      filteredTransactionsForDisplay = filteredTransactionsForDisplay.slice(0, 100);
       
-      // LOG: Mostrar detalhes das transações que serão exibidas
-      console.log(`📊 [DEBUG] NOVA LÓGICA - Mostrando 50 transações mais recentes (${filteredTransactionsForDisplay.length} encontradas)`);
-      console.log(`📊 [DEBUG] Primeiras 5 transações:`, filteredTransactionsForDisplay.slice(0, 5).map(t => ({
+      console.log(`📊 [DEBUG] LISTA ACUMULATIVA - Mostrando últimas 100 transações (total encontrado: ${validTransactionsForDisplay.length})`);
+      console.log(`📊 [DEBUG] Primeiras 3 transações:`, filteredTransactionsForDisplay.slice(0, 3).map(t => ({
         title: t.title,
-        date: new Date(t.date).toISOString(),
-        month: new Date(t.date).getMonth() + 1,
-        year: new Date(t.date).getFullYear()
+        date: new Date(t.date).toLocaleDateString('pt-BR'),
+        amount: t.amount,
+        type: t.type
       })));
       
-      // Separar entre mês atual e outros para informação
-      const currentMonthCount = filteredTransactionsForDisplay.filter(t => {
-        const transactionDate = new Date(t.date);
-        return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
-      }).length;
+      // Estatísticas para debug: quantas por mês
+      const monthCounts = filteredTransactionsForDisplay.reduce((acc, t) => {
+        const monthKey = `${new Date(t.date).getMonth() + 1}/${new Date(t.date).getFullYear()}`;
+        acc[monthKey] = (acc[monthKey] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
       
-      const otherMonthsCount = filteredTransactionsForDisplay.length - currentMonthCount;
-      
-      console.log(`📊 [loadTransactions] Exibição - ${currentMonthCount} do mês atual + ${otherMonthsCount} de outros meses = ${filteredTransactionsForDisplay.length} total`);
+      console.log(`📊 [loadTransactions] Distribuição por mês:`, monthCounts);
     }
     
     // Sort final by date in descending order (most recent first)
@@ -590,25 +590,11 @@ const Dashboard: React.FC = () => {
   };
   
   
-  // Função para processar valores monetários com vírgula/ponto
+  // Função para processar valores monetários - simplificada para aceitar apenas números
   const parseMonetaryValue = (value: string): string => {
     if (!value) return '';
     
-    // Processar valores em milhões (ex: 50 milhões, 1 milhão, etc)
-    if (/\d+[\.,]?\d*\s*(milhões|milhão|milhoes)/i.test(value)) {
-      const numberPart = value.replace(/\s*(milhões|milhão|milhoes)/i, '').trim();
-      const numericValue = parseMonetaryNumber(numberPart) * 1000000;
-      return numericValue.toString();
-    }
-    
-    // Processar valores em mil (ex: 50 mil, 1 mil, etc)
-    if (/\d+[\.,]?\d*\s*mil/i.test(value)) {
-      const numberPart = value.replace(/\s*mil/i, '').trim();
-      const numericValue = parseMonetaryNumber(numberPart) * 1000;
-      return numericValue.toString();
-    }
-    
-    // Processar valores normais
+    // Processar valores normais - apenas números, pontos e vírgulas
     return parseMonetaryNumber(value).toString();
   };
   
@@ -990,14 +976,16 @@ const Dashboard: React.FC = () => {
               <Input 
                 id="amount" 
                 name="amount"
-                type="text"
+                type="number"
+                step="0.01"
+                min="0"
                 value={editingTransaction ? String(editingTransaction.amount ?? '') : newTransaction.amount} 
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = e.target.value;
-                  if (editingTransaction) setEditingTransaction({...editingTransaction, amount: value === '' ? 0 : Number(value)}); // Use 0 for empty string to satisfy number type
-                  else handleNewTransactionChange(e);
+                  if (editingTransaction) setEditingTransaction({...editingTransaction, amount: value === '' ? 0 : Number(value)});
+                  else setNewTransaction({...newTransaction, amount: value});
                 }}
-                placeholder="Ex: 1000, 1.500,50, 2 mil, 1,5 milhões"
+                placeholder="Ex: 150.50"
               />
             </div>
             <div className="grid gap-2">

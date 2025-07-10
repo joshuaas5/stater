@@ -56,7 +56,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, transactions, mes
                         ? 'text-green-300 bg-green-700/50 px-2 py-0.5 rounded-full font-medium' 
                         : 'text-red-300 bg-red-700/50 px-2 py-0.5 rounded-full font-medium'
                     }>
-                      {tx.type === 'income' ? '+' : '-'} {formatCurrency(tx.amount)}
+                      {formatCurrency(tx.type === 'expense' ? -Math.abs(tx.amount) : Math.abs(tx.amount))}
                     </span>
                   </div>
                 ))}

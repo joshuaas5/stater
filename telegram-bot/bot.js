@@ -88,14 +88,19 @@ Mande uma foto do seu extrato ou pergunte algo!`;
             return;
         }
     }
-      const welcomeMessage = `👋 *Oi! Sou seu assistente financeiro*
+      const welcomeMessage = `👋 *Olá! Sou o Stater Finance Bot*
 
-Para conectar sua conta:
-🔗 Acesse: ${process.env.APP_URL}
-📱 Vá em Configurações > Telegram  
-✨ Clique em "Conectar Agora"
+🔒 *Para usar todos os recursos, conecte sua conta:*
 
-Sem conexão você pode testar enviando uma foto!`;
+**Como conectar:**
+1. Acesse: ${process.env.APP_URL}
+2. Vá em Configurações → Bot Telegram
+3. Gere um código de vinculação
+4. Envie o código aqui no chat
+
+⚠️ *Importante:* Sem conexão, não posso acessar seus dados financeiros ou fazer análises personalizadas.
+
+💡 Use /help para ver mais comandos.`;
     
     await bot.sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
 });
@@ -104,35 +109,36 @@ Sem conexão você pode testar enviando uma foto!`;
 bot.onText(/\/help/, async (msg) => {
     const chatId = msg.chat.id;
     const userSession = userSessions.get(chatId);
-      let helpMessage = `🆘 *Como usar o Stater Bot:*
+      let helpMessage = `🆘 *Stater Finance Bot - Ajuda*
 
-📷 *Enviar foto de extrato*
-• Tire uma foto clara
-• Mande pra mim
-• Eu analiso tudo!
+� **COM CONTA CONECTADA:**
+📸 Análise automática de extratos bancários
+💬 Chat inteligente sobre suas finanças  
+📊 Consulta de transações e saldo
+� Notificações de contas vencendo
 
-💬 *Fazer perguntas*
-• "Como estão meus gastos?"
-• "Onde mais gasto dinheiro?"
-• "Dicas para economizar?"
+⚠️ **SEM CONTA CONECTADA:**
+❌ Não posso acessar seus dados financeiros
+❌ Não posso fazer análises personalizadas
+❌ Não tenho informações sobre suas contas
 
-🤖 *Comandos disponíveis:*
-• /start - Iniciar ou vincular conta
-• /conectar - Ver Chat ID para conexão
-• /conta - Ver informações da conta
+🤖 **Comandos disponíveis:**
+• /start - Iniciar bot
+• /conectar - Ver como conectar conta  
+• /conta - Ver status da conexão
 • /dashboard - Abrir app Stater
-• /chat - Ativar modo conversa
-• /sair - Desconectar conta
 • /help - Esta ajuda
 
-💡 *Dica: foto bem iluminada funciona melhor!*`;
+**Para conectar sua conta:**
+1. Acesse: ${process.env.APP_URL}
+2. Vá em Configurações → Bot Telegram
+3. Gere um código de vinculação
+4. Envie o código aqui`;
 
     if (!userSession) {
-        helpMessage += `\n\n⚠️ *Para usar tudo:*
-• Use /conectar para ver seu Chat ID
-• Conecte no app: Configurações > Telegram`;
+        helpMessage += `\n\n🔗 **Status:** Conta não conectada`;
     } else {
-        helpMessage += `\n\n✅ *Conectado como:* ${userSession.userName}`;
+        helpMessage += `\n\n✅ **Status:** Conectado como ${userSession.userName}`;
     }
     
     await bot.sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
@@ -143,21 +149,26 @@ bot.onText(/\/chat/, async (msg) => {
     const chatId = msg.chat.id;
     const userSession = userSessions.get(chatId);
       if (!userSession) {
-        await bot.sendMessage(chatId, `🔗 *Para usar o chat, conecte sua conta:*
+        await bot.sendMessage(chatId, `� *Para usar o chat inteligente, conecte sua conta:*
 
-Acesse o app > Configurações > Telegram > "Conectar Agora"
+**Como conectar:**
+1. Acesse: ${process.env.APP_URL}
+2. Vá em Configurações → Bot Telegram  
+3. Gere um código de vinculação
+4. Envie o código aqui
 
-📷 *Ou mande uma foto de extrato para testar!*`, { parse_mode: 'Markdown' });
+⚠️ Sem conexão, não posso acessar seus dados financeiros.`, { parse_mode: 'Markdown' });
         return;
     }
-      await bot.sendMessage(chatId, `💬 *Chat ativado!*
+      await bot.sendMessage(chatId, `💬 *Chat inteligente ativo!*
 
-Pode perguntar qualquer coisa:
-• "Como estão meus gastos?"
-• "Onde mais gasto?"
-• "Dicas para economizar"
+Agora posso responder sobre suas finanças:
+• "Como está meu saldo?"
+• "Quais contas vencem esta semana?"
+• "Onde mais gasto dinheiro?"
+• "Minhas transações recentes"
 
-🚀 *Vamos conversar!*`, { parse_mode: 'Markdown' });
+🚀 *Pergunte qualquer coisa sobre suas finanças!*`, { parse_mode: 'Markdown' });
 });
 
 // Comando /dashboard
@@ -193,17 +204,18 @@ Use /conta para ver detalhes ou /sair para desconectar.`, { parse_mode: 'Markdow
         return;
     }
     
-    const connectMessage = `🔗 *Para conectar sua conta Stater:*
+    const connectMessage = `🔗 *Como conectar sua conta Stater:*
 
-**Seu Chat ID:** \`${chatId}\`
+**Método recomendado:**
+1. Acesse: ${process.env.APP_URL}
+2. Faça login na sua conta
+3. Vá em Configurações → Bot Telegram
+4. Clique em "Gerar Código de Vinculação"
+5. Envie o código aqui no chat
 
-**Como conectar:**
-1. Abra o app Stater
-2. Vá em Configurações > Telegram
-3. Clique em "Conectar Agora"
-4. Use este Chat ID: **${chatId}**
+⚠️ **Importante:** Você precisa ter uma conta criada no app antes de conectar.
 
-💡 *Ou gere um código no app e use: /start CODIGO*`;
+💡 *Não tem conta ainda? Acesse o link acima para criar.*`;
     
     await bot.sendMessage(chatId, connectMessage, { parse_mode: 'Markdown' });
 });
@@ -214,14 +226,16 @@ bot.onText(/\/conta/, async (msg) => {
     const userSession = userSessions.get(chatId);
     
     if (!userSession) {
-        await bot.sendMessage(chatId, `🔓 *Você não está conectado ainda.*
+        await bot.sendMessage(chatId, `� *Você não está conectado.*
 
-🔗 *Para conectar:*
-• Use /conectar para ver seu Chat ID
-• Ou acesse: ${process.env.APP_URL}
-• Vá em Configurações > Telegram
+**Para conectar sua conta:**
+1. Acesse: ${process.env.APP_URL}
+2. Faça login na sua conta  
+3. Vá em Configurações → Bot Telegram
+4. Gere um código de vinculação
+5. Envie o código aqui
 
-📷 *Sem conexão você pode testar enviando uma foto!*`, { parse_mode: 'Markdown' });
+⚠️ Sem conexão, não posso acessar seus dados financeiros.`, { parse_mode: 'Markdown' });
         return;
     }
     
@@ -395,17 +409,60 @@ bot.on('message', async (msg) => {
     if (userSession) {
         await processChatMessage(chatId, text, userSession);
     } else {
-        // Usuário não vinculado - resposta genérica
-        await bot.sendMessage(chatId, `🤖 *Olá! Para conversas personalizadas, vincule sua conta Stater:*
+        // Verificar se é um código de vinculação (formato: letras/números maiúsculos, 8-12 caracteres)
+        const codePattern = /^[A-Z0-9]{8,12}$/;
+        if (codePattern.test(text.trim())) {
+            console.log(`🔗 Tentativa de vinculação com código: ${text.trim()}`);
+            const linkResult = await linkTelegramWithCode(chatId, text.trim());
+            
+            if (linkResult.success) {
+                const successMessage = `🎉 *Conectado com sucesso!*
 
-🔗 *Vincular conta:*
+Oi ${linkResult.userName}! 👋
+
+✅ *Sua conta foi conectada ao bot.*
+
+💬 Agora posso responder sobre suas finanças:
+• "Como está meu saldo?"
+• "Quais contas vencem esta semana?"  
+• "Minhas transações recentes"
+
+🚀 *Pergunte qualquer coisa!*`;
+                
+                await bot.sendMessage(chatId, successMessage, { parse_mode: 'Markdown' });
+                return;
+            } else {
+                await bot.sendMessage(chatId, `❌ *Código inválido ou expirado*
+
+Para gerar um novo código:
 1. Acesse: ${process.env.APP_URL}
-2. Vá em Configurações > Telegram
-3. Use o código de vinculação
+2. Vá em Configurações → Bot Telegram
+3. Clique em "Gerar Código de Vinculação"
+4. Envie o novo código aqui
 
-📷 *Ou envie uma foto de extrato para análise automática!*
+⏰ *Códigos expiram em 10 minutos.*`, { parse_mode: 'Markdown' });
+                return;
+            }
+        }
+        
+        // Usuário não vinculado - resposta clara sobre limitações
+        await bot.sendMessage(chatId, `🔒 *Conta não conectada*
 
-💡 Use /help para ver todos os comandos.`, { parse_mode: 'Markdown' });
+Para que eu possa responder sobre suas finanças, você precisa conectar sua conta:
+
+**Como conectar:**
+1. Acesse: ${process.env.APP_URL}
+2. Faça login na sua conta
+3. Vá em Configurações → Bot Telegram  
+4. Gere um código de vinculação
+5. Envie o código aqui
+
+⚠️ **Sem conexão, não posso:**
+• Acessar seus dados financeiros
+• Fazer análises personalizadas  
+• Responder sobre suas contas
+
+💡 Use /help para mais informações.`, { parse_mode: 'Markdown' });
     }
 });
 
@@ -592,7 +649,8 @@ async function linkTelegramWithCode(chatId, linkCode) {
                 user_id: data.user_id,
                 user_email: data.user_email,
                 user_name: data.user_name,
-                linked_at: new Date().toISOString()
+                linked_at: new Date().toISOString(),
+                is_active: true
             });
         
         console.log(`✅ Usuário ${data.user_name} vinculado com sucesso`);

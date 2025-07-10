@@ -26,6 +26,7 @@ import SettingsPage from "./pages/SettingsPageNew";
 import ExportReportPage from "./pages/ExportReportPage";
 import FinancialAnalysisPage from "./pages/FinancialAnalysisPage"; // Nova página
 import RecurringTransactionsPage from "./pages/RecurringTransactionsPage"; // Nova página de recorrentes
+import TelegramSettingsPage from "./pages/TelegramSettingsPage"; // Página de configurações do Telegram
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import NotFound from "./pages/NotFound";
@@ -128,6 +129,14 @@ const App = () => (
                   element={
                     <PrivateRoute>
                       <PreferencesPage />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/settings/telegram" 
+                  element={
+                    <PrivateRoute>
+                      <TelegramSettingsPage />
                     </PrivateRoute>
                   } 
                 />

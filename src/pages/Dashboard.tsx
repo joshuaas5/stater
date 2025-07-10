@@ -1226,7 +1226,7 @@ const Dashboard: React.FC = () => {
               <p className={`text-base font-normal leading-normal ${
                 transaction.type === 'income' ? 'text-galileo-positive' : 'text-galileo-negative'
               }`}>
-                {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
+                {formatCurrency(transaction.type === 'expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount))}
               </p>
               <div className="flex gap-1">
                 <button

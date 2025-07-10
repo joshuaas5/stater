@@ -6,7 +6,7 @@ import { isLoggedIn, getUserPreferences, saveUserPreferences, saveSupabaseUserPr
 import { clearAllNotifications } from '@/utils/clearAllNotifications';
 import { 
   Sun, Moon, Bell, Languages, DollarSign, 
-  Calendar, Paintbrush, Save, UserCircle2, Star, Trash2, FileText
+  Calendar, Paintbrush, Save, UserCircle2, Star, Trash2, FileText, MessageCircle
 } from 'lucide-react';
 import { CURRENCIES, suggestCurrencyByCountry } from '@/utils/currencies';
 import { getCurrentUser } from '@/utils/localStorage';
@@ -284,6 +284,35 @@ const PreferencesPage: React.FC = () => {
           >
             <Save size={16} className="mr-2" /> {t('savePreferences')}
           </Button>
+        </div>
+      </div>
+      
+      {/* SEÇÃO TELEGRAM */}
+      <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
+        <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
+          <MessageCircle size={18} className="mr-2" /> Bot Telegram
+        </h2>
+        <div className="space-y-3">
+          <p className="text-sm text-galileo-secondaryText">
+            Conecte sua conta ao nosso bot do Telegram para receber análises de extratos e conversar sobre suas finanças.
+          </p>
+          
+          <div className="bg-galileo-background p-3 rounded-lg border border-galileo-border">
+            <p className="text-xs text-galileo-secondaryText mb-2">🤖 <strong>@StaterFinanceBot</strong></p>
+            <p className="text-xs text-galileo-secondaryText mb-3">
+              • Análise automática de extratos bancários<br/>
+              • Chat inteligente sobre suas finanças<br/>
+              • Notificações de contas vencendo
+            </p>
+            
+            <Button 
+              variant="outline"
+              className="w-full border border-blue-500 text-blue-500 hover:bg-blue-50"
+              onClick={() => navigate('/settings/telegram')}
+            >
+              <MessageCircle size={16} className="mr-2" /> Configurar Telegram
+            </Button>
+          </div>
         </div>
       </div>
       

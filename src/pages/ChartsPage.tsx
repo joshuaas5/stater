@@ -497,7 +497,7 @@ const ChartsPage: React.FC = () => {
                     </div>
                     <span className={`font-semibold text-lg ${transaction.type === 'income' ? 'text-galileo-positive' : 'text-galileo-negative'}`}
                       style={{wordBreak: 'break-word'}}>
-                      {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
+                      {formatCurrency(transaction.type === 'expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount))}
                     </span>
                   </CardContent>
                 </Card>

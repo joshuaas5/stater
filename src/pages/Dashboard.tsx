@@ -581,35 +581,76 @@ const Dashboard: React.FC = () => {
     setDialogOpen(true);
   };
   
+  
+  // Função para processar valores monetários com vírgula/ponto
+  const parseMonetaryValue = (value: string): string => {
+    if (!value) return '';
+    
+    // Processar valores em milhões (ex: 50 milhões, 1 milhão, etc)
+    if (/\d+[\.,]?\d*\s*(milhões|milhão|milhoes)/i.test(value)) {
+      const numberPart = value.replace(/\s*(milhões|milhão|milhoes)/i, '').trim();
+      const numericValue = parseMonetaryNumber(numberPart) * 1000000;
+      return numericValue.toString();
+    }
+    
+    // Processar valores em mil (ex: 50 mil, 1 mil, etc)
+    if (/\d+[\.,]?\d*\s*mil/i.test(value)) {
+      const numberPart = value.replace(/\s*mil/i, '').trim();
+      const numericValue = parseMonetaryNumber(numberPart) * 1000;
+      return numericValue.toString();
+    }
+    
+    // Processar valores normais
+    return parseMonetaryNumber(value).toString();
+  };
+  
+  // Função para converter string monetária em número
+  const parseMonetaryNumber = (value: string): number => {
+    if (!value) return 0;
+    
+    // Remover espaços e caracteres especiais, manter apenas dígitos, vírgula e ponto
+    let cleaned = value.replace(/[^\d.,]/g, '');
+    
+    // Se não tem vírgula nem ponto, é um número inteiro
+    if (!cleaned.includes(',') && !cleaned.includes('.')) {
+      return parseFloat(cleaned) || 0;
+    }
+    
+    // Se tem vírgula e ponto, determinar qual é o separador decimal
+    if (cleaned.includes(',') && cleaned.includes('.')) {
+      // Se o último é vírgula, ela é o separador decimal
+      if (cleaned.lastIndexOf(',') > cleaned.lastIndexOf('.')) {
+        // Ex: 1.234,56 -> 1234.56
+        cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+      } else {
+        // Ex: 1,234.56 -> 1234.56
+        cleaned = cleaned.replace(/,/g, '');
+      }
+    } else if (cleaned.includes(',')) {
+      // Só tem vírgula - pode ser milhares ou decimal
+      const parts = cleaned.split(',');
+      if (parts.length === 2 && parts[1].length <= 2) {
+        // Provavelmente decimal: 123,45
+        cleaned = cleaned.replace(',', '.');
+      } else {
+        // Provavelmente milhares: 1,234 ou 1,234,567
+        cleaned = cleaned.replace(/,/g, '');
+      }
+    }
+    // Se só tem ponto, manter como está (já é formato padrão)
+    
+    const result = parseFloat(cleaned) || 0;
+    console.log('💰 [PARSE] Input:', value, '-> Cleaned:', cleaned, '-> Result:', result);
+    return result;
+  };
+
   const handleNewTransactionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name === 'amount') {
-      // Processar valores em milhões (ex: 50 milhões, 1 milhão, etc)
-      if (/\d+\s*(milhões|milhão|milhoes)/i.test(value)) {
-        const numberPart = value.replace(/\s*(milhões|milhão|milhoes)/i, '').trim();
-        const numericValue = parseFloat(numberPart) * 1000000;
-        setNewTransaction({
-          ...newTransaction,
-          [name]: numericValue.toString(),
-        });
-        return;
-      }
-      
-      // Processar valores em mil (ex: 50 mil, 1 mil, etc)
-      if (/\d+\s*mil/i.test(value)) {
-        const numberPart = value.replace(/\s*mil/i, '').trim();
-        const numericValue = parseFloat(numberPart) * 1000;
-        setNewTransaction({
-          ...newTransaction,
-          [name]: numericValue.toString(),
-        });
-        return;
-      }
-      
-      const cleanedValue = value.replace(/[^\d.,]/g, '').replace(',', '.');
+      const processedValue = parseMonetaryValue(value);
       setNewTransaction({
         ...newTransaction,
-        [name]: cleanedValue,
+        [name]: processedValue,
       });
     } else {
       setNewTransaction({
@@ -643,7 +684,8 @@ const Dashboard: React.FC = () => {
       return;
     }
     
-    const amount = parseFloat(newTransaction.amount);
+    // Usar a função parseMonetaryNumber para garantir conversão correta
+    const amount = parseMonetaryNumber(newTransaction.amount);
     if (isNaN(amount) || amount <= 0) {
       toast({
         title: "Valor inválido",

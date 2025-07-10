@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Transaction, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
-import { getCurrentUser, getTransactions, updateTransaction } from '@/utils/localStorage';
+import { getCurrentUser, getTransactions, updateTransaction, deleteTransaction } from '@/utils/localStorage';
 import { getRecurringTransactionsStats, calculateNextOccurrence } from '@/utils/recurringProcessor';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,8 @@ import {
   TrendingDown, 
   Clock,
   Settings,
-  BarChart3
+  BarChart3,
+  Trash2
 } from 'lucide-react';
 
 const RecurringTransactionsPage: React.FC = () => {
@@ -78,6 +79,43 @@ const RecurringTransactionsPage: React.FC = () => {
       toast({
         title: "Erro",
         description: "Não foi possível editar a transação.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Excluir transação recorrente
+  const handleDeleteRecurring = (transaction: Transaction) => {
+    if (!window.confirm(`Tem certeza que deseja excluir a transação recorrente "${transaction.title}"?\n\nEsta ação cancelará todas as execuções futuras desta transação.`)) {
+      return;
+    }
+
+    try {
+      // Excluir a transação recorrente principal
+      deleteTransaction(transaction.id);
+      
+      // Buscar e excluir todas as instâncias já criadas desta recorrente
+      const allTransactions = getTransactions();
+      const instancesToDelete = allTransactions.filter(t => 
+        t.originalRecurringId === transaction.id && t.isRecurringInstance
+      );
+      
+      instancesToDelete.forEach(instance => {
+        deleteTransaction(instance.id);
+      });
+      
+      loadData();
+      
+      toast({
+        title: "Transação recorrente excluída!",
+        description: `A transação "${transaction.title}" e ${instancesToDelete.length} instância(s) foram excluídas com sucesso.`,
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Erro ao excluir transação recorrente:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a transação recorrente.",
         variant: "destructive"
       });
     }
@@ -291,6 +329,16 @@ const RecurringTransactionsPage: React.FC = () => {
                       >
                         <Settings className="h-4 w-4 mr-1" />
                         Editar
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDeleteRecurring(transaction)}
+                        className="whitespace-nowrap"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Excluir
                       </Button>
                     </div>
                   </div>

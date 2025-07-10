@@ -1879,7 +1879,7 @@ const mapPreferencesToSupabase = (preferences: UserPreferences, userId: string) 
     currency: preferences.currency,
     date_format: preferences.dateFormat,
     notifications_bills_due_soon: preferences.notifications.billsDueSoon,
-    notifications_bills_overdue: preferences.notifications.billsOverdue,
+       notifications_bills_overdue: preferences.notifications.billsOverdue,
     notifications_large_transactions: preferences.notifications.largeTransactions,
     notifications_weekly_email: preferences.notifications.weeklyEmailSummary,
     notifications_push: preferences.notifications.pushNotifications,
@@ -2168,33 +2168,31 @@ export const forceSupabaseSync = async (): Promise<void> => {
     const localMap = new Map<string, Transaction>();
     localTransactions.forEach(t => localMap.set(t.id, t));
     
-    // Mesclar: priorizar dados locais mais recentes, adicionar novos do Supabase
+    // MERGE INTELIGENTE: Preservar transações locais não sincronizadas
     const mergedTransactions: Transaction[] = [];
-    const now = new Date().getTime();
     
-    // Adicionar todas as transações locais (preservar recém-criadas)
+    console.log(`🔀 [SMART MERGE] Iniciando merge inteligente:`);
+    console.log(`  📱 Local: ${localTransactions.length} transações`);
+    console.log(`  ☁️  Supabase: ${supabaseTransactions.length} transações`);
+    
+    // ETAPA 1: Adicionar TODAS as transações locais primeiro (prioridade absoluta)
     localTransactions.forEach(localTx => {
-      const localDate = new Date(localTx.date).getTime();
-      const isRecent = (now - localDate) < 60000; // 1 minuto
-      
-      if (isRecent) {
-        // Transação muito recente - manter versão local
-        mergedTransactions.push(localTx);
-        console.log(`� [FORCE SYNC] Preservando transação local recente: ${localTx.title}`);
-      } else if (supabaseMap.has(localTx.id)) {
-        // Existe no Supabase - usar versão do Supabase (mais confiável)
+      if (supabaseMap.has(localTx.id)) {
+        // Transação existe no Supabase - usar versão do Supabase (sincronizada)
         mergedTransactions.push(supabaseMap.get(localTx.id)!);
+        console.log(`🔄 [SMART MERGE] Usando versão Supabase para: ${localTx.title}`);
       } else {
-        // Não existe no Supabase - manter versão local
+        // Transação NÃO existe no Supabase - PRESERVAR versão local
         mergedTransactions.push(localTx);
+        console.log(`⭐ [SMART MERGE] PRESERVANDO transação local não sincronizada: ${localTx.title}`);
       }
     });
     
-    // Adicionar transações do Supabase que não existem localmente
+    // ETAPA 2: Adicionar transações do Supabase que não existem localmente
     supabaseTransactions.forEach(supabaseTx => {
       if (!localMap.has(supabaseTx.id)) {
         mergedTransactions.push(supabaseTx);
-        console.log(`📥 [FORCE SYNC] Adicionando nova transação do Supabase: ${supabaseTx.title}`);
+        console.log(`📥 [SMART MERGE] Adicionando nova do Supabase: ${supabaseTx.title}`);
       }
     });
     
@@ -2205,20 +2203,25 @@ export const forceSupabaseSync = async (): Promise<void> => {
     
     // Salvar resultado mesclado
     localStorage.setItem(`transactions_${user.id}`, JSON.stringify(uniqueTransactions));
-    console.log(`✅ [FORCE SYNC] Sincronização concluída: ${uniqueTransactions.length} transações (${localTransactions.length} locais + ${supabaseTransactions.length} Supabase)`);
+    console.log(`✅ [SMART MERGE] Merge inteligente concluído: ${uniqueTransactions.length} transações`);
+    console.log(`   📱 Preservadas locais: ${localTransactions.filter(lt => !supabaseMap.has(lt.id)).length}`);
+    console.log(`   ☁️  Adicionadas Supabase: ${supabaseTransactions.filter(st => !localMap.has(st.id)).length}`);
+    console.log(`   🔄 Atualizadas com Supabase: ${localTransactions.filter(lt => supabaseMap.has(lt.id)).length}`);
     
     // Evento único para atualizar UI
     setTimeout(() => {
       window.dispatchEvent(new Event('transactionsUpdated'));
       window.dispatchEvent(new CustomEvent('transactionsUpdated', { 
         detail: { 
-          source: 'smart-sync', 
+          source: 'smart-merge', 
           total: uniqueTransactions.length,
           forced: true,
-          merged: true
+          merged: true,
+          preserved: localTransactions.filter(lt => !supabaseMap.has(lt.id)).length,
+          added: supabaseTransactions.filter(st => !localMap.has(st.id)).length
         } 
       }));
-      console.log('📢 [FORCE SYNC] Evento de sincronização inteligente disparado');
+      console.log('📢 [SMART MERGE] Evento de merge inteligente disparado');
     }, 500);
     
   } catch (error) {

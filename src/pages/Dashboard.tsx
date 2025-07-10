@@ -705,128 +705,71 @@ const Dashboard: React.FC = () => {
           <TrendingDown size={18} />
           Adicionar Saída
         </Button>
-      </div>      {/* Destaque do Telegram - Design Chamativo e Responsivo */}
+      </div>      {/* Banner Telegram - Versão Discreta */}
       <div className="px-4 mb-4">
         {!isTelegramLinked ? (
-          <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-300">
-            {/* Destaque visual superior */}
-            <div className="absolute -top-2 left-4 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold shadow-md">
-              🚀 NOVO
-            </div>
-            
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-3 sm:gap-4">
-                {/* Ícone customizado sem logo */}
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm flex-shrink-0">
-                  <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                  <MessageCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-white font-bold text-sm sm:text-base">
-                    💬 Assistente Financeiro IA
-                  </h3>
-                  <p className="text-blue-100 text-xs sm:text-sm">
-                    Controle suas finanças direto no Telegram
-                    <span className="opacity-75"> • Em breve também no WhatsApp</span>
+                <div>
+                  <h4 className="text-blue-900 dark:text-blue-100 font-medium text-sm">
+                    Telegram Bot
+                  </h4>
+                  <p className="text-blue-700 dark:text-blue-300 text-xs">
+                    Consulte suas finanças via Telegram
                   </p>
-                  <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
-                    <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs">
-                      Notificações em tempo real
-                    </span>
-                    <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs">
-                      1 clique
-                    </span>
-                  </div>
                 </div>
               </div>
               
               <Button
                 onClick={generateTelegramCode}
                 disabled={isGeneratingCode}
-                className="bg-white hover:bg-gray-100 text-blue-600 px-4 sm:px-6 py-2 rounded-lg font-bold shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto sm:min-w-[100px] text-sm sm:text-base"
+                size="sm"
+                variant="outline"
+                className="border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900"
               >
                 {isGeneratingCode ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
-                    <span>Conectando...</span>
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-600 border-t-transparent"></div>
+                    <span className="text-xs">Conectando...</span>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center gap-2">
-                    <span>Conectar Agora</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </div>
+                  <span className="text-xs">Conectar</span>
                 )}
               </Button>
             </div>
           </div>
         ) : (
-          <div className="bg-green-50 rounded-lg p-4 border border-green-200 space-y-3">
-            <div className="flex items-center justify-between">
+          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                  <Check className="h-4 w-4 text-white" />
+                <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                  <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <h3 className="text-green-800 font-medium text-sm">Telegram Conectado ✅</h3>
-                  <p className="text-green-600 text-xs">
+                  <h4 className="text-green-900 dark:text-green-100 font-medium text-sm">
+                    Telegram Conectado ✅
+                  </h4>
+                  <p className="text-green-700 dark:text-green-300 text-xs">
                     {telegramInfo?.first_name ? (
-                      <>
-                        👤 {telegramInfo.first_name} {telegramInfo.last_name || ''} 
-                        {telegramInfo.username && ` (@${telegramInfo.username})`}
-                        <br />
-                        📱 Recebendo notificações no bot
-                      </>
-                    ) : telegramInfo?.username ? (
-                      <>@{telegramInfo.username} • Recebendo notificações</>
+                      <>@{telegramInfo.username || telegramInfo.first_name}</>
                     ) : (
-                      <>Usuário conectado • Recebendo notificações</>
+                      <>Usuário conectado</>
                     )}
                   </p>
                 </div>
               </div>
-            </div>
-            
-            {/* Botões de ação */}
-            <div className="flex gap-2 pt-2 border-t border-green-200">
+              
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => window.open('https://t.me/stater', '_blank')}
-                className="flex-1 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                className="border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900"
               >
-                💬 Abrir Bot
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  if (confirm('🔌 Desconectar do Telegram?\n\nVocê não receberá mais notificações até conectar novamente.\n\nPara reconectar, vá em Configurações > Telegram.')) {
-                    try {
-                      const { error } = await supabase
-                        .from('telegram_users')
-                        .delete()
-                        .eq('user_id', user?.id);
-                      
-                      if (error) throw error;
-                      
-                      setIsTelegramLinked(false);
-                      setTelegramInfo(null);
-                      
-                      toast({
-                        title: "🔌 Desconectado",
-                        description: "Telegram desconectado! Para reconectar, vá em Configurações.",
-                      });
-                    } catch (error: any) {
-                      toast({
-                        title: "❌ Erro",
-                        description: "Erro ao desconectar: " + error.message,
-                        variant: "destructive"
-                      });
-                    }
-                  }
-                }}
-                className="text-xs px-2 py-1 h-7 text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
-              >
-                🔌 Desconectar
+                <span className="text-xs">Abrir Bot</span>
               </Button>
             </div>
           </div>
@@ -840,7 +783,7 @@ const Dashboard: React.FC = () => {
           setEditingTransactionDontAdjustBalance(false); // Resetar aqui
         }
       }}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingTransaction
@@ -853,7 +796,7 @@ const Dashboard: React.FC = () => {
                 : (newTransaction.type === 'income' ? 'Adicione uma nova receita ou entrada financeira.' : 'Adicione uma nova despesa ou saída financeira.')}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
             <div className="grid gap-2">
               <Label htmlFor="title">Descrição</Label>
               <Input 

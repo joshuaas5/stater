@@ -1,40 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Transaction } from '@/types';
-import { getCurrentUser, getTransactions } from '@/utils/localStorage';
-import { 
-  processRecurringTransactions, 
-  processSpecificRecurring, 
-  getRecurringTransactionsStats,
-  debugRecurringTransactions 
-} from '@/utils/recurringProcessor';
+import { getCurrentUser, getTransactions, updateTransaction } from '@/utils/localStorage';
+import { getRecurringTransactionsStats } from '@/utils/recurringProcessor';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { updateTransaction } from '@/utils/localStorage';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { 
   ArrowLeft, 
-  RefreshCw, 
   Calendar, 
   TrendingUp, 
   TrendingDown, 
   Clock,
-  PlayCircle,
   Settings,
-  BarChart3,
-  AlertTriangle,
-  CheckCircle
+  BarChart3
 } from 'lucide-react';
 
 const RecurringTransactionsPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [recurringTransactions, setRecurringTransactions] = useState<Transaction[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
@@ -56,96 +45,7 @@ const RecurringTransactionsPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
-
-    // Atualizar quando houver mudanças nas transações
-    const handleTransactionsUpdate = () => {
-      setTimeout(loadData, 100); // Pequeno delay para garantir que os dados foram atualizados
-    };
-
-    window.addEventListener('transactionsUpdated', handleTransactionsUpdate);
-    return () => window.removeEventListener('transactionsUpdated', handleTransactionsUpdate);
-  }, [navigate]);
-
-  // Processar todas as transações recorrentes
-  const handleProcessAll = async () => {
-    setIsProcessing(true);
-    try {
-      const result = await processRecurringTransactions();
-      
-      if (result.processedCount > 0) {
-        toast({
-          title: "Processamento concluído!",
-          description: `${result.processedCount} transação(ões) recorrente(s) foram criadas.`,
-          variant: "default"
-        });
-      } else {
-        toast({
-          title: "Nenhuma transação processada",
-          description: "Não há transações recorrentes pendentes para hoje.",
-          variant: "default"
-        });
-      }
-
-      if (result.errors.length > 0) {
-        console.error('Erros no processamento:', result.errors);
-        toast({
-          title: "Alguns erros ocorreram",
-          description: `${result.errors.length} erro(s) durante o processamento. Verifique o console.`,
-          variant: "destructive"
-        });
-      }
-
-      loadData();
-    } catch (error) {
-      console.error('Erro ao processar transações recorrentes:', error);
-      toast({
-        title: "Erro no processamento",
-        description: "Ocorreu um erro ao processar as transações recorrentes.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // Processar transação específica
-  const handleProcessSpecific = async (transactionId: string) => {
-    try {
-      const success = await processSpecificRecurring(transactionId);
-      
-      if (success) {
-        toast({
-          title: "Transação processada!",
-          description: "A transação recorrente foi criada com sucesso.",
-          variant: "default"
-        });
-        loadData();
-      } else {
-        toast({
-          title: "Erro",
-          description: "Não foi possível processar a transação.",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Erro:', error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao processar a transação.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Debug no console
-  const handleDebug = () => {
-    debugRecurringTransactions();
-    toast({
-      title: "Debug executado",
-      description: "Verifique o console do navegador para ver os detalhes.",
-      variant: "default"
-    });
-  };
+  }, []);
 
   // Editar transação recorrente
   const handleEditRecurring = (transaction: Transaction) => {
@@ -187,7 +87,7 @@ const RecurringTransactionsPage: React.FC = () => {
 
     if (diffDays === 0) return 'Hoje';
     if (diffDays === 1) return 'Amanhã';
-    if (diffDays < 0) return 'Atrasada';
+    if (diffDays < 0) return 'Processada';
     
     return `Em ${diffDays} dia(s)`;
   };
@@ -207,295 +107,204 @@ const RecurringTransactionsPage: React.FC = () => {
     }
   };
 
-  // Verificar se está pendente
-  const isPending = (transaction: Transaction): boolean => {
-    if (!transaction.nextOccurrence) return false;
-    const next = new Date(transaction.nextOccurrence);
-    const today = new Date();
-    return next <= today;
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => navigate('/dashboard')}
-              className="p-2"
+              className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                 Transações Recorrentes
               </h1>
-              <p className="text-sm text-gray-600">
-                Gerencie suas transações automáticas
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Suas transações são processadas automaticamente no dia configurado
               </p>
             </div>
-          </div>
-          
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleDebug}
-              className="hidden md:flex"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Debug
-            </Button>
-            <Button 
-              onClick={handleProcessAll}
-              disabled={isProcessing}
-              size="sm"
-            >
-              {isProcessing ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Processando...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Processar Todas
-                </>
-              )}
-            </Button>
           </div>
         </div>
       </div>
 
-      <div className="p-4 space-y-6">
-        {/* Estatísticas */}
+      {/* Estatísticas */}
+      <div className="p-4">
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
               <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <BarChart3 className="h-8 w-8 text-blue-600" />
-                  <div>
-                    <p className="text-2xl font-bold">{stats.totalRecurring}</p>
-                    <p className="text-sm text-gray-600">Configuradas</p>
-                  </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {stats.totalRecurring}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
+            
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
               <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="h-8 w-8 text-green-600" />
-                  <div>
-                    <p className="text-2xl font-bold">{stats.totalInstances}</p>
-                    <p className="text-sm text-gray-600">Executadas</p>
-                  </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                    {stats.byFrequency.weekly}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Semanais</p>
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
+            
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
               <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle className="h-8 w-8 text-orange-600" />
-                  <div>
-                    <p className="text-2xl font-bold">{stats.pendingToday}</p>
-                    <p className="text-sm text-gray-600">Pendentes</p>
-                  </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {stats.byFrequency.monthly}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Mensais</p>
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
+            
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
               <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="h-8 w-8 text-purple-600" />
-                  <div>
-                    <p className="text-2xl font-bold">
-                      R$ {stats.totalAmount.toFixed(0)}
-                    </p>
-                    <p className="text-sm text-gray-600">Total/mês</p>
-                  </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    {stats.byFrequency.yearly}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Anuais</p>
                 </div>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* Lista de transações recorrentes */}
+        {/* Lista de Transações Recorrentes */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Transações Configuradas ({recurringTransactions.length})
-          </h2>
-
           {recurringTransactions.length === 0 ? (
-            <Card>
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
               <CardContent className="p-8 text-center">
-                <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <BarChart3 className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                   Nenhuma transação recorrente
                 </h3>
-                <p className="text-gray-600 mb-4">
-                  Configure transações automáticas para poupar tempo
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Configure transações recorrentes para automatizar seus lançamentos.
                 </p>
-                <Button onClick={() => navigate('/dashboard')}>
-                  Adicionar Transação
+                <Button 
+                  onClick={() => navigate('/dashboard')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Criar Nova Transação
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-3">
-              {recurringTransactions.map(transaction => {
-                const pending = isPending(transaction);
-                
-                return (
-                  <Card key={transaction.id} className={pending ? 'ring-2 ring-orange-200' : ''}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className={`p-2 rounded-full ${
-                              transaction.type === 'income' 
-                                ? 'bg-green-100 text-green-600' 
-                                : 'bg-red-100 text-red-600'
-                            }`}>
-                              {transaction.type === 'income' ? (
-                                <TrendingUp className="h-4 w-4" />
-                              ) : (
-                                <TrendingDown className="h-4 w-4" />
-                              )}
-                            </div>
-                            
-                            <div>
-                              <h3 className="font-medium text-gray-900">
-                                {transaction.title}
-                              </h3>
-                              <p className="text-sm text-gray-600">
-                                {transaction.category}
-                              </p>
-                            </div>
-                            
-                            {pending && (
-                              <Badge variant="destructive" className="ml-2">
-                                Pendente
-                              </Badge>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <p className="text-gray-600">Valor</p>
-                              <p className="font-medium">
-                                R$ {transaction.amount.toFixed(2)}
-                              </p>
-                            </div>
-                            
-                            <div>
-                              <p className="text-gray-600">Frequência</p>
-                              <p className="font-medium">
-                                {getFrequencyText(transaction)}
-                              </p>
-                            </div>
-                            
-                            <div>
-                              <p className="text-gray-600">Próxima execução</p>
-                              <p className="font-medium">
-                                {getNextExecutionText(transaction)}
-                              </p>
-                            </div>
-                            
-                            <div>
-                              <p className="text-gray-600">Última execução</p>
-                              <p className="font-medium">
-                                {transaction.lastProcessed 
-                                  ? new Date(transaction.lastProcessed).toLocaleDateString('pt-BR')
-                                  : 'Nunca'
-                                }
-                              </p>
-                            </div>
-                          </div>
+            recurringTransactions.map((transaction) => (
+              <Card key={transaction.id} className="dark:bg-gray-800 dark:border-gray-700">
+                <CardContent className="p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex items-start gap-4 flex-1">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                        transaction.type === 'income' 
+                          ? 'bg-green-100 dark:bg-green-900' 
+                          : 'bg-red-100 dark:bg-red-900'
+                      }`}>
+                        {transaction.type === 'income' ? (
+                          <TrendingUp className={`h-6 w-6 ${
+                            transaction.type === 'income' 
+                              ? 'text-green-600 dark:text-green-400' 
+                              : 'text-red-600 dark:text-red-400'
+                          }`} />
+                        ) : (
+                          <TrendingDown className={`h-6 w-6 ${
+                            transaction.type === 'income' 
+                              ? 'text-green-600 dark:text-green-400' 
+                              : 'text-red-600 dark:text-red-400'
+                          }`} />
+                        )}
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                            {transaction.title}
+                          </h3>
+                          <Badge variant={transaction.type === 'income' ? 'default' : 'secondary'}>
+                            {transaction.type === 'income' ? 'Entrada' : 'Saída'}
+                          </Badge>
                         </div>
-
-                        <div className="flex flex-col gap-2 ml-4">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleProcessSpecific(transaction.id)}
-                            className="whitespace-nowrap"
-                          >
-                            <PlayCircle className="h-4 w-4 mr-1" />
-                            Executar
-                          </Button>
+                        
+                        <p className={`text-lg font-bold ${
+                          transaction.type === 'income' 
+                            ? 'text-green-600 dark:text-green-400' 
+                            : 'text-red-600 dark:text-red-400'
+                        }`}>
+                          {transaction.type === 'income' ? '+' : '-'} R$ {transaction.amount.toFixed(2)}
+                        </p>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 text-sm">
+                          <div>
+                            <p className="text-gray-600 dark:text-gray-400">Frequência</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                              {getFrequencyText(transaction)}
+                            </p>
+                          </div>
                           
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEditRecurring(transaction)}
-                            className="whitespace-nowrap"
-                          >
-                            <Settings className="h-4 w-4 mr-1" />
-                            Editar
-                          </Button>
+                          <div>
+                            <p className="text-gray-600 dark:text-gray-400">Próxima execução</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                              {getNextExecutionText(transaction)}
+                            </p>
+                          </div>
+                          
+                          <div>
+                            <p className="text-gray-600 dark:text-gray-400">Última execução</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                              {transaction.lastProcessed 
+                                ? new Date(transaction.lastProcessed).toLocaleDateString('pt-BR')
+                                : 'Nunca'
+                              }
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditRecurring(transaction)}
+                        className="whitespace-nowrap dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                      >
+                        <Settings className="h-4 w-4 mr-1" />
+                        Editar
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
           )}
         </div>
-
-        {/* Resumo por frequência */}
-        {stats && stats.totalRecurring > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Resumo por Frequência
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {stats.byFrequency.weekly}
-                  </p>
-                  <p className="text-sm text-gray-600">Semanais</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-green-600">
-                    {stats.byFrequency.monthly}
-                  </p>
-                  <p className="text-sm text-gray-600">Mensais</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-purple-600">
-                    {stats.byFrequency.yearly}
-                  </p>
-                  <p className="text-sm text-gray-600">Anuais</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       {/* Modal de Edição */}
       <Dialog open={!!editingTransaction} onOpenChange={() => setEditingTransaction(null)}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle>Editar Transação Recorrente</DialogTitle>
+            <DialogTitle className="dark:text-gray-100">Editar Transação Recorrente</DialogTitle>
           </DialogHeader>
           
           {editingTransaction && (
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right">
+                <Label htmlFor="title" className="text-right dark:text-gray-300">
                   Título
                 </Label>
                 <Input
@@ -505,12 +314,12 @@ const RecurringTransactionsPage: React.FC = () => {
                     ...editingTransaction,
                     title: e.target.value
                   })}
-                  className="col-span-3"
+                  className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 />
               </div>
               
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="amount" className="text-right">
+                <Label htmlFor="amount" className="text-right dark:text-gray-300">
                   Valor
                 </Label>
                 <Input
@@ -522,22 +331,22 @@ const RecurringTransactionsPage: React.FC = () => {
                     ...editingTransaction,
                     amount: parseFloat(e.target.value) || 0
                   })}
-                  className="col-span-3"
+                  className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 />
               </div>
               
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right">
-                  Descrição
+                <Label htmlFor="description" className="text-right dark:text-gray-300">
+                  Categoria
                 </Label>
                 <Input
                   id="description"
-                  value={editingTransaction.description || ''}
+                  value={editingTransaction.category || ''}
                   onChange={(e) => setEditingTransaction({
                     ...editingTransaction,
-                    description: e.target.value
+                    category: e.target.value
                   })}
-                  className="col-span-3"
+                  className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 />
               </div>
               
@@ -545,6 +354,7 @@ const RecurringTransactionsPage: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={() => setEditingTransaction(null)}
+                  className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
                   Cancelar
                 </Button>

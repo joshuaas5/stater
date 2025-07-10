@@ -97,10 +97,13 @@ export const calculateNextOccurrence = (transaction: Transaction): Date => {
  * Cria uma nova instância de uma transação recorrente
  */
 const createRecurringInstance = (originalTransaction: Transaction, executionDate: Date): Transaction => {
+  // Usar o momento exato atual para registro correto da data/hora
+  const now = new Date();
+  
   const newTransaction: Transaction = {
     ...originalTransaction,
     id: uuidv4(),
-    date: executionDate,
+    date: now, // Data/hora exata do momento da criação
     isRecurringInstance: true,
     originalRecurringId: originalTransaction.id,
     title: `${originalTransaction.title} (${getRecurrenceLabel(originalTransaction)})`,
@@ -203,18 +206,18 @@ export const processRecurringTransactions = async (): Promise<RecurringProcessRe
 
   console.log(`✅ Processamento concluído: ${processedTransactions.length} transações criadas`);
 
-  // Mostrar notificação ao usuário sobre o processamento
+  // Mostrar notificação APENAS quando transações foram criadas
   if (processedTransactions.length > 0) {
     toast.success(
-      `💰 ${processedTransactions.length} transação${processedTransactions.length > 1 ? 'ões' : ''} recorrente${processedTransactions.length > 1 ? 's' : ''} processada${processedTransactions.length > 1 ? 's' : ''}!`,
+      `💰 ${processedTransactions.length} transação${processedTransactions.length > 1 ? 'ões' : ''} recorrente${processedTransactions.length > 1 ? 's' : ''} adicionada${processedTransactions.length > 1 ? 's' : ''} ao saldo!`,
       {
         description: `Total: R$ ${processedTransactions.reduce((sum, t) => sum + t.amount, 0).toFixed(2)}`,
-        duration: 5000,
+        duration: 4000,
       }
     );
   }
 
-  // Disparar evento para atualizar a UI
+  // Disparar evento para atualizar a UI APENAS quando houver transações criadas
   if (processedTransactions.length > 0) {
     window.dispatchEvent(new CustomEvent('transactionsUpdated', {
       detail: { 

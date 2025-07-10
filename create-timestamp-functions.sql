@@ -38,7 +38,7 @@ RETURNS TABLE(
 BEGIN
     RETURN QUERY
     INSERT INTO transactions (user_id, description, amount, type, category, date, created_at, updated_at)
-    VALUES (p_user_id, p_description, p_amount, p_type, p_category, CURRENT_DATE, NOW(), NOW())
+    VALUES (p_user_id, p_description, p_amount, p_type, p_category, NOW(), NOW(), NOW())
     RETURNING 
         transactions.id,
         transactions.description,

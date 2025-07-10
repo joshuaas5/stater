@@ -758,17 +758,13 @@ async function getUserIdFromTelegram(chatId) {
 // Salvar transação no Supabase
 async function saveTransactionToSupabase(userId, transaction) {
     try {
-        // Converter data brasileira para ISO
-        const [day, month, year] = transaction.data.split('/');
-        const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-        
         const transactionData = {
             user_id: userId,
             title: transaction.descricao,
             amount: transaction.valor,
             type: transaction.valor > 0 ? 'income' : 'expense',
             category: transaction.categoria,
-            date: isoDate,
+            date: new Date().toISOString(), // 🔧 CORREÇÃO: Data/hora atual completa
             source: 'telegram_bot',
             created_at: new Date().toISOString()
         };

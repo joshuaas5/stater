@@ -408,7 +408,7 @@ const handleSendMessage = async (message: string) => {
                     amount: transaction.amount,
                     category: transaction.category || null,
                     title: transaction.description,
-                    date: new Date().toISOString().split('T')[0], // Data atual do servidor
+                    date: new Date().toISOString(), // 🔧 CORREÇÃO: Data/hora atual completa
                     created_at: new Date().toISOString(),
                     user_id: activeUserId
                   }
@@ -580,7 +580,7 @@ const handleSendMessage = async (message: string) => {
                 amount: amount,
                 category: category || null,
                 title: capitalizedDescription,
-                date: new Date().toISOString().split('T')[0], // Data atual
+                date: new Date().toISOString(), // 🔧 CORREÇÃO: Data/hora atual completa
                 created_at: new Date().toISOString(),
                 user_id: activeUserId
               }

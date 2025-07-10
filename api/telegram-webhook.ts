@@ -96,7 +96,7 @@ async function saveTransactionToSupabase(userId: string, transactionData: any): 
         amount: valor,
         type: tipoFinal,
         category: transactionData.category || transactionData.categoria || 'Outros',
-        date: transactionData.date || transactionData.data || new Date().toISOString().split('T')[0],
+        date: new Date().toISOString(), // 🔧 CORREÇÃO: Data/hora atual completa
         created_at: new Date().toISOString()
       }]);
     

@@ -6,9 +6,18 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 // Configurar bot
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 
-// Configurar Supabase
+// Configurar Supabase com SERVICE_ROLE para evitar problemas RLS
 const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+const supabase = createClient(
+    process.env.SUPABASE_URL, 
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY,
+    {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false
+        }
+    }
+);
 
 // Storage temporário para transações pendentes
 const pendingTransactions = new Map();
@@ -17,15 +26,21 @@ const userSessions = new Map(); // chatId -> { userId, userEmail, linkCode }
 
 console.log('🤖 Stater Telegram Bot iniciado!' );
 
-// Recarregar sessões ativas ao iniciar (CORRIGIDO para persistência)
+// Recarregar sessões ativas ao iniciar (CORRIGIDO com tratamento de erro melhorado)
 async function reloadActiveSessions() {
     try {
         console.log('🔄 [PERSISTÊNCIA] Recarregando sessões ativas...');
         
-        const { data: activeUsers } = await supabase
+        const { data: activeUsers, error } = await supabase
             .from('telegram_users')
             .select('telegram_chat_id, user_id, user_email, user_name')
             .eq('is_active', true);
+        
+        if (error) {
+            console.error('❌ [PERSISTÊNCIA] Erro ao buscar usuários ativos:', error);
+            console.log('⚠️ [PERSISTÊNCIA] Continuando sem sessões...');
+            return;
+        }
         
         if (activeUsers && activeUsers.length > 0) {
             activeUsers.forEach(user => {
@@ -44,6 +59,7 @@ async function reloadActiveSessions() {
         }
     } catch (error) {
         console.error('❌ [PERSISTÊNCIA] Erro ao recarregar sessões:', error);
+        console.log('⚠️ [PERSISTÊNCIA] Bot iniciando sem sessões persistidas...');
     }
 }
 
@@ -297,10 +313,14 @@ Para conectar sua conta use /conectar`, { parse_mode: 'Markdown' });
         userSessions.delete(chatId);
         
         // Marcar como inativo no banco (não remover o registro)
-        await supabase
+        const { error: updateError } = await supabase
             .from('telegram_users')
             .update({ is_active: false })
             .eq('telegram_chat_id', chatId.toString());
+        
+        if (updateError) {
+            console.error('⚠️ Erro ao desativar usuário no banco:', updateError);
+        }
         
         const disconnectMessage = `👋 *Desconectado com sucesso!*
 
@@ -605,7 +625,7 @@ ${process.env.APP_URL}/dashboard
     }
 }
 
-// Vincular Telegram com código do app
+// Vincular Telegram com código do app (CORRIGIDO com melhor tratamento de erro)
 async function linkTelegramWithCode(chatId, linkCode) {
     try {
         console.log(`🔗 Tentando vincular ${chatId} com código ${linkCode}`);
@@ -617,17 +637,26 @@ async function linkTelegramWithCode(chatId, linkCode) {
             .eq('code', linkCode)
             .single();
         
-        if (error || !data) {
-            console.log('❌ Código inválido ou expirado');
-            return { success: false, message: 'Código inválido ou expirado' };
+        if (error) {
+            console.error('❌ Erro ao buscar código:', error);
+            if (error.code === 'PGRST116') {
+                return { success: false, message: 'Código não encontrado' };
+            }
+            return { success: false, message: 'Erro ao validar código. Tente novamente.' };
+        }
+        
+        if (!data) {
+            console.log('❌ Código não encontrado');
+            return { success: false, message: 'Código inválido' };
         }
         
         // Verificar se não expirou
         if (new Date() > new Date(data.expires_at)) {
+            console.log('❌ Código expirado:', data.expires_at);
             return { success: false, message: 'Código expirado' };
         }
         
-        // Salvar vinculação
+        // Salvar vinculação em memória
         userSessions.set(chatId, {
             userId: data.user_id,
             userEmail: data.user_email,
@@ -636,13 +665,17 @@ async function linkTelegramWithCode(chatId, linkCode) {
         });
         
         // Marcar código como usado
-        await supabase
+        const { error: updateError } = await supabase
             .from('telegram_link_codes')
             .update({ used_at: new Date().toISOString() })
             .eq('code', linkCode);
         
+        if (updateError) {
+            console.error('⚠️ Erro ao marcar código como usado:', updateError);
+        }
+        
         // Salvar vinculação permanente
-        await supabase
+        const { error: upsertError } = await supabase
             .from('telegram_users')
             .upsert({
                 telegram_chat_id: chatId.toString(),
@@ -653,6 +686,11 @@ async function linkTelegramWithCode(chatId, linkCode) {
                 is_active: true
             });
         
+        if (upsertError) {
+            console.error('⚠️ Erro ao salvar vinculação:', upsertError);
+            // Mesmo com erro na persistência, mantém sessão em memória
+        }
+        
         console.log(`✅ Usuário ${data.user_name} vinculado com sucesso`);
         return { 
             success: true, 
@@ -662,7 +700,7 @@ async function linkTelegramWithCode(chatId, linkCode) {
         
     } catch (error) {
         console.error('❌ Erro ao vincular:', error);
-        return { success: false, message: 'Erro interno' };
+        return { success: false, message: 'Erro interno. Tente novamente.' };
     }
 }
 
@@ -695,24 +733,32 @@ async function processChatMessage(chatId, message, userSession) {
     }
 }
 
-// Buscar contexto do usuário para chat (CORRIGIDO: incluir bills)
+// Buscar contexto do usuário para chat (CORRIGIDO: incluir bills + tratamento de erro)
 async function getUserContextForChat(userId) {
     try {
         // Buscar transações recentes
-        const { data: transactions } = await supabase
+        const { data: transactions, error: transactionsError } = await supabase
             .from('transactions')
             .select('title, amount, type, category, date')
             .eq('user_id', userId)
             .order('date', { ascending: false })
             .limit(10);
         
+        if (transactionsError) {
+            console.error('⚠️ Erro ao buscar transações:', transactionsError);
+        }
+        
         // CORREÇÃO CRÍTICA: Buscar contas a pagar (bills) também
-        const { data: bills } = await supabase
+        const { data: bills, error: billsError } = await supabase
             .from('bills')
             .select('title, amount, due_date, category, is_paid, is_recurring, total_installments, current_installment')
             .eq('user_id', userId)
             .order('due_date', { ascending: true })
             .limit(20);
+        
+        if (billsError) {
+            console.error('⚠️ Erro ao buscar bills:', billsError);
+        }
         
         // Calcular saldo das transações
         let balance = 0;
@@ -744,6 +790,7 @@ async function getUserContextForChat(userId) {
             balance: 0, 
             transactionCount: 0,
             billsCount: 0,
+            activeBillsCount: 0,
             activeBillsCount: 0,
             totalBillsValue: 0
         };

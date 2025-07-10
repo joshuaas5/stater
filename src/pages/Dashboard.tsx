@@ -92,18 +92,33 @@ const Dashboard: React.FC = () => {
     if (!user?.id) return;
     
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('telegram_users')
         .select('*')
         .eq('user_id', user.id)
+        .eq('is_active', true)
         .single();
       
+      if (error) {
+        console.log('🔍 [TELEGRAM] Não conectado ou erro:', error.message);
+        setIsTelegramLinked(false);
+        setTelegramInfo(null);
+        return;
+      }
+      
       if (data) {
+        console.log('✅ [TELEGRAM] Conectado:', data);
         setIsTelegramLinked(true);
         setTelegramInfo(data);
+      } else {
+        console.log('📭 [TELEGRAM] Não conectado');
+        setIsTelegramLinked(false);
+        setTelegramInfo(null);
       }
     } catch (error) {
-      console.log('Telegram não conectado ainda');
+      console.error('❌ [TELEGRAM] Erro ao verificar status:', error);
+      setIsTelegramLinked(false);
+      setTelegramInfo(null);
     }
   };  const generateTelegramCode = () => {
     if (!user?.id) return;

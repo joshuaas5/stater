@@ -17,6 +17,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { TelegramConnectModal } from '@/components/telegram/TelegramConnectModal';
 import { RecurrenceConfig } from '@/components/transactions/RecurrenceConfig';
+import { calculateNextOccurrence } from '@/utils/recurringProcessor';
 import { Transaction } from '@/types';
 import { 
   calculateBalance, 
@@ -178,7 +179,9 @@ const Dashboard: React.FC = () => {
     category: '',
     type: 'expense' as 'income' | 'expense',
     isRecurring: false,
-    recurrenceFrequency: 'monthly' as 'weekly' | 'monthly' | 'yearly'
+    recurrenceFrequency: 'monthly' as 'weekly' | 'monthly' | 'yearly',
+    recurringDay: 1,
+    recurringWeekday: 1
   });
   
   // useEffect para SEMPRE executar na montagem do componente (incluindo F5)
@@ -360,8 +363,17 @@ const Dashboard: React.FC = () => {
       return;
     }
     
-    // Calcular saldo total com todas as transações
-    const totalBalance = calculateBalance(allTransactions, [lastEditedTransactionIdForBalanceSkip || '']);
+    // Filtrar transações recorrentes que ainda não foram processadas
+    const validTransactions = allTransactions.filter(t => {
+      // Se é recorrente e não é uma instância, não incluir no saldo
+      if (t.isRecurring && !t.isRecurringInstance) {
+        return false;
+      }
+      return true;
+    });
+    
+    // Calcular saldo total com transações válidas (excluindo recorrentes não processadas)
+    const totalBalance = calculateBalance(validTransactions, [lastEditedTransactionIdForBalanceSkip || '']);
     setBalance(totalBalance);
     
     // Calcular variação percentual com base nos últimos 30 dias vs 30 dias anteriores
@@ -373,13 +385,13 @@ const Dashboard: React.FC = () => {
     sixtyDaysAgo.setDate(today.getDate() - 60);
     
     // Transações dos últimos 30 dias
-    const last30DaysTransactions = allTransactions.filter(t => {
+    const last30DaysTransactions = validTransactions.filter(t => {
       const transactionDate = new Date(t.date);
       return transactionDate >= thirtyDaysAgo && transactionDate <= today;
     });
     
     // Transações dos 30 dias anteriores aos últimos 30 dias
-    const previous30DaysTransactions = allTransactions.filter(t => {
+    const previous30DaysTransactions = validTransactions.filter(t => {
       const transactionDate = new Date(t.date);
       return transactionDate >= sixtyDaysAgo && transactionDate < thirtyDaysAgo;
     });
@@ -394,9 +406,21 @@ const Dashboard: React.FC = () => {
     const allTransactions = getTransactions();
     console.log(`📊 [loadTransactions] Total encontrado: ${allTransactions.length}`);
     
+    // Filtrar transações recorrentes que ainda não foram processadas
+    // Elas não devem aparecer nas listas até serem executadas
+    const validTransactions = allTransactions.filter(t => {
+      // Se é recorrente e não é uma instância, não mostrar na lista de transações
+      if (t.isRecurring && !t.isRecurringInstance) {
+        return false;
+      }
+      return true;
+    });
+    
+    console.log(`📊 [loadTransactions] Após filtrar recorrentes não processadas: ${validTransactions.length}`);
+    
     // LOG: Mostrar as últimas 5 transações para debug
-    if (allTransactions.length > 0) {
-      const sortedByDate = [...allTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    if (validTransactions.length > 0) {
+      const sortedByDate = [...validTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       console.log('📊 [DEBUG] Últimas 5 transações por data:', sortedByDate.slice(0, 5).map(t => ({
         title: t.title,
         date: t.date,
@@ -406,11 +430,11 @@ const Dashboard: React.FC = () => {
       })));
     }
     
-    let filteredTransactionsForDisplay = allTransactions;
-    let filteredTransactionsForCalculation = allTransactions;
+    let filteredTransactionsForDisplay = validTransactions;
+    let filteredTransactionsForCalculation = validTransactions;
     
     // Para os cálculos de receitas/gastos, usar sempre o filtro de mês/ano
-    filteredTransactionsForCalculation = allTransactions.filter(t => {
+    filteredTransactionsForCalculation = validTransactions.filter(t => {
       const transactionDate = new Date(t.date);
       return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
     });
@@ -504,7 +528,9 @@ const Dashboard: React.FC = () => {
       amount: '',
       category: '',
       isRecurring: false,
-      recurrenceFrequency: 'monthly'
+      recurrenceFrequency: 'monthly',
+      recurringDay: 1,
+      recurringWeekday: 1
     });
     setDialogOpen(true);
   };
@@ -602,7 +628,20 @@ const Dashboard: React.FC = () => {
       userId: user.id,
       isRecurring: newTransaction.isRecurring,
       recurrenceFrequency: newTransaction.isRecurring ? newTransaction.recurrenceFrequency : undefined,
-      dontAdjustBalanceOnSave: editingTransaction ? editingTransactionDontAdjustBalance : undefined // Salva o estado do checkbox
+      // Para transações recorrentes, adicionar campos necessários
+      ...(newTransaction.isRecurring && {
+        recurringDay: newTransaction.recurringDay,
+        recurringWeekday: newTransaction.recurringWeekday,
+        nextOccurrence: calculateNextOccurrence({
+          ...newTransaction,
+          recurrenceFrequency: newTransaction.recurrenceFrequency!,
+          recurringDay: newTransaction.recurringDay,
+          recurringWeekday: newTransaction.recurringWeekday
+        } as Transaction),
+        // Transações recorrentes NÃO devem afetar o saldo imediatamente
+        dontAdjustBalanceOnSave: true
+      }),
+      dontAdjustBalanceOnSave: editingTransaction ? editingTransactionDontAdjustBalance : newTransaction.isRecurring // Para recorrentes, sempre true
     };
     
     saveTransaction(transaction);
@@ -613,14 +652,18 @@ const Dashboard: React.FC = () => {
       category: '',
       type: 'expense',
       isRecurring: false,
-      recurrenceFrequency: 'monthly'
+      recurrenceFrequency: 'monthly',
+      recurringDay: 1,
+      recurringWeekday: 1
     });
     
     setDialogOpen(false);
     
     toast({
-      title: `${type === 'income' ? 'Entrada' : 'Saída'} adicionada`,
-      description: `${transaction.title} foi adicionada com sucesso no valor de ${formatCurrency(transaction.amount)}` // Corrigido aqui
+      title: `${type === 'income' ? 'Entrada' : 'Saída'} ${newTransaction.isRecurring ? 'recorrente' : ''} adicionada`,
+      description: newTransaction.isRecurring 
+        ? `${transaction.title} foi configurada como recorrente e será processada automaticamente`
+        : `${transaction.title} foi adicionada com sucesso no valor de ${formatCurrency(transaction.amount)}`
     });
     
     // IMPORTANTE: Atualizar a lista de transações e o saldo

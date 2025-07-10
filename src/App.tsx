@@ -36,8 +36,8 @@ import TermsWrapper from "./components/terms/TermsWrapper";
 
 const queryClient = new QueryClient();
 
-// Iniciar o processador automático de transações recorrentes
-startRecurringProcessor();
+// PROCESSADOR AUTOMÁTICO REMOVIDO - Sistema manual apenas para evitar notificações indesejadas
+// startRecurringProcessor();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

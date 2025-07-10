@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Transaction } from '@/types';
+import { Transaction, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
 import { getCurrentUser, getTransactions, updateTransaction } from '@/utils/localStorage';
-import { getRecurringTransactionsStats } from '@/utils/recurringProcessor';
+import { getRecurringTransactionsStats, calculateNextOccurrence } from '@/utils/recurringProcessor';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -57,7 +58,13 @@ const RecurringTransactionsPage: React.FC = () => {
     if (!editingTransaction) return;
 
     try {
-      updateTransaction(editingTransaction);
+      // Recalcular a próxima ocorrência baseada nas novas configurações
+      const updatedTransaction = {
+        ...editingTransaction,
+        nextOccurrence: calculateNextOccurrence(editingTransaction)
+      };
+      
+      updateTransaction(updatedTransaction);
       loadData();
       setEditingTransaction(null);
       
@@ -339,16 +346,108 @@ const RecurringTransactionsPage: React.FC = () => {
                 <Label htmlFor="description" className="text-right dark:text-gray-300">
                   Categoria
                 </Label>
-                <Input
-                  id="description"
+                <Select
                   value={editingTransaction.category || ''}
-                  onChange={(e) => setEditingTransaction({
+                  onValueChange={(value) => setEditingTransaction({
                     ...editingTransaction,
-                    category: e.target.value
+                    category: value
                   })}
-                  className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
-                />
+                >
+                  <SelectTrigger className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                    {(editingTransaction.type === 'income' 
+                      ? INCOME_CATEGORIES 
+                      : EXPENSE_CATEGORIES
+                    ).map((category) => (
+                      <SelectItem 
+                        key={category} 
+                        value={category}
+                        className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
+                      >
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="frequency" className="text-right dark:text-gray-300">
+                  Frequência
+                </Label>
+                <Select
+                  value={editingTransaction.recurrenceFrequency || 'monthly'}
+                  onValueChange={(value: 'weekly' | 'monthly' | 'yearly') => setEditingTransaction({
+                    ...editingTransaction,
+                    recurrenceFrequency: value
+                  })}
+                >
+                  <SelectTrigger className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                    <SelectItem value="weekly" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">
+                      Semanal
+                    </SelectItem>
+                    <SelectItem value="monthly" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">
+                      Mensal
+                    </SelectItem>
+                    <SelectItem value="yearly" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">
+                      Anual
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {editingTransaction.recurrenceFrequency === 'weekly' && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="weekday" className="text-right dark:text-gray-300">
+                    Dia da Semana
+                  </Label>
+                  <Select
+                    value={editingTransaction.recurringWeekday?.toString() || '0'}
+                    onValueChange={(value) => setEditingTransaction({
+                      ...editingTransaction,
+                      recurringWeekday: parseInt(value)
+                    })}
+                  >
+                    <SelectTrigger className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                      <SelectItem value="0" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Domingo</SelectItem>
+                      <SelectItem value="1" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Segunda-feira</SelectItem>
+                      <SelectItem value="2" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Terça-feira</SelectItem>
+                      <SelectItem value="3" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Quarta-feira</SelectItem>
+                      <SelectItem value="4" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Quinta-feira</SelectItem>
+                      <SelectItem value="5" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Sexta-feira</SelectItem>
+                      <SelectItem value="6" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Sábado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
+              {(editingTransaction.recurrenceFrequency === 'monthly' || editingTransaction.recurrenceFrequency === 'yearly') && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="day" className="text-right dark:text-gray-300">
+                    Dia {editingTransaction.recurrenceFrequency === 'monthly' ? 'do Mês' : 'do Ano'}
+                  </Label>
+                  <Input
+                    id="day"
+                    type="number"
+                    min="1"
+                    max={editingTransaction.recurrenceFrequency === 'monthly' ? '31' : '365'}
+                    value={editingTransaction.recurringDay || ''}
+                    onChange={(e) => setEditingTransaction({
+                      ...editingTransaction,
+                      recurringDay: parseInt(e.target.value) || 1
+                    })}
+                    className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                  />
+                </div>
+              )}
               
               <div className="flex justify-end gap-2 mt-4">
                 <Button

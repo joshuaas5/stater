@@ -74,10 +74,10 @@ export const RecurrenceConfig: React.FC<RecurrenceConfigProps> = ({
   };
 
   return (
-    <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+    <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-600">
       <div className="flex items-center space-x-3">
-        <Repeat className="h-5 w-5 text-blue-600" />
-        <Label className="text-base font-medium">Transação Recorrente</Label>
+        <Repeat className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <Label className="text-base font-medium dark:text-gray-200">Transação Recorrente</Label>
       </div>
       
       <div className="flex items-center space-x-2">
@@ -86,15 +86,15 @@ export const RecurrenceConfig: React.FC<RecurrenceConfigProps> = ({
           checked={transaction.isRecurring || false}
           onCheckedChange={handleRecurrenceToggle}
         />
-        <Label htmlFor="recurring" className="text-sm">
+        <Label htmlFor="recurring" className="text-sm dark:text-gray-300">
           Repetir esta transação automaticamente
         </Label>
       </div>
       
       {transaction.isRecurring && (
-        <div className="space-y-4 ml-6 p-3 border-l-2 border-blue-200">
+        <div className="space-y-4 ml-6 p-3 border-l-2 border-blue-200 dark:border-blue-700">
           <div className="space-y-2">
-            <Label className="text-sm font-medium flex items-center gap-2">
+            <Label className="text-sm font-medium flex items-center gap-2 dark:text-gray-200">
               <Clock className="h-4 w-4" />
               Frequência
             </Label>
@@ -102,17 +102,17 @@ export const RecurrenceConfig: React.FC<RecurrenceConfigProps> = ({
               value={transaction.recurrenceFrequency || 'monthly'} 
               onValueChange={handleFrequencyChange}
             >
-              <SelectTrigger>
+              <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
                 <SelectValue placeholder="Selecione a frequência" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="weekly">
+              <SelectContent className="dark:bg-gray-700 dark:border-gray-600">
+                <SelectItem value="weekly" className="dark:text-gray-200 dark:focus:bg-gray-600">
                   🗓️ Semanal (toda semana)
                 </SelectItem>
-                <SelectItem value="monthly">
+                <SelectItem value="monthly" className="dark:text-gray-200 dark:focus:bg-gray-600">
                   📅 Mensal (todo mês)
                 </SelectItem>
-                <SelectItem value="yearly">
+                <SelectItem value="yearly" className="dark:text-gray-200 dark:focus:bg-gray-600">
                   🎂 Anual (todo ano)
                 </SelectItem>
               </SelectContent>
@@ -121,17 +121,21 @@ export const RecurrenceConfig: React.FC<RecurrenceConfigProps> = ({
           
           {transaction.recurrenceFrequency === 'weekly' && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Dia da semana</Label>
+              <Label className="text-sm font-medium dark:text-gray-200">Dia da semana</Label>
               <Select 
                 value={transaction.recurringWeekday?.toString() || '1'} 
                 onValueChange={handleWeekdayChange}
               >
-                <SelectTrigger>
+                <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
                   <SelectValue placeholder="Selecione o dia da semana" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="dark:bg-gray-700 dark:border-gray-600">
                   {weekDays.map(day => (
-                    <SelectItem key={day.value} value={day.value.toString()}>
+                    <SelectItem 
+                      key={day.value} 
+                      value={day.value.toString()}
+                      className="dark:text-gray-200 dark:focus:bg-gray-600"
+                    >
                       {day.label}
                     </SelectItem>
                   ))}
@@ -142,7 +146,7 @@ export const RecurrenceConfig: React.FC<RecurrenceConfigProps> = ({
           
           {(transaction.recurrenceFrequency === 'monthly' || transaction.recurrenceFrequency === 'yearly') && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium">
+              <Label className="text-sm font-medium dark:text-gray-200">
                 Dia do {transaction.recurrenceFrequency === 'monthly' ? 'mês' : 'ano'}
               </Label>
               <Input
@@ -152,9 +156,9 @@ export const RecurrenceConfig: React.FC<RecurrenceConfigProps> = ({
                 placeholder="Ex: 15"
                 value={transaction.recurringDay || ''}
                 onChange={(e) => handleDayChange(e.target.value)}
-                className="w-24"
+                className="w-24 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400"
               />
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 {transaction.recurrenceFrequency === 'monthly' 
                   ? 'Dia do mês (1-31)' 
                   : 'Dia do ano (mesma data todo ano)'}
@@ -164,11 +168,11 @@ export const RecurrenceConfig: React.FC<RecurrenceConfigProps> = ({
           
           {/* Prévia da próxima ocorrência */}
           {transaction.nextOccurrence && (
-            <div className="bg-blue-50 p-3 rounded-md">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md border dark:border-blue-800">
               <div className="flex items-center gap-2 text-sm">
-                <CalendarDays className="h-4 w-4 text-blue-600" />
-                <span className="font-medium text-blue-900">Próxima execução:</span>
-                <span className="text-blue-700">
+                <CalendarDays className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="font-medium text-blue-900 dark:text-blue-300">Próxima execução:</span>
+                <span className="text-blue-700 dark:text-blue-200">
                   {new Date(transaction.nextOccurrence).toLocaleDateString('pt-BR', {
                     weekday: 'long',
                     year: 'numeric',

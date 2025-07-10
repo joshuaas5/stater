@@ -763,14 +763,50 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
               
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open('https://t.me/stater', '_blank')}
-                className="border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900"
-              >
-                <span className="text-xs">Abrir Bot</span>
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open('https://t.me/stater', '_blank')}
+                  className="border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900"
+                >
+                  <span className="text-xs">Abrir Bot</span>
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    if (confirm('🔌 Desconectar do Telegram?\n\nVocê não receberá mais notificações até conectar novamente.')) {
+                      try {
+                        const { error } = await supabase
+                          .from('telegram_users')
+                          .delete()
+                          .eq('user_id', user?.id);
+                        
+                        if (error) throw error;
+                        
+                        setIsTelegramLinked(false);
+                        setTelegramInfo(null);
+                        
+                        toast({
+                          title: "🔌 Desconectado",
+                          description: "Telegram desconectado com sucesso!",
+                        });
+                      } catch (error: any) {
+                        toast({
+                          title: "❌ Erro",
+                          description: "Erro ao desconectar: " + error.message,
+                          variant: "destructive"
+                        });
+                      }
+                    }
+                  }}
+                  className="border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900"
+                >
+                  <span className="text-xs">Desconectar</span>
+                </Button>
+              </div>
             </div>
           </div>
         )}

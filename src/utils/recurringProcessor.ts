@@ -212,7 +212,11 @@ export const processRecurringTransactions = async (): Promise<RecurringProcessRe
       `💰 ${processedTransactions.length} transação${processedTransactions.length > 1 ? 'ões' : ''} recorrente${processedTransactions.length > 1 ? 's' : ''} adicionada${processedTransactions.length > 1 ? 's' : ''} ao saldo!`,
       {
         description: `Total: R$ ${processedTransactions.reduce((sum, t) => sum + t.amount, 0).toFixed(2)}`,
-        duration: 4000,
+        duration: 6000,
+        action: {
+          label: "✕",
+          onClick: () => {},
+        },
       }
     );
   }
@@ -368,11 +372,7 @@ export const debugRecurringTransactions = (): void => {
 export const startRecurringProcessor = (): void => {
   console.log('🚀 Iniciando processador automático de transações recorrentes');
 
-  // Processar imediatamente quando o app é carregado
-  setTimeout(() => {
-    processRecurringTransactions();
-  }, 2000); // Aguarda 2 segundos para garantir que tudo foi carregado
-
+  // REMOVER processamento imediato para evitar notificação ao carregar app
   // Processar a cada hora quando o app estiver ativo
   const intervalId = setInterval(() => {
     if (document.visibilityState === 'visible') {
@@ -380,13 +380,19 @@ export const startRecurringProcessor = (): void => {
     }
   }, 60 * 60 * 1000); // 1 hora
 
-  // Processar quando o app volta do background
+  // Processar quando o app volta do background (apenas se esteve ausente por mais de 30 min)
+  let lastProcessTime = new Date().getTime();
   const handleVisibilityChange = () => {
     if (document.visibilityState === 'visible') {
-      // Aguardar um pouco para garantir que o app foi reativado completamente
-      setTimeout(() => {
-        processRecurringTransactions();
-      }, 1000);
+      const now = new Date().getTime();
+      const timeDiff = now - lastProcessTime;
+      // Só processar se esteve ausente por mais de 30 minutos
+      if (timeDiff > 30 * 60 * 1000) {
+        setTimeout(() => {
+          processRecurringTransactions();
+          lastProcessTime = now;
+        }, 1000);
+      }
     }
   };
 

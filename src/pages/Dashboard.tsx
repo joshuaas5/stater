@@ -452,9 +452,17 @@ const Dashboard: React.FC = () => {
     const allTransactions = getTransactions();
     console.log(`📊 [loadTransactions] Total encontrado: ${allTransactions.length}`);
     
-    // Filtrar transações recorrentes que ainda não foram processadas
-    // Elas não devem aparecer nas listas até serem executadas
-    const validTransactions = allTransactions.filter(t => {
+    // Filtrar transações recorrentes que ainda não foram processadas APENAS para cálculos
+    const validTransactionsForCalculation = allTransactions.filter(t => {
+      // Se é recorrente e não é uma instância, não incluir nos cálculos
+      if (t.isRecurring && !t.isRecurringInstance) {
+        return false;
+      }
+      return true;
+    });
+    
+    // Para exibição, filtrar apenas recorrentes não processadas (manter todas as instâncias normais)
+    const validTransactionsForDisplay = allTransactions.filter(t => {
       // Se é recorrente e não é uma instância, não mostrar na lista de transações
       if (t.isRecurring && !t.isRecurringInstance) {
         return false;
@@ -462,11 +470,12 @@ const Dashboard: React.FC = () => {
       return true;
     });
     
-    console.log(`📊 [loadTransactions] Após filtrar recorrentes não processadas: ${validTransactions.length}`);
+    console.log(`📊 [loadTransactions] Para cálculos: ${validTransactionsForCalculation.length}`);
+    console.log(`📊 [loadTransactions] Para exibição: ${validTransactionsForDisplay.length}`);
     
     // LOG: Mostrar as últimas 5 transações para debug
-    if (validTransactions.length > 0) {
-      const sortedByDate = [...validTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    if (validTransactionsForDisplay.length > 0) {
+      const sortedByDate = [...validTransactionsForDisplay].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       console.log('📊 [DEBUG] Últimas 5 transações por data:', sortedByDate.slice(0, 5).map(t => ({
         title: t.title,
         date: t.date,
@@ -476,11 +485,11 @@ const Dashboard: React.FC = () => {
       })));
     }
     
-    let filteredTransactionsForDisplay = validTransactions;
-    let filteredTransactionsForCalculation = validTransactions;
+    let filteredTransactionsForDisplay = validTransactionsForDisplay;
+    let filteredTransactionsForCalculation = validTransactionsForCalculation;
     
     // Para os cálculos de receitas/gastos, usar sempre o filtro de mês/ano
-    filteredTransactionsForCalculation = validTransactions.filter(t => {
+    filteredTransactionsForCalculation = validTransactionsForCalculation.filter(t => {
       const transactionDate = new Date(t.date);
       return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
     });
@@ -491,31 +500,30 @@ const Dashboard: React.FC = () => {
       // Se há filtro de período personalizado, aplicar ele
       const start = new Date(startDate + 'T00:00:00');
       const end = new Date(endDate + 'T23:59:59');
-      filteredTransactionsForDisplay = allTransactions.filter(t => {
+      filteredTransactionsForDisplay = validTransactionsForDisplay.filter(t => {
         const transactionDate = new Date(t.date);
         return transactionDate >= start && transactionDate <= end;
       });
       console.log(`📊 [loadTransactions] Exibição - período personalizado: ${filteredTransactionsForDisplay.length}`);
     } else if (nameFilter.trim()) {
-      // Se há filtro de nome, aplicar sobre todas as transações
-      filteredTransactionsForDisplay = allTransactions.filter(t => 
+      // Se há filtro de nome, aplicar sobre transações válidas para exibição
+      filteredTransactionsForDisplay = validTransactionsForDisplay.filter(t => 
         t.title.toLowerCase().includes(nameFilter.toLowerCase()) ||
         t.category.toLowerCase().includes(nameFilter.toLowerCase())
       );
       console.log(`📊 [loadTransactions] Exibição - filtro por nome: ${filteredTransactionsForDisplay.length}`);
     } else {
-      // NOVA LÓGICA SIMPLIFICADA: Sempre mostrar as 20 transações mais recentes
-      // Isso garante que transações criadas via PDF/AI apareçam imediatamente
-      filteredTransactionsForDisplay = [...allTransactions];
+      // LÓGICA CORRIGIDA: Mostrar todas as transações válidas ordenadas por data
+      filteredTransactionsForDisplay = [...validTransactionsForDisplay];
       
       // Ordenar por data (mais recentes primeiro)
       filteredTransactionsForDisplay.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
-      // Limitar a 20 transações para performance
-      filteredTransactionsForDisplay = filteredTransactionsForDisplay.slice(0, 20);
+      // Limitar a 50 transações para performance e manter histórico visível
+      filteredTransactionsForDisplay = filteredTransactionsForDisplay.slice(0, 50);
       
       // LOG: Mostrar detalhes das transações que serão exibidas
-      console.log(`📊 [DEBUG] NOVA LÓGICA - Mostrando 20 transações mais recentes de TODAS as datas`);
+      console.log(`📊 [DEBUG] NOVA LÓGICA - Mostrando 50 transações mais recentes (${filteredTransactionsForDisplay.length} encontradas)`);
       console.log(`📊 [DEBUG] Primeiras 5 transações:`, filteredTransactionsForDisplay.slice(0, 5).map(t => ({
         title: t.title,
         date: new Date(t.date).toISOString(),
@@ -898,7 +906,7 @@ const Dashboard: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open('https://t.me/stater', '_blank')}
+                  onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
                   className="border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900"
                 >
                   <span className="text-xs">Abrir Bot</span>
@@ -982,13 +990,14 @@ const Dashboard: React.FC = () => {
               <Input 
                 id="amount" 
                 name="amount"
+                type="text"
                 value={editingTransaction ? String(editingTransaction.amount ?? '') : newTransaction.amount} 
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = e.target.value;
                   if (editingTransaction) setEditingTransaction({...editingTransaction, amount: value === '' ? 0 : Number(value)}); // Use 0 for empty string to satisfy number type
                   else handleNewTransactionChange(e);
                 }}
-                placeholder="Ex: 1000 ou 2 mil"
+                placeholder="Ex: 1000, 1.500,50, 2 mil, 1,5 milhões"
               />
             </div>
             <div className="grid gap-2">

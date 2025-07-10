@@ -985,7 +985,7 @@ const Dashboard: React.FC = () => {
                   if (editingTransaction) setEditingTransaction({...editingTransaction, amount: value === '' ? 0 : Number(value)});
                   else setNewTransaction({...newTransaction, amount: value});
                 }}
-                placeholder="Ex: 150.50"
+                placeholder="Ex: 250"
               />
             </div>
             <div className="grid gap-2">

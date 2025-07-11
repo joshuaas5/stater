@@ -1,6 +1,6 @@
 // src/pages/FinancialAnalysisPage.tsx
 import React, { Suspense, lazy, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button} from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Brain, BarChart3, Target, BookOpen, Lightbulb, Loader2, TrendingUp, MessageSquare } from 'lucide-react';
@@ -77,7 +77,7 @@ const FinancialAnalysisPage: React.FC = () => {
             textTransform: 'uppercase'
           }}
         >
-          STATER IA
+          ANÁLISE FINANCEIRA
         </div>
         
         <div style={{ width: '80px' }}></div> {/* Spacer para centralizar o título */}
@@ -112,7 +112,7 @@ const FinancialAnalysisPage: React.FC = () => {
           <TabsContent value="insights" className="space-y-4">
             <div className="text-center mb-4">
               <h2 className="text-lg font-semibold text-gray-800 mb-1">� Insights Inteligentes</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Descobertas importantes sobre seus hábitos financeiros</p>
+
             </div>
             
 

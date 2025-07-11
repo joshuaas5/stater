@@ -85,7 +85,7 @@ const FinancialAnalysisPage: React.FC = () => {
             </div>
             
             {/* Banner destacando insights */}
-            <Card className="bg-gradient-to-r from-green-500 to-blue-600 dark:from-green-600 dark:to-blue-700 text-white border-0 shadow-lg">
+            <Card className="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 text-white border-0 shadow-lg">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <MessageSquare className="w-8 h-8 text-yellow-300" />
@@ -158,7 +158,7 @@ const FinancialAnalysisPage: React.FC = () => {
             </div>
             
             {/* Banner honesto sobre educação */}
-            <Card className="bg-gradient-to-r from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 text-white border-0">
+            <Card className="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 text-white border-0">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <BookOpen className="w-6 h-6 text-yellow-300" />

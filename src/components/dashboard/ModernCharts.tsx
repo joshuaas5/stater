@@ -140,7 +140,7 @@ const ModernCharts: React.FC = () => {
 
   const renderTrendChart = () => (
     <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={monthlyData} margin={{ top: 20, right: 30, left: 80, bottom: 20 }}>
+      <AreaChart data={monthlyData} margin={{ top: 20, right: 20, left: 10, bottom: 20 }}>
         <defs>
           <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor={BLUE_COLORS.primary} stopOpacity={0.8}/>
@@ -155,15 +155,15 @@ const ModernCharts: React.FC = () => {
         <XAxis 
           dataKey="month" 
           stroke="#6b7280" 
-          fontSize={12} 
+          fontSize={10} 
           tick={{ fill: '#6b7280' }}
         />
         <YAxis 
           stroke="#6b7280" 
-          fontSize={12} 
+          fontSize={10} 
           tick={{ fill: '#6b7280' }}
-          tickFormatter={formatCurrency}
-          width={80}
+          tickFormatter={(value) => `R$${(value/1000).toFixed(0)}k`}
+          width={50}
         />
         <Tooltip content={<CustomTooltip />} />
         <Area
@@ -193,12 +193,12 @@ const ModernCharts: React.FC = () => {
           data={categoryData}
           cx="50%"
           cy="50%"
-          outerRadius={100}
+          outerRadius={80}
           fill={BLUE_COLORS.primary}
           dataKey="value"
           label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
           labelLine={false}
-          fontSize={12}
+          fontSize={10}
         >
           {categoryData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
@@ -211,20 +211,20 @@ const ModernCharts: React.FC = () => {
 
   const renderComparisonChart = () => (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 80, bottom: 20 }}>
+      <BarChart data={monthlyData} margin={{ top: 20, right: 20, left: 10, bottom: 20 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         <XAxis 
           dataKey="month" 
           stroke="#6b7280" 
-          fontSize={12} 
+          fontSize={10} 
           tick={{ fill: '#6b7280' }}
         />
         <YAxis 
           stroke="#6b7280" 
-          fontSize={12} 
+          fontSize={10} 
           tick={{ fill: '#6b7280' }}
-          tickFormatter={formatCurrency}
-          width={80}
+          tickFormatter={(value) => `R$${(value/1000).toFixed(0)}k`}
+          width={50}
         />
         <Tooltip content={<CustomTooltip />} />
         <Bar dataKey="income" fill={BLUE_COLORS.primary} name="Receitas" />
@@ -235,38 +235,44 @@ const ModernCharts: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Seletor de gráfico */}
-      <div className="flex space-x-2 bg-white dark:bg-gray-800 p-2 rounded-lg border dark:border-gray-700">
-        <button
-          onClick={() => setSelectedChart('trend')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            selectedChart === 'trend'
-              ? 'bg-blue-500 text-white'
-              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-          }`}
-        >
-          Tendência
-        </button>
-        <button
-          onClick={() => setSelectedChart('categories')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            selectedChart === 'categories'
-              ? 'bg-blue-500 text-white'
-              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-          }`}
-        >
-          Categorias
-        </button>
-        <button
-          onClick={() => setSelectedChart('comparison')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            selectedChart === 'comparison'
-              ? 'bg-blue-500 text-white'
-              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-          }`}
-        >
-          Comparação
-        </button>
+      {/* Seletor de gráfico criativo e mobile-friendly */}
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 rounded-xl p-4 shadow-lg">
+        <h3 className="text-white font-semibold text-sm mb-3 text-center">Escolha sua visualização</h3>
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            onClick={() => setSelectedChart('trend')}
+            className={`p-3 rounded-lg text-center transition-all duration-300 ${
+              selectedChart === 'trend'
+                ? 'bg-white/30 backdrop-blur-sm text-white shadow-lg scale-105'
+                : 'bg-white/10 text-white/80 hover:bg-white/20'
+            }`}
+          >
+            <div className="text-lg mb-1">📈</div>
+            <div className="text-xs font-medium">Evolução</div>
+          </button>
+          <button
+            onClick={() => setSelectedChart('categories')}
+            className={`p-3 rounded-lg text-center transition-all duration-300 ${
+              selectedChart === 'categories'
+                ? 'bg-white/30 backdrop-blur-sm text-white shadow-lg scale-105'
+                : 'bg-white/10 text-white/80 hover:bg-white/20'
+            }`}
+          >
+            <div className="text-lg mb-1">🎯</div>
+            <div className="text-xs font-medium">Categorias</div>
+          </button>
+          <button
+            onClick={() => setSelectedChart('comparison')}
+            className={`p-3 rounded-lg text-center transition-all duration-300 ${
+              selectedChart === 'comparison'
+                ? 'bg-white/30 backdrop-blur-sm text-white shadow-lg scale-105'
+                : 'bg-white/10 text-white/80 hover:bg-white/20'
+            }`}
+          >
+            <div className="text-lg mb-1">⚖️</div>
+            <div className="text-xs font-medium">Vs</div>
+          </button>
+        </div>
       </div>
 
       {/* Gráficos */}

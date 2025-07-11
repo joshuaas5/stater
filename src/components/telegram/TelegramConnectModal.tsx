@@ -86,7 +86,26 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
 
         <div className="mb-4">
           <p className="text-sm text-gray-600 mb-3">
-            Para conectar sua conta ao Telegram:
+            🚀 <strong>Conecte-se ao Stater IA via Telegram!</strong>
+          </p>
+          
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+            <h4 className="font-semibold text-blue-900 mb-2">✨ O que você pode fazer:</h4>
+            <ul className="text-xs text-blue-800 space-y-1">
+              <li>📷 <strong>Enviar fotos</strong> de extratos, notas fiscais e PDFs</li>
+              <li>💰 <strong>Registrar transações</strong> por voz ou texto</li>
+              <li>📊 <strong>Consultar saldo</strong> e situação financeira</li>
+              <li>🧾 <strong>Verificar contas</strong> a pagar e vencimentos</li>
+              <li>💡 <strong>Pedir dicas</strong> e conselhos financeiros</li>
+              <li>🔍 <strong>Fazer qualquer pergunta</strong> sobre suas finanças</li>
+            </ul>
+            <p className="text-xs text-blue-700 mt-2 font-medium">
+              Stater - Inteligência para prosperar 🎯
+            </p>
+          </div>
+          
+          <p className="text-sm text-gray-700 mb-3 font-medium">
+            📱 Como conectar:
           </p>
           <ol className="text-sm text-gray-700 space-y-2 mb-4">
             <li>1. Clique em <strong>"Gerar Código"</strong> abaixo</li>
@@ -163,12 +182,24 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
           </div>
         )}
 
-        <div className="mt-4 text-xs text-gray-500">
-          <p>
+        <div className="mt-4 text-xs text-gray-600">
+          <p className="font-semibold mb-2">
             <strong>Bot:</strong> @assistentefinanceiroiabot
           </p>
-          <p className="mt-1">
-            O código expira em 15 minutos
+          
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-2">
+            <p className="font-semibold text-gray-700 mb-2">💬 Exemplos de como usar:</p>
+            <ul className="space-y-1 text-gray-600">
+              <li>• "Registrei uma compra de R$ 45 no mercado"</li>
+              <li>• "Qual meu saldo atual?"</li>
+              <li>• "Tenho contas para pagar hoje?"</li>
+              <li>• "Como posso economizar mais?"</li>
+              <li>• Envie fotos de extratos ou notas fiscais 📷</li>
+            </ul>
+          </div>
+          
+          <p className="text-gray-500">
+            ⏰ O código expira em 15 minutos
           </p>
         </div>
       </div>

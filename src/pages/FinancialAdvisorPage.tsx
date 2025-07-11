@@ -55,7 +55,45 @@ interface PendingAction {
 }
 
 // Mover para fora do componente para evitar recriação
-const INITIAL_SYSTEM_MESSAGE_TEXT = `Olá, sou sua IA de gestão financeira. Como posso lhe ajudar hoje?\n\nPosso ajudá-lo a:\n• Registrar receitas e despesas\n• Analisar seus gastos\n• Criar orçamentos\n• Dar dicas de economia\n• Gerenciar suas contas\n\nSempre pedirei confirmação antes de registrar qualquer transação.`;
+const INITIAL_SYSTEM_MESSAGE_TEXT = `🎯 Olá! Sou o Stater IA, sua inteligência artificial financeira completa!
+
+✨ PRINCIPAIS FUNCIONALIDADES:
+
+📊 ANÁLISE DE DADOS FINANCEIROS:
+• Análise completa de extratos bancários, notas fiscais e PDFs
+• Envie fotos ou documentos e eu leio automaticamente
+• Categorização inteligente de transações
+• Relatórios detalhados de gastos por categoria
+
+💰 GESTÃO INTELIGENTE:
+• Registro rápido de receitas e despesas
+• Análise do seu saldo e situação financeira
+• Controle de contas a pagar e receber
+• Planejamento de orçamento personalizado
+
+🤖 CONSULTOR PESSOAL:
+• Dicas personalizadas de economia
+• Conselhos para melhorar sua situação financeira
+• Respostas para qualquer dúvida sobre finanças
+• Análise de tendências de gastos
+
+📱 INTEGRAÇÃO TELEGRAM:
+• Use o bot @assistentefinanceiroiabot
+• Mesma inteligência, em qualquer lugar
+• Sincronização automática com o app
+
+🔍 EXEMPLOS DO QUE POSSO FAZER:
+"Analise meus gastos do último mês"
+"Como posso economizar na categoria alimentação?"
+"Registre uma despesa de R$ 50 com supermercado"
+"Qual meu saldo atual?"
+"Minhas contas vencem essa semana?"
+
+💡 Sempre confirmo antes de salvar qualquer transação!
+
+Stater - Inteligência para prosperar
+
+Como posso ajudá-lo hoje?`;
 
 export const FinancialAdvisorPage: React.FC = () => {
   // const [showAddBillModal, setShowAddBillModal] = useState(false);

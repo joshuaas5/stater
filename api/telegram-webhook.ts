@@ -1117,15 +1117,23 @@ export default async function handler(req: any, res: any) {
           if (linkSuccess) {
             console.log('✅ Vinculação bem-sucedida');
             await sendTelegramMessage(chatId, 
-              `✅ Conta vinculada com sucesso!\n\n` +
-              `🎉 Olá ${username}! Sua conta Stater foi conectada ao Telegram.\n\n` +
-              `🤖 Agora posso ajudar você com:\n` +
-              `💰 Consultas de saldo e transações\n` +
-              `📊 Análises financeiras personalizadas\n` +
-              `💡 Dicas e conselhos financeiros\n` +
-              `📝 Registro de novas transações\n\n` +
-              `💬 Digite qualquer pergunta sobre suas finanças e eu responderei com base nos seus dados reais!\n\n` +
-              `Stater IA ativo! 🚀`
+              `🎉 <b>Conectado com sucesso!</b>\n\n` +
+              `Olá ${username}! Sua conta Stater foi vinculada ao Telegram.\n\n` +
+              `🚀 <b>AGORA VOCÊ PODE:</b>\n\n` +
+              `📷 <b>Enviar fotos</b> de extratos, notas fiscais ou cupons\n` +
+              `📄 <b>Enviar PDFs</b> de faturas ou documentos financeiros\n` +
+              `💰 <b>Registrar transações:</b> "gastei 50 reais no mercado"\n` +
+              `📊 <b>Consultar dados:</b> "qual meu saldo?" ou "gastos do mês"\n` +
+              `� <b>Pedir dicas:</b> "como economizar dinheiro?"\n` +
+              `🤔 <b>Fazer perguntas:</b> sobre investimentos, orçamento, finanças\n` +
+              `� <b>Ver suas contas:</b> "minhas contas em aberto"\n\n` +
+              `✨ <b>Exemplos práticos:</b>\n` +
+              `• "Adicione uma despesa de 120 reais com combustível"\n` +
+              `• "Quanto gastei com alimentação este mês?"\n` +
+              `• "Tenho alguma conta vencendo?"\n` +
+              `• "Dicas para organizar meu orçamento"\n\n` +
+              `💬 <b>Comece agora!</b> Digite qualquer pergunta e eu responderei com seus dados reais.\n\n` +
+              `<i>Stater - Inteligência para prosperar</i> 🌟`
             );          } else {
             console.log('❌ Falha na vinculação');            await sendTelegramMessage(chatId,
               `❌ <b>Código inválido ou expirado</b>\n\n` +
@@ -1142,17 +1150,27 @@ export default async function handler(req: any, res: any) {
           console.log('🆕 Comando /start sem código');
           await sendTelegramMessage(chatId,
             '👋 <b>Bem-vindo ao Stater IA!</b>\n\n' +
-            '🤖 Sou seu assistente financeiro pessoal com Inteligência para Prosperar.\n\n' +
-            '🔗 <b>Para começar:</b>\n' +
+            '🤖 Sou seu assistente financeiro pessoal inteligente.\n\n' +
+            '� <b>O QUE EU FAÇO:</b>\n\n' +
+            '📷 <b>Analiso fotos</b> de extratos, cupons, notas fiscais\n' +
+            '📄 <b>Leio documentos</b> PDF, planilhas, faturas\n' +
+            '💰 <b>Registro transações:</b> "gastei 80 reais no supermercado"\n' +
+            '📊 <b>Análises completas:</b> saldo, gastos, receitas, categorias\n' +
+            '📋 <b>Controlo suas contas:</b> vencimentos, pagamentos, alertas\n' +
+            '� <b>Dou conselhos:</b> como economizar, investir, organizar\n' +
+            '🤔 <b>Respondo tudo:</b> sobre sua vida financeira\n\n' +
+            '✨ <b>EXEMPLOS DE USO:</b>\n' +
+            '• Envie foto do extrato bancário\n' +
+            '• "Qual meu saldo atual?"\n' +
+            '• "Gastei 45 reais no almoço"\n' +
+            '• "Como economizar 500 reais por mês?"\n' +
+            '• "Minhas contas vencem quando?"\n\n' +
+            '� <b>PARA CONECTAR:</b>\n' +
             '1. Acesse o <a href="https://staterbills.vercel.app/settings/telegram">App Stater</a>\n' +
             '2. Vá em Configurações → Telegram\n' +
             '3. Clique em "Conectar" e gere um código\n' +
             '4. Cole o código aqui no chat\n\n' +
-            '💬 <b>Após conectar, use comandos como:</b>\n' +
-            '• "Qual meu saldo atual?"\n' +
-            '• "Análise dos meus gastos"\n' +
-            '• "Como economizar dinheiro?"\n\n' +
-            '💡 <i>Preciso acessar seus dados reais para análises personalizadas!</i>'
+            '<i>Stater - Inteligência para prosperar</i> 🌟'
           );
         }
         return res.status(200).json({ ok: true, message: 'Comando /start processado' });

@@ -84,18 +84,7 @@ const FinancialAnalysisPage: React.FC = () => {
               <p className="text-gray-600 dark:text-gray-400 text-sm">Descobertas importantes sobre seus hábitos financeiros</p>
             </div>
             
-            {/* Banner destacando insights */}
-            <Card className="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 text-white border-0 shadow-lg">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <MessageSquare className="w-8 h-8 text-yellow-300" />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-sm">Análises Personalizadas</h3>
-                    <p className="text-green-100 text-xs">Baseadas nos seus padrões únicos de gastos e receitas</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+
             
             <Suspense fallback={<LoadingCard title="insights personalizados" />}>
               <FinancialInsights />
@@ -110,66 +99,24 @@ const FinancialAnalysisPage: React.FC = () => {
             </div>
           </TabsContent>
 
-          {/* Tab: Gráficos (com correção de corte) */}
+          {/* Tab: Gráficos */}
           <TabsContent value="charts" className="space-y-4">
-            <div className="text-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">Análise Gráfica</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Visualização da evolução das suas finanças</p>
-            </div>
-            
-            {/* Container com padding para evitar corte dos números */}
-            <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
               <Suspense fallback={<LoadingCard title="gráficos" />}>
                 <ModernCharts />
               </Suspense>
             </div>
           </TabsContent>
 
-          {/* Tab: Score (mais claro e direto) */}
+          {/* Tab: Score */}
           <TabsContent value="score" className="space-y-4">
-            <div className="text-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">Score de Saúde Financeira</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Avaliação clara e objetiva da sua situação financeira</p>
-            </div>
-            
-            {/* Explicação do score */}
-            <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-blue-800 text-sm mb-2">Como calculamos seu score:</h3>
-                <div className="text-blue-700 text-xs space-y-1">
-                  <p>• <strong>Saldo positivo:</strong> +25 pontos</p>
-                  <p>• <strong>Receitas vs gastos:</strong> até 30 pontos</p>
-                  <p>• <strong>Consistência mensal:</strong> até 25 pontos</p>
-                  <p>• <strong>Diversificação de categorias:</strong> até 20 pontos</p>
-                </div>
-              </CardContent>
-            </Card>
-            
             <Suspense fallback={<LoadingCard title="score financeiro" />}>
               <FinancialHealthScoreCard />
             </Suspense>
           </TabsContent>
 
-          {/* Tab: Educação (honesta sobre não ser personalizada) */}
+          {/* Tab: Educação */}
           <TabsContent value="education" className="space-y-4">
-            <div className="text-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">Educação Financeira</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Conteúdo educativo para melhorar suas finanças</p>
-            </div>
-            
-            {/* Banner honesto sobre educação */}
-            <Card className="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 text-white border-0">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <BookOpen className="w-6 h-6 text-yellow-300" />
-                  <div>
-                    <h3 className="font-semibold text-sm">Conteúdo Educativo</h3>
-                    <p className="text-orange-100 text-xs">Livros e dicas selecionados pela nossa equipe</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
             <Suspense fallback={<LoadingCard title="conteúdo educacional" />}>
               <BookOfTheWeek />
             </Suspense>

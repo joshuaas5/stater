@@ -27,13 +27,27 @@ interface ChartData {
 interface CategoryData {
   name: string;
   value: number;
-  color: string;
 }
 
 const ModernCharts: React.FC = () => {
   const [monthlyData, setMonthlyData] = useState<ChartData[]>([]);
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
   const [selectedChart, setSelectedChart] = useState<'trend' | 'categories' | 'comparison'>('trend');
+
+  // CORES CONSISTENTES - APENAS AZUL
+  const BLUE_COLORS = {
+    primary: '#3b82f6',     // blue-500
+    secondary: '#1d4ed8',   // blue-700
+    light: '#93c5fd',       // blue-300
+    lighter: '#dbeafe',     // blue-100
+    income: '#3b82f6',      // blue-500
+    expense: '#1d4ed8'      // blue-700
+  };
+
+  const PIE_COLORS = [
+    '#3b82f6', '#1d4ed8', '#60a5fa', '#2563eb', 
+    '#1e40af', '#4f46e5', '#6366f1', '#8b5cf6'
+  ]; // Apenas tons de azul
 
   useEffect(() => {
     const transactions: Transaction[] = getTransactions();
@@ -59,14 +73,14 @@ const ModernCharts: React.FC = () => {
         } else {
           monthlyStats[monthKey].expenses += transaction.amount;
           
-          // Agrupar por categoria para o gráfico de pizza
+          // Agrupar por categoria
           const category = transaction.category || 'Outros';
           categoryStats[category] = (categoryStats[category] || 0) + transaction.amount;
         }
       }
     });
 
-    // Converter para array para os gráficos
+    // Converter para array
     const chartData = Object.entries(monthlyStats).map(([month, data]) => ({
       month,
       income: data.income,
@@ -76,16 +90,11 @@ const ModernCharts: React.FC = () => {
 
     setMonthlyData(chartData);
 
-    // Converter categorias para o gráfico de pizza
-    const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#a8edea', '#764ba2', '#f5576c'];
+    // Converter categorias
     const categoryArray = Object.entries(categoryStats)
       .sort(([,a], [,b]) => b - a)
       .slice(0, 8)
-      .map(([name, value], index) => ({
-        name,
-        value,
-        color: colors[index % colors.length]
-      }));
+      .map(([name, value]) => ({ name, value }));
 
     setCategoryData(categoryArray);
   }, []);
@@ -101,8 +110,8 @@ const ModernCharts: React.FC = () => {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border border-gray-200 p-3 rounded-lg shadow-lg">
-          <p className="text-gray-800 font-medium">{label}</p>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 rounded-lg shadow-lg">
+          <p className="text-gray-800 dark:text-gray-200 font-medium">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name}: {formatCurrency(entry.value)}
@@ -119,9 +128,9 @@ const ModernCharts: React.FC = () => {
     title, 
     className = "" 
   }) => (
-    <Card className={`bg-white border-gray-200 shadow-sm ${className}`}>
+    <Card className={`bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm ${className}`}>
       <CardHeader>
-        <CardTitle className="text-gray-800 text-lg font-semibold">{title}</CardTitle>
+        <CardTitle className="text-gray-800 dark:text-gray-200 text-lg font-semibold">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         {children}
@@ -131,15 +140,15 @@ const ModernCharts: React.FC = () => {
 
   const renderTrendChart = () => (
     <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={monthlyData} margin={{ top: 10, right: 30, left: 60, bottom: 0 }}>
+      <AreaChart data={monthlyData} margin={{ top: 20, right: 30, left: 80, bottom: 20 }}>
         <defs>
           <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-            <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+            <stop offset="5%" stopColor={BLUE_COLORS.primary} stopOpacity={0.8}/>
+            <stop offset="95%" stopColor={BLUE_COLORS.primary} stopOpacity={0.1}/>
           </linearGradient>
           <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-            <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
+            <stop offset="5%" stopColor={BLUE_COLORS.secondary} stopOpacity={0.8}/>
+            <stop offset="95%" stopColor={BLUE_COLORS.secondary} stopOpacity={0.1}/>
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -153,27 +162,25 @@ const ModernCharts: React.FC = () => {
           stroke="#6b7280" 
           fontSize={12} 
           tick={{ fill: '#6b7280' }}
-          tickFormatter={(value) => `R$ ${(value/1000).toFixed(0)}k`}
-          width={50}
+          tickFormatter={formatCurrency}
+          width={80}
         />
         <Tooltip content={<CustomTooltip />} />
         <Area
           type="monotone"
           dataKey="income"
-          name="Receitas"
-          stroke="#10b981"
-          strokeWidth={2}
-          fillOpacity={1}
+          stackId="1"
+          stroke={BLUE_COLORS.primary}
           fill="url(#incomeGradient)"
+          name="Receitas"
         />
         <Area
           type="monotone"
           dataKey="expenses"
-          name="Despesas"
-          stroke="#ef4444"
-          strokeWidth={2}
-          fillOpacity={1}
+          stackId="2"
+          stroke={BLUE_COLORS.secondary}
           fill="url(#expenseGradient)"
+          name="Despesas"
         />
       </AreaChart>
     </ResponsiveContainer>
@@ -187,91 +194,96 @@ const ModernCharts: React.FC = () => {
           cx="50%"
           cy="50%"
           outerRadius={100}
+          fill={BLUE_COLORS.primary}
           dataKey="value"
           label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
           labelLine={false}
+          fontSize={12}
         >
           {categoryData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.color} />
+            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip formatter={(value: number) => formatCurrency(value)} />
+        <Tooltip formatter={(value) => formatCurrency(Number(value))} />
       </PieChart>
     </ResponsiveContainer>
   );
 
   const renderComparisonChart = () => (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={monthlyData} margin={{ top: 10, right: 30, left: 60, bottom: 0 }}>
+      <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 80, bottom: 20 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         <XAxis 
           dataKey="month" 
           stroke="#6b7280" 
-          fontSize={12}
+          fontSize={12} 
           tick={{ fill: '#6b7280' }}
         />
         <YAxis 
           stroke="#6b7280" 
-          fontSize={12}
+          fontSize={12} 
           tick={{ fill: '#6b7280' }}
-          tickFormatter={(value) => `R$ ${(value/1000).toFixed(0)}k`}
-          width={50}
+          tickFormatter={formatCurrency}
+          width={80}
         />
         <Tooltip content={<CustomTooltip />} />
-        <Bar
-          dataKey="income"
-          name="Receitas"
-          fill="#10b981"
-          radius={[4, 4, 0, 0]}
-        />
-        <Bar
-          dataKey="expenses"
-          name="Despesas"
-          fill="#ef4444"
-          radius={[4, 4, 0, 0]}
-        />
+        <Bar dataKey="income" fill={BLUE_COLORS.primary} name="Receitas" />
+        <Bar dataKey="expenses" fill={BLUE_COLORS.secondary} name="Despesas" />
       </BarChart>
     </ResponsiveContainer>
   );
 
   return (
     <div className="space-y-6">
-      {/* Seletor de gráficos */}
-      <div className="flex flex-wrap gap-2 justify-center">
-        {[
-          { key: 'trend', label: 'Evolução Temporal' },
-          { key: 'categories', label: 'Por Categoria' },
-          { key: 'comparison', label: 'Comparativo Mensal' }
-        ].map((option) => (
-          <button
-            key={option.key}
-            onClick={() => setSelectedChart(option.key as any)}
-            className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 backdrop-blur-md border ${
-              selectedChart === option.key
-                ? 'bg-white/20 text-white border-white/40 shadow-lg'
-                : 'bg-white/10 text-white/70 border-white/20 hover:bg-white/15'
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
+      {/* Seletor de gráfico */}
+      <div className="flex space-x-2 bg-white dark:bg-gray-800 p-2 rounded-lg border dark:border-gray-700">
+        <button
+          onClick={() => setSelectedChart('trend')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            selectedChart === 'trend'
+              ? 'bg-blue-500 text-white'
+              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }`}
+        >
+          Tendência
+        </button>
+        <button
+          onClick={() => setSelectedChart('categories')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            selectedChart === 'categories'
+              ? 'bg-blue-500 text-white'
+              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }`}
+        >
+          Categorias
+        </button>
+        <button
+          onClick={() => setSelectedChart('comparison')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            selectedChart === 'comparison'
+              ? 'bg-blue-500 text-white'
+              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }`}
+        >
+          Comparação
+        </button>
       </div>
 
-      {/* Gráfico selecionado */}
+      {/* Gráficos */}
       {selectedChart === 'trend' && (
-        <ChartCard title="📈 Evolução das Receitas e Despesas">
+        <ChartCard title="Evolução Financeira Mensal">
           {renderTrendChart()}
         </ChartCard>
       )}
 
       {selectedChart === 'categories' && (
-        <ChartCard title="🎯 Distribuição de Gastos por Categoria">
+        <ChartCard title="Gastos por Categoria">
           {renderCategoryChart()}
         </ChartCard>
       )}
 
       {selectedChart === 'comparison' && (
-        <ChartCard title="⚖️ Comparativo Mensal">
+        <ChartCard title="Receitas vs Despesas">
           {renderComparisonChart()}
         </ChartCard>
       )}

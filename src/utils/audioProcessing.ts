@@ -1,111 +1,133 @@
-// Audio processing service for Gemini integration
+// utils/audioProcessing.ts
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+
+if (!GEMINI_API_KEY) {
+  console.error('⚠️ VITE_GEMINI_API_KEY não configurada');
+}
+
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY || '');
+
 export interface AudioProcessingResult {
-  transcript: string;
-  response: string;
-  audioUrl?: string;
-  intent?: {
-    type: 'ADD_TRANSACTION' | 'GET_BALANCE' | 'GET_REPORT' | 'GENERAL';
-    data?: any;
-  };
+  success: boolean;
+  transcription?: string;
+  response?: string;
+  error?: string;
+  debug?: any;
 }
 
-export const processAudioWithGemini = async (audioFile: File, userId?: string): Promise<AudioProcessingResult> => {
+/**
+ * Processa áudio com Gemini 1.5 Flash usando inline_data
+ */
+export async function processAudioWithGemini(audioBlob: Blob): Promise<AudioProcessingResult> {
   try {
-    if (!audioFile) {
-      throw new Error('Arquivo de áudio é obrigatório');
+    console.log('🎤 Iniciando processamento de áudio com Gemini...');
+    console.log('📊 Tamanho do áudio:', audioBlob.size, 'bytes');
+    console.log('📋 Tipo MIME:', audioBlob.type);
+
+    if (!GEMINI_API_KEY) {
+      throw new Error('API key do Gemini não configurada');
     }
 
-    // Usando a mesma função que já existe no projeto
-    const { fetchGeminiFlashLite } = await import('@/utils/gemini');
+    if (audioBlob.size === 0) {
+      throw new Error('Arquivo de áudio vazio');
+    }
 
-    // Convert audio to base64
-    const audioBuffer = await audioFile.arrayBuffer();
-    const audioBase64 = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+    // Converter Blob para base64
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    const base64String = btoa(String.fromCharCode(...uint8Array));
 
-    // First: Speech-to-Text with Gemini
-    const transcriptPrompt = `
-Por favor, analise este arquivo de áudio e:
-1. Transcreva o conteúdo falado em português brasileiro
-2. Mantenha a naturalidade da fala
-3. Retorne apenas o texto transcrito
+    console.log('🔄 Audio convertido para base64. Tamanho:', base64String.length, 'caracteres');
 
-IMPORTANTE: Retorne apenas a transcrição, sem comentários adicionais.
+    // Configurar modelo Gemini 1.5 Flash
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+    });
 
-[ÁUDIO BASE64]: ${audioBase64.substring(0, 1000)}...`;
+    // Preparar prompt para análise financeira
+    const prompt = `
+Você é um assistente financeiro especializado. 
 
-    const transcript = await fetchGeminiFlashLite(transcriptPrompt);
+Analise este áudio e:
+1. Transcreva exatamente o que foi dito
+2. Identifique se há alguma questão financeira (gastos, investimentos, dúvidas sobre dinheiro)
+3. Forneça uma resposta útil e contextualizada
 
-    // Second: Analyze intent and generate response
-    const analysisPrompt = `
-Você é Stater IA, assistente financeiro inteligente.
-
-TRANSCRIÇÃO DO USUÁRIO: "${transcript}"
-
-INSTRUÇÕES:
-1. Analise a intenção financeira do usuário
-2. Identifique se é: ADD_TRANSACTION, GET_BALANCE, GET_REPORT, ou GENERAL
-3. Se for ADD_TRANSACTION, extraia: valor, categoria, tipo (receita/despesa), descrição
-4. Gere uma resposta natural e amigável em português brasileiro
-5. Mantenha o tom conversacional e útil
-
-FORMATO DE RESPOSTA (JSON válido):
+Responda em formato JSON:
 {
-  "intent": {
-    "type": "ADD_TRANSACTION",
-    "data": {
-      "amount": 50.00,
-      "category": "Alimentação", 
-      "type": "expense",
-      "description": "Descrição da transação"
-    }
-  },
-  "response": "Entendi! Você quer adicionar um gasto de R$ 50,00 em Alimentação. Posso confirmar essa transação para você?"
+  "transcription": "texto transcrito",
+  "hasFinancialContent": true/false,
+  "response": "sua resposta como assistente financeiro"
 }
+`;
 
-EXEMPLOS DE CLASSIFICAÇÃO:
-- "Adicionar gasto de 50 reais em alimentação" → ADD_TRANSACTION
-- "Gastei 30 reais no mercado" → ADD_TRANSACTION  
-- "Recebi 1000 reais de salário" → ADD_TRANSACTION (type: income)
-- "Quanto tenho de saldo?" → GET_BALANCE  
-- "Relatório da semana" → GET_REPORT
-- "Como estão meus gastos?" → GET_REPORT
-- Outras perguntas → GENERAL
+    // Preparar conteúdo com inline_data para Gemini
+    const requestContent = [
+      {
+        text: prompt
+      },
+      {
+        inline_data: {
+          mime_type: audioBlob.type || 'audio/webm',
+          data: base64String
+        }
+      }
+    ];
 
-Responda APENAS com o JSON válido:`;
-
-    const analysisResponse = await fetchGeminiFlashLite(analysisPrompt);
+    console.log('📤 Enviando para Gemini API...');
     
-    let parsedResult: any;
+    // Fazer requisição para Gemini
+    const result = await model.generateContent(requestContent);
+    const response = await result.response;
+    const text = response.text();
+
+    console.log('📥 Resposta bruta do Gemini:', text);
+
+    // Tentar parsear JSON da resposta
+    let parsedResponse: any;
     try {
-      // Extract JSON from response
-      const jsonMatch = analysisResponse.match(/\{[\s\S]*\}/);
-      const jsonStr = jsonMatch ? jsonMatch[0] : analysisResponse;
-      parsedResult = JSON.parse(jsonStr);
-    } catch (e) {
-      console.error('Erro ao fazer parse do JSON:', e);
-      // Fallback if JSON parsing fails
-      parsedResult = {
-        intent: { type: 'GENERAL' },
-        response: 'Entendi sua mensagem! Como posso ajudá-lo com suas finanças hoje?'
+      // Limpar possíveis caracteres markdown
+      const cleanedText = text.replace(/```json\n?|```\n?/g, '').trim();
+      parsedResponse = JSON.parse(cleanedText);
+    } catch (parseError) {
+      console.warn('⚠️ Não foi possível parsear JSON, usando resposta direta');
+      parsedResponse = {
+        transcription: text,
+        hasFinancialContent: true,
+        response: text
       };
     }
 
-    const result: AudioProcessingResult = {
-      transcript: transcript.trim(),
-      response: parsedResult.response || 'Como posso ajudá-lo?',
-      intent: parsedResult.intent || { type: 'GENERAL' }
-    };
+    console.log('✅ Processamento concluído:', parsedResponse);
 
-    return result;
+    return {
+      success: true,
+      transcription: parsedResponse.transcription || text,
+      response: parsedResponse.response || text,
+      debug: {
+        audioSize: audioBlob.size,
+        audioType: audioBlob.type,
+        base64Length: base64String.length,
+        rawResponse: text,
+        parsedResponse
+      }
+    };
 
   } catch (error) {
-    console.error('Erro no processamento de áudio:', error);
+    console.error('❌ Erro no processamento de áudio:', error);
     
-    // Fallback response
     return {
-      transcript: 'Não foi possível transcrever o áudio',
-      response: 'Desculpe, tive dificuldades para processar seu áudio. Pode tentar novamente ou digitar sua mensagem?',
-      intent: { type: 'GENERAL' }
+      success: false,
+      error: error instanceof Error ? error.message : 'Erro desconhecido no processamento de áudio',
+      debug: {
+        audioSize: audioBlob?.size || 0,
+        audioType: audioBlob?.type || 'unknown',
+        errorDetails: error
+      }
     };
   }
-};
+}
+
+export default processAudioWithGemini;

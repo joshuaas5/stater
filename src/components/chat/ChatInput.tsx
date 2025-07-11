@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Image, Camera, X, Loader2, Mic } from 'lucide-react';
+import { Send, Image, Camera, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import VoiceRecorder from '@/components/voice/VoiceRecorder';
 import VoiceRecorder from '@/components/voice/VoiceRecorder';
 
 interface ChatInputProps {

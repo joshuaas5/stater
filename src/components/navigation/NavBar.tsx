@@ -12,10 +12,10 @@ const NavBar: React.FC = () => {
     return location.pathname === path;
   };
   
-  // Reorganizando para que o Home fique no meio
+  // Ordem: Contas → Análise IA → Início → Stater IA → Ajustes
   const navItems = [
-    { icon: <Brain size={24} />, label: 'Análise IA', path: '/analise-financeira' },
     { icon: <FileText size={24} />, label: t('bills'), path: '/bills' },
+    { icon: <Brain size={24} />, label: 'Análise IA', path: '/analise-financeira' },
     { icon: <Home size={28} />, label: t('home'), path: '/dashboard' }, // Tamanho maior para destacar
     { icon: <Lightbulb size={24} />, label: t('advisor'), path: '/financial-advisor' },
     { icon: <Settings size={24} />, label: t('settings'), path: '/preferences' },

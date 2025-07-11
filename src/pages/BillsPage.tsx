@@ -229,9 +229,9 @@ const BillsPage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen pb-16 bg-gray-50 dark:bg-gray-900">
-      {/* Header com diamantes animados */}
+      {/* Header limpo sem diamantes */}
       <div 
-        className="sticky top-0 z-50 overflow-hidden"
+        className="sticky top-0 z-50"
         style={{
           background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
           color: 'white',
@@ -239,37 +239,7 @@ const BillsPage: React.FC = () => {
           position: 'relative'
         }}
       >
-        {/* Diamante superior direito */}
-        <div 
-          style={{
-            content: '',
-            position: 'absolute',
-            top: '-80%',
-            right: '-20%',
-            width: '80px',
-            height: '80px',
-            background: 'rgba(255,255,255,0.06)',
-            transform: 'rotate(45deg)',
-            animation: 'pulse 6s ease-in-out infinite'
-          }}
-        />
-        
-        {/* Diamante inferior esquerdo */}
-        <div 
-          style={{
-            content: '',
-            position: 'absolute',
-            bottom: '-80%',
-            left: '-20%',
-            width: '60px',
-            height: '60px',
-            background: 'rgba(255,255,255,0.04)',
-            transform: 'rotate(45deg)',
-            animation: 'pulse 4s ease-in-out infinite reverse'
-          }}
-        />
-        
-        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
           <h1 
             style={{
               fontSize: '1.5rem',
@@ -289,19 +259,7 @@ const BillsPage: React.FC = () => {
         </div>
       </div>
       
-      {/* CSS para animação */}
-      <style jsx>{`
-        @keyframes pulse {
-          0%, 100% {
-            transform: rotate(45deg) scale(1);
-            opacity: 0.04;
-          }
-          50% {
-            transform: rotate(45deg) scale(1.1);
-            opacity: 0.08;
-          }
-        }
-      `}</style>
+
       
       {/* Seletores de Mês e Ano */}
       <div className="px-4 pt-4 pb-3 bg-gray-50 dark:bg-gray-900 sticky z-10 border-b border-gray-200/50 dark:border-gray-700/50" style={{ top: '60px' }}>

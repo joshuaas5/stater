@@ -249,9 +249,7 @@ const BillsPage: React.FC = () => {
               background: 'linear-gradient(45deg, #ffffff 0%, #e0e7ff 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              textShadow: '0 0 30px rgba(255, 255, 255, 0.5)',
-              filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))'
+              backgroundClip: 'text'
             }}
           >
             💳 CONTAS
@@ -264,7 +262,7 @@ const BillsPage: React.FC = () => {
       {/* Seletores de Mês e Ano */}
       <div className="px-4 pt-4 pb-3 bg-gray-50 dark:bg-gray-900 sticky z-10 border-b border-gray-200/50 dark:border-gray-700/50" style={{ top: '60px' }}>
         <div className="flex flex-col sm:flex-row gap-3 items-center">
-          <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700 shadow-sm w-full sm:w-auto">
+          <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700 w-full sm:w-auto">
             <div className="flex items-center flex-1 sm:flex-auto">
               <Calendar size={18} className="ml-3 mr-2 text-gray-500 dark:text-gray-400" />
               <div className="relative flex-1 sm:w-44">
@@ -319,7 +317,7 @@ const BillsPage: React.FC = () => {
           
           <Button 
             onClick={handleAddBill} 
-            className="w-full sm:w-auto sm:ml-auto bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white shadow-sm transition-all duration-200"
+            className="w-full sm:w-auto sm:ml-auto bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white transition-all duration-200"
           >
             <Plus size={18} className="mr-2" /> Adicionar Conta
           </Button>

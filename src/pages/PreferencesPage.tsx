@@ -31,7 +31,7 @@ const PreferencesPage: React.FC = () => {
     language: 'pt-BR',
     currency: 'BRL',
     dateFormat: 'DD/MM/YYYY',
-    weekStartsOn: 'monday',
+    weekStartsOn: 'sunday',
     showCents: true,
     showRecurringBadges: true,
     showTransactionCategories: true,
@@ -252,16 +252,6 @@ const PreferencesPage: React.FC = () => {
               checked={preferences.showCents}
               onCheckedChange={() => handleSwitchChange('showCents')}
             />
-          </div>
-        </div>
-          
-        <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
-          <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
-            <Calendar size={18} className="mr-2" /> {t('startOfWeek')}
-          </h2>
-          <div className="flex space-x-4">
-            <Button variant={preferences.weekStartsOn === 'monday' ? 'default' : 'outline'} onClick={() => setPreferences(prev => ({ ...prev, weekStartsOn: 'monday' }))} className="flex-1">{t('monday')}</Button>
-            <Button variant={preferences.weekStartsOn === 'sunday' ? 'default' : 'outline'} onClick={() => setPreferences(prev => ({ ...prev, weekStartsOn: 'sunday' }))} className="flex-1">{t('sunday')}</Button>
           </div>
         </div>
           

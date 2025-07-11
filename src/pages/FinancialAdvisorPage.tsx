@@ -55,43 +55,15 @@ interface PendingAction {
 }
 
 // Mover para fora do componente para evitar recriação
-const INITIAL_SYSTEM_MESSAGE_TEXT = `🎯 Olá! Sou o Stater IA, sua inteligência artificial financeira completa!
+const INITIAL_SYSTEM_MESSAGE_TEXT = `🎯 **Olá! Sou o Stater IA** - sua IA financeira completa!
 
-✨ PRINCIPAIS FUNCIONALIDADES:
+✨ **O que posso fazer:**
+• Analisar extratos e documentos financeiros
+• Registrar receitas/despesas automaticamente  
+• Fornecer dicas personalizadas de economia
+• Controlar contas e planejamento financeiro
 
-📊 ANÁLISE DE DADOS FINANCEIROS:
-• Análise completa de extratos bancários, notas fiscais e PDFs
-• Envie fotos ou documentos e eu leio automaticamente
-• Categorização inteligente de transações
-• Relatórios detalhados de gastos por categoria
-
-💰 GESTÃO INTELIGENTE:
-• Registro rápido de receitas e despesas
-• Análise do seu saldo e situação financeira
-• Controle de contas a pagar e receber
-• Planejamento de orçamento personalizado
-
-🤖 CONSULTOR PESSOAL:
-• Dicas personalizadas de economia
-• Conselhos para melhorar sua situação financeira
-• Respostas para qualquer dúvida sobre finanças
-• Análise de tendências de gastos
-
-📱 INTEGRAÇÃO TELEGRAM:
-• Use o bot @assistentefinanceiroiabot
-• Mesma inteligência, em qualquer lugar
-• Sincronização automática com o app
-
-🔍 EXEMPLOS DO QUE POSSO FAZER:
-"Analise meus gastos do último mês"
-"Como posso economizar na categoria alimentação?"
-"Registre uma despesa de R$ 50 com supermercado"
-"Qual meu saldo atual?"
-"Minhas contas vencem essa semana?"
-
-💡 Sempre confirmo antes de salvar qualquer transação!
-
-Stater - Inteligência para prosperar
+💡 **Como usar:** Envie documentos, fotos ou faça perguntas sobre suas finanças. Sempre confirmo antes de salvar dados!
 
 Como posso ajudá-lo hoje?`;
 

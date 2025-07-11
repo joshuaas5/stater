@@ -235,41 +235,40 @@ const ModernCharts: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Seletor de gráfico criativo e mobile-friendly */}
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 rounded-xl p-4 shadow-lg">
-        <h3 className="text-white font-semibold text-sm mb-3 text-center">Escolha sua visualização</h3>
+      {/* Seletor de gráfico simplificado */}
+      <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-lg p-3 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
         <div className="grid grid-cols-3 gap-2">
           <button
             onClick={() => setSelectedChart('trend')}
-            className={`p-3 rounded-lg text-center transition-all duration-300 ${
+            className={`p-2 rounded-md text-center transition-all duration-200 ${
               selectedChart === 'trend'
-                ? 'bg-white/30 backdrop-blur-sm text-white shadow-lg scale-105'
-                : 'bg-white/10 text-white/80 hover:bg-white/20'
+                ? 'bg-blue-500 text-white shadow-sm'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
-            <div className="text-lg mb-1">📈</div>
+            <div className="text-base mb-1">📈</div>
             <div className="text-xs font-medium">Evolução</div>
           </button>
           <button
             onClick={() => setSelectedChart('categories')}
-            className={`p-3 rounded-lg text-center transition-all duration-300 ${
+            className={`p-2 rounded-md text-center transition-all duration-200 ${
               selectedChart === 'categories'
-                ? 'bg-white/30 backdrop-blur-sm text-white shadow-lg scale-105'
-                : 'bg-white/10 text-white/80 hover:bg-white/20'
+                ? 'bg-blue-500 text-white shadow-sm'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
-            <div className="text-lg mb-1">🎯</div>
+            <div className="text-base mb-1">🎯</div>
             <div className="text-xs font-medium">Categorias</div>
           </button>
           <button
             onClick={() => setSelectedChart('comparison')}
-            className={`p-3 rounded-lg text-center transition-all duration-300 ${
+            className={`p-2 rounded-md text-center transition-all duration-200 ${
               selectedChart === 'comparison'
-                ? 'bg-white/30 backdrop-blur-sm text-white shadow-lg scale-105'
-                : 'bg-white/10 text-white/80 hover:bg-white/20'
+                ? 'bg-blue-500 text-white shadow-sm'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
-            <div className="text-lg mb-1">⚖️</div>
+            <div className="text-base mb-1">⚖️</div>
             <div className="text-xs font-medium">Versus</div>
           </button>
         </div>

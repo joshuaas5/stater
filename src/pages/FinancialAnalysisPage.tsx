@@ -63,38 +63,34 @@ const FinancialAnalysisPage: React.FC = () => {
       {/* Container principal */}
       <div className="p-4 space-y-6">
         <Tabs defaultValue="insights" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 bg-white/20 dark:bg-gray-800/20 backdrop-blur-md border border-white/30 dark:border-gray-700/30 mb-6 p-1 rounded-2xl shadow-lg">
+          <TabsList className="grid w-full grid-cols-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-white/30 dark:border-gray-700/30 mb-6 p-1 rounded-xl shadow-md">
             <TabsTrigger 
               value="insights" 
-              className="data-[state=active]:bg-white/90 data-[state=active]:text-blue-600 data-[state=active]:shadow-lg flex items-center gap-2 text-xs sm:text-sm text-white/80 hover:text-white transition-all duration-300 rounded-xl py-3 px-2 sm:px-4"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-2 px-1 min-h-[60px] justify-center"
             >
-              <Brain className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline font-medium">Insights</span>
-              <span className="sm:hidden font-medium">IA</span>
+              <Brain className="h-5 w-5 flex-shrink-0" />
+              <span className="font-medium leading-tight">Insights</span>
             </TabsTrigger>
             <TabsTrigger 
               value="charts" 
-              className="data-[state=active]:bg-white/90 data-[state=active]:text-blue-600 data-[state=active]:shadow-lg flex items-center gap-2 text-xs sm:text-sm text-white/80 hover:text-white transition-all duration-300 rounded-xl py-3 px-2 sm:px-4"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-2 px-1 min-h-[60px] justify-center"
             >
-              <TrendingUp className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline font-medium">Gráficos</span>
-              <span className="sm:hidden font-medium">📊</span>
+              <TrendingUp className="h-5 w-5 flex-shrink-0" />
+              <span className="font-medium leading-tight">Gráficos</span>
             </TabsTrigger>
             <TabsTrigger 
               value="health" 
-              className="data-[state=active]:bg-white/90 data-[state=active]:text-blue-600 data-[state=active]:shadow-lg flex items-center gap-2 text-xs sm:text-sm text-white/80 hover:text-white transition-all duration-300 rounded-xl py-3 px-2 sm:px-4"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-2 px-1 min-h-[60px] justify-center"
             >
-              <Target className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline font-medium">Saúde</span>
-              <span className="sm:hidden font-medium">❤️</span>
+              <Target className="h-5 w-5 flex-shrink-0" />
+              <span className="font-medium leading-tight">Saúde</span>
             </TabsTrigger>
             <TabsTrigger 
               value="books" 
-              className="data-[state=active]:bg-white/90 data-[state=active]:text-blue-600 data-[state=active]:shadow-lg flex items-center gap-2 text-xs sm:text-sm text-white/80 hover:text-white transition-all duration-300 rounded-xl py-3 px-2 sm:px-4"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-2 px-1 min-h-[60px] justify-center"
             >
-              <BookOpen className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline font-medium">Livros</span>
-              <span className="sm:hidden font-medium">📚</span>
+              <BookOpen className="h-5 w-5 flex-shrink-0" />
+              <span className="font-medium leading-tight">Livros</span>
             </TabsTrigger>
           </TabsList>
 

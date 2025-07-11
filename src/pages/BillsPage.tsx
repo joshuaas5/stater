@@ -228,95 +228,68 @@ const BillsPage: React.FC = () => {
   const [editBill, setEditBill] = useState<Bill | null>(null);
 
   return (
-    <div className="flex flex-col min-h-screen pb-16" style={{
-      background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-    }}>
-      {/* Header com glassmorphism igual ao Stater IA */}
+    <div className="flex flex-col min-h-screen pb-16 bg-gray-50 dark:bg-gray-900">
+      {/* Header mais sóbrio */}
       <div 
-        className="sticky top-0 z-50"
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '12px 30px',
-          background: 'rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
-          height: '60px'
-        }}
+        className="sticky top-0 z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50"
       >
-        <h1 
-          style={{
-            fontSize: '24px',
-            fontWeight: 800,
-            color: '#ffffff',
-            fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
-            letterSpacing: '1px',
-            textShadow: '2px 2px 0px #3b82f6, 4px 4px 0px #1d4ed8, 0 0 20px rgba(59, 130, 246, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
-            textTransform: 'uppercase',
-            position: 'relative',
-            filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))'
-          }}
-        >
-          CONTAS
-        </h1>
+        <div className="px-4 py-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white text-center">
+            CONTAS
+          </h1>
+        </div>
       </div>
       
       {/* Seletores de Mês e Ano */}
-      <div className="px-4 pt-4 pb-3 sticky top-[60px] z-10" style={{
-        background: 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-      }}>
+      <div className="px-4 pt-4 pb-3 bg-gray-50 dark:bg-gray-900 sticky top-[60px] z-10 border-b border-gray-200/50 dark:border-gray-700/50">
         <div className="flex flex-col sm:flex-row gap-3 items-center">
-          <div className="flex items-center bg-white/20 backdrop-blur-md rounded-full p-1 border border-white/30 shadow-sm w-full sm:w-auto">
+          <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700 shadow-sm w-full sm:w-auto">
             <div className="flex items-center flex-1 sm:flex-auto">
-              <Calendar size={18} className="ml-3 mr-2 text-white/80" />
+              <Calendar size={18} className="ml-3 mr-2 text-gray-500 dark:text-gray-400" />
               <div className="relative flex-1 sm:w-44">
                 <select 
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                  className="appearance-none bg-transparent border-none text-white text-sm font-medium py-2 pl-1 pr-8 w-full focus:outline-none focus:ring-0"
+                  className="appearance-none bg-transparent border-none text-gray-900 dark:text-white text-sm font-medium py-2 pl-1 pr-8 w-full focus:outline-none focus:ring-0"
                 >
                   {monthOptions.map(opt => (
                     <option 
                       key={opt.value} 
                       value={opt.value} 
-                      className="bg-gray-800 text-white"
+                      className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     >
                       {opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}
                     </option>
                   ))}
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                  <svg className="h-4 w-4 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
               </div>
             </div>
             
-            <div className="h-6 mx-1 w-px bg-white/30"></div>
+            <div className="h-6 mx-1 w-px bg-gray-200 dark:bg-gray-600"></div>
             
             <div className="relative sm:w-24">
               <select 
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                className="appearance-none bg-transparent border-none text-white text-sm font-medium py-2 pl-2 pr-8 w-full focus:outline-none focus:ring-0"
+                className="appearance-none bg-transparent border-none text-gray-900 dark:text-white text-sm font-medium py-2 pl-2 pr-8 w-full focus:outline-none focus:ring-0"
               >
                 {yearOptions.map(opt => (
                   <option 
                     key={opt.value} 
                     value={opt.value} 
-                    className="bg-gray-800 text-white"
+                    className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
                     {opt.label}
                   </option>
                 ))}
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                <svg className="h-4 w-4 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
@@ -325,7 +298,7 @@ const BillsPage: React.FC = () => {
           
           <Button 
             onClick={handleAddBill} 
-            className="w-full sm:w-auto sm:ml-auto bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 text-white shadow-md transition-all duration-300"
+            className="w-full sm:w-auto sm:ml-auto bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white shadow-sm transition-all duration-200"
           >
             <Plus size={18} className="mr-2" /> Adicionar Conta
           </Button>

@@ -152,6 +152,27 @@ async function getUserTransactions(userId: string, limit: number = 10): Promise<
   }
 }
 
+// Função para buscar bills/contas do usuário
+async function getUserBills(userId: string): Promise<any[]> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('bills')
+      .select('*')
+      .eq('user_id', userId)
+      .order('due_date', { ascending: true });
+    
+    if (error) {
+      console.error('❌ Erro ao buscar bills:', error);
+      return [];
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error('❌ Exceção ao buscar bills:', error);
+    return [];
+  }
+}
+
 // Função para calcular saldo do usuário
 async function getUserBalance(userId: string): Promise<{balance: number, totalIncome: number, totalExpense: number}> {
   try {
@@ -207,6 +228,9 @@ async function callGeminiAPI(userMessage: string, userId?: string, telegramUser?
 
         // Buscar TODAS as transações recentes (50 para análise completa)
         const recentTransactions = await getUserTransactions(userId, 50);
+        
+        // Buscar TODAS as bills/contas do usuário
+        const userBills = await getUserBills(userId);
 
         if (recentTransactions && recentTransactions.length > 0) {
           financialContextText += "\n=== DADOS FINANCEIROS COMPLETOS ===\n";
@@ -241,10 +265,63 @@ async function callGeminiAPI(userMessage: string, userId?: string, telegramUser?
                 financialContextText += `- ${category}: R$ ${amount.toFixed(2)}\n`;
               });
           }
-          
-          financialContextText += "\n=== FIM DOS DADOS FINANCEIROS ===\n";
         } else {
           financialContextText += "\nNenhuma transação encontrada ainda.\n";
+        }
+
+        // Adicionar informações das BILLS/CONTAS
+        if (userBills && userBills.length > 0) {
+          financialContextText += "\n=== CONTAS/BILLS CADASTRADAS ===\n";
+          
+          const today = new Date();
+          const unpaidBills = userBills.filter(bill => !bill.is_paid);
+          const paidBills = userBills.filter(bill => bill.is_paid);
+          
+          // Contas em aberto (não pagas)
+          if (unpaidBills.length > 0) {
+            financialContextText += "CONTAS EM ABERTO (NÃO PAGAS):\n";
+            unpaidBills.forEach(bill => {
+              const dueDate = new Date(bill.due_date);
+              const isOverdue = dueDate < today;
+              const daysDiff = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+              const status = isOverdue ? "VENCIDA" : daysDiff <= 7 ? "VENCE EM BREVE" : "EM DIA";
+              
+              financialContextText += `- ${bill.title}: R$ ${Number(bill.amount).toFixed(2)} - Vencimento: ${dueDate.toLocaleDateString('pt-BR')} - STATUS: ${status}\n`;
+            });
+            
+            // Calcular total de contas em aberto
+            const totalUnpaid = unpaidBills.reduce((sum, bill) => sum + Number(bill.amount), 0);
+            financialContextText += `TOTAL EM ABERTO: R$ ${totalUnpaid.toFixed(2)}\n\n`;
+          }
+          
+          // Contas já pagas este mês
+          if (paidBills.length > 0) {
+            const thisMonth = today.getMonth();
+            const thisYear = today.getFullYear();
+            const paidThisMonth = paidBills.filter(bill => {
+              const billDate = new Date(bill.due_date);
+              return billDate.getMonth() === thisMonth && billDate.getFullYear() === thisYear;
+            });
+            
+            if (paidThisMonth.length > 0) {
+              financialContextText += "CONTAS PAGAS ESTE MÊS:\n";
+              paidThisMonth.forEach(bill => {
+                const dueDate = new Date(bill.due_date);
+                financialContextText += `- ${bill.title}: R$ ${Number(bill.amount).toFixed(2)} - Pago em: ${dueDate.toLocaleDateString('pt-BR')}\n`;
+              });
+              
+              const totalPaidThisMonth = paidThisMonth.reduce((sum, bill) => sum + Number(bill.amount), 0);
+              financialContextText += `TOTAL PAGO ESTE MÊS: R$ ${totalPaidThisMonth.toFixed(2)}\n\n`;
+            }
+          }
+          
+          financialContextText += "=== FIM DOS DADOS DE CONTAS ===\n";
+        } else {
+          financialContextText += "\nNenhuma conta/bill cadastrada ainda.\n";
+        }
+
+        if (recentTransactions && recentTransactions.length > 0) {
+          financialContextText += "\n=== FIM DOS DADOS FINANCEIROS ===\n";
         }
       } catch (error) {
         console.log('Erro ao buscar dados financeiros:', error);
@@ -261,6 +338,13 @@ async function callGeminiAPI(userMessage: string, userId?: string, telegramUser?
                                  userMessage.toLowerCase().includes('receitas') ||
                                  userMessage.toLowerCase().includes('saldo') ||
                                  userMessage.toLowerCase().includes('contas') ||
+                                 userMessage.toLowerCase().includes('bills') ||
+                                 userMessage.toLowerCase().includes('vencimento') ||
+                                 userMessage.toLowerCase().includes('vence') ||
+                                 userMessage.toLowerCase().includes('pagar') ||
+                                 userMessage.toLowerCase().includes('pago') ||
+                                 userMessage.toLowerCase().includes('dívida') ||
+                                 userMessage.toLowerCase().includes('compromisso') ||
                                  userMessage.toLowerCase().includes('orçamento') ||
                                  userMessage.toLowerCase().includes('dinheiro') ||
                                  userMessage.toLowerCase().includes('financeira');
@@ -296,6 +380,15 @@ INSTRUÇÕES CRÍTICAS:
 - NUNCA diga que uma transação foi salva sem confirmação real do usuário
 - NUNCA invente que o saldo foi atualizado sem ter salvado uma transação
 - NUNCA confirme transações automaticamente
+
+IMPORTANTE SOBRE "CONTAS":
+- Quando o usuário falar "contas", ele se refere às BILLS/CONTAS CADASTRADAS (contas a pagar/receber)
+- NÃO confundir "contas" com "transações" ou "saldo bancário"
+- As BILLS/CONTAS são compromissos financeiros com vencimentos específicos
+- Exemplos de "contas": água, luz, telefone, aluguel, financiamento, cartão de crédito
+- Sempre usar os dados da seção "CONTAS/BILLS CADASTRADAS" para responder sobre contas
+- Mostrar status de pagamento, vencimentos próximos, valores em aberto
+- Alertar sobre contas vencidas ou que vencem em breve
 
 DETECÇÃO DE TRANSAÇÕES:
 APENAS gere JSON se o usuário CLARAMENTE solicitar para adicionar, registrar, salvar, remover, gastar ou receber um valor específico em reais.

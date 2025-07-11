@@ -252,7 +252,7 @@ const BillsPage: React.FC = () => {
               backgroundClip: 'text'
             }}
           >
-            💳 CONTAS
+            CONTAS
           </h1>
         </div>
       </div>

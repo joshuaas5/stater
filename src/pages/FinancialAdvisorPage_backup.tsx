@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/navigation/NavBar';
 import ChatMessages from '@/components/chat/ChatMessages';
@@ -68,30 +68,28 @@ const INITIAL_SYSTEM_MESSAGE_TEXT = `🎯 **Olá! Sou o Stater IA** - sua IA fin
 Como posso ajudá-lo hoje?`;
 
 export const FinancialAdvisorPage: React.FC = () => {
-  // const [showAddBillModal, setShowAddBillModal] = useState(false);
-
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [showSuggestions, setShowSuggestions] = useState(true);  const initialSystemMessage: ChatMessage = {
+  const [showSuggestions, setShowSuggestions] = useState(true);
+
+  // Estados consolidados com useCallback para otimização
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [{
     id: uuidv4(),
     text: INITIAL_SYSTEM_MESSAGE_TEXT,
     sender: "system",
     timestamp: new Date()
-  };
-  // Persistência do Chat: Carregar mensagens do localStorage ou usar inicial
-  // Messages will be loaded in a useEffect hook once currentUserId is known.
-  const [messages, setMessages] = useState<ChatMessage[]>([initialSystemMessage]);
+  }]);
 
   const [loading, setLoading] = useState(false);
-  const [savingTransactions, setSavingTransactions] = useState(false); // Novo estado para loading de salvamento
+  const [savingTransactions, setSavingTransactions] = useState(false);
   const [error, setError] = useState("");
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [waitingConfirmation, setWaitingConfirmation] = useState(false);
   const [editableTransactions, setEditableTransactions] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined); // undefined: not yet checked, null: checked and no user, string: user ID
-  const [activeTab, setActiveTab] = useState("chat"); // Novo estado para aba ativa
+  const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState("chat");
   
   // Estados para funcionalidades de voz
   const [isListening, setIsListening] = useState(false);
@@ -99,6 +97,273 @@ export const FinancialAdvisorPage: React.FC = () => {
   const [speechRecognition, setSpeechRecognition] = useState<any>(null);
   const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Funções callback otimizadas
+  const scrollToBottom = useCallback(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end'
+      });
+    }
+  }, []);
+
+  const addMessage = useCallback((message: ChatMessage) => {
+    setMessages(prev => [...prev, message]);
+  }, []);
+
+  const updateLastMessage = useCallback((updater: (msg: ChatMessage) => ChatMessage) => {
+    setMessages(prev => {
+      const newMessages = [...prev];
+      const lastIndex = newMessages.length - 1;
+      if (lastIndex >= 0) {
+        newMessages[lastIndex] = updater(newMessages[lastIndex]);
+      }
+      return newMessages;
+    });
+  }, []);
+
+  // Memoização das mensagens para evitar re-renderizações
+  const memoizedMessages = useMemo(() => messages, [messages]);
+  const messagesCount = useMemo(() => messages.length, [messages]);
+
+  // Scroll automático quando novas mensagens chegam
+  useEffect(() => {
+    scrollToBottom();
+  }, [messagesCount, scrollToBottom]);
+  
+// Componente MessageItem memoizado para melhor performance
+const MessageItem = memo<{
+  message: ChatMessage;
+  index: number;
+  isSystemProcessing: boolean;
+}>(({ message, index, isSystemProcessing }) => {
+  const formatTimestamp = useCallback((timestamp: Date): string => {
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'agora';
+    if (diffInMinutes < 60) return `há ${diffInMinutes} minuto${diffInMinutes > 1 ? 's' : ''}`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `há cerca de ${diffInHours} hora${diffInHours > 1 ? 's' : ''}`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `há ${diffInDays} dia${diffInDays > 1 ? 's' : ''}`;
+  }, []);
+
+  const getProcessingIcon = useCallback((content: string): string => {
+    if (content.includes('PDF')) return '📄';
+    if (content.includes('imagem')) return '📷';
+    if (content.includes('texto')) return '📝';
+    return '🔍';
+  }, []);
+
+  const getProcessingDetails = useCallback((content: string): string => {
+    return '📄 Analisando documento...';
+  }, []);
+
+  const formatMessageContent = useCallback((content: string): React.ReactNode => {
+    const processText = (text: string): React.ReactNode[] => {
+      const parts: React.ReactNode[] = [];
+      let currentIndex = 0;
+      
+      const boldRegex = /\*\*(.*?)\*\*/g;
+      let match;
+      
+      while ((match = boldRegex.exec(text)) !== null) {
+        if (match.index > currentIndex) {
+          parts.push(text.slice(currentIndex, match.index));
+        }
+        
+        parts.push(
+          <strong key={`bold-${match.index}`} style={{ fontWeight: '700' }}>
+            {match[1]}
+          </strong>
+        );
+        
+        currentIndex = match.index + match[0].length;
+      }
+      
+      if (currentIndex < text.length) {
+        parts.push(text.slice(currentIndex));
+      }
+      
+      return parts;
+    };
+    
+    if (content.includes('\n')) {
+      return content.split('\n').map((line, index) => (
+        <React.Fragment key={index}>
+          {processText(line)}
+          {index < content.split('\n').length - 1 && <br />}
+        </React.Fragment>
+      ));
+    }
+    
+    return processText(content);
+  }, []);
+
+  return (
+    <React.Fragment>
+      {/* Timestamp */}
+      <div 
+        className="timestamp"
+        style={{
+          textAlign: 'center',
+          fontSize: '12px',
+          color: 'rgba(255, 255, 255, 0.5)',
+          margin: '10px 0'
+        }}
+      >
+        {formatTimestamp(message.timestamp)}
+      </div>
+
+      {/* Processing Message */}
+      {isSystemProcessing && (
+        <div 
+          className="processing-message"
+          style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(15px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '20px',
+            padding: '20px',
+            maxWidth: '80%',
+            alignSelf: 'flex-start'
+          }}
+        >
+          <div 
+            className="processing-header"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginBottom: '12px'
+            }}
+          >
+            <div 
+              className="processing-icon"
+              style={{
+                width: '20px',
+                height: '20px',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
+                borderTop: '2px solid white',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }}
+            ></div>
+            <div 
+              className="processing-title"
+              style={{
+                fontWeight: 600,
+                fontSize: '16px'
+              }}
+            >
+              {getProcessingIcon(message.text)} {message.text}
+            </div>
+          </div>
+          <div 
+            className="processing-details"
+            style={{
+              fontSize: '14px',
+              color: 'rgba(255, 255, 255, 0.8)',
+              marginBottom: '8px'
+            }}
+          >
+            {getProcessingDetails(message.text)}
+          </div>
+          <div 
+            className="processing-note"
+            style={{
+              fontSize: '12px',
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontStyle: 'italic'
+            }}
+          >
+            Aguarde, não recarregue a página...
+          </div>
+        </div>
+      )}
+
+      {/* Regular Messages */}
+      {!isSystemProcessing && (
+        <div 
+          className={`message ${message.sender}`}
+          style={{
+            display: 'flex',
+            flexDirection: message.sender === 'user' ? 'row-reverse' : 'row',
+            alignItems: 'flex-start',
+            gap: '12px',
+            marginBottom: '20px'
+          }}
+        >
+          {/* Avatar */}
+          {message.sender === 'assistant' && (
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: message.avatarUrl 
+                  ? `url(${message.avatarUrl}) center/cover` 
+                  : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                flexShrink: 0
+              }}
+            >
+              {!message.avatarUrl && '🤖'}
+            </div>
+          )}
+
+          {/* Message Content */}
+          <div 
+            className={`message-content ${message.sender}`} 
+            style={{ 
+              maxWidth: '75%',
+              padding: '16px 20px',
+              fontSize: '15px',
+              lineHeight: '1.5',
+              wordWrap: 'break-word',
+              background: message.sender === 'user' 
+                ? 'rgba(255, 255, 255, 0.15)' 
+                : 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(15px)',
+              border: `1px solid rgba(255, 255, 255, 0.2)`,
+              alignSelf: message.sender === 'user' ? 'flex-end' : 'flex-start',
+              borderRadius: message.sender === 'user' 
+                ? '20px 20px 6px 20px' 
+                : '20px 20px 20px 6px'
+            }}
+          >
+            {formatMessageContent(message.text)}
+          </div>
+        </div>
+      )}
+    </React.Fragment>
+  );
+});
+
+// Estados consolidados para melhor performance
+interface AppState {
+  messages: ChatMessage[];
+  loading: boolean;
+  savingTransactions: boolean;
+  error: string;
+  pendingAction: PendingAction | null;
+  waitingConfirmation: boolean;
+  editableTransactions: any[];
+  currentUserId: string | null | undefined;
+  activeTab: string;
+}
 
   // Inicializar Web Speech API
   useEffect(() => {
@@ -290,22 +555,12 @@ const isAddBillIntent = (msg: string) => {
   return triggers.some(trigger => msg.toLowerCase().includes(trigger));
 };
 
-  // Função para forçar scroll para o final
-  const scrollToBottom = useCallback(() => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-  }, []);
-
   // Hook para scroll automático quando messages mudam - otimizado
   useEffect(() => {
     scrollToBottom();
-  }, [messages, scrollToBottom]);
+  }, [messagesCount, scrollToBottom]);
 
-  // Memoização das mensagens para performance
-  const memoizedMessages = useMemo(() => messages, [messages]);
-
-const handleSendMessage = async (message: string) => {
+const handleSendMessage = useCallback(async (message: string) => {
   if (isAddBillIntent(message)) {
     setMessages(prev => [
       ...prev,
@@ -1230,7 +1485,7 @@ const handleSendMessage = async (message: string) => {
     } finally {
       setLoading(false);
     }
-  };  // Função para detectar listas de transações em texto
+  }, [currentUserId, waitingConfirmation, pendingAction, editableTransactions, loading, savingTransactions]); // Função para detectar listas de transações em texto
   const detectTransactionListInText = (userMessage: string) => {
     const originalMessage = userMessage.toLowerCase();
     const transactions: any[] = [];
@@ -1753,12 +2008,12 @@ const handleSendMessage = async (message: string) => {
     { key: "investOrPayDebt", text: t("investOrPayDebt") || 'Devo investir ou pagar dívidas?' }
   ];
 
-const handleTabChange = (tabValue: string) => {
+const handleTabChange = useCallback((tabValue: string) => {
   setActiveTab(tabValue);
-}
+}, []);
 
-// Função para processar imagem OCR
-const handleImageUpload = async (imageBase64: string) => {
+// Função para processar imagem OCR - otimizada
+const handleImageUpload = useCallback(async (imageBase64: string) => {
   if (!imageBase64) return;
 
   setLoading(true);
@@ -2028,10 +2283,10 @@ const handleImageUpload = async (imageBase64: string) => {
     // Cleanup básico
     setLoading(false);
   }
-};
+}, [currentUserId]); // Dependências do useCallback
 
-// Funções para editar transações OCR
-const updateTransaction = (index: number, updatedTransaction: any) => {
+// Funções para editar transações OCR - otimizadas
+const updateTransaction = useCallback((index: number, updatedTransaction: any) => {
   const newTransactions = [...editableTransactions];
   newTransactions[index] = updatedTransaction;
   setEditableTransactions(newTransactions);
@@ -2046,9 +2301,9 @@ const updateTransaction = (index: number, updatedTransaction: any) => {
       }
     });
   }
-};
+}, [editableTransactions, pendingAction]);
 
-const deleteTransaction = (index: number) => {
+const deleteTransaction = useCallback((index: number) => {
   const newTransactions = editableTransactions.filter((_, i) => i !== index);
   setEditableTransactions(newTransactions);
   
@@ -2077,7 +2332,16 @@ const deleteTransaction = (index: number) => {
       avatarUrl: IA_AVATAR
     }]);
   }
-};
+}, [editableTransactions, pendingAction]);
+
+// Memoização para otimizar re-renderizações
+const memoizedMessages = useMemo(() => messages, [messages]);
+const suggestionList = useMemo(() => [
+  "💰 Como registrar uma receita?",
+  "📄 Analisar um extrato bancário",
+  "💡 Dicas para economizar",
+  "📊 Relatório dos meus gastos"
+], []);
 
 return (
   <>    <div 
@@ -2218,8 +2482,15 @@ return (
             </div>
           )}
 
-          {/* Messages */}
+          {/* Messages - Otimizado */}
           {memoizedMessages.map((message, index) => (
+            <MessageItem
+              key={`${message.id}-${index}`}
+              message={message}
+              index={index}
+              isSystemProcessing={message.sender === 'system' && message.text.includes('Processando')}
+            />
+          ))}
             <React.Fragment key={index}>
               {/* Timestamp */}
               <div 
@@ -2366,7 +2637,7 @@ return (
                   )}
                 </div>
               )}
-            </React.Fragment>          ))}          {/* Scroll anchor para posicionar no final */}
+          {/* Scroll anchor para posicionar no final */}
           <div ref={messagesEndRef} style={{ height: '1px' }} />
         </div>
 

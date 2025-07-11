@@ -44,7 +44,7 @@ export interface CardItem {
 export interface ChatMessage {
   id: string;
   text: string;
-  sender: 'user' | 'system';
+  sender: 'user' | 'system' | 'assistant';
   timestamp: Date;
   avatarUrl?: string; // Adicionado para permitir avatares personalizados para a IA
 }

@@ -1035,28 +1035,32 @@ export default async function handler(req: any, res: any) {
               `💬 Digite qualquer pergunta sobre suas finanças e eu responderei com base nos seus dados reais!\n\n` +
               `Stater IA ativo! 🚀`
             );          } else {
-            console.log('❌ Falha na vinculação');
-            await sendTelegramMessage(chatId, 
+            console.log('❌ Falha na vinculação');            await sendTelegramMessage(chatId,
               `❌ <b>Código inválido ou expirado</b>\n\n` +
               `🔑 Código tentado: <code>${code}</code>\n\n` +
-              `💡 <b>Soluções:</b>\n` +
-              `• Digite <b>/conectar</b> para instruções completas\n` +
-              `• Gere um novo código no app Stater\n` +
-              `• Códigos expiram em 15 minutos\n\n` +
-              `🔗 App: <a href="https://staterbills.vercel.app">staterbills.vercel.app</a>`
+              `� <b>Como conectar:</b>\n` +
+              `1. Acesse o <a href="https://staterbills.vercel.app/settings/telegram">App Stater</a>\n` +
+              `2. Vá em Configurações → Telegram\n` +
+              `3. Clique em "Conectar"\n` +
+              `4. Copie o código de 6 dígitos\n` +
+              `5. Cole aqui no chat\n\n` +
+              `⏰ Códigos expiram em 15 minutos`
             );
           }} else {
           console.log('🆕 Comando /start sem código');
           await sendTelegramMessage(chatId,
             '👋 <b>Bem-vindo ao Stater IA!</b>\n\n' +
             '🤖 Sou seu assistente financeiro pessoal com Inteligência para Prosperar.\n\n' +
-            '⚡ <b>Conecte sua conta facilmente:</b>\n' +
-            '• Digite: <b>/conectar</b>\n\n' +
-            '💬 <b>Ou use agora mesmo:</b>\n' +
-            '• Digite: <b>/help</b> - Ver comandos\n' +
-            '• Digite: <b>/dashboard</b> - Acessar app\n' +
-            '• Exemplo: "Como economizar dinheiro?"\n\n' +
-            '💡 <i>Após conectar sua conta, terei acesso aos seus dados reais para análises personalizadas!</i>'
+            '🔗 <b>Para começar:</b>\n' +
+            '1. Acesse o <a href="https://staterbills.vercel.app/settings/telegram">App Stater</a>\n' +
+            '2. Vá em Configurações → Telegram\n' +
+            '3. Clique em "Conectar" e gere um código\n' +
+            '4. Cole o código aqui no chat\n\n' +
+            '💬 <b>Após conectar, use comandos como:</b>\n' +
+            '• "Qual meu saldo atual?"\n' +
+            '• "Análise dos meus gastos"\n' +
+            '• "Como economizar dinheiro?"\n\n' +
+            '💡 <i>Preciso acessar seus dados reais para análises personalizadas!</i>'
           );
         }
         return res.status(200).json({ ok: true, message: 'Comando /start processado' });
@@ -1242,11 +1246,13 @@ export default async function handler(req: any, res: any) {
             `• Código expirado (válido por 15 min)\n` +
             `• Código já foi usado\n` +
             `• Código digitado incorretamente\n\n` +
-            `🔧 <b>Soluções:</b>\n` +
-            `• Digite <b>/conectar</b> para gerar novo código\n` +
-            `• Verifique se copiou corretamente\n` +
-            `• Use o formato: 6 números (ex: 123456)\n\n` +
-            `🔗 <a href="https://staterbills.vercel.app">Abrir App Stater</a>`
+            `🔧 <b>Como conectar:</b>\n` +
+            `1. Acesse o <a href="https://staterbills.vercel.app/settings/telegram">App Stater</a>\n` +
+            `2. Vá em Configurações → Telegram\n` +
+            `3. Clique em "Conectar"\n` +
+            `4. Copie o código de 6 dígitos\n` +
+            `5. Cole aqui no chat\n\n` +
+            `� Use o formato: 6 números (ex: 123456)`
           );
         }
         return res.status(200).json({ ok: true, message: 'Código processado' });

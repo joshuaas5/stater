@@ -28,7 +28,9 @@ async function testTelegramFlow() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        user_id: '56d8f459-8650-4cd9-bf16-f7d70ddbc0a9'
+        user_id: '56d8f459-8650-4cd9-bf16-f7d70ddbc0a9',
+        userEmail: 'teste@teste.com',
+        userName: 'Teste'
       })
     });
     
@@ -36,6 +38,9 @@ async function testTelegramFlow() {
     if (codesTest.ok) {
       const codesData = await codesTest.json();
       console.log('- Código gerado:', codesData.code);
+    } else {
+      const errorText = await codesTest.text();
+      console.log('- Erro:', errorText);
     }
     
     // 3. Status final do bot

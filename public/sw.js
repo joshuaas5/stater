@@ -1,5 +1,5 @@
 // Service Worker com correção total para evitar interceptação do Supabase
-const CACHE_NAME = 'stater-app-v3'; // Incrementar versão para forçar refresh completo
+const CACHE_NAME = 'stater-app-v4'; // Incrementar versão para forçar refresh completo e reduzir logs
 
 // Lista de arquivos para cache inicial
 const urlsToCache = [
@@ -78,7 +78,7 @@ self.addEventListener('fetch', (event) => {
   
   // IMPORTANTE: Para requisições do Supabase, NUNCA interceptar
   if (url.includes('supabase.co') || url.includes('/rest/v1/') || url.includes('/auth/v1/')) {
-    console.log('[SW] ✅ SUPABASE: Deixando requisição passar completamente:', url);
+    // Removido log excessivo para não poluir console
     return; // Não faz NADA - deixa o browser lidar naturalmente
   }
   

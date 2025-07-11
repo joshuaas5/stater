@@ -31,26 +31,27 @@ const FinancialAnalysisPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header consistente com tema */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 dark:from-blue-700 dark:to-indigo-800 shadow-lg sticky top-0 z-50">
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-3">
+      {/* Header moderno e limpo */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="sm"
-              className="bg-white/20 border-white/30 text-white hover:bg-white/30 dark:bg-white/10 dark:border-white/20"
+              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               onClick={() => navigate(-1)}
             >
-              <ArrowLeft size={16} className="mr-1" />
+              <ArrowLeft size={16} className="mr-2" />
               Voltar
             </Button>
-          </div>
-          
-          <div className="text-center">
-            <h1 className="text-xl font-bold text-white mb-1">
-              Análise Financeira Inteligente
-            </h1>
-            <p className="text-white/90 text-sm">Insights baseados nos seus dados financeiros</p>
+            
+            <div className="flex-1 text-center">
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Análises Financeiras
+              </h1>
+            </div>
+            
+            <div className="w-16"></div> {/* Spacer para centralizar o título */}
           </div>
         </div>
       </div>

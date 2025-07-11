@@ -140,7 +140,7 @@ const ModernCharts: React.FC = () => {
 
   const renderTrendChart = () => (
     <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={monthlyData} margin={{ top: 20, right: 20, left: 10, bottom: 20 }}>
+      <AreaChart data={monthlyData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
         <defs>
           <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor={BLUE_COLORS.primary} stopOpacity={0.8}/>
@@ -211,7 +211,7 @@ const ModernCharts: React.FC = () => {
 
   const renderComparisonChart = () => (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={monthlyData} margin={{ top: 20, right: 20, left: 10, bottom: 20 }}>
+      <BarChart data={monthlyData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         <XAxis 
           dataKey="month" 
@@ -270,7 +270,7 @@ const ModernCharts: React.FC = () => {
             }`}
           >
             <div className="text-lg mb-1">⚖️</div>
-            <div className="text-xs font-medium">Vs</div>
+            <div className="text-xs font-medium">Versus</div>
           </button>
         </div>
       </div>

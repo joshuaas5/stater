@@ -14,6 +14,11 @@ import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Componentes de voz
+import VoiceRecorder from '@/components/voice/VoiceRecorder';
+import VoicePlayer from '@/components/voice/VoicePlayer';
+import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import { processAudioWithGemini, AudioProcessingResult } from '@/utils/audioProcessing';
 
 
 const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
@@ -93,12 +98,17 @@ export const FinancialAdvisorPage: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined); // undefined: not yet checked, null: checked and no user, string: user ID
   const [activeTab, setActiveTab] = useState("chat"); // Novo estado para aba ativa
   
-  // Estados para funcionalidades de voz
+  // Estados para funcionalidades de voz (mantendo os existentes)
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechRecognition, setSpeechRecognition] = useState<any>(null);
   const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
+
+  // Novos hooks para funcionalidades avançadas de voz
+  const [isProcessingAudio, setIsProcessingAudio] = useState(false);
+  const [audioResponse, setAudioResponse] = useState<string | null>(null);
+  const tts = useTextToSpeech();
 
   // Inicializar Web Speech API
   useEffect(() => {
@@ -304,6 +314,85 @@ const isAddBillIntent = (msg: string) => {
 
   // Memoização das mensagens para performance
   const memoizedMessages = useMemo(() => messages, [messages]);
+
+  // Função para processar mensagens de áudio
+  const handleAudioMessage = useCallback(async (audioBlob: Blob) => {
+    setIsProcessingAudio(true);
+    setError('');
+
+    try {
+      // Converter Blob para File
+      const audioFile = new File([audioBlob], 'voice-message.webm', { type: 'audio/webm' });
+      
+      // Processar com Gemini
+      const result: AudioProcessingResult = await processAudioWithGemini(audioFile, currentUserId || undefined);
+      
+      // Adicionar mensagem do usuário (transcrição)
+      const userMessage: ChatMessage = {
+        id: uuidv4(),
+        text: `🎤 ${result.transcript}`,
+        sender: 'user',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, userMessage]);
+
+      // Processar a intenção
+      if (result.intent?.type === 'ADD_TRANSACTION' && result.intent.data) {
+        // Se for uma transação, processar como comando financeiro
+        await handleTransactionFromVoice(result.intent.data, result.response);
+      } else {
+        // Para outras intenções, enviar como mensagem normal
+        const response = await handleSendMessage(result.transcript);
+      }
+
+      // Falar a resposta usando TTS
+      if (result.response && tts.isSupported) {
+        await tts.speak(result.response);
+      }
+
+    } catch (error) {
+      console.error('Erro ao processar áudio:', error);
+      setError('Erro ao processar mensagem de voz. Tente novamente.');
+      
+      // Adicionar mensagem de erro
+      setMessages(prev => [...prev, {
+        id: uuidv4(),
+        text: '❌ Não foi possível processar sua mensagem de voz. Pode tentar novamente ou digitar sua mensagem?',
+        sender: 'assistant',
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
+      }]);
+    } finally {
+      setIsProcessingAudio(false);
+    }
+  }, [currentUserId, tts]);
+
+  // Função para processar transações via voz
+  const handleTransactionFromVoice = useCallback(async (transactionData: any, response: string) => {
+    // Adicionar resposta da IA
+    const assistantMessage: ChatMessage = {
+      id: uuidv4(),
+      text: response,
+      sender: 'assistant',
+      timestamp: new Date(),
+      avatarUrl: IA_AVATAR
+    };
+    
+    setMessages(prev => [...prev, assistantMessage]);
+
+    // Configurar ação pendente para confirmação
+    setPendingAction({
+      tipo: transactionData.type === 'income' ? 'income' : 'expense',
+      dados: {
+        amount: transactionData.amount,
+        description: transactionData.description || `Transação via voz`,
+        category: transactionData.category || 'Outros'
+      }
+    });
+    
+    setWaitingConfirmation(true);
+  }, []);
 
 const handleSendMessage = async (message: string) => {
   if (isAddBillIntent(message)) {
@@ -2368,6 +2457,15 @@ return (
               )}
             </React.Fragment>          ))}          {/* Scroll anchor para posicionar no final */}
           <div ref={messagesEndRef} style={{ height: '1px' }} />
+        </div>
+
+        {/* Voice Recorder - Nova funcionalidade */}
+        <div className="voice-section mb-4">
+          <VoiceRecorder
+            onAudioSend={handleAudioMessage}
+            isProcessing={isProcessingAudio}
+            disabled={loading || waitingConfirmation}
+          />
         </div>
 
         {/* Chat Input */}

@@ -74,20 +74,31 @@ export class TelegramVoiceBot {
       const response = await fetch(fileUrl);
       const audioBuffer = await response.arrayBuffer();
       
-      // Converter para File object
-      const audioFile = new File([audioBuffer], 'voice-message.ogg', { 
+      // Converter para Blob
+      const audioBlob = new Blob([audioBuffer], { 
         type: 'audio/ogg' 
       });
 
       // Processar com Gemini
-      const result = await processAudioWithGemini(audioFile, userId.toString());
+      const result = await processAudioWithGemini(audioBlob);
+
+      // Verificar se o processamento foi bem-sucedido
+      if (!result.success) {
+        await ctx.reply('❌ Erro ao processar áudio. Tente novamente.');
+        return;
+      }
 
       // Enviar transcrição
-      await ctx.reply(`📝 *Transcrição:*\n"${result.transcript}"`, { 
+      await ctx.reply(`📝 *Transcrição:*\n"${result.transcription}"`, { 
         parse_mode: 'Markdown' 
       });
 
-      // Processar intenção
+      // Enviar resposta do assistente
+      if (result.response) {
+        await ctx.reply(`🤖 *Resposta:*\n${result.response}`, { 
+          parse_mode: 'Markdown' 
+        });
+      }
       await this.processVoiceIntent(ctx, result, userId);
 
     } catch (error) {

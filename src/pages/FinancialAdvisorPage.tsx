@@ -339,13 +339,15 @@ const isAddBillIntent = (msg: string) => {
     const sessionId = uuidv4();
 
     try {
-      // Converter Blob para File
-      const audioFile = new File([audioBlob], 'voice-message.webm', { type: 'audio/webm' });
-      
-      // Processar com Gemini
-      const result: AudioProcessingResult = await processAudioWithGemini(audioFile, currentUserId || undefined);
+      // Processar com Gemini (usando apenas o audioBlob)
+      const result: AudioProcessingResult = await processAudioWithGemini(audioBlob);
       
       const processingTime = Date.now() - startTime;
+
+      // Verificar se o processamento foi bem-sucedido
+      if (!result.success) {
+        throw new Error(result.error || 'Erro no processamento de áudio');
+      }
 
       // Registrar uso nos logs
       await audioLimits.recordAudioUsage({
@@ -353,10 +355,10 @@ const isAddBillIntent = (msg: string) => {
         audioDuration: audioBlob.size / 16000, // Estimativa baseada no tamanho
         audioSize: audioBlob.size,
         sourceType: 'web',
-        transcript: result.transcript,
-        detectedIntent: result.intent?.type || 'unknown',
+        transcript: result.transcription || '',
+        detectedIntent: 'audio_processing',
         processingTime,
-        inputTokens: Math.ceil(result.transcript.length / 4), // Estimativa
+        inputTokens: Math.ceil((result.transcription || '').length / 4), // Estimativa
         outputTokens: Math.ceil((result.response || '').length / 4), // Estimativa
         estimatedCost: 0.0001, // Custo estimado
         success: true
@@ -365,24 +367,15 @@ const isAddBillIntent = (msg: string) => {
       // Adicionar mensagem do usuário (transcrição)
       const userMessage: ChatMessage = {
         id: uuidv4(),
-        text: `🎤 ${result.transcript}`,
+        text: `🎤 ${result.transcription}`,
         sender: 'user',
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, userMessage]);
 
-      // Processar a intenção
-      if (result.intent?.type === 'ADD_TRANSACTION' && result.intent.data) {
-        // Se for uma transação, processar como comando financeiro
-        await handleTransactionFromVoice(result.intent.data, result.response);
-      } else {
-        // Para outras intenções, enviar como mensagem normal
-        await handleSendMessage(result.transcript);
-      }
-
-      // REMOVIDO: Não reproduzir resposta em áudio automaticamente
-      // IA responde apenas com texto
+      // Enviar a transcrição como mensagem normal para o chat
+      await handleSendMessage(result.transcription || '');
 
     } catch (error) {
       console.error('Erro ao processar áudio:', error);

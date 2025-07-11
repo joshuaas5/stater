@@ -24,11 +24,6 @@ const menuItems: MenuItem[] = [
     path: '/transactions'
   },
   {
-    icon: <BarChart3 className="h-5 w-5" />,
-    label: 'Relatórios',
-    path: '/charts'
-  },
-  {
     icon: <TrendingUp className="h-5 w-5" />,
     label: 'Análise Financeira',
     path: '/analise-financeira'

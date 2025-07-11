@@ -19,7 +19,6 @@ import AddBillPage from "./pages/AddBillPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PreferencesPage from "./pages/PreferencesPage";
 import SecurityPage from "./pages/SecurityPage";
-import ChartsPage from "./pages/ChartsPage";
 import { FinancialAdvisorPage } from "./pages/FinancialAdvisorPage";
 import RecommendationsPage from "./pages/RecommendationsPage";
 import SettingsPage from "./pages/SettingsPageNew";
@@ -145,14 +144,6 @@ const App = () => (
                   element={
                     <PrivateRoute>
                       <SecurityPage />
-                    </PrivateRoute>
-                  } 
-                />
-                <Route 
-                  path="/charts" 
-                  element={
-                    <PrivateRoute>
-                      <ChartsPage />
                     </PrivateRoute>
                   } 
                 />

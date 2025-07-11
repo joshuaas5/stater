@@ -724,14 +724,6 @@ const Dashboard: React.FC = () => {
           <CalendarRange className="h-5 w-5 text-blue-600" />
           <span className="text-xs">Recorrentes</span>
         </Link>
-        <Link
-          to="/analise-financeira"
-          className="flex items-center gap-1 px-3 py-1 rounded-md border border-green-200 bg-green-50 hover:bg-green-100 shadow-sm text-base font-semibold text-green-700 transition-all duration-150"
-          style={{ textDecoration: 'none' }}
-        >
-          <DollarSign className="h-5 w-5 text-green-600" />
-          <span className="text-xs">Análise Financeira</span>
-        </Link>
       </div>      <div className="flex justify-center gap-4 mb-6">
         <Button 
           onClick={() => handleAddTransaction('income')}

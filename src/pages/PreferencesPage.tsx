@@ -287,7 +287,29 @@ const PreferencesPage: React.FC = () => {
         </div>
       </div>
       
-      {/* SEÇÃO TELEGRAM */}
+      <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
+        <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
+          <Star size={18} className="mr-2" /> Recursos adicionais
+        </h2>
+        <div className="space-y-3">          <Button 
+            variant="outline"
+            className="w-full border border-galileo-accent text-galileo-accent hover:bg-galileo-accent/10"
+            onClick={() => navigate('/analise-financeira')}
+          >
+            <Star size={16} className="mr-2" /> Acessar Análise Financeira
+          </Button>
+          
+          <Button 
+            variant="outline"
+            className="w-full border border-galileo-accent text-galileo-accent hover:bg-galileo-accent/10"
+            onClick={() => navigate('/export-report')}
+          >
+            <FileText size={16} className="mr-2" /> Exportar relatório financeiro
+          </Button>
+        </div>
+      </div>
+      
+      {/* SEÇÃO TELEGRAM - MOVIDA PARA DEPOIS DOS RECURSOS ADICIONAIS */}
       <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
         <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
           <MessageCircle size={18} className="mr-2" /> Bot Telegram
@@ -313,28 +335,6 @@ const PreferencesPage: React.FC = () => {
               <MessageCircle size={16} className="mr-2" /> Configurar Telegram
             </Button>
           </div>
-        </div>
-      </div>
-      
-      <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
-        <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
-          <Star size={18} className="mr-2" /> Recursos adicionais
-        </h2>
-        <div className="space-y-3">          <Button 
-            variant="outline"
-            className="w-full border border-galileo-accent text-galileo-accent hover:bg-galileo-accent/10"
-            onClick={() => navigate('/analise-financeira')}
-          >
-            <Star size={16} className="mr-2" /> Acessar Análise Financeira
-          </Button>
-          
-          <Button 
-            variant="outline"
-            className="w-full border border-galileo-accent text-galileo-accent hover:bg-galileo-accent/10"
-            onClick={() => navigate('/export-report')}
-          >
-            <FileText size={16} className="mr-2" /> Exportar relatório financeiro
-          </Button>
         </div>
       </div>
       

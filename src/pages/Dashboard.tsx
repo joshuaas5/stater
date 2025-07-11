@@ -15,6 +15,7 @@ import { DollarSign, ArrowRight, MessageCircle, Check } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { MonthSelector } from '@/components/ui/month-selector';
+import { TelegramConnectModal } from '@/components/telegram/TelegramConnectModal';
 import { RecurrenceConfig } from '@/components/transactions/RecurrenceConfig';
 import { calculateNextOccurrence } from '@/utils/recurringProcessor';
 import { Transaction } from '@/types';
@@ -82,6 +83,7 @@ const Dashboard: React.FC = () => {
 
   // Estados do Telegram
   const [isTelegramLinked, setIsTelegramLinked] = useState(false);
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [telegramInfo, setTelegramInfo] = useState<any>(null);
 
@@ -117,47 +119,9 @@ const Dashboard: React.FC = () => {
       setIsTelegramLinked(false);
       setTelegramInfo(null);
     }
-  };  const generateTelegramCode = async () => {
+  };  const generateTelegramCode = () => {
     if (!user?.id) return;
-    
-    setIsGeneratingCode(true);
-    try {
-      const response = await fetch('/api/telegram-codes-simple', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id,
-          userEmail: user.email,
-          userName: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário'
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao gerar código');
-      }
-
-      const data = await response.json();
-      
-      // Copiar código para clipboard
-      await navigator.clipboard.writeText(data.code);
-      
-      // Abrir bot do Telegram
-      window.open('https://t.me/assistentefinanceiroiabot', '_blank');
-      
-      toast({
-        title: "✅ Código Gerado!",
-        description: `Código ${data.code} copiado! Cole no bot do Telegram.`,
-      });
-      
-    } catch (error: any) {
-      toast({
-        title: "❌ Erro",
-        description: "Erro ao gerar código: " + error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setIsGeneratingCode(false);
-    }
+    setShowTelegramModal(true);
   };
 
   // Verificar status do Telegram no carregamento
@@ -1314,6 +1278,15 @@ const Dashboard: React.FC = () => {
       )}
       
       <NavBar />
+      
+      <TelegramConnectModal
+        isOpen={showTelegramModal}
+        onClose={() => setShowTelegramModal(false)}
+        onConnect={(code) => {
+          setShowTelegramModal(false);
+          // A lógica de conexão já está no modal
+        }}
+      />
     </div>
   );
 };

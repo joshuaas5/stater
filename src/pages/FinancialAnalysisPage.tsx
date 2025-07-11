@@ -1,10 +1,9 @@
 // src/pages/FinancialAnalysisPage.tsx
 import React, { Suspense, lazy, useState } from 'react';
-import { Button} from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Brain, BarChart3, Target, BookOpen, Lightbulb, Loader2, TrendingUp, MessageSquare } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import { Brain, BarChart3, Target, BookOpen, Loader2, TrendingUp } from 'lucide-react';
+import NavBar from '@/components/navigation/NavBar';
 
 // Lazy load dos componentes pesados
 const FinancialMetrics = lazy(() => import('@/components/dashboard/FinancialMetrics'));
@@ -26,28 +25,18 @@ const LoadingCard = ({ title }: { title: string }) => (
 );
 
 const FinancialAnalysisPage: React.FC = () => {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("insights");
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header moderno com mesmo design do advisor */}
-      <div 
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '12px 30px',
-          background: 'rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1001,
-          height: '60px',
-          backgroundImage: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)'
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
+      {/* Header responsivo */}
+      <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 sticky top-0 z-50">
+        <div className="px-4 py-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-white text-center">
+            ANÁLISE FINANCEIRA
+          </h1>
+        </div>
+      </div>
         }}
       >
         <Button 
@@ -57,58 +46,76 @@ const FinancialAnalysisPage: React.FC = () => {
             color: 'white',
             border: '1px solid rgba(255, 255, 255, 0.2)',
             background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)'
-          }}
-          className="hover:bg-white/20"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft size={16} className="mr-2" />
-          Voltar
-        </Button>
-        
-        <div 
-          style={{
-            fontSize: '24px',
-            fontWeight: 800,
-            color: '#ffffff',
-            fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
-            letterSpacing: '1px',
-            textShadow: '2px 2px 0px #3b82f6, 4px 4px 0px #1d4ed8, 0 0 20px rgba(59, 130, 246, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
-            textTransform: 'uppercase'
-          }}
-        >
-          ANÁLISE FINANCEIRA
-        </div>
-        
-        <div style={{ width: '80px' }}></div> {/* Spacer para centralizar o título */}
-      </div>
-
-      {/* Espaçamento para compensar header fixo */}
-      <div style={{ height: '60px' }}></div>
-
-      {/* Navegação reorganizada com destaque para Insights */}
-      <div className="p-3">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-4 w-full mb-4 bg-white dark:bg-gray-800 shadow-sm h-auto border dark:border-gray-700">
-            <TabsTrigger value="insights" className="flex flex-col items-center gap-1 py-3 px-2 text-xs data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=inactive]:text-gray-600 dark:data-[state=inactive]:text-gray-300 rounded-md transition-colors">
-              <MessageSquare className="w-4 h-4" />
-              <span>Insights</span>
+            backdropFilter: 'blur(10px)'      {/* Container principal */}
+      <div className="p-4 space-y-6">
+        <Tabs defaultValue="insights" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 mb-6">
+            <TabsTrigger 
+              value="insights" 
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white flex items-center gap-2 text-xs sm:text-sm"
+            >
+              <Brain className="h-4 w-4" />
+              <span className="hidden sm:inline">Insights</span>
+              <span className="sm:hidden">IA</span>
             </TabsTrigger>
-            <TabsTrigger value="charts" className="flex flex-col items-center gap-1 py-3 px-2 text-xs data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=inactive]:text-gray-600 dark:data-[state=inactive]:text-gray-300 rounded-md transition-colors">
-              <TrendingUp className="w-4 h-4" />
-              <span>Gráficos</span>
+            <TabsTrigger 
+              value="charts" 
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white flex items-center gap-2 text-xs sm:text-sm"
+            >
+              <TrendingUp className="h-4 w-4" />
+              <span className="hidden sm:inline">Gráficos</span>
+              <span className="sm:hidden">📊</span>
             </TabsTrigger>
-            <TabsTrigger value="score" className="flex flex-col items-center gap-1 py-3 px-2 text-xs data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=inactive]:text-gray-600 dark:data-[state=inactive]:text-gray-300 rounded-md transition-colors">
-              <Target className="w-4 h-4" />
-              <span>Score</span>
+            <TabsTrigger 
+              value="health" 
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white flex items-center gap-2 text-xs sm:text-sm"
+            >
+              <Target className="h-4 w-4" />
+              <span className="hidden sm:inline">Saúde</span>
+              <span className="sm:hidden">Score</span>
             </TabsTrigger>
-            <TabsTrigger value="education" className="flex flex-col items-center gap-1 py-3 px-2 text-xs data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=inactive]:text-gray-600 dark:data-[state=inactive]:text-gray-300 rounded-md transition-colors">
-              <BookOpen className="w-4 h-4" />
-              <span>Educação</span>
+            <TabsTrigger 
+              value="books" 
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white flex items-center gap-2 text-xs sm:text-sm"
+            >
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Livros</span>
+              <span className="sm:hidden">📚</span>
             </TabsTrigger>
           </TabsList>
 
-          {/* Tab: Insights (PRIORIDADE MÁXIMA) */}
+          {/* Tab: Insights */}
+          <TabsContent value="insights" className="space-y-4">            
+            <Suspense fallback={<LoadingCard title="insights personalizados" />}>
+              <FinancialInsights />
+            </Suspense>
+          </TabsContent>
+
+          {/* Tab: Gráficos */}
+          <TabsContent value="charts" className="space-y-4">
+            <Suspense fallback={<LoadingCard title="gráficos interativos" />}>
+              <ModernCharts />
+            </Suspense>
+          </TabsContent>
+
+          {/* Tab: Saúde Financeira */}
+          <TabsContent value="health" className="space-y-4">
+            <Suspense fallback={<LoadingCard title="análise de saúde financeira" />}>
+              <FinancialHealthScoreCard />
+            </Suspense>
+          </TabsContent>
+
+          {/* Tab: Livros */}
+          <TabsContent value="books" className="space-y-4">
+            <Suspense fallback={<LoadingCard title="recomendações de livros" />}>
+              <BookOfTheWeek />
+            </Suspense>
+          </TabsContent>
+        </Tabs>
+      </div>
+      
+      <NavBar />
+    </div>
           <TabsContent value="insights" className="space-y-4">
             <div className="text-center mb-4">
               <h2 className="text-lg font-semibold text-gray-800 mb-1">� Insights Inteligentes</h2>

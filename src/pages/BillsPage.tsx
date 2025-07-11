@@ -229,7 +229,14 @@ const BillsPage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-galileo-background pb-16">
-      <PageHeader title="Contas" showBack={true} showSearch={false} showThemeToggle={false} />
+      {/* Header simplificado no padrão do app */}
+      <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 sticky top-0 z-50">
+        <div className="px-4 py-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-white text-center">
+            CONTAS
+          </h1>
+        </div>
+      </div>
       
       {/* Seletores de Mês e Ano */}
       <div className="px-4 pt-4 pb-3 bg-galileo-background sticky top-[calc(var(--header-height)_-_1px)] z-10 border-b border-galileo-border">

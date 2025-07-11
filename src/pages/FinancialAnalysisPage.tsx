@@ -31,30 +31,60 @@ const FinancialAnalysisPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header moderno e limpo */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              onClick={() => navigate(-1)}
-            >
-              <ArrowLeft size={16} className="mr-2" />
-              Voltar
-            </Button>
-            
-            <div className="flex-1 text-center">
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Análises Financeiras
-              </h1>
-            </div>
-            
-            <div className="w-16"></div> {/* Spacer para centralizar o título */}
-          </div>
+      {/* Header moderno com mesmo design do advisor */}
+      <div 
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '12px 30px',
+          background: 'rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1001,
+          height: '60px',
+          backgroundImage: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)'
+        }}
+      >
+        <Button 
+          variant="ghost" 
+          size="sm"
+          style={{
+            color: 'white',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)'
+          }}
+          className="hover:bg-white/20"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Voltar
+        </Button>
+        
+        <div 
+          style={{
+            fontSize: '24px',
+            fontWeight: 800,
+            color: '#ffffff',
+            fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
+            letterSpacing: '1px',
+            textShadow: '2px 2px 0px #3b82f6, 4px 4px 0px #1d4ed8, 0 0 20px rgba(59, 130, 246, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
+            textTransform: 'uppercase'
+          }}
+        >
+          STATER IA
         </div>
+        
+        <div style={{ width: '80px' }}></div> {/* Spacer para centralizar o título */}
       </div>
+
+      {/* Espaçamento para compensar header fixo */}
+      <div style={{ height: '60px' }}></div>
 
       {/* Navegação reorganizada com destaque para Insights */}
       <div className="p-3">

@@ -229,19 +229,85 @@ const BillsPage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen pb-16 bg-gray-50 dark:bg-gray-900">
-      {/* Header mais sóbrio */}
+      {/* Header com diamantes animados */}
       <div 
-        className="sticky top-0 z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50"
+        className="sticky top-0 z-50 overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
+          color: 'white',
+          padding: '45px 50px',
+          position: 'relative'
+        }}
       >
-        <div className="px-4 py-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white text-center">
+        {/* Diamante superior direito */}
+        <div 
+          style={{
+            content: '',
+            position: 'absolute',
+            top: '-25%',
+            right: '-15%',
+            width: '250px',
+            height: '250px',
+            background: 'rgba(255,255,255,0.04)',
+            transform: 'rotate(45deg)',
+            animation: 'pulse 6s ease-in-out infinite'
+          }}
+        />
+        
+        {/* Diamante inferior esquerdo */}
+        <div 
+          style={{
+            content: '',
+            position: 'absolute',
+            bottom: '-25%',
+            left: '-15%',
+            width: '180px',
+            height: '180px',
+            background: 'rgba(255,255,255,0.03)',
+            transform: 'rotate(45deg)',
+            animation: 'pulse 4s ease-in-out infinite reverse'
+          }}
+        />
+        
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+          <h1 
+            style={{
+              fontSize: '2.4rem',
+              fontWeight: 300,
+              letterSpacing: '3px',
+              marginBottom: '8px'
+            }}
+          >
             CONTAS
           </h1>
+          <div 
+            style={{
+              fontSize: '0.95rem',
+              opacity: 0.9,
+              fontWeight: 300
+            }}
+          >
+            Gerencie suas contas e pagamentos
+          </div>
         </div>
       </div>
       
+      {/* CSS para animação */}
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% {
+            transform: rotate(45deg) scale(1);
+            opacity: 0.04;
+          }
+          50% {
+            transform: rotate(45deg) scale(1.1);
+            opacity: 0.08;
+          }
+        }
+      `}</style>
+      
       {/* Seletores de Mês e Ano */}
-      <div className="px-4 pt-4 pb-3 bg-gray-50 dark:bg-gray-900 sticky top-[60px] z-10 border-b border-gray-200/50 dark:border-gray-700/50">
+      <div className="px-4 pt-4 pb-3 bg-gray-50 dark:bg-gray-900 sticky z-10 border-b border-gray-200/50 dark:border-gray-700/50" style={{ top: '150px' }}>
         <div className="flex flex-col sm:flex-row gap-3 items-center">
           <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700 shadow-sm w-full sm:w-auto">
             <div className="flex items-center flex-1 sm:flex-auto">

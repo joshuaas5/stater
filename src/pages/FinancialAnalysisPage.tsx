@@ -63,31 +63,31 @@ const FinancialAnalysisPage: React.FC = () => {
       {/* Container principal */}
       <div className="p-4 space-y-6">
         <Tabs defaultValue="insights" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-white/30 dark:border-gray-700/30 mb-6 p-1 rounded-xl shadow-md">
+          <TabsList className="grid w-full grid-cols-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-white/30 dark:border-gray-700/30 mb-6 rounded-xl shadow-md h-auto">
             <TabsTrigger 
               value="insights" 
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-2 px-1 min-h-[60px] justify-center"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-3 px-2 min-h-[60px] justify-center m-1"
             >
               <Brain className="h-5 w-5 flex-shrink-0" />
               <span className="font-medium leading-tight">Insights</span>
             </TabsTrigger>
             <TabsTrigger 
               value="charts" 
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-2 px-1 min-h-[60px] justify-center"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-3 px-2 min-h-[60px] justify-center m-1"
             >
               <TrendingUp className="h-5 w-5 flex-shrink-0" />
               <span className="font-medium leading-tight">Gráficos</span>
             </TabsTrigger>
             <TabsTrigger 
               value="health" 
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-2 px-1 min-h-[60px] justify-center"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-3 px-2 min-h-[60px] justify-center m-1"
             >
               <Target className="h-5 w-5 flex-shrink-0" />
               <span className="font-medium leading-tight">Saúde</span>
             </TabsTrigger>
             <TabsTrigger 
               value="books" 
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-2 px-1 min-h-[60px] justify-center"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-3 px-2 min-h-[60px] justify-center m-1"
             >
               <BookOpen className="h-5 w-5 flex-shrink-0" />
               <span className="font-medium leading-tight">Livros</span>

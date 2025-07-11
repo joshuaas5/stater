@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Image, Camera, X, Loader2 } from 'lucide-react';
+import { Send, Image, Camera, X, Loader2, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import VoiceRecorder from '@/components/voice/VoiceRecorder';
 
 interface ChatInputProps {
   onSubmit: (message: string) => void;
@@ -11,6 +12,10 @@ interface ChatInputProps {
   pendingActionDetails: { description?: string; category?: string; type?: string; amount?: number; date?: string; ocrTransactions?: any[] } | null;
   onConfirm: () => void;
   onCancel: () => void;
+  // Props para funcionalidade de áudio
+  onAudioSend?: (audioBlob: Blob) => Promise<void>;
+  isProcessingAudio?: boolean;
+  audioLimits?: any;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({ 
@@ -20,7 +25,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
   waitingConfirmation, 
   pendingActionDetails,
   onConfirm,
-  onCancel 
+  onCancel,
+  // Props de áudio
+  onAudioSend,
+  isProcessingAudio = false,
+  audioLimits
 }) => {
   const [message, setMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -295,7 +304,38 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 }}
               >
                 📷
-              </button>                <button
+              </button>
+
+              {/* Botão de Áudio - Pequeno como os outros */}
+              {onAudioSend && (
+                <div style={{ position: 'relative' }}>
+                  <VoiceRecorder
+                    onAudioSend={onAudioSend}
+                    isProcessing={isProcessingAudio}
+                    disabled={loading || waitingConfirmation || !audioLimits?.canUseAudio()}
+                    compact={true} // Modo compacto para integrar com outros botões
+                  />
+                  {audioLimits?.usage.warningLevel === 'warning' && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '-30px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: 'rgba(255, 165, 0, 0.9)',
+                      color: 'white',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      whiteSpace: 'nowrap',
+                      pointerEvents: 'none'
+                    }}>
+                      ⚠️ {audioLimits.usage.remainingDaily} restantes
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <button
                 type="submit"
                 disabled={loading || !message.trim()}
                 title="Enviar"

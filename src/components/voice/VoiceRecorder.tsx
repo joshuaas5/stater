@@ -5,6 +5,7 @@ interface VoiceRecorderProps {
   onAudioSend: (audioBlob: Blob) => Promise<void>;
   isProcessing?: boolean;
   disabled?: boolean;
+  compact?: boolean; // Modo compacto para integrar com outros botões
 }
 
 interface AudioState {
@@ -18,7 +19,8 @@ interface AudioState {
 export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ 
   onAudioSend, 
   isProcessing = false,
-  disabled = false 
+  disabled = false,
+  compact = false
 }) => {
   const [audioState, setAudioState] = useState<AudioState>({
     isRecording: false,
@@ -183,7 +185,49 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   };
 
   return (
-    <div className="voice-recorder bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
+    <>
+      {compact ? (
+        // VERSÃO COMPACTA - Para integrar com ChatInput
+        <button
+          type="button"
+          onClick={audioState.audioBlob ? sendAudio : (audioState.isRecording ? stopRecording : startRecording)}
+          disabled={disabled || isProcessing}
+          title={audioState.audioBlob ? "Enviar áudio" : (audioState.isRecording ? "Parar gravação" : "Gravar áudio")}
+          style={{
+            width: '58px',
+            height: '58px',
+            background: audioState.isRecording 
+              ? 'rgba(239, 68, 68, 0.2)' 
+              : audioState.audioBlob 
+                ? 'rgba(34, 197, 94, 0.2)'
+                : 'rgba(255, 255, 255, 0.15)',
+            backdropFilter: 'blur(10px)',
+            border: `2px solid ${audioState.isRecording ? 'rgba(239, 68, 68, 0.5)' : audioState.audioBlob ? 'rgba(34, 197, 94, 0.5)' : 'rgba(255, 255, 255, 0.2)'}`,
+            borderRadius: '50%',
+            color: 'white',
+            cursor: (disabled || isProcessing) ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+            fontSize: '18px',
+            opacity: (disabled || isProcessing) ? 0.5 : 1,
+            animation: audioState.isRecording ? 'pulse 1s infinite' : 'none'
+          }}
+        >
+          {isProcessing ? (
+            <Loader2 size={20} className="animate-spin" />
+          ) : audioState.audioBlob ? (
+            '🎤'
+          ) : audioState.isRecording ? (
+            <MicOff size={20} />
+          ) : (
+            <Mic size={20} />
+          )}
+        </button>
+      ) : (
+        // VERSÃO COMPLETA - Original
+        <div className="voice-recorder bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
       {/* Recording State */}
       {audioState.isRecording && (
         <div className="text-center mb-4">
@@ -276,7 +320,9 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           <p className="text-xs mt-1">Exemplos: "Adicionar gasto de R$ 50 em alimentação"</p>
         </div>
       )}
-    </div>
+        </div>
+      )}
+    </>
   );
 };
 

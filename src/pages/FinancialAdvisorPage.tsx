@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VoiceRecorder from '@/components/voice/VoiceRecorder';
 import VoicePlayer from '@/components/voice/VoicePlayer';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import { useAudioLimits } from '@/hooks/useAudioLimits';
 import { processAudioWithGemini, AudioProcessingResult } from '@/utils/audioProcessing';
 
 
@@ -109,6 +110,7 @@ export const FinancialAdvisorPage: React.FC = () => {
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
   const [audioResponse, setAudioResponse] = useState<string | null>(null);
   const tts = useTextToSpeech();
+  const audioLimits = useAudioLimits(currentUserId || null);
 
   // Inicializar Web Speech API
   useEffect(() => {
@@ -317,8 +319,24 @@ const isAddBillIntent = (msg: string) => {
 
   // Função para processar mensagens de áudio
   const handleAudioMessage = useCallback(async (audioBlob: Blob) => {
+    // Verificar limites antes de processar
+    if (!audioLimits.canUseAudio()) {
+      const limitMessage = audioLimits.getLimitMessage();
+      setMessages(prev => [...prev, {
+        id: uuidv4(),
+        text: limitMessage || '🚫 Limite de mensagens de áudio atingido para hoje.',
+        sender: 'assistant',
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
+      }]);
+      return;
+    }
+
     setIsProcessingAudio(true);
     setError('');
+
+    const startTime = Date.now();
+    const sessionId = uuidv4();
 
     try {
       // Converter Blob para File
@@ -327,6 +345,23 @@ const isAddBillIntent = (msg: string) => {
       // Processar com Gemini
       const result: AudioProcessingResult = await processAudioWithGemini(audioFile, currentUserId || undefined);
       
+      const processingTime = Date.now() - startTime;
+
+      // Registrar uso nos logs
+      await audioLimits.recordAudioUsage({
+        sessionId,
+        audioDuration: audioBlob.size / 16000, // Estimativa baseada no tamanho
+        audioSize: audioBlob.size,
+        sourceType: 'web',
+        transcript: result.transcript,
+        detectedIntent: result.intent?.type || 'unknown',
+        processingTime,
+        inputTokens: Math.ceil(result.transcript.length / 4), // Estimativa
+        outputTokens: Math.ceil((result.response || '').length / 4), // Estimativa
+        estimatedCost: 0.0001, // Custo estimado
+        success: true
+      });
+
       // Adicionar mensagem do usuário (transcrição)
       const userMessage: ChatMessage = {
         id: uuidv4(),
@@ -343,17 +378,31 @@ const isAddBillIntent = (msg: string) => {
         await handleTransactionFromVoice(result.intent.data, result.response);
       } else {
         // Para outras intenções, enviar como mensagem normal
-        const response = await handleSendMessage(result.transcript);
+        await handleSendMessage(result.transcript);
       }
 
-      // Falar a resposta usando TTS
-      if (result.response && tts.isSupported) {
-        await tts.speak(result.response);
-      }
+      // REMOVIDO: Não reproduzir resposta em áudio automaticamente
+      // IA responde apenas com texto
 
     } catch (error) {
       console.error('Erro ao processar áudio:', error);
       setError('Erro ao processar mensagem de voz. Tente novamente.');
+      
+      // Registrar erro nos logs
+      await audioLimits.recordAudioUsage({
+        sessionId,
+        audioDuration: audioBlob.size / 16000,
+        audioSize: audioBlob.size,
+        sourceType: 'web',
+        transcript: '',
+        detectedIntent: 'error',
+        processingTime: Date.now() - startTime,
+        inputTokens: 0,
+        outputTokens: 0,
+        estimatedCost: 0,
+        success: false,
+        errorMessage: (error as Error).message
+      });
       
       // Adicionar mensagem de erro
       setMessages(prev => [...prev, {
@@ -366,7 +415,7 @@ const isAddBillIntent = (msg: string) => {
     } finally {
       setIsProcessingAudio(false);
     }
-  }, [currentUserId, tts]);
+  }, [currentUserId, audioLimits]);
 
   // Função para processar transações via voz
   const handleTransactionFromVoice = useCallback(async (transactionData: any, response: string) => {
@@ -2459,15 +2508,6 @@ return (
           <div ref={messagesEndRef} style={{ height: '1px' }} />
         </div>
 
-        {/* Voice Recorder - Nova funcionalidade */}
-        <div className="voice-section mb-4">
-          <VoiceRecorder
-            onAudioSend={handleAudioMessage}
-            isProcessing={isProcessingAudio}
-            disabled={loading || waitingConfirmation}
-          />
-        </div>
-
         {/* Chat Input */}
         <ChatInput
           onSubmit={handleSendMessage} 
@@ -2476,7 +2516,11 @@ return (
           waitingConfirmation={waitingConfirmation} 
           pendingActionDetails={pendingAction ? pendingAction.dados : null} 
           onConfirm={() => handleSendMessage('sim')} 
-          onCancel={() => handleSendMessage('não')} 
+          onCancel={() => handleSendMessage('não')}
+          // Props para áudio
+          onAudioSend={handleAudioMessage}
+          isProcessingAudio={isProcessingAudio}
+          audioLimits={audioLimits}
         />
       </div>      {/* Transaction Review Modal - REWORK COMPLETO */}
       {waitingConfirmation && editableTransactions.length > 0 && (

@@ -50,68 +50,11 @@ export const useTextToSpeech = (): TTSHookReturn => {
   }, [isSupported, selectedVoice]);
 
   const speak = useCallback(async (text: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (!isSupported) {
-        reject(new Error('Speech synthesis not supported'));
-        return;
-      }
-
-      if (!text.trim()) {
-        resolve();
-        return;
-      }
-
-      // Stop any current speech
-      speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(text);
-      utteranceRef.current = utterance;
-
-      // Configure utterance
-      utterance.rate = 0.9; // Slightly slower for better comprehension
-      utterance.pitch = 1.0;
-      utterance.volume = 0.8;
-      
-      // Use selected voice if available
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      } else {
-        // Fallback to Portuguese if available
-        utterance.lang = 'pt-BR';
-      }
-
-      // Event handlers
-      utterance.onstart = () => {
-        setIsSpeaking(true);
-      };
-
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        resolve();
-      };
-
-      utterance.onerror = (event) => {
-        setIsSpeaking(false);
-        reject(new Error(`Speech synthesis error: ${event.error}`));
-      };
-
-      utterance.onpause = () => {
-        setIsSpeaking(false);
-      };
-
-      utterance.onresume = () => {
-        setIsSpeaking(true);
-      };
-
-      // Start speaking
-      try {
-        speechSynthesis.speak(utterance);
-      } catch (error) {
-        setIsSpeaking(false);
-        reject(error);
-      }
-    });
-  }, [isSupported, selectedVoice]);
+    // DESABILITADO: Remover resposta automática por voz
+    // Sistema deve responder apenas com texto, não com áudio
+    console.log('🔇 TTS desabilitado - resposta apenas em texto:', text);
+    return Promise.resolve();
+  }, []);
 
   const stop = useCallback(() => {
     if (!isSupported) return;

@@ -15,7 +15,6 @@ import { DollarSign, ArrowRight, MessageCircle, Check } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { MonthSelector } from '@/components/ui/month-selector';
-import { TelegramConnectModal } from '@/components/telegram/TelegramConnectModal';
 import { RecurrenceConfig } from '@/components/transactions/RecurrenceConfig';
 import { calculateNextOccurrence } from '@/utils/recurringProcessor';
 import { Transaction } from '@/types';
@@ -83,7 +82,6 @@ const Dashboard: React.FC = () => {
 
   // Estados do Telegram
   const [isTelegramLinked, setIsTelegramLinked] = useState(false);
-  const [showTelegramModal, setShowTelegramModal] = useState(false);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [telegramInfo, setTelegramInfo] = useState<any>(null);
 
@@ -119,73 +117,42 @@ const Dashboard: React.FC = () => {
       setIsTelegramLinked(false);
       setTelegramInfo(null);
     }
-  };  const generateTelegramCode = () => {
+  };  const generateTelegramCode = async () => {
     if (!user?.id) return;
-    setShowTelegramModal(true);
-  };
-
-  const handleTelegramConnect = async (code: string) => {
-    setShowTelegramModal(false);
-    
-    if (!user?.id) {
-      toast({
-        title: "❌ Erro",
-        description: "Usuário não encontrado",
-        variant: "destructive"
-      });
-      return;
-    }
     
     setIsGeneratingCode(true);
     try {
-      // Usar sistema de códigos unificado (simula envio para o webhook)
-      const response = await fetch(`/api/telegram-webhook`, {
+      const response = await fetch('/api/telegram-codes-simple', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: {
-            message_id: Date.now(),
-            from: {
-              id: Date.now(),
-              is_bot: false,
-              first_name: user.user_metadata?.username || "User",
-              username: user.user_metadata?.username || "user"
-            },
-            chat: {
-              id: Date.now(),
-              first_name: user.user_metadata?.username || "User",
-              username: user.user_metadata?.username || "user",
-              type: "private"
-            },
-            date: Math.floor(Date.now() / 1000),
-            text: `/start ${code}`
-          }
+          user_id: user.id,
+          userEmail: user.email,
+          userName: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário'
         })
       });
 
-      const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.error || 'Erro ao conectar');
+        throw new Error('Erro ao gerar código');
       }
 
-      // Sucesso!
-      setIsTelegramLinked(true);
+      const data = await response.json();
+      
+      // Copiar código para clipboard
+      await navigator.clipboard.writeText(data.code);
+      
+      // Abrir bot do Telegram
+      window.open('https://t.me/assistentefinanceiroiabot', '_blank');
+      
       toast({
-        title: "✅ Conectado com sucesso!",
-        description: "Agora você pode usar o bot do Telegram para consultar suas finanças!",
+        title: "✅ Código Gerado!",
+        description: `Código ${data.code} copiado! Cole no bot do Telegram.`,
       });
-
-      // Verificar status atualizado
-      checkTelegramStatus();
-
+      
     } catch (error: any) {
-      console.error('Erro ao conectar:', error);
       toast({
-        title: "❌ Erro na conexão",
-        description: error.message || "Código inválido ou expirado. Gere um novo código na página de configurações.",
+        title: "❌ Erro",
+        description: "Erro ao gerar código: " + error.message,
         variant: "destructive"
       });
     } finally {
@@ -1347,12 +1314,6 @@ const Dashboard: React.FC = () => {
       )}
       
       <NavBar />
-      
-      <TelegramConnectModal
-        isOpen={showTelegramModal}
-        onClose={() => setShowTelegramModal(false)}
-        onConnect={handleTelegramConnect}
-      />
     </div>
   );
 };

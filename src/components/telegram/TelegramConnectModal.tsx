@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Copy, Check } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TelegramConnectModalProps {
   isOpen: boolean;
@@ -12,34 +13,60 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
   onClose,
   onConnect,
 }) => {
-  const [code, setCode] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isCodeCopied, setIsCodeCopied] = useState(false);
   const [error, setError] = useState('');
+  const { user } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.trim()) {
-      setError('Por favor, insira o código de 6 dígitos');
+  const generateCode = async () => {
+    if (!user) {
+      setError('Usuário não autenticado');
       return;
     }
 
-    if (code.length !== 6) {
-      setError('O código deve ter exatamente 6 dígitos');
-      return;
-    }
-
-    setIsLoading(true);
+    setIsGenerating(true);
     setError('');
     
     try {
-      await onConnect(code);
-      onClose();
-      setCode('');
+      const response = await fetch('/api/telegram-codes-simple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
+          userEmail: user.email,
+          userName: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar código');
+      }
+
+      const data = await response.json();
+      setGeneratedCode(data.code);
+      
+      // Copiar automaticamente para clipboard
+      await navigator.clipboard.writeText(data.code);
+      setIsCodeCopied(true);
+      
     } catch (err) {
-      setError('Erro ao conectar. Verifique se o código está correto.');
+      setError('Erro ao gerar código. Tente novamente.');
     } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
+  };
+
+  const copyCode = async () => {
+    if (generatedCode) {
+      await navigator.clipboard.writeText(generatedCode);
+      setIsCodeCopied(true);
+      setTimeout(() => setIsCodeCopied(false), 2000);
+    }
+  };
+
+  const openTelegramBot = () => {
+    window.open('https://t.me/assistentefinanceiroiabot', '_blank');
   };
 
   if (!isOpen) return null;
@@ -62,64 +89,86 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
             Para conectar sua conta ao Telegram:
           </p>
           <ol className="text-sm text-gray-700 space-y-2 mb-4">
-            <li>1. Abra o Telegram e procure por: <strong>@assistentefinanceiroiabot</strong></li>
-            <li>2. Inicie uma conversa com o bot</li>
-            <li>3. Digite o comando: <strong>/conectar</strong></li>
-            <li>4. O bot enviará um código de 6 dígitos</li>
-            <li>5. Digite o código abaixo:</li>
+            <li>1. Clique em <strong>"Gerar Código"</strong> abaixo</li>
+            <li>2. O código será copiado automaticamente</li>
+            <li>3. Clique em <strong>"Abrir Bot"</strong> para ir ao Telegram</li>
+            <li>4. <strong>Cole o código</strong> no chat com o bot</li>
+            <li>5. Pronto! Sua conta estará conectada ✅</li>
           </ol>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">
-              Código de 6 dígitos
-            </label>
-            <input
-              type="text"
-              id="code"
-              value={code}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                setCode(value);
-                setError('');
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg tracking-widest"
-              placeholder="000000"
-              maxLength={6}
-              disabled={isLoading}
-            />
+        {!generatedCode ? (
+          <div className="space-y-3">
+            <button
+              onClick={generateCode}
+              disabled={isGenerating}
+              className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium"
+            >
+              {isGenerating ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  Gerando código...
+                </div>
+              ) : (
+                '🔑 Gerar Código de 6 Dígitos'
+              )}
+            </button>
           </div>
-
-          {error && (
-            <div className="mb-4 text-sm text-red-600">
-              {error}
+        ) : (
+          <div className="space-y-3">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="text-center">
+                <p className="text-sm text-blue-600 font-medium mb-2">Seu código:</p>
+                <div className="text-2xl font-mono font-bold text-blue-800 tracking-widest mb-3">
+                  {generatedCode}
+                </div>
+                <button
+                  onClick={copyCode}
+                  className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+                >
+                  {isCodeCopied ? (
+                    <>
+                      <Check size={16} />
+                      Copiado!
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={16} />
+                      Copiar código
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          )}
-
-          <div className="flex space-x-3">
+            
             <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-              disabled={isLoading}
+              onClick={openTelegramBot}
+              className="w-full px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium"
             >
-              Cancelar
+              📱 Abrir Bot do Telegram
             </button>
+            
             <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-              disabled={isLoading || code.length !== 6}
+              onClick={onClose}
+              className="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              {isLoading ? 'Conectando...' : 'Conectar'}
+              Fechar
             </button>
           </div>
-        </form>
+        )}
+
+        {error && (
+          <div className="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
+            {error}
+          </div>
+        )}
 
         <div className="mt-4 text-xs text-gray-500">
           <p>
-            <strong>Dica:</strong> Se não encontrar o bot, verifique se digitou corretamente: 
-            @assistentefinanceiroiabot
+            <strong>Bot:</strong> @assistentefinanceiroiabot
+          </p>
+          <p className="mt-1">
+            O código expira em 15 minutos
           </p>
         </div>
       </div>

@@ -222,6 +222,16 @@ const SettingsPage: React.FC = () => {
               Preferências
             </button>
             <button
+              onClick={() => setActiveTab('sync')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'sync'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Sincronização
+            </button>
+            <button
               onClick={() => setActiveTab('telegram')}
               className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center bg-blue-50 px-4 rounded-t-lg ${
                 activeTab === 'telegram'
@@ -231,16 +241,6 @@ const SettingsPage: React.FC = () => {
             >
               <MessageCircle className="w-4 h-4 mr-2" />
               🚀 TELEGRAM 🚀
-            </button>
-            <button
-              onClick={() => setActiveTab('sync')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'sync'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Sincronização
             </button>
           </nav>
         </div>
@@ -420,6 +420,24 @@ const SettingsPage: React.FC = () => {
           </Card>
         )}
 
+        {activeTab === 'sync' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Sincronização</CardTitle>
+              <CardDescription>
+                Gerencie a sincronização dos seus dados.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Funcionalidades de sincronização em desenvolvimento.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {activeTab === 'telegram' && (
           <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white">
             <CardHeader className="text-center">
@@ -567,24 +585,6 @@ const SettingsPage: React.FC = () => {
                     </div>
                   </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {activeTab === 'sync' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Sincronização</CardTitle>
-              <CardDescription>
-                Gerencie a sincronização dos seus dados.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Funcionalidades de sincronização em desenvolvimento.</p>
-                </div>
               </div>
             </CardContent>
           </Card>

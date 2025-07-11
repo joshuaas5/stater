@@ -1291,9 +1291,7 @@ export default async function handler(req: any, res: any) {
               confirmMessage += `❌ <b>Falharam:</b> ${failed}\n`;
             }
             
-            confirmMessage += `\n💰 <b>SEU SALDO ATUALIZADO:</b> R$ ${balance.balance.toFixed(2)}\n`;
-            confirmMessage += `💚 <b>Total Receitas:</b> R$ ${balance.totalIncome.toFixed(2)}\n`;
-            confirmMessage += `💔 <b>Total Despesas:</b> R$ ${balance.totalExpense.toFixed(2)}\n\n`;
+            confirmMessage += `\n💰 <b>SEU SALDO ATUALIZADO:</b> R$ ${balance.balance.toFixed(2)}\n\n`;
             confirmMessage += `🎉 <b>Todas as transações foram processadas corretamente!</b>\n`;
             confirmMessage += `📱 <i>Abra seu app para ver o detalhamento completo!</i>`;
             

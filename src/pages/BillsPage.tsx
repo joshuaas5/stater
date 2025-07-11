@@ -235,7 +235,7 @@ const BillsPage: React.FC = () => {
         style={{
           background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
           color: 'white',
-          padding: '45px 50px',
+          padding: '20px 30px',
           position: 'relative'
         }}
       >
@@ -244,10 +244,10 @@ const BillsPage: React.FC = () => {
           style={{
             content: '',
             position: 'absolute',
-            top: '-25%',
+            top: '-50%',
             right: '-15%',
-            width: '250px',
-            height: '250px',
+            width: '150px',
+            height: '150px',
             background: 'rgba(255,255,255,0.04)',
             transform: 'rotate(45deg)',
             animation: 'pulse 6s ease-in-out infinite'
@@ -259,10 +259,10 @@ const BillsPage: React.FC = () => {
           style={{
             content: '',
             position: 'absolute',
-            bottom: '-25%',
+            bottom: '-50%',
             left: '-15%',
-            width: '180px',
-            height: '180px',
+            width: '120px',
+            height: '120px',
             background: 'rgba(255,255,255,0.03)',
             transform: 'rotate(45deg)',
             animation: 'pulse 4s ease-in-out infinite reverse'
@@ -272,17 +272,17 @@ const BillsPage: React.FC = () => {
         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
           <h1 
             style={{
-              fontSize: '2.4rem',
+              fontSize: '1.8rem',
               fontWeight: 300,
-              letterSpacing: '3px',
-              marginBottom: '8px'
+              letterSpacing: '2px',
+              marginBottom: '4px'
             }}
           >
             CONTAS
           </h1>
           <div 
             style={{
-              fontSize: '0.95rem',
+              fontSize: '0.85rem',
               opacity: 0.9,
               fontWeight: 300
             }}
@@ -307,7 +307,7 @@ const BillsPage: React.FC = () => {
       `}</style>
       
       {/* Seletores de Mês e Ano */}
-      <div className="px-4 pt-4 pb-3 bg-gray-50 dark:bg-gray-900 sticky z-10 border-b border-gray-200/50 dark:border-gray-700/50" style={{ top: '150px' }}>
+      <div className="px-4 pt-4 pb-3 bg-gray-50 dark:bg-gray-900 sticky z-10 border-b border-gray-200/50 dark:border-gray-700/50" style={{ top: '90px' }}>
         <div className="flex flex-col sm:flex-row gap-3 items-center">
           <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700 shadow-sm w-full sm:w-auto">
             <div className="flex items-center flex-1 sm:flex-auto">

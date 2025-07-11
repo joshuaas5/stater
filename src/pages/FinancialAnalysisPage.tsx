@@ -3,7 +3,7 @@ import React, { Suspense, lazy, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Brain, BarChart3, Target, BookOpen, Lightbulb, Loader2, Activity, PieChart, Sparkles, Zap } from 'lucide-react';
+import { ArrowLeft, Brain, BarChart3, Target, BookOpen, Lightbulb, Loader2, TrendingUp, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // Lazy load dos componentes pesados
@@ -13,16 +13,13 @@ const FinancialHealthScoreCard = lazy(() => import('@/components/personal_analys
 const FinancialInsights = lazy(() => import('@/components/dashboard/FinancialInsights'));
 const BookOfTheWeek = lazy(() => import('@/components/personal_analysis/BookOfTheWeek'));
 
-// Componente de Loading personalizado mobile-first
+// Componente de Loading simples e claro
 const LoadingCard = ({ title }: { title: string }) => (
-  <Card className="bg-white/95 border-gray-200 shadow-lg">
+  <Card className="bg-white border-gray-200 shadow-sm">
     <CardContent className="flex items-center justify-center h-32 p-4">
       <div className="flex flex-col items-center gap-3">
-        <div className="relative">
-          <Brain className="h-8 w-8 text-blue-600 animate-pulse" />
-          <Sparkles className="h-4 w-4 text-yellow-500 absolute -top-1 -right-1 animate-bounce" />
-        </div>
-        <p className="text-sm text-gray-600 text-center">IA analisando {title}...</p>
+        <Loader2 className="h-6 w-6 text-blue-600 animate-spin" />
+        <p className="text-sm text-gray-600 text-center">Carregando {title}...</p>
       </div>
     </CardContent>
   </Card>
@@ -30,11 +27,11 @@ const LoadingCard = ({ title }: { title: string }) => (
 
 const FinancialAnalysisPage: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("insights");
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header Mobile-First */}
+      {/* Header simplificado */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg sticky top-0 z-50">
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
@@ -47,240 +44,127 @@ const FinancialAnalysisPage: React.FC = () => {
               <ArrowLeft size={16} className="mr-1" />
               Voltar
             </Button>
-            
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/30">
-              <Brain className="w-4 h-4 text-yellow-300" />
-              <span className="text-white text-xs font-medium">IA Ativa</span>
-            </div>
           </div>
           
           <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Brain className="w-6 h-6 text-yellow-300" />
-              <h1 className="text-xl font-bold text-white">
-                Análise IA Personalizada
-              </h1>
-              <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />
-            </div>
-            <p className="text-white/90 text-sm">Sua IA financeira pessoal está analisando seus dados</p>
+            <h1 className="text-xl font-bold text-white mb-1">
+              Análise Financeira Inteligente
+            </h1>
+            <p className="text-white/90 text-sm">Insights baseados nos seus dados financeiros</p>
           </div>
         </div>
       </div>
 
-      {/* Navegação por Abas - Mobile Otimizada */}
+      {/* Navegação reorganizada com destaque para Insights */}
       <div className="p-3">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 w-full mb-4 bg-white shadow-sm h-auto">
-            <TabsTrigger value="overview" className="flex flex-col items-center gap-1 py-3 px-2 text-xs">
-              <Activity className="w-4 h-4" />
-              <span>Resumo IA</span>
+          <TabsList className="grid grid-cols-4 w-full mb-4 bg-white shadow-sm h-auto">
+            <TabsTrigger value="insights" className="flex flex-col items-center gap-1 py-3 px-2 text-xs">
+              <MessageSquare className="w-4 h-4" />
+              <span>Insights</span>
             </TabsTrigger>
-            <TabsTrigger value="analysis" className="flex flex-col items-center gap-1 py-3 px-2 text-xs">
-              <Brain className="w-4 h-4" />
-              <span>Análise</span>
+            <TabsTrigger value="charts" className="flex flex-col items-center gap-1 py-3 px-2 text-xs">
+              <TrendingUp className="w-4 h-4" />
+              <span>Gráficos</span>
+            </TabsTrigger>
+            <TabsTrigger value="score" className="flex flex-col items-center gap-1 py-3 px-2 text-xs">
+              <Target className="w-4 h-4" />
+              <span>Score</span>
             </TabsTrigger>
             <TabsTrigger value="education" className="flex flex-col items-center gap-1 py-3 px-2 text-xs">
-              <Lightbulb className="w-4 h-4" />
-              <span>Dicas IA</span>
+              <BookOpen className="w-4 h-4" />
+              <span>Educação</span>
             </TabsTrigger>
           </TabsList>
 
-          {/* Tab: Resumo IA */}
-          <TabsContent value="overview" className="space-y-4">
-            {/* Banner IA Personalizada */}
-            <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg">
+          {/* Tab: Insights (PRIORIDADE MÁXIMA) */}
+          <TabsContent value="insights" className="space-y-4">
+            <div className="text-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">� Insights Inteligentes</h2>
+              <p className="text-gray-600 text-sm">Descobertas importantes sobre seus hábitos financeiros</p>
+            </div>
+            
+            {/* Banner destacando insights */}
+            <Card className="bg-gradient-to-r from-green-500 to-blue-600 text-white border-0 shadow-lg">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <Brain className="w-8 h-8 text-yellow-300" />
-                    <Zap className="w-3 h-3 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
-                  </div>
+                  <MessageSquare className="w-8 h-8 text-yellow-300" />
                   <div className="flex-1">
-                    <h3 className="font-semibold text-sm">Sua IA Financeira Pessoal</h3>
-                    <p className="text-blue-100 text-xs">Analisando seus padrões únicos de gastos e receitas</p>
+                    <h3 className="font-semibold text-sm">Análises Personalizadas</h3>
+                    <p className="text-green-100 text-xs">Baseadas nos seus padrões únicos de gastos e receitas</p>
                   </div>
-                </div>
-                <div className="mt-3 p-2 bg-white/20 rounded-lg">
-                  <p className="text-xs text-blue-100">
-                    <Sparkles className="w-3 h-3 inline mr-1" />
-                    A IA detectou padrões únicos no seu perfil financeiro e criou insights personalizados especialmente para você.
-                  </p>
                 </div>
               </CardContent>
             </Card>
             
-            <div className="text-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 mb-1">📊 Resumo Inteligente</h2>
-              <p className="text-gray-600 text-sm">Suas métricas analisadas pela IA</p>
-            </div>
-            
-            <Suspense fallback={<LoadingCard title="métricas financeiras" />}>
-              <FinancialMetrics />
+            <Suspense fallback={<LoadingCard title="insights personalizados" />}>
+              <FinancialInsights />
             </Suspense>
 
-            {/* Cards de acesso rápido - Mobile Grid */}
-            <div className="grid grid-cols-2 gap-3 mt-6">
-              <Card 
-                className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-green-500 to-green-600 text-white border-0"
-                onClick={() => setActiveTab("analysis")}
-              >
-                <CardContent className="p-4">
-                  <div className="flex flex-col items-center text-center gap-2">
-                    <div className="relative">
-                      <PieChart className="w-6 h-6" />
-                      <Brain className="w-3 h-3 absolute -top-1 -right-1 text-yellow-300" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm">Gráficos IA</p>
-                      <p className="text-green-100 text-xs">Visualizações inteligentes</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card 
-                className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0"
-                onClick={() => setActiveTab("analysis")}
-              >
-                <CardContent className="p-4">
-                  <div className="flex flex-col items-center text-center gap-2">
-                    <div className="relative">
-                      <Target className="w-6 h-6" />
-                      <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-yellow-300 animate-pulse" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm">Score IA</p>
-                      <p className="text-purple-100 text-xs">Avaliação personalizada</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Resumo de métricas no final dos insights */}
+            <div className="mt-6">
+              <h3 className="text-md font-semibold text-gray-800 mb-3">📊 Resumo das Métricas</h3>
+              <Suspense fallback={<LoadingCard title="métricas financeiras" />}>
+                <FinancialMetrics />
+              </Suspense>
             </div>
-
-            {/* CTA para análise completa */}
-            <Card className="border-2 border-dashed border-blue-300 bg-blue-50">
-              <CardContent className="p-4 text-center">
-                <Brain className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <h3 className="font-semibold text-blue-800 text-sm mb-1">Análise Completa Disponível</h3>
-                <p className="text-blue-600 text-xs mb-3">Sua IA terminou de processar todos os seus dados financeiros</p>
-                <Button 
-                  size="sm" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={() => setActiveTab("analysis")}
-                >
-                  <Sparkles className="w-4 h-4 mr-1" />
-                  Ver Análise IA
-                </Button>
-              </CardContent>
-            </Card>
           </TabsContent>
 
-          {/* Tab: Análise Completa */}
-          <TabsContent value="analysis" className="space-y-4">
-            {/* Sub-abas para análise */}
-            <div className="grid grid-cols-3 gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="flex flex-col items-center gap-1 py-3 h-auto"
-                onClick={() => {
-                  // Scroll para gráficos
-                  document.getElementById('charts-section')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                <PieChart className="w-4 h-4" />
-                <span className="text-xs">Gráficos</span>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="flex flex-col items-center gap-1 py-3 h-auto"
-                onClick={() => {
-                  document.getElementById('score-section')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                <Target className="w-4 h-4" />
-                <span className="text-xs">Score</span>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="flex flex-col items-center gap-1 py-3 h-auto"
-                onClick={() => {
-                  document.getElementById('insights-section')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                <Brain className="w-4 h-4" />
-                <span className="text-xs">Insights</span>
-              </Button>
+          {/* Tab: Gráficos (com correção de corte) */}
+          <TabsContent value="charts" className="space-y-4">
+            <div className="text-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">📈 Análise Gráfica</h2>
+              <p className="text-gray-600 text-sm">Visualização da evolução das suas finanças</p>
             </div>
-
-            {/* Gráficos */}
-            <div id="charts-section">
-              <div className="flex items-center gap-2 mb-3">
-                <Brain className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-semibold text-gray-800">📈 Análise Gráfica IA</h2>
-              </div>
-              <div className="mb-2">
-                <p className="text-gray-600 text-sm">A IA detectou padrões únicos nos seus dados</p>
-              </div>
-              
-              <Suspense fallback={<LoadingCard title="gráficos inteligentes" />}>
+            
+            {/* Container com padding para evitar corte dos números */}
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <Suspense fallback={<LoadingCard title="gráficos" />}>
                 <ModernCharts />
               </Suspense>
             </div>
-
-            {/* Score */}
-            <div id="score-section">
-              <div className="flex items-center gap-2 mb-3">
-                <Target className="w-5 h-5 text-purple-600" />
-                <h2 className="text-lg font-semibold text-gray-800">🎯 Score Personalizado</h2>
-              </div>
-              <div className="mb-2">
-                <p className="text-gray-600 text-sm">Pontuação calculada pela IA baseada no seu perfil</p>
-              </div>
-              
-              <Suspense fallback={<LoadingCard title="score personalizado" />}>
-                <FinancialHealthScoreCard />
-              </Suspense>
-            </div>
-
-            {/* Insights */}
-            <div id="insights-section">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-5 h-5 text-yellow-600" />
-                <h2 className="text-lg font-semibold text-gray-800">🤖 Insights Exclusivos</h2>
-              </div>
-              <div className="mb-2">
-                <p className="text-gray-600 text-sm">Descobertas da IA sobre seus hábitos financeiros</p>
-              </div>
-              
-              <Suspense fallback={<LoadingCard title="insights personalizados" />}>
-                <FinancialInsights />
-              </Suspense>
-            </div>
           </TabsContent>
 
-          {/* Tab: Educação IA */}
-          <TabsContent value="education" className="space-y-4">
+          {/* Tab: Score (mais claro e direto) */}
+          <TabsContent value="score" className="space-y-4">
             <div className="text-center mb-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Lightbulb className="w-5 h-5 text-yellow-600" />
-                <h2 className="text-lg font-semibold text-gray-800">📚 Educação Personalizada</h2>
-              </div>
-              <p className="text-gray-600 text-sm">Conteúdo selecionado pela IA para seu perfil</p>
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">🎯 Score de Saúde Financeira</h2>
+              <p className="text-gray-600 text-sm">Avaliação clara e objetiva da sua situação financeira</p>
             </div>
             
-            {/* Banner educacional */}
+            {/* Explicação do score */}
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-blue-800 text-sm mb-2">Como calculamos seu score:</h3>
+                <div className="text-blue-700 text-xs space-y-1">
+                  <p>• <strong>Saldo positivo:</strong> +25 pontos</p>
+                  <p>• <strong>Receitas vs gastos:</strong> até 30 pontos</p>
+                  <p>• <strong>Consistência mensal:</strong> até 25 pontos</p>
+                  <p>• <strong>Diversificação de categorias:</strong> até 20 pontos</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Suspense fallback={<LoadingCard title="score financeiro" />}>
+              <FinancialHealthScoreCard />
+            </Suspense>
+          </TabsContent>
+
+          {/* Tab: Educação (honesta sobre não ser personalizada) */}
+          <TabsContent value="education" className="space-y-4">
+            <div className="text-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">📚 Educação Financeira</h2>
+              <p className="text-gray-600 text-sm">Conteúdo educativo para melhorar suas finanças</p>
+            </div>
+            
+            {/* Banner honesto sobre educação */}
             <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <BookOpen className="w-6 h-6 text-yellow-300" />
                   <div>
-                    <h3 className="font-semibold text-sm">Recomendação IA</h3>
-                    <p className="text-orange-100 text-xs">Baseada na análise do seu perfil financeiro</p>
+                    <h3 className="font-semibold text-sm">Conteúdo Educativo</h3>
+                    <p className="text-orange-100 text-xs">Livros e dicas selecionados pela nossa equipe</p>
                   </div>
                 </div>
               </CardContent>

@@ -101,8 +101,8 @@ const ModernCharts: React.FC = () => {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-black/80 backdrop-blur-md p-3 rounded-lg border border-white/20 shadow-xl">
-          <p className="text-white font-medium">{label}</p>
+        <div className="bg-white border border-gray-200 p-3 rounded-lg shadow-lg">
+          <p className="text-gray-800 font-medium">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name}: {formatCurrency(entry.value)}
@@ -119,23 +119,11 @@ const ModernCharts: React.FC = () => {
     title, 
     className = "" 
   }) => (
-    <Card className={`relative overflow-hidden border-0 bg-gradient-to-br backdrop-blur-xl shadow-2xl ${className}`}
-          style={{
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}>
-      <div 
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
-          backgroundColor: '#3b82f6'
-        }}
-      />
-      <CardHeader className="relative">
-        <CardTitle className="text-white text-lg font-semibold">{title}</CardTitle>
+    <Card className={`bg-white border-gray-200 shadow-sm ${className}`}>
+      <CardHeader>
+        <CardTitle className="text-gray-800 text-lg font-semibold">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="relative">
+      <CardContent>
         {children}
       </CardContent>
     </Card>
@@ -143,27 +131,38 @@ const ModernCharts: React.FC = () => {
 
   const renderTrendChart = () => (
     <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={monthlyData}>
+      <AreaChart data={monthlyData} margin={{ top: 10, right: 30, left: 60, bottom: 0 }}>
         <defs>
           <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#43e97b" stopOpacity={0.8}/>
-            <stop offset="95%" stopColor="#43e97b" stopOpacity={0.1}/>
+            <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+            <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
           </linearGradient>
           <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#f093fb" stopOpacity={0.8}/>
-            <stop offset="95%" stopColor="#f093fb" stopOpacity={0.1}/>
+            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
+            <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-        <XAxis dataKey="month" stroke="rgba(255,255,255,0.7)" fontSize={12} />
-        <YAxis stroke="rgba(255,255,255,0.7)" fontSize={12} tickFormatter={(value) => `R$ ${(value/1000).toFixed(0)}k`} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+        <XAxis 
+          dataKey="month" 
+          stroke="#6b7280" 
+          fontSize={12} 
+          tick={{ fill: '#6b7280' }}
+        />
+        <YAxis 
+          stroke="#6b7280" 
+          fontSize={12} 
+          tick={{ fill: '#6b7280' }}
+          tickFormatter={(value) => `R$ ${(value/1000).toFixed(0)}k`}
+          width={50}
+        />
         <Tooltip content={<CustomTooltip />} />
         <Area
           type="monotone"
           dataKey="income"
           name="Receitas"
-          stroke="#43e97b"
-          strokeWidth={3}
+          stroke="#10b981"
+          strokeWidth={2}
           fillOpacity={1}
           fill="url(#incomeGradient)"
         />
@@ -171,8 +170,8 @@ const ModernCharts: React.FC = () => {
           type="monotone"
           dataKey="expenses"
           name="Despesas"
-          stroke="#f093fb"
-          strokeWidth={3}
+          stroke="#ef4444"
+          strokeWidth={2}
           fillOpacity={1}
           fill="url(#expenseGradient)"
         />
@@ -203,33 +202,34 @@ const ModernCharts: React.FC = () => {
 
   const renderComparisonChart = () => (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={monthlyData}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-        <XAxis dataKey="month" stroke="rgba(255,255,255,0.7)" fontSize={12} />
-        <YAxis stroke="rgba(255,255,255,0.7)" fontSize={12} tickFormatter={(value) => `R$ ${(value/1000).toFixed(0)}k`} />
+      <BarChart data={monthlyData} margin={{ top: 10, right: 30, left: 60, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+        <XAxis 
+          dataKey="month" 
+          stroke="#6b7280" 
+          fontSize={12}
+          tick={{ fill: '#6b7280' }}
+        />
+        <YAxis 
+          stroke="#6b7280" 
+          fontSize={12}
+          tick={{ fill: '#6b7280' }}
+          tickFormatter={(value) => `R$ ${(value/1000).toFixed(0)}k`}
+          width={50}
+        />
         <Tooltip content={<CustomTooltip />} />
         <Bar
           dataKey="income"
           name="Receitas"
-          fill="url(#incomeBarGradient)"
+          fill="#10b981"
           radius={[4, 4, 0, 0]}
         />
         <Bar
           dataKey="expenses"
           name="Despesas"
-          fill="url(#expenseBarGradient)"
+          fill="#ef4444"
           radius={[4, 4, 0, 0]}
         />
-        <defs>
-          <linearGradient id="incomeBarGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#43e97b" stopOpacity={0.9}/>
-            <stop offset="95%" stopColor="#38f9d7" stopOpacity={0.6}/>
-          </linearGradient>
-          <linearGradient id="expenseBarGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#f093fb" stopOpacity={0.9}/>
-            <stop offset="95%" stopColor="#f5576c" stopOpacity={0.6}/>
-          </linearGradient>
-        </defs>
       </BarChart>
     </ResponsiveContainer>
   );

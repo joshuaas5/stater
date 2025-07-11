@@ -161,7 +161,7 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
                   <AlertDialogHeader>
                     <AlertDialogTitle className="text-purple-300">Entendendo sua Pontuação de Saúde Financeira</AlertDialogTitle>
                     <AlertDialogDescription className="text-gray-400">
-                      Sua pontuação é calculada por uma I.A. avançada que analisa um vasto conjunto de dados e comportamentos financeiros, incluindo seus hábitos de poupança, endividamento, liquidez, pagamento de contas, uso do app e interações com nossas ferramentas de IA. O objetivo é fornecer uma visão holística e misteriosamente precisa da sua vitalidade financeira.
+                      Sua pontuação é calculada com base nos seus dados financeiros reais: saldo atual, proporção entre receitas e gastos, consistência nos pagamentos e diversificação de categorias. Cada fator contribui com pontos específicos para formar uma avaliação objetiva da sua situação financeira atual.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

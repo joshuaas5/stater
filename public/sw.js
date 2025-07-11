@@ -1,5 +1,5 @@
-// Service Worker com melhorias para evitar loops de F5 e problemas de autenticação
-const CACHE_NAME = 'stater-app-v2'; // Incrementar versão para forçar refresh
+// Service Worker com correção total para evitar interceptação do Supabase
+const CACHE_NAME = 'stater-app-v3'; // Incrementar versão para forçar refresh completo
 
 // Lista de arquivos para cache inicial
 const urlsToCache = [
@@ -73,22 +73,22 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Verificar se é um arquivo crítico ou padrão que deve ser ignorado
+  const url = event.request.url;
+  
+  // IMPORTANTE: Para requisições do Supabase, NUNCA interceptar
+  if (url.includes('supabase.co') || url.includes('/rest/v1/') || url.includes('/auth/v1/')) {
+    console.log('[SW] ✅ SUPABASE: Deixando requisição passar completamente:', url);
+    return; // Não faz NADA - deixa o browser lidar naturalmente
+  }
+  
   // Evitar interceptar URLs com fragmentos
   if (event.request.url.includes('#')) {
     console.log('[SW] Ignorando URL com fragmento:', event.request.url);
     return; // Não intercepta
   }
   
-  // Verificar se é um arquivo crítico ou padrão que deve ser ignorado
-  const url = event.request.url;
-  
-  // IMPORTANTE: Para requisições do Supabase, não interceptar DE FORMA ALGUMA
-  if (url.includes('supabase.co') || url.includes('/rest/v1/') || url.includes('/auth/v1/')) {
-    console.log('[SW] ✅ SUPABASE: Deixando requisição passar SEM interceptação:', url);
-    return; // Não interceptar - deixa a requisição completamente normal
-  }
-  
-  // Verificar se corresponde a algum padrão para ignorar (sem Supabase)
+  // Verificar se corresponde a algum padrão para ignorar
   const shouldIgnore = criticalFiles.some(file => url.includes(file)) ||
                       /access_token/.test(url) ||
                       /refresh_token/.test(url) ||

@@ -24,10 +24,9 @@ export default async function handler(req: any, res: any) {
         .select('*')
         .eq('code', code)
         .is('used_at', null)
-        .gte('expires_at', new Date().toISOString())
-        .single();
+        .gte('expires_at', new Date().toISOString());
       
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         console.log('❌ Código inválido ou expirado');
         return res.status(404).json({ 
           valid: false, 
@@ -35,12 +34,13 @@ export default async function handler(req: any, res: any) {
         });
       }
       
-      console.log('✅ Código válido:', data);
+      const codeData = data[0];
+      console.log('✅ Código válido:', codeData);
       return res.status(200).json({
         valid: true,
-        userId: data.user_id,
-        userEmail: data.user_email,
-        userName: data.user_name
+        userId: codeData.user_id,
+        userEmail: codeData.user_email,
+        userName: codeData.user_name
       });
     }
     
@@ -97,13 +97,14 @@ export default async function handler(req: any, res: any) {
             expires_at: expiresAt.toISOString(),
             created_at: new Date().toISOString()
           }])
-          .select()
-          .single();
+          .select();
         
         if (error) {
           console.error('❌ Erro ao gerar código:', error);
           return res.status(500).json({ error: 'Erro ao gerar código' });
         }
+        
+        const insertedCode = data && data[0] ? data[0] : { code: newCode };
         
         console.log('✅ Código gerado:', newCode);
         return res.status(200).json({
@@ -147,13 +148,14 @@ export default async function handler(req: any, res: any) {
             expires_at: expiresAt.toISOString(),
             created_at: new Date().toISOString()
           }])
-          .select()
-          .single();
+          .select();
         
         if (error) {
           console.error('❌ Erro ao gerar código:', error);
           return res.status(500).json({ error: 'Erro ao gerar código' });
         }
+        
+        const insertedCode = data && data[0] ? data[0] : { code: newCode };
         
         console.log('✅ Código gerado (ação padrão):', newCode);
         return res.status(200).json({

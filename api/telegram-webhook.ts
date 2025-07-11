@@ -468,7 +468,6 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
         user_id: userId,
         user_email: userEmail,
         user_name: userName,
-        telegram_username: username,
         linked_at: new Date().toISOString(),
         is_active: true
       }, {

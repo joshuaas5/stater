@@ -10,7 +10,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Configuração da API Gemini
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyDTTPO0otruHVzh7bXsi7MCyG674P03758";
-const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_MODEL_NAME = 'gemini-2.5-flash-preview-05-20';
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+const GEMINI_ENDPOINT = `${GEMINI_API_BASE}/models/${GEMINI_MODEL_NAME}:generateContent`;
 
 // Token do bot - IMPORTANTE: configurar no Vercel
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7971646954:AAHpeNAzvg3kq7A1uER58XRms94sTjWZy5g';
@@ -468,7 +470,7 @@ Resposta:`;
     };
 
     console.log('📡 Enviando para Gemini API...');
-    const response = await fetch(GEMINI_ENDPOINT, {
+    const response = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(geminiPayload)
@@ -748,7 +750,7 @@ IMPORTANTE:
     };
 
     console.log('📡 Enviando para Gemini Vision API...');
-    const response = await fetch(GEMINI_ENDPOINT, {
+    const response = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(geminiPayload)
@@ -850,7 +852,7 @@ Responda em formato JSON:
       },
     };
 
-    const response = await fetch(GEMINI_ENDPOINT, {
+    const response = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -1781,13 +1783,13 @@ export default async function handler(req: any, res: any) {
         );
         return res.status(200).json({ ok: true, message: 'Erro tratado' });
       }
-    } else if (!update.message.photo && !update.message.document && !update.message.voice) {
-      // Se não há texto nem foto/documento/voz, não fazer nada
-      console.log('📭 Mensagem sem texto, foto, documento ou voz');
-      return res.status(200).json({ ok: true, message: 'Mensagem vazia processada' });
     }
+    
   } catch (error) {
     console.error('❌ Erro crítico no webhook:', error);
     return res.status(500).json({ error: 'Erro interno do servidor' });
   }
+  
+  // Se chegou até aqui, não houve nenhum tipo de mensagem processável
+  return res.status(200).json({ ok: true, message: 'Mensagem processada' });
 }

@@ -109,7 +109,7 @@ export const FinancialAdvisorPage: React.FC = () => {
 
   // Novos hooks para funcionalidades avançadas de voz
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
-  const [audioResponse, setAudioResponse] = useState<string | null>(null);
+  // Removido: audioResponse, setAudioResponse (não usado)
   const tts = useTextToSpeech();
   const audioLimits = useAudioLimits(currentUserId || null);
 
@@ -404,9 +404,8 @@ const isAddBillIntent = (msg: string) => {
 
       // Extrair apenas a mensagem de resposta, não o JSON bruto
       let responseText = result.response || '';
-      
       console.log('🔍 [DEBUG] Resposta original do áudio:', responseText);
-      
+
       // MÚLTIPLAS VERIFICAÇÕES para extrair mensagem limpa
       // 1. Se começa com JSON, extrair campo "response"
       if (responseText.startsWith('{') && responseText.includes('"response"')) {
@@ -419,7 +418,7 @@ const isAddBillIntent = (msg: string) => {
           console.warn('⚠️ [DEBUG] Erro ao parsear JSON, usando resposta original');
         }
       }
-      
+
       // 2. Se ainda tem markdown JSON, tentar limpar
       if (responseText.includes('```json')) {
         const jsonMatch = responseText.match(/```json\s*({[\s\S]*?})\s*```/);
@@ -434,7 +433,7 @@ const isAddBillIntent = (msg: string) => {
           }
         }
       }
-      
+
       // 3. Verificação final: se ainda parece JSON, extrair manualmente
       if (responseText.startsWith('{') && responseText.includes('"response"')) {
         const responseMatch = responseText.match(/"response"\s*:\s*"([^"]+)"/);
@@ -443,12 +442,17 @@ const isAddBillIntent = (msg: string) => {
           console.log('✅ [DEBUG] Extração manual de response bem-sucedida:', responseText);
         }
       }
-      
+
       // 4. Limpar caracteres de escape que podem ter sobrado
       responseText = responseText.replace(/\\n/g, '\n').replace(/\\"/g, '"');
-      
+
+      // 5. Fallback final: se ainda parece JSON bruto, mostrar mensagem amigável
+      if (responseText.trim().startsWith('{') || responseText.trim().startsWith('[')) {
+        responseText = 'Recebi sua mensagem de voz, mas não consegui entender totalmente o conteúdo. Por favor, tente novamente ou envie sua dúvida em texto.';
+      }
+
       console.log('🎯 [DEBUG] Resposta final limpa:', responseText);
-      
+
       const assistantMessage: ChatMessage = {
         id: uuidv4(),
         text: responseText,
@@ -456,7 +460,7 @@ const isAddBillIntent = (msg: string) => {
         timestamp: new Date(),
         avatarUrl: IA_AVATAR
       };
-      
+
       // Adicionar ambas as mensagens de uma vez (otimização)
       setMessages(prev => [...prev, userMessage, assistantMessage]);
 

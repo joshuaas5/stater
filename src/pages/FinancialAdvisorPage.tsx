@@ -66,10 +66,11 @@ const INITIAL_SYSTEM_MESSAGE_TEXT = `🎯 **Olá! Sou o Stater IA** - sua IA fin
 ✨ **O que posso fazer:**
 • Analisar extratos e documentos financeiros
 • Registrar receitas/despesas automaticamente  
+• Ler e entender áudios/mensagens de voz normalmente
 • Fornecer dicas personalizadas de economia
 • Controlar contas e planejamento financeiro
 
-💡 **Como usar:** Envie documentos, fotos ou faça perguntas sobre suas finanças. Sempre confirmo antes de salvar dados!
+💡 **Como usar:** Envie documentos, fotos, áudios ou faça perguntas sobre suas finanças. Sempre confirmo antes de salvar dados!
 
 Como posso ajudá-lo hoje?`;
 

@@ -1379,21 +1379,22 @@ export default async function handler(req: any, res: any) {
           await sendTelegramMessage(chatId,
             '👋 <b>Bem-vindo ao Stater IA!</b>\n\n' +
             '🤖 Sou seu assistente financeiro pessoal inteligente.\n\n' +
-            '� <b>O QUE EU FAÇO:</b>\n\n' +
-            '📷 <b>Analiso fotos</b> de extratos, cupons, notas fiscais\n' +
-            '📄 <b>Leio documentos</b> PDF, planilhas, faturas\n' +
-            '💰 <b>Registro transações:</b> "gastei 80 reais no supermercado"\n' +
-            '📊 <b>Análises completas:</b> saldo, gastos, receitas, categorias\n' +
-            '📋 <b>Controlo suas contas:</b> vencimentos, pagamentos, alertas\n' +
-            '� <b>Dou conselhos:</b> como economizar, investir, organizar\n' +
-            '🤔 <b>Respondo tudo:</b> sobre sua vida financeira\n\n' +
+            '✨ <b>O QUE EU FAÇO:</b>\n\n' +
+            '📷 Analiso fotos de extratos, cupons, notas fiscais\n' +
+            '📄 Leio documentos PDF, planilhas, faturas\n' +
+            '💰 Registro transações: "gastei 80 reais no supermercado"\n' +
+            '🎤 Leio e entendo áudios/mensagens de voz normalmente\n' +
+            '📊 Faço análises completas: saldo, gastos, receitas, categorias\n' +
+            '📋 Controlo suas contas: vencimentos, pagamentos, alertas\n' +
+            '💡 Dou conselhos: como economizar, investir, organizar\n' +
+            '🤔 Respondo tudo sobre sua vida financeira\n\n' +
             '✨ <b>EXEMPLOS DE USO:</b>\n' +
             '• Envie foto do extrato bancário\n' +
+            '• Envie um áudio dizendo "gastei 45 reais no almoço"\n' +
             '• "Qual meu saldo atual?"\n' +
-            '• "Gastei 45 reais no almoço"\n' +
             '• "Como economizar 500 reais por mês?"\n' +
             '• "Minhas contas vencem quando?"\n\n' +
-            '� <b>PARA CONECTAR:</b>\n' +
+            '🔗 <b>PARA CONECTAR:</b>\n' +
             '1. Acesse o <a href="https://staterbills.vercel.app/settings/telegram">App Stater</a>\n' +
             '2. Vá em Configurações → Telegram\n' +
             '3. Clique em "Conectar" e gere um código\n' +
@@ -1410,7 +1411,7 @@ export default async function handler(req: any, res: any) {
           '✨ <b>EU TENHO AUTONOMIA TOTAL!</b>\n' +
           '• Salvo transações automaticamente\n' +
           '• Leio seus dados financeiros reais\n' +
-          '• Processo fotos e documentos\n' +
+          '• Processo fotos, documentos e áudios\n' +
           '• Sincronizo 100% com o app\n\n' +
           '📋 <b>COMANDOS:</b>\n' +
           '• <b>/conectar</b> - Conectar sua conta\n' +
@@ -1422,6 +1423,7 @@ export default async function handler(req: any, res: any) {
           '• Digite: "adicione 50 reais de almoço"\n' +
           '• Envie fotos de extratos/faturas\n' +
           '• Envie arquivos PDF/Excel\n' +
+          '• Envie áudios/mensagens de voz normalmente\n' +
           '• Pergunte: "qual meu saldo?"\n' +
           '• Pergunte: "meus gastos do mês"\n\n' +
           '🚀 <b>TUDO É SALVO AUTOMATICAMENTE!</b>'

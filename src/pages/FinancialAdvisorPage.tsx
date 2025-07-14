@@ -349,6 +349,35 @@ const isAddBillIntent = (msg: string) => {
         throw new Error(result.error || 'Erro no processamento de áudio');
       }
 
+      // Verificar se é realmente conteúdo de voz humana
+      if (!result.transcription || result.transcription.trim().length < 3) {
+        // Não é voz humana válida - apenas mostrar mensagem educativa
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          text: '🎤 Não detectei fala humana clara neste áudio. Por favor, fale diretamente no microfone para que eu possa ajudá-lo com suas finanças.',
+          sender: 'assistant',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }]);
+
+        // Registrar uso (áudio processado mas sem conteúdo útil)
+        await audioLimits.recordAudioUsage({
+          sessionId,
+          audioDuration: audioBlob.size / 16000,
+          audioSize: audioBlob.size,
+          sourceType: 'web',
+          transcript: 'Sem voz humana detectada',
+          detectedIntent: 'no_speech',
+          processingTime,
+          inputTokens: 0,
+          outputTokens: 50,
+          estimatedCost: 0.0001,
+          success: true
+        });
+        
+        return;
+      }
+
       // Registrar uso nos logs
       await audioLimits.recordAudioUsage({
         sessionId,
@@ -364,8 +393,7 @@ const isAddBillIntent = (msg: string) => {
         success: true
       });
 
-      // Processa diretamente a transcrição sem duplicar mensagens
-      // Usar a resposta já processada do áudio em vez de reprocessar
+      // Se tem voz humana válida, processar normalmente
       const userMessage: ChatMessage = {
         id: uuidv4(),
         text: result.transcription || '',
@@ -384,9 +412,7 @@ const isAddBillIntent = (msg: string) => {
       // Adicionar ambas as mensagens de uma vez (otimização)
       setMessages(prev => [...prev, userMessage, assistantMessage]);
 
-      // Salvar as mensagens de uma vez
-      await saveChatMessage(userMessage);
-      await saveChatMessage(assistantMessage);
+      // As mensagens são salvas automaticamente através do useEffect
 
     } catch (error) {
       console.error('Erro ao processar áudio:', error);

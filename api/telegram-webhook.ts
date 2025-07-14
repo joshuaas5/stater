@@ -735,12 +735,19 @@ async function callGeminiAudioAPI(audioBase64: string, mimeType: string): Promis
   error?: string;
 }> {
   try {
-    // OTIMIZAÇÃO: Prompt mais conciso para resposta mais rápida
-    const prompt = `Analise o áudio e responda em JSON:
+    // OTIMIZAÇÃO: Prompt melhorado para detectar voz humana real
+    const prompt = `Analise este áudio e determine se contém FALA HUMANA REAL.
+
+IMPORTANTE: 
+- Se for apenas ruído, clicks, sons de teclado, ou outros sons que NÃO sejam voz humana clara, retorne hasFinancialContent: false e transcription vazia
+- Apenas considere hasFinancialContent: true se houver FALA HUMANA CLARA sobre finanças, transações, dinheiro
+- Se não for voz humana, use uma mensagem educativa na response
+
+Responda em JSON:
 {
-  "transcription": "texto transcrito",
-  "hasFinancialContent": true/false,
-  "response": "resposta breve e útil"
+  "transcription": "texto transcrito SE FOR VOZ HUMANA, senão deixe vazio",
+  "hasFinancialContent": false,
+  "response": "Se não for voz humana: 'Não detectei fala humana neste áudio.' | Se for voz mas sem conteúdo financeiro: resposta útil | Se for financeiro: resposta específica"
 }`;
 
     const requestBody = {
@@ -873,9 +880,15 @@ export default async function handler(req: any, res: any) {
         const geminiResponse = await callGeminiAudioAPI(base64String, voice.mime_type || 'audio/ogg');
         
         if (geminiResponse.success) {
-          // Se detectou transação, processar diretamente
+          // Verificar se é realmente voz humana
+          if (!geminiResponse.transcription || geminiResponse.transcription.trim().length < 3) {
+            await sendTelegramMessage(chatId, '🎤 Não detectei fala humana clara no áudio. Por favor, fale diretamente no microfone para que eu possa ajudá-lo.');
+            return res.status(200).json({ ok: true, message: 'Áudio sem voz humana detectada' });
+          }
+          
+          // Se detectou voz humana válida e tem conteúdo financeiro
           if (geminiResponse.hasFinancialContent && geminiResponse.transcription) {
-            console.log('💰 Conteúdo financeiro detectado, processando...');
+            console.log('💰 Conteúdo financeiro detectado na voz, processando...');
             
             // Buscar informações do usuário
             const userData = await getTelegramUserData(chatId);
@@ -885,13 +898,16 @@ export default async function handler(req: any, res: any) {
               const aiResponse = await callGeminiAPI(geminiResponse.transcription, userData.userId, update.message.from);
               
               if (aiResponse) {
-                await sendTelegramMessage(chatId, aiResponse);
+                await sendTelegramMessage(chatId, `🎤 "${geminiResponse.transcription}"\n\n${aiResponse}`);
               }
+            } else {
+              // Usuário não conectado
+              await sendTelegramMessage(chatId, `🎤 Ouvi: "${geminiResponse.transcription}"\n\n💡 Para processar solicitações financeiras, conecte sua conta primeiro com /conectar`);
             }
           } else {
-            // Se não é conteúdo financeiro, enviar apenas a resposta diretamente
+            // Voz humana detectada mas sem conteúdo financeiro específico
             if (geminiResponse.response) {
-              await sendTelegramMessage(chatId, geminiResponse.response);
+              await sendTelegramMessage(chatId, `🎤 "${geminiResponse.transcription}"\n\n${geminiResponse.response}`);
             }
           }
           
@@ -1687,7 +1703,7 @@ export default async function handler(req: any, res: any) {
             }
           }
         }
-    }
+      }
     
   } catch (error) {
     console.error('❌ Erro crítico no webhook:', error);

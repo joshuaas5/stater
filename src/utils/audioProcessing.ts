@@ -30,11 +30,18 @@ export async function processAudioWithGemini(audioBlob: Blob): Promise<AudioProc
     console.log('🔄 Audio convertido para base64. Tamanho:', base64String.length, 'caracteres');
 
     // Preparar dados para o Gemini 2.5 Flash com multipart - OTIMIZADO
-    const prompt = `Analise o áudio e responda em JSON:
+    const prompt = `Analise este áudio e determine se contém FALA HUMANA REAL.
+
+IMPORTANTE: 
+- Se for apenas ruído, clicks, sons de teclado, ou outros sons que NÃO sejam voz humana clara, retorne hasFinancialContent: false
+- Apenas considere hasFinancialContent: true se houver FALA HUMANA CLARA sobre finanças, transações, dinheiro
+- Se não for voz humana, use uma mensagem educativa na response
+
+Responda em JSON:
 {
-  "transcription": "texto transcrito",
-  "hasFinancialContent": true/false,
-  "response": "resposta breve"
+  "transcription": "texto transcrito SE FOR VOZ HUMANA, senão deixe vazio",
+  "hasFinancialContent": false,
+  "response": "Se não for voz humana: 'Não detectei fala humana neste áudio. Por favor, fale claramente para que eu possa ajudá-lo com suas finanças.' | Se for voz mas sem conteúdo financeiro: resposta útil | Se for financeiro: resposta específica"
 }`;
 
     // Preparar dados multipart para o Gemini

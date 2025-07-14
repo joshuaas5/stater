@@ -406,56 +406,41 @@ const isAddBillIntent = (msg: string) => {
       let responseText = result.response || '';
       console.log('🔍 [DEBUG] Resposta original do áudio:', responseText);
 
-      // MÚLTIPLAS VERIFICAÇÕES para extrair mensagem limpa
-      // 1. Se começa com JSON, extrair campo "response"
-      if (responseText.startsWith('{') && responseText.includes('"response"')) {
-        try {
-          const cleanedText = responseText.replace(/```json\n?|```\n?/g, '').trim();
-          const parsed = JSON.parse(cleanedText);
-          responseText = parsed.response || responseText;
-          console.log('✅ [DEBUG] JSON parseado com sucesso, resposta extraída:', responseText);
-        } catch (jsonError) {
-          console.warn('⚠️ [DEBUG] Erro ao parsear JSON, usando resposta original');
-        }
-      }
-
-      // 2. Se ainda tem markdown JSON, tentar limpar
-      if (responseText.includes('```json')) {
-        const jsonMatch = responseText.match(/```json\s*({[\s\S]*?})\s*```/);
-        if (jsonMatch) {
-          try {
-            const parsed = JSON.parse(jsonMatch[1]);
-            responseText = parsed.response || responseText;
-            console.log('✅ [DEBUG] JSON markdown parseado, resposta extraída:', responseText);
-          } catch {
-            // Se não conseguir parsear, usar a resposta original
-            console.warn('⚠️ [DEBUG] Erro ao parsear JSON markdown');
+      // REFORÇO: Sempre tentar extrair só o campo 'response' se vier JSON
+      let extractedResponse = responseText;
+      let parsed = null;
+      try {
+        // Remove possíveis marcas de markdown
+        const cleanedText = responseText.replace(/```json\n?|```\n?/g, '').trim();
+        if (cleanedText.startsWith('{') && cleanedText.includes('"response"')) {
+          parsed = JSON.parse(cleanedText);
+          if (parsed && typeof parsed === 'object' && parsed.response) {
+            extractedResponse = parsed.response;
           }
         }
+      } catch (err) {
+        // Se não conseguir parsear, mantém o texto original
+        console.warn('⚠️ [DEBUG] Erro ao parsear JSON para extrair response:', err);
       }
 
-      // 3. Verificação final: se ainda parece JSON, extrair manualmente
-      if (responseText.startsWith('{') && responseText.includes('"response"')) {
-        const responseMatch = responseText.match(/"response"\s*:\s*"([^"]+)"/);
-        if (responseMatch) {
-          responseText = responseMatch[1];
-          console.log('✅ [DEBUG] Extração manual de response bem-sucedida:', responseText);
-        }
+      // Limpa caracteres de escape
+      extractedResponse = extractedResponse.replace(/\\n/g, '\n').replace(/\\"/g, '"');
+
+      // Fallback: se ainda parece JSON, mostra mensagem amigável
+      if (extractedResponse.trim().startsWith('{') || extractedResponse.trim().startsWith('[')) {
+        extractedResponse = 'Recebi sua mensagem de voz, mas não consegui entender totalmente o conteúdo. Por favor, tente novamente ou envie sua dúvida em texto.';
       }
 
-      // 4. Limpar caracteres de escape que podem ter sobrado
-      responseText = responseText.replace(/\\n/g, '\n').replace(/\\"/g, '"');
-
-      // 5. Fallback final: se ainda parece JSON bruto, mostrar mensagem amigável
-      if (responseText.trim().startsWith('{') || responseText.trim().startsWith('[')) {
-        responseText = 'Recebi sua mensagem de voz, mas não consegui entender totalmente o conteúdo. Por favor, tente novamente ou envie sua dúvida em texto.';
+      // Fallback: se a resposta estiver vazia, mostra mensagem padrão
+      if (!extractedResponse || extractedResponse.trim().length === 0) {
+        extractedResponse = 'Recebi sua mensagem de voz, mas não consegui entender totalmente o conteúdo. Por favor, tente novamente ou envie sua dúvida em texto.';
       }
 
-      console.log('🎯 [DEBUG] Resposta final limpa:', responseText);
+      console.log('🎯 [DEBUG] Resposta final limpa:', extractedResponse);
 
       const assistantMessage: ChatMessage = {
         id: uuidv4(),
-        text: responseText,
+        text: extractedResponse,
         sender: 'assistant',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR

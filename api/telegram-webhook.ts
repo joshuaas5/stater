@@ -852,13 +852,12 @@ function extractCleanMessage(response: string): string {
       const parsed = JSON.parse(cleanJson);
       
       // SEMPRE extrair texto limpo, NUNCA retornar JSON bruto
-      // Se é uma transação, gerar mensagem de confirmação amigável
+      // Se é uma transação válida, RETORNAR JSON ORIGINAL para processamento de confirmação
       if (parsed.tipo && parsed.valor && parsed.descrição && 
           (parsed.tipo === 'receita' || parsed.tipo === 'despesa')) {
-        console.log('💰 JSON é transação válida, gerando mensagem amigável');
-        const emoji = parsed.tipo === 'receita' ? '💚' : '💸';
-        const tipoTexto = parsed.tipo === 'receita' ? 'receita' : 'despesa';
-        return `${emoji} Entendi! Você quer registrar uma ${tipoTexto} de R$ ${parsed.valor} para "${parsed.descrição}". ✅ Transação registrada com sucesso!`;
+        console.log('💰 JSON é transação válida, mantendo para processamento de confirmação');
+        // Retornar JSON original para que o sistema de confirmação funcione
+        return response;
       }
       
       // Se tem campo "response" ou "message", extrair apenas esse campo

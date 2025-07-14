@@ -4,7 +4,7 @@ import { supabaseAdmin } from './supabase-admin';
 
 // Configuração Supabase
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://tmucbwlhkffrhtexmjze.supabase.co';
-const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtdWNid2xoa2Zmcmh0ZXhtanplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMzAzMDgsImV4cCI6MjA2MTcwNjMwOH0.rNx8GkxpEeGjtOwYC_LiL4HlAiwZKVMPTRrCqt7UHVo';
+const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtdUNCQ2FsaWZvcm5pYSIsInJvbGUiOiJhbm9uIiwiYXVkIjpudWxsLCJpYXQiOjE3NDYxMzAzMDgsImV4cCI6MjA2MTcwNjMwOH0.rNx8GkxpEeGjtOwYC_LiL4HlAiwZKVMPTRrCqt7UHVo';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -806,6 +806,95 @@ async function sendTelegramMessage(chatId: string, message: string) {
   }
 }
 
+// Função para processar áudio com Gemini
+async function callGeminiAudioAPI(audioBase64: string, mimeType: string): Promise<{
+  success: boolean;
+  transcription?: string;
+  response?: string;
+  hasFinancialContent?: boolean;
+  error?: string;
+}> {
+  try {
+    const prompt = `
+Você é um assistente financeiro especializado. Analise o áudio fornecido e:
+
+1. Transcreva exatamente o que foi dito no áudio
+2. Identifique se há alguma questão financeira (gastos, investimentos, dúvidas sobre dinheiro)
+3. Forneça uma resposta útil e contextualizada
+
+Responda em formato JSON:
+{
+  "transcription": "texto transcrito",
+  "hasFinancialContent": true/false,
+  "response": "sua resposta como assistente financeiro"
+}
+`;
+
+    const requestBody = {
+      contents: [
+        {
+          parts: [
+            { text: prompt },
+            {
+              inline_data: {
+                mime_type: mimeType,
+                data: audioBase64
+              }
+            }
+          ],
+          role: 'user'
+        }
+      ],
+      generationConfig: {
+        temperature: 0.7,
+      },
+    };
+
+    const response = await fetch(GEMINI_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
+
+    const data: any = await response.json();
+    const aiMessage = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não consegui processar o áudio.';
+
+    // Tentar parsear JSON da resposta
+    let parsedResponse: any;
+    try {
+      const cleanedText = aiMessage.replace(/```json\n?|```\n?/g, '').trim();
+      parsedResponse = JSON.parse(cleanedText);
+    } catch (parseError) {
+      console.warn('⚠️ Não foi possível parsear JSON, usando resposta direta');
+      parsedResponse = {
+        transcription: aiMessage,
+        hasFinancialContent: true,
+        response: aiMessage
+      };
+    }
+
+    return {
+      success: true,
+      transcription: parsedResponse.transcription || aiMessage,
+      response: parsedResponse.response || aiMessage,
+      hasFinancialContent: parsedResponse.hasFinancialContent || false
+    };
+
+  } catch (error) {
+    console.error('❌ Erro ao processar áudio com Gemini:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erro desconhecido'
+    };
+  }
+}
+
 // Handler principal do webhook
 export default async function handler(req: any, res: any) {
   // Log detalhado para debug
@@ -834,6 +923,79 @@ export default async function handler(req: any, res: any) {
     const username = update.message.from.username || update.message.from.first_name || 'Usuário';
 
     console.log(`💬 Mensagem de ${username} (${chatId}): ${messageText}`);
+
+    // VERIFICAR SE É MENSAGEM DE VOZ
+    if (update.message.voice) {
+      console.log('🎤 Mensagem de voz detectada!');
+      
+      try {
+        const voice = update.message.voice;
+        console.log('🎤 Dados da voz:', { 
+          file_id: voice.file_id, 
+          duration: voice.duration,
+          mime_type: voice.mime_type,
+          file_size: voice.file_size 
+        });
+        
+        await sendTelegramMessage(chatId, '🎧 Processando sua mensagem de voz... Aguarde alguns segundos...');
+        
+        // Baixar o arquivo de áudio
+        console.log('📥 Baixando arquivo de áudio...');
+        const audioBuffer = await downloadTelegramFile(voice.file_id);
+        
+        if (!audioBuffer) {
+          await sendTelegramMessage(chatId, '❌ Erro ao baixar o arquivo de áudio. Tente novamente.');
+          return res.status(200).json({ ok: true, message: 'Erro ao baixar áudio' });
+        }
+        
+        console.log('✅ Áudio baixado:', audioBuffer.length, 'bytes');
+        
+        // Converter para base64
+        const base64String = audioBuffer.toString('base64');
+        
+        // Chamar API do Gemini para processar áudio
+        const geminiResponse = await callGeminiAudioAPI(base64String, voice.mime_type || 'audio/ogg');
+        
+        if (geminiResponse.success) {
+          // Enviar transcrição
+          if (geminiResponse.transcription) {
+            await sendTelegramMessage(chatId, `📝 *Transcrição:*\n"${geminiResponse.transcription}"`);
+          }
+          
+          // Enviar resposta da IA
+          if (geminiResponse.response) {
+            await sendTelegramMessage(chatId, `🤖 *Resposta:*\n${geminiResponse.response}`);
+          }
+          
+          // Se detectou transação, processar
+          if (geminiResponse.hasFinancialContent && geminiResponse.transcription) {
+            console.log('💰 Conteúdo financeiro detectado, processando...');
+            
+            // Buscar informações do usuário
+            const userData = await getTelegramUserData(chatId);
+            
+            if (userData.linked && userData.userId) {
+              // Processar como se fosse uma mensagem normal de texto
+              const aiResponse = await callGeminiAPI(geminiResponse.transcription, userData.userId, update.message.from);
+              
+              if (aiResponse) {
+                await sendTelegramMessage(chatId, aiResponse);
+              }
+            }
+          }
+          
+        } else {
+          await sendTelegramMessage(chatId, '❌ Erro ao processar áudio. Tente novamente ou envie uma mensagem de texto.');
+        }
+        
+        return res.status(200).json({ ok: true, message: 'Áudio processado' });
+        
+      } catch (error) {
+        console.error('❌ Erro ao processar mensagem de voz:', error);
+        await sendTelegramMessage(chatId, '❌ Erro ao processar sua mensagem de voz. Tente enviar novamente ou use texto.');
+        return res.status(200).json({ ok: true, message: 'Erro no processamento de áudio' });
+      }
+    }
 
     // VERIFICAR SE É FOTO OU DOCUMENTO
     if (update.message.photo || update.message.document) {
@@ -1615,8 +1777,6 @@ export default async function handler(req: any, res: any) {
             }
           }
         }
-      }return res.status(200).json({ ok: true, message: 'Mensagem IA processada' });
-
       } catch (processingError) {
         console.error('❌ Erro ao processar mensagem:', processingError);
         await sendTelegramMessage(chatId,
@@ -1626,9 +1786,9 @@ export default async function handler(req: any, res: any) {
         );
         return res.status(200).json({ ok: true, message: 'Erro tratado' });
       }
-    } else if (!update.message.photo && !update.message.document) {
-      // Se não há texto nem foto/documento, não fazer nada
-      console.log('📭 Mensagem sem texto, foto ou documento');
+    } else if (!update.message.photo && !update.message.document && !update.message.voice) {
+      // Se não há texto nem foto/documento/voz, não fazer nada
+      console.log('📭 Mensagem sem texto, foto, documento ou voz');
       return res.status(200).json({ ok: true, message: 'Mensagem vazia processada' });
     }
   } catch (error) {

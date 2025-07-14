@@ -355,11 +355,15 @@ async function callGeminiAPI(userMessage: string, userId?: string, telegramUser?
 
     const today = new Date().toISOString().split('T')[0];
     
-    const contextToUse = needsFinancialContext ? financialContextText : "Dados financeiros disponíveis mediante solicitação.";      const fullPrompt = `Você é o Stater IA - ASSISTENTE FINANCEIRO TELEGRAM.
+    const contextToUse = needsFinancialContext ? financialContextText : "Dados financeiros disponíveis mediante solicitação.";
+    
+    // STATUS DE CONEXÃO CLARO
+    const connectionStatus = userId ? `CONECTADO (ID: ${userId})` : 'NÃO CONECTADO';
+    const fullPrompt = `Você é o Stater IA - ASSISTENTE FINANCEIRO TELEGRAM.
 
 DATA: ${today}
 USUÁRIO: ${userName}
-USER_ID: ${userId || 'Não conectado'}
+STATUS_CONEXÃO: ${connectionStatus}
 
 ${contextToUse}
 
@@ -368,6 +372,8 @@ PERGUNTA: ${userMessage}
 INSTRUÇÕES:
 - RESPOSTA RÁPIDA E DIRETA
 - Use dados REAIS do usuário acima
+- Se STATUS_CONEXÃO = CONECTADO: pode processar transações e dados financeiros
+- Se STATUS_CONEXÃO = NÃO CONECTADO: informe que precisa conectar primeiro
 - Para ADICIONAR transação: gere JSON limpo
 - Para CONSULTAS: responda em texto
 - NUNCA asteriscos ou markdown
@@ -443,29 +449,45 @@ Resposta:`;
 async function getTelegramUserData(chatId: string): Promise<{ userId?: string, linked: boolean }> {
   try {
     console.log('🔍 [DEBUG] Verificando vinculação para chat:', chatId);
+    console.log('🔍 [DEBUG] Tipo do chatId:', typeof chatId);
     
-    // Verificar diretamente no Supabase
+    // Verificar diretamente no Supabase com logs detalhados
+    console.log('🔍 [DEBUG] Executando query no Supabase...');
     const { data, error } = await supabaseAdmin
       .from('telegram_users')
-      .select('user_id, linked_at, is_active')
+      .select('user_id, linked_at, is_active, telegram_chat_id')
       .eq('telegram_chat_id', chatId)
-      .eq('is_active', true)
-      .single();
+      .eq('is_active', true);
+    
+    console.log('🔍 [DEBUG] Resultado da query:', { data, error });
+    console.log('🔍 [DEBUG] Número de registros encontrados:', data?.length || 0);
     
     if (error) {
       console.log('❌ [DEBUG] Erro Supabase ao verificar vinculação:', error.message);
+      console.log('❌ [DEBUG] Detalhes do erro:', error);
       return { linked: false };
     }
     
-    if (data && data.user_id) {
-      console.log('✅ [DEBUG] Usuário encontrado e vinculado:', data.user_id);
-      return { userId: data.user_id, linked: true };
+    if (data && data.length > 0) {
+      const userRecord = data[0]; // Pegar o primeiro registro
+      console.log('✅ [DEBUG] Usuário encontrado:', userRecord);
+      
+      if (userRecord.user_id) {
+        console.log('✅ [DEBUG] Usuário vinculado com sucesso:', userRecord.user_id);
+        return { userId: userRecord.user_id, linked: true };
+      } else {
+        console.log('⚠️ [DEBUG] Registro encontrado mas sem user_id:', userRecord);
+      }
+    } else {
+      console.log('❌ [DEBUG] Nenhum registro encontrado para chat:', chatId);
     }
+    
   } catch (error) {
     console.log('❌ [DEBUG] Exceção ao verificar vinculação:', error);
+    console.log('❌ [DEBUG] Stack trace:', error instanceof Error ? error.stack : 'N/A');
   }
   
-  console.log('❌ [DEBUG] Usuário não vinculado');
+  console.log('❌ [DEBUG] Retornando linked: false');
   return { linked: false };
 }
 

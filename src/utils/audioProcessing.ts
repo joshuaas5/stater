@@ -1,5 +1,5 @@
 // utils/audioProcessing.ts
-import { fetchGeminiFlashLite } from './gemini';
+import { fetchGeminiAudio } from './gemini';
 
 export interface AudioProcessingResult {
   success: boolean;
@@ -29,13 +29,10 @@ export async function processAudioWithGemini(audioBlob: Blob): Promise<AudioProc
 
     console.log('🔄 Audio convertido para base64. Tamanho:', base64String.length, 'caracteres');
 
-    // Preparar prompt para análise financeira
+    // Preparar dados para o Gemini 2.5 Flash com multipart
     const prompt = `
-Você é um assistente financeiro especializado. 
+Você é um assistente financeiro especializado. Analise o áudio fornecido e:
 
-ÁUDIO FORNECIDO: [base64:${audioBlob.type}]${base64String}
-
-Por favor:
 1. Transcreva exatamente o que foi dito no áudio
 2. Identifique se há alguma questão financeira (gastos, investimentos, dúvidas sobre dinheiro)
 3. Forneça uma resposta útil e contextualizada
@@ -48,10 +45,27 @@ Responda em formato JSON:
 }
 `;
 
+    // Preparar dados multipart para o Gemini
+    const geminiRequest = {
+      contents: [{
+        parts: [
+          {
+            text: prompt
+          },
+          {
+            inline_data: {
+              mime_type: audioBlob.type || 'audio/webm',
+              data: base64String
+            }
+          }
+        ]
+      }]
+    };
+
     console.log('📤 Enviando para Gemini API (usando configuração existente)...');
     
-    // Usar a função fetchGeminiFlashLite existente que já está configurada
-    const geminiResponse = await fetchGeminiFlashLite(prompt);
+    // Usar a nova função fetchGeminiAudio para processar áudio com multipart
+    const geminiResponse = await fetchGeminiAudio(prompt, base64String, audioBlob.type || 'audio/webm');
 
     console.log('📥 Resposta bruta do Gemini:', geminiResponse);
 

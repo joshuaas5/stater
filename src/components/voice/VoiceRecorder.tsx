@@ -1,1 +1,283 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';import { Mic, MicOff, Loader2 } from 'lucide-react';interface VoiceRecorderProps {  onAudioSend: (audioBlob: Blob) => Promise<void>;  isProcessing?: boolean;  disabled?: boolean;  compact?: boolean;}interface AudioState {  isRecording: boolean;  recordingTime: number;  audioBlob: Blob | null;}export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({   onAudioSend,   isProcessing = false,  disabled = false,  compact = false}) => {  const [audioState, setAudioState] = useState<AudioState>({    isRecording: false,    recordingTime: 0,    audioBlob: null  });  const [error, setError] = useState<string | null>(null);    const mediaRecorderRef = useRef<MediaRecorder | null>(null);  const streamRef = useRef<MediaStream | null>(null);  const chunksRef = useRef<Blob[]>([]);  const timerRef = useRef<NodeJS.Timeout | null>(null);  const isHoldingRef = useRef(false);  const startTimeoutRef = useRef<NodeJS.Timeout | null>(null);  useEffect(() => {    if (audioState.isRecording) {      timerRef.current = setInterval(() => {        setAudioState(prev => ({          ...prev,          recordingTime: prev.recordingTime + 1        }));      }, 1000);    } else {      if (timerRef.current) {        clearInterval(timerRef.current);        timerRef.current = null;      }    }    return () => {      if (timerRef.current) {        clearInterval(timerRef.current);      }    };  }, [audioState.isRecording]);  const startRecording = useCallback(async () => {    if (disabled || isProcessing || audioState.isRecording) return;    try {      setError(null);            const stream = await navigator.mediaDevices.getUserMedia({         audio: {          echoCancellation: true,          noiseSuppression: true,          sampleRate: 16000        }       });      streamRef.current = stream;      chunksRef.current = [];      const mediaRecorder = new MediaRecorder(stream, {        mimeType: 'audio/webm;codecs=opus'      });      mediaRecorderRef.current = mediaRecorder;      mediaRecorder.ondataavailable = (event) => {        if (event.data.size > 0) {          chunksRef.current.push(event.data);        }      };      mediaRecorder.onstop = async () => {        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });        setAudioState(prev => ({          ...prev,          isRecording: false,          audioBlob        }));        if (streamRef.current) {          streamRef.current.getTracks().forEach(track => track.stop());          streamRef.current = null;        }        if (compact && audioBlob.size > 0) {          try {            await onAudioSend(audioBlob);            setAudioState({              isRecording: false,              recordingTime: 0,              audioBlob: null            });          } catch (error) {            console.error('Erro ao enviar áudio:', error);            setError('Erro ao enviar áudio');          }        }      };      mediaRecorder.start();      setAudioState(prev => ({        ...prev,        isRecording: true,        recordingTime: 0,        audioBlob: null      }));      console.log('🎤 Gravação iniciada');    } catch (error) {      console.error('Erro ao iniciar gravação:', error);      setError('Erro ao acessar microfone. Verifique as permissões.');    }  }, [disabled, isProcessing, audioState.isRecording, compact, onAudioSend]);  const stopRecording = useCallback(() => {    if (mediaRecorderRef.current && audioState.isRecording) {      mediaRecorderRef.current.stop();      console.log('🎤 Gravação finalizada');    }  }, [audioState.isRecording]);  const handleMouseDown = useCallback(() => {    if (!compact || disabled || isProcessing) return;        isHoldingRef.current = true;        startTimeoutRef.current = setTimeout(() => {      if (isHoldingRef.current) {        startRecording();      }    }, 100);  }, [compact, disabled, isProcessing, startRecording]);  const handleMouseUp = useCallback(() => {    isHoldingRef.current = false;        if (startTimeoutRef.current) {      clearTimeout(startTimeoutRef.current);      startTimeoutRef.current = null;    }        if (audioState.isRecording) {      stopRecording();    }  }, [audioState.isRecording, stopRecording]);  const handleTouchStart = useCallback((e: React.TouchEvent) => {    e.preventDefault();    handleMouseDown();  }, [handleMouseDown]);  const handleTouchEnd = useCallback((e: React.TouchEvent) => {    e.preventDefault();    handleMouseUp();  }, [handleMouseUp]);  useEffect(() => {    return () => {      if (startTimeoutRef.current) {        clearTimeout(startTimeoutRef.current);      }      if (streamRef.current) {        streamRef.current.getTracks().forEach(track => track.stop());      }    };  }, []);  const formatTime = (seconds: number): string => {    const mins = Math.floor(seconds / 60);    const secs = seconds % 60;    return `${mins}:${secs.toString().padStart(2, '0')}`;  };  if (compact) {    return (      <div style={{ position: 'relative' }}>        <button          type="button"          onMouseDown={handleMouseDown}          onMouseUp={handleMouseUp}          onMouseLeave={handleMouseUp}          onTouchStart={handleTouchStart}          onTouchEnd={handleTouchEnd}          disabled={disabled || isProcessing}          title={audioState.isRecording ? `Gravando... ${formatTime(audioState.recordingTime)}` : "Segurar para gravar áudio"}          style={{            width: '58px',            height: '58px',            background: audioState.isRecording               ? 'rgba(239, 68, 68, 0.2)'               : 'rgba(255, 255, 255, 0.15)',            backdropFilter: 'blur(10px)',            border: `2px solid ${audioState.isRecording ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.2)'}`,            borderRadius: '50%',            color: 'white',            cursor: (disabled || isProcessing) ? 'not-allowed' : 'pointer',            display: 'flex',            alignItems: 'center',            justifyContent: 'center',            transition: 'all 0.3s ease',            fontSize: '18px',            opacity: (disabled || isProcessing) ? 0.5 : 1,            userSelect: 'none'          }}        >          {isProcessing ? (            <Loader2 size={20} className="animate-spin" />          ) : audioState.isRecording ? (            <MicOff size={20} />          ) : (            <Mic size={20} />          )}        </button>        {audioState.isRecording && (          <div style={{            position: 'absolute',            top: '-35px',            left: '50%',            transform: 'translateX(-50%)',            background: 'rgba(239, 68, 68, 0.9)',            color: 'white',            padding: '4px 8px',            borderRadius: '12px',            fontSize: '12px',            fontWeight: 'bold',            whiteSpace: 'nowrap',            pointerEvents: 'none'          }}>            🔴 {formatTime(audioState.recordingTime)}          </div>        )}        {error && (          <div style={{            position: 'absolute',            top: '70px',            left: '50%',            transform: 'translateX(-50%)',            background: 'rgba(239, 68, 68, 0.9)',            color: 'white',            padding: '4px 8px',            borderRadius: '8px',            fontSize: '10px',            whiteSpace: 'nowrap',            maxWidth: '200px',            textAlign: 'center'          }}>            {error}          </div>        )}      </div>    );  }  return (    <div className="voice-recorder bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">      <div className="text-center">        <p className="text-white/80 mb-4">🎤 Sistema de áudio disponível apenas no modo compacto</p>        <p className="text-white/60 text-sm">Use o botão de microfone no chat para gravar mensagens de voz</p>      </div>    </div>  );};export default VoiceRecorder;
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { Mic, MicOff, Loader2 } from 'lucide-react';
+
+interface VoiceRecorderProps {
+  onAudioSend: (audioBlob: Blob) => Promise<void>;
+  isProcessing?: boolean;
+  disabled?: boolean;
+  compact?: boolean;
+}
+
+interface AudioState {
+  isRecording: boolean;
+  recordingTime: number;
+  audioBlob: Blob | null;
+}
+
+export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
+  onAudioSend,
+  isProcessing = false,
+  disabled = false,
+  compact = false
+}) => {
+  const [audioState, setAudioState] = useState<AudioState>({
+    isRecording: false,
+    recordingTime: 0,
+    audioBlob: null
+  });
+  const [error, setError] = useState<string | null>(null);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const isHoldingRef = useRef(false);
+  const startTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Timer para contar tempo de gravação
+  useEffect(() => {
+    if (audioState.isRecording) {
+      timerRef.current = setInterval(() => {
+        setAudioState(prev => ({
+          ...prev,
+          recordingTime: prev.recordingTime + 1
+        }));
+      }, 1000);
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [audioState.isRecording]);
+
+  const startRecording = useCallback(async () => {
+    if (disabled || isProcessing || audioState.isRecording) return;
+
+    try {
+      setError(null);
+      
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 16000
+        }
+      });
+
+      streamRef.current = stream;
+      chunksRef.current = [];
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        setAudioState(prev => ({
+          ...prev,
+          isRecording: false,
+          audioBlob
+        }));
+
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
+
+        if (compact && audioBlob.size > 0) {
+          try {
+            await onAudioSend(audioBlob);
+            setAudioState({
+              isRecording: false,
+              recordingTime: 0,
+              audioBlob: null
+            });
+          } catch (error) {
+            console.error('Erro ao enviar áudio:', error);
+            setError('Erro ao enviar áudio');
+          }
+        }
+      };
+
+      mediaRecorder.start();
+      setAudioState(prev => ({
+        ...prev,
+        isRecording: true,
+        recordingTime: 0,
+        audioBlob: null
+      }));
+
+      console.log('🎤 Gravação iniciada');
+    } catch (error) {
+      console.error('Erro ao iniciar gravação:', error);
+      setError('Erro ao acessar microfone. Verifique as permissões.');
+    }
+  }, [disabled, isProcessing, audioState.isRecording, compact, onAudioSend]);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && audioState.isRecording) {
+      mediaRecorderRef.current.stop();
+      console.log('🎤 Gravação finalizada');
+    }
+  }, [audioState.isRecording]);
+
+  const handleMouseDown = useCallback(() => {
+    if (!compact || disabled || isProcessing) return;
+    
+    isHoldingRef.current = true;
+    
+    startTimeoutRef.current = setTimeout(() => {
+      if (isHoldingRef.current) {
+        startRecording();
+      }
+    }, 100);
+  }, [compact, disabled, isProcessing, startRecording]);
+
+  const handleMouseUp = useCallback(() => {
+    isHoldingRef.current = false;
+    
+    if (startTimeoutRef.current) {
+      clearTimeout(startTimeoutRef.current);
+      startTimeoutRef.current = null;
+    }
+    
+    if (audioState.isRecording) {
+      stopRecording();
+    }
+  }, [audioState.isRecording, stopRecording]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    handleMouseDown();
+  }, [handleMouseDown]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    handleMouseUp();
+  }, [handleMouseUp]);
+
+  useEffect(() => {
+    return () => {
+      if (startTimeoutRef.current) {
+        clearTimeout(startTimeoutRef.current);
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  if (compact) {
+    return (
+      <div style={{ position: 'relative' }}>
+        <button
+          type="button"
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          disabled={disabled || isProcessing}
+          title={audioState.isRecording ? `Gravando... ${formatTime(audioState.recordingTime)}` : "Segurar para gravar áudio"}
+          style={{
+            width: '58px',
+            height: '58px',
+            background: audioState.isRecording 
+              ? 'rgba(239, 68, 68, 0.2)' 
+              : 'rgba(255, 255, 255, 0.15)',
+            backdropFilter: 'blur(10px)',
+            border: `2px solid ${audioState.isRecording ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.2)'}`,
+            borderRadius: '50%',
+            color: 'white',
+            cursor: (disabled || isProcessing) ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+            fontSize: '18px',
+            opacity: (disabled || isProcessing) ? 0.5 : 1,
+            userSelect: 'none'
+          }}
+        >
+          {isProcessing ? (
+            <Loader2 size={20} className="animate-spin" />
+          ) : audioState.isRecording ? (
+            <MicOff size={20} />
+          ) : (
+            <Mic size={20} />
+          )}
+        </button>
+
+        {audioState.isRecording && (
+          <div style={{
+            position: 'absolute',
+            top: '-35px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(239, 68, 68, 0.9)',
+            color: 'white',
+            padding: '4px 8px',
+            borderRadius: '12px',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none'
+          }}>
+            🔴 {formatTime(audioState.recordingTime)}
+          </div>
+        )}
+
+        {error && (
+          <div style={{
+            position: 'absolute',
+            top: '70px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(239, 68, 68, 0.9)',
+            color: 'white',
+            padding: '4px 8px',
+            borderRadius: '8px',
+            fontSize: '10px',
+            whiteSpace: 'nowrap',
+            maxWidth: '200px',
+            textAlign: 'center'
+          }}>
+            {error}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="voice-recorder bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
+      <div className="text-center">
+        <p className="text-white/80 mb-4">🎤 Sistema de áudio disponível apenas no modo compacto</p>
+        <p className="text-white/60 text-sm">Use o botão de microfone no chat para gravar mensagens de voz</p>
+      </div>
+    </div>
+  );
+};
+
+export default VoiceRecorder;

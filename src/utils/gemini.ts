@@ -334,6 +334,116 @@ Se o usuário pedir para registrar, adicionar, anotar, etc., uma receita, entrad
 }
 
 /**
+ * Função específica para processar áudio com Gemini usando multipart
+ */
+export async function fetchGeminiAudio(
+  prompt: string,
+  audioBase64: string,
+  mimeType: string,
+  options?: { systemInstruction?: string }
+): Promise<string> {
+  const withinLimit = await checkUserMonthlyTokenLimit();
+  if (!withinLimit) {
+    const limitReachedMessage = "Limite de uso da IA atingido para este mês. Por favor, tente novamente mais tarde.";
+    await logApiCallDetails({
+      model_name: GEMINI_MODEL_NAME,
+      error_message: 'LIMIT_REACHED',
+      api_key_source: getApiKeySource()
+    });
+    return limitReachedMessage;
+  }
+
+  const apiKey = getApiKey();
+  const apiKeySource = getApiKeySource();
+  
+  if (!apiKey) {
+    console.error("API Key for Gemini is not configured. Returning hardcoded response.");
+    await logApiCallDetails({
+      model_name: GEMINI_MODEL_NAME,
+      error_message: 'API_KEY_NOT_CONFIGURED',
+      api_key_source: apiKeySource
+    });
+    return "A chave da API para o Gemini não está configurada. Por favor, adicione sua chave nas configurações para usar esta funcionalidade.";
+  }
+
+  // Obter o user_id para logar
+  let userId = null;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) userId = user.id;
+  } catch (e) {
+    console.warn('Não foi possível obter user_id para log de API, mas prosseguindo.');
+  }
+
+  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL_NAME}:generateContent`;
+
+  const requestBody = {
+    contents: [
+      {
+        parts: [
+          { text: prompt },
+          {
+            inline_data: {
+              mime_type: mimeType,
+              data: audioBase64
+            }
+          }
+        ],
+        role: 'user'
+      }
+    ],
+    generationConfig: {
+      temperature: 0.7,
+    },
+  };
+
+  try {
+    console.log('Calling Gemini API with audio:', { 
+      url: `${GEMINI_API_URL}?key=XXXXX`,
+      audioSize: audioBase64.length,
+      mimeType,
+      userId
+    });
+
+    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const aiMessage = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não consegui processar o áudio.';
+
+    // Log da chamada bem-sucedida
+    await logApiCallDetails({
+      model_name: GEMINI_MODEL_NAME,
+      api_key_source: apiKeySource
+    });
+
+    return aiMessage;
+
+  } catch (error) {
+    console.error('Error calling Gemini API:', error);
+    
+    // Log do erro
+    await logApiCallDetails({
+      model_name: GEMINI_MODEL_NAME,
+      error_message: error instanceof Error ? error.message : 'Unknown error',
+      api_key_source: apiKeySource
+    });
+
+    return `Erro ao processar áudio: ${error instanceof Error ? error.message : 'Erro desconhecido'}`;
+  }
+}
+
+/**
  * Interface para resposta da API Gemini
  */
 interface GeminiResponse {

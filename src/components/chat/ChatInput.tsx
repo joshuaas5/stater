@@ -3,7 +3,6 @@ import { Send, Image, Camera, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import VoiceRecorder from '@/components/voice/VoiceRecorder';
-import VoiceRecorder from '@/components/voice/VoiceRecorder';
 
 interface ChatInputProps {
   onSubmit: (message: string) => void;

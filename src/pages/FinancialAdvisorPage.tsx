@@ -415,20 +415,22 @@ const isAddBillIntent = (msg: string) => {
       });
 
       // Se tem voz humana válida, processar normalmente
-      const userMessage: ChatMessage = {
-        id: uuidv4(),
-        text: result.transcription || '',
-        sender: 'user',
-        timestamp: new Date()
-      };
+      // Só adiciona a transcrição do usuário se ela não for JSON/markdown
+      const userTranscription = result.transcription || '';
+      let userMessage: ChatMessage | null = null;
+      if (userTranscription && !userTranscription.trim().startsWith('{') && !userTranscription.trim().startsWith('```')) {
+        userMessage = {
+          id: uuidv4(),
+          text: userTranscription,
+          sender: 'user',
+          timestamp: new Date()
+        };
+      }
 
       // Extrair apenas a mensagem de resposta, não o JSON bruto
       let responseText = result.response || '';
-      console.log('🔍 [DEBUG] Resposta original do áudio:', responseText);
-
       // Usa função utilitária para garantir que só texto limpo é exibido
       const finalText = extractGeminiResponseText(responseText);
-      console.log('🎯 [DEBUG] Resposta final limpa:', finalText);
 
       const assistantMessage: ChatMessage = {
         id: uuidv4(),
@@ -438,8 +440,12 @@ const isAddBillIntent = (msg: string) => {
         avatarUrl: IA_AVATAR
       };
 
-      // Adicionar ambas as mensagens de uma vez (otimização)
-      setMessages(prev => [...prev, userMessage, assistantMessage]);
+      // Adiciona só as mensagens limpas
+      if (userMessage) {
+        setMessages(prev => [...prev, userMessage, assistantMessage]);
+      } else {
+        setMessages(prev => [...prev, assistantMessage]);
+      }
 
       // As mensagens são salvas automaticamente através do useEffect
 

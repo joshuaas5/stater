@@ -882,7 +882,20 @@ export default async function handler(req: any, res: any) {
         if (geminiResponse.success) {
           // Verificar se é realmente voz humana
           if (!geminiResponse.transcription || geminiResponse.transcription.trim().length < 3) {
-            await sendTelegramMessage(chatId, '🎤 Não detectei fala humana clara no áudio. Por favor, fale diretamente no microfone para que eu possa ajudá-lo.');
+            // Extrair apenas a mensagem de resposta limpa, sem JSON
+            let cleanMessage = geminiResponse.response || 'Não detectei fala humana clara no áudio. Por favor, fale diretamente no microfone para que eu possa ajudá-lo.';
+            
+            // Se a resposta ainda contém JSON, extrair apenas o campo "response"
+            if (cleanMessage.startsWith('{') && cleanMessage.includes('"response"')) {
+              try {
+                const parsed = JSON.parse(cleanMessage.replace(/```json\n?|```\n?/g, '').trim());
+                cleanMessage = parsed.response || cleanMessage;
+              } catch {
+                // Se não conseguir parsear, usar a resposta original
+              }
+            }
+            
+            await sendTelegramMessage(chatId, cleanMessage);
             return res.status(200).json({ ok: true, message: 'Áudio sem voz humana detectada' });
           }
           
@@ -907,7 +920,25 @@ export default async function handler(req: any, res: any) {
           } else {
             // Voz humana detectada mas sem conteúdo financeiro específico
             if (geminiResponse.response) {
-              await sendTelegramMessage(chatId, `🎤 "${geminiResponse.transcription}"\n\n${geminiResponse.response}`);
+              // Extrair apenas a mensagem de resposta limpa, sem JSON
+              let cleanMessage = geminiResponse.response;
+              
+              // Se a resposta ainda contém JSON, extrair apenas o campo "response"
+              if (cleanMessage.startsWith('{') && cleanMessage.includes('"response"')) {
+                try {
+                  const parsed = JSON.parse(cleanMessage.replace(/```json\n?|```\n?/g, '').trim());
+                  cleanMessage = parsed.response || cleanMessage;
+                } catch {
+                  // Se não conseguir parsear, usar a resposta original
+                }
+              }
+              
+              // Se detectou transcrição válida, mostrar ela também
+              if (geminiResponse.transcription && geminiResponse.transcription.trim().length > 0) {
+                await sendTelegramMessage(chatId, `🎤 "${geminiResponse.transcription}"\n\n${cleanMessage}`);
+              } else {
+                await sendTelegramMessage(chatId, cleanMessage);
+              }
             }
           }
           

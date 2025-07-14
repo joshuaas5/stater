@@ -423,8 +423,12 @@ Resposta:`;
       // Remover asteriscos das respostas
       aiResponse = aiResponse.replace(/\*\*/g, '').replace(/\*/g, '');
       
+      // APLICAR LIMPEZA DE JSON - extrair mensagem limpa antes de retornar
+      const cleanResponse = extractCleanMessage(aiResponse);
+      console.log('🧹 Resposta após limpeza JSON:', cleanResponse.substring(0, 100) + '...');
+      
       // Limitar resposta para Telegram (4096 caracteres max)
-      return aiResponse.length > 4000 ? aiResponse.substring(0, 3997) + '...' : aiResponse;
+      return cleanResponse.length > 4000 ? cleanResponse.substring(0, 3997) + '...' : cleanResponse;
     } else {
       throw new Error('Resposta inválida da API Gemini');
     }
@@ -831,6 +835,63 @@ Responda em JSON:
       success: false,
       error: error instanceof Error ? error.message : 'Erro desconhecido'
     };
+  }
+}
+
+// Função para extrair mensagem limpa de possível JSON
+function extractCleanMessage(response: string): string {
+  try {
+    // Se a resposta parece ser JSON
+    if (response.trim().startsWith('{') && response.trim().endsWith('}')) {
+      console.log('🧹 Detectado JSON bruto, extraindo mensagem limpa...');
+      
+      // Remover markdown se houver
+      const cleanJson = response.replace(/```json\n?|```\n?/g, '').trim();
+      
+      // Tentar parsear
+      const parsed = JSON.parse(cleanJson);
+      
+      // Se é uma transação válida, retornar como JSON (para processamento posterior)
+      if (parsed.tipo && parsed.valor && parsed.descrição && 
+          (parsed.tipo === 'receita' || parsed.tipo === 'despesa')) {
+        console.log('💰 JSON é transação válida, mantendo formato');
+        return response; // Manter como JSON para processamento
+      }
+      
+      // Se tem campo "response" ou "message", extrair apenas esse campo
+      if (parsed.response) {
+        console.log('✅ Extraindo campo "response" do JSON');
+        return parsed.response;
+      }
+      
+      if (parsed.message) {
+        console.log('✅ Extraindo campo "message" do JSON');
+        return parsed.message;
+      }
+      
+      // Se tem campo "texto" ou "resposta"
+      if (parsed.texto) {
+        console.log('✅ Extraindo campo "texto" do JSON');
+        return parsed.texto;
+      }
+      
+      if (parsed.resposta) {
+        console.log('✅ Extraindo campo "resposta" do JSON');
+        return parsed.resposta;
+      }
+      
+      // Se é apenas JSON sem campos conhecidos, gerar resposta genérica
+      console.log('⚠️ JSON sem campos conhecidos, gerando resposta genérica');
+      return 'Desculpe, posso ajudá-lo com suas finanças de forma mais clara. Tente ser mais específico na sua pergunta!';
+    }
+    
+    // Se não é JSON, retornar a resposta original
+    return response;
+    
+  } catch (error) {
+    console.log('❌ Erro ao processar resposta:', error);
+    // Se houve erro ao processar, retornar resposta original
+    return response;
   }
 }
 
@@ -1509,7 +1570,7 @@ export default async function handler(req: any, res: any) {
           );
         }
         return res.status(200).json({ ok: true, message: 'Código processado' });
-      }
+           }
 
       // VERIFICAR SE É RESPOSTA DE CONFIRMAÇÃO PARA TRANSAÇÕES PENDENTES
       const upperText = messageText.toUpperCase().trim();
@@ -1641,7 +1702,8 @@ export default async function handler(req: any, res: any) {
         } else {
           // Pergunta geral - resposta genérica da IA
           const aiResponse = await callGeminiAPI(messageText, undefined, update.message.from);
-          await sendTelegramMessage(chatId, aiResponse);
+          const cleanResponse = extractCleanMessage(aiResponse);
+          await sendTelegramMessage(chatId, cleanResponse);
         }
         
         return res.status(200).json({ ok: true, message: 'Usuário não conectado' });

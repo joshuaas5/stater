@@ -1,3 +1,23 @@
+// Função utilitária para extrair apenas o campo 'response' de uma resposta Gemini
+function extractGeminiResponseText(raw: string): string {
+  if (!raw) return 'Recebi sua mensagem, mas não consegui entender totalmente o conteúdo. Por favor, tente novamente ou envie sua dúvida em texto.';
+  let text = raw;
+  try {
+    // Remove possíveis marcas de markdown
+    const cleaned = raw.replace(/```json\n?|```\n?/g, '').trim();
+    if (cleaned.startsWith('{') && cleaned.includes('"response"')) {
+      const parsed = JSON.parse(cleaned);
+      if (parsed && typeof parsed === 'object' && parsed.response) {
+        text = parsed.response;
+      }
+    }
+  } catch {}
+  text = text.replace(/\\n/g, '\n').replace(/\\"/g, '"');
+  if (text.trim().startsWith('{') || text.trim().startsWith('[') || !text.trim()) {
+    text = 'Recebi sua mensagem, mas não consegui entender totalmente o conteúdo. Por favor, tente novamente ou envie sua dúvida em texto.';
+  }
+  return text;
+}
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/navigation/NavBar';
@@ -406,41 +426,13 @@ const isAddBillIntent = (msg: string) => {
       let responseText = result.response || '';
       console.log('🔍 [DEBUG] Resposta original do áudio:', responseText);
 
-      // REFORÇO: Sempre tentar extrair só o campo 'response' se vier JSON
-      let extractedResponse = responseText;
-      let parsed = null;
-      try {
-        // Remove possíveis marcas de markdown
-        const cleanedText = responseText.replace(/```json\n?|```\n?/g, '').trim();
-        if (cleanedText.startsWith('{') && cleanedText.includes('"response"')) {
-          parsed = JSON.parse(cleanedText);
-          if (parsed && typeof parsed === 'object' && parsed.response) {
-            extractedResponse = parsed.response;
-          }
-        }
-      } catch (err) {
-        // Se não conseguir parsear, mantém o texto original
-        console.warn('⚠️ [DEBUG] Erro ao parsear JSON para extrair response:', err);
-      }
-
-      // Limpa caracteres de escape
-      extractedResponse = extractedResponse.replace(/\\n/g, '\n').replace(/\\"/g, '"');
-
-      // Fallback: se ainda parece JSON, mostra mensagem amigável
-      if (extractedResponse.trim().startsWith('{') || extractedResponse.trim().startsWith('[')) {
-        extractedResponse = 'Recebi sua mensagem de voz, mas não consegui entender totalmente o conteúdo. Por favor, tente novamente ou envie sua dúvida em texto.';
-      }
-
-      // Fallback: se a resposta estiver vazia, mostra mensagem padrão
-      if (!extractedResponse || extractedResponse.trim().length === 0) {
-        extractedResponse = 'Recebi sua mensagem de voz, mas não consegui entender totalmente o conteúdo. Por favor, tente novamente ou envie sua dúvida em texto.';
-      }
-
-      console.log('🎯 [DEBUG] Resposta final limpa:', extractedResponse);
+      // Usa função utilitária para garantir que só texto limpo é exibido
+      const finalText = extractGeminiResponseText(responseText);
+      console.log('🎯 [DEBUG] Resposta final limpa:', finalText);
 
       const assistantMessage: ChatMessage = {
         id: uuidv4(),
-        text: extractedResponse,
+        text: finalText,
         sender: 'assistant',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR

@@ -957,17 +957,7 @@ export default async function handler(req: any, res: any) {
         const geminiResponse = await callGeminiAudioAPI(base64String, voice.mime_type || 'audio/ogg');
         
         if (geminiResponse.success) {
-          // Enviar transcrição
-          if (geminiResponse.transcription) {
-            await sendTelegramMessage(chatId, `📝 *Transcrição:*\n"${geminiResponse.transcription}"`);
-          }
-          
-          // Enviar resposta da IA
-          if (geminiResponse.response) {
-            await sendTelegramMessage(chatId, `🤖 *Resposta:*\n${geminiResponse.response}`);
-          }
-          
-          // Se detectou transação, processar
+          // Se detectou transação, processar diretamente
           if (geminiResponse.hasFinancialContent && geminiResponse.transcription) {
             console.log('💰 Conteúdo financeiro detectado, processando...');
             
@@ -981,6 +971,11 @@ export default async function handler(req: any, res: any) {
               if (aiResponse) {
                 await sendTelegramMessage(chatId, aiResponse);
               }
+            }
+          } else {
+            // Se não é conteúdo financeiro, enviar apenas a resposta diretamente
+            if (geminiResponse.response) {
+              await sendTelegramMessage(chatId, geminiResponse.response);
             }
           }
           

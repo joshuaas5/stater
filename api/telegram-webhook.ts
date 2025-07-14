@@ -200,7 +200,10 @@ async function getUserBalance(userId: string): Promise<{balance: number, totalIn
 // Função para chamar a API Gemini (mesmo processamento do Stater IA) - OTIMIZADA
 async function callGeminiAPI(userMessage: string, userId?: string, telegramUser?: any): Promise<string> {
   try {
-    console.log('🤖 Chamando API Gemini para resposta inteligente...');
+    console.log('🤖 [DEBUG] Iniciando callGeminiAPI');
+    console.log('🤖 [DEBUG] userMessage:', userMessage?.substring(0, 100));
+    console.log('🤖 [DEBUG] userId:', userId);
+    console.log('🤖 [DEBUG] Chamando API Gemini para resposta inteligente...');
     
     let financialContextText = '';
     let userName = 'Usuário';
@@ -211,6 +214,7 @@ async function callGeminiAPI(userMessage: string, userId?: string, telegramUser?
       if (telegramUser.last_name) {
         userName += ` ${telegramUser.last_name}`;
       }
+      console.log('🤖 [DEBUG] Nome do usuário Telegram:', userName);
     }
     
     // OTIMIZAÇÃO: Buscar dados financeiros apenas quando necessário
@@ -387,18 +391,30 @@ Resposta:`;
       }
     };
 
-    console.log('📡 Enviando para Gemini API...');
+    console.log('📡 [DEBUG] Enviando para Gemini API...');
+    console.log('📡 [DEBUG] GEMINI_ENDPOINT:', GEMINI_ENDPOINT);
+    console.log('📡 [DEBUG] GEMINI_API_KEY configurada:', !!GEMINI_API_KEY);
+    console.log('📡 [DEBUG] Prompt length:', fullPrompt.length);
+    
     const response = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(geminiPayload)
     });
 
+    console.log('📡 [DEBUG] Response status:', response.status);
+    console.log('📡 [DEBUG] Response ok:', response.ok);
+
     if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('❌ [DEBUG] Gemini API error response:', errorText);
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
     }
 
     const data: any = await response.json();
+    console.log('📡 [DEBUG] Response data structure:', Object.keys(data));
+    console.log('📡 [DEBUG] Has candidates:', !!data.candidates);
+    console.log('📡 [DEBUG] Candidates length:', data.candidates?.length || 0);
     
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       let aiResponse = data.candidates[0].content.parts[0].text;
@@ -1746,7 +1762,31 @@ export default async function handler(req: any, res: any) {
     
   } catch (error) {
     console.error('❌ Erro crítico no webhook:', error);
-    return res.status(500).json({ error: 'Erro interno do servidor' });
+    
+    // Log detalhado do erro para debug
+    console.error('❌ Stack trace:', error instanceof Error ? error.stack : error);
+    console.error('❌ Tipo do erro:', typeof error);
+    console.error('❌ Mensagem do erro:', error instanceof Error ? error.message : 'Erro desconhecido');
+    
+    // Tentar enviar mensagem de erro para o usuário
+    try {
+      const chatId = req.body?.message?.chat?.id?.toString();
+      if (chatId) {
+        await sendTelegramMessage(chatId, 
+          '❌ Ocorreu um erro interno no sistema.\n\n' +
+          '🔧 Nossa equipe foi notificada e está trabalhando na correção.\n\n' +
+          '💡 Tente novamente em alguns minutos.\n\n' +
+          'Se o problema persistir, entre em contato com o suporte.'
+        );
+      }
+    } catch (sendError) {
+      console.error('❌ Erro ao enviar mensagem de erro:', sendError);
+    }
+    
+    return res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
   }
   
   return res.status(200).json({ ok: true, message: 'Mensagem processada' });

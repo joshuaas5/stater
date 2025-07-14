@@ -935,7 +935,15 @@ export default async function handler(req: any, res: any) {
               
               // Se detectou transcrição válida, mostrar ela também
               if (geminiResponse.transcription && geminiResponse.transcription.trim().length > 0) {
-                await sendTelegramMessage(chatId, `🎤 "${geminiResponse.transcription}"\n\n${cleanMessage}`);
+                // Limpar transcrição também se contiver JSON
+                let cleanTranscription = geminiResponse.transcription;
+                if (cleanTranscription.startsWith('{') || cleanTranscription.includes('```json')) {
+                  // Se a transcrição for JSON, não mostrar ela, apenas a resposta limpa
+                  await sendTelegramMessage(chatId, cleanMessage);
+                } else {
+                  // Transcrição válida, mostrar com a resposta
+                  await sendTelegramMessage(chatId, `🎤 "${cleanTranscription}"\n\n${cleanMessage}`);
+                }
               } else {
                 await sendTelegramMessage(chatId, cleanMessage);
               }

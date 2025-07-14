@@ -36,6 +36,11 @@ function getCurrentYearMonthString(): string {
 export async function logApiCallDetails(details: Omit<ApiCallDetails, 'user_id'>): Promise<void> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
+    // OTIMIZAÇÃO: Temporariamente desabilitado para acelerar respostas
+    console.log('API usage log:', details);
+    return; // Skip para acelerar
+    
+    /* COMENTADO PARA OTIMIZAÇÃO:
     if (!user) {
       console.warn('Tentativa de registrar uso da API sem usuário autenticado.');
       return; // Não registrar se não houver usuário
@@ -57,6 +62,7 @@ export async function logApiCallDetails(details: Omit<ApiCallDetails, 'user_id'>
     if (error) {
       console.error('Erro ao registrar uso na tabela gemini_usage:', error);
     }
+    */
   } catch (error) {
     console.error('Erro inesperado ao registrar uso na tabela gemini_usage:', error);
   }

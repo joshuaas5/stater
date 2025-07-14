@@ -29,21 +29,13 @@ export async function processAudioWithGemini(audioBlob: Blob): Promise<AudioProc
 
     console.log('🔄 Audio convertido para base64. Tamanho:', base64String.length, 'caracteres');
 
-    // Preparar dados para o Gemini 2.5 Flash com multipart
-    const prompt = `
-Você é um assistente financeiro especializado. Analise o áudio fornecido e:
-
-1. Transcreva exatamente o que foi dito no áudio
-2. Identifique se há alguma questão financeira (gastos, investimentos, dúvidas sobre dinheiro)
-3. Forneça uma resposta útil e contextualizada
-
-Responda em formato JSON:
+    // Preparar dados para o Gemini 2.5 Flash com multipart - OTIMIZADO
+    const prompt = `Analise o áudio e responda em JSON:
 {
   "transcription": "texto transcrito",
   "hasFinancialContent": true/false,
-  "response": "sua resposta como assistente financeiro"
-}
-`;
+  "response": "resposta breve"
+}`;
 
     // Preparar dados multipart para o Gemini
     const geminiRequest = {
@@ -59,7 +51,13 @@ Responda em formato JSON:
             }
           }
         ]
-      }]
+      }],
+      generationConfig: {
+        temperature: 0.1, // OTIMIZAÇÃO: Mais baixo para respostas rápidas
+        topK: 20, // OTIMIZAÇÃO: Reduzido
+        topP: 0.7, // OTIMIZAÇÃO: Reduzido
+        maxOutputTokens: 1000, // OTIMIZAÇÃO: Reduzido para áudio
+      }
     };
 
     console.log('📤 Enviando para Gemini API (usando configuração existente)...');

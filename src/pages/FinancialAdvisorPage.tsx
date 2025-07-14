@@ -364,18 +364,29 @@ const isAddBillIntent = (msg: string) => {
         success: true
       });
 
-      // Adicionar mensagem do usuário (transcrição)
+      // Processa diretamente a transcrição sem duplicar mensagens
+      // Usar a resposta já processada do áudio em vez de reprocessar
       const userMessage: ChatMessage = {
         id: uuidv4(),
-        text: `🎤 ${result.transcription}`,
+        text: result.transcription || '',
         sender: 'user',
         timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, userMessage]);
+      const assistantMessage: ChatMessage = {
+        id: uuidv4(),
+        text: result.response || '',
+        sender: 'assistant',
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
+      };
+      
+      // Adicionar ambas as mensagens de uma vez (otimização)
+      setMessages(prev => [...prev, userMessage, assistantMessage]);
 
-      // Enviar a transcrição como mensagem normal para o chat
-      await handleSendMessage(result.transcription || '');
+      // Salvar as mensagens de uma vez
+      await saveChatMessage(userMessage);
+      await saveChatMessage(assistantMessage);
 
     } catch (error) {
       console.error('Erro ao processar áudio:', error);

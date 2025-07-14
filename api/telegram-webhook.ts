@@ -197,7 +197,7 @@ async function getUserBalance(userId: string): Promise<{balance: number, totalIn
   }
 }
 
-// Função para chamar a API Gemini (mesmo processamento do Stater IA)
+// Função para chamar a API Gemini (mesmo processamento do Stater IA) - OTIMIZADA
 async function callGeminiAPI(userMessage: string, userId?: string, telegramUser?: any): Promise<string> {
   try {
     console.log('🤖 Chamando API Gemini para resposta inteligente...');
@@ -213,8 +213,26 @@ async function callGeminiAPI(userMessage: string, userId?: string, telegramUser?
       }
     }
     
-    // Se temos userId, buscar dados financeiros COMPLETOS
-    if (userId) {
+    // OTIMIZAÇÃO: Buscar dados financeiros apenas quando necessário
+    const needsFinancialContext = userMessage.toLowerCase().includes('análise') || 
+                                 userMessage.toLowerCase().includes('situação') ||
+                                 userMessage.toLowerCase().includes('gastos') ||
+                                 userMessage.toLowerCase().includes('receitas') ||
+                                 userMessage.toLowerCase().includes('saldo') ||
+                                 userMessage.toLowerCase().includes('contas') ||
+                                 userMessage.toLowerCase().includes('bills') ||
+                                 userMessage.toLowerCase().includes('vencimento') ||
+                                 userMessage.toLowerCase().includes('vence') ||
+                                 userMessage.toLowerCase().includes('pagar') ||
+                                 userMessage.toLowerCase().includes('pago') ||
+                                 userMessage.toLowerCase().includes('dívida') ||
+                                 userMessage.toLowerCase().includes('compromisso') ||
+                                 userMessage.toLowerCase().includes('orçamento') ||
+                                 userMessage.toLowerCase().includes('dinheiro') ||
+                                 userMessage.toLowerCase().includes('financeira');
+
+    // Se temos userId e precisa de contexto financeiro, buscar dados COMPLETOS
+    if (userId && needsFinancialContext) {
       try {
         // Buscar dados do usuário
         const { data: userData } = await supabaseAdmin
@@ -333,126 +351,26 @@ async function callGeminiAPI(userMessage: string, userId?: string, telegramUser?
 
     const today = new Date().toISOString().split('T')[0];
     
-    // Detectar se precisa de contexto financeiro
-    const needsFinancialContext = userMessage.toLowerCase().includes('análise') || 
-                                 userMessage.toLowerCase().includes('situação') ||
-                                 userMessage.toLowerCase().includes('gastos') ||
-                                 userMessage.toLowerCase().includes('receitas') ||
-                                 userMessage.toLowerCase().includes('saldo') ||
-                                 userMessage.toLowerCase().includes('contas') ||
-                                 userMessage.toLowerCase().includes('bills') ||
-                                 userMessage.toLowerCase().includes('vencimento') ||
-                                 userMessage.toLowerCase().includes('vence') ||
-                                 userMessage.toLowerCase().includes('pagar') ||
-                                 userMessage.toLowerCase().includes('pago') ||
-                                 userMessage.toLowerCase().includes('dívida') ||
-                                 userMessage.toLowerCase().includes('compromisso') ||
-                                 userMessage.toLowerCase().includes('orçamento') ||
-                                 userMessage.toLowerCase().includes('dinheiro') ||
-                                 userMessage.toLowerCase().includes('financeira');
-
-    const contextToUse = needsFinancialContext ? financialContextText : "Dados financeiros disponíveis mediante solicitação.";      const fullPrompt = `Você é o Stater IA - VERSÃO TELEGRAM com AUTONOMIA COMPLETA.
-
-VOCÊ TEM TOTAL AUTONOMIA PARA:
-- SALVAR transações automaticamente no banco de dados
-- LER todos os dados financeiros do usuário em tempo real
-- CALCULAR saldos, totais e análises completas
-- RESPONDER com base nos dados REAIS do usuário
-- FUNCIONAR EXATAMENTE como o Stater IA do app
+    const contextToUse = needsFinancialContext ? financialContextText : "Dados financeiros disponíveis mediante solicitação.";      const fullPrompt = `Você é o Stater IA - ASSISTENTE FINANCEIRO TELEGRAM.
 
 DATA: ${today}
 USUÁRIO: ${userName}
-PLATAFORMA: Telegram (COM AUTONOMIA TOTAL)
 USER_ID: ${userId || 'Não conectado'}
 
-${financialContextText}
+${contextToUse}
 
-PERGUNTA/SOLICITAÇÃO: ${userMessage}
+PERGUNTA: ${userMessage}
 
-INSTRUÇÕES CRÍTICAS:
-- Você tem acesso COMPLETO aos dados financeiros do usuário acima
-- CALCULE sempre o saldo atual: Receitas MENOS Despesas
-- RESPONDA baseado nos dados REAIS, não em suposições
-- Se solicitado para adicionar transação, gere JSON para salvamento automático
-- SEMPRE mostre o saldo atual quando relevante
-- Seja DIRETO e PRECISO como no app principal
-- Use os dados financeiros fornecidos para análises detalhadas
-- NUNCA use asteriscos (*) ou markdown para formatação
-- Use apenas texto simples e emojis para Telegram
-- NUNCA diga que uma transação foi salva sem confirmação real do usuário
-- NUNCA invente que o saldo foi atualizado sem ter salvado uma transação
-- NUNCA confirme transações automaticamente
+INSTRUÇÕES:
+- RESPOSTA RÁPIDA E DIRETA
+- Use dados REAIS do usuário acima
+- Para ADICIONAR transação: gere JSON limpo
+- Para CONSULTAS: responda em texto
+- NUNCA asteriscos ou markdown
+- Máximo 500 caracteres
 
-IMPORTANTE SOBRE "CONTAS":
-- Quando o usuário falar "contas", ele se refere às BILLS/CONTAS CADASTRADAS (contas a pagar/receber)
-- NÃO confundir "contas" com "transações" ou "saldo bancário"
-- As BILLS/CONTAS são compromissos financeiros com vencimentos específicos
-- Exemplos de "contas": água, luz, telefone, aluguel, financiamento, cartão de crédito
-- Sempre usar os dados da seção "CONTAS/BILLS CADASTRADAS" para responder sobre contas
-- Mostrar status de pagamento, vencimentos próximos, valores em aberto
-- Alertar sobre contas vencidas ou que vencem em breve
-
-DETECÇÃO DE TRANSAÇÕES:
-APENAS gere JSON se o usuário CLARAMENTE solicitar para adicionar, registrar, salvar, remover, gastar ou receber um valor específico em reais.
-
-Exemplos que DEVEM gerar JSON:
-- "adicione uma despesa de 50 reais"
-- "gastei 30 reais com almoço"
-- "recebi 1000 reais de salário"
-- "registre um gasto de 15 reais"
-
-Exemplos que NÃO devem gerar JSON:
-- "quanto gastei?"
-- "qual meu saldo?"
-- "como economizar?"
-- "análise dos gastos"
-
-Para transações válidas, responda APENAS com JSON limpo SEM blocos de código:
-{
-  "tipo": "receita" ou "despesa", 
-  "descrição": "descrição_clara_da_transação",
-  "valor": valor_numerico_sem_simbolos,
-  "data": "${today}",
-  "categoria": "categoria_automatica_precisa"
-}
-
-IMPORTANTE: 
-- NÃO use blocos de código markdown, asteriscos ou qualquer formatação especial
-- NUNCA diga "transação salva" ou "saldo atualizado" - isso só acontece após confirmação do usuário
-- Se não for para adicionar transação, responda normalmente SEM JSON
-
-ANÁLISES FINANCEIRAS:
-- Use TODOS os dados fornecidos acima
-- Calcule percentuais, médias, tendências
-- Compare períodos se possível
-- Identifique padrões nos gastos
-- Sugira melhorias baseadas nos dados reais
-
-RESPOSTAS PARA CONSULTAS:
-- "Qual meu saldo?" → Use os dados REAIS acima
-- "Meus gastos" → Analise as transações listadas
-- "Situação financeira" → Análise completa com os dados
-- "Últimas transações" → Liste as transações dos dados
-
-CATEGORIAS PARA AUTO-CATEGORIZAÇÃO:
-- "Alimentação": supermercados, restaurantes, delivery, padarias
-- "Transporte": combustível, uber, taxi, ônibus, pedágios  
-- "Saúde": farmácias, consultas médicas, planos de saúde
-- "Entretenimento": cinema, streaming, jogos, viagens, bares
-- "Habitação": aluguel, condomínio, água, luz, gás, internet
-- "Educação": cursos, livros, mensalidades escolares
-- "Cuidados Pessoais": salão, barbeiro, cosméticos, higiene
-- "Outros": categoria genérica quando não se encaixa
-
-IMPORTANTE: 
-- Você é um assistente com AUTONOMIA TOTAL
-- SALVE transações automaticamente (via JSON)
-- LEIA dados reais do usuário
-- CALCULE tudo baseado nos dados fornecidos
-- Funcione EXATAMENTE como o assistente do app principal
-- NUNCA invente que uma transação foi salva
-- NUNCA diga "transação registrada" ou "saldo atualizado" sem confirmação real
-- Apenas texto limpo e emojis quando apropriado
+TRANSAÇÕES (só se pedido "adicione", "registre"):
+{"tipo": "receita/despesa", "descrição": "desc", "valor": 123.45, "data": "${today}", "categoria": "cat"}
 
 Resposta:`;
 
@@ -462,10 +380,10 @@ Resposta:`;
         parts: [{text: fullPrompt}] 
       }],
       generationConfig: {
-        temperature: 0.3, // Mais preciso para dados financeiros
-        topK: 32,
-        topP: 0.9,
-        maxOutputTokens: 2048, // Mais espaço para análises detalhadas
+        temperature: 0.1, // OTIMIZAÇÃO: Mais baixo para respostas mais rápidas e consistentes
+        topK: 20, // OTIMIZAÇÃO: Reduzido para acelerar
+        topP: 0.7, // OTIMIZAÇÃO: Reduzido para acelerar
+        maxOutputTokens: 1500, // OTIMIZAÇÃO: Reduzido para respostas mais concisas
       }
     };
 
@@ -808,7 +726,7 @@ async function sendTelegramMessage(chatId: string, message: string) {
   }
 }
 
-// Função para processar áudio com Gemini
+// Função para processar áudio com Gemini - OTIMIZADA
 async function callGeminiAudioAPI(audioBase64: string, mimeType: string): Promise<{
   success: boolean;
   transcription?: string;
@@ -817,20 +735,13 @@ async function callGeminiAudioAPI(audioBase64: string, mimeType: string): Promis
   error?: string;
 }> {
   try {
-    const prompt = `
-Você é um assistente financeiro especializado. Analise o áudio fornecido e:
-
-1. Transcreva exatamente o que foi dito no áudio
-2. Identifique se há alguma questão financeira (gastos, investimentos, dúvidas sobre dinheiro)
-3. Forneça uma resposta útil e contextualizada
-
-Responda em formato JSON:
+    // OTIMIZAÇÃO: Prompt mais conciso para resposta mais rápida
+    const prompt = `Analise o áudio e responda em JSON:
 {
   "transcription": "texto transcrito",
   "hasFinancialContent": true/false,
-  "response": "sua resposta como assistente financeiro"
-}
-`;
+  "response": "resposta breve e útil"
+}`;
 
     const requestBody = {
       contents: [
@@ -848,7 +759,10 @@ Responda em formato JSON:
         }
       ],
       generationConfig: {
-        temperature: 0.7,
+        temperature: 0.1, // OTIMIZAÇÃO: Mais baixo para respostas rápidas
+        topK: 20, // OTIMIZAÇÃO: Reduzido
+        topP: 0.7, // OTIMIZAÇÃO: Reduzido
+        maxOutputTokens: 1000, // OTIMIZAÇÃO: Reduzido para áudio
       },
     };
 

@@ -76,16 +76,24 @@ Responda em JSON:
 
     // Tentar parsear JSON da resposta
     let parsedResponse: any;
+    let responseText: string;
     try {
       // Limpar possíveis caracteres markdown
       const cleanedText = geminiResponse.replace(/```json\n?|```\n?/g, '').trim();
       parsedResponse = JSON.parse(cleanedText);
+      responseText = parsedResponse.response || geminiResponse;
     } catch (parseError) {
       console.warn('⚠️ Não foi possível parsear JSON, usando resposta direta');
+      // Se a resposta "parece" JSON, retorna mensagem amigável
+      if (typeof geminiResponse === 'string' && (geminiResponse.trim().startsWith('{') || geminiResponse.trim().startsWith('['))) {
+        responseText = 'Não detectei fala humana neste áudio. Por favor, fale claramente para que eu possa ajudá-lo com suas finanças.';
+      } else {
+        responseText = geminiResponse;
+      }
       parsedResponse = {
         transcription: geminiResponse,
         hasFinancialContent: true,
-        response: geminiResponse
+        response: responseText
       };
     }
 
@@ -94,7 +102,7 @@ Responda em JSON:
     return {
       success: true,
       transcription: parsedResponse.transcription || geminiResponse,
-      response: parsedResponse.response || geminiResponse,
+      response: parsedResponse.response || responseText,
       debug: {
         audioSize: audioBlob.size,
         audioType: audioBlob.type,

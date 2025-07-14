@@ -400,10 +400,23 @@ const isAddBillIntent = (msg: string) => {
         sender: 'user',
         timestamp: new Date()
       };
+
+      // Extrair apenas a mensagem de resposta, não o JSON bruto
+      let responseText = result.response || '';
+      
+      // Se a resposta ainda contém JSON, extrair apenas o campo "response"
+      if (responseText.startsWith('{') && responseText.includes('"response"')) {
+        try {
+          const parsed = JSON.parse(responseText.replace(/```json\n?|```\n?/g, '').trim());
+          responseText = parsed.response || responseText;
+        } catch {
+          // Se não conseguir parsear, usar a resposta original
+        }
+      }
       
       const assistantMessage: ChatMessage = {
         id: uuidv4(),
-        text: result.response || '',
+        text: responseText,
         sender: 'assistant',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR

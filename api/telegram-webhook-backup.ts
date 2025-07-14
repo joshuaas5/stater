@@ -1260,6 +1260,7 @@ export default async function handler(req: any, res: any) {
     }    // Processar comandos de forma SÍNCRONA (corrigido para Vercel)
     // Só processar texto se não houver foto/documento
     if (messageText && !update.message.photo && !update.message.document) {
+      try {
         console.log('🔄 Processando mensagem de texto...');
       
       // Comando /start - sempre responde PRIMEIRO
@@ -1773,6 +1774,15 @@ export default async function handler(req: any, res: any) {
             }
           }
         }
+      } catch (processingError) {
+        console.error('❌ Erro ao processar mensagem:', processingError);
+        await sendTelegramMessage(chatId,
+          '❌ Desculpe, ocorreu um erro ao processar sua mensagem.\n\n' +
+          'Tente novamente em alguns instantes.\n\n' +
+          'Se o problema persistir, digite /help'
+        );
+        return res.status(200).json({ ok: true, message: 'Erro tratado' });
+      }
     }
     
   } catch (error) {

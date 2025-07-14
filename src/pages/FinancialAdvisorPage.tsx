@@ -404,15 +404,49 @@ const isAddBillIntent = (msg: string) => {
       // Extrair apenas a mensagem de resposta, não o JSON bruto
       let responseText = result.response || '';
       
-      // Se a resposta ainda contém JSON, extrair apenas o campo "response"
+      console.log('🔍 [DEBUG] Resposta original do áudio:', responseText);
+      
+      // MÚLTIPLAS VERIFICAÇÕES para extrair mensagem limpa
+      // 1. Se começa com JSON, extrair campo "response"
       if (responseText.startsWith('{') && responseText.includes('"response"')) {
         try {
-          const parsed = JSON.parse(responseText.replace(/```json\n?|```\n?/g, '').trim());
+          const cleanedText = responseText.replace(/```json\n?|```\n?/g, '').trim();
+          const parsed = JSON.parse(cleanedText);
           responseText = parsed.response || responseText;
-        } catch {
-          // Se não conseguir parsear, usar a resposta original
+          console.log('✅ [DEBUG] JSON parseado com sucesso, resposta extraída:', responseText);
+        } catch (jsonError) {
+          console.warn('⚠️ [DEBUG] Erro ao parsear JSON, usando resposta original');
         }
       }
+      
+      // 2. Se ainda tem markdown JSON, tentar limpar
+      if (responseText.includes('```json')) {
+        const jsonMatch = responseText.match(/```json\s*({[\s\S]*?})\s*```/);
+        if (jsonMatch) {
+          try {
+            const parsed = JSON.parse(jsonMatch[1]);
+            responseText = parsed.response || responseText;
+            console.log('✅ [DEBUG] JSON markdown parseado, resposta extraída:', responseText);
+          } catch {
+            // Se não conseguir parsear, usar a resposta original
+            console.warn('⚠️ [DEBUG] Erro ao parsear JSON markdown');
+          }
+        }
+      }
+      
+      // 3. Verificação final: se ainda parece JSON, extrair manualmente
+      if (responseText.startsWith('{') && responseText.includes('"response"')) {
+        const responseMatch = responseText.match(/"response"\s*:\s*"([^"]+)"/);
+        if (responseMatch) {
+          responseText = responseMatch[1];
+          console.log('✅ [DEBUG] Extração manual de response bem-sucedida:', responseText);
+        }
+      }
+      
+      // 4. Limpar caracteres de escape que podem ter sobrado
+      responseText = responseText.replace(/\\n/g, '\n').replace(/\\"/g, '"');
+      
+      console.log('🎯 [DEBUG] Resposta final limpa:', responseText);
       
       const assistantMessage: ChatMessage = {
         id: uuidv4(),

@@ -838,7 +838,7 @@ Responda em JSON:
   }
 }
 
-// Função para extrair mensagem limpa de possível JSON
+// Função para extrair mensagem limpa de possível JSON - SEMPRE RETORNA TEXTO LIMPO
 function extractCleanMessage(response: string): string {
   try {
     // Se a resposta parece ser JSON
@@ -851,11 +851,14 @@ function extractCleanMessage(response: string): string {
       // Tentar parsear
       const parsed = JSON.parse(cleanJson);
       
-      // Se é uma transação válida, retornar como JSON (para processamento posterior)
+      // SEMPRE extrair texto limpo, NUNCA retornar JSON bruto
+      // Se é uma transação, gerar mensagem de confirmação amigável
       if (parsed.tipo && parsed.valor && parsed.descrição && 
           (parsed.tipo === 'receita' || parsed.tipo === 'despesa')) {
-        console.log('💰 JSON é transação válida, mantendo formato');
-        return response; // Manter como JSON para processamento
+        console.log('💰 JSON é transação válida, gerando mensagem amigável');
+        const emoji = parsed.tipo === 'receita' ? '💚' : '💸';
+        const tipoTexto = parsed.tipo === 'receita' ? 'receita' : 'despesa';
+        return `${emoji} Entendi! Você quer registrar uma ${tipoTexto} de R$ ${parsed.valor} para "${parsed.descrição}". ✅ Transação registrada com sucesso!`;
       }
       
       // Se tem campo "response" ou "message", extrair apenas esse campo
@@ -882,7 +885,7 @@ function extractCleanMessage(response: string): string {
       
       // Se é apenas JSON sem campos conhecidos, gerar resposta genérica
       console.log('⚠️ JSON sem campos conhecidos, gerando resposta genérica');
-      return 'Desculpe, posso ajudá-lo com suas finanças de forma mais clara. Tente ser mais específico na sua pergunta!';
+      return 'Entendi sua solicitação! Como posso ajudá-lo com suas finanças hoje?';
     }
     
     // Se não é JSON, retornar a resposta original

@@ -39,6 +39,7 @@ import VoiceRecorder from '@/components/voice/VoiceRecorder';
 import VoicePlayer from '@/components/voice/VoicePlayer';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useAudioLimits } from '@/hooks/useAudioLimits';
+import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
 import { processAudioWithGemini, AudioProcessingResult } from '@/utils/audioProcessing';
 
 
@@ -125,6 +126,9 @@ const useResponsive = () => {
 export const FinancialAdvisorPage: React.FC = () => {
   // Hook de responsividade
   const responsive = useResponsive();
+  
+  // Hook para detectar teclado virtual
+  const keyboard = useVirtualKeyboard();
 
   // const [showAddBillModal, setShowAddBillModal] = useState(false);
 
@@ -286,9 +290,7 @@ export const FinancialAdvisorPage: React.FC = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [editableTransactions, waitingConfirmation]);
-
-  const handleSuggestionClick = useCallback((suggestion: string) => {
+  }, [editableTransactions, waitingConfirmation]);const handleSuggestionClick = (suggestion: string) => {
     // Para botões de registro de transação, fazer a IA perguntar pelos detalhes
     if (suggestion === 'Registrar Despesa' || suggestion === 'Registrar Receita') {
       const transactionType = suggestion === 'Registrar Despesa' ? 'despesa' : 'receita';
@@ -320,7 +322,7 @@ export const FinancialAdvisorPage: React.FC = () => {
       handleSendMessage(suggestion);
     }
     setShowSuggestions(false);
-  }, [handleSendMessage]);
+  };
 
   // Detectar intenção de registro na resposta da IA
   function parseConfirmationIntent(text: string) {
@@ -549,7 +551,7 @@ const isAddBillIntent = (msg: string) => {
     setWaitingConfirmation(true);
   }, []);
 
-  const handleSendMessage = useCallback(async (message: string) => {
+const handleSendMessage = async (message: string) => {
   if (isAddBillIntent(message)) {
     setMessages(prev => [
       ...prev,
@@ -1474,7 +1476,7 @@ const isAddBillIntent = (msg: string) => {
     } finally {
       setLoading(false);
     }
-  }, []);  // Função para detectar listas de transações em texto
+  };  // Função para detectar listas de transações em texto
   const detectTransactionListInText = (userMessage: string) => {
     const originalMessage = userMessage.toLowerCase();
     const transactions: any[] = [];
@@ -2002,7 +2004,7 @@ const handleTabChange = (tabValue: string) => {
 }
 
 // Função para processar imagem OCR
-const handleImageUpload = useCallback(async (imageBase64: string) => {
+const handleImageUpload = async (imageBase64: string) => {
   if (!imageBase64) return;
 
   setLoading(true);
@@ -2267,17 +2269,15 @@ const handleImageUpload = useCallback(async (imageBase64: string) => {
         text: `❌ **Erro ao processar documento**\n\n${errorMessage}\n\n💡 **Sugestões:**\n• Verifique se o arquivo não está corrompido\n• Para PDFs protegidos, faça uma captura de tela\n• Tente usar formato de imagem (JPG/PNG)\n• Reduza o tamanho do arquivo se muito grande`,
         sender: 'system',
         timestamp: new Date(),
-        avatarUrl: IA_AVATAR
-      }]);
-    }
-  } finally {
+        avatarUrl: IA_AVATAR      }]);
+    }  } finally {
     // Cleanup básico
     setLoading(false);
   }
-}, []);
+};
 
 // Funções para editar transações OCR
-const updateTransaction = useCallback((index: number, updatedTransaction: any) => {
+const updateTransaction = (index: number, updatedTransaction: any) => {
   const newTransactions = [...editableTransactions];
   newTransactions[index] = updatedTransaction;
   setEditableTransactions(newTransactions);
@@ -2292,9 +2292,9 @@ const updateTransaction = useCallback((index: number, updatedTransaction: any) =
       }
     });
   }
-}, [editableTransactions, pendingAction]);
+};
 
-const deleteTransaction = useCallback((index: number) => {
+const deleteTransaction = (index: number) => {
   const newTransactions = editableTransactions.filter((_, i) => i !== index);
   setEditableTransactions(newTransactions);
   
@@ -2323,10 +2323,65 @@ const deleteTransaction = useCallback((index: number) => {
       avatarUrl: IA_AVATAR
     }]);
   }
-}, [editableTransactions, pendingAction, setMessages]);
+};
 
 return (
-  <>    <div 
+  <>
+    {/* CSS para modal responsivo com teclado virtual */}
+    <style dangerouslySetInnerHTML={{
+      __html: `
+        /* Melhorias para modal em dispositivos móveis */
+        .modal-content {
+          /* Prevenir zoom no input em iOS */
+          -webkit-text-size-adjust: 100%;
+        }
+        
+        .modal-content input {
+          /* Melhorar experiência de input em mobile */
+          -webkit-appearance: none;
+          appearance: none;
+          font-size: 16px !important; /* Prevenir zoom no iOS */
+        }
+        
+        .modal-content input:focus {
+          outline: none;
+          border-color: rgba(255, 255, 255, 0.5);
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Melhorar scroll em mobile */
+        .modal-content > div:nth-child(2) {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        
+        .modal-content > div:nth-child(2)::-webkit-scrollbar {
+          display: none;
+        }
+        
+        /* Animações suaves */
+        .modal-content {
+          will-change: height, max-height;
+        }
+        
+        /* Garantir que o modal não quebre em telas pequenas */
+        @media (max-height: 500px) {
+          .modal-content {
+            min-height: 300px !important;
+          }
+        }
+        
+        /* Melhorar performance em dispositivos móveis */
+        .modal-overlay {
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
+          -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+        }
+      `
+    }} />
+    
+    <div 
       className="financial-advisor-page"
       style={{
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -2633,7 +2688,7 @@ return (
           isProcessingAudio={isProcessingAudio}
           audioLimits={audioLimits}
         />
-      </div>      {/* Transaction Review Modal - RESPONSIVO */}
+      </div>      {/* Transaction Review Modal - RESPONSIVO COM ADAPTAÇÃO AO TECLADO VIRTUAL */}
       {waitingConfirmation && editableTransactions.length > 0 && (
         <div 
           className="modal-overlay"
@@ -2659,15 +2714,21 @@ return (
               borderRadius: responsive.isMobile ? '15px' : '20px',
               width: responsive.isMobile ? '95vw' : '100%',
               maxWidth: responsive.isMobile ? '95vw' : '500px',
-              height: responsive.isMobile ? '90vh' : '90vh',
-              maxHeight: responsive.isMobile ? '90vh' : '700px',
+              height: keyboard.isVisible 
+                ? `${Math.min(keyboard.availableHeight - 40, responsive.isMobile ? keyboard.availableHeight * 0.9 : 700)}px`
+                : (responsive.isMobile ? '90vh' : '90vh'),
+              maxHeight: keyboard.isVisible 
+                ? `${keyboard.availableHeight - 40}px`
+                : (responsive.isMobile ? '90vh' : '700px'),
               display: 'flex',
               flexDirection: 'column',
               color: 'white',
               boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               overflow: 'hidden',
-              position: 'relative'
+              position: 'relative',
+              // Transição suave para quando o teclado aparece/desaparece
+              transition: 'height 0.3s ease, max-height 0.3s ease'
             }}
           >
             {/* Header do Modal */}
@@ -2736,14 +2797,19 @@ return (
               </button>
             </div>
 
-            {/* Lista de Transações */}
+            {/* Lista de Transações - OTIMIZADA PARA SCROLL */}
             <div style={{
               flex: 1,
               padding: responsive.isMobile ? '15px 20px' : '20px 25px',
               overflowY: 'auto',
               display: 'flex',
               flexDirection: 'column',
-              gap: responsive.isMobile ? '12px' : '15px'
+              gap: responsive.isMobile ? '12px' : '15px',
+              // Melhorias para scroll em mobile
+              WebkitOverflowScrolling: 'touch',
+              scrollBehavior: 'smooth',
+              // Garantir que o scroll funcione bem com teclado virtual
+              minHeight: keyboard.isVisible ? '200px' : 'auto'
             }}>
               {editableTransactions.map((transaction, index) => (
                 <div key={index} style={{
@@ -2902,7 +2968,7 @@ return (
               ))}
             </div>
 
-            {/* Footer com Botões */}
+            {/* Footer com Botões - OTIMIZADO PARA TECLADO VIRTUAL */}
             <div style={{
               padding: responsive.isMobile ? '15px 20px' : '20px 25px',
               borderTop: '1px solid rgba(255, 255, 255, 0.15)',
@@ -2911,7 +2977,11 @@ return (
               gap: responsive.isMobile ? '10px' : '15px',
               justifyContent: 'space-between',
               flexShrink: 0,
-              minHeight: responsive.isMobile ? '80px' : '90px'
+              minHeight: responsive.isMobile ? '80px' : '90px',
+              // Garantir que o footer não seja cortado pelo teclado
+              position: keyboard.isVisible ? 'sticky' : 'relative',
+              bottom: 0,
+              zIndex: 10
             }}>
               <button
                 onClick={() => handleSendMessage('não')}
@@ -2987,13 +3057,15 @@ return (
             </div>
           </div>
         </div>
-      )}      {/* Confirmation Popup - RESPONSIVO */}
+      )}      {/* Confirmation Popup - RESPONSIVO COM ADAPTAÇÃO AO TECLADO VIRTUAL */}
       {waitingConfirmation && pendingAction && editableTransactions.length === 0 && (
         <div 
           className="confirmation-popup"
           style={{
             position: 'fixed',
-            bottom: responsive.isMobile ? '90px' : '100px',
+            bottom: keyboard.isVisible 
+              ? `${keyboard.height + 20}px` 
+              : (responsive.isMobile ? '90px' : '100px'),
             left: '50%',
             transform: 'translateX(-50%)',
             background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))',
@@ -3007,7 +3079,12 @@ return (
             border: '1px solid rgba(255, 255, 255, 0.3)',
             zIndex: 999,
             animation: 'slideUpFadeIn 0.3s ease-out',
-            textAlign: 'center'
+            textAlign: 'center',
+            // Garantir que nunca ultrapasse o topo da tela
+            maxHeight: keyboard.isVisible 
+              ? `${keyboard.availableHeight - 40}px` 
+              : 'auto',
+            overflow: 'auto'
           }}
         >
           <div style={{ marginBottom: '12px' }}>
@@ -3338,7 +3415,7 @@ function formatMessageContent(content: string): React.ReactNode {
   }
   
   return processText(content);
-}
+};
 };
 
 export default FinancialAdvisorPage;

@@ -34,6 +34,10 @@ import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Sistema de tratamento de erros
+import { useErrorHandler, useNetworkStatus, useRetryableOperation } from '@/hooks/useErrorHandler';
+import { ErrorType } from '@/utils/errorHandler';
+import { supabaseClient } from '@/utils/supabaseClient';
 // Componentes de voz
 import VoiceRecorder from '@/components/voice/VoiceRecorder';
 import VoicePlayer from '@/components/voice/VoicePlayer';
@@ -130,6 +134,11 @@ export const FinancialAdvisorPage: React.FC = () => {
   
   // Hook para detectar teclado virtual
   const keyboard = useVirtualKeyboard();
+
+  // Hooks de tratamento de erros
+  const { handleError, clearError } = useErrorHandler();
+  const { isOnline } = useNetworkStatus();
+  const { executeWithRetry } = useRetryableOperation();
 
   // const [showAddBillModal, setShowAddBillModal] = useState(false);
 
@@ -343,12 +352,25 @@ export const FinancialAdvisorPage: React.FC = () => {
   // Utiliza a função fetchGeminiFlashLite importada no topo do arquivo
   const getGeminiResponse = async (prompt: string): Promise<string> => {
     try {
-      const response = await fetchGeminiFlashLite(prompt);
+      const response = await executeWithRetry(
+        () => fetchGeminiFlashLite(prompt),
+        { maxRetries: 2 }
+      );
+      
       if (!response || response.length < 2) {
         return 'Desculpe, não consegui encontrar uma resposta adequada. Pode reformular sua pergunta?';
       }
       return response;
-    } catch (e: any) {
+    } catch (error) {
+      handleError(error as Error, {
+        type: ErrorType.API,
+        context: { operation: 'gemini_request', prompt: prompt.substring(0, 100) }
+      });
+      
+      if (!isOnline) {
+        return 'Você está offline. Conecte-se à internet para usar a IA.';
+      }
+      
       return 'Houve um erro ao acessar a IA. Tente novamente em instantes.';
     }
   };
@@ -665,29 +687,37 @@ const handleSendMessage = async (message: string) => {
               // Fallback se RPC falhar
               if (supabaseInsert.error) {
                 console.warn('⚠️ RPC falhou, usando insert tradicional:', supabaseInsert.error);
-                const fallbackInsert = await supabase.from('transactions').insert([
-                  {
-                    type: transaction.type,
-                    amount: transaction.amount,
-                    category: transaction.category || null,
-                    title: transaction.description,
-                    date: new Date().toISOString(), // 🔧 CORREÇÃO: Data/hora atual completa
-                    created_at: new Date().toISOString(),
-                    user_id: activeUserId
-                  }
-                ]).select();
                 
-                if (fallbackInsert.error) {
-                  throw new Error(`Erro ao salvar: ${fallbackInsert.error.message}`);
+                try {
+                  const fallbackResult = await executeWithRetry(
+                    () => supabaseClient.insert('transactions', {
+                      type: transaction.type,
+                      amount: transaction.amount,
+                      category: transaction.category || null,
+                      title: transaction.description,
+                      date: new Date().toISOString(),
+                      created_at: new Date().toISOString(),
+                      user_id: activeUserId
+                    }),
+                    { maxRetries: 3 }
+                  );
+                  
+                  if (!fallbackResult.success) {
+                    throw new Error(`Erro ao salvar: ${fallbackResult.error?.message || 'Erro desconhecido'}`);
+                  }
+                } catch (error) {
+                  handleError(error as Error, {
+                    type: ErrorType.NETWORK,
+                    context: { operation: 'insert_transaction', userId: activeUserId }
+                  });
+                  throw error;
+                }
                 }
               }
               
-              console.log('✅ Supabase insert result:', supabaseInsert);
+              console.log('✅ Transação salva com sucesso');
               
-              if (supabaseInsert.error) {
-                console.error('❌ Erro no Supabase:', supabaseInsert.error);
-                throw new Error(`Erro ao salvar no Supabase: ${supabaseInsert.error.message}`);
-              }              // NOVO: Salvar também no localStorage para aparecer em "últimas transações"
+              // NOVO: Salvar também no localStorage para aparecer em "últimas transações"
               const transactionToSave: Transaction = {
                 id: uuidv4(),
                 title: transaction.description,
@@ -1547,8 +1577,7 @@ const handleSendMessage = async (message: string) => {
         const cleanLine = line.trim();
         if (!cleanLine) continue;
         
-        // Padrões para detectar valor em cada linha
-        const valuePatterns = [
+        // Padrões para detectar valor em cada linha        const valuePatterns = [
           /r\$\s*(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)/i, // R$ 1.000,00 ou R$ 1000.00
           /(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*(?:\/mês|por mês|mensal|reais?)/i, // 1000/mês
           /(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*-/i, // 1000 - descrição
@@ -1585,7 +1614,7 @@ const handleSendMessage = async (message: string) => {
           // Remover o valor da linha para pegar a descrição
           description = cleanLine
             .replace(/r\$\s*\d+(?:[.,]\d{3})*(?:[.,]\d{2})?/i, '')
-            .replace(/\s*-\s*.*$/i, '') // Remove tudo após o dash
+            .replace(/\s*-\s*.*$/i, '') // Removes tudo após o dash
             .replace(/^\s*-\s*/, '') // Remove dash no início
             .trim();
           
@@ -1828,9 +1857,9 @@ const handleSendMessage = async (message: string) => {
           if (description && amountStr) {
             // Limpar descrição de formatação desnecessária
             description = description
-              .replace(/^\d+\.\s*/, '') // Remove numeração
-              .replace(/^[•\-*]\s*/, '') // Remove marcadores
-              .replace(/:\s*$/, '') // Remove dois pontos finais
+              .replace(/^\d+\.\s*/, '') // Removes numeração
+              .replace(/^[•\-*]\s*/, '') // Removes marcadores
+              .replace(/:\s*$/, '') // Removes dois pontos finais
               .trim();
             
             // Converter valor
@@ -2273,7 +2302,8 @@ const handleImageUpload = async (imageBase64: string) => {
         text: `❌ **Erro ao processar documento**\n\n${errorMessage}\n\n💡 **Sugestões:**\n• Verifique se o arquivo não está corrompido\n• Para PDFs protegidos, faça uma captura de tela\n• Tente usar formato de imagem (JPG/PNG)\n• Reduza o tamanho do arquivo se muito grande`,
         sender: 'system',
         timestamp: new Date(),
-        avatarUrl: IA_AVATAR      }]);
+        avatarUrl: IA_AVATAR
+      }]);
     }  } finally {
     // Cleanup básico
     setLoading(false);
@@ -2328,7 +2358,7 @@ const deleteTransaction = (index: number) => {
 };
 
 return (
-  <>
+  <ErrorBoundary>
     {/* CSS para modal responsivo com teclado virtual */}
     <style dangerouslySetInnerHTML={{
       __html: `
@@ -2627,10 +2657,6 @@ return (
                       boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                     })
                   }}                >
-                  {formatMessageContent(message.text)}
-                  
-                  {/* Sugestões integradas na primeira mensagem do sistema */}
-                  {showSuggestions && message.sender === 'system' && index === 0 && !pendingAction && (
                     <div style={{ 
                       marginTop: '15px',
                       display: 'flex',
@@ -3346,7 +3372,7 @@ return (
     </div>
     
     {/* NavBar removido do Stater IA para melhor experiência */}
-  </>
+  </ErrorBoundary>
 );
 
 // Helper functions

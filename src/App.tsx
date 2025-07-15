@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotificationToastManager from "@/components/notifications/NotificationToastManager";
 import { startRecurringProcessor } from "@/utils/recurringProcessor";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import HomePage from "./pages/HomePage";
 import HomeRedirect from "./components/auth/HomeRedirect";
 import Dashboard from "./pages/Dashboard";
@@ -27,7 +28,7 @@ import FinancialAnalysisPage from "./pages/FinancialAnalysisPage"; // Nova pági
 import RecurringTransactionsPage from "./pages/RecurringTransactionsPage"; // Nova página de recorrentes
 import TelegramSettingsPage from "./pages/TelegramSettingsPage"; // Página de configurações do Telegram
 import PrivacyPage from "./pages/PrivacyPage";
-import TermsPage from "./pages/TermsPage";
+import ErrorTestPage from "./pages/ErrorTestPage"; // Página de teste de erros
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -41,69 +42,82 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <ThemeProvider>
-        <AuthProvider>
-          <TermsWrapper>
-            <NotificationProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <NotificationToastManager />
-              <Routes>
-                <Route path="/" element={<HomeRedirect />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Login />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
-                <Route path="/privacy" element={<PrivacyPage />} />
-                <Route path="/terms" element={<TermsPage />} />
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    <PrivateRoute>
-                      <OnboardingWrapper>
-                        <Dashboard />
-                      </OnboardingWrapper>
-                    </PrivateRoute>
-                  } 
-                />
-                <Route 
-                  path="/transactions" 
-                  element={
-                    <PrivateRoute>
-                      <Transactions />
-                    </PrivateRoute>
-                  } 
-                />
-                <Route 
-                  path="/recurring-transactions" 
-                  element={
-                    <PrivateRoute>
-                      <RecurringTransactionsPage />
-                    </PrivateRoute>
-                  } 
-                />
-                <Route 
-                  path="/profile" 
-                  element={
-                    <PrivateRoute>
-                      <Profile />
-                    </PrivateRoute>
-                  } 
-                />
-                <Route 
-                  path="/bills" 
-                  element={
-                    <PrivateRoute>
-                      <BillsPage />
-                    </PrivateRoute>
-                  } 
-                />
+    <ErrorBoundary>
+      <BrowserRouter>
+        <ThemeProvider>
+          <AuthProvider>
+            <TermsWrapper>
+              <NotificationProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <NotificationToastManager />
+                <Routes>
+                  <Route path="/" element={<HomeRedirect />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Login />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route path="/terms" element={<TermsPage />} />
+                  <Route 
+                    path="/dashboard" 
+                    element={
+                      <PrivateRoute>
+                        <ErrorBoundary>
+                          <OnboardingWrapper>
+                            <Dashboard />
+                          </OnboardingWrapper>
+                        </ErrorBoundary>
+                      </PrivateRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/transactions" 
+                    element={
+                      <PrivateRoute>
+                        <ErrorBoundary>
+                          <Transactions />
+                        </ErrorBoundary>
+                      </PrivateRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/recurring-transactions" 
+                    element={
+                      <PrivateRoute>
+                        <ErrorBoundary>
+                          <RecurringTransactionsPage />
+                        </ErrorBoundary>
+                      </PrivateRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/profile" 
+                    element={
+                      <PrivateRoute>
+                        <ErrorBoundary>
+                          <Profile />
+                        </ErrorBoundary>
+                      </PrivateRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/bills" 
+                    element={
+                      <PrivateRoute>
+                        <ErrorBoundary>
+                          <BillsPage />
+                        </ErrorBoundary>
+                      </PrivateRoute>
+                    } 
+                  />
                 <Route 
                   path="/add-bill" 
                   element={
                     <PrivateRoute>
-                      <AddBillPage />
+                      <ErrorBoundary>
+                        <AddBillPage />
+                      </ErrorBoundary>
                     </PrivateRoute>
                   } 
                 />
@@ -111,7 +125,9 @@ const App = () => (
                   path="/notifications" 
                   element={
                     <PrivateRoute>
-                      <NotificationsPage />
+                      <ErrorBoundary>
+                        <NotificationsPage />
+                      </ErrorBoundary>
                     </PrivateRoute>
                   } 
                 />
@@ -119,7 +135,9 @@ const App = () => (
                   path="/analise-financeira"
                   element={ 
                     <PrivateRoute>
-                      <FinancialAnalysisPage />
+                      <ErrorBoundary>
+                        <FinancialAnalysisPage />
+                      </ErrorBoundary>
                     </PrivateRoute>
                   }
                 />
@@ -127,7 +145,9 @@ const App = () => (
                   path="/preferences" 
                   element={
                     <PrivateRoute>
-                      <PreferencesPage />
+                      <ErrorBoundary>
+                        <PreferencesPage />
+                      </ErrorBoundary>
                     </PrivateRoute>
                   } 
                 />
@@ -135,7 +155,9 @@ const App = () => (
                   path="/settings/telegram" 
                   element={
                     <PrivateRoute>
-                      <TelegramSettingsPage />
+                      <ErrorBoundary>
+                        <TelegramSettingsPage />
+                      </ErrorBoundary>
                     </PrivateRoute>
                   } 
                 />
@@ -143,7 +165,9 @@ const App = () => (
                   path="/security" 
                   element={
                     <PrivateRoute>
-                      <SecurityPage />
+                      <ErrorBoundary>
+                        <SecurityPage />
+                      </ErrorBoundary>
                     </PrivateRoute>
                   } 
                 />
@@ -151,7 +175,9 @@ const App = () => (
                   path="/financial-advisor" 
                   element={
                     <PrivateRoute>
-                      <FinancialAdvisorPage />
+                      <ErrorBoundary>
+                        <FinancialAdvisorPage />
+                      </ErrorBoundary>
                     </PrivateRoute>
                   } 
                 />
@@ -159,7 +185,9 @@ const App = () => (
                   path="/recomendacoes" 
                   element={
                     <PrivateRoute>
-                      <RecommendationsPage />
+                      <ErrorBoundary>
+                        <RecommendationsPage />
+                      </ErrorBoundary>
                     </PrivateRoute>
                   } 
                 />
@@ -167,7 +195,9 @@ const App = () => (
                   path="/settings" 
                   element={
                     <PrivateRoute>
-                      <SettingsPage />
+                      <ErrorBoundary>
+                        <SettingsPage />
+                      </ErrorBoundary>
                     </PrivateRoute>
                   } 
                 />
@@ -175,7 +205,19 @@ const App = () => (
                   path="/export-report" 
                   element={
                     <PrivateRoute>
-                      <ExportReportPage />
+                      <ErrorBoundary>
+                        <ExportReportPage />
+                      </ErrorBoundary>
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/error-test" 
+                  element={
+                    <PrivateRoute>
+                      <ErrorBoundary>
+                        <ErrorTestPage />
+                      </ErrorBoundary>
                     </PrivateRoute>
                   } 
                 />
@@ -187,6 +229,7 @@ const App = () => (
       </AuthProvider>
     </ThemeProvider>
   </BrowserRouter>
+</ErrorBoundary>
 </QueryClientProvider>
 );
 

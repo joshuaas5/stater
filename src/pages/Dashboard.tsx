@@ -853,20 +853,28 @@ const Dashboard: React.FC = () => {
           setEditingTransactionDontAdjustBalance(false); // Resetar aqui
         }
       }}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="max-h-[90vh] overflow-y-auto relative w-[95vw] max-w-md sm:max-w-lg">
+          {/* Botão X mais visível */}
+          <button
+            onClick={() => setDialogOpen(false)}
+            className="absolute right-2 top-2 z-10 rounded-full opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none bg-red-500 hover:bg-red-600 text-white w-8 h-8 flex items-center justify-center text-sm font-bold"
+            type="button"
+          >
+            ✕
+          </button>
+          <DialogHeader className="pr-10">
+            <DialogTitle className="text-lg font-semibold">
               {editingTransaction
                 ? (editingTransaction.type === 'income' ? 'Editar Entrada' : 'Editar Saída')
                 : (newTransaction.type === 'income' ? 'Adicionar Nova Entrada' : 'Adicionar Nova Saída')}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm text-muted-foreground">
               {editingTransaction
                 ? (editingTransaction.type === 'income' ? 'Edite uma receita ou entrada financeira.' : 'Edite uma despesa ou saída financeira.')
                 : (newTransaction.type === 'income' ? 'Adicione uma nova receita ou entrada financeira.' : 'Adicione uma nova despesa ou saída financeira.')}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+          <div className="grid gap-4 py-4 max-h-[50vh] overflow-y-auto px-1">
             <div className="grid gap-2">
               <Label htmlFor="title">Descrição</Label>
               <Input 
@@ -878,6 +886,7 @@ const Dashboard: React.FC = () => {
                   else handleNewTransactionChange(e);
                 }}
                 placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
+                className="min-h-[44px] text-base"
               />
             </div>
             <div className="grid gap-2">
@@ -895,6 +904,7 @@ const Dashboard: React.FC = () => {
                   else setNewTransaction({...newTransaction, amount: value});
                 }}
                 placeholder="Ex: 250"
+                className="min-h-[44px] text-base"
               />
             </div>
             <div className="grid gap-2">

@@ -221,7 +221,7 @@ const ChatInput: React.FC<ChatInputProps> = memo(({
           >            <textarea
               ref={inputRef}
               className="message-input"
-              placeholder={loading ? "Enviando..." : "Digite sua mensagem..."}
+              placeholder={loading ? "Enviando..." : "Escreva aqui..."}
               value={message}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
@@ -590,6 +590,6 @@ const ChatInput: React.FC<ChatInputProps> = memo(({
       }} />
     </>
   );
-});
+};
 
 export default memo(ChatInput);

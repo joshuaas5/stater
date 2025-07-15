@@ -5,7 +5,7 @@ echo.
 REM Configurar o webhook
 curl -X POST "https://api.telegram.org/bot7971646954:AAHpeNAzvg3kq7A1uER58XRms94sTjWZy5g/setWebhook" ^
      -H "Content-Type: application/json" ^
-     -d "{\"url\":\"https://staterbills.vercel.app/api/telegram-webhook\",\"allowed_updates\":[\"message\"],\"drop_pending_updates\":true}"
+     -d "{\"url\":\"https://stater.app/api/telegram-webhook\",\"allowed_updates\":[\"message\"],\"drop_pending_updates\":true}"
 
 echo.
 echo.

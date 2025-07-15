@@ -3,7 +3,7 @@
 console.log('🔍 Testando webhook do bot...');
 
 // 1. Testar se a API do webhook responde
-fetch('https://staterbills.vercel.app/api/telegram-webhook', {
+fetch('https://stater.app/api/telegram-webhook', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'

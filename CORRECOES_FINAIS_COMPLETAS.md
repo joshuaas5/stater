@@ -136,7 +136,7 @@
 
 ## 🔧 COMO USAR AGORA
 
-### **No App (staterbills.vercel.app)**
+### **No App (stater.app)**
 1. Acesse **Configurações → Bot Telegram**
 2. Clique em **"Abrir Bot Telegram"** (texto agora conciso)
 3. Clique em **"Gerar Código de Vinculação"**

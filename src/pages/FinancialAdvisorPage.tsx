@@ -20,6 +20,7 @@ import VoicePlayer from '@/components/voice/VoicePlayer';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useAudioLimits } from '@/hooks/useAudioLimits';
 import { processAudioWithGemini, AudioProcessingResult } from '@/utils/audioProcessing';
+import { LoadingState, ChatMessageLoading, CardLoading, useLoadingStates } from '@/components/ui/loading-states';
 
 
 const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
@@ -112,6 +113,9 @@ export const FinancialAdvisorPage: React.FC = () => {
   const [audioResponse, setAudioResponse] = useState<string | null>(null);
   const tts = useTextToSpeech();
   const audioLimits = useAudioLimits(currentUserId || null);
+
+  // Hook para gerenciar múltiplos estados de loading
+  const { setLoading: setLoadingState, isLoading: isLoadingState, isAnyLoading } = useLoadingStates();
 
   // Inicializar Web Speech API
   useEffect(() => {
@@ -584,7 +588,7 @@ const handleSendMessage = async (message: string) => {
 
     const lowerMsg = message.trim().toLowerCase();    // Se aguardando confirmação e usuário diz sim
     if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim')) {
-      setLoading(true);
+      setLoadingState('transaction-save', true);
       setSavingTransactions(true); // Ativar loading específico para salvamento
       setError("");
       try {        // Processar transações (OCR, texto, IA)
@@ -910,18 +914,18 @@ const handleSendMessage = async (message: string) => {
       return; // Importante sair após tratar o cancelamento
     }
 
-    // Adiciona a mensagem do usuário à interface
-    const newUserMessage: ChatMessage = { id: uuidv4(), text: message, sender: 'user', timestamp: new Date(), avatarUrl: USER_AVATAR };
-    setMessages(prevMessages => [...prevMessages, newUserMessage]);
-    setLoading(true);
-    setError('');
-    setShowSuggestions(false);
+  // Adiciona a mensagem do usuário à interface
+  const newUserMessage: ChatMessage = { id: uuidv4(), text: message, sender: 'user', timestamp: new Date(), avatarUrl: USER_AVATAR };
+  setMessages(prevMessages => [...prevMessages, newUserMessage]);
+  setLoadingState('ai-thinking', true);
+  setError('');
+  setShowSuggestions(false);
 
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
         setError("Erro: Usuário não identificado.");
-        setLoading(false);
+        setLoadingState('ai-thinking', false);
         return;
       }
       const activeUserId = user.id;
@@ -961,7 +965,7 @@ const handleSendMessage = async (message: string) => {
           avatarUrl: IA_AVATAR
         };
         setMessages(prev => [...prev, limitReachedMessage]);
-        setLoading(false);
+        setLoadingState('ai-thinking', false);
         return;
       }
       // Bloqueio por requisições diárias
@@ -974,7 +978,7 @@ const handleSendMessage = async (message: string) => {
           avatarUrl: IA_AVATAR
         };
         setMessages(prev => [...prev, limitReachedMessage]);
-        setLoading(false);
+        setLoadingState('ai-thinking', false);
         return;
       }
       // Aviso de tokens
@@ -1007,7 +1011,7 @@ const handleSendMessage = async (message: string) => {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !sessionData?.session) {
         setMessages(prev => [...prev, { id: uuidv4(), text: "❌ Erro: Não foi possível obter a sessão. Faça login novamente.", sender: 'system', timestamp: new Date() }]);
-        setLoading(false);
+        setLoadingState('ai-thinking', false);
         return;
       }
       const accessToken = sessionData.session.access_token;
@@ -1077,7 +1081,7 @@ const handleSendMessage = async (message: string) => {
         console.error("Backend API error status:", backendApiResponse.status, "Response:", errorData);
         const userErrorMessage = errorData.details || errorData.error || `Erro ${backendApiResponse.status} ao conectar com o Consultor IA.`;
         setMessages(prev => [...prev, { id: uuidv4(), text: `❌ ${userErrorMessage}`, sender: 'system', timestamp: new Date() }]);
-        setLoading(false);
+        setLoadingState('ai-thinking', false);
         return; // Return early on API error
       }      const backendData = await backendApiResponse.json();
       let botResponseText = backendData.resposta;
@@ -1085,6 +1089,24 @@ const handleSendMessage = async (message: string) => {
       // Limpar tags HTML da resposta da IA
       if (typeof botResponseText === 'string') {
         botResponseText = botResponseText.replace(/<\/?strong>/g, '**').replace(/<\/?[^>]+(>|$)/g, '');
+        
+        // NOVO: Limpar JSON da resposta para evitar duplicação
+        // Se a resposta contém JSON, remover apenas o JSON e manter o texto
+        const jsonBlockMatch = botResponseText.match(/```json\s*([\s\S]*?)\s*```/);
+        if (jsonBlockMatch) {
+          botResponseText = botResponseText.replace(/```json\s*([\s\S]*?)\s*```/g, '').trim();
+        }
+        
+        // Remover objetos JSON soltos no início da resposta
+        const jsonObjectMatch = botResponseText.match(/^\s*[\[{][\s\S]*?[\]}]\s*/);
+        if (jsonObjectMatch) {
+          botResponseText = botResponseText.replace(/^\s*[\[{][\s\S]*?[\]}]\s*/, '').trim();
+        }
+        
+        // Se após limpeza só restou texto vazio ou muito pequeno, usar mensagem padrão
+        if (!botResponseText || botResponseText.length < 10) {
+          botResponseText = "Entendi sua mensagem. Como posso ajudá-lo com suas finanças?";
+        }
       }
       // --- NOVO: Atualizar uso de tokens e requisições do usuário ---
       try {
@@ -1135,10 +1157,13 @@ const handleSendMessage = async (message: string) => {
       if (typeof botResponseText !== 'string') {
         console.error("Resposta inesperada do backend:", backendData);
         setMessages(prev => [...prev, { id: uuidv4(), text: "❌ Resposta inesperada do Consultor IA.", sender: 'system', timestamp: new Date() }]);
-        setLoading(false);
+        setLoadingState('ai-thinking', false);
         return; // Return early if response format is wrong
       }
-      let confirmationMessageForChat: string = botResponseText;      
+      let confirmationMessageForChat: string = botResponseText;
+      
+      console.log('🔍 [DEBUG] botResponseText após limpeza:', botResponseText);
+      console.log('🔍 [DEBUG] Tamanho da resposta:', botResponseText.length);      
       
       // Verificar se a pergunta é sobre consulta (saldo, resumo, análise) - NÃO deve processar JSON
       const isConsultaQuery = /\b(saldo|resumo|financeiro|análise|gastos|receitas|balanço|verificar|consultar|como estão|situação)\b/i.test(message);
@@ -1317,7 +1342,7 @@ const handleSendMessage = async (message: string) => {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
           }, 200);
 
-          setLoading(false);
+          setLoadingState('ai-thinking', false);
           return;
         }
       }
@@ -1424,7 +1449,7 @@ const handleSendMessage = async (message: string) => {
             const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
             setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
           } else {
-            // Resposta normal se não detectou transação
+            // Resposta normal se não detectou transação - ÚNICA RESPOSTA
             const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
             setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
           }
@@ -1444,7 +1469,9 @@ const handleSendMessage = async (message: string) => {
       };
       setMessages((prevMessages: ChatMessage[]) => [...prevMessages, errorResponse]);
     } finally {
-      setLoading(false);
+      setLoadingState('ai-thinking', false);
+      setLoadingState('transaction-save', false);
+      setSavingTransactions(false);
     }
   };  // Função para detectar listas de transações em texto
   const detectTransactionListInText = (userMessage: string) => {
@@ -1975,10 +2002,8 @@ const handleTabChange = (tabValue: string) => {
 
 // Função para processar imagem OCR
 const handleImageUpload = async (imageBase64: string) => {
-  if (!imageBase64) return;
-
-  setLoading(true);
-  setError("");
+  if (!imageBase64) return;    setLoadingState('ai-thinking', true);
+    setError("");
 
   try {
     // Obter usuário atual
@@ -2402,202 +2427,69 @@ return (
           boxSizing: 'border-box',
           minHeight: 'calc(100vh - 80px)' // Ajustado para header fixo
         }}
-      ><div 
-          className="chat-messages"
-          style={{
-            flex: 1,
-            padding: '20px 0',
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px',
-            minHeight: '400px'
-          }}
-        >
-          {/* Error Display */}
-          {error && (            <div 
-              className="message assistant" 
-              style={{ 
-                maxWidth: '70%',
-                padding: '16px 20px',
-                fontSize: '15px',
-                lineHeight: '1.5',
-                wordWrap: 'break-word',
-                background: 'rgba(239, 68, 68, 0.2)',
-                backdropFilter: 'blur(15px)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                alignSelf: 'flex-start',
-                borderRadius: '20px 20px 20px 6px'
-              }}
-            >
-              ❌ {error}
-            </div>
-          )}
+      >        {/* Chat Messages */}
+        <ChatMessages
+          messages={memoizedMessages}
+          messagesEndRef={messagesEndRef}
+          iaAvatar={IA_AVATAR}
+          userAvatar={USER_AVATAR}
+          isLoading={isLoadingState('ai-thinking')}
+          loadingMessage="Pensando..."
+        />
 
-          {/* Messages */}
-          {memoizedMessages.map((message, index) => (
-            <React.Fragment key={index}>
-              {/* Timestamp */}
-              <div 
-                className="timestamp"
+        {/* Sugestões integradas na primeira mensagem do sistema */}
+        {showSuggestions && memoizedMessages.length > 0 && memoizedMessages[0].sender === 'system' && !pendingAction && (
+          <div style={{ 
+            padding: '0 20px',
+            marginBottom: '15px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}>
+            {initialSuggestions.map((sug: string, sugIndex: number) => (
+              <button
+                key={sugIndex}
+                onClick={() => handleSuggestionClick(sug)}
                 style={{
-                  textAlign: 'center',
-                  fontSize: '12px',
-                  color: 'rgba(255, 255, 255, 0.5)',
-                  margin: '10px 0'
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '15px',
+                  padding: '6px 12px',
+                  color: 'white',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                {formatTimestamp(message.timestamp)}
-              </div>
-
-              {/* Processing Message */}
-              {message.sender === 'system' && message.text.includes('Processando') && (
-                <div 
-                  className="processing-message"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    backdropFilter: 'blur(15px)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '20px',
-                    padding: '20px',
-                    maxWidth: '80%',
-                    alignSelf: 'flex-start'
-                  }}
-                >
-                  <div 
-                    className="processing-header"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      marginBottom: '12px'
-                    }}
-                  >
-                    <div 
-                      className="processing-icon"
-                      style={{
-                        width: '20px',
-                        height: '20px',
-                        border: '2px solid rgba(255, 255, 255, 0.3)',
-                        borderTop: '2px solid white',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite'
-                      }}
-                    ></div>
-                    <div 
-                      className="processing-title"
-                      style={{
-                        fontWeight: 600,
-                        fontSize: '16px'
-                      }}
-                    >
-                      {getProcessingIcon(message.text)} {message.text}
-                    </div>
-                  </div>
-                  <div 
-                    className="processing-details"
-                    style={{
-                      fontSize: '14px',
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      marginBottom: '8px'
-                    }}
-                  >
-                    {getProcessingDetails(message.text)}
-                  </div>
-                  <div 
-                    className="processing-note"
-                    style={{
-                      fontSize: '12px',
-                      color: 'rgba(255, 255, 255, 0.6)',
-                      fontStyle: 'italic'
-                    }}
-                  >
-                    Aguarde, não recarregue a página...
-                  </div>
-                </div>
-              )}              {/* Regular Messages */}
-              {!(message.sender === 'system' && message.text.includes('Processando')) && (
-                <div 
-                  className={`message ${message.sender}`}
-                  style={{
-                    maxWidth: '70%',
-                    padding: '16px 20px',
-                    fontSize: '15px',
-                    lineHeight: '1.5',
-                    wordWrap: 'break-word',
-                    ...(message.sender === 'system' ? {
-                      background: 'rgba(255, 255, 255, 0.15)',
-                      backdropFilter: 'blur(15px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      alignSelf: 'flex-start',
-                      borderRadius: '20px 20px 20px 6px'
-                    } : {
-                      background: 'rgba(255, 255, 255, 0.9)',
-                      color: '#2d3748',
-                      alignSelf: 'flex-end',
-                      borderRadius: '20px 20px 6px 20px',
-                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
-                    })
-                  }}                >
-                  {formatMessageContent(message.text)}
-                  
-                  {/* Sugestões integradas na primeira mensagem do sistema */}
-                  {showSuggestions && message.sender === 'system' && index === 0 && !pendingAction && (
-                    <div style={{ 
-                      marginTop: '15px',
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: '8px'
-                    }}>
-                      {initialSuggestions.map((sug: string, sugIndex: number) => (
-                        <button
-                          key={sugIndex}
-                          onClick={() => handleSuggestionClick(sug)}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.2)',
-                            backdropFilter: 'blur(10px)',
-                            border: '1px solid rgba(255, 255, 255, 0.3)',
-                            borderRadius: '15px',
-                            padding: '6px 12px',
-                            color: 'white',
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            whiteSpace: 'nowrap'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
-                            e.currentTarget.style.transform = 'translateY(-1px)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-                            e.currentTarget.style.transform = 'translateY(0)';
-                          }}
-                        >
-                          {sug}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </React.Fragment>          ))}          {/* Scroll anchor para posicionar no final */}
-          <div ref={messagesEndRef} style={{ height: '1px' }} />
-        </div>
+                {sug}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Chat Input */}
         <ChatInput
           onSubmit={handleSendMessage} 
           onImageUpload={handleImageUpload}
-          loading={loading}
+          loading={isLoadingState('ai-thinking') || isLoadingState('transaction-save')}
           waitingConfirmation={waitingConfirmation} 
           pendingActionDetails={pendingAction ? pendingAction.dados : null} 
           onConfirm={() => handleSendMessage('sim')} 
           onCancel={() => handleSendMessage('não')}
           // Props para áudio
           onAudioSend={handleAudioMessage}
-          isProcessingAudio={isProcessingAudio}
+          isProcessingAudio={isLoadingState('audio-processing')}
           audioLimits={audioLimits}
         />
       </div>      {/* Transaction Review Modal - REWORK COMPLETO */}

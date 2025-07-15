@@ -49,7 +49,7 @@ GET https://tmucbwlhkffrhtexmjze.supabase.co/rest/v1/telegram_users?select=*&use
 - [ ] **Testar conexão completa**
 
 ## 🚀 **APÓS APLICAR O SQL:**
-1. **Recarregar página** `https://staterbills.vercel.app/settings/telegram`
+1. **Recarregar página** `https://stater.app/settings/telegram`
 2. **Gerar novo código** de vinculação
 3. **Conectar no bot** Telegram
 4. **Verificar se erro 406 sumiu** dos logs

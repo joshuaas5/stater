@@ -23,7 +23,7 @@
 1. Acesse: https://supabase.com/dashboard/project/[SEU_PROJECT_ID]
 2. Vá para: Authentication > Settings
 3. Em "Email confirmations", certifique-se que está HABILITADO
-4. Confirme que "Site URL" é: https://staterbills.vercel.app
+4. Confirme que "Site URL" é: https://stater.app
 ```
 
 ### **2. Configurar SMTP personalizado (RECOMENDADO)**
@@ -84,7 +84,7 @@ INVITE:
 ### **2. Verificar domínio (opcional)**
 ```
 1. Acesse: https://search.google.com/search-console
-2. Adicione: staterbills.vercel.app
+2. Adicione: stater.app
 3. Verifique usando DNS ou HTML
 ```
 

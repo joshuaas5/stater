@@ -3,7 +3,7 @@ async function testAPI() {
   try {
     console.log('🧪 Testando API...');
     
-    const response = await fetch('https://staterbills.vercel.app/api/telegram-codes-simple', {
+    const response = await fetch('https://stater.app/api/telegram-codes-simple', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

@@ -25,7 +25,7 @@
 ## 🎯 FLUXO SIMPLIFICADO:
 
 ### **Para Conectar:**
-1. Usuário acessa `https://staterbills.vercel.app`
+1. Usuário acessa `https://stater.app`
 2. Faz login
 3. Vai em **Configurações → Bot Telegram**
 4. Clica em **"Gerar Código de Vinculação"**

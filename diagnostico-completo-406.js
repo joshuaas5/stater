@@ -105,7 +105,7 @@ console.log('Fetch original:', fetch.toString().includes('native'));
 
 // 5. Testar em modo incógnito (manual)
 console.log('💡 PRÓXIMO PASSO: Teste em modo incógnito');
-console.log('Abra uma aba incógnita e acesse: https://staterbills.vercel.app/settings/telegram');
+console.log('Abra uma aba incógnita e acesse: https://stater.app/settings/telegram');
 console.log('Se funcionar em incógnito, o problema é cache/SW local');
 
 console.log('🔍 DIAGNÓSTICO FINALIZADO - Aguarde resultados...');

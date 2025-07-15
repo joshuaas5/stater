@@ -9,7 +9,7 @@ Invoke-RestMethod -Uri "https://api.telegram.org/bot7971646954:AAHpeNAzvg3kq7A1u
 
 # 3. Se webhook não estiver configurado, configurar:
 # $body = @{
-#     url = "https://staterbills.vercel.app/api/telegram-webhook"
+#     url = "https://stater.app/api/telegram-webhook"
 #     allowed_updates = @("message")
 #     drop_pending_updates = $true
 # } | ConvertTo-Json

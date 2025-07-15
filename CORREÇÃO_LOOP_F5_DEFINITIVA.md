@@ -62,7 +62,7 @@ if (window.location.hash) {
 ## 🧪 TESTE FINAL
 
 ### **Cenário 1: F5 no Dashboard**
-1. Vá para https://staterbills.vercel.app/dashboard
+1. Vá para https://stater.app/dashboard
 2. Pressione F5
 3. ✅ **ESPERADO**: Carrega normalmente, sem loop
 4. ✅ **CONSOLE**: Deve mostrar "SW: Skipping URL with fragment" se houver #
@@ -90,8 +90,8 @@ SW: Skipping interception for: /dashboard
 ### **App Initialization**
 ```
 🔧 Limpando fragment da URL: #
-🔧 URL limpa: https://staterbills.vercel.app/dashboard
-🚀 App iniciando - URL: https://staterbills.vercel.app/dashboard
+🔧 URL limpa: https://stater.app/dashboard
+🚀 App iniciando - URL: https://stater.app/dashboard
 ```
 
 ### **Terms Hook**

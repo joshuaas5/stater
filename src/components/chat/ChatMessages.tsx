@@ -5,6 +5,7 @@ import { formatCurrency } from '@/utils/dataProcessing';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ChatMessageLoading } from '@/components/ui/loading-states';
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
@@ -16,9 +17,19 @@ interface ChatMessagesProps {
   messagesEndRef: React.RefObject<HTMLDivElement>;
   iaAvatar?: string;
   userAvatar?: string;
+  isLoading?: boolean;
+  loadingMessage?: string;
 }
 
-const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, transactions, messagesEndRef, iaAvatar, userAvatar }) => {
+const ChatMessages: React.FC<ChatMessagesProps> = ({ 
+  messages, 
+  transactions, 
+  messagesEndRef, 
+  iaAvatar, 
+  userAvatar, 
+  isLoading = false, 
+  loadingMessage 
+}) => {
   return (
     <div className="flex-1 overflow-y-auto p-3 space-y-4">
       {messages.map((message) => (
@@ -40,11 +51,11 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, transactions, mes
               }
             `}
           >
-            <ReactMarkdown
-              className={`text-sm leading-relaxed whitespace-pre-wrap prose dark:prose-invert ${message.sender === 'system' ? 'mb-4 space-y-2' : ''}`}
-            >
-              {message.text || ''}
-            </ReactMarkdown>
+            <div className={`text-sm leading-relaxed whitespace-pre-wrap prose dark:prose-invert ${message.sender === 'system' ? 'mb-4 space-y-2' : ''}`}>
+              <ReactMarkdown>
+                {message.text || ''}
+              </ReactMarkdown>
+            </div>
             {message.sender === 'system' && transactions && transactions.length > 0 && (
               <div className="mt-2 pt-2 space-y-1.5 border-t border-primary-foreground/30">
                 <p className="font-medium text-xs opacity-90">Transações identificadas:</p>
@@ -71,7 +82,16 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, transactions, mes
           </span>
         </div>
       ))}
-        <div ref={messagesEndRef} />
+      
+      {/* Loading message quando IA está processando */}
+      {isLoading && (
+        <ChatMessageLoading 
+          avatarUrl={iaAvatar} 
+          message={loadingMessage}
+        />
+      )}
+      
+      <div ref={messagesEndRef} />
       </div>
   );
 };

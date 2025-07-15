@@ -497,7 +497,7 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
     console.log('💾 [DEBUG] Tentando salvar vinculação:', { chatId, code, username });
     
     // Verificar código via API interna
-    const verifyUrl = `https://staterbills.vercel.app/api/telegram-codes-simple?code=${code}`;
+    const verifyUrl = `https://stater.app/api/telegram-codes-simple?code=${code}`;
     
     console.log('🔍 [DEBUG] Verificando código via API:', verifyUrl);
     
@@ -536,7 +536,7 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
     
     // Marcar código como usado via API
     try {
-      const markUsedResponse = await fetch('https://staterbills.vercel.app/api/telegram-codes-simple?action=mark-used', {
+      const markUsedResponse = await fetch('https://stater.app/api/telegram-codes-simple?action=mark-used', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, chatId })
@@ -1159,7 +1159,7 @@ export default async function handler(req: any, res: any) {
           }
           
           // Chamar a API de OCR do app Stater
-          const ocrResponse = await fetch('https://staterbills.vercel.app/api/gemini-ocr', {
+          const ocrResponse = await fetch('https://stater.app/api/gemini-ocr', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1367,7 +1367,7 @@ export default async function handler(req: any, res: any) {
               `❌ <b>Código inválido ou expirado</b>\n\n` +
               `🔑 Código tentado: <code>${code}</code>\n\n` +
               `� <b>Como conectar:</b>\n` +
-              `1. Acesse o <a href="https://staterbills.vercel.app/settings/telegram">App Stater</a>\n` +
+              `1. Acesse o <a href="https://stater.app/settings/telegram">App Stater</a>\n` +
               `2. Vá em Configurações → Telegram\n` +
               `3. Clique em "Conectar"\n` +
               `4. Copie o código de 6 dígitos\n` +
@@ -1395,7 +1395,7 @@ export default async function handler(req: any, res: any) {
             '• "Como economizar 500 reais por mês?"\n' +
             '• "Minhas contas vencem quando?"\n\n' +
             '🔗 <b>PARA CONECTAR:</b>\n' +
-            '1. Acesse o <a href="https://staterbills.vercel.app/settings/telegram">App Stater</a>\n' +
+            '1. Acesse o <a href="https://stater.app/settings/telegram">App Stater</a>\n' +
             '2. Vá em Configurações → Telegram\n' +
             '3. Clique em "Conectar" e gere um código\n' +
             '4. Cole o código aqui no chat\n\n' +
@@ -1436,7 +1436,7 @@ export default async function handler(req: any, res: any) {
         await sendTelegramMessage(chatId,
           '🔗 <b>Conectar sua conta Stater</b>\n\n' +
           '📋 <b>Passo a passo:</b>\n\n' +
-          '1️⃣ Acesse: <a href="https://staterbills.vercel.app">staterbills.vercel.app</a>\n' +
+          '1️⃣ Acesse: <a href="https://stater.app">stater.app</a>\n' +
           '2️⃣ Faça login na sua conta\n' +
           '3️⃣ Vá em <b>Configurações → Bot Telegram</b>\n' +
           '4️⃣ Clique em <b>"Gerar Código de Vinculação"</b>\n' +
@@ -1492,7 +1492,7 @@ export default async function handler(req: any, res: any) {
         console.log('📊 Processando comando /dashboard');
         await sendTelegramMessage(chatId,
           '📊 <b>Dashboard Stater</b>\n\n' +
-          '🔗 Acesse: <a href="https://staterbills.vercel.app">staterbills.vercel.app</a>\n\n' +
+          '🔗 Acesse: <a href="https://stater.app">stater.app</a>\n\n' +
           '📱 <b>No dashboard você pode:</b>\n' +
           '• Ver suas transações\n' +
           '• Gerar códigos do Telegram\n' +
@@ -1587,7 +1587,7 @@ export default async function handler(req: any, res: any) {
             `• Código já foi usado\n` +
             `• Código digitado incorretamente\n\n` +
             `🔧 <b>Como conectar:</b>\n` +
-            `1. Acesse o <a href="https://staterbills.vercel.app/settings/telegram">App Stater</a>\n` +
+            `1. Acesse o <a href="https://stater.app/settings/telegram">App Stater</a>\n` +
             `2. Vá em Configurações → Telegram\n` +
             `3. Clique em "Conectar"\n` +
             `4. Copie o código de 6 dígitos\n` +
@@ -1713,7 +1713,7 @@ export default async function handler(req: any, res: any) {
             '🔒 <b>Conta não conectada</b>\n\n' +
             'Para que eu possa responder sobre suas finanças, você precisa conectar sua conta:\n\n' +
             '<b>Como conectar:</b>\n' +
-            '1. Acesse: <a href="https://staterbills.vercel.app">staterbills.vercel.app</a>\n' +
+            '1. Acesse: <a href="https://stater.app">stater.app</a>\n' +
             '2. Faça login na sua conta\n' +
             '3. Vá em Configurações → Bot Telegram\n' +
             '4. Gere um código de vinculação\n' +

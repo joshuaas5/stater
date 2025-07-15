@@ -1,6 +1,6 @@
 // Teste completo do fluxo webhook + API
-const WEBHOOK_URL = 'https://staterbills.vercel.app/api/telegram-webhook';
-const CODES_API_URL = 'https://staterbills.vercel.app/api/telegram-codes-simple';
+const WEBHOOK_URL = 'https://stater.app/api/telegram-webhook';
+const CODES_API_URL = 'https://stater.app/api/telegram-codes-simple';
 
 // 1. Primeiro vamos gerar um código através da API
 async function testeCompleto() {

@@ -32,7 +32,7 @@ async function testeCompletoTelegram() {
     console.log('\n🔑 PASSO 2: Gerando novo código...');
     
     // Testar geração de código
-    const responseCodigo = await fetch('https://staterbills.vercel.app/api/telegram-codes-simple', {
+    const responseCodigo = await fetch('https://stater.app/api/telegram-codes-simple', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({

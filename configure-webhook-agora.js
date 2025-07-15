@@ -1,6 +1,6 @@
 // Configurar webhook do bot Telegram
 const BOT_TOKEN = '7971646954:AAHpeNAzvg3kq7A1uER58XRms94sTjWZy5g';
-const WEBHOOK_URL = 'https://staterbills.vercel.app/api/telegram-webhook';
+const WEBHOOK_URL = 'https://stater.app/api/telegram-webhook';
 
 async function configureWebhook() {
   console.log('🔧 Configurando webhook do bot...');

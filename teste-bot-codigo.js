@@ -5,7 +5,7 @@ async function testBotWithCode() {
   try {
     // 1. Gerar código via API
     console.log('🔑 Gerando código...');
-    const codeResponse = await fetch('https://staterbills.vercel.app/api/telegram-codes-simple', {
+    const codeResponse = await fetch('https://stater.app/api/telegram-codes-simple', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -26,7 +26,7 @@ async function testBotWithCode() {
     
     // 2. Testar webhook com o código
     console.log('\n🤖 Testando webhook com código...');
-    const webhookResponse = await fetch('https://staterbills.vercel.app/api/telegram-webhook', {
+    const webhookResponse = await fetch('https://stater.app/api/telegram-webhook', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

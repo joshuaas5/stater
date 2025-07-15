@@ -7,7 +7,7 @@ async function testTelegramFlow() {
   try {
     // 1. Testar se o webhook está respondendo
     console.log('\n🌐 Testando webhook na Vercel...');
-    const webhookTest = await fetch('https://staterbills.vercel.app/api/telegram-webhook', {
+    const webhookTest = await fetch('https://stater.app/api/telegram-webhook', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -24,7 +24,7 @@ async function testTelegramFlow() {
     
     // 2. Verificar se a API de códigos está funcionando
     console.log('\n🔑 Testando API de códigos...');
-    const codesTest = await fetch('https://staterbills.vercel.app/api/telegram-codes-simple', {
+    const codesTest = await fetch('https://stater.app/api/telegram-codes-simple', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

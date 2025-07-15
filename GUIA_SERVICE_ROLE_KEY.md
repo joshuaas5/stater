@@ -30,7 +30,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 ✅ GEMINI_API_KEY - OK  
 ✅ SUPABASE_URL - OK
 ✅ SUPABASE_ANON_KEY - OK
-✅ APP_URL - OK (https://staterbills.vercel.app)
+✅ APP_URL - OK (https://stater.app)
 ⚠️ SUPABASE_SERVICE_ROLE_KEY - FALTANDO (adicionar)
 ```
 

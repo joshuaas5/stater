@@ -94,7 +94,38 @@ const INITIAL_SYSTEM_MESSAGE_TEXT = `🎯 **Olá! Sou o Stater IA** - sua IA fin
 
 Como posso ajudá-lo hoje?`;
 
+// Hook para responsividade
+const useResponsive = () => {
+  const [screenSize, setScreenSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+    isMobile: window.innerWidth <= 768,
+    isTablet: window.innerWidth > 768 && window.innerWidth <= 1024,
+    isSmallMobile: window.innerWidth <= 480
+  });
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+        isMobile: window.innerWidth <= 768,
+        isTablet: window.innerWidth > 768 && window.innerWidth <= 1024,
+        isSmallMobile: window.innerWidth <= 480
+      });
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  return screenSize;
+};
+
 export const FinancialAdvisorPage: React.FC = () => {
+  // Hook de responsividade
+  const responsive = useResponsive();
+
   // const [showAddBillModal, setShowAddBillModal] = useState(false);
 
   const navigate = useNavigate();
@@ -2297,14 +2328,14 @@ return (
         overflow: 'hidden', // Evita scroll horizontal
         position: 'relative'
       }}
-    >      {/* Header - CORRIGIDO */}
+    >      {/* Header - RESPONSIVO */}
       <div 
         className="header"
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '12px 30px',
+          padding: responsive.isMobile ? '8px 12px' : '12px 30px',
           background: 'rgba(255, 255, 255, 0.08)',
           backdropFilter: 'blur(20px)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
@@ -2313,12 +2344,12 @@ return (
           left: 0,
           right: 0,
           zIndex: 1001,
-          height: '60px'
+          height: responsive.isMobile ? '50px' : '60px'
         }}
       >        <div 
           className="logo"
           style={{
-            fontSize: '24px',
+            fontSize: responsive.isMobile ? '18px' : '24px',
             fontWeight: 800,
             color: '#ffffff',
             fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
@@ -2336,7 +2367,7 @@ return (
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '15px'
+            gap: responsive.isMobile ? '10px' : '15px'
           }}
         >
           <button 
@@ -2347,57 +2378,58 @@ return (
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               borderRadius: '20px',
-              padding: '8px 16px',
+              padding: responsive.isMobile ? '6px 12px' : '8px 16px',
               color: 'white',
-              fontSize: '14px',
+              fontSize: responsive.isMobile ? '12px' : '14px',
               cursor: 'pointer',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
+              minHeight: responsive.isMobile ? '44px' : 'auto', // Touch-friendly
+              minWidth: responsive.isMobile ? '44px' : 'auto'
             }}
           >
-            Voltar
+            {responsive.isMobile ? '←' : 'Voltar'}
           </button>
           <div 
             className="user-avatar"
             style={{
-              width: '40px',
-              height: '40px',
+              width: responsive.isMobile ? '35px' : '40px',
+              height: responsive.isMobile ? '35px' : '40px',
               background: 'rgba(255, 255, 255, 0.2)',
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 600,
-              fontSize: '16px'
+              fontSize: responsive.isMobile ? '14px' : '16px'
             }}
           >
             {getCurrentUser()?.email?.charAt(0)?.toUpperCase() || 'U'}
           </div>
         </div>
-      </div>      {/* Chat Container - AJUSTADO */}
+      </div>      {/* Chat Container - RESPONSIVO */}
       <div 
         className="chat-container"
         style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          maxWidth: '900px',
+          maxWidth: responsive.isMobile ? '100%' : '900px',
           margin: '0 auto',
           width: '100%',
-          padding: '0 20px',
-          paddingTop: '80px', // Espaço para header fixo
-          paddingBottom: '90px', // Espaço adequado para input fixo
+          padding: responsive.isMobile ? '0 10px' : '0 20px',
+          paddingTop: responsive.isMobile ? '70px' : '80px', // Espaço para header fixo
+          paddingBottom: responsive.isMobile ? '85px' : '90px', // Espaço adequado para input fixo
           boxSizing: 'border-box',
           minHeight: 'calc(100vh - 80px)' // Ajustado para header fixo
-        }}
-      ><div 
+        }}        ><div 
           className="chat-messages"
           style={{
             flex: 1,
-            padding: '20px 0',
+            padding: responsive.isMobile ? '15px 0' : '20px 0',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
-            gap: '20px',
+            gap: responsive.isMobile ? '15px' : '20px',
             minHeight: '400px'
           }}
         >
@@ -2405,16 +2437,16 @@ return (
           {error && (            <div 
               className="message assistant" 
               style={{ 
-                maxWidth: '70%',
-                padding: '16px 20px',
-                fontSize: '15px',
+                maxWidth: responsive.isMobile ? '90%' : '70%',
+                padding: responsive.isMobile ? '12px 16px' : '16px 20px',
+                fontSize: responsive.isMobile ? '14px' : '15px',
                 lineHeight: '1.5',
                 wordWrap: 'break-word',
                 background: 'rgba(239, 68, 68, 0.2)',
                 backdropFilter: 'blur(15px)',
                 border: '1px solid rgba(239, 68, 68, 0.3)',
                 alignSelf: 'flex-start',
-                borderRadius: '20px 20px 20px 6px'
+                borderRadius: responsive.isMobile ? '15px 15px 15px 5px' : '20px 20px 20px 6px'
               }}
             >
               ❌ {error}
@@ -2507,9 +2539,9 @@ return (
                 <div 
                   className={`message ${message.sender}`}
                   style={{
-                    maxWidth: '70%',
-                    padding: '16px 20px',
-                    fontSize: '15px',
+                    maxWidth: responsive.isMobile ? '90%' : '70%',
+                    padding: responsive.isMobile ? '12px 16px' : '16px 20px',
+                    fontSize: responsive.isMobile ? '14px' : '15px',
                     lineHeight: '1.5',
                     wordWrap: 'break-word',
                     ...(message.sender === 'system' ? {
@@ -2517,12 +2549,12 @@ return (
                       backdropFilter: 'blur(15px)',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
                       alignSelf: 'flex-start',
-                      borderRadius: '20px 20px 20px 6px'
+                      borderRadius: responsive.isMobile ? '15px 15px 15px 5px' : '20px 20px 20px 6px'
                     } : {
                       background: 'rgba(255, 255, 255, 0.9)',
                       color: '#2d3748',
                       alignSelf: 'flex-end',
-                      borderRadius: '20px 20px 6px 20px',
+                      borderRadius: responsive.isMobile ? '15px 15px 5px 15px' : '20px 20px 6px 20px',
                       boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                     })
                   }}                >
@@ -2534,7 +2566,7 @@ return (
                       marginTop: '15px',
                       display: 'flex',
                       flexWrap: 'wrap',
-                      gap: '8px'
+                      gap: responsive.isMobile ? '6px' : '8px'
                     }}>
                       {initialSuggestions.map((sug: string, sugIndex: number) => (
                         <button
@@ -2544,14 +2576,16 @@ return (
                             background: 'rgba(255, 255, 255, 0.2)',
                             backdropFilter: 'blur(10px)',
                             border: '1px solid rgba(255, 255, 255, 0.3)',
-                            borderRadius: '15px',
-                            padding: '6px 12px',
+                            borderRadius: responsive.isMobile ? '12px' : '15px',
+                            padding: responsive.isMobile ? '8px 12px' : '6px 12px',
                             color: 'white',
-                            fontSize: '13px',
+                            fontSize: responsive.isMobile ? '12px' : '13px',
                             fontWeight: '500',
                             cursor: 'pointer',
                             transition: 'all 0.2s ease',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            minHeight: responsive.isMobile ? '44px' : 'auto', // Touch-friendly
+                            minWidth: responsive.isMobile ? '44px' : 'auto'
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
@@ -2587,7 +2621,7 @@ return (
           isProcessingAudio={isProcessingAudio}
           audioLimits={audioLimits}
         />
-      </div>      {/* Transaction Review Modal - REWORK COMPLETO */}
+      </div>      {/* Transaction Review Modal - RESPONSIVO */}
       {waitingConfirmation && editableTransactions.length > 0 && (
         <div 
           className="modal-overlay"
@@ -2603,18 +2637,18 @@ return (
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 1002,
-            padding: '10px'
+            padding: responsive.isMobile ? '5px' : '10px'
           }}
         >
           <div 
             className="modal-content"
             style={{
               background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
-              borderRadius: '20px',
-              width: '100%',
-              maxWidth: '500px',
-              height: '90vh',
-              maxHeight: '700px',
+              borderRadius: responsive.isMobile ? '15px' : '20px',
+              width: responsive.isMobile ? '95vw' : '100%',
+              maxWidth: responsive.isMobile ? '95vw' : '500px',
+              height: responsive.isMobile ? '95vh' : '90vh',
+              maxHeight: responsive.isMobile ? '95vh' : '700px',
               display: 'flex',
               flexDirection: 'column',
               color: 'white',
@@ -2625,7 +2659,7 @@ return (
           >
             {/* Header do Modal */}
             <div style={{
-              padding: '20px 25px',
+              padding: responsive.isMobile ? '15px 20px' : '20px 25px',
               borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
               background: 'rgba(255, 255, 255, 0.1)',
               backdropFilter: 'blur(10px)',
@@ -2636,7 +2670,7 @@ return (
               <div>
                 <h2 style={{
                   margin: 0,
-                  fontSize: '20px',
+                  fontSize: responsive.isMobile ? '18px' : '20px',
                   fontWeight: '700',
                   display: 'flex',
                   alignItems: 'center',
@@ -2646,14 +2680,14 @@ return (
                 </h2>
                 <p style={{
                   margin: '5px 0 0 0',
-                  fontSize: '14px',
+                  fontSize: responsive.isMobile ? '12px' : '14px',
                   opacity: 0.8
                 }}>
                   {editableTransactions.length} transaç{editableTransactions.length > 1 ? 'ões' : 'ão'} encontrada{editableTransactions.length > 1 ? 's' : ''}
                 </p>
                 <p style={{
                   margin: '3px 0 0 0',
-                  fontSize: '14px',
+                  fontSize: responsive.isMobile ? '12px' : '14px',
                   fontWeight: '700',
                   color: '#fbbf24',
                   textShadow: '0 1px 2px rgba(0,0,0,0.5)'
@@ -2670,12 +2704,14 @@ return (
                   color: 'white',
                   padding: '8px',
                   cursor: 'pointer',
-                  fontSize: '18px',
-                  width: '36px',
-                  height: '36px',
+                  fontSize: responsive.isMobile ? '16px' : '18px',
+                  width: responsive.isMobile ? '32px' : '36px',
+                  height: responsive.isMobile ? '32px' : '36px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  minHeight: '44px', // Touch-friendly
+                  minWidth: '44px'
                 }}
               >
                 ✕
@@ -2685,29 +2721,29 @@ return (
             {/* Lista de Transações */}
             <div style={{
               flex: 1,
-              padding: '20px 25px',
+              padding: responsive.isMobile ? '15px 20px' : '20px 25px',
               overflowY: 'auto',
               display: 'flex',
               flexDirection: 'column',
-              gap: '15px'
+              gap: responsive.isMobile ? '12px' : '15px'
             }}>
               {editableTransactions.map((transaction, index) => (
                 <div key={index} style={{
                   background: 'rgba(255, 255, 255, 0.15)',
                   backdropFilter: 'blur(10px)',
-                  borderRadius: '15px',
-                  padding: '20px',
+                  borderRadius: responsive.isMobile ? '12px' : '15px',
+                  padding: responsive.isMobile ? '15px' : '20px',
                   border: '1px solid rgba(255, 255, 255, 0.2)'
                 }}>
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'flex-start',
-                    marginBottom: '15px'
+                    marginBottom: responsive.isMobile ? '12px' : '15px'
                   }}>
                     <div style={{ flex: 1 }}>
                       <div style={{
-                        fontSize: '16px',
+                        fontSize: responsive.isMobile ? '14px' : '16px',
                         fontWeight: '600',
                         marginBottom: '5px',
                         display: 'flex',
@@ -2724,23 +2760,29 @@ return (
                             background: 'rgba(255, 255, 255, 0.2)',
                             border: '1px solid rgba(255, 255, 255, 0.3)',
                             borderRadius: '8px',
-                            padding: '8px 12px',
+                            padding: responsive.isMobile ? '10px 12px' : '8px 12px',
                             color: 'white',
-                            fontSize: '14px',
+                            fontSize: responsive.isMobile ? '14px' : '14px',
                             flex: 1,
-                            outline: 'none'
+                            outline: 'none',
+                            minHeight: '44px' // Touch-friendly
                           }}
                         />
                       </div>
                       
                       <div style={{
                         display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
+                        gridTemplateColumns: responsive.isMobile ? '1fr' : '1fr 1fr',
                         gap: '10px',
                         marginBottom: '10px'
                       }}>
                         <div>
-                          <label style={{ fontSize: '12px', opacity: 0.8, display: 'block', marginBottom: '5px' }}>
+                          <label style={{ 
+                            fontSize: responsive.isMobile ? '11px' : '12px', 
+                            opacity: 0.8, 
+                            display: 'block', 
+                            marginBottom: '5px' 
+                          }}>
                             Valor (R$)
                           </label>
                           <input
@@ -2754,11 +2796,12 @@ return (
                               background: 'rgba(255, 255, 255, 0.2)',
                               border: '1px solid rgba(255, 255, 255, 0.3)',
                               borderRadius: '8px',
-                              padding: '8px 12px',
+                              padding: responsive.isMobile ? '10px 12px' : '8px 12px',
                               color: 'white',
-                              fontSize: '14px',
+                              fontSize: responsive.isMobile ? '14px' : '14px',
                               width: '100%',
-                              outline: 'none'
+                              outline: 'none',
+                              minHeight: '44px' // Touch-friendly
                             }}
                           />
                         </div>
@@ -2924,21 +2967,21 @@ return (
             </div>
           </div>
         </div>
-      )}      {/* Confirmation Popup - Pequeno popup na parte inferior */}
+      )}      {/* Confirmation Popup - RESPONSIVO */}
       {waitingConfirmation && pendingAction && editableTransactions.length === 0 && (
         <div 
           className="confirmation-popup"
           style={{
             position: 'fixed',
-            bottom: '100px', // Acima da barra de input
+            bottom: responsive.isMobile ? '90px' : '100px',
             left: '50%',
             transform: 'translateX(-50%)',
             background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))',
             backdropFilter: 'blur(20px)',
             borderRadius: '16px',
-            padding: '16px 20px',
-            maxWidth: '350px',
-            width: '90%',
+            padding: responsive.isMobile ? '14px 18px' : '16px 20px',
+            maxWidth: responsive.isMobile ? '90%' : '350px',
+            width: responsive.isMobile ? '90%' : '90%',
             color: '#2d3748',
             boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
             border: '1px solid rgba(255, 255, 255, 0.3)',
@@ -2949,7 +2992,7 @@ return (
         >
           <div style={{ marginBottom: '12px' }}>
             <p style={{ 
-              fontSize: '14px',
+              fontSize: responsive.isMobile ? '13px' : '14px',
               fontWeight: '600',
               margin: '0 0 8px 0',
               lineHeight: '1.3'
@@ -2964,7 +3007,7 @@ return (
             </p>
             {pendingAction.dados.description && (
               <p style={{ 
-                fontSize: '12px',
+                fontSize: responsive.isMobile ? '11px' : '12px',
                 color: '#666',
                 margin: '0',
                 lineHeight: '1.2'
@@ -2976,7 +3019,7 @@ return (
 
           <div style={{ 
             display: 'flex', 
-            gap: '8px', 
+            gap: responsive.isMobile ? '6px' : '8px', 
             justifyContent: 'center'
           }}>
             <button
@@ -2986,16 +3029,17 @@ return (
                 color: '#dc2626',
                 border: '1px solid rgba(239, 68, 68, 0.2)',
                 borderRadius: '8px',
-                padding: '8px 16px',
+                padding: responsive.isMobile ? '10px 14px' : '8px 16px',
                 fontWeight: '600',
-                fontSize: '12px',
+                fontSize: responsive.isMobile ? '11px' : '12px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
                 flex: 1,
-                justifyContent: 'center'
+                justifyContent: 'center',
+                minHeight: '44px' // Touch-friendly
               }}
             >
               ❌ Cancelar
@@ -3010,9 +3054,9 @@ return (
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
-                padding: '8px 16px',
+                padding: responsive.isMobile ? '10px 14px' : '8px 16px',
                 fontWeight: '600',
-                fontSize: '12px',
+                fontSize: responsive.isMobile ? '11px' : '12px',
                 cursor: savingTransactions ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s ease',
                 display: 'flex',
@@ -3021,7 +3065,8 @@ return (
                 flex: 1,
                 justifyContent: 'center',
                 boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)',
-                opacity: savingTransactions ? 0.7 : 1
+                opacity: savingTransactions ? 0.7 : 1,
+                minHeight: '44px' // Touch-friendly
               }}
             >
               {savingTransactions ? (
@@ -3091,52 +3136,98 @@ return (
           .financial-advisor-page {
             overflow-x: hidden !important;
             background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
-          }          /* Responsividade melhorada */
+          }          /* Responsividade melhorada - ATUALIZADA */
           @media (max-width: 768px) {
+            .financial-advisor-page {
+              padding: 0 !important;
+              overflow-x: hidden !important;
+            }
+            
             .header {
-              padding: 10px 15px !important;
+              padding: 8px 12px !important;
               height: 50px !important;
             }
+            
             .logo {
               font-size: 18px !important;
             }
+            
             .chat-container {
-              padding: 0 15px !important;
+              padding: 0 10px !important;
               padding-top: 70px !important;
               padding-bottom: 85px !important;
             }
+            
             .chat-messages {
               padding: 15px 0 !important;
+              gap: 15px !important;
+            }
+            
+            .message {
+              max-width: 90% !important;
+              padding: 12px 16px !important;
+              font-size: 14px !important;
             }
             
             /* Modal responsivo */
+            .modal-overlay {
+              padding: 5px !important;
+            }
+            
             .modal-content {
+              width: 95vw !important;
               height: 95vh !important;
-              margin: 5px !important;
+              margin: 0 !important;
               border-radius: 15px !important;
+            }
+            
+            .confirmation-popup {
+              bottom: 90px !important;
+              width: 90% !important;
+              max-width: 90% !important;
             }
           }
           
           @media (max-width: 480px) {
             .header {
-              padding: 8px 12px !important;
-              height: 45px !important;
+              padding: 8px 10px !important;
+              height: 50px !important;
             }
+            
             .logo {
               font-size: 16px !important;
             }
+            
             .chat-container {
-              padding: 0 12px !important;
+              padding: 0 8px !important;
               padding-top: 65px !important;
               padding-bottom: 80px !important;
             }
             
             /* Modal mobile */
             .modal-content {
-              height: 98vh !important;
+              width: 100vw !important;
+              height: 100vh !important;
               margin: 0 !important;
               border-radius: 0 !important;
-              max-width: 100% !important;
+            }
+          }
+          
+          /* Touch-friendly elements */
+          @media (hover: none) and (pointer: coarse) {
+            button {
+              min-height: 44px !important;
+              min-width: 44px !important;
+            }
+            
+            input, select, textarea {
+              min-height: 44px !important;
+              font-size: 16px !important; /* Prevent zoom on iOS */
+            }
+            
+            .message button {
+              min-height: 44px !important;
+              min-width: 44px !important;
             }
           }
         `      }} />

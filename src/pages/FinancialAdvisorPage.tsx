@@ -1,24 +1,4 @@
-// Função utilitária para extrair apenas o campo 'response' de uma resposta Gemini
-function extractGeminiResponseText(raw: string): string {
-  if (!raw) return 'Recebi sua mensagem, mas não consegui entender totalmente o conteúdo. Por favor, tente novamente ou envie sua dúvida em texto.';
-  let text = raw;
-  try {
-    // Remove possíveis marcas de markdown
-    const cleaned = raw.replace(/```json\n?|```\n?/g, '').trim();
-    if (cleaned.startsWith('{') && cleaned.includes('"response"')) {
-      const parsed = JSON.parse(cleaned);
-      if (parsed && typeof parsed === 'object' && parsed.response) {
-        text = parsed.response;
-      }
-    }
-  } catch {}
-  text = text.replace(/\\n/g, '\n').replace(/\\"/g, '"');
-  if (text.trim().startsWith('{') || text.trim().startsWith('[') || !text.trim()) {
-    text = 'Recebi sua mensagem, mas não consegui entender totalmente o conteúdo. Por favor, tente novamente ou envie sua dúvida em texto.';
-  }
-  return text;
-}
-import React, { useEffect, useState, useRef, useCallback, useMemo, memo } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/navigation/NavBar';
 import ChatMessages from '@/components/chat/ChatMessages';
@@ -34,17 +14,11 @@ import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-// Sistema de tratamento de erros
-import { useErrorHandler, useNetworkStatus, useRetryableOperation } from '@/hooks/useErrorHandler';
-import { ErrorType } from '@/utils/errorHandler';
-import { supabaseClient } from '@/utils/supabaseClient';
 // Componentes de voz
 import VoiceRecorder from '@/components/voice/VoiceRecorder';
 import VoicePlayer from '@/components/voice/VoicePlayer';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useAudioLimits } from '@/hooks/useAudioLimits';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import { useTransactionsOptimized } from '@/hooks/useTransactionsOptimized';
 import { processAudioWithGemini, AudioProcessingResult } from '@/utils/audioProcessing';
 
 
@@ -100,46 +74,7 @@ const INITIAL_SYSTEM_MESSAGE_TEXT = `🎯 **Olá! Sou o Stater IA** - sua IA fin
 
 Como posso ajudá-lo hoje?`;
 
-// Hook para responsividade
-const useResponsive = () => {
-  const [screenSize, setScreenSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
-    isMobile: window.innerWidth <= 768,
-    isTablet: window.innerWidth > 768 && window.innerWidth <= 1024,
-    isSmallMobile: window.innerWidth <= 480
-  });
-  
-  useEffect(() => {
-    const handleResize = () => {
-      setScreenSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-        isMobile: window.innerWidth <= 768,
-        isTablet: window.innerWidth > 768 && window.innerWidth <= 1024,
-        isSmallMobile: window.innerWidth <= 480
-      });
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  
-  return screenSize;
-};
-
 export const FinancialAdvisorPage: React.FC = () => {
-  // Hook de responsividade
-  const responsive = useResponsive();
-  
-  // Hook para detectar teclado virtual
-  const keyboard = useVirtualKeyboard();
-
-  // Hooks de tratamento de erros
-  const { handleError, clearError } = useErrorHandler();
-  const { isOnline } = useNetworkStatus();
-  const { executeWithRetry } = useRetryableOperation();
-
   // const [showAddBillModal, setShowAddBillModal] = useState(false);
 
   const navigate = useNavigate();
@@ -160,9 +95,6 @@ export const FinancialAdvisorPage: React.FC = () => {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [waitingConfirmation, setWaitingConfirmation] = useState(false);
   const [editableTransactions, setEditableTransactions] = useState<any[]>([]);
-  
-  // Hook otimizado para gerenciar transações
-  const transactionManager = useTransactionsOptimized(editableTransactions, setEditableTransactions);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined); // undefined: not yet checked, null: checked and no user, string: user ID
@@ -177,7 +109,7 @@ export const FinancialAdvisorPage: React.FC = () => {
 
   // Novos hooks para funcionalidades avançadas de voz
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
-  // Removido: audioResponse, setAudioResponse (não usado)
+  const [audioResponse, setAudioResponse] = useState<string | null>(null);
   const tts = useTextToSpeech();
   const audioLimits = useAudioLimits(currentUserId || null);
 
@@ -352,25 +284,12 @@ export const FinancialAdvisorPage: React.FC = () => {
   // Utiliza a função fetchGeminiFlashLite importada no topo do arquivo
   const getGeminiResponse = async (prompt: string): Promise<string> => {
     try {
-      const response = await executeWithRetry(
-        () => fetchGeminiFlashLite(prompt),
-        { maxRetries: 2 }
-      );
-      
+      const response = await fetchGeminiFlashLite(prompt);
       if (!response || response.length < 2) {
         return 'Desculpe, não consegui encontrar uma resposta adequada. Pode reformular sua pergunta?';
       }
       return response;
-    } catch (error) {
-      handleError(error as Error, {
-        type: ErrorType.API,
-        context: { operation: 'gemini_request', prompt: prompt.substring(0, 100) }
-      });
-      
-      if (!isOnline) {
-        return 'Você está offline. Conecte-se à internet para usar a IA.';
-      }
-      
+    } catch (e: any) {
       return 'Houve um erro ao acessar a IA. Tente novamente em instantes.';
     }
   };
@@ -384,25 +303,17 @@ const isAddBillIntent = (msg: string) => {
   return triggers.some(trigger => msg.toLowerCase().includes(trigger));
 };
 
-  // Função para forçar scroll para o final - OTIMIZADA
+  // Função para forçar scroll para o final
   const scrollToBottom = useCallback(() => {
-    if (messagesEndRef.current) {
-      const element = messagesEndRef.current;
-      // Usar requestAnimationFrame para melhor performance
-      requestAnimationFrame(() => {
-        element.scrollIntoView({ behavior: "smooth", block: "end" });
-      });
-    }
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
   }, []);
 
-  // Hook para scroll automático quando messages mudam - OTIMIZADO com throttling
+  // Hook para scroll automático quando messages mudam - otimizado
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      scrollToBottom();
-    }, 50); // Throttle para evitar muitos scrolls
-    
-    return () => clearTimeout(timeoutId);
-  }, [messages.length, scrollToBottom]); // Apenas quando o número de mensagens muda
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
 
   // Memoização das mensagens para performance
   const memoizedMessages = useMemo(() => messages, [messages]);
@@ -484,37 +395,70 @@ const isAddBillIntent = (msg: string) => {
       });
 
       // Se tem voz humana válida, processar normalmente
-      // Só adiciona a transcrição do usuário se ela não for JSON/markdown
-      const userTranscription = result.transcription || '';
-      let userMessage: ChatMessage | null = null;
-      if (userTranscription && !userTranscription.trim().startsWith('{') && !userTranscription.trim().startsWith('```')) {
-        userMessage = {
-          id: uuidv4(),
-          text: userTranscription,
-          sender: 'user',
-          timestamp: new Date()
-        };
-      }
+      const userMessage: ChatMessage = {
+        id: uuidv4(),
+        text: result.transcription || '',
+        sender: 'user',
+        timestamp: new Date()
+      };
 
       // Extrair apenas a mensagem de resposta, não o JSON bruto
       let responseText = result.response || '';
-      // Usa função utilitária para garantir que só texto limpo é exibido
-      const finalText = extractGeminiResponseText(responseText);
-
+      
+      console.log('🔍 [DEBUG] Resposta original do áudio:', responseText);
+      
+      // MÚLTIPLAS VERIFICAÇÕES para extrair mensagem limpa
+      // 1. Se começa com JSON, extrair campo "response"
+      if (responseText.startsWith('{') && responseText.includes('"response"')) {
+        try {
+          const cleanedText = responseText.replace(/```json\n?|```\n?/g, '').trim();
+          const parsed = JSON.parse(cleanedText);
+          responseText = parsed.response || responseText;
+          console.log('✅ [DEBUG] JSON parseado com sucesso, resposta extraída:', responseText);
+        } catch (jsonError) {
+          console.warn('⚠️ [DEBUG] Erro ao parsear JSON, usando resposta original');
+        }
+      }
+      
+      // 2. Se ainda tem markdown JSON, tentar limpar
+      if (responseText.includes('```json')) {
+        const jsonMatch = responseText.match(/```json\s*({[\s\S]*?})\s*```/);
+        if (jsonMatch) {
+          try {
+            const parsed = JSON.parse(jsonMatch[1]);
+            responseText = parsed.response || responseText;
+            console.log('✅ [DEBUG] JSON markdown parseado, resposta extraída:', responseText);
+          } catch {
+            // Se não conseguir parsear, usar a resposta original
+            console.warn('⚠️ [DEBUG] Erro ao parsear JSON markdown');
+          }
+        }
+      }
+      
+      // 3. Verificação final: se ainda parece JSON, extrair manualmente
+      if (responseText.startsWith('{') && responseText.includes('"response"')) {
+        const responseMatch = responseText.match(/"response"\s*:\s*"([^"]+)"/);
+        if (responseMatch) {
+          responseText = responseMatch[1];
+          console.log('✅ [DEBUG] Extração manual de response bem-sucedida:', responseText);
+        }
+      }
+      
+      // 4. Limpar caracteres de escape que podem ter sobrado
+      responseText = responseText.replace(/\\n/g, '\n').replace(/\\"/g, '"');
+      
+      console.log('🎯 [DEBUG] Resposta final limpa:', responseText);
+      
       const assistantMessage: ChatMessage = {
         id: uuidv4(),
-        text: finalText,
+        text: responseText,
         sender: 'assistant',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR
       };
-
-      // Adiciona só as mensagens limpas
-      if (userMessage) {
-        setMessages(prev => [...prev, userMessage, assistantMessage]);
-      } else {
-        setMessages(prev => [...prev, assistantMessage]);
-      }
+      
+      // Adicionar ambas as mensagens de uma vez (otimização)
+      setMessages(prev => [...prev, userMessage, assistantMessage]);
 
       // As mensagens são salvas automaticamente através do useEffect
 
@@ -687,36 +631,29 @@ const handleSendMessage = async (message: string) => {
               // Fallback se RPC falhar
               if (supabaseInsert.error) {
                 console.warn('⚠️ RPC falhou, usando insert tradicional:', supabaseInsert.error);
-                
-                try {
-                  const fallbackResult = await executeWithRetry(
-                    () => supabaseClient.insert('transactions', {
-                      type: transaction.type,
-                      amount: transaction.amount,
-                      category: transaction.category || null,
-                      title: transaction.description,
-                      date: new Date().toISOString(),
-                      created_at: new Date().toISOString(),
-                      user_id: activeUserId
-                    }),
-                    { maxRetries: 3 }
-                  );
-                  
-                  if (!fallbackResult.success) {
-                    throw new Error(`Erro ao salvar: ${fallbackResult.error?.message || 'Erro desconhecido'}`);
+                const fallbackInsert = await supabase.from('transactions').insert([
+                  {
+                    type: transaction.type,
+                    amount: transaction.amount,
+                    category: transaction.category || null,
+                    title: transaction.description,
+                    date: new Date().toISOString(), // 🔧 CORREÇÃO: Data/hora atual completa
+                    created_at: new Date().toISOString(),
+                    user_id: activeUserId
                   }
-                } catch (error) {
-                  handleError(error as Error, {
-                    type: ErrorType.NETWORK,
-                    context: { operation: 'insert_transaction', userId: activeUserId }
-                  });
-                  throw error;
+                ]).select();
+                
+                if (fallbackInsert.error) {
+                  throw new Error(`Erro ao salvar: ${fallbackInsert.error.message}`);
                 }
               }
               
-              console.log('✅ Transação salva com sucesso');
+              console.log('✅ Supabase insert result:', supabaseInsert);
               
-              // NOVO: Salvar também no localStorage para aparecer em "últimas transações"
+              if (supabaseInsert.error) {
+                console.error('❌ Erro no Supabase:', supabaseInsert.error);
+                throw new Error(`Erro ao salvar no Supabase: ${supabaseInsert.error.message}`);
+              }              // NOVO: Salvar também no localStorage para aparecer em "últimas transações"
               const transactionToSave: Transaction = {
                 id: uuidv4(),
                 title: transaction.description,
@@ -771,7 +708,7 @@ const handleSendMessage = async (message: string) => {
           let resultMessage = '';
           if (successCount > 0) {
             // Calcular total das transações salvas
-            const totalAmount = transactionManager.transactionSummary.total;
+            const totalAmount = editableTransactions.reduce((sum, tx) => sum + tx.amount, 0);
             resultMessage += `✅ ${successCount} transações salvas com sucesso!\n`;
             resultMessage += `💰 Total processado: R$ ${totalAmount.toFixed(2)}`;
           }
@@ -1614,7 +1551,7 @@ const handleSendMessage = async (message: string) => {
           // Remover o valor da linha para pegar a descrição
           description = cleanLine
             .replace(/r\$\s*\d+(?:[.,]\d{3})*(?:[.,]\d{2})?/i, '')
-            .replace(/\s*-\s*.*$/i, '') // Removes tudo após o dash
+            .replace(/\s*-\s*.*$/i, '') // Remove tudo após o dash
             .replace(/^\s*-\s*/, '') // Remove dash no início
             .trim();
           
@@ -1857,9 +1794,9 @@ const handleSendMessage = async (message: string) => {
           if (description && amountStr) {
             // Limpar descrição de formatação desnecessária
             description = description
-              .replace(/^\d+\.\s*/, '') // Removes numeração
-              .replace(/^[•\-*]\s*/, '') // Removes marcadores
-              .replace(/:\s*$/, '') // Removes dois pontos finais
+              .replace(/^\d+\.\s*/, '') // Remove numeração
+              .replace(/^[•\-*]\s*/, '') // Remove marcadores
+              .replace(/:\s*$/, '') // Remove dois pontos finais
               .trim();
             
             // Converter valor
@@ -2302,17 +2239,18 @@ const handleImageUpload = async (imageBase64: string) => {
         text: `❌ **Erro ao processar documento**\n\n${errorMessage}\n\n💡 **Sugestões:**\n• Verifique se o arquivo não está corrompido\n• Para PDFs protegidos, faça uma captura de tela\n• Tente usar formato de imagem (JPG/PNG)\n• Reduza o tamanho do arquivo se muito grande`,
         sender: 'system',
         timestamp: new Date(),
-        avatarUrl: IA_AVATAR
-      }]);
+        avatarUrl: IA_AVATAR      }]);
     }  } finally {
     // Cleanup básico
     setLoading(false);
   }
 };
 
-// Funções para editar transações OCR - OTIMIZADAS
+// Funções para editar transações OCR
 const updateTransaction = (index: number, updatedTransaction: any) => {
-  transactionManager.updateTransaction(index, updatedTransaction);
+  const newTransactions = [...editableTransactions];
+  newTransactions[index] = updatedTransaction;
+  setEditableTransactions(newTransactions);
   
   // Atualizar também o pendingAction
   if (pendingAction) {
@@ -2320,29 +2258,29 @@ const updateTransaction = (index: number, updatedTransaction: any) => {
       ...pendingAction,
       dados: {
         ...pendingAction.dados,
-        ocrTransactions: transactionManager.processedTransactions
+        ocrTransactions: newTransactions
       }
     });
   }
 };
 
 const deleteTransaction = (index: number) => {
-  transactionManager.removeTransaction(index);
+  const newTransactions = editableTransactions.filter((_, i) => i !== index);
+  setEditableTransactions(newTransactions);
   
   // Atualizar também o pendingAction
   if (pendingAction) {
-    const remainingTransactions = editableTransactions.filter((_, i) => i !== index);
     setPendingAction({
       ...pendingAction,
       dados: {
         ...pendingAction.dados,
-        ocrTransactions: remainingTransactions
+        ocrTransactions: newTransactions
       }
     });
   }
   
   // Se não há mais transações, cancelar a confirmação
-  if (editableTransactions.length <= 1) {
+  if (newTransactions.length === 0) {
     setWaitingConfirmation(false);
     setPendingAction(null);
     setEditableTransactions([]);
@@ -2358,62 +2296,7 @@ const deleteTransaction = (index: number) => {
 };
 
 return (
-  <ErrorBoundary>
-    {/* CSS para modal responsivo com teclado virtual */}
-    <style dangerouslySetInnerHTML={{
-      __html: `
-        /* Melhorias para modal em dispositivos móveis */
-        .modal-content {
-          /* Prevenir zoom no input em iOS */
-          -webkit-text-size-adjust: 100%;
-        }
-        
-        .modal-content input {
-          /* Melhorar experiência de input em mobile */
-          -webkit-appearance: none;
-          appearance: none;
-          font-size: 16px !important; /* Prevenir zoom no iOS */
-        }
-        
-        .modal-content input:focus {
-          outline: none;
-          border-color: rgba(255, 255, 255, 0.5);
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
-        }
-        
-        /* Melhorar scroll em mobile */
-        .modal-content > div:nth-child(2) {
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-        
-        .modal-content > div:nth-child(2)::-webkit-scrollbar {
-          display: none;
-        }
-        
-        /* Animações suaves */
-        .modal-content {
-          will-change: height, max-height;
-        }
-        
-        /* Garantir que o modal não quebre em telas pequenas */
-        @media (max-height: 500px) {
-          .modal-content {
-            min-height: 300px !important;
-          }
-        }
-        
-        /* Melhorar performance em dispositivos móveis */
-        .modal-overlay {
-          -webkit-transform: translateZ(0);
-          transform: translateZ(0);
-          -webkit-backface-visibility: hidden;
-          backface-visibility: hidden;
-        }
-      `
-    }} />
-    
-    <div 
+  <>    <div 
       className="financial-advisor-page"
       style={{
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -2427,14 +2310,14 @@ return (
         overflow: 'hidden', // Evita scroll horizontal
         position: 'relative'
       }}
-    >      {/* Header - RESPONSIVO */}
+    >      {/* Header - CORRIGIDO */}
       <div 
         className="header"
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: responsive.isMobile ? '8px 12px' : '12px 30px',
+          padding: '12px 30px',
           background: 'rgba(255, 255, 255, 0.08)',
           backdropFilter: 'blur(20px)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
@@ -2443,12 +2326,12 @@ return (
           left: 0,
           right: 0,
           zIndex: 1001,
-          height: responsive.isMobile ? '50px' : '60px'
+          height: '60px'
         }}
       >        <div 
           className="logo"
           style={{
-            fontSize: responsive.isMobile ? '18px' : '24px',
+            fontSize: '24px',
             fontWeight: 800,
             color: '#ffffff',
             fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
@@ -2466,7 +2349,7 @@ return (
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: responsive.isMobile ? '10px' : '15px'
+            gap: '15px'
           }}
         >
           <button 
@@ -2477,58 +2360,57 @@ return (
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               borderRadius: '20px',
-              padding: responsive.isMobile ? '6px 12px' : '8px 16px',
+              padding: '8px 16px',
               color: 'white',
-              fontSize: responsive.isMobile ? '12px' : '14px',
+              fontSize: '14px',
               cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              minHeight: responsive.isMobile ? '44px' : 'auto', // Touch-friendly
-              minWidth: responsive.isMobile ? '44px' : 'auto'
+              transition: 'all 0.3s ease'
             }}
           >
-            {responsive.isMobile ? '←' : 'Voltar'}
+            Voltar
           </button>
           <div 
             className="user-avatar"
             style={{
-              width: responsive.isMobile ? '35px' : '40px',
-              height: responsive.isMobile ? '35px' : '40px',
+              width: '40px',
+              height: '40px',
               background: 'rgba(255, 255, 255, 0.2)',
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 600,
-              fontSize: responsive.isMobile ? '14px' : '16px'
+              fontSize: '16px'
             }}
           >
             {getCurrentUser()?.email?.charAt(0)?.toUpperCase() || 'U'}
           </div>
         </div>
-      </div>      {/* Chat Container - RESPONSIVO */}
+      </div>      {/* Chat Container - AJUSTADO */}
       <div 
         className="chat-container"
         style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          maxWidth: responsive.isMobile ? '100%' : '900px',
+          maxWidth: '900px',
           margin: '0 auto',
           width: '100%',
-          padding: responsive.isMobile ? '0 10px' : '0 20px',
-          paddingTop: responsive.isMobile ? '70px' : '80px', // Espaço para header fixo
-          paddingBottom: responsive.isMobile ? '85px' : '90px', // Espaço adequado para input fixo
+          padding: '0 20px',
+          paddingTop: '80px', // Espaço para header fixo
+          paddingBottom: '90px', // Espaço adequado para input fixo
           boxSizing: 'border-box',
           minHeight: 'calc(100vh - 80px)' // Ajustado para header fixo
-        }}        ><div 
+        }}
+      ><div 
           className="chat-messages"
           style={{
             flex: 1,
-            padding: responsive.isMobile ? '15px 0' : '20px 0',
+            padding: '20px 0',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
-            gap: responsive.isMobile ? '15px' : '20px',
+            gap: '20px',
             minHeight: '400px'
           }}
         >
@@ -2536,16 +2418,16 @@ return (
           {error && (            <div 
               className="message assistant" 
               style={{ 
-                maxWidth: responsive.isMobile ? '90%' : '70%',
-                padding: responsive.isMobile ? '12px 16px' : '16px 20px',
-                fontSize: responsive.isMobile ? '14px' : '15px',
+                maxWidth: '70%',
+                padding: '16px 20px',
+                fontSize: '15px',
                 lineHeight: '1.5',
                 wordWrap: 'break-word',
                 background: 'rgba(239, 68, 68, 0.2)',
                 backdropFilter: 'blur(15px)',
                 border: '1px solid rgba(239, 68, 68, 0.3)',
                 alignSelf: 'flex-start',
-                borderRadius: responsive.isMobile ? '15px 15px 15px 5px' : '20px 20px 20px 6px'
+                borderRadius: '20px 20px 20px 6px'
               }}
             >
               ❌ {error}
@@ -2638,9 +2520,9 @@ return (
                 <div 
                   className={`message ${message.sender}`}
                   style={{
-                    maxWidth: responsive.isMobile ? '90%' : '70%',
-                    padding: responsive.isMobile ? '12px 16px' : '16px 20px',
-                    fontSize: responsive.isMobile ? '14px' : '15px',
+                    maxWidth: '70%',
+                    padding: '16px 20px',
+                    fontSize: '15px',
                     lineHeight: '1.5',
                     wordWrap: 'break-word',
                     ...(message.sender === 'system' ? {
@@ -2648,20 +2530,24 @@ return (
                       backdropFilter: 'blur(15px)',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
                       alignSelf: 'flex-start',
-                      borderRadius: responsive.isMobile ? '15px 15px 15px 5px' : '20px 20px 20px 6px'
+                      borderRadius: '20px 20px 20px 6px'
                     } : {
                       background: 'rgba(255, 255, 255, 0.9)',
                       color: '#2d3748',
                       alignSelf: 'flex-end',
-                      borderRadius: responsive.isMobile ? '15px 15px 5px 15px' : '20px 20px 6px 20px',
+                      borderRadius: '20px 20px 6px 20px',
                       boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                     })
                   }}                >
+                  {formatMessageContent(message.text)}
+                  
+                  {/* Sugestões integradas na primeira mensagem do sistema */}
+                  {showSuggestions && message.sender === 'system' && index === 0 && !pendingAction && (
                     <div style={{ 
                       marginTop: '15px',
                       display: 'flex',
                       flexWrap: 'wrap',
-                      gap: responsive.isMobile ? '6px' : '8px'
+                      gap: '8px'
                     }}>
                       {initialSuggestions.map((sug: string, sugIndex: number) => (
                         <button
@@ -2671,16 +2557,14 @@ return (
                             background: 'rgba(255, 255, 255, 0.2)',
                             backdropFilter: 'blur(10px)',
                             border: '1px solid rgba(255, 255, 255, 0.3)',
-                            borderRadius: responsive.isMobile ? '12px' : '15px',
-                            padding: responsive.isMobile ? '8px 12px' : '6px 12px',
+                            borderRadius: '15px',
+                            padding: '6px 12px',
                             color: 'white',
-                            fontSize: responsive.isMobile ? '12px' : '13px',
+                            fontSize: '13px',
                             fontWeight: '500',
                             cursor: 'pointer',
                             transition: 'all 0.2s ease',
-                            whiteSpace: 'nowrap',
-                            minHeight: responsive.isMobile ? '44px' : 'auto', // Touch-friendly
-                            minWidth: responsive.isMobile ? '44px' : 'auto'
+                            whiteSpace: 'nowrap'
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
@@ -2698,10 +2582,7 @@ return (
                   )}
                 </div>
               )}
-            </React.Fragment>
-          ))}
-          
-          {/* Scroll anchor para posicionar no final */}
+            </React.Fragment>          ))}          {/* Scroll anchor para posicionar no final */}
           <div ref={messagesEndRef} style={{ height: '1px' }} />
         </div>
 
@@ -2719,7 +2600,7 @@ return (
           isProcessingAudio={isProcessingAudio}
           audioLimits={audioLimits}
         />
-      </div>      {/* Transaction Review Modal - RESPONSIVO COM ADAPTAÇÃO AO TECLADO VIRTUAL */}
+      </div>      {/* Transaction Review Modal - REWORK COMPLETO */}
       {waitingConfirmation && editableTransactions.length > 0 && (
         <div 
           className="modal-overlay"
@@ -2735,49 +2616,40 @@ return (
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 1002,
-            padding: responsive.isMobile ? '5px' : '10px'
+            padding: '10px'
           }}
         >
           <div 
             className="modal-content"
             style={{
               background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
-              borderRadius: responsive.isMobile ? '15px' : '20px',
-              width: responsive.isMobile ? '95vw' : '100%',
-              maxWidth: responsive.isMobile ? '95vw' : '500px',
-              height: keyboard.isVisible 
-                ? `${Math.min(keyboard.availableHeight - 40, responsive.isMobile ? keyboard.availableHeight * 0.9 : 700)}px`
-                : (responsive.isMobile ? '90vh' : '90vh'),
-              maxHeight: keyboard.isVisible 
-                ? `${keyboard.availableHeight - 40}px`
-                : (responsive.isMobile ? '90vh' : '700px'),
+              borderRadius: '20px',
+              width: '100%',
+              maxWidth: '500px',
+              height: '90vh',
+              maxHeight: '700px',
               display: 'flex',
               flexDirection: 'column',
               color: 'white',
               boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
-              overflow: 'hidden',
-              position: 'relative',
-              // Transição suave para quando o teclado aparece/desaparece
-              transition: 'height 0.3s ease, max-height 0.3s ease'
+              overflow: 'hidden'
             }}
           >
             {/* Header do Modal */}
             <div style={{
-              padding: responsive.isMobile ? '15px 20px' : '20px 25px',
+              padding: '20px 25px',
               borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
               background: 'rgba(255, 255, 255, 0.1)',
               backdropFilter: 'blur(10px)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              flexShrink: 0,
-              minHeight: responsive.isMobile ? '70px' : '80px'
+              justifyContent: 'space-between'
             }}>
               <div>
                 <h2 style={{
                   margin: 0,
-                  fontSize: responsive.isMobile ? '18px' : '20px',
+                  fontSize: '20px',
                   fontWeight: '700',
                   display: 'flex',
                   alignItems: 'center',
@@ -2787,19 +2659,19 @@ return (
                 </h2>
                 <p style={{
                   margin: '5px 0 0 0',
-                  fontSize: responsive.isMobile ? '12px' : '14px',
+                  fontSize: '14px',
                   opacity: 0.8
                 }}>
-                  {transactionManager.transactionSummary.count} transaç{transactionManager.transactionSummary.count > 1 ? 'ões' : 'ão'} encontrada{transactionManager.transactionSummary.count > 1 ? 's' : ''}
+                  {editableTransactions.length} transaç{editableTransactions.length > 1 ? 'ões' : 'ão'} encontrada{editableTransactions.length > 1 ? 's' : ''}
                 </p>
                 <p style={{
                   margin: '3px 0 0 0',
-                  fontSize: responsive.isMobile ? '12px' : '14px',
+                  fontSize: '14px',
                   fontWeight: '700',
                   color: '#fbbf24',
                   textShadow: '0 1px 2px rgba(0,0,0,0.5)'
                 }}>
-                  Total: R$ {transactionManager.transactionSummary.total.toFixed(2)}
+                  Total: R$ {editableTransactions.reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0).toFixed(2)}
                 </p>
               </div>
               <button
@@ -2811,54 +2683,44 @@ return (
                   color: 'white',
                   padding: '8px',
                   cursor: 'pointer',
-                  fontSize: responsive.isMobile ? '16px' : '18px',
-                  width: responsive.isMobile ? '40px' : '36px',
-                  height: responsive.isMobile ? '40px' : '36px',
+                  fontSize: '18px',
+                  width: '36px',
+                  height: '36px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  minHeight: '44px', // Touch-friendly
-                  minWidth: '44px',
-                  flexShrink: 0,
-                  position: 'relative',
-                  zIndex: 10
+                  justifyContent: 'center'
                 }}
               >
                 ✕
               </button>
             </div>
 
-            {/* Lista de Transações - OTIMIZADA PARA SCROLL */}
+            {/* Lista de Transações */}
             <div style={{
               flex: 1,
-              padding: responsive.isMobile ? '15px 20px' : '20px 25px',
+              padding: '20px 25px',
               overflowY: 'auto',
               display: 'flex',
               flexDirection: 'column',
-              gap: responsive.isMobile ? '12px' : '15px',
-              // Melhorias para scroll em mobile
-              WebkitOverflowScrolling: 'touch',
-              scrollBehavior: 'smooth',
-              // Garantir que o scroll funcione bem com teclado virtual
-              minHeight: keyboard.isVisible ? '200px' : 'auto'
+              gap: '15px'
             }}>
-              {transactionManager.processedTransactions.map((transaction, index) => (
+              {editableTransactions.map((transaction, index) => (
                 <div key={index} style={{
                   background: 'rgba(255, 255, 255, 0.15)',
                   backdropFilter: 'blur(10px)',
-                  borderRadius: responsive.isMobile ? '12px' : '15px',
-                  padding: responsive.isMobile ? '15px' : '20px',
+                  borderRadius: '15px',
+                  padding: '20px',
                   border: '1px solid rgba(255, 255, 255, 0.2)'
                 }}>
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'flex-start',
-                    marginBottom: responsive.isMobile ? '12px' : '15px'
+                    marginBottom: '15px'
                   }}>
                     <div style={{ flex: 1 }}>
                       <div style={{
-                        fontSize: responsive.isMobile ? '14px' : '16px',
+                        fontSize: '16px',
                         fontWeight: '600',
                         marginBottom: '5px',
                         display: 'flex',
@@ -2868,36 +2730,30 @@ return (
                         {transaction.type === 'income' ? '💰' : '💸'}
                         <input
                           type="text"
-                          value={transaction.title || ''}
-                          onChange={(e) => updateTransaction(index, { ...transaction, title: e.target.value })}
+                          value={transaction.description || ''}
+                          onChange={(e) => updateTransaction(index, { ...transaction, description: e.target.value })}
                           placeholder="Descrição da transação..."
                           style={{
                             background: 'rgba(255, 255, 255, 0.2)',
                             border: '1px solid rgba(255, 255, 255, 0.3)',
                             borderRadius: '8px',
-                            padding: responsive.isMobile ? '10px 12px' : '8px 12px',
+                            padding: '8px 12px',
                             color: 'white',
-                            fontSize: responsive.isMobile ? '14px' : '14px',
+                            fontSize: '14px',
                             flex: 1,
-                            outline: 'none',
-                            minHeight: '44px' // Touch-friendly
+                            outline: 'none'
                           }}
                         />
                       </div>
                       
                       <div style={{
                         display: 'grid',
-                        gridTemplateColumns: responsive.isMobile ? '1fr' : '1fr 1fr',
+                        gridTemplateColumns: '1fr 1fr',
                         gap: '10px',
                         marginBottom: '10px'
                       }}>
                         <div>
-                          <label style={{ 
-                            fontSize: responsive.isMobile ? '11px' : '12px', 
-                            opacity: 0.8, 
-                            display: 'block', 
-                            marginBottom: '5px' 
-                          }}>
+                          <label style={{ fontSize: '12px', opacity: 0.8, display: 'block', marginBottom: '5px' }}>
                             Valor (R$)
                           </label>
                           <input
@@ -2911,12 +2767,11 @@ return (
                               background: 'rgba(255, 255, 255, 0.2)',
                               border: '1px solid rgba(255, 255, 255, 0.3)',
                               borderRadius: '8px',
-                              padding: responsive.isMobile ? '10px 12px' : '8px 12px',
+                              padding: '8px 12px',
                               color: 'white',
-                              fontSize: responsive.isMobile ? '14px' : '14px',
+                              fontSize: '14px',
                               width: '100%',
-                              outline: 'none',
-                              minHeight: '44px' // Touch-friendly
+                              outline: 'none'
                             }}
                           />
                         </div>
@@ -2927,9 +2782,7 @@ return (
                           </label>
                           <input
                             type="date"
-                            value={transaction.date ? 
-                              (transaction.date instanceof Date ? transaction.date.toISOString().split('T')[0] : transaction.date) :
-                              new Date().toISOString().split('T')[0]}
+                            value={transaction.date || new Date().toISOString().split('T')[0]}
                             onChange={(e) => updateTransaction(index, { ...transaction, date: e.target.value })}
                             style={{
                               background: 'rgba(255, 255, 255, 0.2)',
@@ -3001,20 +2854,14 @@ return (
               ))}
             </div>
 
-            {/* Footer com Botões - OTIMIZADO PARA TECLADO VIRTUAL */}
+            {/* Footer com Botões */}
             <div style={{
-              padding: responsive.isMobile ? '15px 20px' : '20px 25px',
+              padding: '20px 25px',
               borderTop: '1px solid rgba(255, 255, 255, 0.15)',
               background: 'rgba(255, 255, 255, 0.05)',
               display: 'flex',
-              gap: responsive.isMobile ? '10px' : '15px',
-              justifyContent: 'space-between',
-              flexShrink: 0,
-              minHeight: responsive.isMobile ? '80px' : '90px',
-              // Garantir que o footer não seja cortado pelo teclado
-              position: keyboard.isVisible ? 'sticky' : 'relative',
-              bottom: 0,
-              zIndex: 10
+              gap: '15px',
+              justifyContent: 'space-between'
             }}>
               <button
                 onClick={() => handleSendMessage('não')}
@@ -3023,13 +2870,12 @@ return (
                   border: '1px solid rgba(239, 68, 68, 0.4)',
                   borderRadius: '12px',
                   color: '#ff6b6b',
-                  padding: responsive.isMobile ? '14px 20px' : '12px 24px',
+                  padding: '12px 24px',
                   cursor: 'pointer',
-                  fontSize: responsive.isMobile ? '14px' : '16px',
+                  fontSize: '16px',
                   fontWeight: '600',
                   flex: 1,
-                  transition: 'all 0.2s ease',
-                  minHeight: '44px' // Touch-friendly
+                  transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)';
@@ -3041,30 +2887,31 @@ return (
                 }}
               >
                 ❌ Cancelar
-              </button>                <button
-                  onClick={() => handleSendMessage('sim')}
-                  disabled={savingTransactions}
-                  style={{
-                    background: savingTransactions 
-                      ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
-                      : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    color: 'white',
-                    padding: responsive.isMobile ? '14px 20px' : '12px 24px',
-                    cursor: savingTransactions ? 'not-allowed' : 'pointer',
-                    fontSize: responsive.isMobile ? '14px' : '16px',
-                    fontWeight: '600',
-                    flex: 2,
-                    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
-                    transition: 'all 0.2s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    opacity: savingTransactions ? 0.7 : 1,
-                    minHeight: '44px' // Touch-friendly
-                  }}
+              </button>
+              
+              <button
+                onClick={() => handleSendMessage('sim')}
+                disabled={savingTransactions}
+                style={{
+                  background: savingTransactions 
+                    ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
+                    : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: 'white',
+                  padding: '12px 24px',
+                  cursor: savingTransactions ? 'not-allowed' : 'pointer',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  flex: 2,
+                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  opacity: savingTransactions ? 0.7 : 1
+                }}
                 onMouseEnter={(e) => {
                   if (!savingTransactions) {
                     e.currentTarget.style.transform = 'translateY(-1px)';
@@ -3081,48 +2928,41 @@ return (
                 {savingTransactions ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    {responsive.isMobile ? 'Salvando...' : `Salvando ${editableTransactions.length} Transaç${editableTransactions.length > 1 ? 'ões' : 'ão'}...`}
+                    Salvando {editableTransactions.length} Transaç{editableTransactions.length > 1 ? 'ões' : 'ão'}...
                   </>
                 ) : (
-                  `✅ Salvar ${responsive.isMobile ? '' : editableTransactions.length + ' Transaç' + (editableTransactions.length > 1 ? 'ões' : 'ão')}`
+                  `✅ Salvar ${editableTransactions.length} Transaç${editableTransactions.length > 1 ? 'ões' : 'ão'}`
                 )}
               </button>
             </div>
           </div>
         </div>
-      )}      {/* Confirmation Popup - RESPONSIVO COM ADAPTAÇÃO AO TECLADO VIRTUAL */}
+      )}      {/* Confirmation Popup - Pequeno popup na parte inferior */}
       {waitingConfirmation && pendingAction && editableTransactions.length === 0 && (
         <div 
           className="confirmation-popup"
           style={{
             position: 'fixed',
-            bottom: keyboard.isVisible 
-              ? `${keyboard.height + 20}px` 
-              : (responsive.isMobile ? '90px' : '100px'),
+            bottom: '100px', // Acima da barra de input
             left: '50%',
             transform: 'translateX(-50%)',
             background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))',
             backdropFilter: 'blur(20px)',
             borderRadius: '16px',
-            padding: responsive.isMobile ? '14px 18px' : '16px 20px',
-            maxWidth: responsive.isMobile ? '90%' : '350px',
-            width: responsive.isMobile ? '90%' : '90%',
+            padding: '16px 20px',
+            maxWidth: '350px',
+            width: '90%',
             color: '#2d3748',
             boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
             border: '1px solid rgba(255, 255, 255, 0.3)',
             zIndex: 999,
             animation: 'slideUpFadeIn 0.3s ease-out',
-            textAlign: 'center',
-            // Garantir que nunca ultrapasse o topo da tela
-            maxHeight: keyboard.isVisible 
-              ? `${keyboard.availableHeight - 40}px` 
-              : 'auto',
-            overflow: 'auto'
+            textAlign: 'center'
           }}
         >
           <div style={{ marginBottom: '12px' }}>
             <p style={{ 
-              fontSize: responsive.isMobile ? '13px' : '14px',
+              fontSize: '14px',
               fontWeight: '600',
               margin: '0 0 8px 0',
               lineHeight: '1.3'
@@ -3137,7 +2977,7 @@ return (
             </p>
             {pendingAction.dados.description && (
               <p style={{ 
-                fontSize: responsive.isMobile ? '11px' : '12px',
+                fontSize: '12px',
                 color: '#666',
                 margin: '0',
                 lineHeight: '1.2'
@@ -3149,7 +2989,7 @@ return (
 
           <div style={{ 
             display: 'flex', 
-            gap: responsive.isMobile ? '6px' : '8px', 
+            gap: '8px', 
             justifyContent: 'center'
           }}>
             <button
@@ -3159,17 +2999,16 @@ return (
                 color: '#dc2626',
                 border: '1px solid rgba(239, 68, 68, 0.2)',
                 borderRadius: '8px',
-                padding: responsive.isMobile ? '10px 14px' : '8px 16px',
+                padding: '8px 16px',
                 fontWeight: '600',
-                fontSize: responsive.isMobile ? '11px' : '12px',
+                fontSize: '12px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
                 flex: 1,
-                justifyContent: 'center',
-                minHeight: '44px' // Touch-friendly
+                justifyContent: 'center'
               }}
             >
               ❌ Cancelar
@@ -3184,9 +3023,9 @@ return (
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
-                padding: responsive.isMobile ? '10px 14px' : '8px 16px',
+                padding: '8px 16px',
                 fontWeight: '600',
-                fontSize: responsive.isMobile ? '11px' : '12px',
+                fontSize: '12px',
                 cursor: savingTransactions ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s ease',
                 display: 'flex',
@@ -3195,8 +3034,7 @@ return (
                 flex: 1,
                 justifyContent: 'center',
                 boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)',
-                opacity: savingTransactions ? 0.7 : 1,
-                minHeight: '44px' // Touch-friendly
+                opacity: savingTransactions ? 0.7 : 1
               }}
             >
               {savingTransactions ? (
@@ -3266,116 +3104,59 @@ return (
           .financial-advisor-page {
             overflow-x: hidden !important;
             background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
-          }          /* Responsividade melhorada - ATUALIZADA */
+          }          /* Responsividade melhorada */
           @media (max-width: 768px) {
-            .financial-advisor-page {
-              padding: 0 !important;
-              overflow-x: hidden !important;
-            }
-            
             .header {
-              padding: 8px 12px !important;
+              padding: 10px 15px !important;
               height: 50px !important;
             }
-            
             .logo {
               font-size: 18px !important;
             }
-            
             .chat-container {
-              padding: 0 10px !important;
+              padding: 0 15px !important;
               padding-top: 70px !important;
               padding-bottom: 85px !important;
             }
-            
             .chat-messages {
               padding: 15px 0 !important;
-              gap: 15px !important;
-            }
-            
-            .message {
-              max-width: 90% !important;
-              padding: 12px 16px !important;
-              font-size: 14px !important;
             }
             
             /* Modal responsivo */
-            .modal-overlay {
-              padding: 5px !important;
-            }
-            
             .modal-content {
-              width: 95vw !important;
-              height: 90vh !important;
-              max-height: 90vh !important;
-              margin: 0 !important;
+              height: 95vh !important;
+              margin: 5px !important;
               border-radius: 15px !important;
-              display: flex !important;
-              flex-direction: column !important;
-            }
-            
-            .modal-content > div:first-child {
-              flex-shrink: 0 !important;
-            }
-            
-            .modal-content > div:last-child {
-              flex-shrink: 0 !important;
-            }
-            
-            .confirmation-popup {
-              bottom: 90px !important;
-              width: 90% !important;
-              max-width: 90% !important;
             }
           }
           
           @media (max-width: 480px) {
             .header {
-              padding: 8px 10px !important;
-              height: 50px !important;
+              padding: 8px 12px !important;
+              height: 45px !important;
             }
-            
             .logo {
               font-size: 16px !important;
             }
-            
             .chat-container {
-              padding: 0 8px !important;
+              padding: 0 12px !important;
               padding-top: 65px !important;
               padding-bottom: 80px !important;
             }
             
             /* Modal mobile */
             .modal-content {
-              width: 100vw !important;
-              height: 100vh !important;
+              height: 98vh !important;
               margin: 0 !important;
               border-radius: 0 !important;
-            }
-          }
-          
-          /* Touch-friendly elements */
-          @media (hover: none) and (pointer: coarse) {
-            button {
-              min-height: 44px !important;
-              min-width: 44px !important;
-            }
-            
-            input, select, textarea {
-              min-height: 44px !important;
-              font-size: 16px !important; /* Prevent zoom on iOS */
-            }
-            
-            .message button {
-              min-height: 44px !important;
-              min-width: 44px !important;
+              max-width: 100% !important;
             }
           }
         `      }} />
     </div>
     
     {/* NavBar removido do Stater IA para melhor experiência */}
-  </ErrorBoundary>
+  </>
 );
 
 // Helper functions
@@ -3448,7 +3229,7 @@ function formatMessageContent(content: string): React.ReactNode {
   }
   
   return processText(content);
-};
+}
 };
 
 export default FinancialAdvisorPage;

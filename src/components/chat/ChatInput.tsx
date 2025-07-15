@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Send, Image, Camera, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +18,7 @@ interface ChatInputProps {
   audioLimits?: any;
 }
 
-const ChatInput: React.FC<ChatInputProps> = memo(({ 
+const ChatInput: React.FC<ChatInputProps> = ({ 
   onSubmit, 
   onImageUpload,
   loading, 
@@ -175,16 +175,14 @@ const ChatInput: React.FC<ChatInputProps> = memo(({
 
   // Cleanup camera when component unmounts
   useEffect(() => {
-    return () => {
-      if (stream) {
+    return () => {      if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
   }, [stream]);
 
   return (
-    <>
-      <div 
+    <>      <div 
         className="input-container"
         style={{
           position: 'fixed',
@@ -223,7 +221,7 @@ const ChatInput: React.FC<ChatInputProps> = memo(({
           >            <textarea
               ref={inputRef}
               className="message-input"
-              placeholder={loading ? "Enviando..." : "Escreva aqui..."}
+              placeholder={loading ? "Enviando mensagem..." : "Digite sua mensagem aqui..."}
               value={message}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
@@ -250,9 +248,7 @@ const ChatInput: React.FC<ChatInputProps> = memo(({
                 boxSizing: 'border-box',
                 width: '100%',
                 minWidth: '0', // Evita overflow
-                overflow: 'hidden', // Evita scroll interno
-                wordWrap: 'break-word',
-                whiteSpace: 'pre-wrap'
+                overflow: 'hidden' // Evita scroll interno
               }}            />
             
             <div 
@@ -594,4 +590,4 @@ const ChatInput: React.FC<ChatInputProps> = memo(({
   );
 };
 
-export default memo(ChatInput);
+export default ChatInput;

@@ -56,6 +56,18 @@ const Login: React.FC = () => {
     <div className="min-h-screen bg-galileo-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
+          {/* Logo em destaque */}
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-indigo-600 rounded-full blur-xl opacity-20 animate-pulse"></div>
+              <img 
+                src="/stater-logo.png" 
+                alt="Stater - Assistente Financeiro IA" 
+                className="relative h-20 w-20 rounded-2xl shadow-2xl ring-4 ring-indigo-600/20 hover:ring-indigo-600/40 transition-all duration-300"
+              />
+            </div>
+          </div>
+          
           <h1 className="text-6xl font-space-grotesk font-bold text-galileo-text">Stater</h1>
           <p className="text-galileo-secondaryText mt-2 font-space-grotesk font-bold text-lg">Inteligência para prosperar</p>
         </div>

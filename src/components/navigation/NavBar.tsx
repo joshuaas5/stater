@@ -43,7 +43,19 @@ const NavBar: React.FC = () => {
               } transition-colors`}
             >
               <div className="flex justify-center mb-1">
-                {item.icon}
+                {/* Mostrar logo no item Home */}
+                {isHome ? (
+                  <div className="flex items-center space-x-1">
+                    <img 
+                      src="/stater-logo.png" 
+                      alt="Stater" 
+                      className="h-6 w-6 rounded-md"
+                    />
+                    {item.icon}
+                  </div>
+                ) : (
+                  item.icon
+                )}
               </div>
               <span className={`text-xs text-center whitespace-nowrap ${isHome ? 'font-medium' : ''}`}>{item.label}</span>
               {active && <div className="h-1 w-8 md:w-10 bg-galileo-accent rounded-full mt-1"></div>}

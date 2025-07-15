@@ -9,7 +9,12 @@ const HomePage: React.FC = () => {
       {/* Header */}
       <header className="w-full py-6 px-4">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
+            <img 
+              src="/stater-logo.png" 
+              alt="Stater Logo" 
+              className="h-10 w-10 rounded-lg shadow-md"
+            />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Stater</h1>
           </div>
           <div className="flex space-x-4">
@@ -31,6 +36,18 @@ const HomePage: React.FC = () => {
       <main className="w-full">
         <div className="max-w-6xl mx-auto px-4 py-12">
           <div className="text-center mb-16">
+            {/* Logo em destaque */}
+            <div className="flex justify-center mb-8">
+              <div className="relative">
+                <div className="absolute inset-0 bg-indigo-600 rounded-full blur-xl opacity-20 animate-pulse"></div>
+                <img 
+                  src="/stater-logo.png" 
+                  alt="Stater - Assistente Financeiro IA" 
+                  className="relative h-24 w-24 md:h-32 md:w-32 rounded-2xl shadow-2xl ring-4 ring-indigo-600/20 hover:ring-indigo-600/40 transition-all duration-300"
+                />
+              </div>
+            </div>
+            
             <h2 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
               Controle suas finanças com
               <span className="text-indigo-600 block">inteligência artificial</span>
@@ -115,7 +132,12 @@ const HomePage: React.FC = () => {
       {/* Footer */}
       <footer className="w-full py-8 px-4 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <img 
+              src="/stater-logo.png" 
+              alt="Stater Logo" 
+              className="h-8 w-8 rounded-lg shadow-sm"
+            />
             <span className="text-lg font-semibold text-gray-900 dark:text-white">Stater</span>
           </div>
           <div className="flex justify-center space-x-6 mb-4">

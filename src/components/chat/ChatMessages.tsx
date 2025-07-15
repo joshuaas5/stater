@@ -5,7 +5,7 @@ import { formatCurrency } from '@/utils/dataProcessing';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ChatMessageLoading } from '@/components/ui/loading-states';
+import { LoadingState } from '@/components/ui/loading-states';
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
@@ -17,8 +17,6 @@ interface ChatMessagesProps {
   messagesEndRef: React.RefObject<HTMLDivElement>;
   iaAvatar?: string;
   userAvatar?: string;
-  isLoading?: boolean;
-  loadingMessage?: string;
 }
 
 const ChatMessages: React.FC<ChatMessagesProps> = ({ 
@@ -26,9 +24,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
   transactions, 
   messagesEndRef, 
   iaAvatar, 
-  userAvatar, 
-  isLoading = false, 
-  loadingMessage 
+  userAvatar
 }) => {
   return (
     <div className="flex-1 overflow-y-auto p-3 space-y-4">
@@ -39,7 +35,11 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
         >
           <Avatar className="h-8 w-8 shadow-sm">
             <AvatarImage src={message.sender === 'user' ? userAvatar : iaAvatar} alt={message.sender === 'user' ? 'User' : 'IA'} />
-            <AvatarFallback>{message.sender === 'user' ? 'U' : 'IA'}</AvatarFallback>
+            <AvatarFallback className="bg-blue-500 text-white">
+              {message.sender === 'user' ? 'U' : (
+                <img src="/stater-logo.png" alt="Stater" className="w-5 h-5" />
+              )}
+            </AvatarFallback>
           </Avatar>
 
           <div
@@ -47,6 +47,8 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
               max-w-[75%] rounded-2xl px-4 py-3 animate-fade-in
               ${message.sender === 'user'
                 ? 'bg-primary text-primary-foreground shadow-md rounded-br-none'
+                : message.sender === 'system'
+                ? 'bg-white text-gray-800 shadow-md border border-gray-200 rounded-bl-none'
                 : 'bg-card text-card-foreground shadow-md border border-border rounded-bl-none'
               }
             `}
@@ -83,13 +85,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
         </div>
       ))}
       
-      {/* Loading message quando IA está processando */}
-      {isLoading && (
-        <ChatMessageLoading 
-          avatarUrl={iaAvatar} 
-          message={loadingMessage}
-        />
-      )}
+      {/* Loading message removido - não é mais necessário */}
       
       <div ref={messagesEndRef} />
       </div>

@@ -233,13 +233,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 backdropFilter: 'blur(15px)',
                 border: '2px solid rgba(255, 255, 255, 0.25)',
                 borderRadius: '25px',
-                padding: '16px 24px',
+                padding: '18px 24px', // Aumentado para 18px
                 color: 'white',
                 fontSize: '15px',
                 outline: 'none',
                 transition: 'all 0.3s ease',
                 resize: 'none',
-                minHeight: '58px', // Aumentado mais para 58px
+                minHeight: '60px', // Aumentado para 60px
                 maxHeight: '120px',
                 fontFamily: 'inherit',
                 opacity: loading ? 0.5 : 1,

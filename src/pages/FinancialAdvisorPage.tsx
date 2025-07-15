@@ -20,10 +20,10 @@ import VoicePlayer from '@/components/voice/VoicePlayer';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useAudioLimits } from '@/hooks/useAudioLimits';
 import { processAudioWithGemini, AudioProcessingResult } from '@/utils/audioProcessing';
-import { LoadingState, ChatMessageLoading, CardLoading, useLoadingStates } from '@/components/ui/loading-states';
+import { LoadingState, CardLoading, useLoadingStates } from '@/components/ui/loading-states';
 
 
-const IA_AVATAR = '/ia-avatar.svg'; // Coloque um SVG bonito na public/
+const IA_AVATAR = '/stater-logo.png'; // Logo do Stater
 const USER_AVATAR = '/user-avatar.svg'; // Placeholder for user avatar
 
 // Limites prudentes sugeridos
@@ -2433,8 +2433,6 @@ return (
           messagesEndRef={messagesEndRef}
           iaAvatar={IA_AVATAR}
           userAvatar={USER_AVATAR}
-          isLoading={isLoadingState('ai-thinking')}
-          loadingMessage="Pensando..."
         />
 
         {/* Sugestões integradas na primeira mensagem do sistema */}

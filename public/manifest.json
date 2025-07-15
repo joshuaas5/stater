@@ -12,10 +12,22 @@
   "scope": "/",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "48x48",
-      "type": "image/x-icon",
+      "src": "/stater-logo-16.png",
+      "sizes": "16x16",
+      "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/stater-logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/stater-logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "categories": ["finance", "productivity", "business"],
@@ -41,9 +53,9 @@
       "url": "/transactions?action=add",
       "icons": [
         {
-          "src": "/favicon.ico",
-          "sizes": "48x48",
-          "type": "image/x-icon"
+          "src": "/stater-logo-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     },
@@ -54,9 +66,9 @@
       "url": "/dashboard",
       "icons": [
         {
-          "src": "/favicon.ico",
-          "sizes": "48x48",
-          "type": "image/x-icon"
+          "src": "/stater-logo-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     },
@@ -67,9 +79,9 @@
       "url": "/financial-advisor",
       "icons": [
         {
-          "src": "/favicon.ico",
-          "sizes": "48x48",
-          "type": "image/x-icon"
+          "src": "/stater-logo-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     }

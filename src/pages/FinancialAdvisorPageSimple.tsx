@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/navigation/NavBar';
-import ChatInput from '@/components/chat/ChatInput';
+import ChatInput from '@/components/chat/ChatInputSimple';
 import { isLoggedIn, saveTransaction as saveTransactionUtil, getCurrentUser } from '@/utils/localStorage';
 import { ChatMessage, Transaction } from '@/types';
 import { v4 as uuidv4 } from 'uuid';

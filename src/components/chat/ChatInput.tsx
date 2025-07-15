@@ -175,14 +175,16 @@ const ChatInput: React.FC<ChatInputProps> = memo(({
 
   // Cleanup camera when component unmounts
   useEffect(() => {
-    return () => {      if (stream) {
+    return () => {
+      if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
   }, [stream]);
 
   return (
-    <>      <div 
+    <>
+      <div 
         className="input-container"
         style={{
           position: 'fixed',

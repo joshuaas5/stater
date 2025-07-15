@@ -20,7 +20,7 @@ import AddBillPage from "./pages/AddBillPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PreferencesPage from "./pages/PreferencesPage";
 import SecurityPage from "./pages/SecurityPage";
-import { FinancialAdvisorPage } from "./pages/FinancialAdvisorPage";
+import { FinancialAdvisorPage } from "./pages/FinancialAdvisorPageSimple";
 import RecommendationsPage from "./pages/RecommendationsPage";
 import SettingsPage from "./pages/SettingsPageNew";
 import ExportReportPage from "./pages/ExportReportPage";

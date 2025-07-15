@@ -21,6 +21,8 @@ import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useAudioLimits } from '@/hooks/useAudioLimits';
 import { processAudioWithGemini, AudioProcessingResult } from '@/utils/audioProcessing';
 import { LoadingState, CardLoading, useLoadingStates } from '@/components/ui/loading-states';
+import { saveChatMessages, loadChatMessages, clearChatMessages, hasSavedMessages } from '@/utils/chatPersistence';
+import { validateUserInput, validateChatMessage, validateTransactionData, sanitizeString } from '@/utils/dataValidation';
 
 
 const IA_AVATAR = '/stater-logo.png'; // Logo do Stater
@@ -86,9 +88,23 @@ export const FinancialAdvisorPage: React.FC = () => {
     sender: "system",
     timestamp: new Date()
   };
+
+  // Função para carregar mensagens com fallback
+  const loadInitialMessages = (): ChatMessage[] => {
+    try {
+      const savedMessages = loadChatMessages();
+      if (savedMessages.length > 0) {
+        return savedMessages;
+      }
+      return [initialSystemMessage];
+    } catch (error) {
+      console.warn('Erro ao carregar mensagens salvas:', error);
+      return [initialSystemMessage];
+    }
+  };
+
   // Persistência do Chat: Carregar mensagens do localStorage ou usar inicial
-  // Messages will be loaded in a useEffect hook once currentUserId is known.
-  const [messages, setMessages] = useState<ChatMessage[]>([initialSystemMessage]);
+  const [messages, setMessages] = useState<ChatMessage[]>(loadInitialMessages);
 
   const [loading, setLoading] = useState(false);
   const [savingTransactions, setSavingTransactions] = useState(false); // Novo estado para loading de salvamento
@@ -153,34 +169,15 @@ export const FinancialAdvisorPage: React.FC = () => {
       setSpeechRecognition(recognition);
     }
     
-    // Carregar mensagens salvas do localStorage quando o usuário for identificado
-    if (currentUserId !== undefined) {
-      const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
-      const savedMessages = localStorage.getItem(storageKey);
-      
-      if (savedMessages) {
-        try {
-          const parsedMessages = JSON.parse(savedMessages).map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          }));
-          
-          // Verificar se há mensagens válidas diferentes da inicial
-          if (parsedMessages.length > 0) {
-            console.log(`💬 [CHAT RESTORE] Carregadas ${parsedMessages.length} mensagens do localStorage`);
-            setMessages(parsedMessages);
-          }
-        } catch (error) {
-          console.error('❌ [CHAT RESTORE] Erro ao carregar mensagens:', error);
-          // Manter mensagem inicial se houver erro
-        }
-      } else {
-        console.log('💬 [CHAT RESTORE] Nenhuma mensagem salva encontrada, usando mensagem inicial');
-      }
-    }
-    
     console.log(`FinancialAdvisorPage: Loaded messages for user ${currentUserId}`);
   }, [currentUserId]); // Reload messages when currentUserId changes
+
+  // Salvar mensagens automaticamente sempre que mudarem
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveChatMessages(messages);
+    }
+  }, [messages]);
 
   useEffect(() => {
     const loggedIn = isLoggedIn();
@@ -526,24 +523,39 @@ const isAddBillIntent = (msg: string) => {
   }, []);
 
 const handleSendMessage = async (message: string) => {
-  if (isAddBillIntent(message)) {
-    setMessages(prev => [
-      ...prev,
-      {
-        id: uuidv4(),
-        text: message,
-        sender: 'user',
-        timestamp: new Date(),
-        avatarUrl: USER_AVATAR
-      },
-      {
-        id: uuidv4(),
-        text: "📝 Para adicionar uma nova conta, basta clicar no menu Contas no Stater! Assim você pode registrar e organizar todas as suas contas de forma fácil e rápida. 😃",
-        sender: 'system',
-        timestamp: new Date(),
-        avatarUrl: IA_AVATAR
-      }
-    ]);
+  // Validação robusta da entrada
+  const validatedMessage = validateUserInput(message);
+  if (!validatedMessage) {
+    console.warn('❌ [VALIDATION] Mensagem inválida ou maliciosa rejeitada:', message);
+    setError("Mensagem inválida. Por favor, tente novamente.");
+    return;
+  }
+
+  // Usar a mensagem validada e sanitizada
+  const safeMessage = validatedMessage;
+
+  if (isAddBillIntent(safeMessage)) {
+    const userMessage: ChatMessage = {
+      id: uuidv4(),
+      text: safeMessage,
+      sender: 'user',
+      timestamp: new Date()
+    };
+
+    const systemMessage: ChatMessage = {
+      id: uuidv4(),
+      text: "📝 Para adicionar uma nova conta, basta clicar no menu Contas no Stater! Assim você pode registrar e organizar todas as suas contas de forma fácil e rápida. 😃",
+      sender: 'system',
+      timestamp: new Date()
+    };
+
+    // Validar mensagens antes de adicionar
+    const validatedUserMessage = validateChatMessage(userMessage);
+    const validatedSystemMessage = validateChatMessage(systemMessage);
+
+    if (validatedUserMessage && validatedSystemMessage) {
+      setMessages(prev => [...prev, validatedUserMessage, validatedSystemMessage]);
+    }
     return;
   }
 
@@ -568,7 +580,18 @@ const handleSendMessage = async (message: string) => {
     saveUser(userToSave);
 
     if (!activeUserId) {
-      setMessages(prev => [...prev, { id: uuidv4(), text: "❌ Erro: Usuário não identificado. Por favor, tente fazer login novamente.", sender: 'system', timestamp: new Date() }]);
+      const errorMessage: ChatMessage = {
+        id: uuidv4(),
+        text: "❌ Erro: Usuário não identificado. Por favor, tente fazer login novamente.",
+        sender: 'system',
+        timestamp: new Date()
+      };
+      
+      const validatedErrorMessage = validateChatMessage(errorMessage);
+      if (validatedErrorMessage) {
+        setMessages(prev => [...prev, validatedErrorMessage]);
+      }
+      
       setLoading(false);
       setWaitingConfirmation(false);
       setPendingAction(null);
@@ -576,17 +599,29 @@ const handleSendMessage = async (message: string) => {
     }
 
     // Garante que não processa mensagem vazia, a menos que seja uma confirmação e haja uma ação pendente.
-    if (!message.trim() && !(waitingConfirmation && pendingAction)) return;
+    if (!safeMessage.trim() && !(waitingConfirmation && pendingAction)) return;
     // Se for uma confirmação, mas não houver ação pendente (estado inesperado), exibe erro.
-    if (!message.trim() && waitingConfirmation && !pendingAction) {
+    if (!safeMessage.trim() && waitingConfirmation && !pendingAction) {
         setError("Ocorreu um erro interno. Não há ação pendente para confirmar ou cancelar.");
-        setMessages(prev => [...prev, { id: uuidv4(), text: "⚠️ Erro interno. Nenhuma ação pendente.", sender: 'system', timestamp: new Date() }]);
+        
+        const errorMessage: ChatMessage = {
+          id: uuidv4(),
+          text: "⚠️ Erro interno. Nenhuma ação pendente.",
+          sender: 'system',
+          timestamp: new Date()
+        };
+        
+        const validatedErrorMessage = validateChatMessage(errorMessage);
+        if (validatedErrorMessage) {
+          setMessages(prev => [...prev, validatedErrorMessage]);
+        }
+        
         setLoading(false);
         setWaitingConfirmation(false);
         return;
     }
 
-    const lowerMsg = message.trim().toLowerCase();    // Se aguardando confirmação e usuário diz sim
+    const lowerMsg = safeMessage.trim().toLowerCase();    // Se aguardando confirmação e usuário diz sim
     if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim')) {
       setLoadingState('transaction-save', true);
       setSavingTransactions(true); // Ativar loading específico para salvamento
@@ -622,14 +657,40 @@ const handleSendMessage = async (message: string) => {
                 ? new Date(transaction.date) 
                 : new Date();
 
+              // Validar transações antes de processar
+          const validTransactions = transactionsToProcess.filter((tx: any) => {
+            const isValid = validateTransactionData(tx);
+            if (!isValid) {
+              console.warn('❌ [VALIDATION] Transação inválida rejeitada:', tx);
+              errorCount++;
+            }
+            return isValid;
+          });
+
+          if (validTransactions.length === 0) {
+            throw new Error('Nenhuma transação válida para processar.');
+          }
+
+          console.log(`✅ [VALIDATION] ${validTransactions.length} transações válidas de ${transactionsToProcess.length} totais`);
+
+          // Processar apenas transações válidas
+          for (const transaction of validTransactions) {
+            try {
+              // Sanitizar dados da transação
+              const sanitizedTransaction = {
+                ...transaction,
+                description: sanitizeString(transaction.description),
+                category: transaction.category ? sanitizeString(transaction.category) : 'outros'
+              };
+
               // Salvar no Supabase com timestamp correto do servidor
               console.log('🔄 Salvando transação com RPC timestamp do servidor...');
               const supabaseInsert = await supabase.rpc('insert_transaction_with_timestamp', {
                 p_user_id: activeUserId,
-                p_description: transaction.description,
-                p_amount: transaction.amount,
-                p_type: transaction.type,
-                p_category: transaction.category || 'outros'
+                p_description: sanitizedTransaction.description,
+                p_amount: sanitizedTransaction.amount,
+                p_type: sanitizedTransaction.type,
+                p_category: sanitizedTransaction.category || 'outros'
               });
               
               // Fallback se RPC falhar
@@ -637,10 +698,10 @@ const handleSendMessage = async (message: string) => {
                 console.warn('⚠️ RPC falhou, usando insert tradicional:', supabaseInsert.error);
                 const fallbackInsert = await supabase.from('transactions').insert([
                   {
-                    type: transaction.type,
-                    amount: transaction.amount,
-                    category: transaction.category || null,
-                    title: transaction.description,
+                    type: sanitizedTransaction.type,
+                    amount: sanitizedTransaction.amount,
+                    category: sanitizedTransaction.category || null,
+                    title: sanitizedTransaction.description,
                     date: new Date().toISOString(), // 🔧 CORREÇÃO: Data/hora atual completa
                     created_at: new Date().toISOString(),
                     user_id: activeUserId
@@ -657,17 +718,20 @@ const handleSendMessage = async (message: string) => {
               if (supabaseInsert.error) {
                 console.error('❌ Erro no Supabase:', supabaseInsert.error);
                 throw new Error(`Erro ao salvar no Supabase: ${supabaseInsert.error.message}`);
-              }              // NOVO: Salvar também no localStorage para aparecer em "últimas transações"
+              }
+
+              // NOVO: Salvar também no localStorage para aparecer em "últimas transações"
               const transactionToSave: Transaction = {
                 id: uuidv4(),
-                title: transaction.description,
-                amount: Number(transaction.amount),
-                type: transaction.type as 'income' | 'expense',
-                category: transaction.category || '',
-                date: transactionDate,
+                title: sanitizedTransaction.description,
+                amount: Number(sanitizedTransaction.amount),
+                type: sanitizedTransaction.type as 'income' | 'expense',
+                category: sanitizedTransaction.category || '',
+                date: new Date(),
                 userId: activeUserId
               };
-                // Log para debug
+
+              // Log para debug
               console.log('💾 Salvando transação:', JSON.stringify(transactionToSave));
               console.log('👤 User ID ativo:', activeUserId);
               
@@ -683,9 +747,18 @@ const handleSendMessage = async (message: string) => {
                 };
                 console.log('💾 Salvando usuário no localStorage:', userToSave);
                 saveUser(userToSave);
-              }                console.log('🔄 Chamando saveTransactionUtil...');
+              }
+
+              console.log('🔄 Chamando saveTransactionUtil...');
               saveTransactionUtil(transactionToSave);
               console.log('✅ saveTransactionUtil chamado com sucesso');
+              
+              successCount++;
+            } catch (err) {
+              console.error('❌ Erro ao processar transação:', err);
+              errorCount++;
+            }
+          }
               
               // NOVA ADIÇÃO: Forçar sincronização imediata do Supabase
               console.log('🔄 Forçando sincronização Supabase...');

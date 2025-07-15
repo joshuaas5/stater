@@ -2,8 +2,6 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { ChatMessage } from '@/types';
 import { formatCurrency } from '@/utils/dataProcessing';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LoadingState } from '@/components/ui/loading-states';
 
@@ -76,12 +74,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
               </div>
             )}
           </div>
-          <span className="text-[10px] text-gray-500 mt-1 px-1">
-            {formatDistanceToNow(new Date(message.timestamp), {
-              addSuffix: true,
-              locale: ptBR
-            })}
-          </span>
         </div>
       ))}
       

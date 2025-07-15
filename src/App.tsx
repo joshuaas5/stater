@@ -28,6 +28,7 @@ import FinancialAnalysisPage from "./pages/FinancialAnalysisPage"; // Nova pági
 import RecurringTransactionsPage from "./pages/RecurringTransactionsPage"; // Nova página de recorrentes
 import TelegramSettingsPage from "./pages/TelegramSettingsPage"; // Página de configurações do Telegram
 import PrivacyPage from "./pages/PrivacyPage";
+import TermsPage from "./pages/TermsPage"; // Página de termos de uso
 import SimpleErrorTestPage from "./pages/SimpleErrorTestPage"; // Página de teste de erros simplificada
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./components/auth/PrivateRoute";

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Transaction } from '@/types';
 import { formatCurrency } from '@/utils/dataProcessing';
 import { CreditCard, TrendingUp, CalendarRange } from 'lucide-react';
@@ -11,7 +11,7 @@ interface TransactionItemProps {
   onDeleteClick?: (transaction: Transaction) => void;
 }
 
-const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEditClick, onDeleteClick }) => {
+const TransactionItem: React.FC<TransactionItemProps> = memo(({ transaction, onEditClick, onDeleteClick }) => {
   // Format recurring day display
   const recurringInfo = transaction.isRecurring && transaction.recurringDay
     ? `Todo dia ${transaction.recurringDay}`
@@ -80,6 +80,8 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEditCl
       )}
     </div>
   );
-};
+});
+
+TransactionItem.displayName = 'TransactionItem';
 
 export default TransactionItem;

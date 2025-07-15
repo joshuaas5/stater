@@ -40,6 +40,7 @@ import VoicePlayer from '@/components/voice/VoicePlayer';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useAudioLimits } from '@/hooks/useAudioLimits';
 import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
+import { useTransactionsOptimized } from '@/hooks/useTransactionsOptimized';
 import { processAudioWithGemini, AudioProcessingResult } from '@/utils/audioProcessing';
 
 
@@ -150,6 +151,9 @@ export const FinancialAdvisorPage: React.FC = () => {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [waitingConfirmation, setWaitingConfirmation] = useState(false);
   const [editableTransactions, setEditableTransactions] = useState<any[]>([]);
+  
+  // Hook otimizado para gerenciar transações
+  const transactionManager = useTransactionsOptimized(editableTransactions, setEditableTransactions);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined); // undefined: not yet checked, null: checked and no user, string: user ID
@@ -738,7 +742,7 @@ const handleSendMessage = async (message: string) => {
           let resultMessage = '';
           if (successCount > 0) {
             // Calcular total das transações salvas
-            const totalAmount = editableTransactions.reduce((sum, tx) => sum + tx.amount, 0);
+            const totalAmount = transactionManager.transactionSummary.total;
             resultMessage += `✅ ${successCount} transações salvas com sucesso!\n`;
             resultMessage += `💰 Total processado: R$ ${totalAmount.toFixed(2)}`;
           }
@@ -2276,11 +2280,9 @@ const handleImageUpload = async (imageBase64: string) => {
   }
 };
 
-// Funções para editar transações OCR
+// Funções para editar transações OCR - OTIMIZADAS
 const updateTransaction = (index: number, updatedTransaction: any) => {
-  const newTransactions = [...editableTransactions];
-  newTransactions[index] = updatedTransaction;
-  setEditableTransactions(newTransactions);
+  transactionManager.updateTransaction(index, updatedTransaction);
   
   // Atualizar também o pendingAction
   if (pendingAction) {
@@ -2288,29 +2290,29 @@ const updateTransaction = (index: number, updatedTransaction: any) => {
       ...pendingAction,
       dados: {
         ...pendingAction.dados,
-        ocrTransactions: newTransactions
+        ocrTransactions: transactionManager.processedTransactions
       }
     });
   }
 };
 
 const deleteTransaction = (index: number) => {
-  const newTransactions = editableTransactions.filter((_, i) => i !== index);
-  setEditableTransactions(newTransactions);
+  transactionManager.removeTransaction(index);
   
   // Atualizar também o pendingAction
   if (pendingAction) {
+    const remainingTransactions = editableTransactions.filter((_, i) => i !== index);
     setPendingAction({
       ...pendingAction,
       dados: {
         ...pendingAction.dados,
-        ocrTransactions: newTransactions
+        ocrTransactions: remainingTransactions
       }
     });
   }
   
   // Se não há mais transações, cancelar a confirmação
-  if (newTransactions.length === 0) {
+  if (editableTransactions.length <= 1) {
     setWaitingConfirmation(false);
     setPendingAction(null);
     setEditableTransactions([]);
@@ -2759,7 +2761,7 @@ return (
                   fontSize: responsive.isMobile ? '12px' : '14px',
                   opacity: 0.8
                 }}>
-                  {editableTransactions.length} transaç{editableTransactions.length > 1 ? 'ões' : 'ão'} encontrada{editableTransactions.length > 1 ? 's' : ''}
+                  {transactionManager.transactionSummary.count} transaç{transactionManager.transactionSummary.count > 1 ? 'ões' : 'ão'} encontrada{transactionManager.transactionSummary.count > 1 ? 's' : ''}
                 </p>
                 <p style={{
                   margin: '3px 0 0 0',
@@ -2768,7 +2770,7 @@ return (
                   color: '#fbbf24',
                   textShadow: '0 1px 2px rgba(0,0,0,0.5)'
                 }}>
-                  Total: R$ {editableTransactions.reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0).toFixed(2)}
+                  Total: R$ {transactionManager.transactionSummary.total.toFixed(2)}
                 </p>
               </div>
               <button
@@ -2811,7 +2813,7 @@ return (
               // Garantir que o scroll funcione bem com teclado virtual
               minHeight: keyboard.isVisible ? '200px' : 'auto'
             }}>
-              {editableTransactions.map((transaction, index) => (
+              {transactionManager.processedTransactions.map((transaction, index) => (
                 <div key={index} style={{
                   background: 'rgba(255, 255, 255, 0.15)',
                   backdropFilter: 'blur(10px)',
@@ -2837,8 +2839,8 @@ return (
                         {transaction.type === 'income' ? '💰' : '💸'}
                         <input
                           type="text"
-                          value={transaction.description || ''}
-                          onChange={(e) => updateTransaction(index, { ...transaction, description: e.target.value })}
+                          value={transaction.title || ''}
+                          onChange={(e) => updateTransaction(index, { ...transaction, title: e.target.value })}
                           placeholder="Descrição da transação..."
                           style={{
                             background: 'rgba(255, 255, 255, 0.2)',
@@ -2896,7 +2898,9 @@ return (
                           </label>
                           <input
                             type="date"
-                            value={transaction.date || new Date().toISOString().split('T')[0]}
+                            value={transaction.date ? 
+                              (transaction.date instanceof Date ? transaction.date.toISOString().split('T')[0] : transaction.date) :
+                              new Date().toISOString().split('T')[0]}
                             onChange={(e) => updateTransaction(index, { ...transaction, date: e.target.value })}
                             style={{
                               background: 'rgba(255, 255, 255, 0.2)',

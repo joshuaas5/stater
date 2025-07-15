@@ -1576,8 +1576,7 @@ const handleSendMessage = async (message: string) => {
         const cleanLine = line.trim();
         if (!cleanLine) continue;
         
-        // Padrões para detectar valor em cada linha
-        const valuePatterns = [
+        // Padrões para detectar valor em cada linha        const valuePatterns = [
           /r\$\s*(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)/i, // R$ 1.000,00 ou R$ 1000.00
           /(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*(?:\/mês|por mês|mensal|reais?)/i, // 1000/mês
           /(\d+(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*-/i, // 1000 - descrição
@@ -2698,10 +2697,7 @@ return (
                   )}
                 </div>
               )}
-            </React.Fragment>
-          ))}
-          
-          {/* Scroll anchor para posicionar no final */}
+            </React.Fragment>          ))}          {/* Scroll anchor para posicionar no final */}
           <div ref={messagesEndRef} style={{ height: '1px' }} />
         </div>
 

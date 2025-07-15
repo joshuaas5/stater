@@ -28,7 +28,7 @@ import FinancialAnalysisPage from "./pages/FinancialAnalysisPage"; // Nova pági
 import RecurringTransactionsPage from "./pages/RecurringTransactionsPage"; // Nova página de recorrentes
 import TelegramSettingsPage from "./pages/TelegramSettingsPage"; // Página de configurações do Telegram
 import PrivacyPage from "./pages/PrivacyPage";
-import ErrorTestPage from "./pages/ErrorTestPage"; // Página de teste de erros
+import SimpleErrorTestPage from "./pages/SimpleErrorTestPage"; // Página de teste de erros simplificada
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -216,7 +216,7 @@ const App = () => (
                   element={
                     <PrivateRoute>
                       <ErrorBoundary>
-                        <ErrorTestPage />
+                        <SimpleErrorTestPage />
                       </ErrorBoundary>
                     </PrivateRoute>
                   } 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { Send, Image, Camera, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +18,7 @@ interface ChatInputProps {
   audioLimits?: any;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ 
+const ChatInput: React.FC<ChatInputProps> = memo(({ 
   onSubmit, 
   onImageUpload,
   loading, 
@@ -221,7 +221,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           >            <textarea
               ref={inputRef}
               className="message-input"
-              placeholder={loading ? "Enviando mensagem..." : "Digite sua mensagem aqui..."}
+              placeholder={loading ? "Enviando..." : "Digite sua mensagem..."}
               value={message}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
@@ -248,7 +248,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 boxSizing: 'border-box',
                 width: '100%',
                 minWidth: '0', // Evita overflow
-                overflow: 'hidden' // Evita scroll interno
+                overflow: 'hidden', // Evita scroll interno
+                wordWrap: 'break-word',
+                whiteSpace: 'pre-wrap'
               }}            />
             
             <div 
@@ -588,6 +590,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
       }} />
     </>
   );
-};
+});
 
-export default ChatInput;
+export default memo(ChatInput);

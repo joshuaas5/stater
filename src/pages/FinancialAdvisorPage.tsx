@@ -18,7 +18,7 @@ function extractGeminiResponseText(raw: string): string {
   }
   return text;
 }
-import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/navigation/NavBar';
 import ChatMessages from '@/components/chat/ChatMessages';
@@ -286,7 +286,9 @@ export const FinancialAdvisorPage: React.FC = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [editableTransactions, waitingConfirmation]);const handleSuggestionClick = (suggestion: string) => {
+  }, [editableTransactions, waitingConfirmation]);
+
+  const handleSuggestionClick = useCallback((suggestion: string) => {
     // Para botões de registro de transação, fazer a IA perguntar pelos detalhes
     if (suggestion === 'Registrar Despesa' || suggestion === 'Registrar Receita') {
       const transactionType = suggestion === 'Registrar Despesa' ? 'despesa' : 'receita';
@@ -318,7 +320,7 @@ export const FinancialAdvisorPage: React.FC = () => {
       handleSendMessage(suggestion);
     }
     setShowSuggestions(false);
-  };
+  }, [handleSendMessage]);
 
   // Detectar intenção de registro na resposta da IA
   function parseConfirmationIntent(text: string) {
@@ -354,17 +356,25 @@ const isAddBillIntent = (msg: string) => {
   return triggers.some(trigger => msg.toLowerCase().includes(trigger));
 };
 
-  // Função para forçar scroll para o final
+  // Função para forçar scroll para o final - OTIMIZADA
   const scrollToBottom = useCallback(() => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
+    if (messagesEndRef.current) {
+      const element = messagesEndRef.current;
+      // Usar requestAnimationFrame para melhor performance
+      requestAnimationFrame(() => {
+        element.scrollIntoView({ behavior: "smooth", block: "end" });
+      });
+    }
   }, []);
 
-  // Hook para scroll automático quando messages mudam - otimizado
+  // Hook para scroll automático quando messages mudam - OTIMIZADO com throttling
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+    const timeoutId = setTimeout(() => {
+      scrollToBottom();
+    }, 50); // Throttle para evitar muitos scrolls
+    
+    return () => clearTimeout(timeoutId);
+  }, [messages.length, scrollToBottom]); // Apenas quando o número de mensagens muda
 
   // Memoização das mensagens para performance
   const memoizedMessages = useMemo(() => messages, [messages]);
@@ -539,7 +549,7 @@ const isAddBillIntent = (msg: string) => {
     setWaitingConfirmation(true);
   }, []);
 
-const handleSendMessage = async (message: string) => {
+  const handleSendMessage = useCallback(async (message: string) => {
   if (isAddBillIntent(message)) {
     setMessages(prev => [
       ...prev,
@@ -1464,7 +1474,7 @@ const handleSendMessage = async (message: string) => {
     } finally {
       setLoading(false);
     }
-  };  // Função para detectar listas de transações em texto
+  }, []);  // Função para detectar listas de transações em texto
   const detectTransactionListInText = (userMessage: string) => {
     const originalMessage = userMessage.toLowerCase();
     const transactions: any[] = [];
@@ -1992,7 +2002,7 @@ const handleTabChange = (tabValue: string) => {
 }
 
 // Função para processar imagem OCR
-const handleImageUpload = async (imageBase64: string) => {
+const handleImageUpload = useCallback(async (imageBase64: string) => {
   if (!imageBase64) return;
 
   setLoading(true);
@@ -2257,15 +2267,17 @@ const handleImageUpload = async (imageBase64: string) => {
         text: `❌ **Erro ao processar documento**\n\n${errorMessage}\n\n💡 **Sugestões:**\n• Verifique se o arquivo não está corrompido\n• Para PDFs protegidos, faça uma captura de tela\n• Tente usar formato de imagem (JPG/PNG)\n• Reduza o tamanho do arquivo se muito grande`,
         sender: 'system',
         timestamp: new Date(),
-        avatarUrl: IA_AVATAR      }]);
-    }  } finally {
+        avatarUrl: IA_AVATAR
+      }]);
+    }
+  } finally {
     // Cleanup básico
     setLoading(false);
   }
-};
+}, []);
 
 // Funções para editar transações OCR
-const updateTransaction = (index: number, updatedTransaction: any) => {
+const updateTransaction = useCallback((index: number, updatedTransaction: any) => {
   const newTransactions = [...editableTransactions];
   newTransactions[index] = updatedTransaction;
   setEditableTransactions(newTransactions);
@@ -2280,9 +2292,9 @@ const updateTransaction = (index: number, updatedTransaction: any) => {
       }
     });
   }
-};
+}, [editableTransactions, pendingAction]);
 
-const deleteTransaction = (index: number) => {
+const deleteTransaction = useCallback((index: number) => {
   const newTransactions = editableTransactions.filter((_, i) => i !== index);
   setEditableTransactions(newTransactions);
   
@@ -2311,7 +2323,7 @@ const deleteTransaction = (index: number) => {
       avatarUrl: IA_AVATAR
     }]);
   }
-};
+}, [editableTransactions, pendingAction, setMessages]);
 
 return (
   <>    <div 

@@ -2647,14 +2647,15 @@ return (
               borderRadius: responsive.isMobile ? '15px' : '20px',
               width: responsive.isMobile ? '95vw' : '100%',
               maxWidth: responsive.isMobile ? '95vw' : '500px',
-              height: responsive.isMobile ? '95vh' : '90vh',
-              maxHeight: responsive.isMobile ? '95vh' : '700px',
+              height: responsive.isMobile ? '90vh' : '90vh',
+              maxHeight: responsive.isMobile ? '90vh' : '700px',
               display: 'flex',
               flexDirection: 'column',
               color: 'white',
               boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              position: 'relative'
             }}
           >
             {/* Header do Modal */}
@@ -2665,7 +2666,9 @@ return (
               backdropFilter: 'blur(10px)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              flexShrink: 0,
+              minHeight: responsive.isMobile ? '70px' : '80px'
             }}>
               <div>
                 <h2 style={{
@@ -2705,13 +2708,16 @@ return (
                   padding: '8px',
                   cursor: 'pointer',
                   fontSize: responsive.isMobile ? '16px' : '18px',
-                  width: responsive.isMobile ? '32px' : '36px',
-                  height: responsive.isMobile ? '32px' : '36px',
+                  width: responsive.isMobile ? '40px' : '36px',
+                  height: responsive.isMobile ? '40px' : '36px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   minHeight: '44px', // Touch-friendly
-                  minWidth: '44px'
+                  minWidth: '44px',
+                  flexShrink: 0,
+                  position: 'relative',
+                  zIndex: 10
                 }}
               >
                 ✕
@@ -2886,12 +2892,14 @@ return (
 
             {/* Footer com Botões */}
             <div style={{
-              padding: '20px 25px',
+              padding: responsive.isMobile ? '15px 20px' : '20px 25px',
               borderTop: '1px solid rgba(255, 255, 255, 0.15)',
               background: 'rgba(255, 255, 255, 0.05)',
               display: 'flex',
-              gap: '15px',
-              justifyContent: 'space-between'
+              gap: responsive.isMobile ? '10px' : '15px',
+              justifyContent: 'space-between',
+              flexShrink: 0,
+              minHeight: responsive.isMobile ? '80px' : '90px'
             }}>
               <button
                 onClick={() => handleSendMessage('não')}
@@ -2900,12 +2908,13 @@ return (
                   border: '1px solid rgba(239, 68, 68, 0.4)',
                   borderRadius: '12px',
                   color: '#ff6b6b',
-                  padding: '12px 24px',
+                  padding: responsive.isMobile ? '14px 20px' : '12px 24px',
                   cursor: 'pointer',
-                  fontSize: '16px',
+                  fontSize: responsive.isMobile ? '14px' : '16px',
                   fontWeight: '600',
                   flex: 1,
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  minHeight: '44px' // Touch-friendly
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)';
@@ -2917,31 +2926,30 @@ return (
                 }}
               >
                 ❌ Cancelar
-              </button>
-              
-              <button
-                onClick={() => handleSendMessage('sim')}
-                disabled={savingTransactions}
-                style={{
-                  background: savingTransactions 
-                    ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
-                    : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  color: 'white',
-                  padding: '12px 24px',
-                  cursor: savingTransactions ? 'not-allowed' : 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  flex: 2,
-                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
-                  transition: 'all 0.2s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  opacity: savingTransactions ? 0.7 : 1
-                }}
+              </button>                <button
+                  onClick={() => handleSendMessage('sim')}
+                  disabled={savingTransactions}
+                  style={{
+                    background: savingTransactions 
+                      ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
+                      : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    color: 'white',
+                    padding: responsive.isMobile ? '14px 20px' : '12px 24px',
+                    cursor: savingTransactions ? 'not-allowed' : 'pointer',
+                    fontSize: responsive.isMobile ? '14px' : '16px',
+                    fontWeight: '600',
+                    flex: 2,
+                    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    opacity: savingTransactions ? 0.7 : 1,
+                    minHeight: '44px' // Touch-friendly
+                  }}
                 onMouseEnter={(e) => {
                   if (!savingTransactions) {
                     e.currentTarget.style.transform = 'translateY(-1px)';
@@ -2958,10 +2966,10 @@ return (
                 {savingTransactions ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Salvando {editableTransactions.length} Transaç{editableTransactions.length > 1 ? 'ões' : 'ão'}...
+                    {responsive.isMobile ? 'Salvando...' : `Salvando ${editableTransactions.length} Transaç${editableTransactions.length > 1 ? 'ões' : 'ão'}...`}
                   </>
                 ) : (
-                  `✅ Salvar ${editableTransactions.length} Transaç${editableTransactions.length > 1 ? 'ões' : 'ão'}`
+                  `✅ Salvar ${responsive.isMobile ? '' : editableTransactions.length + ' Transaç' + (editableTransactions.length > 1 ? 'ões' : 'ão')}`
                 )}
               </button>
             </div>
@@ -3176,9 +3184,20 @@ return (
             
             .modal-content {
               width: 95vw !important;
-              height: 95vh !important;
+              height: 90vh !important;
+              max-height: 90vh !important;
               margin: 0 !important;
               border-radius: 15px !important;
+              display: flex !important;
+              flex-direction: column !important;
+            }
+            
+            .modal-content > div:first-child {
+              flex-shrink: 0 !important;
+            }
+            
+            .modal-content > div:last-child {
+              flex-shrink: 0 !important;
             }
             
             .confirmation-popup {

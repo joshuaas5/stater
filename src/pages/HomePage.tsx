@@ -377,8 +377,9 @@ const HomePage: React.FC = () => {
 
       {/* Footer */}
       <footer className="relative z-10 w-full py-12 px-4 border-t border-white/10 bg-black/20">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center space-x-3 mb-6">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Logo e Nome */}
+          <div className="flex items-center justify-center space-x-3 mb-8">
             <img 
               src="/stater-logo-192.png" 
               alt="Stater Logo" 
@@ -395,26 +396,30 @@ const HomePage: React.FC = () => {
               STATER
             </span>
           </div>
-          <div className="flex justify-center space-x-8 mb-6">
+          
+          {/* Links de navegação */}
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 mb-8">
             <Link 
               to="/terms" 
-              className="text-blue-300 hover:text-blue-200 transition-colors text-sm"
+              className="text-blue-300 hover:text-blue-200 transition-colors text-sm font-medium"
             >
               Termos de Uso
             </Link>
             <Link 
               to="/privacy" 
-              className="text-blue-300 hover:text-blue-200 transition-colors text-sm"
+              className="text-blue-300 hover:text-blue-200 transition-colors text-sm font-medium"
             >
               Política de Privacidade
             </Link>
             <a 
               href="mailto:staterbills@gmail.com?subject=Suporte%20Stater&body=Olá,%20preciso%20de%20ajuda%20com..." 
-              className="text-blue-300 hover:text-blue-200 transition-colors text-sm"
+              className="text-blue-300 hover:text-blue-200 transition-colors text-sm font-medium"
             >
               Suporte
             </a>
           </div>
+          
+          {/* Informações finais */}
           <div className="text-white/80 space-y-2">
             <p className="text-sm">Stater - Todos os Direitos Reservados</p>
             <p className="text-xs">2025</p>

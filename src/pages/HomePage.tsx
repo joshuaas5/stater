@@ -45,21 +45,21 @@ const HomePage: React.FC = () => {
                 filter: 'drop-shadow(rgba(0, 0, 0, 0.3) 0px 2px 4px)'
               }}
             >
-              Stater
+              STATER
             </h1>
           </Link>
           <div className="flex space-x-4">
+            <Link to="/register">
+              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg">
+                Cadastrar
+              </Button>
+            </Link>
             <Link to="/login">
               <Button 
                 variant="outline" 
                 className="hidden sm:flex bg-white/5 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
               >
                 Entrar
-              </Button>
-            </Link>
-            <Link to="/register">
-              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg">
-                Cadastrar
               </Button>
             </Link>
           </div>
@@ -103,52 +103,52 @@ const HomePage: React.FC = () => {
             
             <div className="animate-slide-in">
               <h2 className="text-3xl md:text-5xl font-bold text-white mb-8 leading-tight">
-                Pare de perder tempo com
-                <span className="text-blue-300 block mt-2">planilhas e anotações</span>
+                Finanças inteligentes
+                <span className="text-blue-300 block mt-2">para pessoas inteligentes</span>
               </h2>
               <p className="text-xl text-blue-100 mb-6 max-w-4xl mx-auto leading-relaxed">
-                <strong>Você está cansado de perder o controle dos seus gastos?</strong> De não saber para onde vai seu dinheiro? 
-                De gastar horas organizando finanças que poderiam estar sendo investidas em você?
+                Transforme a forma como você gerencia suas finanças com tecnologia de ponta. 
+                Controle completo, insights poderosos e automação que realmente funciona.
               </p>
               <p className="text-lg text-blue-200 mb-8 max-w-3xl mx-auto leading-relaxed">
-                O Stater revoluciona sua organização financeira com <strong>inteligência artificial</strong> e 
-                <strong> integração total com Telegram</strong> (e em breve WhatsApp).
+                O Stater combina <strong>inteligência artificial</strong> com <strong>interfaces naturais</strong> 
+                para criar a experiência financeira mais avançada e acessível do mercado.
               </p>
               
               {/* Principais funcionalidades */}
               <div className="grid md:grid-cols-2 gap-6 mb-10 max-w-4xl mx-auto">
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">📱 Telegram Inteligente</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">🤖 Inteligência Artificial</h3>
                   <p className="text-blue-100 text-sm">
-                    Envie <strong>áudios</strong> falando seus gastos e nossa IA registra automaticamente. 
-                    Simples como conversar com um amigo.
+                    Registre gastos por <strong>áudio, foto ou texto</strong>. Nossa IA entende 
+                    contexto e categoriza automaticamente com precisão.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">📸 Reconhecimento Visual</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">� Múltiplas Interfaces</h3>
                   <p className="text-blue-100 text-sm">
-                    Tire <strong>fotos de extratos, notas fiscais e faturas</strong> - nossa IA lê e organiza 
-                    tudo instantaneamente.
+                    Use no <strong>web, mobile, Telegram ou WhatsApp</strong>. Seus dados 
+                    sincronizam em tempo real, onde você estiver.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">⚡ Automação Total</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">📊 Análises Avançadas</h3>
                   <p className="text-blue-100 text-sm">
-                    Categorização automática, alertas inteligentes e análises que realmente 
-                    <strong> fazem diferença</strong> no seu bolso.
+                    Dashboards interativos, relatórios personalizados e <strong>insights 
+                    acionáveis</strong> que realmente impactam suas decisões.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">🎯 Insights Reais</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">🔒 Segurança Total</h3>
                   <p className="text-blue-100 text-sm">
-                    Descubra <strong>onde você pode economizar</strong> e receba sugestões personalizadas 
-                    baseadas nos seus hábitos.
+                    Criptografia de ponta, backup automático e controle total dos seus 
+                    dados financeiros com <strong>máxima privacidade</strong>.
                   </p>
                 </div>
               </div>
               
               <p className="text-2xl text-blue-200 font-bold mb-10">
-                Transforme minutos em segundos. Transforme caos em controle.
+                Simplifique. Automatize. Prospere.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
@@ -215,52 +215,52 @@ const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Problemas e Soluções */}
+          {/* Recursos Avançados */}
           <div className="mb-20">
             <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-12">
               <h3 className="text-3xl md:text-4xl font-bold text-white mb-8 text-center">
-                Chega de perder tempo com organização financeira!
+                Tecnologia que se adapta ao seu estilo
               </h3>
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6">
-                  <h4 className="text-xl font-bold text-red-300 mb-4">❌ Problemas do dia a dia:</h4>
+                  <h4 className="text-xl font-bold text-blue-300 mb-4">🎯 Recursos Principais:</h4>
                   <div className="space-y-3">
                     <p className="text-blue-100 flex items-start">
-                      <span className="text-red-400 mr-2">•</span>
-                      Esquecer de anotar gastos e perder o controle
+                      <span className="text-blue-400 mr-2">•</span>
+                      Registro por áudio, foto ou texto - você escolhe
                     </p>
                     <p className="text-blue-100 flex items-start">
-                      <span className="text-red-400 mr-2">•</span>
-                      Passar horas organizando planilhas complexas
+                      <span className="text-blue-400 mr-2">•</span>
+                      Sincronização em tempo real entre todos os dispositivos
                     </p>
                     <p className="text-blue-100 flex items-start">
-                      <span className="text-red-400 mr-2">•</span>
-                      Não saber para onde vai o dinheiro
+                      <span className="text-blue-400 mr-2">•</span>
+                      Análises automáticas e insights personalizados
                     </p>
                     <p className="text-blue-100 flex items-start">
-                      <span className="text-red-400 mr-2">•</span>
-                      Dificuldade para categorizar e analisar gastos
+                      <span className="text-blue-400 mr-2">•</span>
+                      Interface intuitiva e experiência premium
                     </p>
                   </div>
                 </div>
                 <div className="space-y-6">
-                  <h4 className="text-xl font-bold text-green-300 mb-4">✅ Com o Stater você:</h4>
+                  <h4 className="text-xl font-bold text-green-300 mb-4">🚀 Benefícios Únicos:</h4>
                   <div className="space-y-3">
                     <p className="text-blue-100 flex items-start">
                       <span className="text-green-400 mr-2">•</span>
-                      Fala no Telegram e pronto - está registrado
+                      Economize até 90% do tempo com organização financeira
                     </p>
                     <p className="text-blue-100 flex items-start">
                       <span className="text-green-400 mr-2">•</span>
-                      Fotografa faturas e a IA organiza tudo
+                      Tome decisões baseadas em dados reais e atualizados
                     </p>
                     <p className="text-blue-100 flex items-start">
                       <span className="text-green-400 mr-2">•</span>
-                      Recebe insights automáticos sobre seus gastos
+                      Identifique oportunidades de economia automaticamente
                     </p>
                     <p className="text-blue-100 flex items-start">
                       <span className="text-green-400 mr-2">•</span>
-                      Economiza tempo e toma decisões inteligentes
+                      Mantenha controle total sem perder praticidade
                     </p>
                   </div>
                 </div>
@@ -348,22 +348,13 @@ const HomePage: React.FC = () => {
               O Stater transforma sua rotina financeira em segundos, não em horas.
             </p>
             
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 mb-8 max-w-2xl mx-auto">
-              <p className="text-blue-100 text-lg mb-4">
-                <strong>Comece agora:</strong> Conecte seu Telegram, envie um áudio falando um gasto e veja a mágica acontecer.
-              </p>
-              <p className="text-blue-200 text-sm">
-                ✅ Gratuito para começar &nbsp;&nbsp; ✅ Sem cartão de crédito &nbsp;&nbsp; ✅ Funciona em segundos
-              </p>
-            </div>
-            
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/register">
                 <Button 
                   size="lg" 
                   className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-12 py-4 text-lg shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
                 >
-                  Experimentar GRÁTIS agora
+                  Experimentar agora
                 </Button>
               </Link>
               <Link to="/login">

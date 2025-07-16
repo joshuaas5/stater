@@ -89,9 +89,9 @@ const Dashboard: React.FC = () => {
   const [telegramStatusChecked, setTelegramStatusChecked] = useState(false); // Cache para evitar recarregamentos visuais
 
   // Funções do Telegram
-  const checkTelegramStatus = async () => {
-    // Evitar recarregamento visual desnecessário
-    if (telegramStatusChecked) return;
+  const checkTelegramStatus = async (force = false) => {
+    // Evitar recarregamento visual desnecessário, exceto se forçado
+    if (telegramStatusChecked && !force) return;
     
     if (!user?.id) return;
     
@@ -106,6 +106,9 @@ const Dashboard: React.FC = () => {
         console.log('🔍 [TELEGRAM] Erro na consulta:', error.message);
         setIsTelegramLinked(false);
         setTelegramInfo(null);
+        // Salvar no localStorage
+        localStorage.setItem(`telegram_status_${user.id}`, 'false');
+        localStorage.setItem(`telegram_info_${user.id}`, 'null');
         setTelegramStatusChecked(true);
         return;
       }
@@ -114,29 +117,61 @@ const Dashboard: React.FC = () => {
         console.log('✅ [TELEGRAM] Conectado:', data[0]);
         setIsTelegramLinked(true);
         setTelegramInfo(data[0]);
+        // Salvar no localStorage
+        localStorage.setItem(`telegram_status_${user.id}`, 'true');
+        localStorage.setItem(`telegram_info_${user.id}`, JSON.stringify(data[0]));
       } else {
         console.log('🔍 [TELEGRAM] Não conectado - nenhum registro encontrado');
         setIsTelegramLinked(false);
         setTelegramInfo(null);
+        // Salvar no localStorage
+        localStorage.setItem(`telegram_status_${user.id}`, 'false');
+        localStorage.setItem(`telegram_info_${user.id}`, 'null');
       }
       setTelegramStatusChecked(true);
     } catch (error) {
       console.error('❌ [TELEGRAM] Erro ao verificar status:', error);
       setIsTelegramLinked(false);
       setTelegramInfo(null);
+      // Salvar no localStorage
+      localStorage.setItem(`telegram_status_${user.id}`, 'false');
+      localStorage.setItem(`telegram_info_${user.id}`, 'null');
       setTelegramStatusChecked(true);
+    }
+  };
+
+  const resetTelegramStatus = () => {
+    setTelegramStatusChecked(false);
+    setIsTelegramLinked(false);
+    setTelegramInfo(null);
+    // Limpar localStorage
+    if (user?.id) {
+      localStorage.removeItem(`telegram_status_${user.id}`);
+      localStorage.removeItem(`telegram_info_${user.id}`);
     }
   };  const generateTelegramCode = () => {
     if (!user?.id) return;
     setShowTelegramModal(true);
   };
 
-  // Verificar status do Telegram no carregamento (apenas uma vez)
+  // Verificar status do Telegram no carregamento
   useEffect(() => {
-    if (user?.id && !telegramStatusChecked) {
-      checkTelegramStatus();
+    if (user?.id) {
+      // Verificar se já temos o status em cache no localStorage
+      const cachedStatus = localStorage.getItem(`telegram_status_${user.id}`);
+      const cachedInfo = localStorage.getItem(`telegram_info_${user.id}`);
+      
+      if (cachedStatus && cachedInfo) {
+        // Usar cache se disponível
+        setIsTelegramLinked(cachedStatus === 'true');
+        setTelegramInfo(cachedInfo !== 'null' ? JSON.parse(cachedInfo) : null);
+        setTelegramStatusChecked(true);
+      } else {
+        // Verificar pela primeira vez
+        checkTelegramStatus();
+      }
     }
-  }, [user?.id, telegramStatusChecked]);
+  }, [user?.id]);
   
   // Novo filtro por nome
   const [newTransaction, setNewTransaction] = useState({
@@ -827,8 +862,8 @@ const Dashboard: React.FC = () => {
                         
                         if (error) throw error;
                         
-                        setIsTelegramLinked(false);
-                        setTelegramInfo(null);
+                        // Usar função resetTelegramStatus
+                        resetTelegramStatus();
                         
                         toast({
                           title: "🔌 Desconectado",

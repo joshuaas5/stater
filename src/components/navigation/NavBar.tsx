@@ -17,7 +17,7 @@ const NavBar: React.FC = () => {
     { icon: <FileText size={24} />, label: t('bills'), path: '/bills' },
     { icon: <Brain size={24} />, label: 'Análise IA', path: '/analise-financeira' },
     { 
-      icon: <img src="/stater-logo.png" alt="Stater" className="h-7 w-7 object-contain" />, 
+      icon: <img src="/stater-logo-192.png" alt="Stater" className="h-10 w-10 object-contain" />, 
       label: '', 
       path: '/dashboard',
       isLogo: true

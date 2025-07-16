@@ -153,24 +153,53 @@ const RecurringTransactionsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 pb-20">
+      {/* Partículas flutuantes - Performance otimizada */}
+      <div className="absolute inset-0 overflow-hidden">
+        {Array.from({ length: 15 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 4}s`,
+            }}
+          />
+        ))}
+      </div>
+      
+      {/* Background Effects - Otimizado */}
+      <div className="absolute inset-0 bg-black/10" />
+      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-10 right-10 w-64 h-64 bg-blue-600/15 rounded-full blur-3xl animate-pulse" />
+      
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
+      <div className="relative z-10 bg-white/10 backdrop-blur-xl shadow-xl border-b border-white/20">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => navigate('/dashboard')}
-              className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+              className="p-2 text-white hover:text-white hover:bg-white/20 backdrop-blur-sm rounded-lg transition-all duration-300"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              <h1 
+                className="text-xl font-bold text-white"
+                style={{
+                  fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
+                  textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px, rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
+                  filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 2px 4px)',
+                  WebkitTextStroke: '0.5px rgba(0, 0, 0, 0.3)'
+                }}
+              >
                 Transações Recorrentes
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-white/70">
                 Suas transações são processadas automaticamente no dia configurado
               </p>
             </div>
@@ -179,137 +208,126 @@ const RecurringTransactionsPage: React.FC = () => {
       </div>
 
       {/* Estatísticas */}
-      <div className="p-4">
+      <div className="relative z-10 p-4">
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    {stats.totalRecurring}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/15 transition-colors duration-300">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-300">
+                  {stats.totalRecurring}
+                </p>
+                <p className="text-sm text-white/70">Total</p>
+              </div>
+            </div>
             
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                    {stats.byFrequency.weekly}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Semanais</p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/15 transition-colors duration-300">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-orange-300">
+                  {stats.byFrequency.weekly}
+                </p>
+                <p className="text-sm text-white/70">Semanais</p>
+              </div>
+            </div>
             
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    {stats.byFrequency.monthly}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Mensais</p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/15 transition-colors duration-300">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-green-300">
+                  {stats.byFrequency.monthly}
+                </p>
+                <p className="text-sm text-white/70">Mensais</p>
+              </div>
+            </div>
             
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                    {stats.byFrequency.yearly}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Anuais</p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/15 transition-colors duration-300">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-purple-300">
+                  {stats.byFrequency.yearly}
+                </p>
+                <p className="text-sm text-white/70">Anuais</p>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Lista de Transações Recorrentes */}
         <div className="space-y-4">
           {recurringTransactions.length === 0 ? (
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardContent className="p-8 text-center">
-                <BarChart3 className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                  Nenhuma transação recorrente
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Configure transações recorrentes para automatizar seus lançamentos.
-                </p>
-                <Button 
-                  onClick={() => navigate('/dashboard')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Criar Nova Transação
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8 text-center hover:bg-white/15 transition-colors duration-300">
+              <BarChart3 className="h-12 w-12 text-white/40 mx-auto mb-4" />
+              <h3 
+                className="text-lg font-medium text-white mb-2"
+                style={{
+                  fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
+                  textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px, rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
+                  filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 2px 4px)',
+                  WebkitTextStroke: '0.5px rgba(0, 0, 0, 0.3)'
+                }}
+              >
+                Nenhuma transação recorrente
+              </h3>
+              <p className="text-white/70 mb-4">
+                Configure transações recorrentes para automatizar seus lançamentos.
+              </p>
+              <Button 
+                onClick={() => navigate('/dashboard')}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                Criar Nova Transação
+              </Button>
+            </div>
           ) : (
             recurringTransactions.map((transaction) => (
-              <Card key={transaction.id} className="dark:bg-gray-800 dark:border-gray-700">
-                <CardContent className="p-4">
+              <div key={transaction.id} className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/15 transition-colors duration-300">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex items-start gap-4 flex-1">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                         transaction.type === 'income' 
-                          ? 'bg-green-100 dark:bg-green-900' 
-                          : 'bg-red-100 dark:bg-red-900'
+                          ? 'bg-green-500/20 border border-green-400/30' 
+                          : 'bg-red-500/20 border border-red-400/30'
                       }`}>
                         {transaction.type === 'income' ? (
-                          <TrendingUp className={`h-6 w-6 ${
-                            transaction.type === 'income' 
-                              ? 'text-green-600 dark:text-green-400' 
-                              : 'text-red-600 dark:text-red-400'
-                          }`} />
+                          <TrendingUp className="h-6 w-6 text-green-300" />
                         ) : (
-                          <TrendingDown className={`h-6 w-6 ${
-                            transaction.type === 'income' 
-                              ? 'text-green-600 dark:text-green-400' 
-                              : 'text-red-600 dark:text-red-400'
-                          }`} />
+                          <TrendingDown className="h-6 w-6 text-red-300" />
                         )}
                       </div>
                       
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                          <h3 className="font-semibold text-white">
                             {transaction.title}
                           </h3>
-                          <Badge variant={transaction.type === 'income' ? 'default' : 'secondary'}>
+                          <Badge variant={transaction.type === 'income' ? 'default' : 'secondary'} className="bg-white/20 text-white border-white/30">
                             {transaction.type === 'income' ? 'Entrada' : 'Saída'}
                           </Badge>
                         </div>
                         
                         <p className={`text-lg font-bold ${
                           transaction.type === 'income' 
-                            ? 'text-green-600 dark:text-green-400' 
-                            : 'text-red-600 dark:text-red-400'
+                            ? 'text-green-300' 
+                            : 'text-red-300'
                         }`}>
                           {transaction.type === 'income' ? '+' : '-'} R$ {transaction.amount.toFixed(2)}
                         </p>
                         
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 text-sm">
                           <div>
-                            <p className="text-gray-600 dark:text-gray-400">Frequência</p>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                            <p className="text-white/60">Frequência</p>
+                            <p className="font-medium text-white">
                               {getFrequencyText(transaction)}
                             </p>
                           </div>
                           
                           <div>
-                            <p className="text-gray-600 dark:text-gray-400">Próxima execução</p>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                            <p className="text-white/60">Próxima execução</p>
+                            <p className="font-medium text-white">
                               {getNextExecutionText(transaction)}
                             </p>
                           </div>
                           
                           <div>
-                            <p className="text-gray-600 dark:text-gray-400">Última execução</p>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                            <p className="text-white/60">Última execução</p>
+                            <p className="font-medium text-white">
                               {transaction.lastProcessed 
                                 ? new Date(transaction.lastProcessed).toLocaleDateString('pt-BR')
                                 : 'Nunca'
@@ -325,7 +343,7 @@ const RecurringTransactionsPage: React.FC = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => handleEditRecurring(transaction)}
-                        className="whitespace-nowrap dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                        className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs"
                       >
                         <Settings className="h-4 w-4 mr-1" />
                         Editar
@@ -335,15 +353,14 @@ const RecurringTransactionsPage: React.FC = () => {
                         size="sm"
                         variant="destructive"
                         onClick={() => handleDeleteRecurring(transaction)}
-                        className="whitespace-nowrap"
+                        className="bg-red-500/20 border-red-400/30 text-red-200 hover:bg-red-500/30 text-xs"
                       >
-                        <Trash2 className="h-4 w-4 mr-1" />
+                        <Trash2 className="h-3 w-3 mr-1" />
                         Excluir
                       </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
             ))
           )}
         </div>
@@ -351,15 +368,25 @@ const RecurringTransactionsPage: React.FC = () => {
 
       {/* Modal de Edição */}
       <Dialog open={!!editingTransaction} onOpenChange={() => setEditingTransaction(null)}>
-        <DialogContent className="sm:max-w-[425px] dark:bg-gray-800 dark:border-gray-700">
+        <DialogContent className="sm:max-w-[425px] bg-white/10 backdrop-blur-xl border border-white/20 text-white">
           <DialogHeader>
-            <DialogTitle className="dark:text-gray-100">Editar Transação Recorrente</DialogTitle>
+            <DialogTitle 
+              className="text-white"
+              style={{
+                fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
+                textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px, rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
+                filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 2px 4px)',
+                WebkitTextStroke: '0.5px rgba(0, 0, 0, 0.3)'
+              }}
+            >
+              Editar Transação Recorrente
+            </DialogTitle>
           </DialogHeader>
           
           {editingTransaction && (
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right dark:text-gray-300">
+                <Label htmlFor="title" className="text-right text-white/80">
                   Título
                 </Label>
                 <Input
@@ -369,12 +396,12 @@ const RecurringTransactionsPage: React.FC = () => {
                     ...editingTransaction,
                     title: e.target.value
                   })}
-                  className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                  className="col-span-3 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
                 />
               </div>
               
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="amount" className="text-right dark:text-gray-300">
+                <Label htmlFor="amount" className="text-right text-white/80">
                   Valor
                 </Label>
                 <Input
@@ -386,12 +413,12 @@ const RecurringTransactionsPage: React.FC = () => {
                     ...editingTransaction,
                     amount: parseFloat(e.target.value) || 0
                   })}
-                  className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                  className="col-span-3 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
                 />
               </div>
               
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right dark:text-gray-300">
+                <Label htmlFor="description" className="text-right text-white/80">
                   Categoria
                 </Label>
                 <Select
@@ -401,10 +428,10 @@ const RecurringTransactionsPage: React.FC = () => {
                     category: value
                   })}
                 >
-                  <SelectTrigger className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                  <SelectTrigger className="col-span-3 bg-white/10 border-white/20 text-white">
                     <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
-                  <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                  <SelectContent className="bg-white/10 backdrop-blur-xl border-white/20 text-white">
                     {(editingTransaction.type === 'income' 
                       ? INCOME_CATEGORIES 
                       : EXPENSE_CATEGORIES
@@ -412,7 +439,7 @@ const RecurringTransactionsPage: React.FC = () => {
                       <SelectItem 
                         key={category} 
                         value={category}
-                        className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
+                        className="text-white hover:bg-white/20"
                       >
                         {category}
                       </SelectItem>
@@ -422,7 +449,7 @@ const RecurringTransactionsPage: React.FC = () => {
               </div>
               
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="frequency" className="text-right dark:text-gray-300">
+                <Label htmlFor="frequency" className="text-right text-white/80">
                   Frequência
                 </Label>
                 <Select
@@ -432,17 +459,17 @@ const RecurringTransactionsPage: React.FC = () => {
                     recurrenceFrequency: value
                   })}
                 >
-                  <SelectTrigger className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                  <SelectTrigger className="col-span-3 bg-white/10 border-white/20 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                    <SelectItem value="weekly" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">
+                  <SelectContent className="bg-white/10 backdrop-blur-xl border-white/20 text-white">
+                    <SelectItem value="weekly" className="text-white hover:bg-white/20">
                       Semanal
                     </SelectItem>
-                    <SelectItem value="monthly" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">
+                    <SelectItem value="monthly" className="text-white hover:bg-white/20">
                       Mensal
                     </SelectItem>
-                    <SelectItem value="yearly" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">
+                    <SelectItem value="yearly" className="text-white hover:bg-white/20">
                       Anual
                     </SelectItem>
                   </SelectContent>
@@ -492,7 +519,7 @@ const RecurringTransactionsPage: React.FC = () => {
                       ...editingTransaction,
                       recurringDay: parseInt(e.target.value) || 1
                     })}
-                    className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                    className="col-span-3 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
                   />
                 </div>
               )}
@@ -501,11 +528,14 @@ const RecurringTransactionsPage: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={() => setEditingTransaction(null)}
-                  className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                 >
                   Cancelar
                 </Button>
-                <Button onClick={handleSaveEdit}>
+                <Button 
+                  onClick={handleSaveEdit}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+                >
                   Salvar
                 </Button>
               </div>

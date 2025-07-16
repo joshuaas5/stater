@@ -739,9 +739,9 @@ const Dashboard: React.FC = () => {
   
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 pb-20">
-      {/* Partículas flutuantes */}
+      {/* Partículas flutuantes otimizadas */}
       <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: 30 }).map((_, i) => (
+        {Array.from({ length: 15 }).map((_, i) => (
           <div
             key={i}
             className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
@@ -749,16 +749,16 @@ const Dashboard: React.FC = () => {
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
+              animationDuration: `${4 + Math.random() * 3}s`,
             }}
           />
         ))}
       </div>
       
-      {/* Background Effects */}
+      {/* Background Effects reduzidos */}
       <div className="absolute inset-0 bg-black/10" />
-      <div className="absolute top-10 left-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/15 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-10 right-10 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl animate-pulse" />
       
       <div className="relative z-10">
         <div className="flex items-center justify-between p-4">
@@ -772,8 +772,9 @@ const Dashboard: React.FC = () => {
               className="text-white text-lg font-bold leading-tight"
               style={{
                 fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                textShadow: 'rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
-                filter: 'drop-shadow(rgba(0, 0, 0, 0.3) 0px 2px 4px)'
+                textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px, rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
+                filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 2px 4px)',
+                WebkitTextStroke: '0.5px rgba(0, 0, 0, 0.3)'
               }}
             >
               Olá, {userName}!
@@ -847,7 +848,15 @@ const Dashboard: React.FC = () => {
                     <MessageCircle className="h-6 w-6 text-blue-300" />
                   </div>
                   <div>
-                    <h4 className="text-white font-medium text-base">
+                    <h4 
+                      className="text-white font-medium text-base"
+                      style={{
+                        fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
+                        textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px, rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
+                        filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 2px 4px)',
+                        WebkitTextStroke: '0.5px rgba(0, 0, 0, 0.3)'
+                      }}
+                    >
                       Telegram Bot
                     </h4>
                     <p className="text-blue-200 text-sm">
@@ -881,7 +890,15 @@ const Dashboard: React.FC = () => {
                     <Check className="h-6 w-6 text-green-300" />
                   </div>
                   <div>
-                    <h4 className="text-white font-medium text-base">
+                    <h4 
+                      className="text-white font-medium text-base"
+                      style={{
+                        fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
+                        textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px, rgb(34, 197, 94) 1px 1px 0px, rgb(21, 128, 61) 2px 2px 0px, rgba(34, 197, 94, 0.5) 0px 0px 10px',
+                        filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 2px 4px)',
+                        WebkitTextStroke: '0.5px rgba(0, 0, 0, 0.3)'
+                      }}
+                    >
                       Telegram Conectado ✅
                     </h4>
                     <p className="text-green-200 text-sm">
@@ -894,7 +911,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -1266,7 +1283,7 @@ const Dashboard: React.FC = () => {
         return displayTransactions.length > 0 ? (
           <div className="px-4 space-y-3">
             {displayTransactions.map((transaction: Transaction) => (
-              <div key={transaction.id} className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-[1.02]">
+              <div key={transaction.id} className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/15 transition-colors duration-300">
                 <div className="flex items-center gap-4 justify-between">
                   <div className="flex items-center gap-4">
                     <div className="text-white flex items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 shrink-0 size-12">
@@ -1354,7 +1371,7 @@ const Dashboard: React.FC = () => {
           </div>
         ) : (
           <div className="px-4">
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8 hover:bg-white/15 transition-colors duration-300">
               <div className="flex flex-col items-center justify-center">
                 <p className="text-white/70 mb-4">Nenhuma transação encontrada</p>
               </div>

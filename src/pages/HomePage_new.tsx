@@ -97,59 +97,58 @@ const HomePage: React.FC = () => {
                 STATER
               </h1>
               <p className="text-blue-200 text-xl md:text-2xl font-medium mb-2">
-                Assistente Financeiro Inteligente
+                Sua IA financeira pessoal
               </p>
             </div>
             
             <div className="animate-slide-in">
               <h2 className="text-3xl md:text-5xl font-bold text-white mb-8 leading-tight">
-                Você gasta horas por semana
+                Você gasta 3 horas por semana
                 <span className="text-blue-300 block mt-2">organizando finanças?</span>
               </h2>
               <p className="text-xl text-blue-100 mb-6 max-w-4xl mx-auto leading-relaxed">
-                Imagine se você pudesse simplesmente enviar uma <strong>foto de uma nota fiscal</strong> ou gravar um 
-                <strong> áudio dizendo quanto gastou no mercado</strong> e tudo fosse organizado automaticamente.
+                Imagine se você pudesse falar "<strong>gastei 50 reais no supermercado</strong>" 
+                no seu celular e tudo fosse organizado automaticamente.
               </p>
               <p className="text-lg text-blue-200 mb-8 max-w-3xl mx-auto leading-relaxed">
-                O Stater usa <strong>inteligência artificial</strong> para transformar suas informações em 
-                <strong> relatórios completos</strong>, gráficos interativos e insights que ajudam você a 
-                <strong> acompanhar e controlar suas finanças</strong> de forma inteligente.
+                O Stater usa <strong>inteligência artificial</strong> para transformar sua voz 
+                em relatórios financeiros completos. Sem planilhas. Sem complicação.
               </p>
               
               {/* Principais funcionalidades */}
               <div className="grid md:grid-cols-2 gap-6 mb-10 max-w-4xl mx-auto">
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">🎤 Comando de Voz</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">🎤 Fale e Pronto</h3>
                   <p className="text-blue-100 text-sm">
-                    Fale naturalmente: <strong>"Gastei 200 reais abastecendo o carro"</strong> - nossa IA 
-                    ouve, identifica a categoria e organiza automaticamente.
+                    "<strong>Gastei 80 reais no posto</strong>" - nossa IA ouve, entende e 
+                    categoriza automaticamente. Mais rápido que digitar.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">📸 Leitura Inteligente</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">📸 Tire Foto, Esqueça</h3>
                   <p className="text-blue-100 text-sm">
-                    Fotografe qualquer <strong>nota fiscal</strong>, <strong>extrato</strong> ou 
-                    <strong> comprovante</strong>. A IA digitaliza e organiza tudo em segundos.
+                    Fotografe qualquer <strong>nota fiscal ou extrato</strong>. A IA lê tudo e 
+                    organiza seus gastos sem você mexer um dedo.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">📊 Acompanhamento Total</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">📊 Relatórios Automáticos</h3>
                   <p className="text-blue-100 text-sm">
-                    Visualize <strong>onde vai seu dinheiro</strong> com gráficos interativos e 
-                    <strong> relatórios detalhados</strong> atualizados em tempo real.
+                    Descubra exatamente <strong>onde vai seu dinheiro</strong> com gráficos 
+                    simples que até sua avó entende.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">💡 Insights Inteligentes</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">💡 Insights Reais</h3>
                   <p className="text-blue-100 text-sm">
-                    Receba alertas personalizados: <strong>"Você gastou 30% mais em delivery este mês"</strong> 
-                    com sugestões para economizar.
+                    "Você gastou 30% mais em delivery este mês" - avisos que realmente 
+                    <strong>fazem diferença no seu bolso</strong>.
                   </p>
                 </div>
               </div>
               
               <p className="text-2xl text-blue-200 font-bold mb-10">
-                Inteligência financeira ao seu alcance.
+                Chega de planilhas. Chegou a hora da IA.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
@@ -184,8 +183,8 @@ const HomePage: React.FC = () => {
                 Comando de Voz
               </h3>
               <p className="text-blue-100 leading-relaxed">
-                Registre gastos falando naturalmente: <strong>"Almoço de R$ 25 no restaurante"</strong> 
-                ou <strong>"Gasolina R$ 200 no posto Shell"</strong>. A IA entende contexto e categoriza tudo.
+                Fale naturalmente: "<strong>Almoço 25 reais</strong>" ou "<strong>Gasolina 200</strong>". 
+                Nossa IA entende e categoriza tudo automaticamente.
               </p>
             </div>
 
@@ -210,9 +209,8 @@ const HomePage: React.FC = () => {
                 Inteligência Real
               </h3>
               <p className="text-blue-100 leading-relaxed">
-                A IA aprende seus hábitos e oferece <strong>acompanhamento inteligente</strong>: 
-                <strong>"Você gastou R$ 400 a mais em restaurantes este mês"</strong>. Insights e alertas 
-                que realmente <strong>protegem seu dinheiro</strong>.
+                A IA aprende seus hábitos e avisa: "<strong>Você gastou R$ 400 a mais em restaurantes este mês</strong>". 
+                Insights que economizam dinheiro de verdade.
               </p>
             </div>
           </div>
@@ -221,61 +219,45 @@ const HomePage: React.FC = () => {
           <div className="mb-20">
             <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-12">
               <h3 className="text-3xl md:text-4xl font-bold text-white mb-8 text-center">
-                Transforme sua relação com o dinheiro
+                Por que as pessoas estão abandonando as planilhas?
               </h3>
               <div className="grid md:grid-cols-2 gap-12">
                 <div className="space-y-6">
-                  <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/20 rounded-full border border-red-400/30 mb-4">
-                      <span className="text-red-300 text-2xl">😰</span>
-                    </div>
-                    <h4 className="text-xl font-bold text-red-300">Antes do Stater</h4>
-                  </div>
+                  <h4 className="text-xl font-bold text-red-300 mb-4">❌ Realidade sem o Stater:</h4>
                   <div className="space-y-4">
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-red-100 text-center leading-relaxed">
-                        <strong>"Eu esquecia de anotar os gastos"</strong><br/>
-                        <span className="text-red-200 text-sm">No final do mês não sabia onde tinha gasto meu dinheiro</span>
+                    <div className="bg-red-900/20 border border-red-400/30 rounded-lg p-4">
+                      <p className="text-red-100 text-sm">
+                        "Eu esquecia de anotar os gastos e no final do mês não sabia onde tinha gasto meu dinheiro."
                       </p>
                     </div>
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-red-100 text-center leading-relaxed">
-                        <strong>"Horas organizando planilhas"</strong><br/>
-                        <span className="text-red-200 text-sm">Tempo perdido que poderia estar aproveitando a vida</span>
+                    <div className="bg-red-900/20 border border-red-400/30 rounded-lg p-4">
+                      <p className="text-red-100 text-sm">
+                        "Passava horas organizando planilhas que ninguém conseguia entender."
                       </p>
                     </div>
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-red-100 text-center leading-relaxed">
-                        <strong>"Descobria os gastos excessivos tarde demais"</strong><br/>
-                        <span className="text-red-200 text-sm">Dinheiro que já tinha ido embora</span>
+                    <div className="bg-red-900/20 border border-red-400/30 rounded-lg p-4">
+                      <p className="text-red-100 text-sm">
+                        "Demorava para perceber que estava gastando demais em algumas categorias."
                       </p>
                     </div>
                   </div>
                 </div>
                 <div className="space-y-6">
-                  <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full border border-green-400/30 mb-4">
-                      <span className="text-green-300 text-2xl">🚀</span>
-                    </div>
-                    <h4 className="text-xl font-bold text-green-300">Com o Stater</h4>
-                  </div>
+                  <h4 className="text-xl font-bold text-green-300 mb-4">✅ Vida com o Stater:</h4>
                   <div className="space-y-4">
-                    <div className="bg-green-900/10 border border-green-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-green-100 text-center leading-relaxed">
-                        <strong>"Falo no celular e pronto"</strong><br/>
-                        <span className="text-green-200 text-sm">Tudo organizado automaticamente, sem esforço</span>
+                    <div className="bg-green-900/20 border border-green-400/30 rounded-lg p-4">
+                      <p className="text-green-100 text-sm">
+                        "Agora eu falo no celular e pronto. Tudo organizado automaticamente."
                       </p>
                     </div>
-                    <div className="bg-green-900/10 border border-green-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-green-100 text-center leading-relaxed">
-                        <strong>"Economizo horas toda semana"</strong><br/>
-                        <span className="text-green-200 text-sm">Tempo que agora uso para o que realmente importa</span>
+                    <div className="bg-green-900/20 border border-green-400/30 rounded-lg p-4">
+                      <p className="text-green-100 text-sm">
+                        "Economizo 3 horas por semana que antes gastava com planilhas."
                       </p>
                     </div>
-                    <div className="bg-green-900/10 border border-green-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-green-100 text-center leading-relaxed">
-                        <strong>"Alertas em tempo real me salvaram R$ 500"</strong><br/>
-                        <span className="text-green-200 text-sm">Controle inteligente que protege meu dinheiro</span>
+                    <div className="bg-green-900/20 border border-green-400/30 rounded-lg p-4">
+                      <p className="text-green-100 text-sm">
+                        "O app me avisou que eu estava gastando R$ 300 a mais com delivery. Consegui cortar."
                       </p>
                     </div>
                   </div>
@@ -294,8 +276,8 @@ const HomePage: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-bold text-white mb-3">Telegram + WhatsApp</h3>
                   <p className="text-blue-100 leading-relaxed">
-                    Mande mensagens ou áudios direto no <strong>Telegram</strong> ou <strong>WhatsApp (em breve)</strong>. 
-                    Funciona como se fosse um amigo que anota tudo para você.
+                    Mande mensagens ou áudios direto no seu app favorito. 
+                    <strong>Funciona como se fosse um amigo</strong> que anota tudo para você.
                   </p>
                 </div>
               </div>
@@ -320,11 +302,11 @@ const HomePage: React.FC = () => {
           {/* Call to Action Final */}
           <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-12 text-center">
             <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
-              Comece usando agora
+              Teste grátis por 30 dias
             </h3>
             <p className="text-blue-100 text-lg mb-6 max-w-3xl mx-auto">
-              Transforme sua vida financeira em poucos minutos. O Stater está disponível 
-              agora e <strong>oferece recursos essenciais gratuitamente</strong>.
+              Não precisa de cartão de crédito. Instale agora e veja como <strong>3 minutos por dia</strong> 
+              podem transformar sua vida financeira para sempre.
             </p>
             <p className="text-blue-200 text-xl font-bold mb-8 max-w-2xl mx-auto">
               Mais de 10.000 pessoas já organizaram suas finanças com o Stater.
@@ -336,7 +318,7 @@ const HomePage: React.FC = () => {
                   size="lg" 
                   className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-12 py-4 text-lg shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
                 >
-                  Começar agora
+                  Começar agora - É grátis
                 </Button>
               </Link>
               <Link to="/login">
@@ -351,7 +333,7 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="mt-8 text-blue-300 text-sm">
-              ✅ Recursos gratuitos disponíveis &nbsp;&nbsp; ✅ Instalação simples &nbsp;&nbsp; ✅ Dados seguros
+              ✅ Grátis para sempre &nbsp;&nbsp; ✅ Sem pegadinhas &nbsp;&nbsp; ✅ Dados seguros
             </div>
           </div>
         </div>
@@ -374,7 +356,7 @@ const HomePage: React.FC = () => {
                 filter: 'drop-shadow(rgba(0, 0, 0, 0.3) 0px 2px 4px)'
               }}
             >
-              STATER
+              Stater
             </span>
           </div>
           <div className="flex justify-center space-x-8 mb-6">
@@ -401,7 +383,7 @@ const HomePage: React.FC = () => {
             <p className="text-sm">Stater - Todos os Direitos Reservados</p>
             <p className="text-xs">2025</p>
             <p className="text-xs text-blue-200 font-medium">
-              Inteligência para prosperar
+              Sua IA financeira pessoal
             </p>
           </div>
         </div>

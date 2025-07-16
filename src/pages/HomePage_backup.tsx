@@ -97,59 +97,58 @@ const HomePage: React.FC = () => {
                 STATER
               </h1>
               <p className="text-blue-200 text-xl md:text-2xl font-medium mb-2">
-                Assistente Financeiro Inteligente
+                Inteligência para prosperar
               </p>
             </div>
             
             <div className="animate-slide-in">
               <h2 className="text-3xl md:text-5xl font-bold text-white mb-8 leading-tight">
-                Você gasta horas por semana
-                <span className="text-blue-300 block mt-2">organizando finanças?</span>
+                Finanças inteligentes
+                <span className="text-blue-300 block mt-2">para pessoas inteligentes</span>
               </h2>
               <p className="text-xl text-blue-100 mb-6 max-w-4xl mx-auto leading-relaxed">
-                Imagine se você pudesse simplesmente enviar uma <strong>foto de uma nota fiscal</strong> ou gravar um 
-                <strong> áudio dizendo quanto gastou no mercado</strong> e tudo fosse organizado automaticamente.
+                Transforme a forma como você gerencia suas finanças com tecnologia de ponta. 
+                Controle completo, insights poderosos e automação que realmente funciona.
               </p>
               <p className="text-lg text-blue-200 mb-8 max-w-3xl mx-auto leading-relaxed">
-                O Stater usa <strong>inteligência artificial</strong> para transformar suas informações em 
-                <strong> relatórios completos</strong>, gráficos interativos e insights que ajudam você a 
-                <strong> acompanhar e controlar suas finanças</strong> de forma inteligente.
+                O Stater combina <strong>inteligência artificial</strong> com <strong>interfaces naturais</strong> 
+                para criar a experiência financeira mais avançada e acessível do mercado.
               </p>
               
               {/* Principais funcionalidades */}
               <div className="grid md:grid-cols-2 gap-6 mb-10 max-w-4xl mx-auto">
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">🎤 Comando de Voz</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">🤖 Inteligência Artificial</h3>
                   <p className="text-blue-100 text-sm">
-                    Fale naturalmente: <strong>"Gastei 200 reais abastecendo o carro"</strong> - nossa IA 
-                    ouve, identifica a categoria e organiza automaticamente.
+                    Registre gastos por <strong>áudio, foto ou texto</strong>. Nossa IA entende 
+                    contexto e categoriza automaticamente com precisão.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">📸 Leitura Inteligente</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">� Múltiplas Interfaces</h3>
                   <p className="text-blue-100 text-sm">
-                    Fotografe qualquer <strong>nota fiscal</strong>, <strong>extrato</strong> ou 
-                    <strong> comprovante</strong>. A IA digitaliza e organiza tudo em segundos.
+                    Use no <strong>web, mobile, Telegram ou WhatsApp</strong>. Seus dados 
+                    sincronizam em tempo real, onde você estiver.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">📊 Acompanhamento Total</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">📊 Análises Avançadas</h3>
                   <p className="text-blue-100 text-sm">
-                    Visualize <strong>onde vai seu dinheiro</strong> com gráficos interativos e 
-                    <strong> relatórios detalhados</strong> atualizados em tempo real.
+                    Dashboards interativos, relatórios personalizados e <strong>insights 
+                    acionáveis</strong> que realmente impactam suas decisões.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">💡 Insights Inteligentes</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">🔒 Segurança Total</h3>
                   <p className="text-blue-100 text-sm">
-                    Receba alertas personalizados: <strong>"Você gastou 30% mais em delivery este mês"</strong> 
-                    com sugestões para economizar.
+                    Criptografia de ponta, backup automático e controle total dos seus 
+                    dados financeiros com <strong>máxima privacidade</strong>.
                   </p>
                 </div>
               </div>
               
               <p className="text-2xl text-blue-200 font-bold mb-10">
-                Inteligência financeira ao seu alcance.
+                Simplifique. Automatize. Prospere.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
@@ -158,7 +157,7 @@ const HomePage: React.FC = () => {
                     size="lg" 
                     className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-10 py-4 text-lg shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
                   >
-                    Baixar grátis
+                    Começar gratuitamente
                   </Button>
                 </Link>
                 <Link to="/login">
@@ -178,14 +177,14 @@ const HomePage: React.FC = () => {
           <div className="grid md:grid-cols-3 gap-8 mb-20">
             <div className="text-center p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
               <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 border border-blue-400/30">
-                <Mic className="h-10 w-10 text-blue-300" />
+                <MessageCircle className="h-10 w-10 text-blue-300" />
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">
-                Comando de Voz
+                Telegram + WhatsApp
               </h3>
               <p className="text-blue-100 leading-relaxed">
-                Registre gastos falando naturalmente: <strong>"Almoço de R$ 25 no restaurante"</strong> 
-                ou <strong>"Gasolina R$ 200 no posto Shell"</strong>. A IA entende contexto e categoriza tudo.
+                Registre gastos enviando <strong>áudios</strong> ou <strong>mensagens</strong> direto no Telegram. 
+                Em breve no WhatsApp também. Simples como conversar.
               </p>
             </div>
 
@@ -194,11 +193,11 @@ const HomePage: React.FC = () => {
                 <Camera className="h-10 w-10 text-blue-300" />
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">
-                Leitura Automática
+                Reconhecimento Visual
               </h3>
               <p className="text-blue-100 leading-relaxed">
-                Tire uma foto do <strong>extrato bancário</strong>, <strong>nota fiscal</strong> ou 
-                <strong>comprovante</strong>. A IA digitaliza tudo em segundos.
+                Tire fotos de <strong>extratos, notas fiscais e faturas</strong>. 
+                Nossa IA lê e organiza automaticamente todos os dados financeiros.
               </p>
             </div>
 
@@ -207,95 +206,79 @@ const HomePage: React.FC = () => {
                 <Brain className="h-10 w-10 text-blue-300" />
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">
-                Inteligência Real
+                IA Inteligente
               </h3>
               <p className="text-blue-100 leading-relaxed">
-                A IA aprende seus hábitos e oferece <strong>acompanhamento inteligente</strong>: 
-                <strong>"Você gastou R$ 400 a mais em restaurantes este mês"</strong>. Insights e alertas 
-                que realmente <strong>protegem seu dinheiro</strong>.
+                Categorização automática, análises personalizadas e insights que realmente 
+                <strong> ajudam você a economizar</strong> e prosperar.
               </p>
             </div>
           </div>
 
-          {/* Prova Social */}
+          {/* Recursos Avançados */}
           <div className="mb-20">
             <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-12">
               <h3 className="text-3xl md:text-4xl font-bold text-white mb-8 text-center">
-                Transforme sua relação com o dinheiro
+                Tecnologia que se adapta ao seu estilo
               </h3>
-              <div className="grid md:grid-cols-2 gap-12">
+              <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6">
-                  <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/20 rounded-full border border-red-400/30 mb-4">
-                      <span className="text-red-300 text-2xl">😰</span>
-                    </div>
-                    <h4 className="text-xl font-bold text-red-300">Antes do Stater</h4>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-red-100 text-center leading-relaxed">
-                        <strong>"Eu esquecia de anotar os gastos"</strong><br/>
-                        <span className="text-red-200 text-sm">No final do mês não sabia onde tinha gasto meu dinheiro</span>
-                      </p>
-                    </div>
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-red-100 text-center leading-relaxed">
-                        <strong>"Horas organizando planilhas"</strong><br/>
-                        <span className="text-red-200 text-sm">Tempo perdido que poderia estar aproveitando a vida</span>
-                      </p>
-                    </div>
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-red-100 text-center leading-relaxed">
-                        <strong>"Descobria os gastos excessivos tarde demais"</strong><br/>
-                        <span className="text-red-200 text-sm">Dinheiro que já tinha ido embora</span>
-                      </p>
-                    </div>
+                  <h4 className="text-xl font-bold text-blue-300 mb-4">🎯 Recursos Principais:</h4>
+                  <div className="space-y-3">
+                    <p className="text-blue-100 flex items-start">
+                      <span className="text-blue-400 mr-2">•</span>
+                      Registro por áudio, foto ou texto - você escolhe
+                    </p>
+                    <p className="text-blue-100 flex items-start">
+                      <span className="text-blue-400 mr-2">•</span>
+                      Sincronização em tempo real entre todos os dispositivos
+                    </p>
+                    <p className="text-blue-100 flex items-start">
+                      <span className="text-blue-400 mr-2">•</span>
+                      Análises automáticas e insights personalizados
+                    </p>
+                    <p className="text-blue-100 flex items-start">
+                      <span className="text-blue-400 mr-2">•</span>
+                      Interface intuitiva e experiência premium
+                    </p>
                   </div>
                 </div>
                 <div className="space-y-6">
-                  <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full border border-green-400/30 mb-4">
-                      <span className="text-green-300 text-2xl">🚀</span>
-                    </div>
-                    <h4 className="text-xl font-bold text-green-300">Com o Stater</h4>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="bg-green-900/10 border border-green-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-green-100 text-center leading-relaxed">
-                        <strong>"Falo no celular e pronto"</strong><br/>
-                        <span className="text-green-200 text-sm">Tudo organizado automaticamente, sem esforço</span>
-                      </p>
-                    </div>
-                    <div className="bg-green-900/10 border border-green-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-green-100 text-center leading-relaxed">
-                        <strong>"Economizo horas toda semana"</strong><br/>
-                        <span className="text-green-200 text-sm">Tempo que agora uso para o que realmente importa</span>
-                      </p>
-                    </div>
-                    <div className="bg-green-900/10 border border-green-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-green-100 text-center leading-relaxed">
-                        <strong>"Alertas em tempo real me salvaram R$ 500"</strong><br/>
-                        <span className="text-green-200 text-sm">Controle inteligente que protege meu dinheiro</span>
-                      </p>
-                    </div>
+                  <h4 className="text-xl font-bold text-green-300 mb-4">🚀 Benefícios Únicos:</h4>
+                  <div className="space-y-3">
+                    <p className="text-blue-100 flex items-start">
+                      <span className="text-green-400 mr-2">•</span>
+                      Economize até 90% do tempo com organização financeira
+                    </p>
+                    <p className="text-blue-100 flex items-start">
+                      <span className="text-green-400 mr-2">•</span>
+                      Tome decisões baseadas em dados reais e atualizados
+                    </p>
+                    <p className="text-blue-100 flex items-start">
+                      <span className="text-green-400 mr-2">•</span>
+                      Identifique oportunidades de economia automaticamente
+                    </p>
+                    <p className="text-blue-100 flex items-start">
+                      <span className="text-green-400 mr-2">•</span>
+                      Mantenha controle total sem perder praticidade
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Como funciona */}
+          {/* Recursos Exclusivos */}
           <div className="grid md:grid-cols-2 gap-8 mb-20">
             <div className="p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
               <div className="flex items-start space-x-4">
                 <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center border border-blue-400/30">
-                  <MessageCircle className="h-8 w-8 text-blue-300" />
+                  <BarChart3 className="h-8 w-8 text-blue-300" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-3">Telegram + WhatsApp</h3>
+                  <h3 className="text-xl font-bold text-white mb-3">Relatórios Inteligentes</h3>
                   <p className="text-blue-100 leading-relaxed">
-                    Mande mensagens ou áudios direto no <strong>Telegram</strong> ou <strong>WhatsApp (em breve)</strong>. 
-                    Funciona como se fosse um amigo que anota tudo para você.
+                    Transforme seus dados financeiros em insights valiosos com visualizações claras e análises personalizadas.
                   </p>
                 </div>
               </div>
@@ -304,30 +287,65 @@ const HomePage: React.FC = () => {
             <div className="p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
               <div className="flex items-start space-x-4">
                 <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center border border-blue-400/30">
-                  <Smartphone className="h-8 w-8 text-blue-300" />
+                  <Zap className="h-8 w-8 text-blue-300" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-3">App Completo</h3>
+                  <h3 className="text-xl font-bold text-white mb-3">Automação Inteligente</h3>
                   <p className="text-blue-100 leading-relaxed">
-                    Relatórios lindos, gráficos interativos e insights poderosos. 
-                    <strong>Tudo sincronizado</strong> em tempo real.
+                    Deixe a IA categorizar seus gastos, identificar padrões e sugerir otimizações financeiras automaticamente.
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Call to Action Final */}
+          {/* Missão e Visão */}
+          <div className="mb-20">
+            <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-12 text-center">
+              <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
+                Nossa Missão
+              </h3>
+              <p className="text-blue-100 text-lg mb-8 max-w-3xl mx-auto leading-relaxed">
+                Democratizar o acesso à inteligência financeira, proporcionando ferramentas simples e poderosas 
+                para que cada pessoa possa tomar decisões financeiras mais conscientes e prósperas.
+              </p>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 border border-blue-400/30">
+                    <Shield className="h-8 w-8 text-blue-300" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-white mb-2">Transparência</h4>
+                  <p className="text-blue-100 text-sm">Dados claros e análises honestas</p>
+                </div>
+                <div className="text-center">
+                  <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 border border-blue-400/30">
+                    <TrendingUp className="h-8 w-8 text-blue-300" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-white mb-2">Crescimento</h4>
+                  <p className="text-blue-100 text-sm">Evolução constante e aprendizado</p>
+                </div>
+                <div className="text-center">
+                  <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 border border-blue-400/30">
+                    <Users className="h-8 w-8 text-blue-300" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-white mb-2">Acessibilidade</h4>
+                  <p className="text-blue-100 text-sm">Tecnologia ao alcance de todos</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA Section */}
           <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-12 text-center">
             <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
-              Comece usando agora
+              Sua vida financeira está fugindo do controle?
             </h3>
             <p className="text-blue-100 text-lg mb-6 max-w-3xl mx-auto">
-              Transforme sua vida financeira em poucos minutos. O Stater está disponível 
-              agora e <strong>oferece recursos essenciais gratuitamente</strong>.
+              <strong>Pare de perder tempo e dinheiro.</strong> Enquanto você organiza planilhas manualmente, 
+              suas oportunidades de economia estão passando despercebidas.
             </p>
             <p className="text-blue-200 text-xl font-bold mb-8 max-w-2xl mx-auto">
-              Mais de 10.000 pessoas já organizaram suas finanças com o Stater.
+              O Stater transforma sua rotina financeira em segundos, não em horas.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -336,7 +354,7 @@ const HomePage: React.FC = () => {
                   size="lg" 
                   className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-12 py-4 text-lg shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
                 >
-                  Começar agora
+                  Experimentar agora
                 </Button>
               </Link>
               <Link to="/login">
@@ -348,10 +366,6 @@ const HomePage: React.FC = () => {
                   Já tenho conta
                 </Button>
               </Link>
-            </div>
-
-            <div className="mt-8 text-blue-300 text-sm">
-              ✅ Recursos gratuitos disponíveis &nbsp;&nbsp; ✅ Instalação simples &nbsp;&nbsp; ✅ Dados seguros
             </div>
           </div>
         </div>
@@ -374,7 +388,7 @@ const HomePage: React.FC = () => {
                 filter: 'drop-shadow(rgba(0, 0, 0, 0.3) 0px 2px 4px)'
               }}
             >
-              STATER
+              Stater
             </span>
           </div>
           <div className="flex justify-center space-x-8 mb-6">

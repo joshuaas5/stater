@@ -738,173 +738,210 @@ const Dashboard: React.FC = () => {
   const userName = currentUser ? currentUser.username : "Usuário";
   
   return (
-    <div className="bg-galileo-background min-h-screen pb-20">
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center">
-          <h2 className="text-galileo-text text-lg font-bold leading-tight">
-            Olá, {userName}!
-          </h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <NotificationBell />
-          <ThemeToggle />
-        </div>
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 pb-20">
+      {/* Partículas flutuantes */}
+      <div className="absolute inset-0 overflow-hidden">
+        {Array.from({ length: 30 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 4}s`,
+            }}
+          />
+        ))}
       </div>
-
-      <div className="px-4 mb-4">
-        <MonthSelector onMonthChange={handleMonthChange} />
-      </div>
-
-      <div className="flex flex-wrap gap-4 px-4 mb-6">
-        <div className="w-full">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-galileo-secondaryText text-base font-medium leading-normal">Saldo da Conta</span>
-              <button
-                aria-label={balanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
-                className="ml-1 text-galileo-secondaryText hover:text-galileo-text"
-                onClick={() => setBalanceVisible((v: boolean) => !v)}
-                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-              >
-                {balanceVisible ? <Eye size={20} /> : <EyeOff size={20} />}
-              </button>
-            </div>
+      
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-black/10" />
+      <div className="absolute top-10 left-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl animate-pulse" />
+      
+      <div className="relative z-10">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center space-x-3">
+            <img 
+              src="/stater-logo-192.png" 
+              alt="Stater Logo" 
+              className="h-8 w-8 object-contain drop-shadow-lg"
+            />
+            <h2 
+              className="text-white text-lg font-bold leading-tight"
+              style={{
+                fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
+                textShadow: 'rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
+                filter: 'drop-shadow(rgba(0, 0, 0, 0.3) 0px 2px 4px)'
+              }}
+            >
+              Olá, {userName}!
+            </h2>
           </div>
-          <BalanceCard balance={balance} percentChange={percentChange} visible={balanceVisible} />
-        </div>
-      </div>
-
-      {/* Links para funcionalidades avançadas */}
-      <div className="px-4 mb-6 flex justify-end gap-3">
-        <Link
-          to="/recurring-transactions"
-          className="flex items-center gap-1 px-3 py-1 rounded-md border border-blue-200 bg-blue-50 hover:bg-blue-100 shadow-sm text-base font-semibold text-blue-700 transition-all duration-150"
-          style={{ textDecoration: 'none' }}
-        >
-          <CalendarRange className="h-5 w-5 text-blue-600" />
-          <span className="text-xs">Recorrentes</span>
-        </Link>
-      </div>      <div className="flex justify-center gap-4 mb-6">
-        <Button 
-          onClick={() => handleAddTransaction('income')}
-          className="bg-galileo-positive hover:bg-galileo-positive/80 text-white flex items-center gap-2"
-        >
-          <TrendingUp size={18} />
-          Adicionar Entrada
-        </Button>
-        <Button 
-          onClick={() => handleAddTransaction('expense')}
-          className="bg-galileo-negative hover:bg-galileo-negative/80 text-white flex items-center gap-2"
-        >
-          <TrendingDown size={18} />
-          Adicionar Saída
-        </Button>
-      </div>      {/* Banner Telegram - Versão Discreta */}
-      <div className="px-4 mb-4">
-        {!isTelegramLinked ? (
-          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                  <MessageCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <h4 className="text-blue-900 dark:text-blue-100 font-medium text-sm">
-                    Telegram Bot
-                  </h4>
-                  <p className="text-blue-700 dark:text-blue-300 text-xs">
-                    Consulte suas finanças via Telegram
-                  </p>
-                </div>
-              </div>
-              
-              <Button
-                onClick={generateTelegramCode}
-                disabled={isGeneratingCode}
-                size="sm"
-                variant="outline"
-                className="border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900"
-              >
-                {isGeneratingCode ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-600 border-t-transparent"></div>
-                    <span className="text-xs">Conectando...</span>
-                  </div>
-                ) : (
-                  <span className="text-xs">Conectar</span>
-                )}
-              </Button>
-            </div>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <ThemeToggle />
           </div>
-        ) : (
-          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                  <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-                </div>
-                <div>
-                  <h4 className="text-green-900 dark:text-green-100 font-medium text-sm">
-                    Telegram Conectado ✅
-                  </h4>
-                  <p className="text-green-700 dark:text-green-300 text-xs">
-                    {telegramInfo?.first_name ? (
-                      <>@{telegramInfo.username || telegramInfo.first_name}</>
-                    ) : (
-                      <>Usuário conectado</>
-                    )}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
-                  className="border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900"
+        </div>
+
+        <div className="px-4 mb-4">
+          <MonthSelector onMonthChange={handleMonthChange} />
+        </div>
+
+        <div className="flex flex-wrap gap-4 px-4 mb-6">
+          <div className="w-full">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-white/90 text-base font-medium leading-normal">Saldo da Conta</span>
+                <button
+                  aria-label={balanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
+                  className="ml-1 text-white/70 hover:text-white transition-colors"
+                  onClick={() => setBalanceVisible((v: boolean) => !v)}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                 >
-                  <span className="text-xs">Abrir Bot</span>
-                </Button>
+                  {balanceVisible ? <Eye size={20} /> : <EyeOff size={20} />}
+                </button>
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4">
+              <BalanceCard balance={balance} percentChange={percentChange} visible={balanceVisible} />
+            </div>
+          </div>
+        </div>
+
+        {/* Links para funcionalidades avançadas */}
+        <div className="px-4 mb-6 flex justify-end gap-3">
+          <Link
+            to="/recurring-transactions"
+            className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 shadow-lg text-base font-semibold text-white transition-all duration-300 hover:scale-105"
+            style={{ textDecoration: 'none' }}
+          >
+            <CalendarRange className="h-5 w-5 text-blue-300" />
+            <span className="text-xs">Recorrentes</span>
+          </Link>
+        </div>      
+
+        <div className="flex justify-center gap-4 mb-6">
+          <Button 
+            onClick={() => handleAddTransaction('income')}
+            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+          >
+            <TrendingUp size={18} />
+            Adicionar Entrada
+          </Button>
+          <Button 
+            onClick={() => handleAddTransaction('expense')}
+            className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+          >
+            <TrendingDown size={18} />
+            Adicionar Saída
+          </Button>
+        </div>        {/* Banner Telegram - Versão Glassmorphism */}
+        <div className="px-4 mb-4">
+          {!isTelegramLinked ? (
+            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-xl">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-blue-500/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-blue-400/30">
+                    <MessageCircle className="h-6 w-6 text-blue-300" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium text-base">
+                      Telegram Bot
+                    </h4>
+                    <p className="text-blue-200 text-sm">
+                      Consulte suas finanças via Telegram
+                    </p>
+                  </div>
+                </div>
                 
                 <Button
-                  variant="outline"
+                  onClick={generateTelegramCode}
+                  disabled={isGeneratingCode}
                   size="sm"
-                  onClick={async () => {
-                    if (confirm('🔌 Desconectar do Telegram?\n\nVocê não receberá mais notificações até conectar novamente.')) {
-                      try {
-                        const { error } = await supabase
-                          .from('telegram_users')
-                          .delete()
-                          .eq('user_id', user?.id);
-                        
-                        if (error) throw error;
-                        
-                        // Usar função resetTelegramStatus
-                        resetTelegramStatus();
-                        
-                        toast({
-                          title: "🔌 Desconectado",
-                          description: "Telegram desconectado com sucesso!",
-                        });
-                      } catch (error: any) {
-                        toast({
-                          title: "❌ Erro",
-                          description: "Erro ao desconectar: " + error.message,
-                          variant: "destructive"
-                        });
-                      }
-                    }
-                  }}
-                  className="border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900"
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                 >
-                  <span className="text-xs">Desconectar</span>
+                  {isGeneratingCode ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
+                      <span className="text-sm">Conectando...</span>
+                    </div>
+                  ) : (
+                    <span className="text-sm">Conectar</span>
+                  )}
                 </Button>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-xl">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-green-500/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-green-400/30">
+                    <Check className="h-6 w-6 text-green-300" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium text-base">
+                      Telegram Conectado ✅
+                    </h4>
+                    <p className="text-green-200 text-sm">
+                      {telegramInfo?.first_name ? (
+                        <>@{telegramInfo.username || telegramInfo.first_name}</>
+                      ) : (
+                        <>Usuário conectado</>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
+                    className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <span className="text-sm">Abrir Bot</span>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      if (confirm('🔌 Desconectar do Telegram?\n\nVocê não receberá mais notificações até conectar novamente.')) {
+                        try {
+                          const { error } = await supabase
+                            .from('telegram_users')
+                            .delete()
+                            .eq('user_id', user?.id);
+                          
+                          if (error) throw error;
+                          
+                          // Usar função resetTelegramStatus
+                          resetTelegramStatus();
+                          
+                          toast({
+                            title: "🔌 Desconectado",
+                            description: "Telegram desconectado com sucesso!",
+                          });
+                        } catch (error: any) {
+                          toast({
+                            title: "❌ Erro",
+                            description: "Erro ao desconectar: " + error.message,
+                            variant: "destructive"
+                          });
+                        }
+                      }
+                    }}
+                    className="bg-red-500/20 backdrop-blur-sm border-red-400/30 text-red-200 hover:bg-red-500/30 shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <span className="text-sm">Desconectar</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
       <Dialog open={dialogOpen} onOpenChange={(open: boolean) => {
         setDialogOpen(open);
@@ -1121,68 +1158,82 @@ const Dashboard: React.FC = () => {
       </Dialog>
       
       
-      <div className="px-4 mb-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <div className="lg:col-span-3">
-            <SpendingChart transactions={transactions} days={30} />
+        <div className="px-4 mb-6">
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+              <div className="lg:col-span-3">
+                <SpendingChart transactions={transactions} days={30} />
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <h2 className="text-galileo-text text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-2">
-        Últimas Transações
-      </h2>
-      
-      <div className="px-4 mb-4 flex flex-col gap-2">
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button 
-            onClick={() => setShowDateFilters(!showDateFilters)} 
-            variant="outline" 
-            size="sm"
-            className="w-full sm:w-auto"
+        
+        <div className="px-4 mb-4">
+          <h2 
+            className="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3 pt-2"
+            style={{
+              fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
+              textShadow: 'rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px'
+            }}
           >
-            {showDateFilters ? 'Ocultar Filtros' : 'Filtros Avançados'}
-          </Button>
-          
-          {/* Filtro rápido por nome sempre visível */}
-          <div className="flex-1">
-            <Input 
-              placeholder="Buscar por nome ou categoria..." 
-              value={nameFilter}
-              onChange={(e) => setNameFilter(e.target.value)}
-              className="text-sm"
-            />
+            Últimas Transações
+          </h2>
+        </div>
+      
+        <div className="px-4 mb-4">
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button 
+                  onClick={() => setShowDateFilters(!showDateFilters)} 
+                  variant="outline" 
+                  size="sm"
+                  className="w-full sm:w-auto bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg transition-all duration-300"
+                >
+                  {showDateFilters ? 'Ocultar Filtros' : 'Filtros Avançados'}
+                </Button>
+                
+                {/* Filtro rápido por nome sempre visível */}
+                <div className="flex-1">
+                  <Input 
+                    placeholder="Buscar por nome ou categoria..." 
+                    value={nameFilter}
+                    onChange={(e) => setNameFilter(e.target.value)}
+                    className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder-white/60 focus:border-blue-400 focus:bg-white/20 transition-all duration-300"
+                  />
+                </div>
+              </div>
+
+              {showDateFilters && (
+                <div className="flex flex-col sm:flex-row gap-2 items-center pt-2">
+                  <div className="grid w-full sm:w-auto gap-1.5">
+                    <Label htmlFor="start-date" className="text-xs text-white/80">De:</Label>
+                    <Input type="date" id="start-date" value={startDate || ''} onChange={(e) => setStartDate(e.target.value)} className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-blue-400 focus:bg-white/20 transition-all duration-300" />
+                  </div>
+                  <div className="grid w-full sm:w-auto gap-1.5">
+                    <Label htmlFor="end-date" className="text-xs text-white/80">Até:</Label>
+                    <Input type="date" id="end-date" value={endDate || ''} onChange={(e) => setEndDate(e.target.value)} className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-blue-400 focus:bg-white/20 transition-all duration-300" />
+                  </div>
+                  <Button onClick={() => loadTransactions(selectedMonth, selectedYear, true)} className="mt-4 sm:mt-auto h-9 w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300" size="sm">Filtrar Período</Button>
+                  <Button 
+                    onClick={() => {
+                      setStartDate(null); 
+                      setEndDate(null); 
+                      setNameFilter('');
+                      loadTransactions(selectedMonth, selectedYear); 
+                      setShowDateFilters(false);
+                    }} 
+                    variant="ghost" 
+                    className="mt-1 sm:mt-auto h-9 text-xs w-full sm:w-auto text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300" 
+                    size="sm"
+                  >
+                    Limpar Filtros
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-
-        {showDateFilters && (
-          <div className="flex flex-col sm:flex-row gap-2 items-center pt-2">
-            <div className="grid w-full sm:w-auto gap-1.5">
-              <Label htmlFor="start-date" className="text-xs text-galileo-secondaryText">De:</Label>
-              <Input type="date" id="start-date" value={startDate || ''} onChange={(e) => setStartDate(e.target.value)} className="text-sm" />
-            </div>
-            <div className="grid w-full sm:w-auto gap-1.5">
-              <Label htmlFor="end-date" className="text-xs text-galileo-secondaryText">Até:</Label>
-              <Input type="date" id="end-date" value={endDate || ''} onChange={(e) => setEndDate(e.target.value)} className="text-sm" />
-            </div>
-            <Button onClick={() => loadTransactions(selectedMonth, selectedYear, true)} className="mt-4 sm:mt-auto h-9 w-full sm:w-auto" size="sm">Filtrar Período</Button>
-            <Button 
-              onClick={() => {
-                setStartDate(null); 
-                setEndDate(null); 
-                setNameFilter('');
-                loadTransactions(selectedMonth, selectedYear); 
-                setShowDateFilters(false);
-              }} 
-              variant="ghost" 
-              className="mt-1 sm:mt-auto h-9 text-xs w-full sm:w-auto" 
-              size="sm"
-            >
-              Limpar Filtros
-            </Button>
-          </div>
-        )}
-      </div>
       
       {(() => {
         const displayTransactions = showAllTransactionsInMonth ? transactions : transactions.slice(0, 5);
@@ -1212,122 +1263,116 @@ const Dashboard: React.FC = () => {
           })));
         }
         
-        return displayTransactions.length > 0 ? displayTransactions.map((transaction: Transaction) => (
-          <div key={transaction.id} className="flex items-center gap-4 bg-galileo-background px-4 min-h-[72px] py-2 justify-between border-t border-galileo-border">
-            <div className="flex items-center gap-4">
-              <div className="text-galileo-text flex items-center justify-center rounded-lg bg-galileo-accent shrink-0 size-12">
-                {transaction.isRecurring ? 
-                  <CalendarRange size={24} /> : 
-                  (transaction.type === 'income' ? <TrendingUp size={24} /> : <CreditCard size={24} />)
-                }
-              </div>
-              <div className="flex flex-col justify-center">
-                <p className="text-galileo-text text-base font-medium leading-normal line-clamp-1">
-                  {transaction.title}
-                </p>
-                <p className="text-galileo-secondaryText text-sm font-normal leading-normal line-clamp-2">
-                  {transaction.category} {transaction.isRecurring && '(Recorrente)'}
-                </p>
-                <p className="text-galileo-tertiaryText text-xs font-normal leading-normal">
-                  {new Date(transaction.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <p className={`text-base font-normal leading-normal ${
-                transaction.type === 'income' ? 'text-galileo-positive' : 'text-galileo-negative'
-              }`}>
-                {formatCurrency(transaction.type === 'expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount))}
-              </p>
-              <div className="flex gap-1">
-                <button
-                  aria-label="Editar transação"
-                  className="ml-2 text-galileo-secondaryText hover:text-galileo-text"
-                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                  onClick={() => {
-                    setEditingTransactionDontAdjustBalance(transaction.dontAdjustBalanceOnSave || false); // Inicializar aqui
-                    setEditingTransaction(transaction);
-                    setDialogOpen(true);
-                  }}
-                >
-                  <Edit size={18} />
-                </button>
-                <button
-                  aria-label="Excluir transação"
-                  className="ml-1 text-galileo-secondaryText hover:text-galileo-negative"
-                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                  onClick={() => {
-                    if (window.confirm(`Tem certeza que deseja excluir a transação "${transaction.title}"?`)) {
-                      // Verificar se a transação tem a opção de não ajustar saldo
-                      const shouldAdjustBalance = !transaction.dontAdjustBalanceOnSave;
-                      
-                      // Remover a transação
-                      deleteTransaction(transaction.id);
-                      
-                      toast({
-                        title: 'Transação excluída',
-                        description: `A transação "${transaction.title}" foi excluída com sucesso.`
-                      });
-                      
-                      // Forçar a atualização da lista de transações e do saldo
-                      setTimeout(() => {
-                        // Recarregar transações
-                        loadTransactions(selectedMonth, selectedYear);
-                        
-                        // Atualizar o saldo total COM FILTRO
-                        const allTransactions = getTransactions();
-                        // Filtrar transações recorrentes não processadas
-                        const validTransactions = allTransactions.filter(t => {
-                          if (t.isRecurring && !t.isRecurringInstance) {
-                            return false;
+        return displayTransactions.length > 0 ? (
+          <div className="px-4 space-y-3">
+            {displayTransactions.map((transaction: Transaction) => (
+              <div key={transaction.id} className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-[1.02]">
+                <div className="flex items-center gap-4 justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="text-white flex items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 shrink-0 size-12">
+                      {transaction.isRecurring ? 
+                        <CalendarRange size={24} /> : 
+                        (transaction.type === 'income' ? <TrendingUp size={24} /> : <CreditCard size={24} />)
+                      }
+                    </div>
+                    <div className="flex flex-col justify-center">
+                      <p className="text-white text-base font-medium leading-normal line-clamp-1">
+                        {transaction.title}
+                      </p>
+                      <p className="text-white/70 text-sm font-normal leading-normal line-clamp-2">
+                        {transaction.category} {transaction.isRecurring && '(Recorrente)'}
+                      </p>
+                      <p className="text-white/50 text-xs font-normal leading-normal">
+                        {new Date(transaction.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className={`text-base font-semibold leading-normal ${
+                      transaction.type === 'income' ? 'text-green-300' : 'text-red-300'
+                    }`}>
+                      {formatCurrency(transaction.type === 'expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount))}
+                    </p>
+                    <div className="flex gap-1">
+                      <button
+                        aria-label="Editar transação"
+                        className="ml-2 text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/20 transition-all duration-300"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                        onClick={() => {
+                          setEditingTransactionDontAdjustBalance(transaction.dontAdjustBalanceOnSave || false);
+                          setEditingTransaction(transaction);
+                          setDialogOpen(true);
+                        }}
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        aria-label="Excluir transação"
+                        className="ml-1 text-white/60 hover:text-red-300 p-1 rounded-lg hover:bg-red-500/20 transition-all duration-300"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                        onClick={() => {
+                          if (window.confirm(`Tem certeza que deseja excluir a transação "${transaction.title}"?`)) {
+                            const shouldAdjustBalance = !transaction.dontAdjustBalanceOnSave;
+                            deleteTransaction(transaction.id);
+                            toast({
+                              title: 'Transação excluída',
+                              description: `A transação "${transaction.title}" foi excluída com sucesso.`
+                            });
+                            setTimeout(() => {
+                              loadTransactions(selectedMonth, selectedYear);
+                              const allTransactions = getTransactions();
+                              const validTransactions = allTransactions.filter(t => {
+                                if (t.isRecurring && !t.isRecurringInstance) {
+                                  return false;
+                                }
+                                return true;
+                              });
+                              const totalBalance = calculateBalance(validTransactions, []);
+                              setBalance(totalBalance);
+                              const filteredTransactions = validTransactions.filter(t => {
+                                const transactionDate = new Date(t.date);
+                                return transactionDate.getMonth() === selectedMonth && 
+                                       transactionDate.getFullYear() === selectedYear;
+                              });
+                              const incomes = filteredTransactions.filter(t => t.type === 'income')
+                                .reduce((sum, t) => sum + t.amount, 0);
+                              const expenses = filteredTransactions.filter(t => t.type === 'expense')
+                                .reduce((sum, t) => sum + t.amount, 0);
+                              setTotalIncomes(incomes);
+                              setTotalExpenses(expenses);
+                            }, 100);
                           }
-                          return true;
-                        });
-                        
-                        const totalBalance = calculateBalance(validTransactions, []);
-                        setBalance(totalBalance);
-                        console.log('✅ [Dashboard] Saldo recalculado (deleteTransaction):', totalBalance);
-                        
-                        // Recalcular incomes e expenses para o mês selecionado
-                        const filteredTransactions = validTransactions.filter(t => {
-                          const transactionDate = new Date(t.date);
-                          return transactionDate.getMonth() === selectedMonth && 
-                                 transactionDate.getFullYear() === selectedYear;
-                        });
-                        
-                        const incomes = filteredTransactions.filter(t => t.type === 'income')
-                          .reduce((sum, t) => sum + t.amount, 0);
-                        const expenses = filteredTransactions.filter(t => t.type === 'expense')
-                          .reduce((sum, t) => sum + t.amount, 0);
-                        
-                        setTotalIncomes(incomes);
-                        setTotalExpenses(expenses);
-                      }, 100);
-                    }
-                  }}
-                >
-                  <Trash size={18} />
-                </button>
+                        }}
+                      >
+                        <Trash size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="px-4">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8">
+              <div className="flex flex-col items-center justify-center">
+                <p className="text-white/70 mb-4">Nenhuma transação encontrada</p>
               </div>
             </div>
-          </div>
-        ))
-        : (
-          <div className="flex flex-col items-center justify-center p-8">
-            <p className="text-galileo-secondaryText mb-4">Nenhuma transação encontrada</p>
           </div>
         );
       })()}
-      {transactions.length > 5 && (
-        <div className="px-4 mt-4 mb-2 flex justify-center">
-          <Button 
-            variant="outline" 
-            onClick={() => setShowAllTransactionsInMonth(!showAllTransactionsInMonth)}
-          >
-            {showAllTransactionsInMonth ? 'Ver Menos' : 'Ver Todas as Transações'}
-          </Button>
-        </div>
-      )}
+        {transactions.length > 5 && (
+          <div className="px-4 mt-4 mb-2 flex justify-center">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAllTransactionsInMonth(!showAllTransactionsInMonth)}
+              className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              {showAllTransactionsInMonth ? 'Ver Menos' : 'Ver Todas as Transações'}
+            </Button>
+          </div>
+        )}
       
       <NavBar />
       
@@ -1339,6 +1384,7 @@ const Dashboard: React.FC = () => {
           // A lógica de conexão já está no modal
         }}
       />
+      </div>
     </div>
   );
 };

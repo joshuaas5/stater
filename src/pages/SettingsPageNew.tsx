@@ -69,239 +69,272 @@ const SettingsPage: React.FC = () => {  const { user } = useAuth();
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="my-8">
-        <h1 className="text-3xl font-bold mb-4">
-          Configurações
-        </h1>
-        <hr className="mb-8" />
-
-        {/* DEBUG: Verificar se está renderizando */}
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-          ✅ COMPONENTE FUNCIONANDO! Aba do Telegram está aqui embaixo! 👇
-        </div>        {/* Sistema de abas simplificado */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('account')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'account'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
+      {/* Partículas flutuantes */}
+      <div className="absolute inset-0 overflow-hidden">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 4}s`,
+            }}
+          />
+        ))}
+      </div>
+      
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-black/10" />
+      <div className="absolute top-10 left-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl animate-pulse" />
+      
+      <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
+        <div className="my-8">
+          <div className="flex items-center space-x-3 mb-6">
+            <img 
+              src="/stater-logo-192.png" 
+              alt="Stater Logo" 
+              className="h-10 w-10 object-contain drop-shadow-lg"
+            />
+            <h1 
+              className="text-4xl font-bold text-white"
+              style={{
+                fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
+                textShadow: 'rgb(59, 130, 246) 2px 2px 0px, rgb(29, 78, 216) 4px 4px 0px, rgba(59, 130, 246, 0.5) 0px 0px 15px',
+                filter: 'drop-shadow(rgba(0, 0, 0, 0.3) 0px 2px 4px)'
+              }}
             >
-              Conta
-            </button>
-            <button
-              onClick={() => setActiveTab('preferences')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'preferences'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Preferências
-            </button>
-            <button
-              onClick={() => setActiveTab('sync')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'sync'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Sincronização
-            </button>
-          </nav>
-        </div>
+              Configurações
+            </h1>
+          </div>
+          <div className="h-px bg-white/20 mb-8"></div>
 
-        {/* Conteúdo das abas */}
-        {activeTab === 'account' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Informações do Usuário</CardTitle>
-              <CardDescription>
-                Visualize as informações da sua conta.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {user ? (
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center py-2 border-b">
-                    <span className="font-medium">Nome de usuário</span>
-                    <span>{user.user_metadata?.username || user.email?.split('@')[0] || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b">
-                    <span className="font-medium">Email</span>
-                    <span>{user.email || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b">
-                    <span className="font-medium">ID do Usuário</span>
-                    <span className="text-xs text-muted-foreground">{user.id}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2">
-                    <span className="font-medium">Criado em</span>
-                    <span>{user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : 'N/A'}</span>
-                  </div>
-                </div>
-              ) : (
-                <p>Nenhum usuário logado.</p>
-              )}
-            </CardContent>
-          </Card>
-        )}
+          {/* Sistema de abas glassmorphism */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-2 mb-6">
+            <nav className="flex space-x-2">
+              <button
+                onClick={() => setActiveTab('account')}
+                className={`flex-1 py-3 px-4 rounded-xl font-medium text-sm transition-all duration-300 ${
+                  activeTab === 'account'
+                    ? 'bg-white/20 backdrop-blur-sm text-white shadow-lg'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                Conta
+              </button>
+              <button
+                onClick={() => setActiveTab('preferences')}
+                className={`flex-1 py-3 px-4 rounded-xl font-medium text-sm transition-all duration-300 ${
+                  activeTab === 'preferences'
+                    ? 'bg-white/20 backdrop-blur-sm text-white shadow-lg'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                Preferências
+              </button>
+              <button
+                onClick={() => setActiveTab('sync')}
+                className={`flex-1 py-3 px-4 rounded-xl font-medium text-sm transition-all duration-300 ${
+                  activeTab === 'sync'
+                    ? 'bg-white/20 backdrop-blur-sm text-white shadow-lg'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                Sincronização
+              </button>
+            </nav>
+          </div>
 
-        {activeTab === 'preferences' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Preferências do Usuário</CardTitle>
-              <CardDescription>
-                Personalize sua experiência no aplicativo.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Tema */}
-              <div className="space-y-2">
-                <Label htmlFor="theme" className="text-base font-medium">Tema</Label>
-                <Select value={preferences?.theme || 'system'} onValueChange={(value) => updatePreference('theme', value)}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione um tema" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="light">
-                      <div className="flex items-center">
-                        <Sun className="mr-2 h-4 w-4" />
-                        Claro
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="dark">
-                      <div className="flex items-center">
-                        <Moon className="mr-2 h-4 w-4" />
-                        Escuro
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="system">
-                      <div className="flex items-center">
-                        <Monitor className="mr-2 h-4 w-4" />
-                        Sistema
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+          {/* Conteúdo das abas */}
+          {activeTab === 'account' && (
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-white mb-2">Informações do Usuário</h2>
+                <p className="text-white/70">Visualize as informações da sua conta.</p>
               </div>
-
-              {/* Moeda */}
-              <div className="space-y-2">
-                <Label htmlFor="currency" className="text-base font-medium">Moeda</Label>
-                <Select value={preferences?.currency || 'BRL'} onValueChange={(value) => updatePreference('currency', value)}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione uma moeda" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="BRL">
-                      <div className="flex items-center">
-                        <DollarSign className="mr-2 h-4 w-4" />
-                        Real (R$)
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="USD">
-                      <div className="flex items-center">
-                        <DollarSign className="mr-2 h-4 w-4" />
-                        Dólar ($)
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="EUR">
-                      <div className="flex items-center">
-                        <DollarSign className="mr-2 h-4 w-4" />
-                        Euro (€)
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Formato de Data */}
-              <div className="space-y-2">
-                <Label htmlFor="dateFormat" className="text-base font-medium">Formato de Data</Label>
-                <Select value={preferences?.dateFormat || 'DD/MM/YYYY'} onValueChange={(value) => updatePreference('dateFormat', value)}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione um formato" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="DD/MM/YYYY">
-                      <div className="flex items-center">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        DD/MM/YYYY
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="MM/DD/YYYY">
-                      <div className="flex items-center">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        MM/DD/YYYY
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="YYYY-MM-DD">
-                      <div className="flex items-center">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        YYYY-MM-DD
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Notificações */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Notificações</h3>
+                {user ? (
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center py-3 px-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+                      <span className="font-medium text-white">Nome de usuário</span>
+                      <span className="text-white/80">{user.user_metadata?.username || user.email?.split('@')[0] || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 px-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+                      <span className="font-medium text-white">Email</span>
+                      <span className="text-white/80">{user.email || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 px-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+                      <span className="font-medium text-white">ID do Usuário</span>
+                      <span className="text-xs text-white/60">{user.id}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 px-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+                      <span className="font-medium text-white">Criado em</span>
+                      <span className="text-white/80">{user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-8 px-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 text-center">
+                    <p className="text-white/70">Nenhum usuário logado.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'preferences' && (
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-white mb-2">Preferências do Usuário</h2>
+                <p className="text-white/70">Personalize sua experiência no aplicativo.</p>
+              </div>
+              <div className="space-y-6">
+                {/* Tema */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="notifications-email" className="text-sm font-normal">
-                      Notificações por email
-                    </Label>                    <Switch
-                      id="notifications-email"
-                      checked={preferences?.notifications?.emailNotifications || false}
-                      onCheckedChange={(value) => updateNotificationPreference('emailNotifications', value)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="notifications-push" className="text-sm font-normal">
-                      Notificações push
-                    </Label>                    <Switch
-                      id="notifications-push"
-                      checked={preferences?.notifications?.pushNotifications || false}
-                      onCheckedChange={(value) => updateNotificationPreference('pushNotifications', value)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="notifications-bills" className="text-sm font-normal">
-                      Lembrete de contas
-                    </Label>                    <Switch
-                      id="notifications-bills"
-                      checked={preferences?.notifications?.billsDueSoon || false}
-                      onCheckedChange={(value) => updateNotificationPreference('billsDueSoon', value)}
-                    />
+                  <Label htmlFor="theme" className="text-base font-medium text-white">Tema</Label>
+                  <Select value={preferences?.theme || 'system'} onValueChange={(value) => updatePreference('theme', value)}>
+                    <SelectTrigger className="w-full bg-white/10 backdrop-blur-sm border-white/20 text-white">
+                      <SelectValue placeholder="Selecione um tema" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white/95 backdrop-blur-xl border-white/20">
+                      <SelectItem value="light">
+                        <div className="flex items-center">
+                          <Sun className="mr-2 h-4 w-4" />
+                          Claro
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="dark">
+                        <div className="flex items-center">
+                          <Moon className="mr-2 h-4 w-4" />
+                          Escuro
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="system">
+                        <div className="flex items-center">
+                          <Monitor className="mr-2 h-4 w-4" />
+                          Sistema
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Moeda */}
+                <div className="space-y-3">
+                  <Label htmlFor="currency" className="text-base font-medium text-white">Moeda</Label>
+                  <Select value={preferences?.currency || 'BRL'} onValueChange={(value) => updatePreference('currency', value)}>
+                    <SelectTrigger className="w-full bg-white/10 backdrop-blur-sm border-white/20 text-white">
+                      <SelectValue placeholder="Selecione uma moeda" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white/95 backdrop-blur-xl border-white/20">
+                      <SelectItem value="BRL">
+                        <div className="flex items-center">
+                          <DollarSign className="mr-2 h-4 w-4" />
+                          Real (R$)
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="USD">
+                        <div className="flex items-center">
+                          <DollarSign className="mr-2 h-4 w-4" />
+                          Dólar ($)
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="EUR">
+                        <div className="flex items-center">
+                          <DollarSign className="mr-2 h-4 w-4" />
+                          Euro (€)
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Formato de Data */}
+                <div className="space-y-3">
+                  <Label htmlFor="dateFormat" className="text-base font-medium text-white">Formato de Data</Label>
+                  <Select value={preferences?.dateFormat || 'DD/MM/YYYY'} onValueChange={(value) => updatePreference('dateFormat', value)}>
+                    <SelectTrigger className="w-full bg-white/10 backdrop-blur-sm border-white/20 text-white">
+                      <SelectValue placeholder="Selecione um formato" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white/95 backdrop-blur-xl border-white/20">
+                      <SelectItem value="DD/MM/YYYY">
+                        <div className="flex items-center">
+                          <Calendar className="mr-2 h-4 w-4" />
+                          DD/MM/YYYY
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="MM/DD/YYYY">
+                        <div className="flex items-center">
+                          <Calendar className="mr-2 h-4 w-4" />
+                          MM/DD/YYYY
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="YYYY-MM-DD">
+                        <div className="flex items-center">
+                          <Calendar className="mr-2 h-4 w-4" />
+                          YYYY-MM-DD
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Notificações */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-white">Notificações</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between py-3 px-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+                      <Label htmlFor="notifications-email" className="text-sm font-normal text-white">
+                        Notificações por email
+                      </Label>
+                      <Switch
+                        id="notifications-email"
+                        checked={preferences?.notifications?.emailNotifications || false}
+                        onCheckedChange={(value) => updateNotificationPreference('emailNotifications', value)}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between py-3 px-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+                      <Label htmlFor="notifications-push" className="text-sm font-normal text-white">
+                        Notificações push
+                      </Label>
+                      <Switch
+                        id="notifications-push"
+                        checked={preferences?.notifications?.pushNotifications || false}
+                        onCheckedChange={(value) => updateNotificationPreference('pushNotifications', value)}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between py-3 px-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+                      <Label htmlFor="notifications-bills" className="text-sm font-normal text-white">
+                        Lembrete de contas
+                      </Label>
+                      <Switch
+                        id="notifications-bills"
+                        checked={preferences?.notifications?.billsDueSoon || false}
+                        onCheckedChange={(value) => updateNotificationPreference('billsDueSoon', value)}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}        {activeTab === 'sync' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Sincronização</CardTitle>
-              <CardDescription>
-                Gerencie a sincronização dos seus dados.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            </div>
+          )}
+
+          {activeTab === 'sync' && (
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-white mb-2">Sincronização</h2>
+                <p className="text-white/70">Gerencie a sincronização dos seus dados.</p>
+              </div>
               <div className="space-y-4">
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Funcionalidades de sincronização em desenvolvimento.</p>
+                <div className="py-12 px-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 text-center">
+                  <p className="text-white/70">Funcionalidades de sincronização em desenvolvimento.</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

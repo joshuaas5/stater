@@ -9,14 +9,14 @@ const HomePage: React.FC = () => {
       {/* Header */}
       <header className="w-full py-6 px-4">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
             <img 
               src="/stater-logo.png" 
               alt="Stater Logo" 
-              className="h-10 w-10 rounded-lg shadow-md"
+              className="h-10 w-10 transition-transform hover:scale-105"
             />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Stater</h1>
-          </div>
+          </Link>
           <div className="flex space-x-4">
             <Link to="/login">
               <Button variant="outline" className="hidden sm:flex">
@@ -36,16 +36,24 @@ const HomePage: React.FC = () => {
       <main className="w-full">
         <div className="max-w-6xl mx-auto px-4 py-12">
           <div className="text-center mb-16">
-            {/* Logo em destaque */}
+            {/* Logo Principal */}
             <div className="flex justify-center mb-8">
               <div className="relative">
-                <div className="absolute inset-0 bg-indigo-600 rounded-full blur-xl opacity-20 animate-pulse"></div>
                 <img 
                   src="/stater-logo.png" 
                   alt="Stater - Assistente Financeiro IA" 
-                  className="relative h-24 w-24 md:h-32 md:w-32 rounded-2xl shadow-2xl ring-4 ring-indigo-600/20 hover:ring-indigo-600/40 transition-all duration-300"
+                  className="h-24 w-24 md:h-32 md:w-32 drop-shadow-2xl transform hover:scale-105 transition-transform duration-300"
                 />
+                {/* Glow effect */}
+                <div className="absolute inset-0 h-24 w-24 md:h-32 md:w-32 bg-indigo-500 rounded-full opacity-20 blur-xl animate-pulse"></div>
               </div>
+            </div>
+            
+            {/* Brand tagline */}
+            <div className="mb-6">
+              <span className="inline-block bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-4 py-2 rounded-full text-sm font-semibold tracking-wide uppercase">
+                Stater - Inteligência para prosperar
+              </span>
             </div>
             
             <h2 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
@@ -136,7 +144,7 @@ const HomePage: React.FC = () => {
             <img 
               src="/stater-logo.png" 
               alt="Stater Logo" 
-              className="h-8 w-8 rounded-lg shadow-sm"
+              className="h-8 w-8 opacity-90"
             />
             <span className="text-lg font-semibold text-gray-900 dark:text-white">Stater</span>
           </div>

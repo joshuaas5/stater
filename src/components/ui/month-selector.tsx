@@ -120,7 +120,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
           variant="ghost" 
           size="icon" 
           onClick={handlePrevMonth}
-          className="h-10 w-10 rounded-full text-muted-foreground hover:bg-accent/10 hover:text-foreground focus:outline-none focus-visible:ring-0"
+          className="h-10 w-10 rounded-full text-white/80 hover:bg-white/20 hover:text-white transition-all duration-300 bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg"
         >
           <ChevronLeft size={20} />
         </Button>
@@ -128,27 +128,32 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
         <Popover>
           <PopoverTrigger asChild>
             <div className="flex items-center cursor-pointer">
-              <div className={`flex items-center rounded-full bg-card py-2 px-5 shadow-md hover:shadow-lg transition-all relative overflow-hidden group`}>
-                <div className={`absolute inset-0 opacity-10 ${monthColors[selectedMonth]}`}></div>
-                <div className={`absolute bottom-0 left-0 right-0 h-1 ${monthColors[selectedMonth]}`}></div>
-                
-                <CalendarIcon size={18} className="mr-2 text-muted-foreground" />
-                <span className={`font-medium text-base ${textColors[selectedMonth]}`}>{months[selectedMonth]}</span>
-                <span className="text-sm text-muted-foreground ml-2">{selectedYear}</span>
-                
-                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-card to-transparent group-hover:opacity-0 transition-opacity"></div>
+              <div className="flex items-center rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl py-3 px-6 hover:bg-white/20 transition-all duration-300 relative overflow-hidden group">
+                <CalendarIcon size={20} className="mr-3 text-white/80" />
+                <span 
+                  className="font-bold text-lg text-white"
+                  style={{
+                    fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
+                    textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px, rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
+                    filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 2px 4px)',
+                    WebkitTextStroke: '0.5px rgba(0, 0, 0, 0.3)'
+                  }}
+                >
+                  {months[selectedMonth]}
+                </span>
+                <span className="text-sm text-white/70 ml-2 font-medium">{selectedYear}</span>
               </div>
             </div>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 rounded-lg shadow-lg border border-border/30" align="center">
-            <div className="p-1 bg-card">
+          <PopoverContent className="w-auto p-0 rounded-2xl shadow-2xl border border-white/20 bg-white/10 backdrop-blur-xl" align="center">
+            <div className="p-1 bg-transparent">
               <Calendar
                 mode="single"
                 selected={date}
                 onSelect={handleCalendarSelect}
                 initialFocus
                 locale={ptBR}
-                className={cn("rounded-md")}
+                className={cn("rounded-xl text-white")}
                 weekStartsOn={getWeekStartDay()}
               />
             </div>
@@ -159,7 +164,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
           variant="ghost" 
           size="icon" 
           onClick={handleNextMonth}
-          className="h-10 w-10 rounded-full text-muted-foreground hover:bg-accent/10 hover:text-foreground focus:outline-none focus-visible:ring-0"
+          className="h-10 w-10 rounded-full text-white/80 hover:bg-white/20 hover:text-white transition-all duration-300 bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg"
         >
           <ChevronRight size={20} />
         </Button>

@@ -119,28 +119,28 @@ const HomePage: React.FC = () => {
               {/* Principais funcionalidades */}
               <div className="grid md:grid-cols-2 gap-6 mb-10 max-w-4xl mx-auto">
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">�️ Comando de Voz</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">🎙️ Comando de Voz</h3>
                   <p className="text-blue-100 text-sm">
                     Fale naturalmente: <strong>"Gastei 200 reais abastecendo o carro"</strong> - nossa IA 
                     ouve, identifica a categoria e organiza automaticamente.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">� Leitura Inteligente</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">📄 Leitura Inteligente</h3>
                   <p className="text-blue-100 text-sm">
                     Fotografe qualquer <strong>nota fiscal</strong>, <strong>extrato</strong> ou 
                     <strong> comprovante</strong>. A IA digitaliza e organiza tudo em segundos.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">� Acompanhamento Total</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">📈 Acompanhamento Total</h3>
                   <p className="text-blue-100 text-sm">
                     Visualize <strong>onde vai seu dinheiro</strong> com gráficos interativos e 
                     <strong> relatórios detalhados</strong> atualizados em tempo real.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">� Insights Inteligentes</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">🔍 Insights Inteligentes</h3>
                   <p className="text-blue-100 text-sm">
                     Descubra <strong>onde está o problema</strong>: "Seus gastos com delivery aumentaram 40% - 
                     sugerimos definir um limite mensal" com <strong>soluções personalizadas</strong>.
@@ -212,7 +212,9 @@ const HomePage: React.FC = () => {
               <p className="text-blue-100 leading-relaxed">
                 A IA aprende seus hábitos e oferece <strong>acompanhamento inteligente</strong>: 
                 lembra contas recorrentes (luz, água, condomínio), detecta padrões de gastos e oferece 
-                insights que realmente <strong>protegem e otimizam seu dinheiro</strong>.
+                insights que realmente <strong>protegem e otimizam seu dinheiro</strong>. 
+                Além disso, <strong>avisa sobre contas que estão para vencer</strong> ou já venceram, 
+                garantindo que você nunca perca um prazo importante.
               </p>
             </div>
           </div>

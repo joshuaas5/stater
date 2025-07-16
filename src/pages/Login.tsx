@@ -238,7 +238,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
       {/* Partículas flutuantes */}
       <div className="absolute inset-0 overflow-hidden">
         {Array.from({ length: 20 }).map((_, i) => (
@@ -258,22 +258,30 @@ const Login: React.FC = () => {
       {/* Background Effects */}
       <div className="absolute inset-0 bg-black/20" />
       <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/30 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-pulse" />
       
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           {/* Logo Section */}
           <div className="text-center mb-8 animate-fadeIn">
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl mb-6 shadow-2xl">
+            <div className="inline-flex items-center justify-center w-28 h-28 bg-white/10 backdrop-blur-xl rounded-full mb-6 shadow-2xl border border-white/20">
               <img 
                 src="/stater-logo.png" 
                 alt="STATER Logo" 
-                className="w-16 h-16 object-contain"
+                className="w-20 h-20 object-contain rounded-full"
               />
             </div>
-            <h1 className="text-5xl font-bold text-white mb-2 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-              STATER
+            <h1 
+              className="text-2xl font-bold text-white mb-2 uppercase tracking-wide"
+              style={{
+                fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
+                letterSpacing: '1px',
+                textShadow: 'rgb(59, 130, 246) 2px 2px 0px, rgb(29, 78, 216) 4px 4px 0px, rgba(59, 130, 246, 0.8) 0px 0px 20px, rgba(0, 0, 0, 0.6) 0px 2px 8px',
+                filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 3px 6px)'
+              }}
+            >
+              ANÁLISE FINANCEIRA
             </h1>
             <p className="text-blue-200 text-lg font-medium">Inteligência para prosperar</p>
           </div>
@@ -322,7 +330,7 @@ const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-2xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center">
@@ -441,7 +449,7 @@ const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-2xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center">
@@ -515,7 +523,7 @@ const Login: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-2xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? (
                       <div className="flex items-center justify-center">
@@ -543,7 +551,8 @@ const Login: React.FC = () => {
 
           {/* Footer */}
           <div className="text-center mt-8 text-white/60">
-            <p>© 2025 STATER. Inteligência para prosperar.</p>
+            <p className="text-sm">Stater - Todos os Direitos Reservados</p>
+            <p className="text-xs mt-1">2025</p>
           </div>
         </div>
       </div>

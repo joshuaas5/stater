@@ -265,23 +265,23 @@ const Login: React.FC = () => {
         <div className="w-full max-w-md">
           {/* Logo Section */}
           <div className="text-center mb-8 animate-fadeIn">
-            <div className="inline-flex items-center justify-center w-28 h-28 bg-white/10 backdrop-blur-xl rounded-full mb-6 shadow-2xl border border-white/20">
+            <div className="flex justify-center mb-6">
               <img 
-                src="/stater-logo.png" 
+                src="/stater-logo-512.png" 
                 alt="STATER Logo" 
-                className="w-20 h-20 object-contain rounded-full"
+                className="w-32 h-32 object-contain drop-shadow-2xl"
               />
             </div>
             <h1 
-              className="text-2xl font-bold text-white mb-2 uppercase tracking-wide"
+              className="text-5xl font-bold text-white mb-2 uppercase tracking-wide"
               style={{
                 fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                letterSpacing: '1px',
+                letterSpacing: '2px',
                 textShadow: 'rgb(59, 130, 246) 2px 2px 0px, rgb(29, 78, 216) 4px 4px 0px, rgba(59, 130, 246, 0.8) 0px 0px 20px, rgba(0, 0, 0, 0.6) 0px 2px 8px',
                 filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 3px 6px)'
               }}
             >
-              ANÁLISE FINANCEIRA
+              STATER
             </h1>
             <p className="text-blue-200 text-lg font-medium">Inteligência para prosperar</p>
           </div>

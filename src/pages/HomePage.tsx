@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Shield, Smartphone, Users, BarChart3, Lock, Zap, Star } from 'lucide-react';
+import { TrendingUp, Shield, Smartphone, Users, BarChart3, Zap } from 'lucide-react';
 
 const HomePage: React.FC = () => {
   return (
@@ -32,13 +32,11 @@ const HomePage: React.FC = () => {
       <header className="relative z-10 w-full py-6 px-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-            <div className="w-12 h-12 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/20">
-              <img 
-                src="/stater-logo.png" 
-                alt="Stater Logo" 
-                className="h-8 w-8 object-contain rounded-full"
-              />
-            </div>
+            <img 
+              src="/stater-logo-192.png" 
+              alt="Stater Logo" 
+              className="h-12 w-12 object-contain drop-shadow-lg"
+            />
             <h1 className="text-2xl font-bold text-white">Stater</h1>
           </Link>
           <div className="flex space-x-4">
@@ -66,30 +64,28 @@ const HomePage: React.FC = () => {
             {/* Logo Principal com animação */}
             <div className="flex justify-center mb-8">
               <div className="relative animate-bounce-in">
-                <div className="w-32 h-32 md:w-40 md:h-40 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/20 shadow-2xl">
-                  <img 
-                    src="/stater-logo.png" 
-                    alt="Stater - Assistente Financeiro IA" 
-                    className="h-20 w-20 md:h-24 md:w-24 object-contain rounded-full"
-                  />
-                </div>
+                <img 
+                  src="/stater-logo-512.png" 
+                  alt="Stater - Assistente Financeiro IA" 
+                  className="h-32 w-32 md:h-40 md:w-40 object-contain drop-shadow-2xl"
+                />
                 {/* Glow effect */}
-                <div className="absolute inset-0 w-32 h-32 md:w-40 md:h-40 bg-blue-500/30 rounded-full blur-2xl animate-pulse-slow"></div>
+                <div className="absolute inset-0 h-32 w-32 md:h-40 md:w-40 bg-blue-500/30 rounded-full blur-2xl animate-pulse-slow"></div>
               </div>
             </div>
             
             {/* Título com fonte especial */}
             <div className="mb-8 animate-slide-in">
               <h1 
-                className="text-4xl md:text-5xl font-bold text-white mb-4 uppercase tracking-wide"
+                className="text-5xl md:text-7xl font-bold text-white mb-4 uppercase tracking-wide"
                 style={{
                   fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                  letterSpacing: '1px',
-                  textShadow: 'rgb(59, 130, 246) 2px 2px 0px, rgb(29, 78, 216) 4px 4px 0px, rgba(59, 130, 246, 0.8) 0px 0px 20px, rgba(0, 0, 0, 0.6) 0px 2px 8px',
-                  filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 3px 6px)'
+                  letterSpacing: '2px',
+                  textShadow: 'rgb(59, 130, 246) 3px 3px 0px, rgb(29, 78, 216) 6px 6px 0px, rgba(59, 130, 246, 0.8) 0px 0px 30px, rgba(0, 0, 0, 0.6) 0px 3px 10px',
+                  filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 4px 8px)'
                 }}
               >
-                ANÁLISE FINANCEIRA
+                STATER
               </h1>
               <p className="text-blue-200 text-xl md:text-2xl font-medium mb-2">
                 Inteligência para prosperar
@@ -170,43 +166,23 @@ const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Stats Section */}
-          <div className="grid md:grid-cols-4 gap-6 mb-20">
-            <div className="text-center p-6 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10">
-              <div className="text-3xl font-bold text-blue-300 mb-2">10K+</div>
-              <div className="text-blue-100 text-sm">Usuários Ativos</div>
-            </div>
-            <div className="text-center p-6 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10">
-              <div className="text-3xl font-bold text-blue-300 mb-2">R$ 50M+</div>
-              <div className="text-blue-100 text-sm">Gerenciados</div>
-            </div>
-            <div className="text-center p-6 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10">
-              <div className="text-3xl font-bold text-blue-300 mb-2">99.9%</div>
-              <div className="text-blue-100 text-sm">Uptime</div>
-            </div>
-            <div className="text-center p-6 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10">
-              <div className="text-3xl font-bold text-blue-300 mb-2">4.9/5</div>
-              <div className="text-blue-100 text-sm">Avaliação</div>
-            </div>
-          </div>
-
-          {/* Additional Features */}
+          {/* Recursos Exclusivos */}
           <div className="grid md:grid-cols-2 gap-8 mb-20">
-            <div className="p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl">
+            <div className="p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
               <div className="flex items-start space-x-4">
                 <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center border border-blue-400/30">
                   <BarChart3 className="h-8 w-8 text-blue-300" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-3">Relatórios Avançados</h3>
+                  <h3 className="text-xl font-bold text-white mb-3">Relatórios Inteligentes</h3>
                   <p className="text-blue-100 leading-relaxed">
-                    Receba relatórios detalhados sobre seus gastos, receitas e tendências financeiras com gráficos interativos.
+                    Transforme seus dados financeiros em insights valiosos com visualizações claras e análises personalizadas.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl">
+            <div className="p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
               <div className="flex items-start space-x-4">
                 <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center border border-blue-400/30">
                   <Zap className="h-8 w-8 text-blue-300" />
@@ -214,8 +190,44 @@ const HomePage: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-bold text-white mb-3">Automação Inteligente</h3>
                   <p className="text-blue-100 leading-relaxed">
-                    Automatize categorização de gastos, lembretes de contas e sugestões de economia baseadas em IA.
+                    Deixe a IA categorizar seus gastos, identificar padrões e sugerir otimizações financeiras automaticamente.
                   </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Missão e Visão */}
+          <div className="mb-20">
+            <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-12 text-center">
+              <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
+                Nossa Missão
+              </h3>
+              <p className="text-blue-100 text-lg mb-8 max-w-3xl mx-auto leading-relaxed">
+                Democratizar o acesso à inteligência financeira, proporcionando ferramentas simples e poderosas 
+                para que cada pessoa possa tomar decisões financeiras mais conscientes e prósperas.
+              </p>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 border border-blue-400/30">
+                    <Shield className="h-8 w-8 text-blue-300" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-white mb-2">Transparência</h4>
+                  <p className="text-blue-100 text-sm">Dados claros e análises honestas</p>
+                </div>
+                <div className="text-center">
+                  <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 border border-blue-400/30">
+                    <TrendingUp className="h-8 w-8 text-blue-300" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-white mb-2">Crescimento</h4>
+                  <p className="text-blue-100 text-sm">Evolução constante e aprendizado</p>
+                </div>
+                <div className="text-center">
+                  <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 border border-blue-400/30">
+                    <Users className="h-8 w-8 text-blue-300" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-white mb-2">Acessibilidade</h4>
+                  <p className="text-blue-100 text-sm">Tecnologia ao alcance de todos</p>
                 </div>
               </div>
             </div>
@@ -256,13 +268,11 @@ const HomePage: React.FC = () => {
       <footer className="relative z-10 w-full py-12 px-4 border-t border-white/10 bg-black/20">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/20">
-              <img 
-                src="/stater-logo.png" 
-                alt="Stater Logo" 
-                className="h-8 w-8 object-contain rounded-full"
-              />
-            </div>
+            <img 
+              src="/stater-logo-192.png" 
+              alt="Stater Logo" 
+              className="h-12 w-12 object-contain drop-shadow-lg"
+            />
             <span className="text-2xl font-bold text-white">Stater</span>
           </div>
           <div className="flex justify-center space-x-8 mb-6">
@@ -278,12 +288,12 @@ const HomePage: React.FC = () => {
             >
               Política de Privacidade
             </Link>
-            <Link 
-              to="/support" 
+            <a 
+              href="mailto:staterbills@gmail.com?subject=Suporte%20Stater&body=Olá,%20preciso%20de%20ajuda%20com..." 
               className="text-blue-300 hover:text-blue-200 transition-colors text-sm"
             >
               Suporte
-            </Link>
+            </a>
           </div>
           <div className="text-white/80 space-y-2">
             <p className="text-sm">Stater - Todos os Direitos Reservados</p>

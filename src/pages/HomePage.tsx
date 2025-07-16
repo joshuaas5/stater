@@ -119,31 +119,31 @@ const HomePage: React.FC = () => {
               {/* Principais funcionalidades */}
               <div className="grid md:grid-cols-2 gap-6 mb-10 max-w-4xl mx-auto">
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">🎤 Comando de Voz</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">�️ Comando de Voz</h3>
                   <p className="text-blue-100 text-sm">
                     Fale naturalmente: <strong>"Gastei 200 reais abastecendo o carro"</strong> - nossa IA 
                     ouve, identifica a categoria e organiza automaticamente.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">📸 Leitura Inteligente</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">� Leitura Inteligente</h3>
                   <p className="text-blue-100 text-sm">
                     Fotografe qualquer <strong>nota fiscal</strong>, <strong>extrato</strong> ou 
                     <strong> comprovante</strong>. A IA digitaliza e organiza tudo em segundos.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">📊 Acompanhamento Total</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">� Acompanhamento Total</h3>
                   <p className="text-blue-100 text-sm">
                     Visualize <strong>onde vai seu dinheiro</strong> com gráficos interativos e 
                     <strong> relatórios detalhados</strong> atualizados em tempo real.
                   </p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">💡 Insights Inteligentes</h3>
+                  <h3 className="text-lg font-bold text-white mb-3">� Insights Inteligentes</h3>
                   <p className="text-blue-100 text-sm">
-                    Receba alertas personalizados: <strong>"Você gastou 30% mais em delivery este mês"</strong> 
-                    com sugestões para economizar.
+                    Descubra <strong>onde está o problema</strong>: "Seus gastos com delivery aumentaram 40% - 
+                    sugerimos definir um limite mensal" com <strong>soluções personalizadas</strong>.
                   </p>
                 </div>
               </div>
@@ -158,7 +158,7 @@ const HomePage: React.FC = () => {
                     size="lg" 
                     className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-10 py-4 text-lg shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
                   >
-                    Baixar grátis
+                    Começar Agora
                   </Button>
                 </Link>
                 <Link to="/login">
@@ -184,8 +184,8 @@ const HomePage: React.FC = () => {
                 Comando de Voz
               </h3>
               <p className="text-blue-100 leading-relaxed">
-                Registre gastos falando naturalmente: <strong>"Almoço de R$ 25 no restaurante"</strong> 
-                ou <strong>"Gasolina R$ 200 no posto Shell"</strong>. A IA entende contexto e categoriza tudo.
+                Registre gastos falando naturalmente: <strong>"Gastei R$ 25 no almoço do restaurante"</strong> 
+                ou entradas: <strong>"Recebi R$ 500 do freelance"</strong>. A IA entende contexto e categoriza tudo.
               </p>
             </div>
 
@@ -211,8 +211,9 @@ const HomePage: React.FC = () => {
               </h3>
               <p className="text-blue-100 leading-relaxed">
                 A IA aprende seus hábitos e oferece <strong>acompanhamento inteligente</strong>: 
-                <strong>"Você gastou R$ 400 a mais em restaurantes este mês"</strong>. Insights e alertas 
-                que realmente <strong>protegem seu dinheiro</strong>.
+                lembra contas recorrentes (luz, água, condomínio), detecta padrões de gastos e oferece 
+                <strong>"Detectamos alto gasto em restaurantes - que tal definir um orçamento mensal?"</strong> 
+                Insights que realmente <strong>protegem e otimizam seu dinheiro</strong>.
               </p>
             </div>
           </div>
@@ -226,10 +227,12 @@ const HomePage: React.FC = () => {
               <div className="grid md:grid-cols-2 gap-12">
                 <div className="space-y-6">
                   <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/20 rounded-full border border-red-400/30 mb-4">
-                      <span className="text-red-300 text-2xl">😰</span>
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500/20 to-red-600/30 rounded-2xl border border-red-400/30 mb-4 backdrop-blur-sm">
+                      <div className="w-12 h-12 bg-red-500/40 rounded-lg flex items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-red-300 rounded-full border-dashed animate-spin"></div>
+                      </div>
                     </div>
-                    <h4 className="text-xl font-bold text-red-300">Antes do Stater</h4>
+                    <h4 className="text-xl font-bold text-red-300">Situação Atual</h4>
                   </div>
                   <div className="space-y-4">
                     <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 backdrop-blur-sm">
@@ -254,8 +257,10 @@ const HomePage: React.FC = () => {
                 </div>
                 <div className="space-y-6">
                   <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full border border-green-400/30 mb-4">
-                      <span className="text-green-300 text-2xl">🚀</span>
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500/20 to-emerald-600/30 rounded-2xl border border-green-400/30 mb-4 backdrop-blur-sm">
+                      <div className="w-12 h-12 bg-green-500/40 rounded-lg flex items-center justify-center">
+                        <div className="w-6 h-6 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></div>
+                      </div>
                     </div>
                     <h4 className="text-xl font-bold text-green-300">Com o Stater</h4>
                   </div>
@@ -292,10 +297,10 @@ const HomePage: React.FC = () => {
                   <MessageCircle className="h-8 w-8 text-blue-300" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-3">Telegram + WhatsApp</h3>
+                  <h3 className="text-xl font-bold text-white mb-3">Telegram</h3>
                   <p className="text-blue-100 leading-relaxed">
-                    Mande mensagens ou áudios direto no <strong>Telegram</strong> ou <strong>WhatsApp (em breve)</strong>. 
-                    Funciona como se fosse um amigo que anota tudo para você.
+                    Use o <strong>Telegram agora mesmo</strong> para enviar mensagens ou áudios. 
+                    Funciona como conversar com um amigo <strong>(em breve também no WhatsApp)</strong>.
                   </p>
                 </div>
               </div>
@@ -309,7 +314,7 @@ const HomePage: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-bold text-white mb-3">App Completo</h3>
                   <p className="text-blue-100 leading-relaxed">
-                    Relatórios lindos, gráficos interativos e insights poderosos. 
+                    Relatórios completos, gráficos interativos e insights poderosos. 
                     <strong>Tudo sincronizado</strong> em tempo real.
                   </p>
                 </div>
@@ -324,10 +329,10 @@ const HomePage: React.FC = () => {
             </h3>
             <p className="text-blue-100 text-lg mb-6 max-w-3xl mx-auto">
               Transforme sua vida financeira em poucos minutos. O Stater está disponível 
-              agora e <strong>oferece recursos essenciais gratuitamente</strong>.
+              agora e <strong>oferece recursos essenciais gratuitos</strong>.
             </p>
             <p className="text-blue-200 text-xl font-bold mb-8 max-w-2xl mx-auto">
-              Mais de 10.000 pessoas já organizaram suas finanças com o Stater.
+              Transforme sua relação com o dinheiro usando inteligência artificial.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

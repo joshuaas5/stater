@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Brain, FileText, Home, Lightbulb, Settings } from 'lucide-react';
+import { Brain, FileText, Lightbulb, Settings } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 
 const NavBar: React.FC = () => {
@@ -12,11 +12,16 @@ const NavBar: React.FC = () => {
     return location.pathname === path;
   };
   
-  // Ordem: Contas → Análise IA → Início → Stater IA → Ajustes
+  // Ordem: Contas → Análise IA → Logo Stater → Stater IA → Ajustes
   const navItems = [
     { icon: <FileText size={24} />, label: t('bills'), path: '/bills' },
     { icon: <Brain size={24} />, label: 'Análise IA', path: '/analise-financeira' },
-    { icon: <Home size={28} />, label: t('home'), path: '/dashboard' }, // Tamanho maior para destacar
+    { 
+      icon: <img src="/stater-logo.png" alt="Stater" className="h-7 w-7 object-contain" />, 
+      label: '', 
+      path: '/dashboard',
+      isLogo: true
+    },
     { icon: <Lightbulb size={24} />, label: t('advisor'), path: '/financial-advisor' },
     { icon: <Settings size={24} />, label: t('settings'), path: '/preferences' },
   ];
@@ -30,7 +35,7 @@ const NavBar: React.FC = () => {
       <div className="flex justify-around items-center h-full py-1 px-1 md:px-4 max-w-screen-xl mx-auto">
         {navItems.map((item, index) => {
           const active = isActive(item.path);
-          const isHome = item.path === '/dashboard';
+          const isLogo = item.isLogo;
           
           return (
             <button
@@ -42,22 +47,12 @@ const NavBar: React.FC = () => {
                   : 'text-galileo-secondaryText hover:text-galileo-text'
               } transition-colors`}
             >
-              <div className="flex justify-center mb-1">
-                {/* Mostrar logo no item Home */}
-                {isHome ? (
-                  <div className="flex items-center space-x-1">
-                    <img 
-                      src="/stater-logo.png" 
-                      alt="Stater" 
-                      className="h-6 w-6 rounded-md"
-                    />
-                    {item.icon}
-                  </div>
-                ) : (
-                  item.icon
-                )}
+              <div className={`flex justify-center ${isLogo ? 'mb-0' : 'mb-1'}`}>
+                {item.icon}
               </div>
-              <span className={`text-xs text-center whitespace-nowrap ${isHome ? 'font-medium' : ''}`}>{item.label}</span>
+              {!isLogo && (
+                <span className="text-xs text-center whitespace-nowrap">{item.label}</span>
+              )}
               {active && <div className="h-1 w-8 md:w-10 bg-galileo-accent rounded-full mt-1"></div>}
             </button>
           );

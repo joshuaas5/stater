@@ -86,9 +86,13 @@ const Dashboard: React.FC = () => {
   const [showTelegramModal, setShowTelegramModal] = useState(false);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [telegramInfo, setTelegramInfo] = useState<any>(null);
+  const [telegramStatusChecked, setTelegramStatusChecked] = useState(false); // Cache para evitar recarregamentos visuais
 
   // Funções do Telegram
   const checkTelegramStatus = async () => {
+    // Evitar recarregamento visual desnecessário
+    if (telegramStatusChecked) return;
+    
     if (!user?.id) return;
     
     try {
@@ -102,6 +106,7 @@ const Dashboard: React.FC = () => {
         console.log('🔍 [TELEGRAM] Erro na consulta:', error.message);
         setIsTelegramLinked(false);
         setTelegramInfo(null);
+        setTelegramStatusChecked(true);
         return;
       }
       
@@ -114,22 +119,24 @@ const Dashboard: React.FC = () => {
         setIsTelegramLinked(false);
         setTelegramInfo(null);
       }
+      setTelegramStatusChecked(true);
     } catch (error) {
       console.error('❌ [TELEGRAM] Erro ao verificar status:', error);
       setIsTelegramLinked(false);
       setTelegramInfo(null);
+      setTelegramStatusChecked(true);
     }
   };  const generateTelegramCode = () => {
     if (!user?.id) return;
     setShowTelegramModal(true);
   };
 
-  // Verificar status do Telegram no carregamento
+  // Verificar status do Telegram no carregamento (apenas uma vez)
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && !telegramStatusChecked) {
       checkTelegramStatus();
     }
-  }, [user?.id]);
+  }, [user?.id, telegramStatusChecked]);
   
   // Novo filtro por nome
   const [newTransaction, setNewTransaction] = useState({

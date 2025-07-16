@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Shield, Smartphone, Users, BarChart3, Zap, MessageCircle, Camera, Mic, Brain } from 'lucide-react';
+import { TrendingUp, Shield, Smartphone, Users, BarChart3, Zap, MessageCircle, Camera, Mic, Brain, Bell } from 'lucide-react';
 
 const HomePage: React.FC = () => {
   return (
@@ -175,7 +175,7 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Principais Recursos */}
-          <div className="grid md:grid-cols-3 gap-8 mb-20">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
             <div className="text-center p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
               <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 border border-blue-400/30">
                 <Mic className="h-10 w-10 text-blue-300" />
@@ -212,9 +212,21 @@ const HomePage: React.FC = () => {
               <p className="text-blue-100 leading-relaxed">
                 A IA aprende seus hábitos e oferece <strong>acompanhamento inteligente</strong>: 
                 lembra contas recorrentes (luz, água, condomínio), detecta padrões de gastos e oferece 
-                insights que realmente <strong>protegem e otimizam seu dinheiro</strong>. 
-                Além disso, <strong>avisa sobre contas que estão para vencer</strong> ou já venceram, 
-                garantindo que você nunca perca um prazo importante.
+                insights que realmente <strong>protegem e otimizam seu dinheiro</strong>.
+              </p>
+            </div>
+
+            <div className="text-center p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
+              <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 border border-blue-400/30">
+                <Bell className="h-10 w-10 text-blue-300" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-4">
+                Nunca Mais Esqueça
+              </h3>
+              <p className="text-blue-100 leading-relaxed">
+                <strong>Nunca mais se esqueça de pagar uma conta</strong>. Receba alertas inteligentes 
+                sobre contas que estão para vencer ou já venceram, garantindo que você 
+                <strong> nunca perca um prazo importante</strong>.
               </p>
             </div>
           </div>

@@ -212,8 +212,7 @@ const HomePage: React.FC = () => {
               <p className="text-blue-100 leading-relaxed">
                 A IA aprende seus hábitos e oferece <strong>acompanhamento inteligente</strong>: 
                 lembra contas recorrentes (luz, água, condomínio), detecta padrões de gastos e oferece 
-                <strong>"Detectamos alto gasto em restaurantes - que tal definir um orçamento mensal?"</strong> 
-                Insights que realmente <strong>protegem e otimizam seu dinheiro</strong>.
+                insights que realmente <strong>protegem e otimizam seu dinheiro</strong>.
               </p>
             </div>
           </div>
@@ -329,7 +328,7 @@ const HomePage: React.FC = () => {
             </h3>
             <p className="text-blue-100 text-lg mb-6 max-w-3xl mx-auto">
               Transforme sua vida financeira em poucos minutos. O Stater está disponível 
-              agora e <strong>oferece recursos essenciais gratuitos</strong>.
+              agora e <strong>oferece recursos que vão mudar sua vida</strong>.
             </p>
             <p className="text-blue-200 text-xl font-bold mb-8 max-w-2xl mx-auto">
               Transforme sua relação com o dinheiro usando inteligência artificial.
@@ -356,7 +355,7 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="mt-8 text-blue-300 text-sm">
-              ✅ Recursos gratuitos disponíveis &nbsp;&nbsp; ✅ Instalação simples &nbsp;&nbsp; ✅ Dados seguros
+              ✅ Recursos gratuitos &nbsp;&nbsp; ✅ Instalação simples &nbsp;&nbsp; ✅ Dados seguros
             </div>
           </div>
         </div>

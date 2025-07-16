@@ -14,16 +14,16 @@ const NavBar: React.FC = () => {
   
   // Ordem: Contas → Análise IA → Logo Stater → Stater IA → Ajustes
   const navItems = [
-    { icon: <FileText size={24} />, label: t('bills'), path: '/bills' },
-    { icon: <Brain size={24} />, label: 'Análise IA', path: '/analise-financeira' },
+    { icon: <FileText size={20} />, label: t('bills'), path: '/bills' },
+    { icon: <Brain size={20} />, label: 'Análise IA', path: '/analise-financeira' },
     { 
-      icon: <img src="/stater-logo-192.png" alt="Stater" className="h-10 w-10 object-contain" />, 
+      icon: <img src="/stater-logo-192.png" alt="Stater" className="h-8 w-8 object-contain drop-shadow-lg" />, 
       label: '', 
       path: '/dashboard',
       isLogo: true
     },
-    { icon: <Lightbulb size={24} />, label: t('advisor'), path: '/financial-advisor' },
-    { icon: <Settings size={24} />, label: t('settings'), path: '/preferences' },
+    { icon: <Lightbulb size={20} />, label: t('advisor'), path: '/financial-advisor' },
+    { icon: <Settings size={20} />, label: t('settings'), path: '/preferences' },
   ];
   
   const handleNavigation = (path: string) => {
@@ -31,8 +31,16 @@ const NavBar: React.FC = () => {
   };
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-galileo-card shadow-lg border-t border-galileo-border z-50 w-full h-16">
-      <div className="flex justify-around items-center h-full py-1 px-1 md:px-4 max-w-screen-xl mx-auto">
+    <div 
+      className="fixed bottom-0 left-0 right-0 z-50 w-full"
+      style={{
+        background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+        backdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+        boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.3), 0 -2px 16px rgba(59, 130, 246, 0.2)'
+      }}
+    >
+      <div className="flex justify-around items-center h-16 py-2 px-2 md:px-4 max-w-screen-xl mx-auto">
         {navItems.map((item, index) => {
           const active = isActive(item.path);
           const isLogo = item.isLogo;
@@ -41,25 +49,71 @@ const NavBar: React.FC = () => {
             <button
               key={index}
               onClick={() => handleNavigation(item.path)}
-              className={`flex flex-col items-center justify-center min-w-[65px] px-1 ${
+              className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-1 rounded-xl transition-all duration-300 ${
                 active 
-                  ? 'text-galileo-accent' 
-                  : 'text-galileo-secondaryText hover:text-galileo-text'
-              } transition-colors`}
+                  ? 'bg-white/20 backdrop-blur-sm' 
+                  : 'hover:bg-white/10'
+              }`}
+              style={{
+                ...(active && {
+                  boxShadow: '0 4px 16px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                })
+              }}
             >
-              <div className={`flex justify-center ${isLogo ? 'mb-0' : 'mb-1'}`}>
-                {item.icon}
-              </div>
-              {!isLogo && (
-                <span className="text-xs text-center whitespace-nowrap">{item.label}</span>
+              {isLogo ? (
+                <div className="flex flex-col items-center">
+                  <div className="mb-1">
+                    {item.icon}
+                  </div>
+                  <span 
+                    className="text-xs font-bold text-white"
+                    style={{
+                      fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
+                      textShadow: '1px 1px 0px rgba(0, 0, 0, 0.5)',
+                      letterSpacing: '0.5px'
+                    }}
+                  >
+                    STATER
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-1">
+                    <div 
+                      className="text-white transition-all duration-300"
+                      style={{
+                        filter: active ? 'drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3))' : 'none'
+                      }}
+                    >
+                      {item.icon}
+                    </div>
+                  </div>
+                  <span 
+                    className="text-xs text-white font-medium transition-all duration-300"
+                    style={{
+                      textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                      opacity: active ? 1 : 0.9
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                </>
               )}
-              {active && <div className="h-1 w-8 md:w-10 bg-galileo-accent rounded-full mt-1"></div>}
+              
+              {/* Indicador de ativo */}
+              {active && !isLogo && (
+                <div 
+                  className="w-6 h-0.5 bg-white rounded-full mt-1"
+                  style={{
+                    boxShadow: '0 0 8px rgba(255, 255, 255, 0.8)'
+                  }}
+                />
+              )}
             </button>
           );
         })}
       </div>
-      {/* Espaço adicional para evitar que o conteúdo fique escondido atrás da navbar */}
-      <div className="h-2"></div>
     </div>
   );
 };

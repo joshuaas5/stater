@@ -235,3 +235,8 @@
 div.financial-advisor-page {
   background-color: #31518b !important;
 }
+
+/* Regra forçada para Financial Analysis Page */
+div.financial-analysis-page {
+  background-color: #31518b !important;
+}

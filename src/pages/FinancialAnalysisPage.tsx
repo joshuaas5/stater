@@ -25,8 +25,8 @@ const LoadingCard = ({ title }: { title: string }) => (
 
 const FinancialAnalysisPage: React.FC = () => {
   return (
-    <div className="min-h-screen pb-20" style={{
-      background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+    <div className="financial-analysis-page min-h-screen pb-20" style={{
+      background: '#31518b',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
       {/* Header com glassmorphism igual ao Stater IA */}

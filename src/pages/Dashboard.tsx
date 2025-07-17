@@ -775,7 +775,7 @@ const Dashboard: React.FC = () => {
         <div 
           className="text-center pt-8 pb-6 px-8 relative"
           style={{
-            background: 'rgba(0,0,0,0.1)',
+            background: '#31518b',
             backdropFilter: 'blur(10px)'
           }}
         >

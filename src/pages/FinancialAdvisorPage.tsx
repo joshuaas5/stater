@@ -3078,7 +3078,7 @@ return (
           
           .financial-advisor-page {
             overflow-x: hidden !important;
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            background-color: #31518b !important;
           }          /* Responsividade melhorada */
           @media (max-width: 768px) {
             .header {

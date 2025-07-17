@@ -204,34 +204,35 @@ const BillsPage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen pb-16" style={{ background: '#31518b' }}>
-      {/* Header limpo sem diamantes */}
+      {/* Header com glassmorphism igual ao Análise Financeira */}
       <div 
         className="sticky top-0 z-50"
         style={{
-          background: '#31518b',
-          color: 'white',
-          padding: '12px 20px',
-          position: 'relative'
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '12px 30px',
+          background: 'rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+          height: '60px'
         }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <h1 
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              letterSpacing: '1px',
-              margin: 0,
-              color: '#ffffff',
-              fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
-              textShadow: '2px 2px 0px #3b82f6, 4px 4px 0px #1d4ed8, 0 0 20px rgba(59, 130, 246, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
-              textTransform: 'uppercase',
-              position: 'relative',
-              filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))'
-            }}
-          >
-            CONTAS
-          </h1>
-        </div>
+        <h1 
+          style={{
+            fontSize: '24px',
+            fontWeight: 800,
+            color: '#ffffff',
+            fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
+            letterSpacing: '1px',
+            textShadow: '2px 2px 0px #3b82f6, 4px 4px 0px #1d4ed8, 0 0 20px rgba(59, 130, 246, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
+            textTransform: 'uppercase',
+            position: 'relative',
+            filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))'
+          }}
+        >
+          CONTAS
+        </h1>
       </div>
       
 

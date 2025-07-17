@@ -12,7 +12,6 @@ import { Eye, EyeOff, Edit } from 'lucide-react';
 import SpendingChart from '@/components/dashboard/SpendingChart';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { DollarSign, ArrowRight, MessageCircle, Check } from 'lucide-react';
-import NotificationBell from '@/components/notifications/NotificationBell';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { TelegramConnectModal } from '@/components/telegram/TelegramConnectModal';
 import { RecurrenceConfig } from '@/components/transactions/RecurrenceConfig';
@@ -798,9 +797,6 @@ const Dashboard: React.FC = () => {
                 Olá, {userName}!
               </h2>
             </div>
-            <div className="flex items-center gap-2">
-              <NotificationBell />
-            </div>
           </div>
           
           {/* Date Navigation */}
@@ -1102,13 +1098,13 @@ const Dashboard: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="text-white text-xl font-semibold">
               {editingTransaction
-                ? (editingTransaction.type === 'income' ? 'Editar Entrada' : 'Editar Sada')
-                : (newTransaction.type === 'income' ? 'Adicionar Nova Entrada' : 'Adicionar Nova Sada')}
+                ? (editingTransaction.type === 'income' ? 'Editar Entrada' : 'Editar Saída')
+                : (newTransaction.type === 'income' ? 'Adicionar Nova Entrada' : 'Adicionar Nova Saída')}
             </DialogTitle>
             <DialogDescription className="text-white/80">
               {editingTransaction
-                ? (editingTransaction.type === 'income' ? 'Edite uma receita ou entrada financeira.' : 'Edite uma despesa ou sada financeira.')
-                : (newTransaction.type === 'income' ? 'Adicione uma nova receita ou entrada financeira.' : 'Adicione uma nova despesa ou sada financeira.')}
+                ? (editingTransaction.type === 'income' ? 'Edite uma receita ou entrada financeira.' : 'Edite uma despesa ou saída financeira.')
+                : (newTransaction.type === 'income' ? 'Adicione uma nova receita ou entrada financeira.' : 'Adicione uma nova despesa ou saída financeira.')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
@@ -1162,7 +1158,7 @@ const Dashboard: React.FC = () => {
                 <SelectContent 
                   className="border-white/20"
                   style={{
-                    background: 'linear-gradient(135deg, #4a6cf7 0%, #5a7cfa 100%)',
+                    background: '#31518b',
                     backdropFilter: 'blur(20px)',
                     border: '1px solid rgba(255,255,255,0.2)'
                   }}
@@ -1267,7 +1263,7 @@ const Dashboard: React.FC = () => {
             : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300'
         }
       >
-        Salvar {editingTransaction.type === 'income' ? 'Entrada' : 'Sada'}
+        Salvar {editingTransaction.type === 'income' ? 'Entrada' : 'Saída'}
       </Button>
       <Button
         variant="destructive"
@@ -1314,7 +1310,7 @@ const Dashboard: React.FC = () => {
           : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300'
       }
     >
-      Salvar {newTransaction.type === 'income' ? 'Entrada' : 'Sada'}
+      Salvar {newTransaction.type === 'income' ? 'Entrada' : 'Saída'}
     </Button>
   )}
 </DialogFooter>

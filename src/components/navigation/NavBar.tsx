@@ -34,10 +34,10 @@ const NavBar: React.FC = () => {
     <div 
       className="fixed bottom-0 left-0 right-0 z-50 w-full"
       style={{
-        background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+        background: '#31518b',
         backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-        boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.3), 0 -2px 16px rgba(59, 130, 246, 0.2)'
+        boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.3), 0 -2px 16px rgba(49, 81, 139, 0.2)'
       }}
     >
       <div className="flex justify-around items-center h-16 py-2 px-2 md:px-4 max-w-screen-xl mx-auto">

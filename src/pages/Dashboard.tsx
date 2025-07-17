@@ -773,7 +773,7 @@ const Dashboard: React.FC = () => {
       <div className="relative z-10">
         {/* Premium Header */}
         <div 
-          className="text-center pt-8 pb-6 px-8 relative"
+          className="text-center pt-4 pb-6 px-4 relative"
           style={{
             background: '#31518b',
             backdropFilter: 'blur(10px)'
@@ -781,12 +781,12 @@ const Dashboard: React.FC = () => {
         >
           <div className="absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
           
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center space-x-4">
+          <div className="flex items-start justify-between mb-5">
+            <div className="flex items-center space-x-3">
               <img 
                 src="/stater-logo-192.png" 
                 alt="Stater Logo" 
-                className="h-12 w-12 object-contain drop-shadow-lg"
+                className="h-10 w-10 object-contain drop-shadow-lg"
               />
               <h2 
                 className="text-white text-xl font-semibold"
@@ -865,10 +865,11 @@ const Dashboard: React.FC = () => {
               onClick={() => setBalanceVisible((v: boolean) => !v)}
               style={{
                 background: 'rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(10px)'
+                backdropFilter: 'blur(10px)',
+                fontSize: '18px'
               }}
             >
-              {balanceVisible ? '•••' : '○○○'}
+              {balanceVisible ? '👁️' : '👁️‍🗨️'}
             </button>
           </div>
           
@@ -910,9 +911,9 @@ const Dashboard: React.FC = () => {
             onClick={() => handleAddTransaction('income')}
             className="flex-1 flex items-center justify-center gap-2 py-5 px-3 rounded-2xl text-white font-medium text-sm hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
             style={{
-              background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1))',
+              background: 'linear-gradient(135deg, rgba(46, 204, 113, 0.3), rgba(39, 174, 96, 0.2))',
               backdropFilter: 'blur(15px)',
-              border: '1px solid rgba(76, 175, 80, 0.3)'
+              border: '2px solid rgba(46, 204, 113, 0.5)'
             }}
           >
             <span style={{ fontSize: '16px' }}>↗</span>
@@ -922,9 +923,9 @@ const Dashboard: React.FC = () => {
             onClick={() => handleAddTransaction('expense')}
             className="flex-1 flex items-center justify-center gap-2 py-5 px-3 rounded-2xl text-white font-medium text-sm hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
             style={{
-              background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.2), rgba(244, 67, 54, 0.1))',
+              background: 'linear-gradient(135deg, rgba(231, 76, 60, 0.3), rgba(192, 57, 43, 0.2))',
               backdropFilter: 'blur(15px)',
-              border: '1px solid rgba(244, 67, 54, 0.3)'
+              border: '2px solid rgba(231, 76, 60, 0.5)'
             }}
           >
             <span style={{ fontSize: '16px' }}>↙</span>
@@ -934,7 +935,7 @@ const Dashboard: React.FC = () => {
 
         {/* Premium Telegram Section */}
         <div 
-          className="mx-8 mb-6 p-5 rounded-2xl"
+          className="mx-8 mb-6 p-3 rounded-2xl"
           style={{
             background: 'rgba(255,255,255,0.08)',
             backdropFilter: 'blur(20px)',
@@ -942,24 +943,29 @@ const Dashboard: React.FC = () => {
           }}
         >
           {!isTelegramLinked ? (
-            <>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs"
-                    style={{
-                      background: 'linear-gradient(135deg, #0088cc, #0074b3)'
-                    }}
-                  >
-                    TG
-                  </div>
-                  <h4 className="text-white text-base font-semibold">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs"
+                  style={{
+                    background: 'linear-gradient(135deg, #0088cc, #0074b3)'
+                  }}
+                >
+                  TG
+                </div>
+                <div>
+                  <h4 className="text-white text-sm font-semibold">
                     Telegram Bot
                   </h4>
+                  <p className="text-white/70 text-xs">
+                    Consulte suas finanças via Telegram
+                  </p>
                 </div>
+              </div>
+              <div className="flex items-center gap-2">
                 <button
                   onClick={refreshTelegramStatus}
-                  className="px-3 py-1 rounded-lg text-white text-xs hover:bg-white/20 transition-all duration-300"
+                  className="px-2 py-1 rounded-lg text-white text-xs hover:bg-white/20 transition-all duration-300"
                   style={{
                     background: 'rgba(255,255,255,0.1)',
                     backdropFilter: 'blur(10px)'
@@ -967,18 +973,13 @@ const Dashboard: React.FC = () => {
                 >
                   ↻
                 </button>
-              </div>
-              <p className="text-white/70 text-sm mb-4">
-                Consulte suas finanças via Telegram
-              </p>
-              <div className="flex justify-end">
                 <button
                   onClick={generateTelegramCode}
                   disabled={isGeneratingCode}
-                  className="px-6 py-3 rounded-xl text-white text-sm font-semibold hover:-translate-y-0.5 transition-all duration-300"
+                  className="px-4 py-2 rounded-xl text-white text-xs font-semibold hover:-translate-y-0.5 transition-all duration-300"
                   style={{
                     background: 'linear-gradient(135deg, #0088cc, #0074b3)',
-                    boxShadow: isGeneratingCode ? 'none' : '0 8px 25px rgba(0, 136, 204, 0.3)'
+                    boxShadow: isGeneratingCode ? 'none' : '0 4px 15px rgba(0, 136, 204, 0.3)'
                   }}
                 >
                   {isGeneratingCode ? (
@@ -991,35 +992,35 @@ const Dashboard: React.FC = () => {
                   )}
                 </button>
               </div>
-            </>
+            </div>
           ) : (
-            <>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs"
-                    style={{
-                      background: 'linear-gradient(135deg, #4caf50, #45a049)'
-                    }}
-                  >
-                    ✓
-                  </div>
-                  <h4 className="text-white text-base font-semibold">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs"
+                  style={{
+                    background: 'linear-gradient(135deg, #4caf50, #45a049)'
+                  }}
+                >
+                  ✓
+                </div>
+                <div>
+                  <h4 className="text-white text-sm font-semibold">
                     Telegram Conectado
                   </h4>
+                  <p className="text-green-200 text-xs">
+                    {telegramInfo?.first_name ? (
+                      <>@{telegramInfo.username || telegramInfo.first_name}</>
+                    ) : (
+                      <>Usuário conectado</>
+                    )}
+                  </p>
                 </div>
               </div>
-              <p className="text-green-200 text-sm mb-4">
-                {telegramInfo?.first_name ? (
-                  <>@{telegramInfo.username || telegramInfo.first_name}</>
-                ) : (
-                  <>Usuário conectado</>
-                )}
-              </p>
-              <div className="flex justify-end gap-2">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
-                  className="px-4 py-2 rounded-xl text-white text-sm hover:-translate-y-0.5 transition-all duration-300"
+                  className="px-3 py-1 rounded-xl text-white text-xs hover:-translate-y-0.5 transition-all duration-300"
                   style={{
                     background: 'rgba(255,255,255,0.1)',
                     backdropFilter: 'blur(10px)',
@@ -1054,7 +1055,7 @@ const Dashboard: React.FC = () => {
                       }
                     }
                   }}
-                  className="px-4 py-2 rounded-xl text-red-200 text-sm hover:-translate-y-0.5 transition-all duration-300"
+                  className="px-3 py-1 rounded-xl text-red-200 text-xs hover:-translate-y-0.5 transition-all duration-300"
                   style={{
                     background: 'rgba(244, 67, 54, 0.2)',
                     backdropFilter: 'blur(10px)',
@@ -1064,7 +1065,7 @@ const Dashboard: React.FC = () => {
                   Desconectar
                 </button>
               </div>
-            </>
+            </div>
           )}
         </div>
 
@@ -1336,7 +1337,7 @@ const Dashboard: React.FC = () => {
                     placeholder="Buscar por nome ou categoria..." 
                     value={nameFilter}
                     onChange={(e) => setNameFilter(e.target.value)}
-                    className="text-sm bg-white/15 backdrop-blur-sm border-white/30 text-white placeholder-white/80 focus:border-blue-400 focus:bg-white/25 transition-all duration-300 shadow-lg"
+                    className="text-sm bg-white/15 backdrop-blur-sm border-white/30 text-white placeholder-white focus:border-blue-400 focus:bg-white/25 transition-all duration-300 shadow-lg"
                   />
                 </div>
               </div>

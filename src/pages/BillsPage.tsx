@@ -244,12 +244,14 @@ const BillsPage: React.FC = () => {
             style={{
               fontSize: '1.5rem',
               fontWeight: 700,
-              letterSpacing: '4px',
+              letterSpacing: '1px',
               margin: 0,
-              background: 'linear-gradient(45deg, #ffffff 0%, #e0e7ff 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+              color: '#ffffff',
+              fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
+              textShadow: '2px 2px 0px #3b82f6, 4px 4px 0px #1d4ed8, 0 0 20px rgba(59, 130, 246, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
+              textTransform: 'uppercase',
+              position: 'relative',
+              filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))'
             }}
           >
             CONTAS

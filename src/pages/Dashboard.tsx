@@ -1336,51 +1336,78 @@ const Dashboard: React.FC = () => {
         <div className="px-4 mb-4">
           <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4">
             <div className="flex flex-col gap-3">
-              <div className="flex flex-col sm:flex-row gap-2">                  <Button 
-                    onClick={() => setShowDateFilters(!showDateFilters)} 
-                    variant="outline" 
-                    size="sm"
-                    className="w-full sm:w-auto bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg transition-all duration-300"
-                  >
-                    {showDateFilters ? 'Ocultar Filtros' : 'Filtros Avançados'}
-                  </Button>
-                
-                {/* Filtro rpido por nome sempre visvel */}
-                <div className="flex-1">
-                  <Input 
-                    placeholder="Buscar por nome ou categoria..." 
-                    value={nameFilter}
-                    onChange={(e) => setNameFilter(e.target.value)}
-                    className="text-sm bg-white/15 backdrop-blur-sm border-white/30 text-white placeholder-white focus:border-blue-400 focus:bg-white/25 transition-all duration-300 shadow-lg"
-                  />
-                </div>
+              {/* Botão de Filtros Avançados sempre visível */}
+              <div className="flex justify-center">
+                <Button 
+                  onClick={() => setShowDateFilters(!showDateFilters)} 
+                  variant="outline" 
+                  size="sm"
+                  className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg transition-all duration-300"
+                >
+                  {showDateFilters ? 'Ocultar Filtros' : 'Filtros Avançados'}
+                </Button>
               </div>
 
+              {/* Container dos filtros - só aparece quando showDateFilters = true */}
               {showDateFilters && (
-                <div className="flex flex-col sm:flex-row gap-2 items-center pt-2">
-                  <div className="grid w-full sm:w-auto gap-1.5">
-                    <Label htmlFor="start-date" className="text-xs text-white/80">De:</Label>
-                    <Input type="date" id="start-date" value={startDate || ''} onChange={(e) => setStartDate(e.target.value)} className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-blue-400 focus:bg-white/20 transition-all duration-300" />
+                <div className="flex flex-col gap-3">
+                  {/* Filtro por nome */}
+                  <div className="flex-1">
+                    <Input 
+                      placeholder="Buscar por nome ou categoria..." 
+                      value={nameFilter}
+                      onChange={(e) => setNameFilter(e.target.value)}
+                      className="text-sm bg-white/15 backdrop-blur-sm border-white/30 text-white focus:border-blue-400 focus:bg-white/25 transition-all duration-300 shadow-lg"
+                      style={{ color: 'white' }}
+                    />
                   </div>
-                  <div className="grid w-full sm:w-auto gap-1.5">
-                    <Label htmlFor="end-date" className="text-xs text-white/80">At:</Label>
-                    <Input type="date" id="end-date" value={endDate || ''} onChange={(e) => setEndDate(e.target.value)} className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-blue-400 focus:bg-white/20 transition-all duration-300" />
+
+                  {/* Filtros de data */}
+                  <div className="flex flex-col sm:flex-row gap-2 items-center">
+                    <div className="grid w-full sm:w-auto gap-1.5">
+                      <Label htmlFor="start-date" className="text-xs text-white/80">De:</Label>
+                      <Input 
+                        type="date" 
+                        id="start-date" 
+                        value={startDate || ''} 
+                        onChange={(e) => setStartDate(e.target.value)} 
+                        className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-blue-400 focus:bg-white/20 transition-all duration-300" 
+                        style={{ color: 'white' }}
+                      />
+                    </div>
+                    <div className="grid w-full sm:w-auto gap-1.5">
+                      <Label htmlFor="end-date" className="text-xs text-white/80">Até:</Label>
+                      <Input 
+                        type="date" 
+                        id="end-date" 
+                        value={endDate || ''} 
+                        onChange={(e) => setEndDate(e.target.value)} 
+                        className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-blue-400 focus:bg-white/20 transition-all duration-300" 
+                        style={{ color: 'white' }}
+                      />
+                    </div>
+                    <Button 
+                      onClick={() => loadTransactions(selectedMonth, selectedYear, true)} 
+                      className="mt-4 sm:mt-auto h-9 w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300" 
+                      size="sm"
+                    >
+                      Filtrar Período
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        setStartDate(null); 
+                        setEndDate(null); 
+                        setNameFilter('');
+                        loadTransactions(selectedMonth, selectedYear); 
+                        setShowDateFilters(false);
+                      }} 
+                      variant="ghost" 
+                      className="mt-1 sm:mt-auto h-9 text-xs w-full sm:w-auto text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300" 
+                      size="sm"
+                    >
+                      Limpar Filtros
+                    </Button>
                   </div>
-                  <Button onClick={() => loadTransactions(selectedMonth, selectedYear, true)} className="mt-4 sm:mt-auto h-9 w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300" size="sm">Filtrar Período</Button>
-                  <Button 
-                    onClick={() => {
-                      setStartDate(null); 
-                      setEndDate(null); 
-                      setNameFilter('');
-                      loadTransactions(selectedMonth, selectedYear); 
-                      setShowDateFilters(false);
-                    }} 
-                    variant="ghost" 
-                    className="mt-1 sm:mt-auto h-9 text-xs w-full sm:w-auto text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300" 
-                    size="sm"
-                  >
-                    Limpar Filtros
-                  </Button>
                 </div>
               )}
             </div>

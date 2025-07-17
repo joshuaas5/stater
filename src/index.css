@@ -240,3 +240,8 @@ div.financial-advisor-page {
 div.financial-analysis-page {
   background-color: #31518b !important;
 }
+
+/* Regra forçada para placeholders dos inputs */
+input::placeholder {
+  color: white !important;
+}

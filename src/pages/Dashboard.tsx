@@ -811,7 +811,7 @@ const Dashboard: React.FC = () => {
               fontWeight: 600
             }}
           >
-            Olá, {userName}! 👋
+            Olá, {userName}!
           </h2>
           
           {/* Date Navigation */}
@@ -892,7 +892,7 @@ const Dashboard: React.FC = () => {
                 backdropFilter: 'blur(10px)'
               }}
             >
-              {balanceVisible ? '👁️' : '🙈'}
+              {balanceVisible ? 'Ver' : 'Ocultar'}
             </button>
           </div>
           
@@ -956,20 +956,7 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* Recurrent Button - Better positioned */}
-        <div className="flex px-8 gap-3 mb-6 justify-center">
-          <Link
-            to="/recurring-transactions"
-            className="px-6 py-3 rounded-2xl text-white text-sm font-medium hover:bg-white/20 transition-all duration-300 hover:-translate-y-0.5"
-            style={{
-              background: 'rgba(255,255,255,0.1)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.2)'
-            }}
-          >
-            🔄 Recorrentes
-          </Link>
-        </div>        {/* Premium Telegram Section */}
+        {/* Premium Telegram Section */}
         <div 
           className="mx-8 mb-6 p-5 rounded-2xl"
           style={{
@@ -1166,7 +1153,7 @@ const Dashboard: React.FC = () => {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="category" className="text-white font-medium">🏷️ Categoria</Label>
+              <Label htmlFor="category" className="text-white font-medium">Categoria</Label>
               <Select
                 value={editingTransaction ? editingTransaction.category : newTransaction.category}
                 onValueChange={value => {
@@ -1344,35 +1331,6 @@ const Dashboard: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      
-        {/* Premium Evolution Section */}
-        <div 
-          className="mx-8 mb-6 p-5 rounded-2xl relative"
-          style={{
-            background: 'rgba(255,255,255,0.08)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            boxShadow: '0 0 30px rgba(255,255,255,0.1)'
-          }}
-        >
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-white text-base font-semibold">
-              Evolução do Saldo
-            </h3>
-            <span className="text-white/70 text-sm">
-              Últimos 30 dias
-            </span>
-          </div>
-          
-          <div className="text-white text-lg font-semibold mb-4">
-            {formatCurrency(balance)}
-          </div>
-          
-          <div className="relative">
-            <SpendingChart transactions={transactions} days={30} />
-          </div>
-        </div>
-        
         <div className="px-4 mb-4">
           <h2 
             className="text-white text-xl font-semibold leading-tight tracking-normal pb-3 pt-2"

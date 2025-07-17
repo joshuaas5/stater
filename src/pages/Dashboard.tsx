@@ -13,7 +13,6 @@ import SpendingChart from '@/components/dashboard/SpendingChart';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { DollarSign, ArrowRight, MessageCircle, Check } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { TelegramConnectModal } from '@/components/telegram/TelegramConnectModal';
 import { RecurrenceConfig } from '@/components/transactions/RecurrenceConfig';
@@ -44,18 +43,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
-// 🔧 DEBUG: Log para identificar re-renderizações do Dashboard
-console.log('🎯 Dashboard.tsx carregado/re-renderizado:', new Date().toISOString());
+//  DEBUG: Log para identificar re-renderizaes do Dashboard
+console.log(' Dashboard.tsx carregado/re-renderizado:', new Date().toISOString());
 
 const Dashboard: React.FC = () => {
-  console.log('🎯 Dashboard component executando...');
+  console.log(' Dashboard component executando...');
   
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   
-  // 🔧 DEBUG: Detectar mudanças que causam re-render
-  console.log('🔧 [DASHBOARD] Estado atual:', {
+  //  DEBUG: Detectar mudanas que causam re-render
+  console.log(' [DASHBOARD] Estado atual:', {
     userLoaded: !!user,
     userId: user?.id,
     url: window.location.href,
@@ -83,7 +82,7 @@ const Dashboard: React.FC = () => {
 
   // Estados do Telegram
   const [isTelegramLinked, setIsTelegramLinked] = useState(() => {
-    // Inicializar com cache imediatamente se disponível
+    // Inicializar com cache imediatamente se disponvel
     if (typeof window !== 'undefined' && user?.id) {
       const cachedStatus = localStorage.getItem(`telegram_status_${user.id}`);
       return cachedStatus === 'true';
@@ -93,7 +92,7 @@ const Dashboard: React.FC = () => {
   const [showTelegramModal, setShowTelegramModal] = useState(false);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [telegramInfo, setTelegramInfo] = useState<any>(() => {
-    // Inicializar com cache imediatamente se disponível
+    // Inicializar com cache imediatamente se disponvel
     if (typeof window !== 'undefined' && user?.id) {
       const cachedInfo = localStorage.getItem(`telegram_info_${user.id}`);
       return cachedInfo && cachedInfo !== 'null' ? JSON.parse(cachedInfo) : null;
@@ -101,7 +100,7 @@ const Dashboard: React.FC = () => {
     return null;
   });
   const [telegramStatusChecked, setTelegramStatusChecked] = useState(() => {
-    // Marcar como checado se já temos cache
+    // Marcar como checado se j temos cache
     if (typeof window !== 'undefined' && user?.id) {
       const cachedStatus = localStorage.getItem(`telegram_status_${user.id}`);
       return cachedStatus !== null;
@@ -110,9 +109,9 @@ const Dashboard: React.FC = () => {
   });
   const [isCheckingTelegram, setIsCheckingTelegram] = useState(false); // Loading mais sutil
 
-  // Funções do Telegram
+  // Funes do Telegram
   const checkTelegramStatus = async (force = false) => {
-    // Evitar recarregamento visual desnecessário, exceto se forçado
+    // Evitar recarregamento visual desnecessrio, exceto se forado
     if (telegramStatusChecked && !force) return;
     
     if (!user?.id) return;
@@ -127,7 +126,7 @@ const Dashboard: React.FC = () => {
         .eq('is_active', true);
       
       if (error) {
-        console.log('🔍 [TELEGRAM] Erro na consulta:', error.message);
+        console.log(' [TELEGRAM] Erro na consulta:', error.message);
         setIsTelegramLinked(false);
         setTelegramInfo(null);
         // Salvar no localStorage
@@ -138,14 +137,14 @@ const Dashboard: React.FC = () => {
       }
       
       if (data && data.length > 0) {
-        console.log('✅ [TELEGRAM] Conectado:', data[0]);
+        console.log(' [TELEGRAM] Conectado:', data[0]);
         setIsTelegramLinked(true);
         setTelegramInfo(data[0]);
         // Salvar no localStorage
         localStorage.setItem(`telegram_status_${user.id}`, 'true');
         localStorage.setItem(`telegram_info_${user.id}`, JSON.stringify(data[0]));
       } else {
-        console.log('🔍 [TELEGRAM] Não conectado - nenhum registro encontrado');
+        console.log(' [TELEGRAM] No conectado - nenhum registro encontrado');
         setIsTelegramLinked(false);
         setTelegramInfo(null);
         // Salvar no localStorage
@@ -154,7 +153,7 @@ const Dashboard: React.FC = () => {
       }
       setTelegramStatusChecked(true);
     } catch (error) {
-      console.error('❌ [TELEGRAM] Erro ao verificar status:', error);
+      console.error(' [TELEGRAM] Erro ao verificar status:', error);
       setIsTelegramLinked(false);
       setTelegramInfo(null);
       // Salvar no localStorage
@@ -180,7 +179,7 @@ const Dashboard: React.FC = () => {
     setShowTelegramModal(true);
   };
 
-  // Função para forçar atualização do status do Telegram
+  // Funo para forar atualizao do status do Telegram
   const refreshTelegramStatus = () => {
     resetTelegramStatus();
     setTimeout(() => {
@@ -191,7 +190,7 @@ const Dashboard: React.FC = () => {
   // Verificar status do Telegram no carregamento
   useEffect(() => {
     if (user?.id && !telegramStatusChecked) {
-      // Só verificar no servidor se não tiver cache
+      // S verificar no servidor se no tiver cache
       const cachedStatus = localStorage.getItem(`telegram_status_${user.id}`);
       if (!cachedStatus) {
         checkTelegramStatus();
@@ -211,30 +210,30 @@ const Dashboard: React.FC = () => {
     recurringWeekday: 1
   });
   
-  // useEffect ÚNICO e CONSOLIDADO para inicialização do Dashboard
+  // useEffect NICO e CONSOLIDADO para inicializao do Dashboard
   useEffect(() => {
     if (!isLoggedIn()) {
       navigate('/login');
       return;
     }
 
-    console.log('🚀 [Dashboard] INICIALIZAÇÃO ÚNICA E CONSOLIDADA - EVITANDO RACE CONDITIONS');
+    console.log(' [Dashboard] INICIALIZAO NICA E CONSOLIDADA - EVITANDO RACE CONDITIONS');
     
     let debounceTimer: NodeJS.Timeout;
     let telegramToastTimer: NodeJS.Timeout;
     
-    // Função de inicialização única
+    // Funo de inicializao nica
     const executarInicializacaoCompleta = async () => {
       try {
-        // 1. Iniciar sincronização automática
+        // 1. Iniciar sincronizao automtica
         startAutoSync();
         
-        // 2. Carregar transações LOCAL primeiro (para exibição imediata)
+        // 2. Carregar transaes LOCAL primeiro (para exibio imediata)
         const allTransactions = getTransactions();
-        console.log(`📊 [Dashboard] Carregando ${allTransactions.length} transações locais primeiro`);
+        console.log(` [Dashboard] Carregando ${allTransactions.length} transaes locais primeiro`);
         
         if (allTransactions && allTransactions.length > 0) {
-          // Filtrar transações recorrentes não processadas
+          // Filtrar transaes recorrentes no processadas
           const validTransactions = allTransactions.filter(t => {
             if (t.isRecurring && !t.isRecurringInstance) {
               return false;
@@ -245,21 +244,21 @@ const Dashboard: React.FC = () => {
           // Calcular saldo inicial
           const totalBalance = calculateBalance(validTransactions, []);
           setBalance(totalBalance);
-          console.log('✅ [Dashboard] Saldo inicial (local):', totalBalance);
+          console.log(' [Dashboard] Saldo inicial (local):', totalBalance);
         }
         
-        // 3. Carregar transações para exibição (local primeiro)
+        // 3. Carregar transaes para exibio (local primeiro)
         loadTransactions(selectedMonth, selectedYear);
         
-        // 4. DEPOIS sincronizar com Supabase (não bloquear UI)
+        // 4. DEPOIS sincronizar com Supabase (no bloquear UI)
         setTimeout(async () => {
           try {
             await forceSupabaseSync();
-            console.log('✅ [Dashboard] Sincronização Supabase concluída (background)');
+            console.log(' [Dashboard] Sincronizao Supabase concluda (background)');
           } catch (error) {
-            console.error('❌ [Dashboard] Erro na sincronização background:', error);
+            console.error(' [Dashboard] Erro na sincronizao background:', error);
           }
-        }, 1500); // Delay para não bloquear renderização inicial
+        }, 1500); // Delay para no bloquear renderizao inicial
         
         // 5. Agendar lembretes de contas
         import('@/utils/localStorage').then(({ getBills }) => {
@@ -269,15 +268,15 @@ const Dashboard: React.FC = () => {
           });
         });
         
-        console.log('✅ [Dashboard] Inicialização consolidada concluída');
+        console.log(' [Dashboard] Inicializao consolidada concluda');
       } catch (error) {
-        console.error('❌ [Dashboard] Erro na inicialização:', error);
+        console.error(' [Dashboard] Erro na inicializao:', error);
       }
     };
     
-    // Listeners para atualizações (com debounce)
+    // Listeners para atualizaes (com debounce)
     const handler = () => {
-      console.log('📊 [Dashboard] Evento transactionsUpdated recebido!');
+      console.log(' [Dashboard] Evento transactionsUpdated recebido!');
       
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
@@ -294,16 +293,16 @@ const Dashboard: React.FC = () => {
           
           const totalBalance = calculateBalance(validTransactions, []);
           setBalance(totalBalance);
-          console.log('✅ [Dashboard] Saldo recalculado (handler):', totalBalance);
+          console.log(' [Dashboard] Saldo recalculado (handler):', totalBalance);
         }
       }, 1000);
     };
     
     const forceReloadHandler = (event: any) => {
-      console.log('🚀 [Dashboard] Force reload trigger from:', event.detail?.source || 'unknown');
+      console.log(' [Dashboard] Force reload trigger from:', event.detail?.source || 'unknown');
       
       if (event.detail?.source?.includes('force-sync')) {
-        console.log('🚀 [Dashboard] Ignorando reload de force-sync para evitar loop');
+        console.log(' [Dashboard] Ignorando reload de force-sync para evitar loop');
         return;
       }
       
@@ -322,20 +321,20 @@ const Dashboard: React.FC = () => {
           
           const totalBalance = calculateBalance(validTransactions, []);
           setBalance(totalBalance);
-          console.log('✅ [Dashboard] Saldo recalculado (forceReload):', totalBalance);
+          console.log(' [Dashboard] Saldo recalculado (forceReload):', totalBalance);
         }
       }, 1000);
     };
     
     const telegramSyncHandler = (event: any) => {
-      console.log('📱 [Dashboard] Sincronização do Telegram detectada:', event.detail);
+      console.log(' [Dashboard] Sincronizao do Telegram detectada:', event.detail);
       
       clearTimeout(telegramToastTimer);
       telegramToastTimer = setTimeout(() => {
         if (event.detail?.transactions && event.detail.transactions.length > 0) {
           toast({
-            title: "💰 Nova transação do Telegram!",
-            description: "Sua transação foi sincronizada automaticamente.",
+            title: " Nova transao do Telegram!",
+            description: "Sua transao foi sincronizada automaticamente.",
             duration: 3000,
           });
         }
@@ -356,7 +355,7 @@ const Dashboard: React.FC = () => {
           
           const totalBalance = calculateBalance(validTransactions, []);
           setBalance(totalBalance);
-          console.log('✅ [Dashboard] Saldo recalculado (telegram):', totalBalance);
+          console.log(' [Dashboard] Saldo recalculado (telegram):', totalBalance);
         }
       }, 1500);
     };
@@ -366,12 +365,12 @@ const Dashboard: React.FC = () => {
     window.addEventListener('forceTransactionReload', forceReloadHandler);
     window.addEventListener('telegram-transaction-sync', telegramSyncHandler);
     
-    // Executar inicialização
+    // Executar inicializao
     executarInicializacaoCompleta();
     
     // Cleanup
     return () => {
-      console.log('🛑 [Dashboard] Cleanup - parando sincronização automática');
+      console.log(' [Dashboard] Cleanup - parando sincronizao automtica');
       stopAutoSync();
       clearTimeout(debounceTimer);
       clearTimeout(telegramToastTimer);
@@ -381,7 +380,7 @@ const Dashboard: React.FC = () => {
     };
   }, [navigate, selectedMonth, selectedYear]);
 
-  // UseEffect para reagir às mudanças no filtro de nome
+  // UseEffect para reagir s mudanas no filtro de nome
   useEffect(() => {
     loadTransactions(selectedMonth, selectedYear, !!startDate && !!endDate);
   }, [nameFilter]);
@@ -389,25 +388,25 @@ const Dashboard: React.FC = () => {
   const calculateTotalBalance = () => {
     const allTransactions = getTransactions();
     if (lastEditedTransactionIdForBalanceSkip) {
-      // Pular o recálculo do saldo se necessário
+      // Pular o reclculo do saldo se necessrio
       setLastEditedTransactionIdForBalanceSkip(null);
       return;
     }
     
-    // Filtrar transações recorrentes que ainda não foram processadas
+    // Filtrar transaes recorrentes que ainda no foram processadas
     const validTransactions = allTransactions.filter(t => {
-      // Se é recorrente e não é uma instância, não incluir no saldo
+      // Se  recorrente e no  uma instncia, no incluir no saldo
       if (t.isRecurring && !t.isRecurringInstance) {
         return false;
       }
       return true;
     });
     
-    // Calcular saldo total com transações válidas (excluindo recorrentes não processadas)
+    // Calcular saldo total com transaes vlidas (excluindo recorrentes no processadas)
     const totalBalance = calculateBalance(validTransactions, [lastEditedTransactionIdForBalanceSkip || '']);
     setBalance(totalBalance);
     
-    // Calcular variação percentual com base nos últimos 30 dias vs 30 dias anteriores
+    // Calcular variao percentual com base nos ltimos 30 dias vs 30 dias anteriores
     const today = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(today.getDate() - 30);
@@ -415,13 +414,13 @@ const Dashboard: React.FC = () => {
     const sixtyDaysAgo = new Date();
     sixtyDaysAgo.setDate(today.getDate() - 60);
     
-    // Transações dos últimos 30 dias
+    // Transaes dos ltimos 30 dias
     const last30DaysTransactions = validTransactions.filter(t => {
       const transactionDate = new Date(t.date);
       return transactionDate >= thirtyDaysAgo && transactionDate <= today;
     });
     
-    // Transações dos 30 dias anteriores aos últimos 30 dias
+    // Transaes dos 30 dias anteriores aos ltimos 30 dias
     const previous30DaysTransactions = validTransactions.filter(t => {
       const transactionDate = new Date(t.date);
       return transactionDate >= sixtyDaysAgo && transactionDate < thirtyDaysAgo;
@@ -433,35 +432,35 @@ const Dashboard: React.FC = () => {
     const change = calculatePercentageChange(last30DaysBalance, previous30DaysBalance);
     setPercentChange(change);
   };  const loadTransactions = (month: number, year: number, useCustomPeriod = false) => {
-    console.log('📊 [loadTransactions] Iniciando carregamento...');
+    console.log(' [loadTransactions] Iniciando carregamento...');
     const allTransactions = getTransactions();
-    console.log(`📊 [loadTransactions] Total encontrado: ${allTransactions.length}`);
+    console.log(` [loadTransactions] Total encontrado: ${allTransactions.length}`);
     
-    // Filtrar transações recorrentes que ainda não foram processadas APENAS para cálculos
+    // Filtrar transaes recorrentes que ainda no foram processadas APENAS para clculos
     const validTransactionsForCalculation = allTransactions.filter(t => {
-      // Se é recorrente e não é uma instância, não incluir nos cálculos
+      // Se  recorrente e no  uma instncia, no incluir nos clculos
       if (t.isRecurring && !t.isRecurringInstance) {
         return false;
       }
       return true;
     });
     
-    // Para exibição, filtrar apenas recorrentes não processadas (manter todas as instâncias normais)
+    // Para exibio, filtrar apenas recorrentes no processadas (manter todas as instncias normais)
     const validTransactionsForDisplay = allTransactions.filter(t => {
-      // Se é recorrente e não é uma instância, não mostrar na lista de transações
+      // Se  recorrente e no  uma instncia, no mostrar na lista de transaes
       if (t.isRecurring && !t.isRecurringInstance) {
         return false;
       }
       return true;
     });
     
-    console.log(`📊 [loadTransactions] Para cálculos: ${validTransactionsForCalculation.length}`);
-    console.log(`📊 [loadTransactions] Para exibição: ${validTransactionsForDisplay.length}`);
+    console.log(` [loadTransactions] Para clculos: ${validTransactionsForCalculation.length}`);
+    console.log(` [loadTransactions] Para exibio: ${validTransactionsForDisplay.length}`);
     
-    // LOG: Mostrar as últimas 5 transações para debug
+    // LOG: Mostrar as ltimas 5 transaes para debug
     if (validTransactionsForDisplay.length > 0) {
       const sortedByDate = [...validTransactionsForDisplay].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      console.log('📊 [DEBUG] Últimas 5 transações por data:', sortedByDate.slice(0, 5).map(t => ({
+      console.log(' [DEBUG] ltimas 5 transaes por data:', sortedByDate.slice(0, 5).map(t => ({
         title: t.title,
         date: t.date,
         dateStr: new Date(t.date).toISOString(),
@@ -473,75 +472,75 @@ const Dashboard: React.FC = () => {
     let filteredTransactionsForDisplay = validTransactionsForDisplay;
     let filteredTransactionsForCalculation = validTransactionsForCalculation;
     
-    // Para os cálculos de receitas/gastos, usar sempre o filtro de mês/ano
+    // Para os clculos de receitas/gastos, usar sempre o filtro de ms/ano
     filteredTransactionsForCalculation = validTransactionsForCalculation.filter(t => {
       const transactionDate = new Date(t.date);
       return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
     });
-    console.log(`📊 [loadTransactions] Para cálculos - mês ${month + 1}/${year}: ${filteredTransactionsForCalculation.length}`);
+    console.log(` [loadTransactions] Para clculos - ms ${month + 1}/${year}: ${filteredTransactionsForCalculation.length}`);
     
-    // Para exibição: se não há filtros específicos, mostrar transações mais recentes independente do mês
+    // Para exibio: se no h filtros especficos, mostrar transaes mais recentes independente do ms
     if (useCustomPeriod && startDate && endDate) {
-      // Se há filtro de período personalizado, aplicar ele
+      // Se h filtro de perodo personalizado, aplicar ele
       const start = new Date(startDate + 'T00:00:00');
       const end = new Date(endDate + 'T23:59:59');
       filteredTransactionsForDisplay = validTransactionsForDisplay.filter(t => {
         const transactionDate = new Date(t.date);
         return transactionDate >= start && transactionDate <= end;
       });
-      console.log(`📊 [loadTransactions] Exibição - período personalizado: ${filteredTransactionsForDisplay.length}`);
+      console.log(` [loadTransactions] Exibio - perodo personalizado: ${filteredTransactionsForDisplay.length}`);
     } else if (nameFilter.trim()) {
-      // Se há filtro de nome, aplicar sobre transações válidas para exibição
+      // Se h filtro de nome, aplicar sobre transaes vlidas para exibio
       filteredTransactionsForDisplay = validTransactionsForDisplay.filter(t => 
         t.title.toLowerCase().includes(nameFilter.toLowerCase()) ||
         t.category.toLowerCase().includes(nameFilter.toLowerCase())
       );
-      console.log(`📊 [loadTransactions] Exibição - filtro por nome: ${filteredTransactionsForDisplay.length}`);
+      console.log(` [loadTransactions] Exibio - filtro por nome: ${filteredTransactionsForDisplay.length}`);
     } else {
-      // LÓGICA MELHORADA: Mostrar histórico completo das últimas transações
-      // Esta é a seção "Últimas Transações" que deve ser acumulativa
+      // LGICA MELHORADA: Mostrar histrico completo das ltimas transaes
+      // Esta  a seo "ltimas Transaes" que deve ser acumulativa
       filteredTransactionsForDisplay = [...validTransactionsForDisplay];
       
       // Ordenar por data (mais recentes primeiro)
       filteredTransactionsForDisplay.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
-      // CORREÇÃO: Mostrar as últimas 100 transações para um histórico mais completo
-      // Isso garante que o usuário veja um histórico acumulativo e não perca transações
+      // CORREO: Mostrar as ltimas 100 transaes para um histrico mais completo
+      // Isso garante que o usurio veja um histrico acumulativo e no perca transaes
       filteredTransactionsForDisplay = filteredTransactionsForDisplay.slice(0, 100);
       
-      console.log(`📊 [DEBUG] LISTA ACUMULATIVA - Mostrando últimas 100 transações (total encontrado: ${validTransactionsForDisplay.length})`);
-      console.log(`📊 [DEBUG] Primeiras 3 transações:`, filteredTransactionsForDisplay.slice(0, 3).map(t => ({
+      console.log(` [DEBUG] LISTA ACUMULATIVA - Mostrando ltimas 100 transaes (total encontrado: ${validTransactionsForDisplay.length})`);
+      console.log(` [DEBUG] Primeiras 3 transaes:`, filteredTransactionsForDisplay.slice(0, 3).map(t => ({
         title: t.title,
         date: new Date(t.date).toLocaleDateString('pt-BR'),
         amount: t.amount,
         type: t.type
       })));
       
-      // Estatísticas para debug: quantas por mês
+      // Estatsticas para debug: quantas por ms
       const monthCounts = filteredTransactionsForDisplay.reduce((acc, t) => {
         const monthKey = `${new Date(t.date).getMonth() + 1}/${new Date(t.date).getFullYear()}`;
         acc[monthKey] = (acc[monthKey] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
       
-      console.log(`📊 [loadTransactions] Distribuição por mês:`, monthCounts);
+      console.log(` [loadTransactions] Distribuio por ms:`, monthCounts);
     }
     
     // Sort final by date in descending order (most recent first)
     filteredTransactionsForDisplay.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
-    // LOG: Mostrar as transações finais que serão exibidas
-    console.log(`📊 [DEBUG] Transações FINAIS para exibição (primeiras 5):`, filteredTransactionsForDisplay.slice(0, 5).map(t => ({
+    // LOG: Mostrar as transaes finais que sero exibidas
+    console.log(` [DEBUG] Transaes FINAIS para exibio (primeiras 5):`, filteredTransactionsForDisplay.slice(0, 5).map(t => ({
       title: t.title,
       date: new Date(t.date).toISOString(),
       amount: t.amount,
       type: t.type
     })));
     
-    console.log(`📊 [loadTransactions] Definindo ${filteredTransactionsForDisplay.length} transações para exibição`);
+    console.log(` [loadTransactions] Definindo ${filteredTransactionsForDisplay.length} transaes para exibio`);
     setTransactions(filteredTransactionsForDisplay);
 
-    // Calcular incomes e expenses APENAS para o mês selecionado (para os cards de resumo)
+    // Calcular incomes e expenses APENAS para o ms selecionado (para os cards de resumo)
     const incomes = filteredTransactionsForCalculation.filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
     const expenses = filteredTransactionsForCalculation.filter(t => t.type === 'expense')
@@ -550,7 +549,7 @@ const Dashboard: React.FC = () => {
     setTotalIncomes(incomes);
     setTotalExpenses(expenses);
     
-    // Calcular o saldo total (independente do mês)
+    // Calcular o saldo total (independente do ms)
     calculateTotalBalance();
   };
   
@@ -575,29 +574,29 @@ const Dashboard: React.FC = () => {
   };
   
   
-  // Função para processar valores monetários - simplificada para aceitar apenas números
+  // Funo para processar valores monetrios - simplificada para aceitar apenas nmeros
   const parseMonetaryValue = (value: string): string => {
     if (!value) return '';
     
-    // Processar valores normais - apenas números, pontos e vírgulas
+    // Processar valores normais - apenas nmeros, pontos e vrgulas
     return parseMonetaryNumber(value).toString();
   };
   
-  // Função para converter string monetária em número
+  // Funo para converter string monetria em nmero
   const parseMonetaryNumber = (value: string): number => {
     if (!value) return 0;
     
-    // Remover espaços e caracteres especiais, manter apenas dígitos, vírgula e ponto
+    // Remover espaos e caracteres especiais, manter apenas dgitos, vrgula e ponto
     let cleaned = value.replace(/[^\d.,]/g, '');
     
-    // Se não tem vírgula nem ponto, é um número inteiro
+    // Se no tem vrgula nem ponto,  um nmero inteiro
     if (!cleaned.includes(',') && !cleaned.includes('.')) {
       return parseFloat(cleaned) || 0;
     }
     
-    // Se tem vírgula e ponto, determinar qual é o separador decimal
+    // Se tem vrgula e ponto, determinar qual  o separador decimal
     if (cleaned.includes(',') && cleaned.includes('.')) {
-      // Se o último é vírgula, ela é o separador decimal
+      // Se o ltimo  vrgula, ela  o separador decimal
       if (cleaned.lastIndexOf(',') > cleaned.lastIndexOf('.')) {
         // Ex: 1.234,56 -> 1234.56
         cleaned = cleaned.replace(/\./g, '').replace(',', '.');
@@ -606,7 +605,7 @@ const Dashboard: React.FC = () => {
         cleaned = cleaned.replace(/,/g, '');
       }
     } else if (cleaned.includes(',')) {
-      // Só tem vírgula - pode ser milhares ou decimal
+      // S tem vrgula - pode ser milhares ou decimal
       const parts = cleaned.split(',');
       if (parts.length === 2 && parts[1].length <= 2) {
         // Provavelmente decimal: 123,45
@@ -616,10 +615,10 @@ const Dashboard: React.FC = () => {
         cleaned = cleaned.replace(/,/g, '');
       }
     }
-    // Se só tem ponto, manter como está (já é formato padrão)
+    // Se s tem ponto, manter como est (j  formato padro)
     
     const result = parseFloat(cleaned) || 0;
-    console.log('💰 [PARSE] Input:', value, '-> Cleaned:', cleaned, '-> Result:', result);
+    console.log(' [PARSE] Input:', value, '-> Cleaned:', cleaned, '-> Result:', result);
     return result;
   };
 
@@ -654,8 +653,8 @@ const Dashboard: React.FC = () => {
   };
   
   const handleSaveTransaction = () => {
-    // Remove a lógica de dontAdjustBalanceOnSave da criação de nova transação
-    // Ela será adicionada apenas no bloco de edição mais abaixo.
+    // Remove a lgica de dontAdjustBalanceOnSave da criao de nova transao
+    // Ela ser adicionada apenas no bloco de edio mais abaixo.
 
     const user = getCurrentUser();
     if (!user) {
@@ -663,12 +662,12 @@ const Dashboard: React.FC = () => {
       return;
     }
     
-    // Usar a função parseMonetaryNumber para garantir conversão correta
+    // Usar a funo parseMonetaryNumber para garantir converso correta
     const amount = parseMonetaryNumber(newTransaction.amount);
     if (isNaN(amount) || amount <= 0) {
       toast({
-        title: "Valor inválido",
-        description: "Por favor, informe um valor válido para a transação",
+        title: "Valor invlido",
+        description: "Por favor, informe um valor vlido para a transao",
         variant: "destructive"
       });
       return;
@@ -676,8 +675,8 @@ const Dashboard: React.FC = () => {
     
     if (!newTransaction.title.trim()) {
       toast({
-        title: "Título obrigatório",
-        description: "Por favor, informe um título para a transação",
+        title: "Ttulo obrigatrio",
+        description: "Por favor, informe um ttulo para a transao",
         variant: "destructive"
       });
       return;
@@ -686,7 +685,7 @@ const Dashboard: React.FC = () => {
     const type = newTransaction.type;
     
     const transaction: Transaction = {
-      id: uuidv4(), // Usar UUID válido para compatibilidade com o Supabase
+      id: uuidv4(), // Usar UUID vlido para compatibilidade com o Supabase
       title: newTransaction.title,
       amount: amount,
       type: type,
@@ -695,7 +694,7 @@ const Dashboard: React.FC = () => {
       userId: user.id,
       isRecurring: newTransaction.isRecurring,
       recurrenceFrequency: newTransaction.isRecurring ? newTransaction.recurrenceFrequency : undefined,
-      // Para transações recorrentes, adicionar campos necessários
+      // Para transaes recorrentes, adicionar campos necessrios
       ...(newTransaction.isRecurring && {
         recurringDay: newTransaction.recurringDay,
         recurringWeekday: newTransaction.recurringWeekday,
@@ -705,7 +704,7 @@ const Dashboard: React.FC = () => {
           recurringDay: newTransaction.recurringDay,
           recurringWeekday: newTransaction.recurringWeekday
         } as Transaction),
-        // Transações recorrentes NÃO devem afetar o saldo imediatamente
+        // Transaes recorrentes NO devem afetar o saldo imediatamente
         dontAdjustBalanceOnSave: true
       }),
       dontAdjustBalanceOnSave: editingTransaction ? editingTransactionDontAdjustBalance : newTransaction.isRecurring // Para recorrentes, sempre true
@@ -727,15 +726,15 @@ const Dashboard: React.FC = () => {
     setDialogOpen(false);
     
     toast({
-      title: `${type === 'income' ? 'Entrada' : 'Saída'} ${newTransaction.isRecurring ? 'recorrente' : ''} adicionada`,
+      title: `${type === 'income' ? 'Entrada' : 'Sada'} ${newTransaction.isRecurring ? 'recorrente' : ''} adicionada`,
       description: newTransaction.isRecurring 
-        ? `${transaction.title} foi configurada como recorrente e será processada automaticamente`
+        ? `${transaction.title} foi configurada como recorrente e ser processada automaticamente`
         : `${transaction.title} foi adicionada com sucesso no valor de ${formatCurrency(transaction.amount)}`
     });
     
-    // IMPORTANTE: Atualizar a lista de transações e o saldo
+    // IMPORTANTE: Atualizar a lista de transaes e o saldo
     setTimeout(() => {
-      // Recarregar transações do mês atual
+      // Recarregar transaes do ms atual
       loadTransactions(selectedMonth, selectedYear);
       
       // Recalcular o saldo total
@@ -743,13 +742,13 @@ const Dashboard: React.FC = () => {
     }, 100);  };
   
   const currentUser = getCurrentUser();
-  const userName = currentUser ? currentUser.username : "Usuário";
+  const userName = currentUser ? currentUser.username : "Usurio";
   
   return (
     <div 
       className="min-h-screen relative overflow-hidden pb-20"
       style={{
-        background: 'linear-gradient(135deg, #4a6cf7 0%, #5a7cfa 100%)',
+        background: '#0a0e1a',
         fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif'
       }}
     >
@@ -770,14 +769,6 @@ const Dashboard: React.FC = () => {
           />
         ))}
       </div>
-
-      {/* Glass effect overlay */}
-      <div 
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%)'
-        }}
-      />
       
       <div className="relative z-10">
         {/* Premium Header */}
@@ -804,12 +795,11 @@ const Dashboard: React.FC = () => {
                   fontWeight: 600
                 }}
               >
-                Olá, {userName}!
+                Ol, {userName}!
               </h2>
             </div>
             <div className="flex items-center gap-2">
               <NotificationBell />
-              <ThemeToggle />
             </div>
           </div>
           
@@ -828,7 +818,7 @@ const Dashboard: React.FC = () => {
                 backdropFilter: 'blur(10px)'
               }}
             >
-              ‹
+              
             </button>
             
             <div 
@@ -839,7 +829,7 @@ const Dashboard: React.FC = () => {
                 border: '1px solid rgba(255,255,255,0.1)'
               }}
             >
-              �️ {new Date(selectedYear, selectedMonth).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+               {new Date(selectedYear, selectedMonth).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
             </div>
             
             <button
@@ -855,22 +845,9 @@ const Dashboard: React.FC = () => {
                 backdropFilter: 'blur(10px)'
               }}
             >
-              ›
+              
             </button>
           </div>
-
-          {/* Recurrent Button - Moved to better position */}
-          <Link
-            to="/recurring-transactions"
-            className="px-4 py-2 rounded-2xl text-white text-xs font-medium hover:bg-white/20 transition-all duration-300 hover:-translate-y-0.5"
-            style={{
-              background: 'rgba(255,255,255,0.1)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.2)'
-            }}
-          >
-            � Recorrentes
-          </Link>
         </div>
 
         {/* Premium Balance Section */}
@@ -891,7 +868,7 @@ const Dashboard: React.FC = () => {
                 backdropFilter: 'blur(10px)'
               }}
             >
-              {balanceVisible ? '•••' : '○○○'}
+              {balanceVisible ? '' : ''}
             </button>
           </div>
           
@@ -904,7 +881,7 @@ const Dashboard: React.FC = () => {
               fontWeight: 300
             }}
           >
-            {balanceVisible ? formatCurrency(balance) : '••••••'}
+            {balanceVisible ? formatCurrency(balance) : ''}
           </div>
           
           <div 
@@ -923,7 +900,7 @@ const Dashboard: React.FC = () => {
           >
             {percentChange !== undefined && percentChange !== null && !isNaN(percentChange) 
               ? `${percentChange >= 0 ? '+' : ''}${Number(percentChange).toFixed(0)}%` 
-              : '---%'} Últimos 30 Dias
+              : '---%'} ltimos 30 Dias
           </div>
         </div>
 
@@ -938,7 +915,7 @@ const Dashboard: React.FC = () => {
               border: '1px solid rgba(76, 175, 80, 0.3)'
             }}
           >
-            <span style={{ fontSize: '16px' }}>↗</span>
+            <span style={{ fontSize: '16px' }}></span>
             Entrada
           </button>
           <button 
@@ -950,8 +927,8 @@ const Dashboard: React.FC = () => {
               border: '1px solid rgba(244, 67, 54, 0.3)'
             }}
           >
-            <span style={{ fontSize: '16px' }}>↙</span>
-            Saída
+            <span style={{ fontSize: '16px' }}></span>
+            Sada
           </button>
         </div>
 
@@ -988,11 +965,11 @@ const Dashboard: React.FC = () => {
                     backdropFilter: 'blur(10px)'
                   }}
                 >
-                  ↻
+                  
                 </button>
               </div>
               <p className="text-white/70 text-sm mb-4">
-                Consulte suas finanças via Telegram
+                Consulte suas finanas via Telegram
               </p>
               <div className="flex justify-end">
                 <button
@@ -1025,7 +1002,7 @@ const Dashboard: React.FC = () => {
                       background: 'linear-gradient(135deg, #4caf50, #45a049)'
                     }}
                   >
-                    ✓
+                    
                   </div>
                   <h4 className="text-white text-base font-semibold">
                     Telegram Conectado
@@ -1036,7 +1013,7 @@ const Dashboard: React.FC = () => {
                 {telegramInfo?.first_name ? (
                   <>@{telegramInfo.username || telegramInfo.first_name}</>
                 ) : (
-                  <>Usuário conectado</>
+                  <>Usurio conectado</>
                 )}
               </p>
               <div className="flex justify-end gap-2">
@@ -1053,7 +1030,7 @@ const Dashboard: React.FC = () => {
                 </button>
                 <button
                   onClick={async () => {
-                    if (confirm('🔌 Desconectar do Telegram?\n\nVocê não receberá mais notificações até conectar novamente.')) {
+                    if (confirm(' Desconectar do Telegram?\n\nVoc no receber mais notificaes at conectar novamente.')) {
                       try {
                         const { error } = await supabase
                           .from('telegram_users')
@@ -1065,12 +1042,12 @@ const Dashboard: React.FC = () => {
                         resetTelegramStatus();
                         
                         toast({
-                          title: "🔌 Desconectado",
+                          title: " Desconectado",
                           description: "Telegram desconectado com sucesso!",
                         });
                       } catch (error: any) {
                         toast({
-                          title: "❌ Erro",
+                          title: " Erro",
                           description: "Erro ao desconectar: " + error.message,
                           variant: "destructive"
                         });
@@ -1110,18 +1087,18 @@ const Dashboard: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="text-white text-xl font-semibold">
               {editingTransaction
-                ? (editingTransaction.type === 'income' ? 'Editar Entrada' : 'Editar Saída')
-                : (newTransaction.type === 'income' ? 'Adicionar Nova Entrada' : 'Adicionar Nova Saída')}
+                ? (editingTransaction.type === 'income' ? 'Editar Entrada' : 'Editar Sada')
+                : (newTransaction.type === 'income' ? 'Adicionar Nova Entrada' : 'Adicionar Nova Sada')}
             </DialogTitle>
             <DialogDescription className="text-white/80">
               {editingTransaction
-                ? (editingTransaction.type === 'income' ? 'Edite uma receita ou entrada financeira.' : 'Edite uma despesa ou saída financeira.')
-                : (newTransaction.type === 'income' ? 'Adicione uma nova receita ou entrada financeira.' : 'Adicione uma nova despesa ou saída financeira.')}
+                ? (editingTransaction.type === 'income' ? 'Edite uma receita ou entrada financeira.' : 'Edite uma despesa ou sada financeira.')
+                : (newTransaction.type === 'income' ? 'Adicione uma nova receita ou entrada financeira.' : 'Adicione uma nova despesa ou sada financeira.')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
             <div className="grid gap-2">
-              <Label htmlFor="title" className="text-white font-medium">Descrição</Label>
+              <Label htmlFor="title" className="text-white font-medium">Descrio</Label>
               <Input 
                 id="title" 
                 name="title"
@@ -1130,7 +1107,7 @@ const Dashboard: React.FC = () => {
                   if (editingTransaction) setEditingTransaction({...editingTransaction, title: e.target.value});
                   else handleNewTransactionChange(e);
                 }}
-                placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
+                placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salrio, Freelance' : 'Aluguel, Supermercado'}`}
                 className="bg-white/10 border-white/20 text-white placeholder-white/60 focus:border-blue-400 focus:bg-white/20"
               />
             </div>
@@ -1190,7 +1167,7 @@ const Dashboard: React.FC = () => {
               </Select>
             </div>
             
-            {/* Configuração de Recorrência */}
+            {/* Configurao de Recorrncia */}
             <RecurrenceConfig
               transaction={editingTransaction || newTransaction}
               onChange={(updated) => {
@@ -1221,7 +1198,7 @@ const Dashboard: React.FC = () => {
                   htmlFor="dontAdjustBalance" 
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  Não ajustar saldo
+                  No ajustar saldo
                 </Label>
               </div>
             )}
@@ -1267,7 +1244,7 @@ const Dashboard: React.FC = () => {
             setLastEditedTransactionIdForBalanceSkip(transactionToUpdate.id);
           }
           
-          toast({ title: "Sucesso", description: "Transação atualizada." });
+          toast({ title: "Sucesso", description: "Transao atualizada." });
           setDialogOpen(false); // Close dialog after successful save
         }}
         className={
@@ -1276,7 +1253,7 @@ const Dashboard: React.FC = () => {
             : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300'
         }
       >
-        Salvar {editingTransaction.type === 'income' ? 'Entrada' : 'Saída'}
+        Salvar {editingTransaction.type === 'income' ? 'Entrada' : 'Sada'}
       </Button>
       <Button
         variant="destructive"
@@ -1292,8 +1269,8 @@ const Dashboard: React.FC = () => {
           setDialogOpen(false);
           setEditingTransaction(null);
           toast({
-            title: 'Transação excluída',
-            description: 'A transação foi removida com sucesso.'
+            title: 'Transao excluda',
+            description: 'A transao foi removida com sucesso.'
           });
         }}
         className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300"
@@ -1305,12 +1282,12 @@ const Dashboard: React.FC = () => {
   ) : (
     <Button
       onClick={() => {
-          // Garante que a conversão para número ocorra aqui também, como no onChange do input.
+          // Garante que a converso para nmero ocorra aqui tambm, como no onChange do input.
           const amountAsNumber = parseFloat(newTransaction.amount.replace(/[^\.d0-9]/g, '').replace(',', '.'));
           if (isNaN(amountAsNumber) || amountAsNumber <= 0) {
             toast({
-              title: 'Valor Inválido',
-              description: 'Por favor, insira um valor numérico válido para a transação.',
+              title: 'Valor Invlido',
+              description: 'Por favor, insira um valor numrico vlido para a transao.',
               variant: 'destructive',
             });
             return;
@@ -1323,7 +1300,7 @@ const Dashboard: React.FC = () => {
           : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300'
       }
     >
-      Salvar {newTransaction.type === 'income' ? 'Entrada' : 'Saída'}
+      Salvar {newTransaction.type === 'income' ? 'Entrada' : 'Sada'}
     </Button>
   )}
 </DialogFooter>
@@ -1339,7 +1316,7 @@ const Dashboard: React.FC = () => {
               letterSpacing: '0.025em'
             }}
           >
-            Últimas Transações
+            ltimas Transaes
           </h2>
         </div>
       
@@ -1353,10 +1330,10 @@ const Dashboard: React.FC = () => {
                   size="sm"
                   className="w-full sm:w-auto bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg transition-all duration-300"
                 >
-                  {showDateFilters ? 'Ocultar Filtros' : 'Filtros Avançados'}
+                  {showDateFilters ? 'Ocultar Filtros' : 'Filtros Avanados'}
                 </Button>
                 
-                {/* Filtro rápido por nome sempre visível */}
+                {/* Filtro rpido por nome sempre visvel */}
                 <div className="flex-1">
                   <Input 
                     placeholder="Buscar por nome ou categoria..." 
@@ -1374,10 +1351,10 @@ const Dashboard: React.FC = () => {
                     <Input type="date" id="start-date" value={startDate || ''} onChange={(e) => setStartDate(e.target.value)} className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-blue-400 focus:bg-white/20 transition-all duration-300" />
                   </div>
                   <div className="grid w-full sm:w-auto gap-1.5">
-                    <Label htmlFor="end-date" className="text-xs text-white/80">Até:</Label>
+                    <Label htmlFor="end-date" className="text-xs text-white/80">At:</Label>
                     <Input type="date" id="end-date" value={endDate || ''} onChange={(e) => setEndDate(e.target.value)} className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-blue-400 focus:bg-white/20 transition-all duration-300" />
                   </div>
-                  <Button onClick={() => loadTransactions(selectedMonth, selectedYear, true)} className="mt-4 sm:mt-auto h-9 w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300" size="sm">Filtrar Período</Button>
+                  <Button onClick={() => loadTransactions(selectedMonth, selectedYear, true)} className="mt-4 sm:mt-auto h-9 w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300" size="sm">Filtrar Perodo</Button>
                   <Button 
                     onClick={() => {
                       setStartDate(null); 
@@ -1400,14 +1377,14 @@ const Dashboard: React.FC = () => {
       
       {(() => {
         const displayTransactions = showAllTransactionsInMonth ? transactions : transactions.slice(0, 5);
-        console.log(`🎨 [RENDER] Renderizando ${displayTransactions.length} transações (de ${transactions.length} total)`);
-        console.log(`🎨 [RENDER] Estado showAllTransactionsInMonth: ${showAllTransactionsInMonth}`);
-        console.log(`🎨 [RENDER] Estado nameFilter: "${nameFilter}"`);
-        console.log(`🎨 [RENDER] Estado startDate: ${startDate}, endDate: ${endDate}`);
-        console.log(`🎨 [RENDER] Mês selecionado: ${selectedMonth + 1}/${selectedYear}`);
+        console.log(` [RENDER] Renderizando ${displayTransactions.length} transaes (de ${transactions.length} total)`);
+        console.log(` [RENDER] Estado showAllTransactionsInMonth: ${showAllTransactionsInMonth}`);
+        console.log(` [RENDER] Estado nameFilter: "${nameFilter}"`);
+        console.log(` [RENDER] Estado startDate: ${startDate}, endDate: ${endDate}`);
+        console.log(` [RENDER] Ms selecionado: ${selectedMonth + 1}/${selectedYear}`);
         
         if (displayTransactions.length > 0) {
-          console.log('🎨 [RENDER] Primeiras 3 transações a serem renderizadas:', displayTransactions.slice(0, 3).map(t => ({
+          console.log(' [RENDER] Primeiras 3 transaes a serem renderizadas:', displayTransactions.slice(0, 3).map(t => ({
             id: t.id,
             title: t.title,
             date: new Date(t.date).toISOString(),
@@ -1416,8 +1393,8 @@ const Dashboard: React.FC = () => {
             category: t.category
           })));
         } else {
-          console.log('🎨 [RENDER] PROBLEMA: Nenhuma transação para renderizar!');
-          console.log('🎨 [RENDER] Array transactions completo:', transactions.map(t => ({
+          console.log(' [RENDER] PROBLEMA: Nenhuma transao para renderizar!');
+          console.log(' [RENDER] Array transactions completo:', transactions.map(t => ({
             id: t.id,
             title: t.title,
             date: new Date(t.date).toISOString(),
@@ -1458,7 +1435,7 @@ const Dashboard: React.FC = () => {
                     </p>
                     <div className="flex gap-1">
                       <button
-                        aria-label="Editar transação"
+                        aria-label="Editar transao"
                         className="ml-2 text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/20 transition-all duration-300"
                         style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                         onClick={() => {
@@ -1470,16 +1447,16 @@ const Dashboard: React.FC = () => {
                         <Edit size={18} />
                       </button>
                       <button
-                        aria-label="Excluir transação"
+                        aria-label="Excluir transao"
                         className="ml-1 text-white/60 hover:text-red-300 p-1 rounded-lg hover:bg-red-500/20 transition-all duration-300"
                         style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                         onClick={() => {
-                          if (window.confirm(`Tem certeza que deseja excluir a transação "${transaction.title}"?`)) {
+                          if (window.confirm(`Tem certeza que deseja excluir a transao "${transaction.title}"?`)) {
                             const shouldAdjustBalance = !transaction.dontAdjustBalanceOnSave;
                             deleteTransaction(transaction.id);
                             toast({
-                              title: 'Transação excluída',
-                              description: `A transação "${transaction.title}" foi excluída com sucesso.`
+                              title: 'Transao excluda',
+                              description: `A transao "${transaction.title}" foi excluda com sucesso.`
                             });
                             setTimeout(() => {
                               loadTransactions(selectedMonth, selectedYear);
@@ -1519,7 +1496,7 @@ const Dashboard: React.FC = () => {
           <div className="px-4">
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8 hover:bg-white/15 transition-colors duration-300">
               <div className="flex flex-col items-center justify-center">
-                <p className="text-white/70 mb-4">Nenhuma transação encontrada</p>
+                <p className="text-white/70 mb-4">Nenhuma transao encontrada</p>
               </div>
             </div>
           </div>
@@ -1532,7 +1509,7 @@ const Dashboard: React.FC = () => {
               onClick={() => setShowAllTransactionsInMonth(!showAllTransactionsInMonth)}
               className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              {showAllTransactionsInMonth ? 'Ver Menos' : 'Ver Todas as Transações'}
+              {showAllTransactionsInMonth ? 'Ver Menos' : 'Ver Todas as Transaes'}
             </Button>
           </div>
         )}
@@ -1545,7 +1522,7 @@ const Dashboard: React.FC = () => {
         onClose={() => setShowTelegramModal(false)}
         onConnect={(code) => {
           setShowTelegramModal(false);
-          // Forçar atualização do status após conectar
+          // Forar atualizao do status aps conectar
           setTimeout(() => {
             refreshTelegramStatus();
           }, 2000);

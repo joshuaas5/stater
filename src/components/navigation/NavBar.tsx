@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Brain, FileText, Lightbulb, Settings } from 'lucide-react';
+import { Brain, FileText, Lightbulb, Settings, Calendar } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 
 const NavBar: React.FC = () => {
@@ -12,9 +12,10 @@ const NavBar: React.FC = () => {
     return location.pathname === path;
   };
   
-  // Ordem: Contas → Análise IA → Logo Stater → Stater IA → Ajustes
+  // Ordem: Contas → Recorrentes → Análise IA → Logo Stater → Stater IA → Ajustes
   const navItems = [
     { icon: <FileText size={20} />, label: t('bills'), path: '/bills' },
+    { icon: <Calendar size={20} />, label: 'Recorrentes', path: '/recurring-transactions' },
     { icon: <Brain size={20} />, label: 'Análise IA', path: '/analise-financeira' },
     { 
       icon: <img src="/stater-logo-192.png" alt="Stater" className="h-8 w-8 object-contain drop-shadow-lg" />, 

@@ -749,7 +749,7 @@ const Dashboard: React.FC = () => {
     <div 
       className="min-h-screen relative overflow-hidden pb-20"
       style={{
-        background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+        background: 'linear-gradient(135deg, #4a6cf7 0%, #5a7cfa 100%)',
         fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif'
       }}
     >
@@ -892,7 +892,7 @@ const Dashboard: React.FC = () => {
                 backdropFilter: 'blur(10px)'
               }}
             >
-              {balanceVisible ? 'Ver' : 'Ocultar'}
+              {balanceVisible ? '👁️' : '👁️‍🗨️'}
             </button>
           </div>
           
@@ -975,7 +975,7 @@ const Dashboard: React.FC = () => {
                       background: 'linear-gradient(135deg, #0088cc, #0074b3)'
                     }}
                   >
-                    📱
+                    TG
                   </div>
                   <h4 className="text-white text-base font-semibold">
                     Telegram Bot
@@ -989,7 +989,7 @@ const Dashboard: React.FC = () => {
                     backdropFilter: 'blur(10px)'
                   }}
                 >
-                  🔄
+                  ↻
                 </button>
               </div>
               <p className="text-white/70 text-sm mb-4">
@@ -1026,7 +1026,7 @@ const Dashboard: React.FC = () => {
                       background: 'linear-gradient(135deg, #4caf50, #45a049)'
                     }}
                   >
-                    ✅
+                    ✓
                   </div>
                   <h4 className="text-white text-base font-semibold">
                     Telegram Conectado
@@ -1102,7 +1102,7 @@ const Dashboard: React.FC = () => {
         <DialogContent 
           className="max-h-[90vh] overflow-y-auto border-0"
           style={{
-            background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+            background: 'linear-gradient(135deg, #4a6cf7 0%, #5a7cfa 100%)',
             backdropFilter: 'blur(20px)',
             border: '1px solid rgba(255,255,255,0.2)',
             boxShadow: '0 20px 60px rgba(0,0,0,0.4)'
@@ -1111,8 +1111,8 @@ const Dashboard: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="text-white text-xl font-semibold">
               {editingTransaction
-                ? (editingTransaction.type === 'income' ? '💰 Editar Entrada' : '💸 Editar Saída')
-                : (newTransaction.type === 'income' ? '💰 Adicionar Nova Entrada' : '💸 Adicionar Nova Saída')}
+                ? (editingTransaction.type === 'income' ? 'Editar Entrada' : 'Editar Saída')
+                : (newTransaction.type === 'income' ? 'Adicionar Nova Entrada' : 'Adicionar Nova Saída')}
             </DialogTitle>
             <DialogDescription className="text-white/80">
               {editingTransaction
@@ -1122,7 +1122,7 @@ const Dashboard: React.FC = () => {
           </DialogHeader>
           <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
             <div className="grid gap-2">
-              <Label htmlFor="title" className="text-white font-medium">📝 Descrição</Label>
+              <Label htmlFor="title" className="text-white font-medium">Descrição</Label>
               <Input 
                 id="title" 
                 name="title"
@@ -1136,7 +1136,7 @@ const Dashboard: React.FC = () => {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="amount" className="text-white font-medium">💲 Valor</Label>
+              <Label htmlFor="amount" className="text-white font-medium">Valor</Label>
               <Input 
                 id="amount" 
                 name="amount"
@@ -1171,7 +1171,7 @@ const Dashboard: React.FC = () => {
                 <SelectContent 
                   className="border-white/20"
                   style={{
-                    background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+                    background: 'linear-gradient(135deg, #4a6cf7 0%, #5a7cfa 100%)',
                     backdropFilter: 'blur(20px)',
                     border: '1px solid rgba(255,255,255,0.2)'
                   }}
@@ -1360,7 +1360,7 @@ const Dashboard: React.FC = () => {
                 {/* Filtro rápido por nome sempre visível */}
                 <div className="flex-1">
                   <Input 
-                    placeholder="🔍 Buscar por nome ou categoria..." 
+                    placeholder="Buscar por nome ou categoria..." 
                     value={nameFilter}
                     onChange={(e) => setNameFilter(e.target.value)}
                     className="text-sm bg-white/15 backdrop-blur-sm border-white/30 text-white placeholder-white/80 focus:border-blue-400 focus:bg-white/25 transition-all duration-300 shadow-lg"

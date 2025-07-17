@@ -869,16 +869,17 @@ const Dashboard: React.FC = () => {
               }}
             >
               {balanceVisible ? (
-                // Ícone do Olho Aberto
+                // Ícone do Olho Aberto - Design mais amigável
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <ellipse cx="12" cy="12" rx="10" ry="6" fill="white" stroke="white" strokeWidth="1"/>
-                  <circle cx="12" cy="12" r="4" fill="#3b82f6"/>
-                  <circle cx="12" cy="12" r="2" fill="black"/>
+                  <path d="M12 4C6 4 2 8 2 12s4 8 10 8 10-4 10-8-4-8-10-8z" fill="white" stroke="rgba(255,255,255,0.3)" strokeWidth="0.5"/>
+                  <circle cx="12" cy="12" r="3" fill="#3b82f6" stroke="white" strokeWidth="0.5"/>
+                  <circle cx="12" cy="12" r="1.2" fill="#1e40af"/>
+                  <circle cx="13" cy="11" r="0.5" fill="white" opacity="0.8"/>
                 </svg>
               ) : (
                 // Ícone do Olho Fechado
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 12C4 12 7 8 12 8C17 8 20 12 20 12" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+                  <path d="M4 12c0 0 3-4 8-4s8 4 8 4" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
                 </svg>
               )}
             </button>

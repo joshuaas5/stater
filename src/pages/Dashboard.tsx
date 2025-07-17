@@ -748,7 +748,7 @@ const Dashboard: React.FC = () => {
     <div 
       className="min-h-screen relative overflow-hidden pb-20"
       style={{
-        background: 'linear-gradient(135deg, #2596be 0%, rgb(37, 150, 190) 100%)',
+        background: '#31518b',
         fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif'
       }}
     >

@@ -230,3 +230,8 @@
     }
   }
 }
+
+/* Regra forçada para Financial Advisor Page */
+div.financial-advisor-page {
+  background-color: #31518b !important;
+}

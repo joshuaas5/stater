@@ -811,7 +811,7 @@ const Dashboard: React.FC = () => {
               fontWeight: 600
             }}
           >
-            Olá, {userName}!
+            Olá, {userName}! 👋
           </h2>
           
           {/* Date Navigation */}
@@ -1112,14 +1112,22 @@ const Dashboard: React.FC = () => {
           setEditingTransactionDontAdjustBalance(false); // Resetar aqui
         }
       }}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent 
+          className="max-h-[90vh] overflow-y-auto border-0"
+          style={{
+            background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.4)'
+          }}
+        >
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-white text-xl font-semibold">
               {editingTransaction
-                ? (editingTransaction.type === 'income' ? 'Editar Entrada' : 'Editar Saída')
-                : (newTransaction.type === 'income' ? 'Adicionar Nova Entrada' : 'Adicionar Nova Saída')}
+                ? (editingTransaction.type === 'income' ? '💰 Editar Entrada' : '💸 Editar Saída')
+                : (newTransaction.type === 'income' ? '💰 Adicionar Nova Entrada' : '💸 Adicionar Nova Saída')}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-white/80">
               {editingTransaction
                 ? (editingTransaction.type === 'income' ? 'Edite uma receita ou entrada financeira.' : 'Edite uma despesa ou saída financeira.')
                 : (newTransaction.type === 'income' ? 'Adicione uma nova receita ou entrada financeira.' : 'Adicione uma nova despesa ou saída financeira.')}
@@ -1127,7 +1135,7 @@ const Dashboard: React.FC = () => {
           </DialogHeader>
           <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
             <div className="grid gap-2">
-              <Label htmlFor="title">Descrição</Label>
+              <Label htmlFor="title" className="text-white font-medium">📝 Descrição</Label>
               <Input 
                 id="title" 
                 name="title"
@@ -1137,10 +1145,11 @@ const Dashboard: React.FC = () => {
                   else handleNewTransactionChange(e);
                 }}
                 placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
+                className="bg-white/10 border-white/20 text-white placeholder-white/60 focus:border-blue-400 focus:bg-white/20"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="amount">Valor</Label>
+              <Label htmlFor="amount" className="text-white font-medium">💲 Valor</Label>
               <Input 
                 id="amount" 
                 name="amount"
@@ -1149,15 +1158,15 @@ const Dashboard: React.FC = () => {
                 min="0"
                 value={editingTransaction ? String(editingTransaction.amount ?? '') : newTransaction.amount} 
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = e.target.value;
-                  if (editingTransaction) setEditingTransaction({...editingTransaction, amount: value === '' ? 0 : Number(value)});
-                  else setNewTransaction({...newTransaction, amount: value});
+                  if (editingTransaction) setEditingTransaction({...editingTransaction, amount: parseFloat(e.target.value) || 0});
+                  else handleNewTransactionChange(e);
                 }}
-                placeholder="Ex: 250"
+                placeholder="0,00"
+                className="bg-white/10 border-white/20 text-white placeholder-white/60 focus:border-blue-400 focus:bg-white/20"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="category">Categoria</Label>
+              <Label htmlFor="category" className="text-white font-medium">🏷️ Categoria</Label>
               <Select
                 value={editingTransaction ? editingTransaction.category : newTransaction.category}
                 onValueChange={value => {
@@ -1165,14 +1174,29 @@ const Dashboard: React.FC = () => {
                   else setNewTransaction((prev: any) => ({ ...prev, category: value }));
                 }}
               >
-                <SelectTrigger id="category" name="category" className="bg-galileo-accent text-white">
-                  <SelectValue placeholder="Selecione uma categoria" />
+                <SelectTrigger 
+                  id="category" 
+                  name="category" 
+                  className="bg-white/10 border-white/20 text-white focus:border-blue-400 focus:bg-white/20"
+                >
+                  <SelectValue placeholder="Selecione uma categoria" className="text-white/80" />
                 </SelectTrigger>
-                <SelectContent className="bg-galileo-card text-galileo-text">
+                <SelectContent 
+                  className="border-white/20"
+                  style={{
+                    background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255,255,255,0.2)'
+                  }}
+                >
                   {((editingTransaction ? editingTransaction.type : newTransaction.type) === 'income'
                     ? INCOME_CATEGORIES
                     : EXPENSE_CATEGORIES).map((category: string) => (
-                      <SelectItem key={category} value={category}>
+                      <SelectItem 
+                        key={category} 
+                        value={category}
+                        className="text-white hover:bg-white/10 focus:bg-white/20"
+                      >
                         {category}
                       </SelectItem>
                     ))}
@@ -1262,8 +1286,8 @@ const Dashboard: React.FC = () => {
         }}
         className={
           editingTransaction.type === 'income'
-            ? 'bg-galileo-positive hover:bg-galileo-positive/80'
-            : 'bg-galileo-negative hover:bg-galileo-negative/80'
+            ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-300'
+            : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300'
         }
       >
         Salvar {editingTransaction.type === 'income' ? 'Entrada' : 'Saída'}
@@ -1286,6 +1310,7 @@ const Dashboard: React.FC = () => {
             description: 'A transação foi removida com sucesso.'
           });
         }}
+        className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300"
         data-testid="delete-transaction-btn"
       >
         Excluir
@@ -1308,8 +1333,8 @@ const Dashboard: React.FC = () => {
         }}
       className={
         newTransaction.type === 'income'
-          ? 'bg-galileo-positive hover:bg-galileo-positive/80'
-          : 'bg-galileo-negative hover:bg-galileo-negative/80'
+          ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-300'
+          : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300'
       }
     >
       Salvar {newTransaction.type === 'income' ? 'Entrada' : 'Saída'}

@@ -55,19 +55,19 @@ const NavBar: React.FC = () => {
                   : 'hover:bg-white/10'
               }`}
               style={{
-                // Aplicar cor especial para as abas "Análise IA" e "Stater IA" sempre
+                // Aplicar cor especial para as abas "Análise IA" e "Stater IA" sempre - com cor mais escura para contraste
                 ...(item.path === '/analise-financeira' || item.path === '/financial-advisor') && {
-                  backgroundColor: '#31518b',
-                  border: '1px solid rgba(255, 255, 255, 0.3)'
+                  backgroundColor: '#1e3a5f !important', // Cor mais escura que #31518b para contraste visível
+                  boxShadow: '0 2px 8px rgba(30, 58, 95, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 },
                 ...(active && {
                   boxShadow: '0 4px 16px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
-                  // Sobrescrever para as abas IA quando ativas
+                  // Sobrescrever para as abas IA quando ativas - sem borders que criam squares
                   ...(item.path === '/analise-financeira' || item.path === '/financial-advisor') && {
-                    backgroundColor: '#31518b',
-                    border: '1px solid rgba(255, 255, 255, 0.4)',
-                    boxShadow: '0 4px 16px rgba(49, 81, 139, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)'
+                    backgroundColor: '#1e3a5f !important', // Mantém cor mais escura
+                    border: 'none', // Remove borders que criam aparência de squares
+                    boxShadow: '0 4px 16px rgba(30, 58, 95, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 0 2px rgba(255, 255, 255, 0.2)' // Glow ao invés de border
                   }
                 })
               }}

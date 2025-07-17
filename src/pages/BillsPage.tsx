@@ -315,12 +315,21 @@ const BillsPage: React.FC = () => {
             </div>
           </div>
           
-          <Button 
-            onClick={handleAddBill} 
-            className="w-full sm:w-auto sm:ml-auto bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white transition-all duration-200"
-          >
-            <Plus size={18} className="mr-2" /> Adicionar Conta
-          </Button>
+          <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
+            <Button 
+              onClick={() => navigate('/recurring-transactions')} 
+              variant="outline"
+              className="flex-1 sm:flex-none text-blue-600 border-blue-500 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-950 transition-all duration-200"
+            >
+              <Calendar size={18} className="mr-2" /> Recorrentes
+            </Button>
+            <Button 
+              onClick={handleAddBill} 
+              className="flex-1 sm:flex-none bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white transition-all duration-200"
+            >
+              <Plus size={18} className="mr-2" /> Adicionar Conta
+            </Button>
+          </div>
         </div>
       </div>
 

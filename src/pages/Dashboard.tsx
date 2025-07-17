@@ -791,28 +791,27 @@ const Dashboard: React.FC = () => {
           <div className="absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
           
           <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
               <img 
                 src="/stater-logo-192.png" 
                 alt="Stater Logo" 
-                className="h-8 w-8 object-contain drop-shadow-lg"
+                className="h-12 w-12 object-contain drop-shadow-lg"
               />
+              <h2 
+                className="text-white text-xl font-semibold"
+                style={{
+                  textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                  fontWeight: 600
+                }}
+              >
+                Olá, {userName}!
+              </h2>
             </div>
             <div className="flex items-center gap-2">
               <NotificationBell />
               <ThemeToggle />
             </div>
           </div>
-
-          <h2 
-            className="text-white text-2xl font-semibold mb-2"
-            style={{
-              textShadow: '0 2px 10px rgba(0,0,0,0.3)',
-              fontWeight: 600
-            }}
-          >
-            Olá, {userName}!
-          </h2>
           
           {/* Date Navigation */}
           <div className="flex items-center justify-center gap-4 mt-5">
@@ -892,7 +891,7 @@ const Dashboard: React.FC = () => {
                 backdropFilter: 'blur(10px)'
               }}
             >
-              {balanceVisible ? '👁️' : '👁️‍🗨️'}
+              {balanceVisible ? '•••' : '○○○'}
             </button>
           </div>
           

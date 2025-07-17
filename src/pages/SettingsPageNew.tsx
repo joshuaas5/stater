@@ -69,27 +69,28 @@ const SettingsPage: React.FC = () => {  const { user } = useAuth();
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
-      {/* Partículas flutuantes */}
+    <div 
+      className="min-h-screen relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.7) 0%, rgba(30, 64, 175, 0.8) 100%)',
+        backgroundColor: '#f8fafc'
+      }}
+    >
+      {/* Partículas reduzidas para leveza */}
       <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: 20 }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
+            className="absolute w-1 h-1 bg-white/10 rounded-full animate-pulse"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
+              animationDuration: `${5 + Math.random() * 3}s`,
             }}
           />
         ))}
       </div>
-      
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-black/10" />
-      <div className="absolute top-10 left-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl animate-pulse" />
       
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
         <div className="my-8">
@@ -100,11 +101,11 @@ const SettingsPage: React.FC = () => {  const { user } = useAuth();
               className="h-10 w-10 object-contain drop-shadow-lg"
             />
             <h1 
-              className="text-4xl font-bold text-white"
+              className="text-3xl font-semibold text-white"
               style={{
-                fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                textShadow: 'rgb(59, 130, 246) 2px 2px 0px, rgb(29, 78, 216) 4px 4px 0px, rgba(59, 130, 246, 0.5) 0px 0px 15px',
-                filter: 'drop-shadow(rgba(0, 0, 0, 0.3) 0px 2px 4px)'
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
+                letterSpacing: '0.025em'
               }}
             >
               Configurações
@@ -152,7 +153,16 @@ const SettingsPage: React.FC = () => {  const { user } = useAuth();
           {activeTab === 'account' && (
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
               <div className="mb-6">
-                <h2 className="text-xl font-bold text-white mb-2">Informações do Usuário</h2>
+                <h2 
+                  className="text-xl font-semibold text-white mb-2"
+                  style={{
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
+                    letterSpacing: '0.025em'
+                  }}
+                >
+                  Informações do Usuário
+                </h2>
                 <p className="text-white/70">Visualize as informações da sua conta.</p>
               </div>
               <div className="space-y-4">
@@ -187,7 +197,16 @@ const SettingsPage: React.FC = () => {  const { user } = useAuth();
           {activeTab === 'preferences' && (
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
               <div className="mb-6">
-                <h2 className="text-xl font-bold text-white mb-2">Preferências do Usuário</h2>
+                <h2 
+                  className="text-xl font-semibold text-white mb-2"
+                  style={{
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
+                    letterSpacing: '0.025em'
+                  }}
+                >
+                  Preferências do Usuário
+                </h2>
                 <p className="text-white/70">Personalize sua experiência no aplicativo.</p>
               </div>
               <div className="space-y-6">
@@ -283,7 +302,16 @@ const SettingsPage: React.FC = () => {  const { user } = useAuth();
 
                 {/* Notificações */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-white">Notificações</h3>
+                  <h3 
+                    className="text-lg font-medium text-white"
+                    style={{
+                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
+                      letterSpacing: '0.025em'
+                    }}
+                  >
+                    Notificações
+                  </h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between py-3 px-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
                       <Label htmlFor="notifications-email" className="text-sm font-normal text-white">
@@ -324,7 +352,16 @@ const SettingsPage: React.FC = () => {  const { user } = useAuth();
           {activeTab === 'sync' && (
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
               <div className="mb-6">
-                <h2 className="text-xl font-bold text-white mb-2">Sincronização</h2>
+                <h2 
+                  className="text-xl font-semibold text-white mb-2"
+                  style={{
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
+                    letterSpacing: '0.025em'
+                  }}
+                >
+                  Sincronização
+                </h2>
                 <p className="text-white/70">Gerencie a sincronização dos seus dados.</p>
               </div>
               <div className="space-y-4">

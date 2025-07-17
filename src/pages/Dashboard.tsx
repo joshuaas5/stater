@@ -738,27 +738,28 @@ const Dashboard: React.FC = () => {
   const userName = currentUser ? currentUser.username : "Usuário";
   
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 pb-20">
-      {/* Partículas flutuantes super otimizadas */}
+    <div 
+      className="min-h-screen relative overflow-hidden pb-20"
+      style={{
+        background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.7) 0%, rgba(30, 64, 175, 0.8) 100%)',
+        backgroundColor: '#f8fafc'
+      }}
+    >
+      {/* Partículas reduzidas para leveza */}
       <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-white/15 rounded-full animate-pulse"
+            className="absolute w-1 h-1 bg-white/10 rounded-full animate-pulse"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${4 + Math.random() * 3}s`,
+              animationDuration: `${5 + Math.random() * 3}s`,
             }}
           />
         ))}
       </div>
-      
-      {/* Background Effects super otimizados */}
-      <div className="absolute inset-0 bg-black/10" />
-      <div className="absolute top-10 left-10 w-48 h-48 bg-blue-500/8 rounded-full blur-2xl" />
-      <div className="absolute bottom-10 right-10 w-40 h-40 bg-blue-600/8 rounded-full blur-2xl" />
       
       <div className="relative z-10">
         <div className="flex items-center justify-between p-4">
@@ -769,13 +770,11 @@ const Dashboard: React.FC = () => {
               className="h-8 w-8 object-contain drop-shadow-lg"
             />
             <h2 
-              className="text-white text-xl font-bold leading-tight"
+              className="text-white text-xl font-semibold leading-tight"
               style={{
-                fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                textShadow: 'rgba(0, 0, 0, 0.9) 3px 3px 6px, rgb(59, 130, 246) 2px 2px 0px, rgb(29, 78, 216) 3px 3px 0px, rgba(59, 130, 246, 0.8) 0px 0px 15px',
-                filter: 'drop-shadow(rgba(0, 0, 0, 0.7) 0px 3px 6px)',
-                WebkitTextStroke: '1px rgba(0, 0, 0, 0.5)',
-                letterSpacing: '0.5px'
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
+                letterSpacing: '0.025em'
               }}
             >
               Olá, {userName}!
@@ -795,12 +794,11 @@ const Dashboard: React.FC = () => {
           <div className="w-full">
             <div className="flex items-center justify-between mb-2">            <div className="flex items-center gap-2">
               <span 
-                className="text-white text-lg font-bold leading-normal"
+                className="text-white text-lg font-semibold leading-normal"
                 style={{
-                  fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                  textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px, rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
-                  filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 2px 4px)',
-                  WebkitTextStroke: '0.5px rgba(0, 0, 0, 0.3)'
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
+                  letterSpacing: '0.025em'
                 }}
               >
                 Saldo da Conta
@@ -861,10 +859,9 @@ const Dashboard: React.FC = () => {
                     <h4 
                       className="text-white font-medium text-base"
                       style={{
-                        fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                        textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px, rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
-                        filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 2px 4px)',
-                        WebkitTextStroke: '0.5px rgba(0, 0, 0, 0.3)'
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                        textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
+                        letterSpacing: '0.025em'
                       }}
                     >
                       Telegram Bot
@@ -903,10 +900,9 @@ const Dashboard: React.FC = () => {
                     <h4 
                       className="text-white font-medium text-base"
                       style={{
-                        fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                        textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px, rgb(34, 197, 94) 1px 1px 0px, rgb(21, 128, 61) 2px 2px 0px, rgba(34, 197, 94, 0.5) 0px 0px 10px',
-                        filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 2px 4px)',
-                        WebkitTextStroke: '0.5px rgba(0, 0, 0, 0.3)'
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                        textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
+                        letterSpacing: '0.025em'
                       }}
                     >
                       Telegram Conectado ✅
@@ -1197,10 +1193,11 @@ const Dashboard: React.FC = () => {
         
         <div className="px-4 mb-4">
           <h2 
-            className="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3 pt-2"
+            className="text-white text-xl font-semibold leading-tight tracking-normal pb-3 pt-2"
             style={{
-              fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-              textShadow: 'rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px'
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
+              letterSpacing: '0.025em'
             }}
           >
             Últimas Transações

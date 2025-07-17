@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
 import './Dashboard.module.css';
-import { useNavigate } from 'react-router-dom';
+import './Dashboard.premium.css';
+import { useNavigate, Link } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
@@ -9,7 +10,6 @@ import NavBar from '@/components/navigation/NavBar';
 import BalanceCard from '@/components/dashboard/BalanceCard';
 import { Eye, EyeOff, Edit } from 'lucide-react';
 import SpendingChart from '@/components/dashboard/SpendingChart';
-import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { DollarSign, ArrowRight, MessageCircle, Check } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -741,228 +741,334 @@ const Dashboard: React.FC = () => {
     <div 
       className="min-h-screen relative overflow-hidden pb-20"
       style={{
-        background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.7) 0%, rgba(30, 64, 175, 0.8) 100%)',
-        backgroundColor: '#f8fafc'
+        background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif'
       }}
     >
-      {/* Partículas reduzidas para leveza */}
-      <div className="absolute inset-0 overflow-hidden">
+      {/* Floating Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-white/10 rounded-full animate-pulse"
+            className="absolute bg-white/10 rounded-full"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${5 + Math.random() * 3}s`,
+              width: i === 0 ? '4px' : i === 1 ? '6px' : '3px',
+              height: i === 0 ? '4px' : i === 1 ? '6px' : '3px',
+              left: i === 0 ? '10%' : i === 1 ? '85%' : '20%',
+              top: i === 0 ? '20%' : i === 1 ? '60%' : '70%',
+              animation: `float${i + 1} 6s ease-in-out infinite`,
+              animationDelay: `${i * 2}s`
             }}
           />
         ))}
       </div>
+
+      {/* Glass effect overlay */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%)'
+        }}
+      />
       
       <div className="relative z-10">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-3">
-            <img 
-              src="/stater-logo-192.png" 
-              alt="Stater Logo" 
-              className="h-8 w-8 object-contain drop-shadow-lg"
-            />
-            <h2 
-              className="text-white text-xl font-semibold leading-tight"
+        {/* Premium Header */}
+        <div 
+          className="text-center pt-8 pb-6 px-8 relative"
+          style={{
+            background: 'rgba(0,0,0,0.1)',
+            backdropFilter: 'blur(10px)'
+          }}
+        >
+          <div className="absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+          
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center space-x-3">
+              <img 
+                src="/stater-logo-192.png" 
+                alt="Stater Logo" 
+                className="h-8 w-8 object-contain drop-shadow-lg"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <ThemeToggle />
+            </div>
+          </div>
+
+          <h2 
+            className="text-white text-2xl font-semibold mb-2"
+            style={{
+              textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+              fontWeight: 600
+            }}
+          >
+            Olá, {userName}!
+          </h2>
+          
+          {/* Date Navigation */}
+          <div className="flex items-center justify-center gap-4 mt-5">
+            <button
+              onClick={() => {
+                const newDate = new Date(selectedYear, selectedMonth - 1);
+                setSelectedMonth(newDate.getMonth());
+                setSelectedYear(newDate.getFullYear());
+                loadTransactions(newDate.getMonth(), newDate.getFullYear());
+              }}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 hover:scale-110"
               style={{
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
-                letterSpacing: '0.025em'
+                background: 'rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(10px)'
               }}
             >
-              Olá, {userName}!
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <NotificationBell />
-            <ThemeToggle />
-          </div>
-        </div>
-
-        <div className="px-4 mb-4">
-          <MonthSelector onMonthChange={handleMonthChange} />
-        </div>
-
-        <div className="flex flex-wrap gap-4 px-4 mb-6">
-          <div className="w-full">
-            <div className="flex items-center justify-between mb-2">            <div className="flex items-center gap-2">
-              <span 
-                className="text-white text-lg font-semibold leading-normal"
-                style={{
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                  textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
-                  letterSpacing: '0.025em'
-                }}
-              >
-                Saldo da Conta
-              </span>
-                <button
-                  aria-label={balanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
-                  className="ml-1 text-white/70 hover:text-white transition-colors"
-                  onClick={() => setBalanceVisible((v: boolean) => !v)}
-                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                >
-                  {balanceVisible ? <Eye size={20} /> : <EyeOff size={20} />}
-                </button>
-              </div>
+              ‹
+            </button>
+            
+            <div 
+              className="px-6 py-3 rounded-3xl text-white font-medium"
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                backdropFilter: 'blur(15px)',
+                border: '1px solid rgba(255,255,255,0.1)'
+              }}
+            >
+              📅 {new Date(selectedYear, selectedMonth).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
             </div>
-            <div className="bg-white/15 backdrop-blur-xl rounded-2xl border border-white/30 shadow-2xl p-6 hover:bg-white/20 transition-all duration-300">
-              <BalanceCard balance={balance} percentChange={percentChange} visible={balanceVisible} />
-            </div>
+            
+            <button
+              onClick={() => {
+                const newDate = new Date(selectedYear, selectedMonth + 1);
+                setSelectedMonth(newDate.getMonth());
+                setSelectedYear(newDate.getFullYear());
+                loadTransactions(newDate.getMonth(), newDate.getFullYear());
+              }}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 hover:scale-110"
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              ›
+            </button>
           </div>
-        </div>
 
-        {/* Links para funcionalidades avançadas */}
-        <div className="px-4 mb-6 flex justify-end gap-3">
+          {/* Recurrent Button */}
           <Link
             to="/recurring-transactions"
-            className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 shadow-lg text-base font-semibold text-white transition-colors duration-300"
-            style={{ textDecoration: 'none' }}
+            className="absolute top-5 right-8 px-4 py-2 rounded-2xl text-white text-xs font-medium hover:bg-white/20 transition-all duration-300 hover:-translate-y-0.5"
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255,255,255,0.2)'
+            }}
           >
-            <CalendarRange className="h-5 w-5 text-blue-300" />
-            <span className="text-xs">Recorrentes</span>
+            📊 Recorrentes
           </Link>
-        </div>      
+        </div>
 
-        <div className="flex justify-center gap-4 mb-6">
-          <Button 
+        {/* Premium Balance Section */}
+        <div className="pt-10 pb-9 px-8 text-center relative">
+          <div className="flex items-center justify-between mb-6">
+            <div 
+              className="text-white/80 font-medium text-base uppercase tracking-wider"
+              style={{ letterSpacing: '1px' }}
+            >
+              Saldo da Conta
+            </div>
+            <button
+              aria-label={balanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 hover:scale-110"
+              onClick={() => setBalanceVisible((v: boolean) => !v)}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              {balanceVisible ? '👁' : '🙈'}
+            </button>
+          </div>
+          
+          <div 
+            className="text-white font-light mb-5"
+            style={{
+              fontSize: '42px',
+              textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+              letterSpacing: '-1px',
+              fontWeight: 300
+            }}
+          >
+            {balanceVisible ? formatCurrency(balance) : '••••••'}
+          </div>
+          
+          <div 
+            className={`inline-block px-5 py-3 rounded-3xl font-semibold text-sm ${
+              percentChange >= 0 ? 'text-green-400' : 'text-red-400'
+            }`}
+            style={{
+              background: percentChange >= 0 
+                ? 'rgba(76, 175, 80, 0.2)' 
+                : 'rgba(244, 67, 54, 0.2)',
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${percentChange >= 0 
+                ? 'rgba(76, 175, 80, 0.3)' 
+                : 'rgba(244, 67, 54, 0.3)'}`
+            }}
+          >
+            {percentChange !== undefined && percentChange !== null && !isNaN(percentChange) 
+              ? `${percentChange >= 0 ? '+' : ''}${Number(percentChange).toFixed(0)}%` 
+              : '---%'} Últimos 30 Dias
+          </div>
+        </div>
+
+        {/* Premium Quick Actions */}
+        <div className="flex px-8 gap-3 mb-6">
+          <button 
             onClick={() => handleAddTransaction('income')}
-            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+            className="flex-1 flex items-center justify-center gap-2 py-5 px-3 rounded-2xl text-white font-medium text-sm hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
+            style={{
+              background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1))',
+              backdropFilter: 'blur(15px)',
+              border: '1px solid rgba(76, 175, 80, 0.3)'
+            }}
           >
-            <TrendingUp size={18} />
-            Adicionar Entrada
-          </Button>
-          <Button 
+            <span style={{ fontSize: '16px' }}>↗</span>
+            Entrada
+          </button>
+          <button 
             onClick={() => handleAddTransaction('expense')}
-            className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+            className="flex-1 flex items-center justify-center gap-2 py-5 px-3 rounded-2xl text-white font-medium text-sm hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
+            style={{
+              background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.2), rgba(244, 67, 54, 0.1))',
+              backdropFilter: 'blur(15px)',
+              border: '1px solid rgba(244, 67, 54, 0.3)'
+            }}
           >
-            <TrendingDown size={18} />
-            Adicionar Saída
-          </Button>
-        </div>        {/* Banner Telegram - Versão Glassmorphism */}
-        <div className="px-4 mb-4">
+            <span style={{ fontSize: '16px' }}>↙</span>
+            Saída
+          </button>
+        </div>        {/* Premium Telegram Section */}
+        <div 
+          className="mx-8 mb-6 p-5 rounded-2xl"
+          style={{
+            background: 'rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.1)'
+          }}
+        >
           {!isTelegramLinked ? (
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-xl">
-              <div className="flex items-center justify-between gap-3">
+            <>
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-500/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-blue-400/30">
-                    <MessageCircle className="h-6 w-6 text-blue-300" />
+                  <div 
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs"
+                    style={{
+                      background: 'linear-gradient(135deg, #0088cc, #0074b3)'
+                    }}
+                  >
+                    📱
                   </div>
-                  <div>
-                    <h4 
-                      className="text-white font-medium text-base"
-                      style={{
-                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                        textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
-                        letterSpacing: '0.025em'
-                      }}
-                    >
-                      Telegram Bot
-                    </h4>
-                    <p className="text-blue-200 text-sm">
-                      Consulte suas finanças via Telegram
-                    </p>
-                  </div>
+                  <h4 className="text-white text-base font-semibold">
+                    Telegram Bot
+                  </h4>
                 </div>
-                
-                <Button
+              </div>
+              <p className="text-white/70 text-sm mb-4">
+                Consulte suas finanças via Telegram
+              </p>
+              <div className="flex justify-end">
+                <button
                   onClick={generateTelegramCode}
                   disabled={isGeneratingCode}
-                  size="sm"
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  className="px-6 py-3 rounded-xl text-white text-sm font-semibold hover:-translate-y-0.5 transition-all duration-300"
+                  style={{
+                    background: 'linear-gradient(135deg, #0088cc, #0074b3)',
+                    boxShadow: isGeneratingCode ? 'none' : '0 8px 25px rgba(0, 136, 204, 0.3)'
+                  }}
                 >
                   {isGeneratingCode ? (
                     <div className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
-                      <span className="text-sm">Conectando...</span>
+                      <span>Conectando...</span>
                     </div>
                   ) : (
-                    <span className="text-sm">Conectar</span>
+                    'Conectar'
                   )}
-                </Button>
+                </button>
               </div>
-            </div>
+            </>
           ) : (
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-xl">
-              <div className="flex items-center justify-between gap-3">
+            <>
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-500/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-green-400/30">
-                    <Check className="h-6 w-6 text-green-300" />
-                  </div>
-                  <div>
-                    <h4 
-                      className="text-white font-medium text-base"
-                      style={{
-                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                        textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
-                        letterSpacing: '0.025em'
-                      }}
-                    >
-                      Telegram Conectado ✅
-                    </h4>
-                    <p className="text-green-200 text-sm">
-                      {telegramInfo?.first_name ? (
-                        <>@{telegramInfo.username || telegramInfo.first_name}</>
-                      ) : (
-                        <>Usuário conectado</>
-                      )}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
-                    className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    <span className="text-sm">Abrir Bot</span>
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      if (confirm('🔌 Desconectar do Telegram?\n\nVocê não receberá mais notificações até conectar novamente.')) {
-                        try {
-                          const { error } = await supabase
-                            .from('telegram_users')
-                            .delete()
-                            .eq('user_id', user?.id);
-                          
-                          if (error) throw error;
-                          
-                          // Usar função resetTelegramStatus
-                          resetTelegramStatus();
-                          
-                          toast({
-                            title: "🔌 Desconectado",
-                            description: "Telegram desconectado com sucesso!",
-                          });
-                        } catch (error: any) {
-                          toast({
-                            title: "❌ Erro",
-                            description: "Erro ao desconectar: " + error.message,
-                            variant: "destructive"
-                          });
-                        }
-                      }
+                  <div 
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs"
+                    style={{
+                      background: 'linear-gradient(135deg, #4caf50, #45a049)'
                     }}
-                    className="bg-red-500/20 backdrop-blur-sm border-red-400/30 text-red-200 hover:bg-red-500/30 shadow-lg hover:shadow-xl transition-all duration-300"
                   >
-                    <span className="text-sm">Desconectar</span>
-                  </Button>
+                    ✅
+                  </div>
+                  <h4 className="text-white text-base font-semibold">
+                    Telegram Conectado
+                  </h4>
                 </div>
               </div>
-            </div>
+              <p className="text-green-200 text-sm mb-4">
+                {telegramInfo?.first_name ? (
+                  <>@{telegramInfo.username || telegramInfo.first_name}</>
+                ) : (
+                  <>Usuário conectado</>
+                )}
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
+                  className="px-4 py-2 rounded-xl text-white text-sm hover:-translate-y-0.5 transition-all duration-300"
+                  style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.2)'
+                  }}
+                >
+                  Abrir Bot
+                </button>
+                <button
+                  onClick={async () => {
+                    if (confirm('🔌 Desconectar do Telegram?\n\nVocê não receberá mais notificações até conectar novamente.')) {
+                      try {
+                        const { error } = await supabase
+                          .from('telegram_users')
+                          .delete()
+                          .eq('user_id', user?.id);
+                        
+                        if (error) throw error;
+                        
+                        resetTelegramStatus();
+                        
+                        toast({
+                          title: "🔌 Desconectado",
+                          description: "Telegram desconectado com sucesso!",
+                        });
+                      } catch (error: any) {
+                        toast({
+                          title: "❌ Erro",
+                          description: "Erro ao desconectar: " + error.message,
+                          variant: "destructive"
+                        });
+                      }
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl text-red-200 text-sm hover:-translate-y-0.5 transition-all duration-300"
+                  style={{
+                    background: 'rgba(244, 67, 54, 0.2)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(244, 67, 54, 0.3)'
+                  }}
+                >
+                  Desconectar
+                </button>
+              </div>
+            </>
           )}
         </div>
 
@@ -1181,12 +1287,44 @@ const Dashboard: React.FC = () => {
       </Dialog>
       
       
-        <div className="px-4 mb-6">
-          <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-              <div className="lg:col-span-3">
-                <SpendingChart transactions={transactions} days={30} />
-              </div>
+        {/* Premium Evolution Section */}
+        <div 
+          className="mx-8 mb-6 p-5 rounded-2xl relative"
+          style={{
+            background: 'rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 0 30px rgba(255,255,255,0.1)'
+          }}
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-white text-base font-semibold">
+              Evolução do Saldo
+            </h3>
+            <span className="text-white/70 text-sm">
+              Últimos 30 dias
+            </span>
+          </div>
+          
+          <div className="text-white text-lg font-semibold mb-4">
+            {formatCurrency(balance)}
+          </div>
+          
+          <div className="relative">
+            <SpendingChart transactions={transactions} days={30} />
+            
+            {/* Insights Loading Indicator */}
+            <div 
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center"
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(10px)',
+                animation: 'pulse 2s infinite'
+              }}
+            >
+              <div 
+                className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin"
+              />
             </div>
           </div>
         </div>
@@ -1398,7 +1536,82 @@ const Dashboard: React.FC = () => {
           </div>
         )}
       
-      <NavBar />
+      {/* Premium Bottom Navigation */}
+      <div 
+        className="fixed bottom-0 left-0 right-0 p-4 pb-9"
+        style={{
+          background: 'rgba(0,0,0,0.3)',
+          backdropFilter: 'blur(20px)',
+          borderTop: '1px solid rgba(255,255,255,0.1)'
+        }}
+      >
+        <div className="flex justify-around items-center max-w-md mx-auto">
+          <Link 
+            to="/bills"
+            className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all duration-300 hover:-translate-y-0.5"
+          >
+            <div 
+              className="w-8 h-8 rounded-full flex items-center justify-center text-base transition-all duration-300 hover:bg-white/20"
+              style={{ background: 'rgba(255,255,255,0.1)' }}
+            >
+              📊
+            </div>
+            <span className="text-xs font-medium">Contas</span>
+          </Link>
+          
+          <Link 
+            to="/analise-financeira"
+            className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all duration-300 hover:-translate-y-0.5"
+          >
+            <div 
+              className="w-8 h-8 rounded-full flex items-center justify-center text-base transition-all duration-300 hover:bg-white/20"
+              style={{ background: 'rgba(255,255,255,0.1)' }}
+            >
+              🤖
+            </div>
+            <span className="text-xs font-medium">Análise IA</span>
+          </Link>
+          
+          <Link 
+            to="/dashboard"
+            className="flex flex-col items-center gap-1 text-white transition-all duration-300"
+          >
+            <div 
+              className="w-8 h-8 rounded-full flex items-center justify-center text-base"
+              style={{ background: 'rgba(255,255,255,0.2)' }}
+            >
+              🏠
+            </div>
+            <span className="text-xs font-medium">STATER</span>
+          </Link>
+          
+          <Link 
+            to="/stater-ia"
+            className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all duration-300 hover:-translate-y-0.5"
+          >
+            <div 
+              className="w-8 h-8 rounded-full flex items-center justify-center text-base transition-all duration-300 hover:bg-white/20"
+              style={{ background: 'rgba(255,255,255,0.1)' }}
+            >
+              💡
+            </div>
+            <span className="text-xs font-medium">Stater IA</span>
+          </Link>
+          
+          <Link 
+            to="/settings"
+            className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all duration-300 hover:-translate-y-0.5"
+          >
+            <div 
+              className="w-8 h-8 rounded-full flex items-center justify-center text-base transition-all duration-300 hover:bg-white/20"
+              style={{ background: 'rgba(255,255,255,0.1)' }}
+            >
+              ⚙️
+            </div>
+            <span className="text-xs font-medium">Ajustes</span>
+          </Link>
+        </div>
+      </div>
       
       <TelegramConnectModal
         isOpen={showTelegramModal}

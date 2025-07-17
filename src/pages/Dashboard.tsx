@@ -386,170 +386,186 @@ const Dashboard: React.FC = () => {
 
   const calculateTotalBalance = () => {
     const allTransactions = getTransactions();
-    if (lastEditedTransactionIdForBalanceSkip) {
-      // Pular o reclculo do saldo se necessrio
+    
+    // CORREÇÃO: Sempre calcular o saldo, independente do skip
+    // O skip é apenas para evitar recálculos desnecessários, não para pular completamente
+    const shouldSkipRecalculation = lastEditedTransactionIdForBalanceSkip;
+    if (shouldSkipRecalculation) {
       setLastEditedTransactionIdForBalanceSkip(null);
+    }
+    
+    // Filtrar transações válidas para cálculo de saldo
+    const validTransactions = allTransactions.filter(t => {
+      // Excluir apenas transações recorrentes que são templates (não instâncias)
+      if (t.isRecurring && !t.isRecurringInstance) {
+        return false;
+      }
+      return true;
+    });
+    
+    // Calcular saldo total com validação de dados
+    let totalBalance = 0;
+    const excludeIds = shouldSkipRecalculation ? [lastEditedTransactionIdForBalanceSkip || ''] : [];
+    
+    try {
+      totalBalance = calculateBalance(validTransactions, excludeIds);
+      setBalance(totalBalance);
+    } catch (error) {
+      console.error('Erro ao calcular saldo:', error);
+      // Em caso de erro, manter o saldo atual e notificar o usuário
+      toast({
+        title: "Erro de Cálculo",
+        description: "Erro temporário no cálculo do saldo. Tente novamente.",
+        variant: "destructive"
+      });
       return;
     }
     
-    // Filtrar transaes recorrentes que ainda no foram processadas
-    const validTransactions = allTransactions.filter(t => {
-      // Se  recorrente e no  uma instncia, no incluir no saldo
-      if (t.isRecurring && !t.isRecurringInstance) {
-        return false;
+    // Calcular variação percentual de forma mais robusta
+    try {
+      const today = new Date();
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(today.getDate() - 30);
+      
+      const sixtyDaysAgo = new Date();
+      sixtyDaysAgo.setDate(today.getDate() - 60);
+      
+      // Transações dos últimos 30 dias
+      const last30DaysTransactions = validTransactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate >= thirtyDaysAgo && transactionDate <= today;
+      });
+      
+      // Transações dos 30 dias anteriores
+      const previous30DaysTransactions = validTransactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate >= sixtyDaysAgo && transactionDate < thirtyDaysAgo;
+      });
+      
+      const last30DaysBalance = calculateBalance(last30DaysTransactions, excludeIds);
+      const previous30DaysBalance = calculateBalance(previous30DaysTransactions, excludeIds);
+      
+      const change = calculatePercentageChange(last30DaysBalance, previous30DaysBalance);
+      
+      // Validar resultado antes de setar
+      if (isNaN(change) || !isFinite(change)) {
+        setPercentChange(0);
+      } else {
+        setPercentChange(Math.max(-100, Math.min(100, change))); // Limitar entre -100% e +100%
       }
-      return true;
-    });
-    
-    // Calcular saldo total com transaes vlidas (excluindo recorrentes no processadas)
-    const totalBalance = calculateBalance(validTransactions, [lastEditedTransactionIdForBalanceSkip || '']);
-    setBalance(totalBalance);
-    
-    // Calcular variao percentual com base nos ltimos 30 dias vs 30 dias anteriores
-    const today = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(today.getDate() - 30);
-    
-    const sixtyDaysAgo = new Date();
-    sixtyDaysAgo.setDate(today.getDate() - 60);
-    
-    // Transaes dos ltimos 30 dias
-    const last30DaysTransactions = validTransactions.filter(t => {
-      const transactionDate = new Date(t.date);
-      return transactionDate >= thirtyDaysAgo && transactionDate <= today;
-    });
-    
-    // Transaes dos 30 dias anteriores aos ltimos 30 dias
-    const previous30DaysTransactions = validTransactions.filter(t => {
-      const transactionDate = new Date(t.date);
-      return transactionDate >= sixtyDaysAgo && transactionDate < thirtyDaysAgo;
-    });
-    
-    const last30DaysBalance = calculateBalance(last30DaysTransactions, [lastEditedTransactionIdForBalanceSkip || '']);
-    const previous30DaysBalance = calculateBalance(previous30DaysTransactions, [lastEditedTransactionIdForBalanceSkip || '']);
-    
-    const change = calculatePercentageChange(last30DaysBalance, previous30DaysBalance);
-    setPercentChange(change);
+    } catch (error) {
+      console.error('Erro ao calcular variação percentual:', error);
+      setPercentChange(0);
+    }
   };  const loadTransactions = (month: number, year: number, useCustomPeriod = false) => {
     console.log(' [loadTransactions] Iniciando carregamento...');
-    const allTransactions = getTransactions();
-    console.log(` [loadTransactions] Total encontrado: ${allTransactions.length}`);
     
-    // Filtrar transaes recorrentes que ainda no foram processadas APENAS para clculos
-    const validTransactionsForCalculation = allTransactions.filter(t => {
-      // Se  recorrente e no  uma instncia, no incluir nos clculos
-      if (t.isRecurring && !t.isRecurringInstance) {
-        return false;
-      }
-      return true;
-    });
+    try {
+      const allTransactions = getTransactions();
+      console.log(` [loadTransactions] Total encontrado: ${allTransactions.length}`);
+      
+      // CORREÇÃO: Usar uma única fonte de verdade para filtrar transações válidas
+      const validTransactions = allTransactions.filter(t => {
+        // Excluir apenas templates de transações recorrentes (não as instâncias)
+        if (t.isRecurring && !t.isRecurringInstance) {
+          return false;
+        }
+        return true;
+      });
+      
+      console.log(` [loadTransactions] Transações válidas: ${validTransactions.length}`);
+      
+      // CORREÇÃO: Separar claramente a lógica de filtros
+      let filteredForDisplay = [...validTransactions];
+      let filteredForCalculation = [...validTransactions];
+      
+      // Para cálculos: sempre filtrar por mês/ano selecionado
+      filteredForCalculation = validTransactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
+      });
+    console.log(` [loadTransactions] Para cálculos - mês ${month + 1}/${year}: ${filteredForCalculation.length}`);
     
-    // Para exibio, filtrar apenas recorrentes no processadas (manter todas as instncias normais)
-    const validTransactionsForDisplay = allTransactions.filter(t => {
-      // Se  recorrente e no  uma instncia, no mostrar na lista de transaes
-      if (t.isRecurring && !t.isRecurringInstance) {
-        return false;
-      }
-      return true;
-    });
-    
-    console.log(` [loadTransactions] Para clculos: ${validTransactionsForCalculation.length}`);
-    console.log(` [loadTransactions] Para exibio: ${validTransactionsForDisplay.length}`);
-    
-    // LOG: Mostrar as ltimas 5 transaes para debug
-    if (validTransactionsForDisplay.length > 0) {
-      const sortedByDate = [...validTransactionsForDisplay].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      console.log(' [DEBUG] ltimas 5 transaes por data:', sortedByDate.slice(0, 5).map(t => ({
-        title: t.title,
-        date: t.date,
-        dateStr: new Date(t.date).toISOString(),
-        month: new Date(t.date).getMonth(),
-        year: new Date(t.date).getFullYear()
-      })));
-    }
-    
-    let filteredTransactionsForDisplay = validTransactionsForDisplay;
-    let filteredTransactionsForCalculation = validTransactionsForCalculation;
-    
-    // Para os clculos de receitas/gastos, usar sempre o filtro de ms/ano
-    filteredTransactionsForCalculation = validTransactionsForCalculation.filter(t => {
-      const transactionDate = new Date(t.date);
-      return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
-    });
-    console.log(` [loadTransactions] Para clculos - ms ${month + 1}/${year}: ${filteredTransactionsForCalculation.length}`);
-    
-    // Para exibio: se no h filtros especficos, mostrar transaes mais recentes independente do ms
+    // Para exibição: se não há filtros específicos, mostrar transações mais recentes independente do mês
     if (useCustomPeriod && startDate && endDate) {
-      // Se h filtro de perodo personalizado, aplicar ele
+      // Se há filtro de período personalizado, aplicar ele
       const start = new Date(startDate + 'T00:00:00');
       const end = new Date(endDate + 'T23:59:59');
-      filteredTransactionsForDisplay = validTransactionsForDisplay.filter(t => {
+      filteredForDisplay = validTransactions.filter(t => {
         const transactionDate = new Date(t.date);
         return transactionDate >= start && transactionDate <= end;
       });
-      console.log(` [loadTransactions] Exibio - perodo personalizado: ${filteredTransactionsForDisplay.length}`);
+      console.log(` [loadTransactions] Exibição - período personalizado: ${filteredForDisplay.length}`);
     } else if (nameFilter.trim()) {
-      // Se h filtro de nome, aplicar sobre transaes vlidas para exibio
-      filteredTransactionsForDisplay = validTransactionsForDisplay.filter(t => 
+      // Se há filtro de nome, aplicar sobre transações válidas para exibição
+      filteredForDisplay = validTransactions.filter(t => 
         t.title.toLowerCase().includes(nameFilter.toLowerCase()) ||
         t.category.toLowerCase().includes(nameFilter.toLowerCase())
       );
-      console.log(` [loadTransactions] Exibio - filtro por nome: ${filteredTransactionsForDisplay.length}`);
+      console.log(` [loadTransactions] Exibição - filtro por nome: ${filteredForDisplay.length}`);
     } else {
-      // LGICA MELHORADA: Mostrar histrico completo das ltimas transaes
-      // Esta  a seo "ltimas Transaes" que deve ser acumulativa
-      filteredTransactionsForDisplay = [...validTransactionsForDisplay];
+      // LÓGICA MELHORADA: Mostrar histórico completo das últimas transações
+      // Esta é a seção "Últimas Transações" que deve ser acumulativa
+      filteredForDisplay = [...validTransactions];
       
       // Ordenar por data (mais recentes primeiro)
-      filteredTransactionsForDisplay.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      filteredForDisplay.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
-      // CORREO: Mostrar as ltimas 100 transaes para um histrico mais completo
-      // Isso garante que o usurio veja um histrico acumulativo e no perca transaes
-      filteredTransactionsForDisplay = filteredTransactionsForDisplay.slice(0, 100);
+      // CORREÇÃO: Mostrar as últimas 100 transações para um histórico mais completo
+      // Isso garante que o usuário veja um histórico acumulativo e não perca transações
+      filteredForDisplay = filteredForDisplay.slice(0, 100);
       
-      console.log(` [DEBUG] LISTA ACUMULATIVA - Mostrando ltimas 100 transaes (total encontrado: ${validTransactionsForDisplay.length})`);
-      console.log(` [DEBUG] Primeiras 3 transaes:`, filteredTransactionsForDisplay.slice(0, 3).map(t => ({
+      console.log(` [DEBUG] LISTA ACUMULATIVA - Mostrando últimas 100 transações (total encontrado: ${validTransactions.length})`);
+      console.log(` [DEBUG] Primeiras 3 transações:`, filteredForDisplay.slice(0, 3).map(t => ({
         title: t.title,
         date: new Date(t.date).toLocaleDateString('pt-BR'),
         amount: t.amount,
         type: t.type
       })));
       
-      // Estatsticas para debug: quantas por ms
-      const monthCounts = filteredTransactionsForDisplay.reduce((acc, t) => {
+      // Estatísticas para debug: quantas por mês
+      const monthCounts = filteredForDisplay.reduce((acc: Record<string, number>, t) => {
         const monthKey = `${new Date(t.date).getMonth() + 1}/${new Date(t.date).getFullYear()}`;
         acc[monthKey] = (acc[monthKey] || 0) + 1;
         return acc;
-      }, {} as Record<string, number>);
+      }, {});
       
-      console.log(` [loadTransactions] Distribuio por ms:`, monthCounts);
+      console.log(` [loadTransactions] Distribuição por mês:`, monthCounts);
     }
     
     // Sort final by date in descending order (most recent first)
-    filteredTransactionsForDisplay.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    filteredForDisplay.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
-    // LOG: Mostrar as transaes finais que sero exibidas
-    console.log(` [DEBUG] Transaes FINAIS para exibio (primeiras 5):`, filteredTransactionsForDisplay.slice(0, 5).map(t => ({
+    // LOG: Mostrar as transações finais que serão exibidas
+    console.log(` [DEBUG] Transações FINAIS para exibição (primeiras 5):`, filteredForDisplay.slice(0, 5).map(t => ({
       title: t.title,
       date: new Date(t.date).toISOString(),
       amount: t.amount,
       type: t.type
     })));
     
-    console.log(` [loadTransactions] Definindo ${filteredTransactionsForDisplay.length} transaes para exibio`);
-    setTransactions(filteredTransactionsForDisplay);
+    console.log(` [loadTransactions] Definindo ${filteredForDisplay.length} transações para exibição`);
+    setTransactions(filteredForDisplay);
 
-    // Calcular incomes e expenses APENAS para o ms selecionado (para os cards de resumo)
-    const incomes = filteredTransactionsForCalculation.filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0);
-    const expenses = filteredTransactionsForCalculation.filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0);
+    // Calcular incomes e expenses APENAS para o mês selecionado (para os cards de resumo)
+    const incomes = filteredForCalculation.filter((t: any) => t.type === 'income')
+      .reduce((sum: number, t: any) => sum + t.amount, 0);
+    const expenses = filteredForCalculation.filter((t: any) => t.type === 'expense')
+      .reduce((sum: number, t: any) => sum + t.amount, 0);
 
     setTotalIncomes(incomes);
     setTotalExpenses(expenses);
     
     // Calcular o saldo total (independente do ms)
     calculateTotalBalance();
+    } catch (error) {
+      console.error('❌ [loadTransactions] Erro crítico ao carregar transações:', error);
+      // Garantir estado consistente em caso de erro
+      setTransactions([]);
+      setTotalIncomes(0);
+      setTotalExpenses(0);
+      // Não redefinir o saldo total aqui - deixar calculateTotalBalance() gerenciar
+    }
   };
   
   const handleMonthChange = (month: number, year: number) => {

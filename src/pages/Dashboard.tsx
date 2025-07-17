@@ -748,7 +748,7 @@ const Dashboard: React.FC = () => {
     <div 
       className="min-h-screen relative overflow-hidden pb-20"
       style={{
-        background: '#0a0e1a',
+        background: 'linear-gradient(135deg, #2596be 0%, rgb(37, 150, 190) 100%)',
         fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif'
       }}
     >
@@ -795,7 +795,7 @@ const Dashboard: React.FC = () => {
                   fontWeight: 600
                 }}
               >
-                Ol, {userName}!
+                Olá, {userName}!
               </h2>
             </div>
             <div className="flex items-center gap-2">
@@ -818,7 +818,7 @@ const Dashboard: React.FC = () => {
                 backdropFilter: 'blur(10px)'
               }}
             >
-              
+              ‹
             </button>
             
             <div 
@@ -845,7 +845,7 @@ const Dashboard: React.FC = () => {
                 backdropFilter: 'blur(10px)'
               }}
             >
-              
+              ›
             </button>
           </div>
         </div>
@@ -868,7 +868,7 @@ const Dashboard: React.FC = () => {
                 backdropFilter: 'blur(10px)'
               }}
             >
-              {balanceVisible ? '' : ''}
+              {balanceVisible ? '•••' : '○○○'}
             </button>
           </div>
           
@@ -881,7 +881,7 @@ const Dashboard: React.FC = () => {
               fontWeight: 300
             }}
           >
-            {balanceVisible ? formatCurrency(balance) : ''}
+            {balanceVisible ? formatCurrency(balance) : '••••••'}
           </div>
           
           <div 
@@ -900,7 +900,7 @@ const Dashboard: React.FC = () => {
           >
             {percentChange !== undefined && percentChange !== null && !isNaN(percentChange) 
               ? `${percentChange >= 0 ? '+' : ''}${Number(percentChange).toFixed(0)}%` 
-              : '---%'} ltimos 30 Dias
+              : '---%'              } Últimos 30 Dias
           </div>
         </div>
 
@@ -915,7 +915,7 @@ const Dashboard: React.FC = () => {
               border: '1px solid rgba(76, 175, 80, 0.3)'
             }}
           >
-            <span style={{ fontSize: '16px' }}></span>
+            <span style={{ fontSize: '16px' }}>↗</span>
             Entrada
           </button>
           <button 
@@ -927,8 +927,8 @@ const Dashboard: React.FC = () => {
               border: '1px solid rgba(244, 67, 54, 0.3)'
             }}
           >
-            <span style={{ fontSize: '16px' }}></span>
-            Sada
+            <span style={{ fontSize: '16px' }}>↙</span>
+            Saída
           </button>
         </div>
 
@@ -965,11 +965,11 @@ const Dashboard: React.FC = () => {
                     backdropFilter: 'blur(10px)'
                   }}
                 >
-                  
+                  ↻
                 </button>
               </div>
               <p className="text-white/70 text-sm mb-4">
-                Consulte suas finanas via Telegram
+                Consulte suas finanças via Telegram
               </p>
               <div className="flex justify-end">
                 <button
@@ -1002,7 +1002,7 @@ const Dashboard: React.FC = () => {
                       background: 'linear-gradient(135deg, #4caf50, #45a049)'
                     }}
                   >
-                    
+                    ✓
                   </div>
                   <h4 className="text-white text-base font-semibold">
                     Telegram Conectado
@@ -1013,7 +1013,7 @@ const Dashboard: React.FC = () => {
                 {telegramInfo?.first_name ? (
                   <>@{telegramInfo.username || telegramInfo.first_name}</>
                 ) : (
-                  <>Usurio conectado</>
+                  <>Usuário conectado</>
                 )}
               </p>
               <div className="flex justify-end gap-2">
@@ -1030,7 +1030,7 @@ const Dashboard: React.FC = () => {
                 </button>
                 <button
                   onClick={async () => {
-                    if (confirm(' Desconectar do Telegram?\n\nVoc no receber mais notificaes at conectar novamente.')) {
+                    if (confirm('🔌 Desconectar do Telegram?\n\nVocê não receberá mais notificações até conectar novamente.')) {
                       try {
                         const { error } = await supabase
                           .from('telegram_users')
@@ -1042,12 +1042,12 @@ const Dashboard: React.FC = () => {
                         resetTelegramStatus();
                         
                         toast({
-                          title: " Desconectado",
+                          title: "📱 Desconectado",
                           description: "Telegram desconectado com sucesso!",
                         });
                       } catch (error: any) {
                         toast({
-                          title: " Erro",
+                          title: "❌ Erro",
                           description: "Erro ao desconectar: " + error.message,
                           variant: "destructive"
                         });
@@ -1098,7 +1098,7 @@ const Dashboard: React.FC = () => {
           </DialogHeader>
           <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
             <div className="grid gap-2">
-              <Label htmlFor="title" className="text-white font-medium">Descrio</Label>
+              <Label htmlFor="title" className="text-white font-medium">Descrição</Label>
               <Input 
                 id="title" 
                 name="title"
@@ -1107,7 +1107,7 @@ const Dashboard: React.FC = () => {
                   if (editingTransaction) setEditingTransaction({...editingTransaction, title: e.target.value});
                   else handleNewTransactionChange(e);
                 }}
-                placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salrio, Freelance' : 'Aluguel, Supermercado'}`}
+                placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
                 className="bg-white/10 border-white/20 text-white placeholder-white/60 focus:border-blue-400 focus:bg-white/20"
               />
             </div>
@@ -1193,13 +1193,12 @@ const Dashboard: React.FC = () => {
                   onCheckedChange={(val: boolean) => {
                     setEditingTransactionDontAdjustBalance(!!val);
                   }}
-                />
-                <Label 
-                  htmlFor="dontAdjustBalance" 
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  No ajustar saldo
-                </Label>
+                />                  <Label 
+                    htmlFor="dontAdjustBalance" 
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Não ajustar saldo
+                  </Label>
               </div>
             )}
           </div>
@@ -1244,7 +1243,7 @@ const Dashboard: React.FC = () => {
             setLastEditedTransactionIdForBalanceSkip(transactionToUpdate.id);
           }
           
-          toast({ title: "Sucesso", description: "Transao atualizada." });
+          toast({ title: "Sucesso", description: "Transação atualizada." });
           setDialogOpen(false); // Close dialog after successful save
         }}
         className={
@@ -1269,8 +1268,8 @@ const Dashboard: React.FC = () => {
           setDialogOpen(false);
           setEditingTransaction(null);
           toast({
-            title: 'Transao excluda',
-            description: 'A transao foi removida com sucesso.'
+            title: 'Transação excluída',
+            description: 'A transação foi removida com sucesso.'
           });
         }}
         className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300"
@@ -1286,8 +1285,8 @@ const Dashboard: React.FC = () => {
           const amountAsNumber = parseFloat(newTransaction.amount.replace(/[^\.d0-9]/g, '').replace(',', '.'));
           if (isNaN(amountAsNumber) || amountAsNumber <= 0) {
             toast({
-              title: 'Valor Invlido',
-              description: 'Por favor, insira um valor numrico vlido para a transao.',
+              title: 'Valor Inválido',
+              description: 'Por favor, insira um valor numérico válido para a transação.',
               variant: 'destructive',
             });
             return;
@@ -1314,24 +1313,22 @@ const Dashboard: React.FC = () => {
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
               letterSpacing: '0.025em'
-            }}
-          >
-            ltimas Transaes
+            }}            >
+            Últimas Transações
           </h2>
         </div>
       
         <div className="px-4 mb-4">
           <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4">
             <div className="flex flex-col gap-3">
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button 
-                  onClick={() => setShowDateFilters(!showDateFilters)} 
-                  variant="outline" 
-                  size="sm"
-                  className="w-full sm:w-auto bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg transition-all duration-300"
-                >
-                  {showDateFilters ? 'Ocultar Filtros' : 'Filtros Avanados'}
-                </Button>
+              <div className="flex flex-col sm:flex-row gap-2">                  <Button 
+                    onClick={() => setShowDateFilters(!showDateFilters)} 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full sm:w-auto bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg transition-all duration-300"
+                  >
+                    {showDateFilters ? 'Ocultar Filtros' : 'Filtros Avançados'}
+                  </Button>
                 
                 {/* Filtro rpido por nome sempre visvel */}
                 <div className="flex-1">
@@ -1354,7 +1351,7 @@ const Dashboard: React.FC = () => {
                     <Label htmlFor="end-date" className="text-xs text-white/80">At:</Label>
                     <Input type="date" id="end-date" value={endDate || ''} onChange={(e) => setEndDate(e.target.value)} className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-blue-400 focus:bg-white/20 transition-all duration-300" />
                   </div>
-                  <Button onClick={() => loadTransactions(selectedMonth, selectedYear, true)} className="mt-4 sm:mt-auto h-9 w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300" size="sm">Filtrar Perodo</Button>
+                  <Button onClick={() => loadTransactions(selectedMonth, selectedYear, true)} className="mt-4 sm:mt-auto h-9 w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300" size="sm">Filtrar Período</Button>
                   <Button 
                     onClick={() => {
                       setStartDate(null); 
@@ -1455,8 +1452,8 @@ const Dashboard: React.FC = () => {
                             const shouldAdjustBalance = !transaction.dontAdjustBalanceOnSave;
                             deleteTransaction(transaction.id);
                             toast({
-                              title: 'Transao excluda',
-                              description: `A transao "${transaction.title}" foi excluda com sucesso.`
+                              title: 'Transação excluída',
+                              description: `A transação "${transaction.title}" foi excluída com sucesso.`
                             });
                             setTimeout(() => {
                               loadTransactions(selectedMonth, selectedYear);
@@ -1496,7 +1493,7 @@ const Dashboard: React.FC = () => {
           <div className="px-4">
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8 hover:bg-white/15 transition-colors duration-300">
               <div className="flex flex-col items-center justify-center">
-                <p className="text-white/70 mb-4">Nenhuma transao encontrada</p>
+                <p className="text-white/70 mb-4">Nenhuma transação encontrada</p>
               </div>
             </div>
           </div>
@@ -1509,7 +1506,7 @@ const Dashboard: React.FC = () => {
               onClick={() => setShowAllTransactionsInMonth(!showAllTransactionsInMonth)}
               className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              {showAllTransactionsInMonth ? 'Ver Menos' : 'Ver Todas as Transaes'}
+              {showAllTransactionsInMonth ? 'Ver Menos' : 'Ver Todas as Transações'}
             </Button>
           </div>
         )}

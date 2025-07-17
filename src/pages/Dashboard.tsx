@@ -1093,7 +1093,7 @@ const Dashboard: React.FC = () => {
         <DialogContent 
           className="max-h-[90vh] overflow-y-auto border-0"
           style={{
-            background: 'linear-gradient(135deg, #4a6cf7 0%, #5a7cfa 100%)',
+            background: '#31518b',
             backdropFilter: 'blur(20px)',
             border: '1px solid rgba(255,255,255,0.2)',
             boxShadow: '0 20px 60px rgba(0,0,0,0.4)'

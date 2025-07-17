@@ -9,7 +9,7 @@ import { formatCurrency, getOverdueBills, getBillsDueInNextDays } from '@/utils/
 import { useToast } from '@/hooks/use-toast';
 import { 
   CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
-  Bell, BellOff, Edit, MoreVertical, Trash, Calendar
+  Edit, MoreVertical, Trash, Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,7 +26,6 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -76,7 +75,6 @@ const BillsPage: React.FC = () => {
   const [upcomingBills, setUpcomingBills] = useState<Bill[]>([]);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'overdue' | 'all'>('upcoming');
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
-  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const { toast } = useToast();
 
   // Estados para o seletor de mês/ano
@@ -170,29 +168,6 @@ const BillsPage: React.FC = () => {
     setShowEditBillModal(true); // Alterado de setShowAddBillModal para setShowEditBillModal
   };
 
-  const handleToggleNotifications = (bill: Bill) => {
-    const updatedBill = {
-      ...bill,
-      notificationsEnabled: !bill.notificationsEnabled
-    };
-    
-    updateBill(updatedBill);
-    setSelectedBill(updatedBill);
-    loadBills();
-    
-    toast({
-      title: updatedBill.notificationsEnabled ? "Notificações ativadas" : "Notificações desativadas",
-      description: updatedBill.notificationsEnabled 
-        ? "Você receberá notificações sobre esta conta."
-        : "Você não receberá mais notificações sobre esta conta."
-    });
-  };
-
-  const handleOpenNotificationSettings = (bill: Bill) => {
-    setSelectedBill(bill);
-    setShowNotificationSettings(true);
-  };
-
   const getBillsToDisplay = () => {
     switch (activeTab) {
       case 'upcoming':
@@ -228,7 +203,7 @@ const BillsPage: React.FC = () => {
   const [editBill, setEditBill] = useState<Bill | null>(null);
 
   return (
-    <div className="flex flex-col min-h-screen pb-16 bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col min-h-screen pb-16" style={{ background: '#31518b' }}>
       {/* Header limpo sem diamantes */}
       <div 
         className="sticky top-0 z-50"
@@ -262,22 +237,22 @@ const BillsPage: React.FC = () => {
 
       
       {/* Seletores de Mês e Ano */}
-      <div className="px-4 pt-4 pb-3 bg-gray-50 dark:bg-gray-900 sticky z-10 border-b border-gray-200/50 dark:border-gray-700/50" style={{ top: '60px' }}>
+      <div className="px-4 pt-4 pb-3 sticky z-10 border-b border-white/20" style={{ top: '60px', background: '#31518b' }}>
         <div className="flex flex-col sm:flex-row gap-3 items-center">
-          <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700 w-full sm:w-auto">
+          <div className="flex items-center bg-white/10 backdrop-blur-xl rounded-lg p-1 border border-white/20 w-full sm:w-auto">
             <div className="flex items-center flex-1 sm:flex-auto">
-              <Calendar size={18} className="ml-3 mr-2 text-gray-500 dark:text-gray-400" />
+              <Calendar size={18} className="ml-3 mr-2 text-white/70" />
               <div className="relative flex-1 sm:w-44">
                 <select 
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                  className="appearance-none bg-transparent border-none text-gray-900 dark:text-white text-sm font-medium py-2 pl-1 pr-8 w-full focus:outline-none focus:ring-0"
+                  className="appearance-none bg-transparent border-none text-white text-sm font-medium py-2 pl-1 pr-8 w-full focus:outline-none focus:ring-0"
                 >
                   {monthOptions.map(opt => (
                     <option 
                       key={opt.value} 
                       value={opt.value} 
-                      className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      className="bg-white text-gray-900"
                     >
                       {opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}
                     </option>
@@ -291,26 +266,26 @@ const BillsPage: React.FC = () => {
               </div>
             </div>
             
-            <div className="h-6 mx-1 w-px bg-gray-200 dark:bg-gray-600"></div>
+            <div className="h-6 mx-1 w-px bg-white/20"></div>
             
             <div className="relative sm:w-24">
               <select 
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                className="appearance-none bg-transparent border-none text-gray-900 dark:text-white text-sm font-medium py-2 pl-2 pr-8 w-full focus:outline-none focus:ring-0"
+                className="appearance-none bg-transparent border-none text-white text-sm font-medium py-2 pl-2 pr-8 w-full focus:outline-none focus:ring-0"
               >
                 {yearOptions.map(opt => (
                   <option 
                     key={opt.value} 
                     value={opt.value} 
-                    className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="bg-white text-gray-900"
                   >
                     {opt.label}
                   </option>
                 ))}
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                <svg className="h-4 w-4 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-4 w-4 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
@@ -321,13 +296,13 @@ const BillsPage: React.FC = () => {
             <Button 
               onClick={() => navigate('/recurring-transactions')} 
               variant="outline"
-              className="flex-1 sm:flex-none text-blue-600 border-blue-500 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-950 transition-all duration-200"
+              className="flex-1 sm:flex-none text-white border-white/30 hover:bg-white/20 backdrop-blur-sm transition-all duration-200"
             >
               <Calendar size={18} className="mr-2" /> Recorrentes
             </Button>
             <Button 
               onClick={handleAddBill} 
-              className="flex-1 sm:flex-none bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white transition-all duration-200"
+              className="flex-1 sm:flex-none bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm border border-white/30 transition-all duration-200"
             >
               <Plus size={18} className="mr-2" /> Adicionar Conta
             </Button>
@@ -336,31 +311,31 @@ const BillsPage: React.FC = () => {
       </div>
 
       {/* Abas de Filtro */}
-      <div className="px-4 py-3 flex justify-around border-b border-galileo-border bg-galileo-background sticky top-[calc(var(--header-height)_+_60px)] z-10 sm:top-[calc(var(--header-height)_+_60px)]">
+      <div className="px-4 py-3 flex justify-around border-b border-white/20 sticky top-[calc(var(--header-height)_+_60px)] z-10 sm:top-[calc(var(--header-height)_+_60px)]" style={{ background: '#31518b' }}>
         <button
-          className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'upcoming' ? 'bg-galileo-accent text-white' : 'text-galileo-secondaryText'}`}
+          className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'upcoming' ? 'bg-white/20 text-white backdrop-blur-sm' : 'text-white/70'}`}
           onClick={() => setActiveTab('upcoming')}
         >
           A Vencer
         </button>
         <button
-          className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'overdue' ? 'bg-galileo-negative text-white' : 'text-galileo-secondaryText'}`}
+          className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'overdue' ? 'bg-red-500/80 text-white backdrop-blur-sm' : 'text-white/70'}`}
           onClick={() => setActiveTab('overdue')}
         >
           Vencidas
         </button>
         <button
-          className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'all' ? 'bg-galileo-accent text-white' : 'text-galileo-secondaryText'}`}
+          className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'all' ? 'bg-white/20 text-white backdrop-blur-sm' : 'text-white/70'}`}
           onClick={() => setActiveTab('all')}
         >
           Todas
         </button>
       </div>
       
-      <div className="mt-4 pb-16">
+      <div className="mt-4 pb-16" style={{ background: '#31518b' }}>
         {getBillsToDisplay().length > 0 ? (
           getBillsToDisplay().map((bill) => (
-            <Card key={bill.id} className="mx-4 mb-3 overflow-hidden border border-galileo-border">
+            <Card key={bill.id} className="mx-4 mb-3 overflow-hidden border border-white/20 bg-white/10 backdrop-blur-xl">
               <CardContent className="p-0">
                 <div className="flex items-center gap-4 px-4 py-3">
                   <div className={`text-white flex items-center justify-center rounded-lg ${bill.isPaid ? 'bg-green-500' : activeTab === 'overdue' ? 'bg-galileo-negative' : 'bg-galileo-accent'} shrink-0 size-12`}>
@@ -397,21 +372,6 @@ const BillsPage: React.FC = () => {
                             <DropdownMenuItem onClick={() => handleDeleteBill(bill.id)}>
                               <Trash className="mr-2 h-4 w-4 text-red-500" />
                               <span className="text-red-500">Excluir Conta</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleOpenNotificationSettings(bill)}>
-                              <Bell className="mr-2 h-4 w-4" />
-                              <span>Configurar Notificações</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleNotifications(bill)}>
-                              {bill.notificationsEnabled ? (
-                                <>
-                                  <BellOff className="mr-2 h-4 w-4" />
-                                  <span>Desativar Notificações</span>
-                                </>                              ) : (
-                                <>
-                                  <Bell className="mr-2 h-4 w-4" />
-                                  <span>Ativar Notificações</span>
-                                </>                              )}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -486,49 +446,20 @@ const BillsPage: React.FC = () => {
             </Card>
           ))
         ) : (
-          <div className="flex flex-col items-center justify-center p-8 text-galileo-secondaryText">
+          <div className="flex flex-col items-center justify-center p-8 text-white/70">
             <FileText size={48} className="mb-2 opacity-40" />
             <p className="text-lg">Nenhuma conta {activeTab === 'upcoming' ? 'a vencer' : activeTab === 'overdue' ? 'vencida' : ''} encontrada</p>
             <p className="text-sm mt-1">Adicione novas contas para gerenciar seus pagamentos</p>
             <Button 
               onClick={handleAddBill}
               variant="outline" 
-              className="mt-4"
+              className="mt-4 border-white/30 text-white hover:bg-white/20"
             >
               <Plus size={16} className="mr-1" /> Adicionar Conta
             </Button>
           </div>
         )}
       </div>
-      
-      {/* Notification Settings Dialog */}
-      <Dialog open={showNotificationSettings} onOpenChange={setShowNotificationSettings}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Configurações de Notificação</DialogTitle>
-            <DialogDescription>
-              Ajuste as preferências de notificação para {selectedBill?.title}.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedBill && (
-            <div className="grid gap-4 py-4">
-              <div className="flex items-center space-x-2">
-                <Switch 
-                  id={`notifications-enabled-${selectedBill.id}`}
-                  checked={selectedBill.notificationsEnabled}
-                  onCheckedChange={() => handleToggleNotifications(selectedBill)}
-                />
-                <Label htmlFor={`notifications-enabled-${selectedBill.id}`}>
-                  {selectedBill.notificationsEnabled ? "Notificações Ativadas" : "Notificações Desativadas"}
-                </Label>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNotificationSettings(false)}>Fechar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       
       <NavBar />
       

@@ -57,7 +57,11 @@ const NavBar: React.FC = () => {
               style={{
                 ...(active && {
                   boxShadow: '0 4px 16px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  // Aplicar cor especial para as abas "Análise IA" e "Stater IA"
+                  ...(item.path === '/analise-financeira' || item.path === '/financial-advisor') && {
+                    backgroundColor: '#31518b'
+                  }
                 })
               }}
             >

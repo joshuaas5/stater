@@ -865,11 +865,22 @@ const Dashboard: React.FC = () => {
               onClick={() => setBalanceVisible((v: boolean) => !v)}
               style={{
                 background: 'rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(10px)',
-                fontSize: '18px'
+                backdropFilter: 'blur(10px)'
               }}
             >
-              {balanceVisible ? '👁️' : '👁️‍🗨️'}
+              {balanceVisible ? (
+                // Ícone do Olho Aberto
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse cx="12" cy="12" rx="10" ry="6" fill="white" stroke="white" strokeWidth="1"/>
+                  <circle cx="12" cy="12" r="4" fill="#3b82f6"/>
+                  <circle cx="12" cy="12" r="2" fill="black"/>
+                </svg>
+              ) : (
+                // Ícone do Olho Fechado
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 12C4 12 7 8 12 8C17 8 20 12 20 12" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+                </svg>
+              )}
             </button>
           </div>
           

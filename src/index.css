@@ -245,3 +245,13 @@ div.financial-analysis-page {
 input::placeholder {
   color: white !important;
 }
+
+/* Regra forçada para modais de transação */
+div[role="dialog"] {
+  background-color: #31518b !important;
+}
+
+/* Regra forçada para componente FinancialInsights */
+.financial-insights-card {
+  background-color: #31518b !important;
+}

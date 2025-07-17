@@ -227,19 +227,13 @@ const FinancialInsights: React.FC = () => {
   };
 
   return (
-    <Card className="relative overflow-hidden border-0 bg-gradient-to-br backdrop-blur-xl shadow-2xl"
+    <Card className="financial-insights-card relative overflow-hidden border-0 bg-gradient-to-br backdrop-blur-xl shadow-2xl"
           style={{
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+            background: '#31518b',
             backdropFilter: 'blur(20px)',
             border: '1px solid rgba(255, 255, 255, 0.2)'
           }}>
-      <div 
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
-          backgroundColor: '#3b82f6'
-        }}
-      />
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10" />
       
       <CardHeader className="relative">
         <div className="flex items-center justify-between">

@@ -233,7 +233,7 @@ const BillsPage: React.FC = () => {
       <div 
         className="sticky top-0 z-50"
         style={{
-          background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
+          background: '#31518b',
           color: 'white',
           padding: '12px 20px',
           position: 'relative'

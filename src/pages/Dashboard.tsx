@@ -180,6 +180,14 @@ const Dashboard: React.FC = () => {
     setShowTelegramModal(true);
   };
 
+  // Função para forçar atualização do status do Telegram
+  const refreshTelegramStatus = () => {
+    resetTelegramStatus();
+    setTimeout(() => {
+      checkTelegramStatus(true);
+    }, 1000);
+  };
+
   // Verificar status do Telegram no carregamento
   useEffect(() => {
     if (user?.id && !telegramStatusChecked) {
@@ -832,7 +840,7 @@ const Dashboard: React.FC = () => {
                 border: '1px solid rgba(255,255,255,0.1)'
               }}
             >
-              📅 {new Date(selectedYear, selectedMonth).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+              �️ {new Date(selectedYear, selectedMonth).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
             </div>
             
             <button
@@ -852,17 +860,17 @@ const Dashboard: React.FC = () => {
             </button>
           </div>
 
-          {/* Recurrent Button */}
+          {/* Recurrent Button - Moved to better position */}
           <Link
             to="/recurring-transactions"
-            className="absolute top-5 right-8 px-4 py-2 rounded-2xl text-white text-xs font-medium hover:bg-white/20 transition-all duration-300 hover:-translate-y-0.5"
+            className="px-4 py-2 rounded-2xl text-white text-xs font-medium hover:bg-white/20 transition-all duration-300 hover:-translate-y-0.5"
             style={{
               background: 'rgba(255,255,255,0.1)',
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255,255,255,0.2)'
             }}
           >
-            📊 Recorrentes
+            � Recorrentes
           </Link>
         </div>
 
@@ -884,7 +892,7 @@ const Dashboard: React.FC = () => {
                 backdropFilter: 'blur(10px)'
               }}
             >
-              {balanceVisible ? '👁' : '🙈'}
+              {balanceVisible ? '👁️' : '🙈'}
             </button>
           </div>
           
@@ -921,7 +929,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Premium Quick Actions */}
-        <div className="flex px-8 gap-3 mb-6">
+        <div className="flex px-8 gap-3 mb-4">
           <button 
             onClick={() => handleAddTransaction('income')}
             className="flex-1 flex items-center justify-center gap-2 py-5 px-3 rounded-2xl text-white font-medium text-sm hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
@@ -946,6 +954,21 @@ const Dashboard: React.FC = () => {
             <span style={{ fontSize: '16px' }}>↙</span>
             Saída
           </button>
+        </div>
+
+        {/* Recurrent Button - Better positioned */}
+        <div className="flex px-8 gap-3 mb-6 justify-center">
+          <Link
+            to="/recurring-transactions"
+            className="px-6 py-3 rounded-2xl text-white text-sm font-medium hover:bg-white/20 transition-all duration-300 hover:-translate-y-0.5"
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255,255,255,0.2)'
+            }}
+          >
+            🔄 Recorrentes
+          </Link>
         </div>        {/* Premium Telegram Section */}
         <div 
           className="mx-8 mb-6 p-5 rounded-2xl"
@@ -971,6 +994,16 @@ const Dashboard: React.FC = () => {
                     Telegram Bot
                   </h4>
                 </div>
+                <button
+                  onClick={refreshTelegramStatus}
+                  className="px-3 py-1 rounded-lg text-white text-xs hover:bg-white/20 transition-all duration-300"
+                  style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  🔄
+                </button>
               </div>
               <p className="text-white/70 text-sm mb-4">
                 Consulte suas finanças via Telegram
@@ -1312,20 +1345,6 @@ const Dashboard: React.FC = () => {
           
           <div className="relative">
             <SpendingChart transactions={transactions} days={30} />
-            
-            {/* Insights Loading Indicator */}
-            <div 
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center"
-              style={{
-                background: 'rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(10px)',
-                animation: 'pulse 2s infinite'
-              }}
-            >
-              <div 
-                className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin"
-              />
-            </div>
           </div>
         </div>
         
@@ -1358,10 +1377,10 @@ const Dashboard: React.FC = () => {
                 {/* Filtro rápido por nome sempre visível */}
                 <div className="flex-1">
                   <Input 
-                    placeholder="Buscar por nome ou categoria..." 
+                    placeholder="🔍 Buscar por nome ou categoria..." 
                     value={nameFilter}
                     onChange={(e) => setNameFilter(e.target.value)}
-                    className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder-white/60 focus:border-blue-400 focus:bg-white/20 transition-all duration-300"
+                    className="text-sm bg-white/15 backdrop-blur-sm border-white/30 text-white placeholder-white/80 focus:border-blue-400 focus:bg-white/25 transition-all duration-300 shadow-lg"
                   />
                 </div>
               </div>
@@ -1536,89 +1555,18 @@ const Dashboard: React.FC = () => {
           </div>
         )}
       
-      {/* Premium Bottom Navigation */}
-      <div 
-        className="fixed bottom-0 left-0 right-0 p-4 pb-9"
-        style={{
-          background: 'rgba(0,0,0,0.3)',
-          backdropFilter: 'blur(20px)',
-          borderTop: '1px solid rgba(255,255,255,0.1)'
-        }}
-      >
-        <div className="flex justify-around items-center max-w-md mx-auto">
-          <Link 
-            to="/bills"
-            className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all duration-300 hover:-translate-y-0.5"
-          >
-            <div 
-              className="w-8 h-8 rounded-full flex items-center justify-center text-base transition-all duration-300 hover:bg-white/20"
-              style={{ background: 'rgba(255,255,255,0.1)' }}
-            >
-              📊
-            </div>
-            <span className="text-xs font-medium">Contas</span>
-          </Link>
-          
-          <Link 
-            to="/analise-financeira"
-            className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all duration-300 hover:-translate-y-0.5"
-          >
-            <div 
-              className="w-8 h-8 rounded-full flex items-center justify-center text-base transition-all duration-300 hover:bg-white/20"
-              style={{ background: 'rgba(255,255,255,0.1)' }}
-            >
-              🤖
-            </div>
-            <span className="text-xs font-medium">Análise IA</span>
-          </Link>
-          
-          <Link 
-            to="/dashboard"
-            className="flex flex-col items-center gap-1 text-white transition-all duration-300"
-          >
-            <div 
-              className="w-8 h-8 rounded-full flex items-center justify-center text-base"
-              style={{ background: 'rgba(255,255,255,0.2)' }}
-            >
-              🏠
-            </div>
-            <span className="text-xs font-medium">STATER</span>
-          </Link>
-          
-          <Link 
-            to="/stater-ia"
-            className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all duration-300 hover:-translate-y-0.5"
-          >
-            <div 
-              className="w-8 h-8 rounded-full flex items-center justify-center text-base transition-all duration-300 hover:bg-white/20"
-              style={{ background: 'rgba(255,255,255,0.1)' }}
-            >
-              💡
-            </div>
-            <span className="text-xs font-medium">Stater IA</span>
-          </Link>
-          
-          <Link 
-            to="/settings"
-            className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all duration-300 hover:-translate-y-0.5"
-          >
-            <div 
-              className="w-8 h-8 rounded-full flex items-center justify-center text-base transition-all duration-300 hover:bg-white/20"
-              style={{ background: 'rgba(255,255,255,0.1)' }}
-            >
-              ⚙️
-            </div>
-            <span className="text-xs font-medium">Ajustes</span>
-          </Link>
-        </div>
-      </div>
+      {/* NavBar Original */}
+      <NavBar />
       
       <TelegramConnectModal
         isOpen={showTelegramModal}
         onClose={() => setShowTelegramModal(false)}
         onConnect={(code) => {
           setShowTelegramModal(false);
-          // A lógica de conexão já está no modal
+          // Forçar atualização do status após conectar
+          setTimeout(() => {
+            refreshTelegramStatus();
+          }, 2000);
         }}
       />
       </div>

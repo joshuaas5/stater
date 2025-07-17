@@ -55,19 +55,23 @@ const NavBar: React.FC = () => {
                   : 'hover:bg-white/10'
               }`}
               style={{
-                // Aplicar cor especial para as abas "Análise IA" e "Stater IA" sempre - com cor mais escura para contraste
+                // Aplicar cor especial para as abas "Análise IA" e "Stater IA" sempre - SEM BORDERS
                 ...(item.path === '/analise-financeira' || item.path === '/financial-advisor') && {
-                  backgroundColor: '#1e3a5f !important', // Cor mais escura que #31518b para contraste visível
+                  backgroundColor: '#1e3a5f',
+                  border: 'none',
                   boxShadow: '0 2px 8px rgba(30, 58, 95, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 },
                 ...(active && {
-                  boxShadow: '0 4px 16px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  // Sobrescrever para as abas IA quando ativas - sem borders que criam squares
+                  // Para abas normais (não IA)
+                  ...!(item.path === '/analise-financeira' || item.path === '/financial-advisor') && {
+                    boxShadow: '0 4px 16px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  },
+                  // Para abas IA ativas - APENAS glow suave sem borders
                   ...(item.path === '/analise-financeira' || item.path === '/financial-advisor') && {
-                    backgroundColor: '#1e3a5f !important', // Mantém cor mais escura
-                    border: 'none', // Remove borders que criam aparência de squares
-                    boxShadow: '0 4px 16px rgba(30, 58, 95, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 0 2px rgba(255, 255, 255, 0.2)' // Glow ao invés de border
+                    backgroundColor: '#1e3a5f',
+                    border: 'none',
+                    boxShadow: '0 6px 20px rgba(30, 58, 95, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.2)'
                   }
                 })
               }}

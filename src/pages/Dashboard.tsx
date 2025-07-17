@@ -869,12 +869,12 @@ const Dashboard: React.FC = () => {
               }}
             >
               {balanceVisible ? (
-                // Ícone do Olho Aberto - Design mais amigável
+                // Ícone do Olho Aberto - Design amigável com pupila menor
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 4C6 4 2 8 2 12s4 8 10 8 10-4 10-8-4-8-10-8z" fill="white" stroke="rgba(255,255,255,0.3)" strokeWidth="0.5"/>
                   <circle cx="12" cy="12" r="3" fill="#3b82f6" stroke="white" strokeWidth="0.5"/>
-                  <circle cx="12" cy="12" r="1.2" fill="#1e40af"/>
-                  <circle cx="13" cy="11" r="0.5" fill="white" opacity="0.8"/>
+                  <circle cx="12" cy="12" r="0.8" fill="#1e40af"/>
+                  <circle cx="12.8" cy="11.2" r="0.3" fill="white" opacity="0.9"/>
                 </svg>
               ) : (
                 // Ícone do Olho Fechado
@@ -1032,11 +1032,12 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
-                  className="px-3 py-1 rounded-xl text-white text-xs hover:-translate-y-0.5 transition-all duration-300"
+                  className="flex-1 sm:flex-none px-3 py-2 rounded-xl text-white text-xs hover:-translate-y-0.5 transition-all duration-300 text-center"
                   style={{
                     background: 'rgba(255,255,255,0.1)',
                     backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255,255,255,0.2)'
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    minWidth: '80px'
                   }}
                 >
                   Abrir Bot
@@ -1067,11 +1068,12 @@ const Dashboard: React.FC = () => {
                       }
                     }
                   }}
-                  className="px-3 py-1 rounded-xl text-red-200 text-xs hover:-translate-y-0.5 transition-all duration-300"
+                  className="flex-1 sm:flex-none px-3 py-2 rounded-xl text-red-200 text-xs hover:-translate-y-0.5 transition-all duration-300 text-center"
                   style={{
                     background: 'rgba(244, 67, 54, 0.2)',
                     backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(244, 67, 54, 0.3)'
+                    border: '1px solid rgba(244, 67, 54, 0.3)',
+                    minWidth: '80px'
                   }}
                 >
                   Desconectar

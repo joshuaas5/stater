@@ -2398,14 +2398,14 @@ return (
       className="financial-advisor-page"
       style={{
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important',
+        background: '#31518b !important', // Fundo padronizado igual à NavBar
         minHeight: '100vh',
         width: '100vw',
         color: 'white',
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: '0px', // Removido espaço extra
-        overflow: 'hidden', // Evita scroll horizontal
+        paddingBottom: '0px',
+        overflow: 'hidden',
         position: 'relative'
       }}
     >      {/* Header - CORRIGIDO */}
@@ -3072,13 +3072,27 @@ return (
           }
           
           /* Correções de layout geral */
-          body {
+          *, *::before, *::after {
+            box-sizing: border-box;
+          }
+          
+          html, body, #root {
+            background-color: #31518b !important;
             overflow-x: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           
           .financial-advisor-page {
             overflow-x: hidden !important;
             background-color: #31518b !important;
+            min-height: 100vh !important;
+            width: 100vw !important;
+          }
+          
+          /* Força qualquer elemento branco a ter o fundo correto */
+          div, section, main, article {
+            background-color: inherit;
           }          /* Responsividade melhorada */
           @media (max-width: 768px) {
             .header {

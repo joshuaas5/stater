@@ -189,9 +189,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
           bottom: 0,
           left: 0,
           right: 0,
-          padding: '20px 20px', // Aumentado mais para 20px
+          padding: '20px 20px',
           borderTop: '1px solid rgba(255, 255, 255, 0.15)',
-          background: 'rgba(255, 255, 255, 0.05)',
+          background: '#31518b', // Fundo padronizado igual à NavBar
           backdropFilter: 'blur(20px)',
           width: '100vw',
           boxSizing: 'border-box',

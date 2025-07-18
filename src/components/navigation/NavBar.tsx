@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, memo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Brain, FileText, Lightbulb, Settings } from 'lucide-react';
@@ -6,15 +6,61 @@ import { useTranslation } from '@/hooks/use-translation';
 import { useRoutePreloading } from '@/hooks/useRoutePreloading';
 import './navbar-optimized.css'; // Importando CSS pré-compilado
 
+// Usar NavItem como componente memoizado para evitar re-renderizações desnecessárias
+const NavItem = memo(({ item, isActive, onClick, preloadProps }: {
+  item: any;
+  isActive: boolean;
+  onClick: () => void;
+  preloadProps: any;
+}) => {
+  const isLogo = item.isLogo;
+  
+  return (
+    <button
+      onClick={onClick}
+      {...preloadProps}
+      className={`navbar-button ${isActive ? 'navbar-button-active' : ''}`}
+    >
+      {isLogo ? (
+        <div className="flex flex-col items-center">
+          <div className="navbar-icon-container">
+            {item.icon}
+          </div>
+          <span className="navbar-logo-text">
+            STATER
+          </span>
+        </div>
+      ) : (
+        <>
+          <div className="navbar-icon-container">
+            <div className={`navbar-icon ${isActive ? 'navbar-icon-active' : ''}`}>
+              {item.icon}
+            </div>
+          </div>
+          <span className={`navbar-label ${isActive ? 'navbar-label-active' : ''}`}>
+            {item.label}
+          </span>
+        </>
+      )}
+      
+      {isActive && !isLogo && (
+        <div className="navbar-indicator" />
+      )}
+    </button>
+  );
+});
+
+NavItem.displayName = 'NavItem';
+
 const NavBar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
   const { preloadOnHover } = useRoutePreloading();
   
-  const isActive = (path: string) => {
+  const isActive = useCallback((path: string) => {
     return location.pathname === path;
-  };
+  }, [location.pathname]);
   
   // Ordem: Contas → Análise IA → Logo Stater → Stater IA → Ajustes
   const navItems = [
@@ -55,53 +101,34 @@ const NavBar: React.FC = () => {
     }
   }, []);
   
+  // Memoize os itens da NavBar para evitar recálculos desnecessários
+  const memoizedNavItems = useMemo(() => {
+    return navItems.map((item, index) => {
+      const active = isActive(item.path);
+      return (
+        <NavItem 
+          key={index} 
+          item={item} 
+          isActive={active}
+          onClick={() => handleNavigation(item.path)}
+          preloadProps={preloadOnHover(item.path)}
+        />
+      );
+    });
+  }, [navItems, location.pathname, handleNavigation, preloadOnHover]);
+
   return createPortal(
     <nav className="navbar-optimized">
       <div className="navbar-content">
-        {navItems.map((item, index) => {
-          const active = isActive(item.path);
-          const isLogo = item.isLogo;
-          
-          return (
-            <button
-              key={index}
-              onClick={() => handleNavigation(item.path)}
-              {...preloadOnHover(item.path)} // Preload route on hover/focus
-              className={`navbar-button ${active ? 'navbar-button-active' : ''}`}
-            >
-              {isLogo ? (
-                <div className="flex flex-col items-center">
-                  <div className="navbar-icon-container">
-                    {item.icon}
-                  </div>
-                  <span className="navbar-logo-text">
-                    STATER
-                  </span>
-                </div>
-              ) : (
-                <>
-                  <div className="navbar-icon-container">
-                    <div className={`navbar-icon ${active ? 'navbar-icon-active' : ''}`}>
-                      {item.icon}
-                    </div>
-                  </div>
-                  <span className={`navbar-label ${active ? 'navbar-label-active' : ''}`}>
-                    {item.label}
-                  </span>
-                </>
-              )}
-              
-              {/* Indicador de ativo */}
-              {active && !isLogo && (
-                <div className="navbar-indicator" />
-              )}
-            </button>
-          );
-        })}
+        {memoizedNavItems}
       </div>
     </nav>,
     document.body
   );
 };
 
-export default NavBar;
+// Memoize o componente NavBar completo para evitar renderizações desnecessárias
+const MemoizedNavBar = memo(NavBar);
+MemoizedNavBar.displayName = 'MemoizedNavBar';
+
+export default MemoizedNavBar;

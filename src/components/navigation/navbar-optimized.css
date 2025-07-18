@@ -92,11 +92,66 @@
   letter-spacing: 0.5px;
 }
 
-/* Garantindo que não haja efeitos CSS desnecessários em dispositivos móveis */
+/* Otimizações específicas para mobile - ULTRA-PERFORMANCE */
 @media (max-width: 768px) {
+  .navbar-optimized {
+    /* Removendo completamente o backdrop-filter em mobile */
+    backdrop-filter: none !important;
+    /* Removendo completamente a sombra em mobile */
+    box-shadow: none !important;
+    /* Reduzindo altura para maior área útil */
+    height: 56px;
+    /* Garantindo que não haja transform ou effects */
+    transform: none !important;
+    will-change: auto !important;
+    /* Usar hardware acceleration com moderação */
+    -webkit-transform: translate3d(0, 0, 0);
+    /* Simplificar ao máximo o visual */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .navbar-content {
+    height: 56px;
+    padding: 0.25rem 0.25rem;
+    /* Garantir que não haja margin excessiva */
+    margin: 0;
+  }
+  
   .navbar-button {
     min-width: 50px;
     padding: 0.25rem;
+    /* Aumenta tamanho do touch target para conformidade mobile */
+    min-height: 44px;
+    /* Removendo todas as transições e animações em mobile */
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  /* Remover todos os efeitos de sombra e visuais em mobile */
+  .navbar-button-active {
+    box-shadow: none !important;
+    border: none !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .navbar-icon-active {
+    filter: none !important;
+  }
+  
+  .navbar-indicator {
+    box-shadow: none !important;
+    height: 2px !important; /* Indicador mínimo */
+    margin-top: 0.125rem !important;
+    width: 1rem !important;
+  }
+  
+  /* Reduzir tamanho do texto para economizar recursos */
+  .navbar-label {
+    font-size: 0.65rem !important;
+  }
+  
+  .navbar-logo-text {
+    font-size: 0.65rem !important;
   }
 }
 

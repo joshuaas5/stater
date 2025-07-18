@@ -173,3 +173,8 @@ html, body {
     z-index: 2147483647 !important;
   }
 }
+
+/* Remove any ancestor transforms to ensure fixed positioning is relative to viewport */
+html, body, #root, [data-reactroot] {
+  transform: none !important;
+}

@@ -1,16 +1,35 @@
-/* Otimizações de scroll e performance - VERSÃO ULTRA-OTIMIZADA */
+/* Otimizações de scroll e performance - VERSÃO ULTRA-OTIMIZADA MOBILE-FIRST */
 
-/* Prevenir bouncing/rubber-banding em iOS e outros navegadores */
+/* === Estilos globais === */
 html, body, #root {
+  /* Prevenir bouncing/rubber-banding em todos os navegadores */
   overscroll-behavior: none !important;
+  /* Impedir scroll horizontal indesejado */
   overflow-x: hidden;
+  /* Garantir nenhuma transformação ou efeito que afete o posicionamento fixo */
+  transform: none !important;
+  will-change: auto !important;
+  /* Prevenir momentum scrolling excessivo em iOS */
+  -webkit-overflow-scrolling: auto;
 }
 
-/* GPU-accelerated scrolling - OTIMIZADO */
-.scroll-optimized {
-  /* will-change causa memory leaks se usado excessivamente */
-  /* will-change: transform; */ /* Comentado para melhor performance */
-  transform: translate3d(0,0,0);
+/* === Otimizações para conteúdo scrollável === */
+.scrollable-content, .scroll-optimized {
+  /* Usar compositing layer separado para conteúdo scrollável */
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  /* Usar propriedades otimizadas para GPU com moderação */
+  will-change: auto; /* Evitamos will-change:transform para reduzir memory leaks */
+  /* Definir como conteúdo scrollável */
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Prevenir scrolling do próprio container */
+  overscroll-behavior: contain;
+  /* Tornar o scroll mais rápido e menos suave em mobile */
+  scroll-behavior: auto; /* Alterado para auto para prevenir jank */
+  /* Garantir que o conteúdo seja renderizado em camadas */
+  isolation: isolate;
+  /* Separação de camadas para otimizar a renderização */
   backface-visibility: hidden;
   perspective: 1000px;
 }
@@ -20,11 +39,13 @@ html, body, #root {
   scroll-behavior: auto; /* Alterado para auto para prevenir jank */
   overflow-y: auto;
   overflow-x: hidden;
-  -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+  /* iOS scrolling mais responsivo sem efeitos caros */
+  -webkit-overflow-scrolling: touch; 
+  /* GPU acceleration com moderação */
   transform: translate3d(0,0,0);
-  /* will-change: transform; */ /* Comentado para melhor performance */
   backface-visibility: hidden;
-  overscroll-behavior: contain; /* Previne propagação do scroll */
+  /* Previne propagação do scroll */
+  overscroll-behavior: contain; 
 }
 
 /* Scrollbar personalizada */
@@ -51,19 +72,34 @@ html, body, #root {
   background-color: rgba(155, 155, 155, 0.8);
 }
 
-/* Performance optimizations para listas */
+/* Performance optimizations para listas - OTIMIZADO PARA MOBILE */
 .virtual-list-container {
   contain: layout style paint;
-  will-change: scroll-position;
   transform: translate3d(0,0,0);
+  /* Removido will-change em favor de propriedade mais específica */
+  contain-intrinsic-size: auto 50px; /* Pré-reserva espaço estimado */
+  content-visibility: auto; /* Renderiza apenas o que está visível */
+}
+
+/* Listas com muitos itens - otimizações para recycle view effect */
+@media (max-width: 768px) {
+  .virtual-list-container {
+    /* Mobile: Maior agressividade na otimização de renderização */
+    content-visibility: auto;
+    /* Limitar efeitos de sombra/transição em listas */
+    box-shadow: none !important;
+  }
 }
 
 .virtual-list-item {
   contain: layout style paint;
   will-change: auto;
+  /* Pre-render hint para navegador - especialmente importante em listas longas */
+  content-visibility: auto;
 }
 
 .virtual-list-item:hover {
+  /* No hover usamos will-change apenas no momento do hover */
   will-change: transform;
 }
 
@@ -80,7 +116,7 @@ html, body, #root {
   transform: translateY(-2px) translateZ(0);
 }
 
-/* Animações de entrada */
+/* Animações de entrada - OTIMIZADO PARA MOBILE */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -94,6 +130,27 @@ html, body, #root {
 
 .fade-in-up {
   animation: fadeInUp 0.3s ease-out;
+}
+
+/* Versão mobile-otimizada: desativa animações em scroll */
+@media (max-width: 768px) {
+  .fade-in-up {
+    /* Animar apenas quando não estiver em scroll */
+    animation: none !important;
+    /* Já iniciar com opacidade total */
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  /* Classe para desativar todas animações durante scroll */
+  .scrolling .fade-in-up,
+  .scrolling .animated,
+  .scrolling [class*="animate-"] {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 /* Prevenção de layout shift */

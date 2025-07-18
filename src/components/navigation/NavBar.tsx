@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Brain, FileText, Lightbulb, Settings } from 'lucide-react';
@@ -10,7 +10,6 @@ const NavBar: React.FC = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const { preloadOnHover } = useRoutePreloading();
-  const navRef = useRef<HTMLElement>(null);
   
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -34,49 +33,18 @@ const NavBar: React.FC = () => {
     navigate(path);
   };
   
-  // Força a navbar a sempre estar fixa
+  // Remove transform from html/body/root to garantir que o fixed seja relativo ao viewport
   useEffect(() => {
-    const forceFixed = () => {
-      if (navRef.current) {
-        const element = navRef.current;
-        element.style.position = 'fixed';
-        element.style.bottom = '0px';
-        element.style.left = '0px';
-        element.style.right = '0px';
-        element.style.width = '100vw';
-        element.style.height = '64px';
-        element.style.zIndex = '2147483647';
-        element.style.display = 'flex';
-        element.style.visibility = 'visible';
-        element.style.opacity = '1';
-        element.style.pointerEvents = 'auto';
-        element.style.transform = 'translate3d(0, 0, 0)';
-      }
-    };
-    
-    // Força imediatamente
-    forceFixed();
-    
-    // Força a cada 100ms para garantir
-    const interval = setInterval(forceFixed, 100);
-    
-    // Força em eventos de scroll e resize
-    const handleScroll = () => forceFixed();
-    const handleResize = () => forceFixed();
-    
-    window.addEventListener('scroll', handleScroll);
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleResize);
-    };
+    const html = document.documentElement;
+    const body = document.body;
+    const root = document.getElementById('root');
+    if (html) html.style.transform = 'none';
+    if (body) body.style.transform = 'none';
+    if (root) root.style.transform = 'none';
   }, []);
   
   return createPortal(
     <nav
-      ref={navRef}
       className="stater-navbar-force"
       style={{
         position: 'fixed',

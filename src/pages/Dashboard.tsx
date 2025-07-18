@@ -75,12 +75,15 @@ const Dashboard: React.FC = () => {
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [editingTransactionDontAdjustBalance, setEditingTransactionDontAdjustBalance] = useState(false);
-  const [showAllTransactionsInMonth, setShowAllTransactionsInMonth] = useState(false);
   const [lastEditedTransactionIdForBalanceSkip, setLastEditedTransactionIdForBalanceSkip] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [showDateFilters, setShowDateFilters] = useState(false);
   const [nameFilter, setNameFilter] = useState<string>('');
+  
+  // ADICIONADO: Estados para paginação das últimas transações
+  const [transactionsPage, setTransactionsPage] = useState(1);
+  const transactionsPerPage = 4;
 
   // Estados do Telegram
   const [isTelegramLinked, setIsTelegramLinked] = useState(() => {
@@ -384,6 +387,7 @@ const Dashboard: React.FC = () => {
 
   // UseEffect para reagir s mudanas no filtro de nome
   useEffect(() => {
+    setTransactionsPage(1); // Reset paginação quando mudar filtro
     loadTransactions(selectedMonth, selectedYear, !!startDate && !!endDate);
   }, [nameFilter]);
 
@@ -574,6 +578,7 @@ const Dashboard: React.FC = () => {
   const handleMonthChange = (month: number, year: number) => {
     setSelectedMonth(month);
     setSelectedYear(year);
+    setTransactionsPage(1); // Reset paginação quando mudar mês/ano
   };
   
   const handleAddTransaction = (type: 'income' | 'expense') => {
@@ -1403,7 +1408,10 @@ const Dashboard: React.FC = () => {
                         type="date" 
                         id="start-date" 
                         value={startDate || ''} 
-                        onChange={(e) => setStartDate(e.target.value)} 
+                        onChange={(e) => {
+                          setStartDate(e.target.value);
+                          setTransactionsPage(1); // Reset paginação
+                        }} 
                         className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-blue-400 focus:bg-white/20 transition-all duration-300" 
                         style={{ color: 'white' }}
                       />
@@ -1414,13 +1422,19 @@ const Dashboard: React.FC = () => {
                         type="date" 
                         id="end-date" 
                         value={endDate || ''} 
-                        onChange={(e) => setEndDate(e.target.value)} 
+                        onChange={(e) => {
+                          setEndDate(e.target.value);
+                          setTransactionsPage(1); // Reset paginação
+                        }} 
                         className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-blue-400 focus:bg-white/20 transition-all duration-300" 
                         style={{ color: 'white' }}
                       />
                     </div>
                     <Button 
-                      onClick={() => loadTransactions(selectedMonth, selectedYear, true)} 
+                      onClick={() => {
+                        setTransactionsPage(1); // Reset paginação
+                        loadTransactions(selectedMonth, selectedYear, true);
+                      }} 
                       className="mt-4 sm:mt-auto h-9 w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300" 
                       size="sm"
                     >
@@ -1431,6 +1445,7 @@ const Dashboard: React.FC = () => {
                         setStartDate(null); 
                         setEndDate(null); 
                         setNameFilter('');
+                        setTransactionsPage(1); // Reset paginação
                         loadTransactions(selectedMonth, selectedYear); 
                         setShowDateFilters(false);
                       }} 
@@ -1448,32 +1463,13 @@ const Dashboard: React.FC = () => {
         </div>
       
       {(() => {
-        const displayTransactions = showAllTransactionsInMonth ? transactions : transactions.slice(0, 5);
-        console.log(` [RENDER] Renderizando ${displayTransactions.length} transaes (de ${transactions.length} total)`);
-        console.log(` [RENDER] Estado showAllTransactionsInMonth: ${showAllTransactionsInMonth}`);
-        console.log(` [RENDER] Estado nameFilter: "${nameFilter}"`);
-        console.log(` [RENDER] Estado startDate: ${startDate}, endDate: ${endDate}`);
-        console.log(` [RENDER] Ms selecionado: ${selectedMonth + 1}/${selectedYear}`);
+        // OTIMIZADO: Paginação para transações
+        const startIndex = (transactionsPage - 1) * transactionsPerPage;
+        const endIndex = startIndex + transactionsPerPage;
+        const displayTransactions = transactions.slice(startIndex, endIndex);
+        const hasMoreTransactions = transactions.length > transactionsPage * transactionsPerPage;
         
-        if (displayTransactions.length > 0) {
-          console.log(' [RENDER] Primeiras 3 transaes a serem renderizadas:', displayTransactions.slice(0, 3).map(t => ({
-            id: t.id,
-            title: t.title,
-            date: new Date(t.date).toISOString(),
-            amount: t.amount,
-            type: t.type,
-            category: t.category
-          })));
-        } else {
-          console.log(' [RENDER] PROBLEMA: Nenhuma transao para renderizar!');
-          console.log(' [RENDER] Array transactions completo:', transactions.map(t => ({
-            id: t.id,
-            title: t.title,
-            date: new Date(t.date).toISOString(),
-            month: new Date(t.date).getMonth(),
-            year: new Date(t.date).getFullYear()
-          })));
-        }
+        console.log(` [RENDER] Renderizando ${displayTransactions.length} transações (página ${transactionsPage})`);
         
         return displayTransactions.length > 0 ? (
           <div className="px-4 space-y-3">
@@ -1563,6 +1559,18 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
             ))}
+            
+            {/* Botão "Ver mais" - OTIMIZADO para paginação */}
+            {hasMoreTransactions && (
+              <div className="px-4 py-3 text-center">
+                <button
+                  onClick={() => setTransactionsPage(prev => prev + 1)}
+                  className="text-blue-400 hover:text-blue-300 font-medium transition-colors bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/20 shadow-lg"
+                >
+                  Ver mais transações
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="px-4">
@@ -1574,17 +1582,6 @@ const Dashboard: React.FC = () => {
           </div>
         );
       })()}
-        {transactions.length > 5 && (
-          <div className="px-4 mt-4 mb-2 flex justify-center">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowAllTransactionsInMonth(!showAllTransactionsInMonth)}
-              className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              {showAllTransactionsInMonth ? 'Ver Menos' : 'Ver Todas as Transações'}
-            </Button>
-          </div>
-        )}
       
       {/* NavBar Original */}
       <NavBar />

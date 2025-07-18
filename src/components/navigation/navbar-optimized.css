@@ -14,6 +14,9 @@
   box-sizing: border-box;
   display: flex;
   overscroll-behavior: none; /* Previne bouncing */
+  /* ADICIONADO: Forçar posição fixa */
+  transform: translateZ(0) !important;
+  will-change: auto;
 }
 
 .navbar-content {

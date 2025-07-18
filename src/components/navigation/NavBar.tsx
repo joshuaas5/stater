@@ -84,6 +84,16 @@ const NavBar: React.FC = () => {
     return throttledPathname === path;
   }, [throttledPathname]);
   
+  // ADICIONADO: Verificar se deve esconder navbar na página Stater IA
+  const shouldHideNavbar = useMemo(() => {
+    return throttledPathname === '/financial-advisor';
+  }, [throttledPathname]);
+  
+  // Se deve esconder navbar, não renderizar
+  if (shouldHideNavbar) {
+    return null;
+  }
+  
   // Ordem: Contas → Análise IA → Logo Stater → Stater IA → Ajustes
   const navItems = [
     { icon: <FileText size={20} />, label: t('bills'), path: '/bills' },

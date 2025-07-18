@@ -11,12 +11,10 @@ const HomePage: React.FC = () => {
         {Array.from({ length: 50 }).map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
+            className="absolute w-1 h-1 bg-white/20 rounded-full"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
             }}
           />
         ))}
@@ -24,9 +22,9 @@ const HomePage: React.FC = () => {
       
       {/* Background Effects */}
       <div className="absolute inset-0 bg-black/10" />
-      <div className="absolute top-10 left-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute top-10 left-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl" />
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
       
       {/* Header */}
       <header className="relative z-10 w-full py-6 px-4">
@@ -70,21 +68,21 @@ const HomePage: React.FC = () => {
       <main className="relative z-10 w-full">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center mb-20">
-            {/* Logo Principal com animação */}
+            {/* Logo Principal */}
             <div className="flex justify-center mb-8">
-              <div className="relative animate-bounce-in">
+              <div className="relative">
                 <img 
                   src="/stater-logo-512.png" 
                   alt="Stater - Assistente Financeiro IA" 
                   className="h-32 w-32 md:h-40 md:w-40 object-contain drop-shadow-2xl"
                 />
                 {/* Glow effect */}
-                <div className="absolute inset-0 h-32 w-32 md:h-40 md:w-40 bg-blue-500/30 rounded-full blur-2xl animate-pulse-slow"></div>
+                <div className="absolute inset-0 h-32 w-32 md:h-40 md:w-40 bg-blue-500/30 rounded-full blur-2xl"></div>
               </div>
             </div>
             
             {/* Título com fonte especial */}
-            <div className="mb-8 animate-slide-in">
+            <div className="mb-8">
               <h1 
                 className="text-5xl md:text-7xl font-bold text-white mb-4 uppercase tracking-wide"
                 style={{
@@ -101,7 +99,7 @@ const HomePage: React.FC = () => {
               </p>
             </div>
             
-            <div className="animate-slide-in">
+            <div>
               <h2 className="text-3xl md:text-5xl font-bold text-white mb-8 leading-tight">
                 Você gasta horas por semana
                 <span className="text-blue-300 block mt-2">organizando finanças?</span>
@@ -272,7 +270,7 @@ const HomePage: React.FC = () => {
                   <div className="text-center mb-6">
                     <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500/20 to-emerald-600/30 rounded-2xl border border-green-400/30 mb-4 backdrop-blur-sm">
                       <div className="w-12 h-12 bg-green-500/40 rounded-lg flex items-center justify-center">
-                        <div className="w-6 h-6 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></div>
+                        <div className="w-6 h-6 bg-green-400 rounded-full shadow-lg shadow-green-400/50"></div>
                       </div>
                     </div>
                     <h4 className="text-xl font-bold text-green-300">Com o Stater</h4>

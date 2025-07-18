@@ -811,11 +811,6 @@ const Dashboard: React.FC = () => {
           
           <div className="flex items-start justify-between mb-5">
             <div className="flex items-center space-x-3">
-              <img 
-                src="/stater-logo-192.png" 
-                alt="Stater Logo" 
-                className="h-10 w-10 object-contain drop-shadow-lg"
-              />
               <h2 
                 className="text-white text-xl font-semibold"
                 style={{

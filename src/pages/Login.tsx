@@ -25,6 +25,14 @@ const Login: React.FC = () => {
   const [forgotData, setForgotData] = useState({ email: '' });
   
   useEffect(() => {
+    // Determinar a view baseada na URL
+    const path = location.pathname;
+    if (path === '/register') {
+      setCurrentView('register');
+    } else if (path === '/login') {
+      setCurrentView('login');
+    }
+    
     // Check if there's an authentication flow in progress
     const handleAuthRedirect = async () => {
       // Verificar se o usuário acabou de fazer logout manualmente
@@ -262,18 +270,18 @@ const Login: React.FC = () => {
       
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md mx-auto">
           {/* Logo Section */}
           <div className="text-center mb-8 animate-fadeIn">
             <div className="flex justify-center mb-6">
               <img 
                 src="/stater-logo-512.png" 
                 alt="STATER Logo" 
-                className="w-32 h-32 object-contain drop-shadow-2xl"
+                className="w-24 h-24 sm:w-32 sm:h-32 object-contain drop-shadow-2xl"
               />
             </div>
             <h1 
-              className="text-5xl font-bold text-white mb-2 uppercase tracking-wide"
+              className="text-3xl sm:text-5xl font-bold text-white mb-2 uppercase tracking-wide"
               style={{
                 fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
                 letterSpacing: '2px',
@@ -283,11 +291,25 @@ const Login: React.FC = () => {
             >
               STATER
             </h1>
-            <p className="text-blue-200 text-lg font-medium">Inteligência para prosperar</p>
+            <p className="text-blue-200 text-base sm:text-lg font-medium">Inteligência para prosperar</p>
           </div>
 
           {/* Login Card */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 animate-slideUp">
+          <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8 animate-slideUp mx-4 sm:mx-0">
+            {/* Title */}
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">
+                {currentView === 'login' ? 'Entrar' : 
+                 currentView === 'register' ? 'Criar Conta' : 
+                 'Recuperar Senha'}
+              </h2>
+              <p className="text-blue-200 text-sm">
+                {currentView === 'login' ? 'Acesse sua conta' : 
+                 currentView === 'register' ? 'Comece sua jornada financeira' : 
+                 'Redefinir sua senha'}
+              </p>
+            </div>
+            
             {/* Success Message */}
             {successMessage && (
               <div className="bg-green-500/20 border border-green-500/30 text-green-400 p-4 rounded-2xl mb-6 animate-fadeIn">

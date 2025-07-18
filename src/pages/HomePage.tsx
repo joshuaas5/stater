@@ -57,7 +57,7 @@ const HomePage: React.FC = () => {
             <Link to="/login">
               <Button 
                 variant="outline" 
-                className="hidden sm:flex bg-white/5 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
+                className="bg-white/5 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
               >
                 Entrar
               </Button>

@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, memo, useMemo } from 'react';
 
 import './Dashboard.module.css';
 import './Dashboard.premium.css';
+import '../styles/scroll-optimizations.css';
 import { useNavigate, Link } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -41,6 +42,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { useScrollOptimization } from '@/hooks/useScrollOptimization';
+import VirtualizedTransactionList from '@/components/virtualized/VirtualizedTransactionList';
 
 //  DEBUG: Log para identificar re-renderizaes do Dashboard
 console.log(' Dashboard.tsx carregado/re-renderizado:', new Date().toISOString());

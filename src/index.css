@@ -1,4 +1,7 @@
 
+/* Import scroll optimizations */
+@import './styles/scroll-optimizations.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

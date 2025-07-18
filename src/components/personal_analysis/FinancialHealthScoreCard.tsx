@@ -1,5 +1,5 @@
 // src/components/personal_analysis/FinancialHealthScoreCard.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Info, TrendingUp, TrendingDown, ShieldCheck, AlertTriangle } from 'lucide-react';
@@ -28,7 +28,7 @@ interface ScoreData {
   currentTotalBalance: number;
 }
 
-// Funções auxiliares ajustadas para escala 0-100
+// Funções auxiliares memoizadas para evitar recriação
 const getScoreColor = (score: number): string => {
   if (score < 40) return 'hsl(var(--destructive))'; // Vermelho para Ruim (0-39.9)
   if (score < 70) return 'hsl(var(--warning))';   // Amarelo para Regular (40-69.9)
@@ -43,8 +43,8 @@ const getScoreDescription = (score: number): string => {
   return 'Excelente';
 };
 
-// Custom Tick for Radar Chart Axis Labels
-const CustomAngleTick = (props: any) => {
+// Custom Tick memoizado para melhor performance do RadarChart
+const CustomAngleTick = memo((props: any) => {
   const { x, y, payload } = props;
   const tickFill = 'hsl(var(--foreground))';
   let textAnchor = "middle";
@@ -70,28 +70,66 @@ const CustomAngleTick = (props: any) => {
       {payload.value}
     </text>
   );
-};
+});
 
-const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => {
-  const [scoreData, setScoreData] = useState<ScoreData | null>(null);
-  const [financialTips, setFinancialTips] = useState<string[]>([]);
+CustomAngleTick.displayName = 'CustomAngleTick';
+
+const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = memo(() => {
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  // Memoizar dados financeiros para evitar recálculos desnecessários
+  const financialData = useMemo(() => {
     const transactions: Transaction[] = getTransactions();
-    const debts: Debt[] = getBills(false); // Usar getBills(false) para obter todas as contas (pagas e não pagas)
-
-    if (transactions && debts) {
-      const result = calculateFinancialHealthScore(transactions, debts);
-      setScoreData(result);
-      if (result) {
-        setFinancialTips(generateFinancialHealthTips(result));
-      }
-    }
-    setIsLoading(false);
+    const debts: Debt[] = getBills(false);
+    return { transactions, debts };
   }, []);
 
-  const getScoreIcon = (scoreType: 'savings' | 'debt' | 'liquidity', scoreValue: number) => {
+  // Memoizar cálculo do score
+  const scoreData = useMemo(() => {
+    if (!financialData.transactions || !financialData.debts) return null;
+    return calculateFinancialHealthScore(financialData.transactions, financialData.debts);
+  }, [financialData]);
+
+  // Memoizar dicas financeiras
+  const financialTips = useMemo(() => {
+    if (!scoreData) return [];
+    return generateFinancialHealthTips(scoreData);
+  }, [scoreData]);
+
+  // Memoizar dados do radar chart
+  const radarData = useMemo(() => {
+    if (!scoreData) return [];
+    return [
+      { subject: 'Reserva Estratégica', score: scoreData.savingsScore, fullMark: 100 },
+      { subject: 'Alavancagem Consciente', score: scoreData.debtScore, fullMark: 100 },
+      { subject: 'Fluxo Vital', score: scoreData.liquidityScore, fullMark: 100 },
+    ];
+  }, [scoreData]);
+
+  // Memoizar tooltip props
+  const tooltipProps = useMemo(() => ({
+    contentStyle: { 
+      backgroundColor: 'rgba(49, 24, 92, 0.85)',
+      borderColor: '#7E22CE', 
+      color: '#E9D5FF',
+      borderRadius: '8px',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+    },
+    formatter: (value: number) => [`${value.toFixed(1)} / 100`, 'Performance'],
+    labelStyle: { color: '#FACC15', fontWeight: 'bold' }
+  }), []);
+
+  useEffect(() => {
+    // Simular carregamento apenas se não há dados
+    if (!scoreData) {
+      setIsLoading(true);
+      const timer = setTimeout(() => setIsLoading(false), 300);
+      return () => clearTimeout(timer);
+    }
+    setIsLoading(false);
+  }, [scoreData]);
+
+  const getScoreIcon = useCallback((scoreType: 'savings' | 'debt' | 'liquidity', scoreValue: number) => {
     let IconComponent = AlertTriangle;
     let color = getScoreColor(scoreValue);
 
@@ -108,7 +146,7 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
         break;
     }
     return <IconComponent size={20} className={`mr-2 ${getScoreColor(scoreValue)}`} />;
-  };
+  }, []);
 
   if (isLoading) {
     return (
@@ -177,39 +215,27 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = () => 
             cx="50%" 
             cy="50%" 
             outerRadius="90%" 
-            data={[
-              { subject: 'Reserva Estratégica', score: scoreData.savingsScore, fullMark: 100 },
-              { subject: 'Alavancagem Consciente', score: scoreData.debtScore, fullMark: 100 },
-              { subject: 'Fluxo Vital', score: scoreData.liquidityScore, fullMark: 100 },
-            ]}
+            data={radarData}
           >
-            <PolarGrid stroke="#5B21B6" /> {/* Grid roxo mais escuro */}
+            <PolarGrid stroke="#5B21B6" />
             <PolarAngleAxis dataKey="subject" stroke="#D8B4FE" tick={<CustomAngleTick />} />
-            <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#7E22CE" tick={{ fill: 'hsl(var(--muted-foreground))' }} /> {/* Eixo radial roxo, ticks adaptáveis ao tema */}
+            <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#7E22CE" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
             <Radar 
               name="Sua Performance"
               dataKey="score" 
-              stroke="#FACC15"  /* Dourado para o contorno do radar */
-              fill="#8B5CF6"    /* Roxo vibrante para o preenchimento */
+              stroke="#FACC15"
+              fill="#8B5CF6"
               fillOpacity={0.6}
             />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'rgba(49, 24, 92, 0.85)', /* Fundo do tooltip roxo escuro semi-transparente */
-                borderColor: '#7E22CE', 
-                color: '#E9D5FF', /* Texto do tooltip em lavanda claro */
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-              }} 
-              formatter={(value: number) => [`${value.toFixed(1)} / 100`, 'Performance']}
-              labelStyle={{ color: '#FACC15', fontWeight: 'bold' }} /* Cor do label (Reserva Estratégica, etc) no tooltip em dourado */
-            />
-            {/* <Legend /> Removida para um visual mais limpo e misterioso */}          </RadarChart>
+            <Tooltip {...tooltipProps} />
+          </RadarChart>
         </ResponsiveContainer>
         {/* Insights removidos para evitar duplicação - estão agora na seção de Insights IA */}
       </CardContent>
     </Card>
   );
-};
+});
+
+FinancialHealthScoreCard.displayName = 'FinancialHealthScoreCard';
 
 export default FinancialHealthScoreCard;

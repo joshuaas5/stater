@@ -54,7 +54,7 @@ const NavBar: React.FC = () => {
         width: '100vw',
         height: '64px',
         zIndex: 2147483647,
-        background: '#31518b',
+        background: '#31518b', // cor padronizada
         backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(255, 255, 255, 0.2)',
         boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.3), 0 -2px 16px rgba(49, 81, 139, 0.2)',
@@ -64,7 +64,9 @@ const NavBar: React.FC = () => {
         isolation: 'isolate',
         display: 'flex',
         visibility: 'visible',
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
+        borderBottom: 'none', // remove qualquer borda inferior
+        boxSizing: 'border-box',
       }}
     >
       <div className="flex justify-around items-center h-16 py-2 px-2 md:px-4 max-w-screen-xl mx-auto">

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Brain, FileText, Lightbulb, Settings } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
@@ -73,8 +74,8 @@ const NavBar: React.FC = () => {
     };
   }, []);
   
-  return (
-    <nav 
+  return createPortal(
+    <nav
       ref={navRef}
       className="stater-navbar-force"
       style={{
@@ -173,7 +174,8 @@ const NavBar: React.FC = () => {
           );
         })}
       </div>
-    </nav>
+    </nav>,
+    document.body
   );
 };
 

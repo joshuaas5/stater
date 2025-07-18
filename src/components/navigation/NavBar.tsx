@@ -39,7 +39,10 @@ const NavBar: React.FC = () => {
         background: '#31518b',
         backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-        boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.3), 0 -2px 16px rgba(49, 81, 139, 0.2)'
+        boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.3), 0 -2px 16px rgba(49, 81, 139, 0.2)',
+        transform: 'translate3d(0, 0, 0)', // GPU acceleration
+        willChange: 'transform',
+        backfaceVisibility: 'hidden'
       }}
     >
       <div className="flex justify-around items-center h-16 py-2 px-2 md:px-4 max-w-screen-xl mx-auto">

@@ -3,17 +3,20 @@
 /* GPU-accelerated scrolling */
 .scroll-optimized {
   will-change: transform;
-  transform: translateZ(0);
+  transform: translate3d(0,0,0);
   backface-visibility: hidden;
   perspective: 1000px;
 }
 
-/* Container de scroll suave */
+/* Container de scroll suave com aceleração GPU */
 .smooth-scroll {
   scroll-behavior: smooth;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+  transform: translate3d(0,0,0);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 /* Scrollbar personalizada */
@@ -44,7 +47,7 @@
 .virtual-list-container {
   contain: layout style paint;
   will-change: scroll-position;
-  transform: translateZ(0);
+  transform: translate3d(0,0,0);
 }
 
 .virtual-list-item {

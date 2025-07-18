@@ -11,6 +11,28 @@ const NavBar: React.FC = () => {
   const { preloadOnHover } = useRoutePreloading();
   const navRef = useRef<HTMLElement>(null);
   
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+  
+  // Ordem: Contas → Análise IA → Logo Stater → Stater IA → Ajustes
+  const navItems = [
+    { icon: <FileText size={20} />, label: t('bills'), path: '/bills' },
+    { icon: <Brain size={20} />, label: 'Análise IA', path: '/analise-financeira' },
+    { 
+      icon: <img src="/stater-logo-192.png" alt="Stater" className="h-8 w-8 object-contain drop-shadow-lg" />, 
+      label: '', 
+      path: '/dashboard',
+      isLogo: true
+    },
+    { icon: <Lightbulb size={20} />, label: t('advisor'), path: '/financial-advisor' },
+    { icon: <Settings size={20} />, label: t('settings'), path: '/preferences' },
+  ];
+  
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+  
   // Força a navbar a sempre estar fixa
   useEffect(() => {
     const forceFixed = () => {
@@ -32,6 +54,25 @@ const NavBar: React.FC = () => {
     };
     
     // Força imediatamente
+    forceFixed();
+    
+    // Força a cada 100ms para garantir
+    const interval = setInterval(forceFixed, 100);
+    
+    // Força em eventos de scroll e resize
+    const handleScroll = () => forceFixed();
+    const handleResize = () => forceFixed();
+    
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+  
   return (
     <nav 
       ref={navRef}
@@ -55,58 +96,6 @@ const NavBar: React.FC = () => {
         display: 'flex',
         visibility: 'visible',
         pointerEvents: 'auto'
-      }}
-    >Ordem: Contas → Análise IA → Logo Stater → Stater IA → Ajustes
-  const navItems = [
-    { icon: <FileText size={20} />, label: t('bills'), path: '/bills' },
-    { icon: <Brain size={20} />, label: 'Análise IA', path: '/analise-financeira' },
-    { 
-      icon: <img src="/stater-logo-192.png" alt="Stater" className="h-8 w-8 object-contain drop-shadow-lg" />, 
-      label: '', 
-      path: '/dashboard',
-      isLogo: true
-    },
-    { icon: <Lightbulb size={20} />, label: t('advisor'), path: '/financial-advisor' },
-    { icon: <Settings size={20} />, label: t('settings'), path: '/preferences' },
-  ];
-  
-  const handleNavigation = (path: string) => {
-    navigate(path);
-  };
-  
-  return (
-    <nav 
-      className="stater-navbar-force"
-      style={{
-        position: 'fixed',
-        bottom: '0px',
-        left: '0px',
-        right: '0px',
-        width: '100vw',
-        height: '64px',
-        zIndex: 2147483647,
-        background: '#31518b',
-        backdropFilter: 'blur(20px)',
-        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-        boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.3), 0 -2px 16px rgba(49, 81, 139, 0.2)',
-        transform: 'translate3d(0, 0, 0)',
-        willChange: 'transform',
-        backfaceVisibility: 'hidden',
-        isolation: 'isolate',
-        display: 'flex',
-        visibility: 'visible',
-        pointerEvents: 'auto',
-        // Propriedades adicionais para forçar fixação
-        margin: '0',
-        padding: '0',
-        minWidth: '100vw',
-        maxWidth: '100vw',
-        minHeight: '64px',
-        maxHeight: '64px',
-        overflow: 'visible',
-        contain: 'layout style paint',
-        // Força a navbar a ficar no topo da pilha de contexto
-        transformStyle: 'preserve-3d'
       }}
     >
       <div className="flex justify-around items-center h-16 py-2 px-2 md:px-4 max-w-screen-xl mx-auto">

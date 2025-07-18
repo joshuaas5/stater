@@ -42,15 +42,15 @@ const NavBar: React.FC = () => {
   
   return (
     <div 
-      className="navbar-container"
+      className="navbar-container fixed bottom-0 left-0 right-0 w-full"
       style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        width: '100%',
-        height: '64px',
-        zIndex: 999999,
+        position: 'fixed !important',
+        bottom: '0 !important',
+        left: '0 !important',
+        right: '0 !important',
+        width: '100% !important',
+        height: '64px !important',
+        zIndex: '999999 !important',
         background: '#31518b',
         backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(255, 255, 255, 0.2)',
@@ -66,7 +66,7 @@ const NavBar: React.FC = () => {
         WebkitUserSelect: 'none',
         msUserSelect: 'none',
         // Força a posição fixa absoluta
-        display: 'block',
+        display: 'block !important',
         contain: 'layout style',
         // Evitar qualquer scroll ou movimento
         overflow: 'hidden',

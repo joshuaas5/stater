@@ -10,9 +10,6 @@ const NavBar: React.FC = () => {
   const { t } = useTranslation();
   const { preloadOnHover } = useRoutePreloading();
   
-  // LÓGICA CONDICIONAL: NavBar NÃO aparece na página Stater IA
-  const isStaterIAPage = location.pathname === '/financial-advisor';
-  
   const isActive = (path: string) => {
     return location.pathname === path;
   };
@@ -35,30 +32,22 @@ const NavBar: React.FC = () => {
     navigate(path);
   };
   
-  // Se estiver na página Stater IA, não renderizar a NavBar
-  if (isStaterIAPage) {
-    return null;
-  }
-  
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 w-full"
+      className="fixed bottom-0 left-0 right-0 w-full navbar-container"
       style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        width: '100%',
-        height: '64px',
-        zIndex: 999999,
         background: '#31518b',
         backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(255, 255, 255, 0.2)',
         boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.3), 0 -2px 16px rgba(49, 81, 139, 0.2)',
-        transform: 'translate3d(0, 0, 0)',
+        transform: 'translate3d(0, 0, 0)', // GPU acceleration
         willChange: 'transform',
         backfaceVisibility: 'hidden',
-        isolation: 'isolate'
+        position: 'fixed',
+        zIndex: 99999,
+        height: '64px',
+        bottom: 0,
+        isolation: 'isolate' // Cria um novo contexto de empilhamento
       }}
     >
       <div className="flex justify-around items-center h-16 py-2 px-2 md:px-4 max-w-screen-xl mx-auto">

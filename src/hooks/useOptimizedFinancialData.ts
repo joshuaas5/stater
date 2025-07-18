@@ -1,9 +1,65 @@
 // src/hooks/useOptimizedFinancialData.ts
-import { useMemo } from 'react';
-import { Transaction } from '@/types';
+import { useMemo, useCallback } from 'react';
+import { getTransactions, getBills } from '@/utils/localStorage';
+import { calculateFinancialHealthScore, generateFinancialHealthTips } from '@/services/financialHealthService';
+import { Transaction, Bill as Debt } from '@/types';
 import { calculateBalance, calculatePercentageChange } from '@/utils/dataProcessing';
 
-export const useOptimizedFinancialData = (
+// Hook principal otimizado para dados financeiros
+export const useOptimizedFinancialData = () => {
+  // Memoizar dados brutos com error handling
+  const rawData = useMemo(() => {
+    try {
+      const transactions: Transaction[] = getTransactions();
+      const debts: Debt[] = getBills(false);
+      return { transactions, debts, error: null };
+    } catch (error) {
+      console.error('Erro ao buscar dados financeiros:', error);
+      return { transactions: [], debts: [], error: error as Error };
+    }
+  }, []);
+
+  // Memoizar cálculo do score
+  const scoreData = useMemo(() => {
+    if (!rawData.transactions.length || rawData.error) return null;
+    try {
+      return calculateFinancialHealthScore(rawData.transactions, rawData.debts);
+    } catch (error) {
+      console.error('Erro ao calcular score financeiro:', error);
+      return null;
+    }
+  }, [rawData]);
+
+  // Memoizar dicas financeiras
+  const financialTips = useMemo(() => {
+    if (!scoreData) return [];
+    try {
+      return generateFinancialHealthTips(scoreData);
+    } catch (error) {
+      console.error('Erro ao gerar dicas financeiras:', error);
+      return [];
+    }
+  }, [scoreData]);
+
+  // Callback para força refresh dos dados
+  const refreshData = useCallback(() => {
+    // Força re-render através de um reload controlado
+    window.location.reload();
+  }, []);
+
+  return {
+    transactions: rawData.transactions,
+    debts: rawData.debts,
+    scoreData,
+    financialTips,
+    isLoading: !scoreData && !rawData.error,
+    hasError: !!rawData.error,
+    refreshData
+  };
+};
+
+// Hook otimizado para dados filtrados por período
+export const useOptimizedFinancialDataFiltered = (
   transactions: Transaction[],
   selectedMonth: number,
   selectedYear: number

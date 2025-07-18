@@ -1,0 +1,138 @@
+/* GPU Acceleration crítica */
+.dashboard-container,
+.dashboard-container * {
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* Otimizações específicas para mobile */
+@media (max-width: 768px) {
+  .dashboard-container {
+    contain: layout style paint;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Reduzir complexidade visual em mobile */
+  .financial-card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+  }
+  
+  /* Desabilitar animações desnecessárias */
+  .animate-pulse {
+    animation: none !important;
+  }
+}
+
+/* Scroll performance crítico */
+.scroll-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Otimizações SVG */
+svg {
+  shape-rendering: optimizeSpeed;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Otimizações para cards */
+.optimized-card {
+  contain: layout style paint;
+  transform: translate3d(0, 0, 0);
+  will-change: auto;
+}
+
+.optimized-card:hover {
+  will-change: transform;
+  transform: translateY(-2px) translate3d(0, 0, 0);
+}
+
+/* Performance otimizada para componentes financeiros */
+.financial-health-card {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* Reduzir layout shifts */
+.prevent-layout-shift {
+  min-height: 1px;
+  contain: layout;
+}
+
+/* Otimizações para charts e gráficos */
+.chart-container {
+  contain: layout style paint;
+  transform: translate3d(0, 0, 0);
+  will-change: auto;
+}
+
+/* Otimizações para animações de loading */
+.skeleton-optimized {
+  background: linear-gradient(90deg, 
+    rgba(200, 200, 200, 0.2) 25%, 
+    rgba(200, 200, 200, 0.4) 50%, 
+    rgba(200, 200, 200, 0.2) 75%
+  );
+  background-size: 400% 100%;
+  animation: loading-optimized 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-optimized {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Mobile specific optimizations */
+@media (max-width: 768px) {
+  /* Força hardware acceleration */
+  body, #root {
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+  
+  /* Reduz repaints em mobile */
+  .card {
+    contain: layout style paint;
+  }
+  
+  /* Otimiza scroll em mobile */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Disable animations para performance */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse,
+  .skeleton-optimized {
+    animation: none !important;
+  }
+}
+
+/* Otimizações de CSS containment */
+.contain-layout {
+  contain: layout;
+}
+
+.contain-style {
+  contain: style;
+}
+
+.contain-paint {
+  contain: paint;
+}
+
+.contain-all {
+  contain: layout style paint;
+}

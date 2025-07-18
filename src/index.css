@@ -1,6 +1,8 @@
 
 /* Import scroll optimizations */
 @import './styles/scroll-optimizations.css';
+/* Import critical performance styles */
+@import './styles/critical-performance.css';
 
 @tailwind base;
 @tailwind components;
@@ -257,4 +259,48 @@ div[role="dialog"] {
 /* Regra forçada para componente FinancialInsights */
 .financial-insights-card {
   background-color: #31518b !important;
+}
+
+/* CRITICAL PERFORMANCE OPTIMIZATIONS */
+
+/* Disable smooth scrolling globalmente */
+* {
+  scroll-behavior: auto !important;
+}
+
+/* Otimizações para mobile */
+@media (max-width: 768px) {
+  /* Força GPU acceleration */
+  body, #root {
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+  
+  /* Reduz repaints */
+  .card {
+    contain: layout style paint;
+  }
+  
+  /* Desabilita animações desnecessárias em mobile */
+  .animate-pulse {
+    animation: none !important;
+  }
+}
+
+/* GPU acceleration para componentes críticos */
+.dashboard-container {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+/* Otimizações para scroll */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Performance crítica para SVG */
+svg {
+  shape-rendering: optimizeSpeed;
+  transform: translate3d(0, 0, 0);
 }

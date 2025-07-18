@@ -3,7 +3,6 @@ import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Info, TrendingUp, TrendingDown, ShieldCheck, AlertTriangle } from 'lucide-react';
-import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend, Tooltip } from 'recharts';
 import { calculateFinancialHealthScore, generateFinancialHealthTips } from '@/services/financialHealthService';
 import { getTransactions, getBills } from '@/utils/localStorage';
 import { Transaction, Bill as Debt } from '@/types';
@@ -43,60 +42,200 @@ const getScoreDescription = (score: number): string => {
   return 'Excelente';
 };
 
-// Custom Tick memoizado para melhor performance do RadarChart
-const CustomAngleTick = memo((props: any) => {
-  const { x, y, payload } = props;
-  const tickFill = 'hsl(var(--foreground))';
-  let textAnchor = "middle";
-  let finalX = x;
-  let finalY = y;
-
-  // Adjustments based on typical radar chart point positions
-  if (payload.value === 'Reserva Estratégica') { // Top point
-    textAnchor = "middle";
-    finalY -= 10; // Move text up from the tip
-  } else if (payload.value === 'Alavancagem Consciente') { // Bottom-left point
-    textAnchor = "end";    // Anchor text to its end (flows left)
-    finalX -= 8;       // Move anchor point slightly left
-    finalY += 12;      // Move anchor point down towards base
-  } else if (payload.value === 'Fluxo Vital') { // Bottom-right point
-    textAnchor = "start";  // Anchor text to its start (flows right)
-    finalX += 8;       // Move anchor point slightly right
-    finalY += 12;      // Move anchor point down towards base
-  }
+// Componente SVG otimizado para substituir RadarChart
+const OptimizedFinancialRadar = memo<{ data: Array<{ subject: string; score: number; fullMark: number }> }>(({ data }) => {
+  const size = 320;
+  const center = size / 2;
+  const maxRadius = size * 0.35;
+  
+  // Memoizar todos os cálculos geométricos
+  const chartElements = useMemo(() => {
+    const angleStep = (2 * Math.PI) / data.length;
+    
+    // Calcular pontos do polígono
+    const points = data.map((item, index) => {
+      const angle = index * angleStep - Math.PI / 2;
+      const normalizedScore = item.score / 100;
+      const radius = maxRadius * normalizedScore;
+      
+      return {
+        x: center + Math.cos(angle) * radius,
+        y: center + Math.sin(angle) * radius,
+        maxX: center + Math.cos(angle) * maxRadius,
+        maxY: center + Math.sin(angle) * maxRadius,
+        labelX: center + Math.cos(angle) * (maxRadius + 25),
+        labelY: center + Math.sin(angle) * (maxRadius + 25),
+        score: item.score,
+        subject: item.subject,
+        angle
+      };
+    });
+    
+    // Criar path do polígono
+    const polygonPath = points.map((point, index) => 
+      `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
+    ).join(' ') + ' Z';
+    
+    // Criar círculos de grade
+    const gridRings = [0.25, 0.5, 0.75, 1.0].map(factor => maxRadius * factor);
+    
+    return { points, polygonPath, gridRings };
+  }, [data, center, maxRadius]);
 
   return (
-    <text x={finalX} y={finalY} textAnchor={textAnchor} fill={tickFill} fontSize={9}>
-      {payload.value}
-    </text>
+    <div 
+      className="w-full h-full flex items-center justify-center"
+      style={{ 
+        transform: 'translate3d(0, 0, 0)',
+        willChange: 'transform'
+      }}
+    >
+      <svg 
+        width={size} 
+        height={size} 
+        viewBox={`0 0 ${size} ${size}`}
+        className="overflow-visible"
+        style={{
+          transform: 'translate3d(0, 0, 0)',
+          shapeRendering: 'optimizeSpeed'
+        }}
+      >
+        {/* Círculos de grade */}
+        {chartElements.gridRings.map((radius, index) => (
+          <circle
+            key={`ring-${index}`}
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="none"
+            stroke="hsl(var(--border))"
+            strokeWidth="1"
+            opacity={0.2}
+          />
+        ))}
+        
+        {/* Linhas dos eixos */}
+        {chartElements.points.map((point, index) => (
+          <line
+            key={`axis-${index}`}
+            x1={center}
+            y1={center}
+            x2={point.maxX}
+            y2={point.maxY}
+            stroke="hsl(var(--border))"
+            strokeWidth="1"
+            opacity={0.3}
+          />
+        ))}
+        
+        {/* Polígono dos dados */}
+        <path
+          d={chartElements.polygonPath}
+          fill="hsl(var(--primary))"
+          fillOpacity="0.15"
+          stroke="hsl(var(--primary))"
+          strokeWidth="2"
+        />
+        
+        {/* Pontos dos dados */}
+        {chartElements.points.map((point, index) => (
+          <g key={`point-${index}`}>
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r="5"
+              fill="hsl(var(--primary))"
+              stroke="hsl(var(--background))"
+              strokeWidth="2"
+            />
+            <text
+              x={point.x}
+              y={point.y - 10}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize="11"
+              fill="hsl(var(--primary))"
+              fontWeight="600"
+            >
+              {point.score}
+            </text>
+          </g>
+        ))}
+        
+        {/* Labels dos eixos */}
+        {chartElements.points.map((point, index) => (
+          <text
+            key={`label-${index}`}
+            x={point.labelX}
+            y={point.labelY}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize="10"
+            fill="hsl(var(--foreground))"
+            fontWeight="500"
+          >
+            {point.subject.split(' ')[0]}
+          </text>
+        ))}
+      </svg>
+    </div>
   );
 });
 
-CustomAngleTick.displayName = 'CustomAngleTick';
+OptimizedFinancialRadar.displayName = 'OptimizedFinancialRadar';
+
+// Hook otimizado para dados financeiros
+const useFinancialData = () => {
+  return useMemo(() => {
+    try {
+      const transactions = getTransactions();
+      const debts = getBills(false);
+      
+      if (!transactions.length) {
+        return { transactions: [], debts: [], scoreData: null, error: null };
+      }
+      
+      const scoreData = calculateFinancialHealthScore(transactions, debts);
+      return { transactions, debts, scoreData, error: null };
+    } catch (error) {
+      console.error('Erro ao processar dados financeiros:', error);
+      return { transactions: [], debts: [], scoreData: null, error: error as Error };
+    }
+  }, []);
+};
+
+// Skeleton otimizado
+const FinancialHealthSkeleton = memo(() => (
+  <Card 
+    className="shadow-lg bg-card text-card-foreground"
+    style={{ 
+      transform: 'translate3d(0, 0, 0)',
+      willChange: 'transform'
+    }}
+  >
+    <CardHeader className="flex flex-row items-start justify-between pb-3">
+      <div>
+        <div className="h-8 w-16 bg-muted rounded animate-pulse mb-2" />
+        <div className="h-3 w-32 bg-muted rounded animate-pulse" />
+      </div>
+      <div className="flex flex-col items-end">
+        <div className="h-4 w-20 bg-muted rounded animate-pulse mb-1" />
+        <div className="h-6 w-6 bg-muted rounded animate-pulse" />
+      </div>
+    </CardHeader>
+    <CardContent className="pt-4">
+      <div className="h-[320px] w-full bg-muted rounded animate-pulse" />
+    </CardContent>
+  </Card>
+));
+
+FinancialHealthSkeleton.displayName = 'FinancialHealthSkeleton';
 
 const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = memo(() => {
   const [isLoading, setIsLoading] = useState(true);
+  const { scoreData, error } = useFinancialData();
 
-  // Memoizar dados financeiros para evitar recálculos desnecessários
-  const financialData = useMemo(() => {
-    const transactions: Transaction[] = getTransactions();
-    const debts: Debt[] = getBills(false);
-    return { transactions, debts };
-  }, []);
-
-  // Memoizar cálculo do score
-  const scoreData = useMemo(() => {
-    if (!financialData.transactions || !financialData.debts) return null;
-    return calculateFinancialHealthScore(financialData.transactions, financialData.debts);
-  }, [financialData]);
-
-  // Memoizar dicas financeiras
-  const financialTips = useMemo(() => {
-    if (!scoreData) return [];
-    return generateFinancialHealthTips(scoreData);
-  }, [scoreData]);
-
-  // Memoizar dados do radar chart
+  // Memoizar dados do radar
   const radarData = useMemo(() => {
     if (!scoreData) return [];
     return [
@@ -106,131 +245,116 @@ const FinancialHealthScoreCard: React.FC<FinancialHealthScoreCardProps> = memo((
     ];
   }, [scoreData]);
 
-  // Memoizar tooltip props
-  const tooltipProps = useMemo(() => ({
-    contentStyle: { 
-      backgroundColor: 'rgba(49, 24, 92, 0.85)',
-      borderColor: '#7E22CE', 
-      color: '#E9D5FF',
-      borderRadius: '8px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-    },
-    formatter: (value: number) => [`${value.toFixed(1)} / 100`, 'Performance'],
-    labelStyle: { color: '#FACC15', fontWeight: 'bold' }
-  }), []);
-
   useEffect(() => {
-    // Simular carregamento apenas se não há dados
-    if (!scoreData) {
-      setIsLoading(true);
-      const timer = setTimeout(() => setIsLoading(false), 300);
+    if (scoreData || error) {
+      setIsLoading(false);
+    } else {
+      const timer = setTimeout(() => setIsLoading(false), 100);
       return () => clearTimeout(timer);
     }
-    setIsLoading(false);
-  }, [scoreData]);
+  }, [scoreData, error]);
 
   const getScoreIcon = useCallback((scoreType: 'savings' | 'debt' | 'liquidity', scoreValue: number) => {
     let IconComponent = AlertTriangle;
-    let color = getScoreColor(scoreValue);
+    const color = getScoreColor(scoreValue);
 
     switch (scoreType) {
       case 'savings':
-        IconComponent = scoreValue >= 5 ? TrendingUp : TrendingDown;
+        IconComponent = scoreValue >= 50 ? TrendingUp : TrendingDown;
         break;
       case 'debt':
-        // Para dívida, pontuação alta é bom (baixo endividamento)
-        IconComponent = scoreValue >= 5 ? ShieldCheck : AlertTriangle;
+        IconComponent = scoreValue >= 50 ? ShieldCheck : AlertTriangle;
         break;
       case 'liquidity':
-        IconComponent = scoreValue >= 5 ? ShieldCheck : AlertTriangle;
+        IconComponent = scoreValue >= 50 ? ShieldCheck : AlertTriangle;
         break;
     }
-    return <IconComponent size={20} className={`mr-2 ${getScoreColor(scoreValue)}`} />;
+    return <IconComponent size={16} style={{ color }} />;
   }, []);
 
   if (isLoading) {
-    return (
-      <Card className="shadow-lg bg-card text-card-foreground">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Carregando Análise...</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>Aguarde enquanto nossa I.A. processa seus dados...</p>
-        </CardContent>
-      </Card>
-    );
+    return <FinancialHealthSkeleton />;
   }
 
-  if (!scoreData) {
+  if (error || !scoreData) {
     return (
       <Card className="shadow-lg bg-card text-card-foreground">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Erro ao Calcular Análise</CardTitle>
+          <CardTitle className="text-lg font-semibold text-destructive">
+            Erro ao Calcular Análise
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <p>Não foi possível calcular sua análise. Verifique se há transações e contas registradas ou tente novamente mais tarde.</p>
+          <p>Não foi possível calcular sua análise. Verifique se há dados suficientes.</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="shadow-lg bg-card text-card-foreground">
+    <Card 
+      className="shadow-lg bg-card text-card-foreground"
+      style={{ 
+        transform: 'translate3d(0, 0, 0)',
+        willChange: 'transform'
+      }}
+    >
       <CardHeader className="flex flex-row items-start justify-between pb-3">
-        {/* Left side: Score */} 
         <div> 
-            <p className="text-3xl font-bold" style={{ color: getScoreColor(scoreData.finalScore) }}>
-                {scoreData.finalScore}<span className="text-lg text-muted-foreground">/100</span>
-            </p>
-            <p className="text-xs text-muted-foreground">Saúde Financeira Geral</p>
+          <p className="text-3xl font-bold" style={{ color: getScoreColor(scoreData.finalScore) }}>
+            {scoreData.finalScore}<span className="text-lg text-muted-foreground">/100</span>
+          </p>
+          <p className="text-xs text-muted-foreground">Saúde Financeira Geral</p>
         </div>
-        {/* Right side: Title and Info Button */} 
         <div className="flex flex-col items-end"> 
-            <CardTitle className="text-xs font-medium text-muted-foreground mb-1">
-                Análise Financeira
-            </CardTitle>
-            <AlertDialog>
-                <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-6 h-6">
-                        <Info className="h-4 w-4" />
-                    </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="bg-gray-800 text-gray-200 border-purple-500">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-purple-300">Entendendo sua Pontuação de Saúde Financeira</AlertDialogTitle>
-                    <AlertDialogDescription className="text-gray-400">
-                      Sua pontuação é calculada com base nos seus dados financeiros reais: saldo atual, proporção entre receitas e gastos, consistência nos pagamentos e diversificação de categorias. Cada fator contribui com pontos específicos para formar uma avaliação objetiva da sua situação financeira atual.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogAction className="bg-purple-600 hover:bg-purple-700 text-white">Entendi!</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+          <CardTitle className="text-xs font-medium text-muted-foreground mb-1">
+            Análise Financeira
+          </CardTitle>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="w-6 h-6">
+                <Info className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-gray-800 text-gray-200 border-purple-500">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-purple-300">
+                  Entendendo sua Pontuação de Saúde Financeira
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-gray-400">
+                  Sua pontuação é calculada com base nos seus dados financeiros reais: saldo atual, 
+                  proporção entre receitas e gastos, consistência nos pagamentos e diversificação de categorias.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction className="bg-purple-600 hover:bg-purple-700 text-white">
+                  Entendi!
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </CardHeader>
       <CardContent className="pt-4">
-        <ResponsiveContainer width="100%" height={450}>
-          <RadarChart 
-            cx="50%" 
-            cy="50%" 
-            outerRadius="90%" 
-            data={radarData}
-          >
-            <PolarGrid stroke="#5B21B6" />
-            <PolarAngleAxis dataKey="subject" stroke="#D8B4FE" tick={<CustomAngleTick />} />
-            <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#7E22CE" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-            <Radar 
-              name="Sua Performance"
-              dataKey="score" 
-              stroke="#FACC15"
-              fill="#8B5CF6"
-              fillOpacity={0.6}
-            />
-            <Tooltip {...tooltipProps} />
-          </RadarChart>
-        </ResponsiveContainer>
-        {/* Insights removidos para evitar duplicação - estão agora na seção de Insights IA */}
+        <div className="h-[320px] w-full">
+          <OptimizedFinancialRadar data={radarData} />
+        </div>
+        
+        {/* Métricas resumidas */}
+        <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+          <div className="flex items-center justify-center space-x-2">
+            {getScoreIcon('savings', scoreData.savingsScore)}
+            <span className="text-sm font-medium">{scoreData.savingsScore}/100</span>
+          </div>
+          <div className="flex items-center justify-center space-x-2">
+            {getScoreIcon('debt', scoreData.debtScore)}
+            <span className="text-sm font-medium">{scoreData.debtScore}/100</span>
+          </div>
+          <div className="flex items-center justify-center space-x-2">
+            {getScoreIcon('liquidity', scoreData.liquidityScore)}
+            <span className="text-sm font-medium">{scoreData.liquidityScore}/100</span>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

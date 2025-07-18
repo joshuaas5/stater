@@ -34,7 +34,7 @@ const NavBar: React.FC = () => {
   
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 z-50 w-full"
+      className="fixed bottom-0 left-0 right-0 w-full navbar-container"
       style={{
         background: '#31518b',
         backdropFilter: 'blur(20px)',
@@ -42,7 +42,12 @@ const NavBar: React.FC = () => {
         boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.3), 0 -2px 16px rgba(49, 81, 139, 0.2)',
         transform: 'translate3d(0, 0, 0)', // GPU acceleration
         willChange: 'transform',
-        backfaceVisibility: 'hidden'
+        backfaceVisibility: 'hidden',
+        position: 'fixed',
+        zIndex: 99999,
+        height: '64px',
+        bottom: 0,
+        isolation: 'isolate' // Cria um novo contexto de empilhamento
       }}
     >
       <div className="flex justify-around items-center h-16 py-2 px-2 md:px-4 max-w-screen-xl mx-auto">

@@ -1,8 +1,8 @@
 // src/pages/FinancialAnalysisPage.tsx
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, Component, ErrorInfo, ReactNode } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from '@/components/ui/card';
-import { Brain, Target, BookOpen, Loader2, TrendingUp } from 'lucide-react';
+import { Brain, Target, BookOpen, Loader2, TrendingUp, AlertCircle } from 'lucide-react';
 import NavBar from '@/components/navigation/NavBar';
 
 // Lazy load dos componentes pesados
@@ -10,6 +10,49 @@ const ModernCharts = lazy(() => import('@/components/dashboard/ModernCharts'));
 const FinancialHealthScoreCard = lazy(() => import('@/components/personal_analysis/FinancialHealthScoreCard'));
 const FinancialInsights = lazy(() => import('@/components/dashboard/FinancialInsights'));
 const BookOfTheWeek = lazy(() => import('@/components/personal_analysis/BookOfTheWeek'));
+
+// Error Boundary Component
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+class ComponentErrorBoundary extends Component<
+  { children: ReactNode; fallback?: ReactNode },
+  ErrorBoundaryState
+> {
+  constructor(props: { children: ReactNode; fallback?: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('ComponentErrorBoundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
+        <Card className="bg-white dark:bg-gray-800 border-red-200 dark:border-red-700">
+          <CardContent className="flex items-center justify-center h-32 p-4">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <AlertCircle className="h-6 w-6 text-red-500" />
+              <p className="text-sm text-red-600 dark:text-red-400">
+                Erro ao carregar componente
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // Componente de Loading simples e claro
 const LoadingCard = ({ title }: { title: string }) => (
@@ -96,30 +139,38 @@ const FinancialAnalysisPage: React.FC = () => {
 
           {/* Tab: Insights */}
           <TabsContent value="insights" className="space-y-4">            
-            <Suspense fallback={<LoadingCard title="insights personalizados" />}>
-              <FinancialInsights />
-            </Suspense>
+            <ComponentErrorBoundary>
+              <Suspense fallback={<LoadingCard title="insights personalizados" />}>
+                <FinancialInsights />
+              </Suspense>
+            </ComponentErrorBoundary>
           </TabsContent>
 
           {/* Tab: Gráficos */}
           <TabsContent value="charts" className="space-y-4">
-            <Suspense fallback={<LoadingCard title="gráficos interativos" />}>
-              <ModernCharts />
-            </Suspense>
+            <ComponentErrorBoundary>
+              <Suspense fallback={<LoadingCard title="gráficos interativos" />}>
+                <ModernCharts />
+              </Suspense>
+            </ComponentErrorBoundary>
           </TabsContent>
 
           {/* Tab: Saúde Financeira */}
           <TabsContent value="health" className="space-y-4">
-            <Suspense fallback={<LoadingCard title="análise de saúde financeira" />}>
-              <FinancialHealthScoreCard />
-            </Suspense>
+            <ComponentErrorBoundary>
+              <Suspense fallback={<LoadingCard title="análise de saúde financeira" />}>
+                <FinancialHealthScoreCard />
+              </Suspense>
+            </ComponentErrorBoundary>
           </TabsContent>
 
           {/* Tab: Livros */}
           <TabsContent value="books" className="space-y-4">
-            <Suspense fallback={<LoadingCard title="recomendações de livros" />}>
-              <BookOfTheWeek />
-            </Suspense>
+            <ComponentErrorBoundary>
+              <Suspense fallback={<LoadingCard title="recomendações de livros" />}>
+                <BookOfTheWeek />
+              </Suspense>
+            </ComponentErrorBoundary>
           </TabsContent>
         </Tabs>
       </div>

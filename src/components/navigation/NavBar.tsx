@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Brain, FileText, Lightbulb, Settings } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
@@ -9,12 +9,54 @@ const NavBar: React.FC = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const { preloadOnHover } = useRoutePreloading();
+  const navRef = useRef<HTMLElement>(null);
   
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-  
-  // Ordem: Contas → Análise IA → Logo Stater → Stater IA → Ajustes
+  // Força a navbar a sempre estar fixa
+  useEffect(() => {
+    const forceFixed = () => {
+      if (navRef.current) {
+        const element = navRef.current;
+        element.style.position = 'fixed';
+        element.style.bottom = '0px';
+        element.style.left = '0px';
+        element.style.right = '0px';
+        element.style.width = '100vw';
+        element.style.height = '64px';
+        element.style.zIndex = '2147483647';
+        element.style.display = 'flex';
+        element.style.visibility = 'visible';
+        element.style.opacity = '1';
+        element.style.pointerEvents = 'auto';
+        element.style.transform = 'translate3d(0, 0, 0)';
+      }
+    };
+    
+    // Força imediatamente
+  return (
+    <nav 
+      ref={navRef}
+      className="stater-navbar-force"
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        width: '100vw',
+        height: '64px',
+        zIndex: 2147483647,
+        background: '#31518b',
+        backdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+        boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.3), 0 -2px 16px rgba(49, 81, 139, 0.2)',
+        transform: 'translate3d(0, 0, 0)',
+        willChange: 'transform',
+        backfaceVisibility: 'hidden',
+        isolation: 'isolate',
+        display: 'flex',
+        visibility: 'visible',
+        pointerEvents: 'auto'
+      }}
+    >Ordem: Contas → Análise IA → Logo Stater → Stater IA → Ajustes
   const navItems = [
     { icon: <FileText size={20} />, label: t('bills'), path: '/bills' },
     { icon: <Brain size={20} />, label: 'Análise IA', path: '/analise-financeira' },
@@ -37,9 +79,9 @@ const NavBar: React.FC = () => {
       className="stater-navbar-force"
       style={{
         position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
+        bottom: '0px',
+        left: '0px',
+        right: '0px',
         width: '100vw',
         height: '64px',
         zIndex: 2147483647,
@@ -53,7 +95,18 @@ const NavBar: React.FC = () => {
         isolation: 'isolate',
         display: 'flex',
         visibility: 'visible',
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
+        // Propriedades adicionais para forçar fixação
+        margin: '0',
+        padding: '0',
+        minWidth: '100vw',
+        maxWidth: '100vw',
+        minHeight: '64px',
+        maxHeight: '64px',
+        overflow: 'visible',
+        contain: 'layout style paint',
+        // Força a navbar a ficar no topo da pilha de contexto
+        transformStyle: 'preserve-3d'
       }}
     >
       <div className="flex justify-around items-center h-16 py-2 px-2 md:px-4 max-w-screen-xl mx-auto">

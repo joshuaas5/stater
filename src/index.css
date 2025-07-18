@@ -5,6 +5,8 @@
 @import './styles/critical-performance.css';
 /* IMPORT NAVBAR FORCE - PRIORIDADE ABSOLUTA */
 @import './styles/navbar-force.css';
+/* IMPORT NAVBAR ULTRA FORCE - MÁXIMA PRIORIDADE */
+@import './styles/navbar-ultra-force.css';
 
 @tailwind base;
 @tailwind components;

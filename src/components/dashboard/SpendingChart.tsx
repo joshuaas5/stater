@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo, memo } from 'react';
 import { Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { Transaction } from '@/types';
 import { cn } from '@/lib/utils'; // Assumindo que cn vem daqui
@@ -9,95 +9,102 @@ interface SpendingChartProps {
   days: number;
 }
 
-const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, days }) => {
+const SpendingChart: React.FC<SpendingChartProps> = memo(({ transactions, days }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   
-  // Preparar dados para o gráfico com evolução real do saldo
-  const prepareChartData = () => {
-    const today = new Date();
-    const data = [];
-    let runningBalance = 0;
+  // Memoizar preparação de dados para o gráfico com evolução real do saldo
+  const chartData = useMemo(() => {
+    const prepareChartData = () => {
+      const today = new Date();
+      const data = [];
+      let runningBalance = 0;
 
-    // Calcular saldo inicial (todas as transações até o primeiro dia do período)
-    const startDate = new Date(today);
-    startDate.setDate(today.getDate() - days);
-    startDate.setHours(0, 0, 0, 0);
+      // Calcular saldo inicial (todas as transações até o primeiro dia do período)
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() - days);
+      startDate.setHours(0, 0, 0, 0);
 
-    // Somar todas as transações anteriores ao período para ter o saldo inicial correto
-    const previousTransactions = transactions.filter(t => {
-      const txDate = new Date(t.date);
-      return txDate < startDate;
-    });
-
-    previousTransactions.forEach(transaction => {
-      if (transaction.type === 'income') {
-        runningBalance += transaction.amount;
-      } else {
-        runningBalance -= transaction.amount;
-      }
-    });
-
-    // Agora processar cada dia do período
-    for (let i = days; i >= 0; i--) {
-      const currentDate = new Date(today);
-      currentDate.setDate(today.getDate() - i);
-      currentDate.setHours(0, 0, 0, 0);
-      const dateStr = currentDate.toISOString().split('T')[0];
-
-      const dayTransactions = transactions.filter(t => {
+      // Somar todas as transações anteriores ao período para ter o saldo inicial correto
+      const previousTransactions = transactions.filter(t => {
         const txDate = new Date(t.date);
-        txDate.setHours(0,0,0,0);
-        return txDate.toISOString().split('T')[0] === dateStr;
+        return txDate < startDate;
       });
 
-      let dayNetChange = 0;
-      dayTransactions.forEach(transaction => {
+      previousTransactions.forEach(transaction => {
         if (transaction.type === 'income') {
-          dayNetChange += transaction.amount;
+          runningBalance += transaction.amount;
         } else {
-          dayNetChange -= transaction.amount;
+          runningBalance -= transaction.amount;
         }
       });
-      
-      runningBalance += dayNetChange; 
 
-      data.push({
-        date: dateStr,
-        balance: runningBalance,
-        dayChange: dayNetChange,
-        hasTransactionsToday: dayTransactions.length > 0,
-        formattedDate: currentDate.toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit'
-        })
-      });
-    }
+      // Agora processar cada dia do período
+      for (let i = days; i >= 0; i--) {
+        const currentDate = new Date(today);
+        currentDate.setDate(today.getDate() - i);
+        currentDate.setHours(0, 0, 0, 0);
+        const dateStr = currentDate.toISOString().split('T')[0];
 
-    // Se não há dados, mostrar pelo menos hoje com saldo zero
-    if (data.length === 0) {
-        data.push({
-            date: today.toISOString().split('T')[0],
-            balance: 0, 
-            dayChange: 0,
-            hasTransactionsToday: false,
-            formattedDate: today.toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: '2-digit'
-            })
+        const dayTransactions = transactions.filter(t => {
+          const txDate = new Date(t.date);
+          txDate.setHours(0,0,0,0);
+          return txDate.toISOString().split('T')[0] === dateStr;
         });
-    }
 
-    return data;
-  };
-  
-  const chartData = prepareChartData();
+        let dayNetChange = 0;
+        dayTransactions.forEach(transaction => {
+          if (transaction.type === 'income') {
+            dayNetChange += transaction.amount;
+          } else {
+            dayNetChange -= transaction.amount;
+          }
+        });
+        
+        runningBalance += dayNetChange; 
+
+        data.push({
+          date: dateStr,
+          balance: runningBalance,
+          dayChange: dayNetChange,
+          hasTransactionsToday: dayTransactions.length > 0,
+          formattedDate: currentDate.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit'
+          })
+        });
+      }
+
+      // Se não há dados, mostrar pelo menos hoje com saldo zero
+      if (data.length === 0) {
+          data.push({
+              date: today.toISOString().split('T')[0],
+              balance: 0, 
+              dayChange: 0,
+              hasTransactionsToday: false,
+              formattedDate: today.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit'
+              })
+          });
+      }
+
+      return data;
+    };
+    
+    return prepareChartData();
+  }, [transactions, days]);
+
+  // Memoizar formatação de números grandes
+  const currentBalance = useMemo(() => {
+    return chartData.length > 0 ? chartData[chartData.length - 1]?.balance || 0 : 0;
+  }, [chartData]);
 
   return (
     <div className="flex min-h-[200px] flex-1 flex-col gap-4 py-4" ref={chartRef}>
       <div className="flex items-center justify-between">
         <h3 className="text-white text-lg font-semibold">Evolução do Saldo - Últimos {days} dias</h3>
         <p className="text-white/70 text-sm">
-          {chartData.length > 0 && `Saldo atual: ${formatCurrency(chartData[chartData.length - 1]?.balance || 0)}`}
+          {`Saldo atual: ${formatCurrency(currentBalance)}`}
         </p>
       </div>
       <div className="h-[160px] w-full">
@@ -117,9 +124,9 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, days }) => 
       </div>
     </div>
   );
-};
+});
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = memo(({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const dataPoint = payload[0].payload;
     
@@ -152,6 +159,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     );
   }
   return null;
-};
+});
+
+SpendingChart.displayName = 'SpendingChart';
+CustomTooltip.displayName = 'CustomTooltip';
 
 export default SpendingChart;

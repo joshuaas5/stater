@@ -34,7 +34,7 @@ const NavBar: React.FC = () => {
   
   return (
     <nav 
-      className="navbar-fixed-bottom"
+      className="stater-navbar-force"
       style={{
         position: 'fixed',
         bottom: 0,
@@ -42,7 +42,7 @@ const NavBar: React.FC = () => {
         right: 0,
         width: '100vw',
         height: '64px',
-        zIndex: 999999,
+        zIndex: 2147483647,
         background: '#31518b',
         backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(255, 255, 255, 0.2)',

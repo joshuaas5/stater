@@ -3,6 +3,8 @@
 @import './styles/scroll-optimizations.css';
 /* Import critical performance styles */
 @import './styles/critical-performance.css';
+/* IMPORT NAVBAR FORCE - PRIORIDADE ABSOLUTA */
+@import './styles/navbar-force.css';
 
 @tailwind base;
 @tailwind components;

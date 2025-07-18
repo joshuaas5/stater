@@ -2,11 +2,13 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Brain, FileText, Lightbulb, Settings } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
+import { useRoutePreloading } from '@/hooks/useRoutePreloading';
 
 const NavBar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const { preloadOnHover } = useRoutePreloading();
   
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -49,6 +51,7 @@ const NavBar: React.FC = () => {
             <button
               key={index}
               onClick={() => handleNavigation(item.path)}
+              {...preloadOnHover(item.path)} // Preload route on hover/focus
               className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-1 rounded-xl transition-all duration-300 ${
                 active 
                   ? 'bg-white/20 backdrop-blur-sm' 

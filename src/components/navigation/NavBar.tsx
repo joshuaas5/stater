@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Brain, FileText, Lightbulb, Settings } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import { useRoutePreloading } from '@/hooks/useRoutePreloading';
+import './navbar-optimized.css'; // Importando CSS pré-compilado
 
 const NavBar: React.FC = () => {
   const navigate = useNavigate();
@@ -35,41 +36,28 @@ const NavBar: React.FC = () => {
   
   // Remove transform from html/body/root to garantir que o fixed seja relativo ao viewport
   useEffect(() => {
+    // Adicionamos overscroll-behavior para prevenir bounce/rubber-banding
     const html = document.documentElement;
     const body = document.body;
     const root = document.getElementById('root');
-    if (html) html.style.transform = 'none';
-    if (body) body.style.transform = 'none';
-    if (root) root.style.transform = 'none';
+    
+    if (html) {
+      html.style.transform = 'none';
+      html.style.overscrollBehavior = 'none';
+    }
+    if (body) {
+      body.style.transform = 'none';
+      body.style.overscrollBehavior = 'none';
+      body.style.overflowX = 'hidden'; // Previne scroll horizontal
+    }
+    if (root) {
+      root.style.transform = 'none';
+    }
   }, []);
   
   return createPortal(
-    <nav
-      className="stater-navbar-force"
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        width: '100vw',
-        height: '64px',
-        zIndex: 2147483647,
-        background: '#31518b', // cor padronizada
-        backdropFilter: 'blur(20px)',
-        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-        boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.3), 0 -2px 16px rgba(49, 81, 139, 0.2)',
-        transform: 'translate3d(0, 0, 0)',
-        willChange: 'transform',
-        backfaceVisibility: 'hidden',
-        isolation: 'isolate',
-        display: 'flex',
-        visibility: 'visible',
-        pointerEvents: 'auto',
-        borderBottom: 'none', // remove qualquer borda inferior
-        boxSizing: 'border-box',
-      }}
-    >
-      <div className="flex justify-around items-center h-16 py-2 px-2 md:px-4 max-w-screen-xl mx-auto">
+    <nav className="navbar-optimized">
+      <div className="navbar-content">
         {navItems.map((item, index) => {
           const active = isActive(item.path);
           const isLogo = item.isLogo;
@@ -79,53 +67,25 @@ const NavBar: React.FC = () => {
               key={index}
               onClick={() => handleNavigation(item.path)}
               {...preloadOnHover(item.path)} // Preload route on hover/focus
-              className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-1 rounded-xl transition-all duration-300 ${
-                active 
-                  ? 'bg-white/20 backdrop-blur-sm' 
-                  : 'hover:bg-white/10'
-              }`}
-              style={{
-                ...(active && {
-                  boxShadow: '0 4px 16px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)'
-                })
-              }}
+              className={`navbar-button ${active ? 'navbar-button-active' : ''}`}
             >
               {isLogo ? (
                 <div className="flex flex-col items-center">
-                  <div className="mb-1">
+                  <div className="navbar-icon-container">
                     {item.icon}
                   </div>
-                  <span 
-                    className="text-xs font-bold text-white"
-                    style={{
-                      fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                      textShadow: '1px 1px 0px rgba(0, 0, 0, 0.5)',
-                      letterSpacing: '0.5px'
-                    }}
-                  >
+                  <span className="navbar-logo-text">
                     STATER
                   </span>
                 </div>
               ) : (
                 <>
-                  <div className="mb-1">
-                    <div 
-                      className="text-white transition-all duration-300"
-                      style={{
-                        filter: active ? 'drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3))' : 'none'
-                      }}
-                    >
+                  <div className="navbar-icon-container">
+                    <div className={`navbar-icon ${active ? 'navbar-icon-active' : ''}`}>
                       {item.icon}
                     </div>
                   </div>
-                  <span 
-                    className="text-xs text-white font-medium transition-all duration-300"
-                    style={{
-                      textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
-                      opacity: active ? 1 : 0.9
-                    }}
-                  >
+                  <span className={`navbar-label ${active ? 'navbar-label-active' : ''}`}>
                     {item.label}
                   </span>
                 </>
@@ -133,12 +93,7 @@ const NavBar: React.FC = () => {
               
               {/* Indicador de ativo */}
               {active && !isLogo && (
-                <div 
-                  className="w-6 h-0.5 bg-white rounded-full mt-1"
-                  style={{
-                    boxShadow: '0 0 8px rgba(255, 255, 255, 0.8)'
-                  }}
-                />
+                <div className="navbar-indicator" />
               )}
             </button>
           );

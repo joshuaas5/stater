@@ -58,11 +58,39 @@
   <body>
     <div id="root"></div>
     
+    <!-- CSS para otimizações imediatas de scroll e prevenção de jank visual -->
+    <style>
+      /* Prevenir bouncing/rubber-banding em iOS e outros navegadores */
+      html, body, #root {
+        overscroll-behavior: none !important;
+        overflow-x: hidden;
+      }
+      
+      /* Impedir flash of white content */
+      body {
+        background-color: #31518b !important;
+      }
+      
+      /* Reduzir movimentos/animações para melhor performance */
+      @media (prefers-reduced-motion: reduce) {
+        *, ::before, ::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+    
     <!-- PWA Service Worker Registration -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+          // Registramos dois service workers:
+          // 1. O SW padrão para PWA
+          navigator.serviceWorker.register('/sw.js');
+          // 2. O SW de performance para otimizações
+          navigator.serviceWorker.register('/performance-worker.js')
             .then((registration) => {
               console.log('🔧 SW registrado com sucesso:', registration);
               

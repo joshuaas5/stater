@@ -1,0 +1,107 @@
+/* Otimizações de performance para NavBar */
+.navbar-optimized {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 64px;
+  z-index: 999; /* Reduzido do valor extremo */
+  background: #31518b;
+  backdrop-filter: blur(5px); /* Reduzido de 20px para 5px */
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2); /* Sombra simplificada */
+  box-sizing: border-box;
+  display: flex;
+  overscroll-behavior: none; /* Previne bouncing */
+}
+
+.navbar-content {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 64px;
+  padding: 0.5rem 0.5rem;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.navbar-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.75rem;
+  transition: background-color 0.2s ease; /* Simplificado */
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.navbar-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-button-active {
+  background-color: rgba(255, 255, 255, 0.2);
+  /* Borda em CSS em vez de estilo inline */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+.navbar-icon-container {
+  margin-bottom: 0.25rem;
+}
+
+.navbar-icon {
+  color: white;
+}
+
+.navbar-icon-active {
+  filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.2));
+}
+
+.navbar-label {
+  font-size: 0.75rem;
+  color: white;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.navbar-label-active {
+  opacity: 1;
+}
+
+.navbar-indicator {
+  width: 1.5rem;
+  height: 0.125rem;
+  background-color: white;
+  border-radius: 9999px;
+  margin-top: 0.25rem;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.4); /* Sombra reduzida */
+}
+
+.navbar-logo-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  font-family: 'Fredoka One', 'Comic Sans MS', Poppins, sans-serif;
+  letter-spacing: 0.5px;
+}
+
+/* Garantindo que não haja efeitos CSS desnecessários em dispositivos móveis */
+@media (max-width: 768px) {
+  .navbar-button {
+    min-width: 50px;
+    padding: 0.25rem;
+  }
+}
+
+/* Previne bounce/rubber-banding em todos os navegadores */
+html, body {
+  overscroll-behavior: none;
+  overflow-x: hidden;
+}

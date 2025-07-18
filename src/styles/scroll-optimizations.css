@@ -1,22 +1,30 @@
-/* Otimizações de scroll e performance */
+/* Otimizações de scroll e performance - VERSÃO ULTRA-OTIMIZADA */
 
-/* GPU-accelerated scrolling */
+/* Prevenir bouncing/rubber-banding em iOS e outros navegadores */
+html, body, #root {
+  overscroll-behavior: none !important;
+  overflow-x: hidden;
+}
+
+/* GPU-accelerated scrolling - OTIMIZADO */
 .scroll-optimized {
-  will-change: transform;
+  /* will-change causa memory leaks se usado excessivamente */
+  /* will-change: transform; */ /* Comentado para melhor performance */
   transform: translate3d(0,0,0);
   backface-visibility: hidden;
   perspective: 1000px;
 }
 
-/* Container de scroll suave com aceleração GPU */
+/* Container de scroll suave com aceleração GPU - OTIMIZADO */
 .smooth-scroll {
-  scroll-behavior: smooth;
+  scroll-behavior: auto; /* Alterado para auto para prevenir jank */
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
   transform: translate3d(0,0,0);
-  will-change: transform;
+  /* will-change: transform; */ /* Comentado para melhor performance */
   backface-visibility: hidden;
+  overscroll-behavior: contain; /* Previne propagação do scroll */
 }
 
 /* Scrollbar personalizada */

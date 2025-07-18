@@ -13,11 +13,6 @@ const NavBar: React.FC = () => {
   // LÓGICA CONDICIONAL: NavBar NÃO aparece na página Stater IA
   const isStaterIAPage = location.pathname === '/financial-advisor';
   
-  // Se estiver na página Stater IA, não renderizar a NavBar
-  if (isStaterIAPage) {
-    return null;
-  }
-  
   const isActive = (path: string) => {
     return location.pathname === path;
   };
@@ -40,62 +35,32 @@ const NavBar: React.FC = () => {
     navigate(path);
   };
   
+  // Se estiver na página Stater IA, não renderizar a NavBar
+  if (isStaterIAPage) {
+    return null;
+  }
+  
   return (
-    <>
-      {/* CSS Global para garantir posição fixa na viewport */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          .navbar-fixed-viewport {
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            width: 100vw !important;
-            height: 64px !important;
-            z-index: 999999 !important;
-            transform: translateZ(0) !important;
-          }
-          
-          /* Força no body para evitar conflitos */
-          body {
-            margin-bottom: 64px !important;
-          }
-        `
-      }} />
-      
-      <div 
-        className="navbar-container navbar-fixed-viewport fixed bottom-0 left-0 right-0 w-full"
-        style={{
-          position: 'fixed !important',
-          bottom: '0 !important',
-          left: '0 !important',
-          right: '0 !important',
-          width: '100vw !important',
-          height: '64px !important',
-          zIndex: '999999 !important',
-          background: '#31518b',
-          backdropFilter: 'blur(20px)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-          boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.3), 0 -2px 16px rgba(49, 81, 139, 0.2)',
-          transform: 'translate3d(0, 0, 0)', // GPU acceleration
-          willChange: 'transform',
-          backfaceVisibility: 'hidden',
-          isolation: 'isolate', // Cria um novo contexto de empilhamento
-          // Garantir que NUNCA saia da tela
-          pointerEvents: 'auto',
-          touchAction: 'manipulation',
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          msUserSelect: 'none',
-          // Força a posição fixa absoluta na viewport
-          display: 'block !important',
-          contain: 'layout style',
-          // Evitar qualquer scroll ou movimento
-          overflow: 'hidden',
-          minHeight: '64px',
-          maxHeight: '64px'
-        }}
-      >
+    <div 
+      className="fixed bottom-0 left-0 right-0 w-full"
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        width: '100%',
+        height: '64px',
+        zIndex: 999999,
+        background: '#31518b',
+        backdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+        boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.3), 0 -2px 16px rgba(49, 81, 139, 0.2)',
+        transform: 'translate3d(0, 0, 0)',
+        willChange: 'transform',
+        backfaceVisibility: 'hidden',
+        isolation: 'isolate'
+      }}
+    >
       <div className="flex justify-around items-center h-16 py-2 px-2 md:px-4 max-w-screen-xl mx-auto">
         {navItems.map((item, index) => {
           const active = isActive(item.path);
@@ -172,7 +137,6 @@ const NavBar: React.FC = () => {
         })}
       </div>
     </div>
-    </>
   );
 };
 

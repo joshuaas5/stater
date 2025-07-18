@@ -34,8 +34,15 @@ const NavBar: React.FC = () => {
   
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 w-full navbar-container"
+      className="navbar-container"
       style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        width: '100%',
+        height: '64px',
+        zIndex: 999999,
         background: '#31518b',
         backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(255, 255, 255, 0.2)',
@@ -43,11 +50,20 @@ const NavBar: React.FC = () => {
         transform: 'translate3d(0, 0, 0)', // GPU acceleration
         willChange: 'transform',
         backfaceVisibility: 'hidden',
-        position: 'fixed',
-        zIndex: 99999,
-        height: '64px',
-        bottom: 0,
-        isolation: 'isolate' // Cria um novo contexto de empilhamento
+        isolation: 'isolate', // Cria um novo contexto de empilhamento
+        // Garantir que NUNCA saia da tela
+        pointerEvents: 'auto',
+        touchAction: 'manipulation',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        msUserSelect: 'none',
+        // Força a posição fixa absoluta
+        display: 'block',
+        contain: 'layout style',
+        // Evitar qualquer scroll ou movimento
+        overflow: 'hidden',
+        minHeight: '64px',
+        maxHeight: '64px'
       }}
     >
       <div className="flex justify-around items-center h-16 py-2 px-2 md:px-4 max-w-screen-xl mx-auto">

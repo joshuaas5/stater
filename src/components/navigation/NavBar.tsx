@@ -10,6 +10,14 @@ const NavBar: React.FC = () => {
   const { t } = useTranslation();
   const { preloadOnHover } = useRoutePreloading();
   
+  // LÓGICA CONDICIONAL: NavBar NÃO aparece na página Stater IA
+  const isStaterIAPage = location.pathname === '/financial-advisor';
+  
+  // Se estiver na página Stater IA, não renderizar a NavBar
+  if (isStaterIAPage) {
+    return null;
+  }
+  
   const isActive = (path: string) => {
     return location.pathname === path;
   };

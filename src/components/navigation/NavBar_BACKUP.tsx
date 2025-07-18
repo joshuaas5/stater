@@ -52,15 +52,19 @@ const NavItem = memo(({ item, isActive, onClick, preloadProps }: {
         <>
           <div className="navbar-icon-container">
             <div className={`navbar-icon ${isActive ? 'navbar-icon-active' : ''}`}>
-              {item.icon}
-            </div>
-          </div>
-          <span className={`navbar-label ${isActive ? 'navbar-label-active' : ''}`}>
-            {item.label}
-          </span>
-        </>
-      )}
-      
+const NavBar: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { t } = useTranslation();
+  const { preloadOnHover } = useRoutePreloading();
+  const [isScrolling, setIsScrolling] = useState(false);
+  
+  // ADICIONADO: Throttle de scroll para reduzir operações durante rolagem
+  const throttledPathname = useThrottledValue(location.pathname);
+  
+  const isActive = useCallback((path: string) => {
+    return throttledPathname === path;
+  }, [throttledPathname]);
       {isActive && !isLogo && (
         <div className="navbar-indicator" />
       )}
@@ -97,10 +101,6 @@ const NavBar: React.FC = () => {
     { icon: <Lightbulb size={20} />, label: t('advisor'), path: '/financial-advisor' },
     { icon: <Settings size={20} />, label: t('settings'), path: '/preferences' },
   ];
-  
-  const handleNavigation = (path: string) => {
-    navigate(path);
-  };
   
   // Remove transform from html/body/root to garantir que o fixed seja relativo ao viewport
   useEffect(() => {
@@ -165,6 +165,10 @@ const NavBar: React.FC = () => {
         observer.observe(navbarEl);
         return () => observer.disconnect();
       }
+    }
+  }, []);
+    if (root) {
+      root.style.transform = 'none';
     }
   }, []);
   

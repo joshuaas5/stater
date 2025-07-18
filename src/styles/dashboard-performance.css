@@ -1,0 +1,165 @@
+/* dashboard-performance.css - Otimizações críticas para performance */
+
+/* === Otimizações globais === */
+.dashboard-container {
+  /* Renderização sob demanda - só renderiza o que está visível */
+  content-visibility: auto;
+  /* Pré-aloca espaço estimado para evitar layout shifts */
+  contain-intrinsic-size: 1px 5000px;
+  /* Containment para otimizar cálculos de layout */
+  contain: layout style paint;
+}
+
+/* === Otimizações durante scroll === */
+.is-scrolling * {
+  /* Pausa todas as animações durante scroll */
+  animation-play-state: paused !important;
+  /* Remove transições durante scroll */
+  transition: none !important;
+  /* Evita repaint desnecessário */
+  will-change: auto !important;
+}
+
+.is-scrolling .dashboard-card,
+.is-scrolling .dashboard-item,
+.is-scrolling .chart-container {
+  /* Desativa efeitos visuais caros durante scroll */
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+}
+
+/* === Listas virtualizadas === */
+.dashboard-list {
+  /* Usar containment para listas longas */
+  contain: layout style paint;
+  /* Renderização otimizada */
+  content-visibility: auto;
+  /* Hardware acceleration controlada */
+  transform: translate3d(0, 0, 0);
+  /* Scroll otimizado */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.dashboard-item {
+  /* Containment para itens individuais */
+  contain: layout style paint;
+  /* Renderização sob demanda */
+  content-visibility: auto;
+  /* Evitar layout shifts */
+  contain-intrinsic-size: auto 60px;
+}
+
+/* === Cards otimizados === */
+.dashboard-card {
+  /* Containment para cards */
+  contain: layout style paint;
+  /* Renderização eficiente */
+  content-visibility: auto;
+  /* Hardware acceleration mínima */
+  transform: translateZ(0);
+  /* Transições simplificadas */
+  transition: transform 0.2s ease;
+}
+
+.dashboard-card:hover {
+  /* Will-change apenas no hover */
+  will-change: transform;
+  transform: translateY(-2px) translateZ(0);
+}
+
+/* === Gráficos e visualizações === */
+.chart-container {
+  /* Containment para gráficos */
+  contain: layout style paint;
+  /* Renderização otimizada */
+  content-visibility: auto;
+  /* GPU acceleration controlada */
+  transform: translate3d(0, 0, 0);
+}
+
+/* === Otimizações específicas para mobile === */
+@media (max-width: 768px) {
+  .dashboard-container {
+    /* Mobile: Mais agressivo na contenção */
+    contain: strict;
+    /* Renderização sob demanda */
+    content-visibility: auto;
+  }
+  
+  .dashboard-card {
+    /* Remove efeitos visuais em mobile */
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    /* Simplifica transições */
+    transition: none !important;
+  }
+  
+  .dashboard-card:hover {
+    /* Desativa hover effects em mobile */
+    transform: none !important;
+    will-change: auto !important;
+  }
+  
+  .chart-container {
+    /* Simplifica rendering de gráficos */
+    will-change: auto !important;
+    transform: none !important;
+  }
+  
+  /* Otimizações para texto e imagens */
+  .dashboard-text,
+  .dashboard-label {
+    /* Renderização rápida de texto */
+    text-rendering: optimizeSpeed !important;
+  }
+  
+  .dashboard-image,
+  .dashboard-icon {
+    /* Renderização rápida de imagens */
+    image-rendering: optimizeSpeed !important;
+  }
+}
+
+/* === Lazy loading e prevenção de layout shift === */
+.dashboard-lazy-section {
+  /* Pré-aloca espaço para conteúdo lazy */
+  min-height: 200px;
+  /* Containment durante carregamento */
+  contain: layout style paint;
+}
+
+.dashboard-skeleton {
+  /* Placeholder otimizado */
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Pausar animação de loading durante scroll */
+.is-scrolling .dashboard-skeleton {
+  animation-play-state: paused !important;
+}
+
+/* === Reduce motion para usuários com preferência === */
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-container *,
+  .dashboard-card,
+  .dashboard-item {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .dashboard-skeleton {
+    animation: none !important;
+    background: #f0f0f0 !important;
+  }
+}

@@ -153,6 +153,43 @@
   .navbar-logo-text {
     font-size: 0.65rem !important;
   }
+  
+  /* ADICIONADO: Otimizações durante scroll */
+  .navbar-scrolling {
+    will-change: auto !important;
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+  
+  .navbar-scrolling .navbar-icon-container,
+  .navbar-scrolling .navbar-indicator,
+  .navbar-scrolling .navbar-label {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ADICIONADO: Otimizações globais durante scroll */
+.is-scrolling .navbar-optimized {
+  will-change: auto !important;
+  transition: none !important;
+  animation: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.is-scrolling .navbar-optimized * {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+/* ADICIONADO: Classe para otimização quando visível */
+.navbar-optimized-visible {
+  /* Aplicar otimizações quando o navbar está visível */
+  contain: layout style paint;
+  content-visibility: auto;
 }
 
 /* Previne bounce/rubber-banding em todos os navegadores */

@@ -36,14 +36,16 @@ const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
 const LazyPrivateRoute = ({ children }: { children: React.ReactNode }) => (
   <PrivateRoute>
     <ErrorBoundary>
-      <Suspense fallback={<LoadingFallback />}>
-        {children}
-      </Suspense>
+      <OnboardingWrapper>
+        <Suspense fallback={<LoadingFallback />}>
+          {children}
+        </Suspense>
+      </OnboardingWrapper>
     </ErrorBoundary>
   </PrivateRoute>
 );
 
-// Reusable wrapper for dashboard routes (with onboarding)
+// Reusable wrapper for dashboard routes (with onboarding) - mantém por compatibilidade
 const LazyDashboardRoute = ({ children }: { children: React.ReactNode }) => (
   <PrivateRoute>
     <ErrorBoundary>

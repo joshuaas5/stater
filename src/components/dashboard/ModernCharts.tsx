@@ -34,20 +34,20 @@ const ModernCharts: React.FC = () => {
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
   const [selectedChart, setSelectedChart] = useState<'trend' | 'categories' | 'comparison'>('trend');
 
-  // CORES CONSISTENTES - APENAS AZUL
+  // CORES CONTRASTANTES - VERDE PARA RECEITAS E VERMELHO PARA DESPESAS
   const BLUE_COLORS = {
-    primary: '#3b82f6',     // blue-500
-    secondary: '#1d4ed8',   // blue-700
-    light: '#93c5fd',       // blue-300
-    lighter: '#dbeafe',     // blue-100
-    income: '#3b82f6',      // blue-500
-    expense: '#1d4ed8'      // blue-700
+    primary: '#10b981',     // green-500 - para receitas
+    secondary: '#ef4444',   // red-500 - para despesas  
+    light: '#6ee7b7',       // green-300
+    lighter: '#d1fae5',     // green-100
+    income: '#10b981',      // green-500 - receitas em verde
+    expense: '#ef4444'      // red-500 - despesas em vermelho
   };
 
   const PIE_COLORS = [
-    '#3b82f6', '#1d4ed8', '#60a5fa', '#2563eb', 
-    '#1e40af', '#4f46e5', '#6366f1', '#8b5cf6'
-  ]; // Apenas tons de azul
+    '#10b981', '#ef4444', '#34d399', '#f87171', 
+    '#059669', '#dc2626', '#6ee7b7', '#fca5a5'
+  ]; // Tons de verde e vermelho contrastantes
 
   useEffect(() => {
     const transactions: Transaction[] = getTransactions();

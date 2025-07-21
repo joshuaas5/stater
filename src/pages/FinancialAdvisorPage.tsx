@@ -2515,7 +2515,7 @@ return (
           width: '100%',
           padding: '0 20px',
           paddingTop: '90px', // Espaço para header fixo
-          paddingBottom: '20px', // Reduzido de 90px para 20px - elimina gap gigante entre sugestões e input
+          paddingBottom: '5px', // Reduzido drasticamente de 20px para 5px - elimina completamente o gap gigante
           boxSizing: 'border-box',
           minHeight: 'calc(100vh - 90px)' // Ajustado para header fixo
         }}
@@ -2531,7 +2531,7 @@ return (
         {showSuggestions && memoizedMessages.length > 0 && memoizedMessages[0].sender === 'system' && !pendingAction && (
           <div style={{ 
             padding: '0 20px',
-            marginBottom: '4px', // Reduzido gap gigante de 15px para 4px para melhor aproveitamento do espaço
+            marginBottom: '0px', // Completamente eliminado o gap - de 4px para 0px
             display: 'flex',
             flexWrap: 'wrap',
             gap: '8px'

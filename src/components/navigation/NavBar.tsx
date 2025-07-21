@@ -96,16 +96,16 @@ const NavBar: React.FC = () => {
   
   // Ordem: Contas → Análise IA → Logo Stater → Stater IA → Ajustes
   const navItems = [
-    { icon: <FileText size={20} />, label: t('bills'), path: '/bills' },
-    { icon: <Brain size={20} />, label: 'Análise IA', path: '/analise-financeira' },
+    { icon: <FileText size={22} />, label: t('bills'), path: '/bills' },
+    { icon: <Brain size={22} />, label: 'Análise IA', path: '/analise-financeira' },
     { 
-      icon: <img src="/stater-logo-192.png" alt="Stater" className="h-8 w-8 object-contain drop-shadow-lg" />, 
+      icon: <img src="/stater-logo-192.png" alt="Stater" className="h-9 w-9 object-contain drop-shadow-lg" />, 
       label: '', 
       path: '/dashboard',
       isLogo: true
     },
-    { icon: <Lightbulb size={20} />, label: t('advisor'), path: '/financial-advisor' },
-    { icon: <Settings size={20} />, label: t('settings'), path: '/preferences' },
+    { icon: <Lightbulb size={22} />, label: t('advisor'), path: '/financial-advisor' },
+    { icon: <Settings size={22} />, label: t('settings'), path: '/preferences' },
   ];
   
   const handleNavigation = (path: string) => {

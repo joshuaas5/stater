@@ -274,14 +274,14 @@ const ScientificFinancialHealth: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            🔬 Análise Científica de Saúde Financeira
+            � Análise de Saúde Financeira
             <Badge className={`${riskInfo.color} border`}>
               {riskInfo.icon}
               <span className="ml-1">{riskInfo.title}</span>
             </Badge>
           </CardTitle>
           <p className="text-sm text-gray-600">
-            Baseada em 30 anos de pesquisas acadêmicas em finanças comportamentais e bem-estar econômico
+            Baseada em pesquisas acadêmicas em finanças comportamentais e bem-estar econômico
           </p>
         </CardHeader>
         <CardContent>

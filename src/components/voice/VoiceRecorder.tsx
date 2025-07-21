@@ -297,26 +297,6 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           </div>
         )}
 
-        {/* Texto de instrução quando não está gravando */}
-        {!audioState.isRecording && !isProcessing && (
-          <div style={{
-            position: 'absolute',
-            top: '-35px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'rgba(0, 0, 0, 0.7)',
-            color: 'white',
-            padding: '2px 6px',
-            borderRadius: '8px',
-            fontSize: '10px',
-            whiteSpace: 'nowrap',
-            opacity: 0.8,
-            pointerEvents: 'none'
-          }}>
-            Manter pressionado
-          </div>
-        )}
-
         {error && (
           <div style={{
             position: 'absolute',

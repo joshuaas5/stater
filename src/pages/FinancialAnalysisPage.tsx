@@ -158,7 +158,7 @@ const FinancialAnalysisPage: React.FC = () => {
           {/* Tab: Saúde Financeira */}
           <TabsContent value="health" className="space-y-4">
             <ComponentErrorBoundary>
-              <Suspense fallback={<LoadingCard title="análise científica de saúde financeira" />}>
+              <Suspense fallback={<LoadingCard title="análise de saúde financeira" />}>
                 <ScientificFinancialHealth />
               </Suspense>
             </ComponentErrorBoundary>

@@ -37,7 +37,8 @@ function savePendingTransactions(chatId: string, transactions: any[], summary: a
   
   // Limpar transações antigas (mais de 1 hora)
   const oneHourAgo = Date.now() - (60 * 60 * 1000);
-  for (const [key, value] of pendingTransactions.entries()) {
+  const entries = Array.from(pendingTransactions.entries());
+  for (const [key, value] of entries) {
     if (value.timestamp < oneHourAgo) {
       pendingTransactions.delete(key);
     }
@@ -1008,11 +1009,122 @@ export default async function handler(req: any, res: any) {
             const userData = await getTelegramUserData(chatId);
             
             if (userData.linked && userData.userId) {
-              // Processar como se fosse uma mensagem normal de texto
+              // CORREÇÃO CRÍTICA: Usar o mesmo pipeline de detecção que mensagens de texto
+              console.log('🎤 Processando áudio via pipeline de transação...');
+              
+              // Processar a transcrição como se fosse uma mensagem normal de texto
               const aiResponse = await callGeminiAPI(geminiResponse.transcription, userData.userId, update.message.from);
               
-              if (aiResponse) {
-                await sendTelegramMessage(chatId, `🎤 "${geminiResponse.transcription}"\n\n${aiResponse}`);
+              // APLICAR O MESMO FILTRO DE DETECÇÃO DE TRANSAÇÃO (linhas 1740-1820)
+              const cleanResponse = aiResponse.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+              
+              console.log('🔍 Resposta da IA para áudio:', cleanResponse);
+              console.log('🔍 É JSON?:', cleanResponse.startsWith('{') && cleanResponse.endsWith('}'));
+              console.log('🔍 Contém "tipo"?:', cleanResponse.includes('"tipo"'));
+              
+              // VERIFICAÇÃO ANTI-JSON BRUTO: Se parece com JSON mas não é transação válida, não enviar JSON
+              const looksLikeJson = cleanResponse.startsWith('{') && cleanResponse.endsWith('}') && cleanResponse.length > 20;
+              let isValidTransaction = false;
+              let transactionData = null;
+              
+              // CRITÉRIO RÍGIDO: Só é transação se for JSON válido E tiver campos específicos
+              if (looksLikeJson && 
+                  (cleanResponse.includes('"tipo":') && cleanResponse.includes('"valor":') && cleanResponse.includes('"descrição":'))) {
+                console.log('💰 Detectada possível transação JSON em áudio, validando...');
+                
+                try {
+                  transactionData = JSON.parse(cleanResponse);
+                  console.log('📊 JSON parseado do áudio:', transactionData);
+                  
+                  // Validação MUITO rígida
+                  if (transactionData.tipo && transactionData.valor && transactionData.descrição && 
+                      typeof transactionData.valor === 'number' && transactionData.valor > 0 &&
+                      (transactionData.tipo === 'receita' || transactionData.tipo === 'despesa')) {
+                    console.log('✅ Transação 100% válida detectada via áudio');
+                    isValidTransaction = true;
+                  } else {
+                    console.log('❌ JSON inválido - campos obrigatórios ausentes ou incorretos');
+                  }
+                } catch (jsonError) {
+                  console.log('❌ Erro ao processar JSON do áudio:', jsonError);
+                }
+              }
+              
+              if (isValidTransaction && transactionData) {
+                console.log('💰 Processando transação válida via áudio...');
+                
+                // Normalizar dados (mesma lógica das linhas 1780-1790)
+                const normalizedData = {
+                  tipo: transactionData.tipo,
+                  descrição: transactionData.descrição,
+                  valor: transactionData.valor,
+                  data: transactionData.data || new Date().toISOString().split('T')[0],
+                  categoria: transactionData.categoria || 'Outros'
+                };
+                
+                console.log('📋 Dados normalizados do áudio:', normalizedData);
+                
+                // MOSTRAR TRANSAÇÃO PARA CONFIRMAÇÃO (igual ao app)
+                const emoji = getCategoryEmoji(normalizedData.categoria);
+                const amount = Number(normalizedData.valor);
+                const typeText = normalizedData.tipo === 'receita' ? '📈 RECEITA (aumenta saldo)' : '📉 DESPESA (diminui saldo)';
+                const typeEmoji = normalizedData.tipo === 'receita' ? '💚' : '💸';
+                
+                console.log('📊 Tipo detectado via áudio:', normalizedData.tipo, '→', typeText);
+                
+                // Salvar como pendente usando dados normalizados
+                savePendingTransactions(chatId, [normalizedData], null, 'voice_entry');
+                
+                const confirmMessage = 
+                  `🎤 Ouvi: "${geminiResponse.transcription}"\n\n` +
+                  `💡 <b>Transação detectada!</b>\n\n` +
+                  `${emoji} <b>${normalizedData.descrição}</b>\n` +
+                  `${typeEmoji} <b>R$ ${amount.toFixed(2)}</b> | 📂 ${normalizedData.categoria}\n` +
+                  `📅 ${normalizedData.data}\n` +
+                  `📊 <b>Tipo: ${typeText}</b>\n\n` +
+                  `❓ <b>Confirma que está correto?</b>\n\n` +
+                  `💬 Digite:\n` +
+                  `• <b>SIM</b> ou <b>CONFIRMAR</b> - Para salvar como ${normalizedData.tipo.toUpperCase()}\n` +
+                  `• <b>NÃO</b> ou <b>CANCELAR</b> - Para descartar\n\n` +
+                  `⏰ <i>Aguardando sua confirmação...</i>`;
+                
+                await sendTelegramMessage(chatId, confirmMessage);
+              } else {
+                console.log('📝 Resposta normal da IA via áudio (não é JSON de transação válida)');
+                
+                // FILTRO ANTI-JSON BRUTO: Se parece com JSON mas não é transação válida, corrigir
+                if (looksLikeJson) {
+                  console.log('⚠️  JSON detectado via áudio mas inválido para transação! Não enviando JSON bruto.');
+                  
+                  const correctedResponse = `🎤 Ouvi: "${geminiResponse.transcription}"\n\n💡 Para adicionar uma transação, seja mais específico:\n\n` +
+                    "📝 Exemplos corretos:\n" +
+                    "• \"adicione uma despesa de 50 reais com almoço\"\n" +
+                    "• \"gastei 30 reais com uber\"\n" +
+                    "• \"recebi 1000 reais de salário\"\n\n" +
+                    "❓ Precisa de ajuda com suas finanças? Posso analisar seus gastos, dar dicas ou responder perguntas!";
+                  
+                  await sendTelegramMessage(chatId, correctedResponse);
+                } else {
+                  // Verificar se a IA está inventando confirmações falsas
+                  if (aiResponse.includes('transação') && 
+                      (aiResponse.includes('salva') || aiResponse.includes('registrada') || 
+                       aiResponse.includes('adicionada') || aiResponse.includes('saldo é') ||
+                       aiResponse.includes('saldo atualizado') || aiResponse.includes('transação registrada'))) {
+                    console.log('⚠️  IA tentou inventar confirmação de transação via áudio! Corrigindo...');
+                    
+                    const correctedResponse = `🎤 Ouvi: "${geminiResponse.transcription}"\n\n💡 Para adicionar uma transação, seja mais específico:\n\n` +
+                      "📝 Exemplos corretos:\n" +
+                      "• \"adicione uma despesa de 50 reais com almoço\"\n" +
+                      "• \"gastei 30 reais com uber\"\n" +
+                      "• \"recebi 1000 reais de salário\"\n\n" +
+                      "❓ Precisa de ajuda com suas finanças? Posso analisar seus gastos, dar dicas ou responder perguntas!";
+                    
+                    await sendTelegramMessage(chatId, correctedResponse);
+                  } else {
+                    // Resposta normal da IA com transcrição
+                    await sendTelegramMessage(chatId, `🎤 "${geminiResponse.transcription}"\n\n${aiResponse}`);
+                  }
+                }
               }
             } else {
               // Usuário não conectado
@@ -1847,7 +1959,7 @@ export default async function handler(req: any, res: any) {
           }
         }
       }
-    
+    }
   } catch (error) {
     console.error('❌ Erro crítico no webhook:', error);
     

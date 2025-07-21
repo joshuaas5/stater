@@ -2531,10 +2531,11 @@ return (
         {showSuggestions && memoizedMessages.length > 0 && memoizedMessages[0].sender === 'system' && !pendingAction && (
           <div style={{ 
             padding: '0 20px',
-            marginBottom: '0px', // Completamente eliminado o gap - de 4px para 0px
+            marginBottom: '10px', // Reduzido para diminuir o gap
             display: 'flex',
             flexWrap: 'wrap',
-            gap: '8px'
+            gap: '8px',
+            justifyContent: 'center' // Centraliza os botões
           }}>
             {initialSuggestions.map((sug: string, sugIndex: number) => (
               <button

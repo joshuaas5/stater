@@ -300,11 +300,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   style={{
                     position: 'absolute',
                     bottom: '60px', // Posiciona acima do botão + (altura do botão + gap)
-                    right: `${onAudioSend ? '86px' : '38px'}`, // Centralizado exatamente com o botão + (44px/2 = 22px do centro)
+                    right: 0, // Alinha à direita do container pai
                     display: 'flex',
                     flexDirection: 'column-reverse',
                     gap: '8px',
-                    alignItems: 'center', // Centraliza perfeitamente na vertical
+                    alignItems: 'center',
                     zIndex: 1001,
                     animation: 'slideInFromBottom 0.3s ease-out'
                   }}

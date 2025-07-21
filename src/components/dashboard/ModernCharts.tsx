@@ -12,7 +12,8 @@ import {
   Pie, 
   Cell,
   BarChart,
-  Bar
+  Bar,
+  Legend
 } from 'recharts';
 import { getTransactions } from '@/utils/localStorage';
 import { Transaction } from '@/types';
@@ -142,50 +143,51 @@ const ModernCharts: React.FC = () => {
     </Card>
   );
 
+  // Gráfico de evolução mais claro: AreaChart com gradiente
   const renderTrendChart = () => (
     <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={monthlyData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+      <AreaChart data={monthlyData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
         <defs>
-          <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={BLUE_COLORS.primary} stopOpacity={0.8}/>
-            <stop offset="95%" stopColor={BLUE_COLORS.primary} stopOpacity={0.1}/>
+          <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={BLUE_COLORS.income} stopOpacity={0.8}/>
+            <stop offset="95%" stopColor={BLUE_COLORS.income} stopOpacity={0}/>
           </linearGradient>
-          <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={BLUE_COLORS.secondary} stopOpacity={0.8}/>
-            <stop offset="95%" stopColor={BLUE_COLORS.secondary} stopOpacity={0.1}/>
+          <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={BLUE_COLORS.expense} stopOpacity={0.8}/>
+            <stop offset="95%" stopColor={BLUE_COLORS.expense} stopOpacity={0}/>
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
         <XAxis 
           dataKey="month" 
           stroke="#6b7280" 
-          fontSize={10} 
+          fontSize={12} 
+          tickLine={false}
+          axisLine={false}
           tick={{ fill: '#6b7280' }}
         />
         <YAxis 
           stroke="#6b7280" 
-          fontSize={10} 
-          tick={{ fill: '#6b7280' }}
+          fontSize={12} 
+          tickLine={false}
+          axisLine={false}
           tickFormatter={(value) => `R$${(value/1000).toFixed(0)}k`}
+          tick={{ fill: '#6b7280' }}
           width={50}
         />
-        <Tooltip content={<CustomTooltip />} />
-        <Area
-          type="monotone"
-          dataKey="income"
-          stackId="1"
-          stroke={BLUE_COLORS.primary}
-          fill="url(#incomeGradient)"
-          name="Receitas"
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'rgba(255, 255, 255, 0.8)', 
+            backdropFilter: 'blur(5px)',
+            border: '1px solid rgba(0, 0, 0, 0.1)',
+            borderRadius: '10px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+          }}
+          formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
         />
-        <Area
-          type="monotone"
-          dataKey="expenses"
-          stackId="2"
-          stroke={BLUE_COLORS.secondary}
-          fill="url(#expenseGradient)"
-          name="Despesas"
-        />
+        <Legend verticalAlign="top" height={36} iconType="circle"/>
+        <Area type="monotone" dataKey="income" name="Receitas" stroke={BLUE_COLORS.income} fillOpacity={1} fill="url(#colorIncome)" strokeWidth={2} />
+        <Area type="monotone" dataKey="expenses" name="Despesas" stroke={BLUE_COLORS.expense} fillOpacity={1} fill="url(#colorExpense)" strokeWidth={2} />
       </AreaChart>
     </ResponsiveContainer>
   );

@@ -42,7 +42,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
 
           <div
             className={`
-              max-w-[75%] rounded-2xl px-4 py-3 animate-fade-in
+              max-w-[75%] rounded-2xl px-4 py-3
               ${message.sender === 'user'
                 ? 'bg-primary text-primary-foreground shadow-md rounded-br-none'
                 : message.sender === 'system'

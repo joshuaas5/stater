@@ -403,7 +403,7 @@ const BillsPage: React.FC = () => {
 
                       {/* Parcelas - agora usa currentInstallment e totalInstallments diretamente da conta */}
                       {bill.currentInstallment && bill.totalInstallments && bill.totalInstallments > 1 && (
-                        <Badge variant="default" className="text-xs">
+                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800 font-semibold border border-blue-200">
                           {`Parcela ${bill.currentInstallment}/${bill.totalInstallments}`}
                         </Badge>
                       )}
@@ -421,7 +421,7 @@ const BillsPage: React.FC = () => {
                           <div className="flex-1">
                             <p className="text-sm text-galileo-text">{item.description}</p>
                             {item.installments && (
-                              <p className="text-xs text-galileo-secondaryText">
+                              <p className="text-xs text-blue-700 font-semibold bg-blue-50 px-2 py-1 rounded-md inline-block">
                                 Parcela {item.installments.current}/{item.installments.total}
                               </p>
                             )}

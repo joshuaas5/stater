@@ -224,9 +224,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         <div 
           className="px-5 py-4 border-b relative overflow-hidden"
           style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            borderColor: 'rgba(255, 255, 255, 0.2)'
+            background: 'rgba(255, 255, 255, 0.15)',
+            backdropFilter: 'blur(20px)',
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
           }}
         >
           <div className="relative flex items-center justify-between">
@@ -234,17 +235,18 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               <div 
                 className="p-3 rounded-xl"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(10px)'
+                  background: 'rgba(255, 255, 255, 0.25)',
+                  backdropFilter: 'blur(15px)',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3)'
                 }}
               >
-                <DollarSign className="h-6 w-6 text-white" />
+                <DollarSign className="h-6 w-6 text-white drop-shadow-lg" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white">
+                <h2 className="text-xl font-bold text-white drop-shadow-lg">
                   {isEditing ? 'Editar' : 'Nova'} {isIncome ? 'Entrada' : 'Saída'}
                 </h2>
-                <p className="text-white/70 text-sm font-medium">
+                <p className="text-white/80 text-sm font-medium drop-shadow">
                   {isIncome ? 'Receita financeira' : 'Despesa ou gasto'}
                 </p>
               </div>
@@ -252,9 +254,20 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             <button
               onClick={onClose}
               disabled={isSubmitting}
-              className="p-2 hover:bg-white/20 rounded-xl transition-all duration-200 disabled:opacity-50"
+              className="p-2 rounded-xl transition-all duration-200 disabled:opacity-50"
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+              }}
             >
-              <X className="h-5 w-5 text-white" />
+              <X className="h-5 w-5 text-white drop-shadow" />
             </button>
           </div>
         </div>
@@ -554,9 +567,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         <div 
           className="p-5 border-t"
           style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(10px)',
-            borderColor: 'rgba(255, 255, 255, 0.1)'
+            background: 'rgba(255, 255, 255, 0.15)',
+            backdropFilter: 'blur(20px)',
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.1)'
           }}
         >
           <div className="flex gap-3">
@@ -567,6 +581,11 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                 className={`flex-1 px-4 py-3.5 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl font-semibold hover:from-red-600 hover:to-rose-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed ${
                   isSubmitting ? 'button-loading' : ''
                 }`}
+                style={{
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  boxShadow: '0 4px 16px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                }}
               >
                 <Trash2 className="h-4 w-4" />
                 {isSubmitting ? 'Excluindo...' : 'Excluir'}
@@ -582,6 +601,13 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               } text-white ${
                 isSubmitting ? 'button-loading' : ''
               }`}
+              style={{
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: isIncome 
+                  ? '0 4px 16px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                  : '0 4px 16px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+              }}
             >
               <Save className="h-4 w-4" />
               {isSubmitting ? 'Salvando...' : `Salvar ${isIncome ? 'Entrada' : 'Saída'}`}

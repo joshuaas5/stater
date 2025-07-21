@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Image, Camera, X, Loader2 } from 'lucide-react';
+import { Send, Image, Camera, X, Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import VoiceRecorder from '@/components/voice/VoiceRecorder';
@@ -34,6 +34,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [message, setMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [showAttachmentButtons, setShowAttachmentButtons] = useState(false);
   const { toast } = useToast();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -258,17 +259,23 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 gap: '10px',
                 alignItems: 'center'
               }}
-            >              <button
+            >
+              {/* Botão + para mostrar/ocultar anexos */}
+              <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => setShowAttachmentButtons(!showAttachmentButtons)}
                 disabled={loading}
-                title="Anexar arquivo"
+                title={showAttachmentButtons ? "Ocultar opções" : "Mostrar opções de anexo"}
                 style={{
-                  width: '58px', // Aumentado mais para 58px
+                  width: '58px',
                   height: '58px',
-                  background: 'rgba(255, 255, 255, 0.15)',
+                  background: showAttachmentButtons 
+                    ? 'rgba(255, 59, 48, 0.2)' 
+                    : 'rgba(255, 255, 255, 0.15)',
                   backdropFilter: 'blur(10px)',
-                  border: '2px solid rgba(255, 255, 255, 0.2)',
+                  border: showAttachmentButtons 
+                    ? '2px solid rgba(255, 59, 48, 0.4)' 
+                    : '2px solid rgba(255, 255, 255, 0.2)',
                   borderRadius: '50%',
                   color: 'white',
                   cursor: loading ? 'not-allowed' : 'pointer',
@@ -277,34 +284,75 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   justifyContent: 'center',
                   transition: 'all 0.3s ease',
                   fontSize: '18px',
-                  opacity: loading ? 0.5 : 1
+                  opacity: loading ? 0.5 : 1,
+                  transform: showAttachmentButtons ? 'rotate(45deg)' : 'rotate(0deg)'
                 }}
               >
-                📎
-              </button>                <button
-                type="button"
-                onClick={startCamera}
-                disabled={loading}
-                title="Tirar foto"
-                style={{
-                  width: '58px', // Aumentado mais para 58px
-                  height: '58px',
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  backdropFilter: 'blur(10px)',
-                  border: '2px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '50%',
-                  color: 'white',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.3s ease',
-                  fontSize: '18px',
-                  opacity: loading ? 0.5 : 1
-                }}
-              >
-                📷
+                <Plus size={20} />
               </button>
+
+              {/* Botões de anexo - aparecem apenas quando showAttachmentButtons é true */}
+              {showAttachmentButtons && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                      setShowAttachmentButtons(false);
+                    }}
+                    disabled={loading}
+                    title="Anexar arquivo"
+                    style={{
+                      width: '58px',
+                      height: '58px',
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(10px)',
+                      border: '2px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '50%',
+                      color: 'white',
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.3s ease',
+                      fontSize: '18px',
+                      opacity: loading ? 0.5 : 1,
+                      animation: 'slideInFromLeft 0.3s ease-out'
+                    }}
+                  >
+                    📎
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      startCamera();
+                      setShowAttachmentButtons(false);
+                    }}
+                    disabled={loading}
+                    title="Tirar foto"
+                    style={{
+                      width: '58px',
+                      height: '58px',
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(10px)',
+                      border: '2px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '50%',
+                      color: 'white',
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.3s ease',
+                      fontSize: '18px',
+                      opacity: loading ? 0.5 : 1,
+                      animation: 'slideInFromLeft 0.3s ease-out 0.1s both'
+                    }}
+                  >
+                    📷
+                  </button>
+                </>
+              )}
 
               {/* Botão de Áudio - Pequeno como os outros */}
               {onAudioSend && (
@@ -532,6 +580,19 @@ const ChatInput: React.FC<ChatInputProps> = ({
             transform: scale(1.05);
             box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5) !important;
           }
+
+          /* Animações para os botões de anexo */
+          @keyframes slideInFromLeft {
+            from {
+              opacity: 0;
+              transform: translateX(-20px) scale(0.8);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(0) scale(1);
+            }
+          }
+
             /* Responsividade mobile melhorada */
           @media (max-width: 768px) {
             .input-container {

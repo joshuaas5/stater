@@ -227,19 +227,23 @@ const PreferencesPage: React.FC = () => {
           </div>
         </div>
           
-        <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
-          <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
+        <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
+          <h2 className="text-base font-semibold text-white mb-3 flex items-center">
             <DollarSign size={18} className="mr-2" /> {t('currency')}
           </h2>
           <div className="mb-2">
-            <label className="block text-galileo-text font-medium mb-1">Selecione sua moeda</label>
+            <label className="block text-white font-medium mb-1">Selecione sua moeda</label>
             <select
-              className="w-full rounded-lg border border-galileo-border py-2 px-3 bg-galileo-background text-galileo-text focus:outline-none focus:ring-2 focus:ring-galileo-accent"
+              className="w-full rounded-lg border border-white/20 py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-white/40"
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)'
+              }}
               value={preferences.currency}
               onChange={e => setPreferences(prev => ({ ...prev, currency: e.target.value }))}
             >
               {CURRENCIES.map(cur => (
-                <option key={cur.code} value={cur.code}>
+                <option key={cur.code} value={cur.code} style={{ background: '#31518b', color: 'white' }}>
                   {cur.symbol} - {cur.name}
                 </option>
               ))}
@@ -255,13 +259,13 @@ const PreferencesPage: React.FC = () => {
           </div>
         </div>
           
-        <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
-          <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
+        <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
+          <h2 className="text-base font-semibold text-white mb-3 flex items-center">
             <Languages size={18} className="mr-2" /> {t('language')}
           </h2>
           <div className="flex space-x-4">
-            <Button variant="default" className="flex-1 cursor-default">Português</Button>
-            <Button variant="outline" disabled className="flex-1 opacity-50">English (em breve)</Button>
+            <Button variant="default" className="flex-1 cursor-default bg-white/20 text-white border-white/30 hover:bg-white/30">Português</Button>
+            <Button variant="outline" disabled className="flex-1 opacity-50 bg-white/10 text-white/50 border-white/20">English (em breve)</Button>
           </div>
         </div>
           
@@ -270,20 +274,25 @@ const PreferencesPage: React.FC = () => {
         <div className="pt-2 pb-2">
           <Button 
             onClick={handleSavePreferences}
-            className="w-full bg-galileo-accent hover:bg-galileo-accent/80 text-white"
+            className="w-full text-white hover:opacity-90"
+            style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.3)'
+            }}
           >
             <Save size={16} className="mr-2" /> {t('savePreferences')}
           </Button>
         </div>
       </div>
       
-      <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
-        <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
+      <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
+        <h2 className="text-base font-semibold text-white mb-3 flex items-center">
           <Star size={18} className="mr-2" /> Recursos adicionais
         </h2>
         <div className="space-y-3">          <Button 
             variant="outline"
-            className="w-full border border-galileo-accent text-galileo-accent hover:bg-galileo-accent/10"
+            className="w-full border border-galileo-accent bg-white/5 backdrop-blur-[8px] text-galileo-accent hover:bg-galileo-accent/10 hover:backdrop-blur-[12px] transition-all duration-300"
             onClick={() => navigate('/analise-financeira')}
           >
             <Star size={16} className="mr-2" /> Acessar Análise Financeira
@@ -291,7 +300,7 @@ const PreferencesPage: React.FC = () => {
           
           <Button 
             variant="outline"
-            className="w-full border border-galileo-accent text-galileo-accent hover:bg-galileo-accent/10"
+            className="w-full border border-galileo-accent bg-white/5 backdrop-blur-[8px] text-galileo-accent hover:bg-galileo-accent/10 hover:backdrop-blur-[12px] transition-all duration-300"
             onClick={() => navigate('/export-report')}
           >
             <FileText size={16} className="mr-2" /> Exportar relatório financeiro
@@ -300,18 +309,18 @@ const PreferencesPage: React.FC = () => {
       </div>
       
       {/* SEÇÃO TELEGRAM - MOVIDA PARA DEPOIS DOS RECURSOS ADICIONAIS */}
-      <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
-        <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
+      <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-[10px] border border-white/20 p-5 mb-4">
+        <h2 className="text-base font-semibold text-white mb-3 flex items-center">
           <MessageCircle size={18} className="mr-2" /> Bot Telegram
         </h2>
         <div className="space-y-3">
-          <p className="text-sm text-galileo-secondaryText">
+          <p className="text-sm text-white/80">
             Conecte sua conta ao nosso bot do Telegram para receber análises de extratos e conversar sobre suas finanças.
           </p>
           
-          <div className="bg-galileo-background p-3 rounded-lg border border-galileo-border">
-            <p className="text-xs text-galileo-secondaryText mb-2">🤖 <strong>@assistentefinanceiroiabot</strong> (STATER IA)</p>
-            <p className="text-xs text-galileo-secondaryText mb-3">
+          <div className="bg-white/5 backdrop-blur-[8px] p-3 rounded-lg border border-white/20">
+            <p className="text-xs text-white/70 mb-2">🤖 <strong>@assistentefinanceiroiabot</strong> (STATER IA)</p>
+            <p className="text-xs text-white/70 mb-3">
               • Análise automática de extratos bancários<br/>
               • Chat inteligente sobre suas finanças<br/>
               • Notificações de contas vencendo
@@ -319,7 +328,7 @@ const PreferencesPage: React.FC = () => {
             
             <Button 
               variant="outline"
-              className="w-full border border-blue-500 text-blue-500 hover:bg-blue-50"
+              className="w-full border border-blue-400 bg-white/5 backdrop-blur-[8px] text-blue-400 hover:bg-blue-400/10 hover:backdrop-blur-[12px] transition-all duration-300"
               onClick={() => navigate('/settings/telegram')}
             >
               <MessageCircle size={16} className="mr-2" /> Configurar Telegram
@@ -331,7 +340,7 @@ const PreferencesPage: React.FC = () => {
       <div className="pt-2 pb-4">
         <Button
           variant="outline"
-          className="w-full border border-red-500 text-red-500 hover:bg-red-50 font-semibold"
+          className="w-full border border-red-400 bg-white/5 backdrop-blur-[8px] text-red-400 hover:bg-red-400/10 hover:backdrop-blur-[12px] font-semibold transition-all duration-300"
           onClick={async () => {
             try {
               console.log('🚪 [LOGOUT] Iniciando processo de logout...');

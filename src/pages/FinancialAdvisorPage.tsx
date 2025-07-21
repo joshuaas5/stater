@@ -2416,14 +2416,16 @@ return (
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '12px 30px',
-          background: '#31518b',
+          background: '#31518b !important',
           borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
           position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
           zIndex: 1001,
-          height: '60px'
+          height: '60px',
+          backdropFilter: 'none !important',
+          WebkitBackdropFilter: 'none !important'
         }}
       >        <div 
           className="logo"

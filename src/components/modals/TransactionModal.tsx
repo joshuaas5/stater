@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { X, DollarSign, Tag, Calendar, Repeat, Save, Trash2, ArrowRight } from 'lucide-react';
-import { Transaction } from '@/types';
+import { X, DollarSign, Tag, Calendar, Repeat, Save, Trash2, ArrowRight, ChevronDown, Search } from 'lucide-react';
+import { Transaction, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
 import './TransactionModal.css';
 
 interface TransactionModalProps {
@@ -27,14 +27,43 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     amount: '',
     category: '',
     isRecurring: false,
-    recurrenceFrequency: 'monthly'
+    recurrenceFrequency: 'monthly',
+    recurringDay: 1,
+    recurringWeekday: 1
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [categorySearchTerm, setCategorySearchTerm] = useState('');
 
   const isEditing = !!transaction;
   const isIncome = type === 'income';
+
+  // Filtrar categorias com base no tipo e busca
+  const availableCategories = isIncome ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const filteredCategories = availableCategories.filter((category: string) =>
+    category.toLowerCase().includes(categorySearchTerm.toLowerCase())
+  );
+
+  // Fechar dropdown ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.category-dropdown')) {
+        setIsCategoryDropdownOpen(false);
+        setCategorySearchTerm('');
+      }
+    };
+
+    if (isCategoryDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isCategoryDropdownOpen]);
 
   // Atualizar formData quando transaction mudar
   useEffect(() => {
@@ -44,7 +73,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         amount: transaction.amount?.toString() || '',
         category: transaction.category || '',
         isRecurring: transaction.isRecurring || false,
-        recurrenceFrequency: transaction.recurrenceFrequency || 'monthly'
+        recurrenceFrequency: transaction.recurrenceFrequency || 'monthly',
+        recurringDay: transaction.recurringDay || 1,
+        recurringWeekday: transaction.recurringWeekday || 1
       });
     } else {
       setFormData({
@@ -52,7 +83,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         amount: '',
         category: '',
         isRecurring: false,
-        recurrenceFrequency: 'monthly'
+        recurrenceFrequency: 'monthly',
+        recurringDay: 1,
+        recurringWeekday: 1
       });
     }
     setErrors({});
@@ -178,13 +211,13 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       />
       
       {/* Modal */}
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 max-h-[90vh] overflow-hidden transaction-modal-content">
+      <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 max-h-[85vh] overflow-hidden transaction-modal-content">
         {/* Header Gradient */}
-        <div className={`px-6 py-5 ${
+        <div className={`px-5 py-4 ${
           isIncome 
-            ? 'bg-gradient-to-br from-emerald-500 via-green-500 to-emerald-600' 
-            : 'bg-gradient-to-br from-blue-500 via-indigo-500 to-blue-600'
-        } relative overflow-hidden`}>
+            ? 'bg-gradient-to-br from-green-500 via-emerald-500 to-green-600' 
+            : 'bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600'
+        } relative overflow-hidden`} style={{ background: isIncome ? '#22c55e' : '#31518b' }}>
           {/* Background pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/20" />
@@ -216,7 +249,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-200px)] transaction-modal-scroll">
+        <div className="p-5 space-y-4 overflow-y-auto max-h-[calc(85vh-180px)] transaction-modal-scroll">
           {/* Descrição */}
           <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -228,7 +261,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
               placeholder={`Ex: ${isIncome ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
-              className={`w-full px-4 py-3.5 border-2 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200 outline-none font-medium ${
+              className={`w-full px-4 py-3.5 border-2 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200 outline-none font-medium text-gray-900 placeholder-gray-500 ${
                 errors.title 
                   ? 'border-red-300 focus:border-red-500 bg-red-50 input-error-shake' 
                   : 'border-gray-200 focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/10'
@@ -260,7 +293,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                 value={formData.amount}
                 onChange={(e) => handleInputChange('amount', e.target.value)}
                 placeholder="0,00"
-                className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200 outline-none font-bold text-lg ${
+                className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200 outline-none font-bold text-lg text-gray-900 placeholder-gray-500 ${
                   errors.amount 
                     ? 'border-red-300 focus:border-red-500 bg-red-50 input-error-shake' 
                     : 'border-gray-200 focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/10'
@@ -277,28 +310,75 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           </div>
 
           {/* Categoria */}
-          <div className="space-y-2">
+          <div className="space-y-2 relative category-dropdown">
             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-gray-600" />
+              <Tag className="h-4 w-4 text-gray-600" />
               Categoria
             </label>
-            <select
-              value={formData.category}
-              onChange={(e) => handleInputChange('category', e.target.value)}
-              className={`w-full px-4 py-3.5 border-2 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200 outline-none font-medium ${
-                errors.category 
-                  ? 'border-red-300 focus:border-red-500 bg-red-50 input-error-shake' 
-                  : 'border-gray-200 focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/10'
-              }`}
-              disabled={isSubmitting}
-            >
-              <option value="">Selecione uma categoria</option>
-              {categories.map(category => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
+            
+            {/* Dropdown customizado */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                className={`w-full px-4 py-3.5 border-2 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200 outline-none font-medium text-gray-900 flex items-center justify-between ${
+                  errors.category 
+                    ? 'border-red-300 focus:border-red-500 bg-red-50 input-error-shake' 
+                    : 'border-gray-200 focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/10'
+                }`}
+                disabled={isSubmitting}
+              >
+                <span className={formData.category ? 'text-gray-900' : 'text-gray-500'}>
+                  {formData.category || 'Selecione uma categoria'}
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isCategoryDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-60 overflow-hidden">
+                  {/* Campo de busca */}
+                  <div className="p-3 border-b border-gray-100">
+                    <div className="relative">
+                      <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Buscar categoria..."
+                        value={categorySearchTerm}
+                        onChange={(e) => setCategorySearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-500 outline-none text-gray-900"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Lista de categorias */}
+                  <div className="max-h-40 overflow-y-auto">
+                    {filteredCategories.length > 0 ? (
+                      filteredCategories.map((category) => (
+                        <button
+                          key={category}
+                          type="button"
+                          onClick={() => {
+                            handleInputChange('category', category);
+                            setIsCategoryDropdownOpen(false);
+                            setCategorySearchTerm('');
+                          }}
+                          className={`w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors ${
+                            formData.category === category ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'
+                          }`}
+                        >
+                          {category}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                        Nenhuma categoria encontrada
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            
             {errors.category && (
               <p className="text-red-500 text-xs font-medium flex items-center gap-1">
                 <span className="w-1 h-1 bg-red-500 rounded-full" />
@@ -331,22 +411,75 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             </div>
 
             {formData.isRecurring && (
-              <select
-                value={formData.recurrenceFrequency}
-                onChange={(e) => handleInputChange('recurrenceFrequency', e.target.value)}
-                className="w-full px-3 py-2 border border-blue-200 rounded-lg bg-white text-sm font-medium focus:border-blue-500 outline-none"
-                disabled={isSubmitting}
-              >
-                <option value="weekly">Semanal</option>
-                <option value="monthly">Mensal</option>
-                <option value="yearly">Anual</option>
-              </select>
+              <div className="space-y-3 mt-3">
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">
+                    Frequência de Repetição
+                  </label>
+                  <select
+                    value={formData.recurrenceFrequency}
+                    onChange={(e) => handleInputChange('recurrenceFrequency', e.target.value)}
+                    className="w-full px-3 py-2 border border-blue-200 rounded-lg bg-white text-sm font-medium focus:border-blue-500 outline-none text-gray-900"
+                    disabled={isSubmitting}
+                  >
+                    <option value="weekly">Semanal</option>
+                    <option value="monthly">Mensal</option>
+                    <option value="yearly">Anual</option>
+                  </select>
+                </div>
+
+                {formData.recurrenceFrequency === 'weekly' && (
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">
+                      Dia da Semana
+                    </label>
+                    <select
+                      value={formData.recurringWeekday}
+                      onChange={(e) => handleInputChange('recurringWeekday', parseInt(e.target.value))}
+                      className="w-full px-3 py-2 border border-blue-200 rounded-lg bg-white text-sm font-medium focus:border-blue-500 outline-none text-gray-900"
+                      disabled={isSubmitting}
+                    >
+                      <option value={0}>Domingo</option>
+                      <option value={1}>Segunda-feira</option>
+                      <option value={2}>Terça-feira</option>
+                      <option value={3}>Quarta-feira</option>
+                      <option value={4}>Quinta-feira</option>
+                      <option value={5}>Sexta-feira</option>
+                      <option value={6}>Sábado</option>
+                    </select>
+                  </div>
+                )}
+
+                {(formData.recurrenceFrequency === 'monthly' || formData.recurrenceFrequency === 'yearly') && (
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">
+                      Dia do Mês
+                    </label>
+                    <select
+                      value={formData.recurringDay}
+                      onChange={(e) => handleInputChange('recurringDay', parseInt(e.target.value))}
+                      className="w-full px-3 py-2 border border-blue-200 rounded-lg bg-white text-sm font-medium focus:border-blue-500 outline-none text-gray-900"
+                      disabled={isSubmitting}
+                    >
+                      {Array.from({ length: 31 }, (_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          Dia {i + 1}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded-lg">
+                  💡 <strong>Transações recorrentes</strong> serão processadas automaticamente e aparecerão na página de Contas.
+                </div>
+              </div>
             )}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-100 bg-gray-50/50">
+        <div className="p-5 border-t border-gray-100 bg-gray-50/50">
           <div className="flex gap-3">
             {isEditing && onDelete && (
               <button

@@ -1144,15 +1144,14 @@ const Dashboard: React.FC = () => {
               recurringWeekday: 1
             });
 
+            // Atualizar dados imediatamente
+            loadTransactions(selectedMonth, selectedYear);
+            
             toast({
               title: `${transaction.type === 'income' ? 'Entrada' : 'Saída'} adicionada`,
-              description: `${transaction.title} foi adicionada com sucesso`
+              description: `${transaction.title} foi adicionada com sucesso`,
+              duration: 2000
             });
-
-            // Atualizar dados
-            setTimeout(() => {
-              loadTransactions(selectedMonth, selectedYear);
-            }, 100);
           }
         }}
         onDelete={(transactionId) => {

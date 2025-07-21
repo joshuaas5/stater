@@ -283,7 +283,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         <div 
           className="p-5 space-y-4 overflow-y-auto max-h-[calc(85vh-180px)] transaction-modal-scroll"
           style={{ 
-            background: 'rgba(255, 255, 255, 0.05)',
+            background: 'rgba(255, 255, 255, 0.10)', // Reduzido 50% da transparência: de 0.05 para 0.10
             backdropFilter: 'blur(30px) saturate(150%)',
             WebkitBackdropFilter: 'blur(30px) saturate(150%)'
           }}

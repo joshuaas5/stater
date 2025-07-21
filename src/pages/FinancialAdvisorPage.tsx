@@ -2404,7 +2404,7 @@ return (
         color: 'white',
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: '0px',
+        paddingBottom: '80px', // Espaço para o chat fixo no bottom
         overflow: 'hidden',
         position: 'relative'
       }}

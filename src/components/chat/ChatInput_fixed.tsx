@@ -154,75 +154,59 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   if (waitingConfirmation && pendingActionDetails) {
     return (
-      <div 
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          background: 'rgba(49, 81, 139, 0.95)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '16px',
-          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.15)'
-        }}
-      >
-        <div className="max-w-4xl mx-auto space-y-4">
-          <div 
-            className="p-4 rounded-xl border"
-            style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              borderColor: 'rgba(255, 255, 255, 0.2)'
-            }}
-          >
-            <h3 className="text-white font-semibold mb-2">
-              {pendingActionDetails.ocrTransactions 
-                ? 'Confirmar transações detectadas' 
-                : 'Confirmar transação'
-              }
-            </h3>
-            
-            {pendingActionDetails.ocrTransactions ? (
-              <div className="space-y-2">
-                {pendingActionDetails.ocrTransactions.map((transaction: any, index: number) => (
-                  <div key={index} className="text-sm text-white/80">
-                    <strong>{transaction.description}</strong> - 
-                    <span className={transaction.type === 'income' ? 'text-green-300' : 'text-red-300'}>
-                      {transaction.type === 'income' ? '+' : '-'} R$ {transaction.amount?.toFixed(2)}
-                    </span>
-                    {transaction.category && <span className="text-white/60"> ({transaction.category})</span>}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-sm text-white/80">
-                <strong>{pendingActionDetails.description}</strong> - 
-                <span className={pendingActionDetails.type === 'income' ? 'text-green-300' : 'text-red-300'}>
-                  {pendingActionDetails.type === 'income' ? '+' : '-'} R$ {pendingActionDetails.amount?.toFixed(2)}
-                </span>
-                {pendingActionDetails.category && <span className="text-white/60"> ({pendingActionDetails.category})</span>}
-              </div>
-            )}
-          </div>
+      <div className="p-4 space-y-4">
+        <div 
+          className="p-4 rounded-xl border"
+          style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            borderColor: 'rgba(255, 255, 255, 0.2)'
+          }}
+        >
+          <h3 className="text-white font-semibold mb-2">
+            {pendingActionDetails.ocrTransactions 
+              ? 'Confirmar transações detectadas' 
+              : 'Confirmar transação'
+            }
+          </h3>
+          
+          {pendingActionDetails.ocrTransactions ? (
+            <div className="space-y-2">
+              {pendingActionDetails.ocrTransactions.map((transaction: any, index: number) => (
+                <div key={index} className="text-sm text-white/80">
+                  <strong>{transaction.description}</strong> - 
+                  <span className={transaction.type === 'income' ? 'text-green-300' : 'text-red-300'}>
+                    {transaction.type === 'income' ? '+' : '-'} R$ {transaction.amount?.toFixed(2)}
+                  </span>
+                  {transaction.category && <span className="text-white/60"> ({transaction.category})</span>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm text-white/80">
+              <strong>{pendingActionDetails.description}</strong> - 
+              <span className={pendingActionDetails.type === 'income' ? 'text-green-300' : 'text-red-300'}>
+                {pendingActionDetails.type === 'income' ? '+' : '-'} R$ {pendingActionDetails.amount?.toFixed(2)}
+              </span>
+              {pendingActionDetails.category && <span className="text-white/60"> ({pendingActionDetails.category})</span>}
+            </div>
+          )}
+        </div>
 
-          <div className="flex gap-3">
-            <Button 
-              onClick={onCancel}
-              variant="outline" 
-              className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={onConfirm}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Confirmar
-            </Button>
-          </div>
+        <div className="flex gap-3">
+          <Button 
+            onClick={onCancel}
+            variant="outline" 
+            className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={onConfirm}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Confirmar
+          </Button>
         </div>
       </div>
     );
@@ -230,24 +214,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <>
-      {/* Container fixo no bottom da página como WhatsApp */}
-      <div 
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          background: 'rgba(49, 81, 139, 0.95)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '12px 16px',
-          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.15)'
-        }}
-      >
+      <div className="p-4">
         <div 
-          className="max-w-4xl mx-auto"
+          className="rounded-2xl p-4 backdrop-blur-xl border shadow-lg"
+          style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)'
+          }}
         >
           <form onSubmit={handleSubmit} className="flex gap-3 items-end">
             <textarea
@@ -262,14 +236,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 background: 'rgba(255, 255, 255, 0.15)',
                 backdropFilter: 'blur(10px)',
                 border: '2px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '25px',
-                padding: '12px 16px',
+                borderRadius: '12px',
+                padding: '16px',
                 color: 'white',
                 fontSize: '16px',
                 outline: 'none',
                 transition: 'all 0.3s ease',
                 resize: 'none',
-                minHeight: '44px',
+                minHeight: '60px',
                 maxHeight: '120px',
                 fontFamily: 'inherit',
                 opacity: loading ? 0.5 : 1,
@@ -287,7 +261,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               style={{
                 display: 'flex',
                 flexDirection: 'row',
-                gap: '8px',
+                gap: '10px',
                 alignItems: 'center',
                 position: 'relative',
                 flexShrink: 0
@@ -299,13 +273,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   className="attachment-options"
                   style={{
                     position: 'absolute',
-                    bottom: '60px', // Posiciona acima do botão + (altura do botão + gap)
-                    right: '108px', // Alinha com o botão + (2 botões * 44px + 2 gaps * 8px)
+                    bottom: '100%',
+                    right: '0',
                     display: 'flex',
                     flexDirection: 'column-reverse',
-                    gap: '8px',
+                    gap: '10px',
                     alignItems: 'flex-end',
-                    zIndex: 1001,
+                    marginBottom: '10px',
+                    zIndex: 1000,
                     animation: 'slideInFromBottom 0.3s ease-out'
                   }}
                 >
@@ -318,8 +293,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
                     disabled={loading}
                     title="Anexar arquivo"
                     style={{
-                      width: '44px',
-                      height: '44px',
+                      width: '50px',
+                      height: '50px',
                       background: 'rgba(255, 255, 255, 0.15)',
                       backdropFilter: 'blur(10px)',
                       border: '2px solid rgba(255, 255, 255, 0.2)',
@@ -346,8 +321,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
                     disabled={loading}
                     title="Tirar foto"
                     style={{
-                      width: '44px',
-                      height: '44px',
+                      width: '50px',
+                      height: '50px',
                       background: 'rgba(255, 255, 255, 0.15)',
                       backdropFilter: 'blur(10px)',
                       border: '2px solid rgba(255, 255, 255, 0.2)',
@@ -374,8 +349,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 disabled={loading}
                 title="Anexar"
                 style={{
-                  width: '44px',
-                  height: '44px',
+                  width: '50px',
+                  height: '50px',
                   background: 'rgba(255, 255, 255, 0.15)',
                   backdropFilter: 'blur(10px)',
                   border: showAttachmentButtons 
@@ -432,8 +407,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 disabled={loading || !message.trim()}
                 title="Enviar"
                 style={{
-                  width: '44px',
-                  height: '44px',
+                  width: '50px',
+                  height: '50px',
                   background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                   border: 'none',
                   borderRadius: '50%',
@@ -588,7 +563,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         </div>
       )}
 
-      <style>{`
+      <style jsx>{`
         @keyframes slideInFromBottom {
           from {
             opacity: 0;

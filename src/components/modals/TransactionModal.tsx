@@ -215,9 +215,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       <div 
         className="relative w-full max-w-sm rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 max-h-[85vh] overflow-hidden transaction-modal-content"
         style={{
-          background: 'rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(40px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+          background: '#31518b', // Fundo azul sólido igual ao background do site para melhor legibilidade
           border: '1px solid rgba(255, 255, 255, 0.18)',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
         }}
@@ -283,9 +281,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         <div 
           className="p-5 space-y-4 overflow-y-auto max-h-[calc(85vh-180px)] transaction-modal-scroll"
           style={{ 
-            background: 'rgba(255, 255, 255, 0.14)', // Reduzido 40% adicional da transparência para melhor legibilidade
-            backdropFilter: 'blur(30px) saturate(150%)',
-            WebkitBackdropFilter: 'blur(30px) saturate(150%)'
+            background: 'rgba(49, 81, 139, 0.95)', // Fundo azul sólido com leve transparência para melhor legibilidade
           }}
         >
           {/* Descrição */}

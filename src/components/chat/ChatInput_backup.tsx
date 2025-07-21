@@ -84,7 +84,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
       e.target.value = '';
     }
   };
-
   const startCamera = async () => {
     try {
       console.log('Iniciando câmera...');
@@ -99,16 +98,70 @@ const ChatInput: React.FC<ChatInputProps> = ({
       setStream(mediaStream);
       setShowCamera(true);
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        videoRef.current.play();
-      }
+      // Aguardar um pouco antes de definir o srcObject
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+          console.log('Video srcObject definido');
+        }
+      }, 100);
     } catch (error) {
-      console.error('Erro ao acessar a câmera:', error);
+      console.error('Erro ao acessar câmera:', error);
       toast({
-        title: "Erro na câmera",
+        title: "Erro",
         description: "Não foi possível acessar a câmera. Verifique as permissões.",
-        variant: "destructive"
+        variant: "destructive",
+      });
+    }
+  };
+  const capturePhoto = () => {
+    console.log('Tentando capturar foto...');
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      
+      // Verificar se o vídeo está carregado
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        console.error('Vídeo não está carregado ainda');
+        toast({
+          title: "Erro",
+          description: "Aguarde o vídeo carregar completamente",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0);
+        const base64Data = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+        console.log('Foto capturada, tamanho base64:', base64Data.length);
+        
+        if (onImageUpload) {
+          onImageUpload(base64Data);
+          toast({
+            title: "Sucesso",
+            description: "Foto capturada com sucesso!",
+          });
+        }
+        stopCamera();
+      } else {
+        console.error('Não foi possível obter contexto do canvas');
+        toast({
+          title: "Erro",
+          description: "Erro ao processar a foto",
+          variant: "destructive",
+        });
+      }
+    } else {
+      console.error('Video ou Canvas não estão disponíveis');
+      toast({
+        title: "Erro",
+        description: "Câmera não está pronta",
+        variant: "destructive",
       });
     }
   };
@@ -121,129 +174,73 @@ const ChatInput: React.FC<ChatInputProps> = ({
     setShowCamera(false);
   };
 
-  const capturePhoto = async () => {
-    if (!videoRef.current || !canvasRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-
-    if (context) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0);
-      
-      const imageDataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      const base64Data = imageDataUrl.split(',')[1];
-      
-      if (onImageUpload) {
-        onImageUpload(base64Data);
-      }
-      
-      stopCamera();
-    }
-  };
-
+  // Cleanup camera when component unmounts
   useEffect(() => {
-    return () => {
-      if (stream) {
+    return () => {      if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
   }, [stream]);
 
-  if (waitingConfirmation && pendingActionDetails) {
-    return (
-      <div className="p-4 space-y-4">
-        <div 
-          className="p-4 rounded-xl border"
-          style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            borderColor: 'rgba(255, 255, 255, 0.2)'
-          }}
-        >
-          <h3 className="text-white font-semibold mb-2">
-            {pendingActionDetails.ocrTransactions 
-              ? 'Confirmar transações detectadas' 
-              : 'Confirmar transação'
-            }
-          </h3>
-          
-          {pendingActionDetails.ocrTransactions ? (
-            <div className="space-y-2">
-              {pendingActionDetails.ocrTransactions.map((transaction: any, index: number) => (
-                <div key={index} className="text-sm text-white/80">
-                  <strong>{transaction.description}</strong> - 
-                  <span className={transaction.type === 'income' ? 'text-green-300' : 'text-red-300'}>
-                    {transaction.type === 'income' ? '+' : '-'} R$ {transaction.amount?.toFixed(2)}
-                  </span>
-                  {transaction.category && <span className="text-white/60"> ({transaction.category})</span>}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-sm text-white/80">
-              <strong>{pendingActionDetails.description}</strong> - 
-              <span className={pendingActionDetails.type === 'income' ? 'text-green-300' : 'text-red-300'}>
-                {pendingActionDetails.type === 'income' ? '+' : '-'} R$ {pendingActionDetails.amount?.toFixed(2)}
-              </span>
-              {pendingActionDetails.category && <span className="text-white/60"> ({pendingActionDetails.category})</span>}
-            </div>
-          )}
-        </div>
-
-        <div className="flex gap-3">
-          <Button 
-            onClick={onCancel}
-            variant="outline" 
-            className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
-          >
-            Cancelar
-          </Button>
-          <Button 
-            onClick={onConfirm}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            Confirmar
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <>
-      <div className="p-4">
-        <div 
-          className="rounded-2xl p-4 backdrop-blur-xl border shadow-lg"
+    <>      <div 
+        className="input-container"
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: '20px 20px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.15)',
+          background: '#31518b', // Fundo padronizado igual à NavBar
+          backdropFilter: 'blur(20px)',
+          width: '100vw',
+          boxSizing: 'border-box',
+          zIndex: 1000
+        }}
+      ><div 
+          className="input-wrapper" 
           style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            borderColor: 'rgba(255, 255, 255, 0.2)',
-            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)'
+            display: 'flex',
+            gap: '15px',
+            alignItems: 'flex-end',
+            maxWidth: '900px',
+            margin: '0 auto',
+            width: '100%',
+            boxSizing: 'border-box',
+            padding: '0 20px'
           }}
         >
-          <form onSubmit={handleSubmit} className="flex gap-3 items-end">
-            <textarea
+          <form 
+            onSubmit={handleSubmit}
+            style={{
+              display: 'flex',
+              gap: '15px',
+              alignItems: 'flex-end',
+              width: '100%'
+            }}
+          >            <textarea
               ref={inputRef}
+              className="message-input"
+              placeholder={loading ? "Enviando mensagem..." : "Digite sua mensagem"}
               value={message}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              placeholder="Digite sua mensagem..."
               disabled={loading}
+              rows={1}
               style={{
                 flex: 1,
                 background: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)',
-                border: '2px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '12px',
-                padding: '16px',
+                backdropFilter: 'blur(15px)',
+                border: '2px solid rgba(255, 255, 255, 0.25)',
+                borderRadius: '25px',
+                padding: '18px 24px', // Aumentado para 18px
                 color: 'white',
-                fontSize: '16px',
+                fontSize: '14px',
                 outline: 'none',
                 transition: 'all 0.3s ease',
                 resize: 'none',
-                minHeight: '60px',
+                minHeight: '60px', // Aumentado para 60px
                 maxHeight: '120px',
                 fontFamily: 'inherit',
                 opacity: loading ? 0.5 : 1,
@@ -251,20 +248,19 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 lineHeight: '1.4',
                 boxSizing: 'border-box',
                 width: '100%',
-                minWidth: '0',
-                overflow: 'hidden'
-              }}
-            />
+                minWidth: '0', // Evita overflow
+                overflow: 'hidden' // Evita scroll interno
+              }}            />
             
             <div 
               className="input-actions"
               style={{
                 display: 'flex',
-                flexDirection: 'row',
+                flexDirection: 'row', // Botões em linha horizontal
                 gap: '10px',
                 alignItems: 'center',
                 position: 'relative',
-                flexShrink: 0
+                flexShrink: 0 // Evita que os botões encolham
               }}
             >
               {/* Botões de anexo - aparecem apenas quando showAttachmentButtons é true */}
@@ -273,10 +269,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   className="attachment-options"
                   style={{
                     position: 'absolute',
-                    bottom: '100%',
+                    bottom: '100%', // Posiciona acima dos botões
                     right: '0',
                     display: 'flex',
-                    flexDirection: 'column-reverse',
+                    flexDirection: 'column-reverse', // Botões empilhados verticalmente para cima
                     gap: '10px',
                     alignItems: 'flex-end',
                     marginBottom: '10px',
@@ -431,6 +427,105 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   </svg>
                 )}
               </button>
+                      fontSize: '18px',
+                      opacity: loading ? 0.5 : 1,
+                      animation: 'slideInFromBottom 0.3s ease-out 0.1s both'
+                    }}
+                  >
+                    �
+                  </button>
+                </div>
+              )}
+
+              {/* Botão + para mostrar/ocultar anexos */}
+              <button
+                type="button"
+                onClick={() => setShowAttachmentButtons(!showAttachmentButtons)}
+                disabled={loading}
+                title={showAttachmentButtons ? "Ocultar opções" : "Mostrar opções de anexo"}
+                style={{
+                  width: '58px',
+                  height: '58px',
+                  background: showAttachmentButtons 
+                    ? 'rgba(255, 59, 48, 0.2)' 
+                    : 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(10px)',
+                  border: showAttachmentButtons 
+                    ? '2px solid rgba(255, 59, 48, 0.4)' 
+                    : '2px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '50%',
+                  color: 'white',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                  fontSize: '18px',
+                  opacity: loading ? 0.5 : 1,
+                  transform: showAttachmentButtons ? 'rotate(45deg)' : 'rotate(0deg)'
+                }}
+              >
+                <Plus size={20} />
+              </button>
+
+              {/* Botão de Áudio - Pequeno como os outros */}
+              {onAudioSend && (
+                <div style={{ position: 'relative' }}>
+                  <VoiceRecorder
+                    onAudioSend={onAudioSend}
+                    isProcessing={isProcessingAudio}
+                    disabled={loading || waitingConfirmation || !audioLimits?.canUseAudio()}
+                    compact={true} // Modo compacto para integrar com outros botões
+                  />
+                  {audioLimits?.usage.warningLevel === 'warning' && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '-30px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: 'rgba(255, 165, 0, 0.9)',
+                      color: 'white',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      whiteSpace: 'nowrap',
+                      pointerEvents: 'none'
+                    }}>
+                      ⚠️ {audioLimits.usage.remainingDaily} restantes
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || !message.trim()}
+                title="Enviar"
+                style={{
+                  width: '58px', // Aumentado mais para 58px
+                  height: '58px',
+                  background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  color: 'white',
+                  cursor: (loading || !message.trim()) ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                  opacity: (loading || !message.trim()) ? 0.5 : 1,
+                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
+                }}
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                  </svg>
+                )}
+              </button>
             </div>
           </form>
         </div>
@@ -452,9 +547,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         accept="image/*"
         capture="environment"
         onChange={handleFileSelect}
-      />
-
-      {/* Camera Modal */}
+      />      {/* Camera Modal - MELHORADO */}
       {showCamera && (
         <div 
           style={{
@@ -507,9 +600,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
               justifyContent: 'center'
             }}
           >
-            <X size={24} />
+            ✕
           </button>
-
+          
           {/* Vídeo da câmera */}
           <video
             ref={videoRef}
@@ -517,68 +610,168 @@ const ChatInput: React.FC<ChatInputProps> = ({
             playsInline
             muted
             style={{
-              width: '100%',
-              maxWidth: '500px',
-              height: 'auto',
+              maxWidth: '95%',
+              maxHeight: '70vh',
               borderRadius: '15px',
-              border: '3px solid rgba(255, 255, 255, 0.3)',
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
+              border: '2px solid rgba(255, 255, 255, 0.2)'
             }}
           />
-
-          {/* Canvas oculto para captura */}
-          <canvas
-            ref={canvasRef}
-            style={{ display: 'none' }}
-          />
-
-          {/* Botão de captura */}
-          <button
-            onClick={capturePhoto}
-            style={{
-              position: 'absolute',
-              bottom: '40px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '80px',
-              height: '80px',
-              background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-              border: '4px solid white',
-              borderRadius: '50%',
-              color: 'white',
-              fontSize: '24px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'transform 0.2s ease',
-              boxShadow: '0 6px 20px rgba(59, 130, 246, 0.4)'
-            }}
-            onMouseDown={(e) => e.currentTarget.style.transform = 'translateX(-50%) scale(0.95)'}
-            onMouseUp={(e) => e.currentTarget.style.transform = 'translateX(-50%) scale(1)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateX(-50%) scale(1)'}
-          >
-            <Camera size={32} />
-          </button>
+            {/* Controles da câmera */}
+          <div style={{ 
+            marginTop: '25px', 
+            display: 'flex', 
+            gap: '20px',
+            alignItems: 'center',
+            flexDirection: 'column'
+          }}>
+            {/* Botão capturar */}
+            <button
+              onClick={capturePhoto}
+              style={{
+                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '50%',
+                width: '70px',
+                height: '70px',
+                fontSize: '28px',
+                cursor: 'pointer',
+                boxShadow: '0 8px 25px rgba(59, 130, 246, 0.4)',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '20px' // Espaço entre botão e texto
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = '0 12px 30px rgba(59, 130, 246, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.4)';
+              }}
+            >
+              📷
+            </button>
+            
+            {/* Dicas de uso - movido para dentro dos controles */}
+            <div style={{
+              color: 'rgba(255, 255, 255, 0.8)',
+              textAlign: 'center',
+              fontSize: '13px',
+              maxWidth: '280px',
+              lineHeight: '1.3'
+            }}>
+              💡 Posicione o extrato bem iluminado e sem reflexos
+            </div>
+          </div>
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
-      )}
+      )}      {/* CSS Animations - CORRIGIDO */}
+      <style dangerouslySetInnerHTML={{
+        __html: `          .message-input::placeholder {
+            color: rgba(255, 255, 255, 0.7) !important;
+            text-align: left !important;
+            padding-left: 0 !important;
+            opacity: 1 !important;
+          }
+          .message-input:focus::placeholder {
+            color: rgba(255, 255, 255, 0.5) !important;
+          }
+          .message-input:focus {
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            background: rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+          }
+          .input-actions button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.25) !important;
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.35) !important;
+          }
+          .input-actions button[type="submit"]:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5) !important;
+          }
 
-      <style>{`
-        @keyframes slideInFromBottom {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
+          /* Animações para os botões de anexo */
+          @keyframes slideInFromLeft {
+            from {
+              opacity: 0;
+              transform: translateX(-20px) scale(0.8);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(0) scale(1);
+            }
           }
-          to {
-            opacity: 1;
-            transform: translateY(0);
+
+          @keyframes slideInFromBottom {
+            from {
+              opacity: 0;
+              transform: translateY(20px) scale(0.8);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
           }
-        }
-        
-        .attachment-options {
-          animation: slideInFromBottom 0.3s ease-out;
-        }
-      `}</style>
+
+            /* Responsividade mobile melhorada */
+          @media (max-width: 768px) {
+            .input-container {
+              padding: 15px 10px !important;
+            }
+            .input-wrapper {
+              gap: 10px !important;
+              padding: 0 10px !important;
+            }
+            .input-actions button {
+              width: 44px !important;
+              height: 44px !important;
+              font-size: 16px !important;
+            }
+            .message-input {
+              font-size: 14px !important;
+              padding: 12px 16px !important;
+              min-height: 44px !important;
+              border-width: 1px !important;
+            }
+          }
+          
+          /* Tablet */
+          @media (max-width: 1024px) {
+            .input-container {
+              padding: 18px 15px !important;
+            }
+            .input-wrapper {
+              padding: 0 15px !important;
+            }
+          }
+          
+          /* Dispositivos pequenos */
+          @media (max-width: 480px) {
+            .input-container {
+              padding: 12px 8px !important;
+            }
+            .input-wrapper {
+              gap: 8px !important;
+              padding: 0 8px !important;
+            }
+            .input-actions button {
+              width: 40px !important;
+              height: 40px !important;
+              font-size: 14px !important;
+            }
+            .message-input {
+              font-size: 13px !important;
+              padding: 10px 14px !important;
+              min-height: 40px !important;
+            }
+          }
+        `
+      }} />
     </>
   );
 };

@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Componentes de voz
-import VoiceRecorder from '@/components/voice/VoiceRecorder';
+import { VoiceRecorder } from '@/components/voice/VoiceRecorder';
 import VoicePlayer from '@/components/voice/VoicePlayer';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useAudioLimits } from '@/hooks/useAudioLimits';
@@ -2434,7 +2434,10 @@ return (
             color: '#ffffff',
             fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
             letterSpacing: '1px',
+            textShadow: '2px 2px 0px #3b82f6, 4px 4px 0px #1d4ed8, 0 0 20px rgba(59, 130, 246, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
             textTransform: 'uppercase',
+            position: 'relative',
+            filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))',
             margin: 0,
             padding: 0,
             background: 'none',
@@ -2442,11 +2445,10 @@ return (
             border: 'none',
             outline: 'none',
             boxShadow: 'none',
-            textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
             display: 'inline-block'
           }}
         >
-          Stater IA
+          STATER IA
         </h1>
         <div 
           className="user-info"

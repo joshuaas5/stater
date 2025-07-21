@@ -215,9 +215,11 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       <div 
         className="relative w-full max-w-sm rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 max-h-[85vh] overflow-hidden transaction-modal-content"
         style={{
-          background: 'rgba(49, 81, 139, 0.95)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
+          background: 'rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(40px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
         }}
       >
         {/* Header */}
@@ -280,7 +282,11 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         {/* Content */}
         <div 
           className="p-5 space-y-4 overflow-y-auto max-h-[calc(85vh-180px)] transaction-modal-scroll"
-          style={{ background: 'rgba(49, 81, 139, 0.95)' }}
+          style={{ 
+            background: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(30px) saturate(150%)',
+            WebkitBackdropFilter: 'blur(30px) saturate(150%)'
+          }}
         >
           {/* Descrição */}
           <div className="space-y-2">
@@ -299,8 +305,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                   : 'border-white/20 focus:border-white/40 focus:shadow-lg focus:shadow-white/10'
               }`}
               style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)'
+                background: 'rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(20px) saturate(120%)',
+                WebkitBackdropFilter: 'blur(20px) saturate(120%)'
               }}
               disabled={isSubmitting}
             />
@@ -572,10 +579,12 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         <div 
           className="p-5 border-t"
           style={{
-            background: 'rgba(255, 255, 255, 0.15)',
-            backdropFilter: 'blur(20px)',
-            borderColor: 'rgba(255, 255, 255, 0.3)',
-            boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.1)'
+            background: 'rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(40px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+            borderColor: 'rgba(255, 255, 255, 0.18)',
+            boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+            borderTop: '1px solid rgba(255, 255, 255, 0.18)'
           }}
         >
           <div className="flex gap-3">

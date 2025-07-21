@@ -746,7 +746,43 @@ const Dashboard: React.FC = () => {
     }, 100);  };
   
   const currentUser = getCurrentUser();
-  const userName = currentUser ? currentUser.username : "Usurio";
+  
+  // Função para extrair nome amigável do email
+  const extractFriendlyName = (user: any): string => {
+    if (!user) return "Usuário";
+    
+    // Se já tem um username que não é um email, usar ele
+    if (user.username && !user.username.includes('@')) {
+      return user.username;
+    }
+    
+    // Extrair nome do email
+    const email = user.email || user.username || '';
+    if (!email || !email.includes('@')) return "Usuário";
+    
+    const emailPrefix = email.split('@')[0];
+    
+    // Transformar em nome amigável
+    let friendlyName = emailPrefix
+      // Remover números no final (ex: drjoshua55 -> drjoshua)
+      .replace(/\d+$/, '')
+      // Separar palavras por pontos, underscores ou hífens
+      .replace(/[._-]/g, ' ')
+      // Capitalizar primeira letra de cada palavra
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+    
+    // Tratar casos especiais como "Dr", "Dra" etc
+    friendlyName = friendlyName
+      .replace(/^Dr\s/i, 'Dr. ')
+      .replace(/^Dra\s/i, 'Dra. ')
+      .replace(/^Prof\s/i, 'Prof. ');
+    
+    return friendlyName || "Usuário";
+  };
+  
+  const userName = extractFriendlyName(currentUser);
   
   return (
     <div 

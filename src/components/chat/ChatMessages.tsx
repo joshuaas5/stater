@@ -31,11 +31,43 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
           key={message.id}
           className={`flex items-end gap-2 ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
         >
-          <Avatar className="h-8 w-8 shadow-sm">
+          <Avatar className="h-8 w-8 shadow-sm" style={{ background: 'transparent !important' }}>
             <AvatarImage src={message.sender === 'user' ? userAvatar : iaAvatar} alt={message.sender === 'user' ? 'User' : 'IA'} />
-            <AvatarFallback className="bg-blue-500 text-white">
-              {message.sender === 'user' ? 'U' : (
-                <img src="/stater-logo.png" alt="Stater" className="w-5 h-5" />
+            <AvatarFallback 
+              className="bg-transparent text-white border-0" 
+              style={{ 
+                background: 'transparent !important', 
+                backgroundColor: 'transparent !important',
+                border: 'none !important',
+                boxShadow: 'none !important'
+              }}
+            >
+              {message.sender === 'user' ? (
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  U
+                </div>
+              ) : (
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{ 
+                    background: 'transparent !important',
+                    backgroundColor: 'transparent !important'
+                  }}
+                >
+                  <img 
+                    src="/stater-logo.png" 
+                    alt="Stater" 
+                    className="w-6 h-6" 
+                    style={{
+                      background: 'transparent !important',
+                      backgroundColor: 'transparent !important',
+                      border: 'none !important',
+                      outline: 'none !important',
+                      boxShadow: 'none !important',
+                      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))'
+                    }}
+                  />
+                </div>
               )}
             </AvatarFallback>
           </Avatar>

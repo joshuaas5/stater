@@ -181,16 +181,16 @@ const ChartsPage: React.FC = () => {
     return weekData;
   };
 
-  // Cores para os gráficos
+  // Cores da identidade visual do app
   const EXPENSE_COLORS = [
-    '#FF6B6B', '#F06595', '#D6336C', '#C2255C', '#A61E4D',
-    '#862E9C', '#6741D9', '#5F3DC4', '#364FC7', '#1864AB',
-    '#0B7285', '#099268', '#2B8A3E', '#5C940D', '#E67700'
+    '#ef4444', '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d',
+    '#f59e0b', '#d97706', '#b45309', '#92400e', '#78350f',
+    '#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95'
   ];
   
   const INCOME_COLORS = [
-    '#37B24D', '#40C057', '#51CF66', '#69DB7C', '#8CE99A',
-    '#63E6BE', '#20C997', '#12B886', '#0CA678', '#099268'
+    '#10b981', '#059669', '#047857', '#065f46', '#064e3b',
+    '#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63'
   ];
   
   // Calcular totais

@@ -58,12 +58,28 @@ interface CategoryData {
   percentage: number;
 }
 
-// Tooltip customizado mais moderno
+// Tooltip customizado com glassmorphism e identidade visual
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg p-3 shadow-lg">
-        <p className="text-gray-800 font-semibold text-sm mb-2">{label}</p>
+      <div 
+        className="rounded-lg border p-3 shadow-xl"
+        style={{
+          background: 'rgba(49, 81, 139, 0.95)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          backdropFilter: 'blur(20px)',
+          color: '#ffffff'
+        }}
+      >
+        <p 
+          className="font-semibold text-sm mb-2"
+          style={{
+            color: '#ffffff',
+            fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+          }}
+        >
+          {label}
+        </p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center justify-between gap-3 text-sm">
             <div className="flex items-center gap-2">
@@ -71,9 +87,22 @@ const CustomTooltip = ({ active, payload, label }: any) => {
                 className="w-3 h-3 rounded-full" 
                 style={{ backgroundColor: entry.color }}
               />
-              <span className="text-gray-600">{entry.name}:</span>
+              <span 
+                style={{
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+                }}
+              >
+                {entry.name}:
+              </span>
             </div>
-            <span className="font-semibold text-gray-800">
+            <span 
+              className="font-semibold"
+              style={{
+                color: '#ffffff',
+                fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+              }}
+            >
               R$ {entry.value?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </span>
           </div>
@@ -84,13 +113,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-// Cores mais modernas
-const BLUE_COLORS = {
-  primary: '#3b82f6',
-  secondary: '#06b6d4',
-  accent: '#8b5cf6',
-  light: '#60a5fa',
-  dark: '#1d4ed8'
+// Cores da identidade visual do app
+const APP_COLORS = {
+  primary: '#31518b',
+  secondary: '#ffffff',
+  accent: '#3b82f6',
+  success: '#10b981',
+  danger: '#ef4444',
+  warning: '#f59e0b'
 };
 
 export default function ModernCharts() {
@@ -185,31 +215,60 @@ export default function ModernCharts() {
     return (
       <div className="space-y-6">
         {/* Gráfico principal */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+        <div 
+          className="rounded-lg border p-6 shadow-xl"
+          style={{
+            background: 'rgba(49, 81, 139, 0.95)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            backdropFilter: 'blur(20px)'
+          }}
+        >
           <div className="text-center mb-6">
-            <h4 className="text-lg font-bold text-gray-800 mb-1">📈 Evolução Financeira</h4>
-            <p className="text-gray-600 text-sm">Crescimento mensal das suas finanças</p>
+            <h4 
+              className="text-lg font-bold mb-1"
+              style={{
+                color: '#ffffff',
+                fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+              }}
+            >
+              📈 Evolução Financeira
+            </h4>
+            <p 
+              className="text-sm"
+              style={{
+                color: 'rgba(255, 255, 255, 0.7)',
+                fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+              }}
+            >
+              Crescimento mensal das suas finanças
+            </p>
           </div>
 
           <ResponsiveContainer width="100%" height={350}>
             <AreaChart data={monthlyData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
               <defs>
                 <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
+                  <stop offset="5%" stopColor="#ffffff" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#ffffff" stopOpacity={0.05}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.2)" />
               <XAxis 
                 dataKey="month" 
-                stroke="#6b7280" 
+                stroke="rgba(255, 255, 255, 0.7)" 
                 fontSize={11}
-                tick={{ fill: '#6b7280' }}
+                tick={{ 
+                  fill: 'rgba(255, 255, 255, 0.7)',
+                  fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+                }}
               />
               <YAxis 
-                stroke="#6b7280" 
+                stroke="rgba(255, 255, 255, 0.7)" 
                 fontSize={11}
-                tick={{ fill: '#6b7280' }}
+                tick={{ 
+                  fill: 'rgba(255, 255, 255, 0.7)',
+                  fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+                }}
                 tickFormatter={(value) => value >= 1000 ? `R$${(value/1000).toFixed(0)}k` : `R$${value}`}
                 width={60}
               />
@@ -217,7 +276,7 @@ export default function ModernCharts() {
               <Area 
                 type="monotone" 
                 dataKey="balance" 
-                stroke="#3b82f6" 
+                stroke="#ffffff" 
                 strokeWidth={3}
                 fill="url(#balanceGradient)" 
                 name="Saldo"
@@ -232,30 +291,75 @@ export default function ModernCharts() {
   const renderCategoryChart = () => {
     if (categoryData.length === 0) {
       return (
-        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+        <div 
+          className="text-center py-12 rounded-lg border"
+          style={{
+            background: 'rgba(49, 81, 139, 0.95)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            backdropFilter: 'blur(20px)'
+          }}
+        >
           <div className="text-6xl mb-4">📊</div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-3">Nenhuma despesa encontrada</h3>
-          <p className="text-gray-500">Adicione algumas transações para ver a análise por categorias</p>
+          <h3 
+            className="text-xl font-semibold mb-3"
+            style={{
+              color: '#ffffff',
+              fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+            }}
+          >
+            Nenhuma despesa encontrada
+          </h3>
+          <p 
+            style={{
+              color: 'rgba(255, 255, 255, 0.7)',
+              fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+            }}
+          >
+            Adicione algumas transações para ver a análise por categorias
+          </p>
         </div>
       );
     }
 
     const totalValue = categoryData.reduce((sum, item) => sum + item.value, 0);
     const CATEGORY_COLORS = [
-      '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', 
+      '#ffffff', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', 
       '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'
     ];
 
     return (
       <div className="space-y-6">
-        {/* Container principal com fundo branco */}
+        {/* Container principal com glassmorphism */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Gráfico de pizza */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          <div 
+            className="rounded-lg border p-6 shadow-xl"
+            style={{
+              background: 'rgba(49, 81, 139, 0.95)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(20px)'
+            }}
+          >
             <div className="text-center mb-4">
-              <h4 className="text-lg font-bold text-gray-800 mb-1">💰 Distribuição de Gastos</h4>
-              <p className="text-gray-600 text-sm">Visualização por categorias</p>
+              <h4 
+                className="text-lg font-bold mb-1"
+                style={{
+                  color: '#ffffff',
+                  fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+                }}
+              >
+                💰 Distribuição de Gastos
+              </h4>
+              <p 
+                className="text-sm"
+                style={{
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+                }}
+              >
+                Visualização por categorias
+              </p>
             </div>
             
             <ResponsiveContainer width="100%" height={320}>
@@ -284,11 +388,12 @@ export default function ModernCharts() {
                     'Valor gasto'
                   ]}
                   contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
+                    background: 'rgba(49, 81, 139, 0.95)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
                     borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                    color: '#374151'
+                    backdropFilter: 'blur(20px)',
+                    color: '#ffffff',
+                    fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
                   }}
                 />
               </PieChart>
@@ -296,16 +401,43 @@ export default function ModernCharts() {
             
             {/* Valor total central */}
             <div className="text-center mt-4">
-              <div className="text-sm text-gray-600">Total Gasto</div>
-              <div className="text-2xl font-bold text-gray-800">
+              <div 
+                className="text-sm"
+                style={{
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+                }}
+              >
+                Total Gasto
+              </div>
+              <div 
+                className="text-2xl font-bold"
+                style={{
+                  color: '#ffffff',
+                  fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+                }}
+              >
                 R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </div>
             </div>
           </div>
 
           {/* Lista de categorias */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-            <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <div 
+            className="rounded-lg border p-6 shadow-xl"
+            style={{
+              background: 'rgba(49, 81, 139, 0.95)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(20px)'
+            }}
+          >
+            <h4 
+              className="text-lg font-bold mb-4 flex items-center gap-2"
+              style={{
+                color: '#ffffff',
+                fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+              }}
+            >
               <span>📊</span>
               Detalhamento por Categoria
             </h4>
@@ -396,61 +528,80 @@ export default function ModernCharts() {
   const renderComparisonChart = () => (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={monthlyData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.2)" />
         <XAxis 
           dataKey="month" 
-          stroke="#6b7280" 
+          stroke="rgba(255, 255, 255, 0.7)" 
           fontSize={10} 
-          tick={{ fill: '#6b7280' }}
+          tick={{ 
+            fill: 'rgba(255, 255, 255, 0.7)',
+            fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+          }}
         />
         <YAxis 
-          stroke="#6b7280" 
+          stroke="rgba(255, 255, 255, 0.7)" 
           fontSize={10} 
-          tick={{ fill: '#6b7280' }}
+          tick={{ 
+            fill: 'rgba(255, 255, 255, 0.7)',
+            fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+          }}
           tickFormatter={(value) => `R$${(value/1000).toFixed(0)}k`}
           width={50}
         />
         <Tooltip content={<CustomTooltip />} />
-        <Bar dataKey="income" fill={BLUE_COLORS.primary} name="Receitas" />
-        <Bar dataKey="expenses" fill={BLUE_COLORS.secondary} name="Despesas" />
+        <Bar dataKey="income" fill={APP_COLORS.success} name="Receitas" />
+        <Bar dataKey="expenses" fill={APP_COLORS.danger} name="Despesas" />
       </BarChart>
     </ResponsiveContainer>
   );
 
   return (
     <div className="space-y-6">
-      {/* Seletor de gráfico simplificado */}
-      <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-lg p-3 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+      {/* Seletor de gráfico com identidade visual */}
+      <div 
+        className="rounded-lg p-3 shadow-xl border"
+        style={{
+          background: 'rgba(49, 81, 139, 0.95)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          backdropFilter: 'blur(20px)'
+        }}
+      >
         <div className="grid grid-cols-3 gap-2">
           <button
             onClick={() => setSelectedChart('trend')}
-            className={`p-2 rounded-md text-center transition-all duration-200 ${
-              selectedChart === 'trend'
-                ? 'bg-blue-500 text-white shadow-sm'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
+            className="p-2 rounded-md text-center transition-all duration-200"
+            style={{
+              background: selectedChart === 'trend' ? '#ffffff' : 'rgba(255, 255, 255, 0.1)',
+              color: selectedChart === 'trend' ? '#31518b' : '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+            }}
           >
             <div className="text-base mb-1">📈</div>
             <div className="text-xs font-medium">Evolução</div>
           </button>
           <button
             onClick={() => setSelectedChart('categories')}
-            className={`p-2 rounded-md text-center transition-all duration-200 ${
-              selectedChart === 'categories'
-                ? 'bg-blue-500 text-white shadow-sm'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
+            className="p-2 rounded-md text-center transition-all duration-200"
+            style={{
+              background: selectedChart === 'categories' ? '#ffffff' : 'rgba(255, 255, 255, 0.1)',
+              color: selectedChart === 'categories' ? '#31518b' : '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+            }}
           >
             <div className="text-base mb-1">🎯</div>
             <div className="text-xs font-medium">Categorias</div>
           </button>
           <button
             onClick={() => setSelectedChart('comparison')}
-            className={`p-2 rounded-md text-center transition-all duration-200 ${
-              selectedChart === 'comparison'
-                ? 'bg-blue-500 text-white shadow-sm'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
+            className="p-2 rounded-md text-center transition-all duration-200"
+            style={{
+              background: selectedChart === 'comparison' ? '#ffffff' : 'rgba(255, 255, 255, 0.1)',
+              color: selectedChart === 'comparison' ? '#31518b' : '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+            }}
           >
             <div className="text-base mb-1">⚖️</div>
             <div className="text-xs font-medium">Versus</div>
@@ -459,15 +610,38 @@ export default function ModernCharts() {
       </div>
 
       {/* Container dos gráficos */}
-      <Card className="overflow-hidden">
+      <Card 
+        className="overflow-hidden shadow-xl"
+        style={{
+          background: 'rgba(49, 81, 139, 0.95)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          backdropFilter: 'blur(20px)'
+        }}
+      >
         <CardContent className="p-0">
           {selectedChart === 'trend' && renderTrendChart()}
           {selectedChart === 'categories' && renderCategoryChart()}
           {selectedChart === 'comparison' && (
             <div className="p-6">
               <div className="text-center mb-6">
-                <h4 className="text-lg font-bold text-gray-800 mb-1">⚖️ Receitas vs Despesas</h4>
-                <p className="text-gray-600 text-sm">Comparação mensal</p>
+                <h4 
+                  className="text-lg font-bold mb-1"
+                  style={{
+                    color: '#ffffff',
+                    fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+                  }}
+                >
+                  ⚖️ Receitas vs Despesas
+                </h4>
+                <p 
+                  className="text-sm"
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+                  }}
+                >
+                  Comparação mensal
+                </p>
               </div>
               {renderComparisonChart()}
             </div>

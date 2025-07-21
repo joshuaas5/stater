@@ -100,24 +100,48 @@ const SpendingChart: React.FC<SpendingChartProps> = memo(({ transactions, days }
   }, [chartData]);
 
   return (
-    <div className="flex min-h-[200px] flex-1 flex-col gap-4 py-4" ref={chartRef}>
-      <div className="flex items-center justify-between">
-        <h3 className="text-white text-lg font-semibold">Evolução do Saldo - Últimos {days} dias</h3>
-        <p className="text-white/70 text-sm">
+    <div 
+      className="flex min-h-[200px] flex-1 flex-col gap-4 py-4" 
+      ref={chartRef}
+      style={{
+        background: 'rgba(49, 81, 139, 0.95)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        borderRadius: '16px',
+        backdropFilter: 'blur(20px)'
+      }}
+    >
+      <div className="flex items-center justify-between px-4">
+        <h3 
+          className="text-lg font-semibold"
+          style={{
+            color: '#ffffff',
+            fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif',
+            fontWeight: 600
+          }}
+        >
+          Evolução do Saldo - Últimos {days} dias
+        </h3>
+        <p 
+          className="text-sm"
+          style={{
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+          }}
+        >
           {`Saldo atual: ${formatCurrency(currentBalance)}`}
         </p>
       </div>
-      <div className="h-[160px] w-full">
+      <div className="h-[160px] w-full px-4">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData}>
             <Tooltip content={<CustomTooltip />} />
             <Line 
               type="monotone" 
               dataKey="balance" 
-              stroke="#3b82f6" 
+              stroke="#ffffff" 
               strokeWidth={3} 
-              dot={{ fill: '#3b82f6', r: 3 }}
-              activeDot={{ r: 6, fill: '#1d4ed8', stroke: '#ffffff', strokeWidth: 2 }}
+              dot={{ fill: '#ffffff', r: 3 }}
+              activeDot={{ r: 6, fill: '#ffffff', stroke: '#31518b', strokeWidth: 2 }}
             />
           </LineChart>
         </ResponsiveContainer>
@@ -131,27 +155,59 @@ const CustomTooltip = memo(({ active, payload, label }: any) => {
     const dataPoint = payload[0].payload;
     
     return (
-      <div className={cn(
-        "rounded-lg border bg-white/95 backdrop-blur p-3 shadow-xl",
-        "dark:bg-gray-800/95 dark:text-gray-50 dark:border-gray-600",
-        "border-blue-200"
-      )}>
-        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">
+      <div 
+        className="rounded-lg border p-3 shadow-xl"
+        style={{
+          background: 'rgba(49, 81, 139, 0.95)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          backdropFilter: 'blur(20px)',
+          color: '#ffffff'
+        }}
+      >
+        <p 
+          className="text-sm font-semibold mb-1"
+          style={{
+            color: '#ffffff',
+            fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+          }}
+        >
           {dataPoint.formattedDate}
         </p>
-        <p className="text-sm text-gray-700 dark:text-gray-300">
+        <p 
+          className="text-sm"
+          style={{
+            color: 'rgba(255, 255, 255, 0.9)',
+            fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+          }}
+        >
           <span className="font-medium">Saldo:</span> {formatCurrency(payload[0].value)}
         </p>
         {dataPoint.dayChange !== 0 && (
-          <p className={cn(
-            "text-sm font-medium",
-            dataPoint.dayChange > 0 ? "text-green-600" : "text-red-600"
-          )}>
-            <span className="font-normal text-gray-600 dark:text-gray-400">Mudança:</span> {dataPoint.dayChange > 0 ? '+' : ''}{formatCurrency(dataPoint.dayChange)}
+          <p 
+            className="text-sm font-medium"
+            style={{
+              color: dataPoint.dayChange > 0 ? '#10b981' : '#ef4444',
+              fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+            }}
+          >
+            <span 
+              style={{ 
+                color: 'rgba(255, 255, 255, 0.7)',
+                fontWeight: 'normal' 
+              }}
+            >
+              Mudança:
+            </span> {dataPoint.dayChange > 0 ? '+' : ''}{formatCurrency(dataPoint.dayChange)}
           </p>
         )}
         {!dataPoint.hasTransactionsToday && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <p 
+            className="text-xs mt-1"
+            style={{
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+            }}
+          >
             Sem transações neste dia
           </p>
         )}

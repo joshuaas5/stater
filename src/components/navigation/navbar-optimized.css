@@ -1,22 +1,24 @@
 /* Otimizações de performance para NavBar */
 .navbar-optimized {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
   height: 64px;
-  z-index: 999; /* Reduzido do valor extremo */
+  z-index: 999;
   background: #31518b;
-  backdrop-filter: blur(5px); /* Reduzido de 20px para 5px */
+  backdrop-filter: blur(5px);
   border-top: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2); /* Sombra simplificada */
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
   display: flex;
-  overscroll-behavior: none; /* Previne bouncing */
-  /* ADICIONADO: Forçar posição fixa */
+  overscroll-behavior: none;
+  /* CRÍTICO: Forçar posição fixa com transform correto */
   transform: translateZ(0) !important;
-  will-change: auto;
+  will-change: transform;
+  /* Garantir que não seja removido por outros elementos */
+  contain: layout;
 }
 
 .navbar-content {
@@ -98,25 +100,24 @@
 /* Otimizações específicas para mobile - ULTRA-PERFORMANCE */
 @media (max-width: 768px) {
   .navbar-optimized {
-    /* Removendo completamente o backdrop-filter em mobile */
-    backdrop-filter: none !important;
-    /* Removendo completamente a sombra em mobile */
-    box-shadow: none !important;
-    /* Reduzindo altura para maior área útil */
-    height: 56px;
-    /* Garantindo que não haja transform ou effects */
-    transform: none !important;
-    will-change: auto !important;
-    /* Usar hardware acceleration com moderação */
-    -webkit-transform: translate3d(0, 0, 0);
-    /* Simplificar ao máximo o visual */
+    /* CRÍTICO: Manter posição fixa mesmo em mobile */
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    /* Manter transform para hardware acceleration */
+    transform: translateZ(0) !important;
+    will-change: transform !important;
+    /* Simplificar visuais mantendo funcionalidade */
+    backdrop-filter: none;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    height: 60px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   .navbar-content {
-    height: 56px;
+    height: 60px;
     padding: 0.25rem 0.25rem;
-    /* Garantir que não haja margin excessiva */
     margin: 0;
   }
   

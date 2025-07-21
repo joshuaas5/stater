@@ -114,11 +114,12 @@ const NavBar: React.FC = () => {
   
   // Remove transform from html/body/root to garantir que o fixed seja relativo ao viewport
   useEffect(() => {
-    // Adicionamos overscroll-behavior para prevenir bounce/rubber-banding
+    // CRÍTICO: Garantir que nada interfira com a posição fixa da navbar
     const html = document.documentElement;
     const body = document.body;
     const root = document.getElementById('root');
     
+    // Garantir que a navbar sempre seja fixa
     if (html) {
       html.style.transform = 'none';
       html.style.overscrollBehavior = 'none';
@@ -126,11 +127,20 @@ const NavBar: React.FC = () => {
     if (body) {
       body.style.transform = 'none';
       body.style.overscrollBehavior = 'none';
-      body.style.overflowX = 'hidden'; // Previne scroll horizontal
+      body.style.overflowX = 'hidden';
+      // ADICIONADO: Padding bottom para compensar navbar fixa
+      body.style.paddingBottom = '64px';
     }
     if (root) {
       root.style.transform = 'none';
     }
+    
+    // Cleanup ao desmontar
+    return () => {
+      if (body) {
+        body.style.paddingBottom = '';
+      }
+    };
   }, []);
   
   // ADICIONADO: Detector de scroll para otimizar renderização durante rolagem
@@ -194,9 +204,9 @@ const NavBar: React.FC = () => {
     });
   }, [navItems, throttledPathname, handleNavigation, preloadOnHover]);
 
-  // ALTERADO: Remover portal e renderizar diretamente
+  // ALTERADO: Remover portal e renderizar diretamente com classe fixa garantida
   return (
-    <nav className={`navbar-optimized ${isScrolling ? 'navbar-scrolling' : ''}`}>
+    <nav className={`navbar-optimized navbar-fixed-bottom ${isScrolling ? 'navbar-scrolling' : ''}`}>
       <div className="navbar-content">
         {memoizedNavItems}
       </div>

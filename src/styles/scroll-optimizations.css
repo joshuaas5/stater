@@ -6,11 +6,20 @@ html, body, #root {
   overscroll-behavior: none !important;
   /* Impedir scroll horizontal indesejado */
   overflow-x: hidden;
-  /* Garantir nenhuma transformação ou efeito que afete o posicionamento fixo */
+  /* CRÍTICO: Permitir que elementos filhos usem position:fixed sem interferência */
   transform: none !important;
   will-change: auto !important;
   /* Prevenir momentum scrolling excessivo em iOS */
   -webkit-overflow-scrolling: auto;
+}
+
+/* EXCEÇÃO CRÍTICA: Navbar deve manter sua posição fixa */
+.navbar-optimized {
+  /* Sobrescrever qualquer regra global que interfira */
+  position: fixed !important;
+  bottom: 0 !important;
+  transform: translateZ(0) !important;
+  will-change: transform !important;
 }
 
 /* === Otimizações para conteúdo scrollável === */

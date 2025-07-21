@@ -2404,7 +2404,7 @@ return (
         color: 'white',
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: '80px', // Espaço para o chat fixo no bottom
+        paddingBottom: '75px', // Espaço para o chat fixo no bottom - reduzido de 80px
         overflow: 'hidden',
         position: 'relative'
       }}
@@ -2515,7 +2515,7 @@ return (
           width: '100%',
           padding: '0 20px',
           paddingTop: '90px', // Espaço para header fixo
-          paddingBottom: '100px', // Espaço para ChatInput (80px) + espaço mínimo
+          paddingBottom: '85px', // Espaço para ChatInput reduzido de 100px para 85px
           boxSizing: 'border-box',
           minHeight: 'calc(100vh - 90px)' // Ajustado para header fixo
         }}
@@ -2536,8 +2536,8 @@ return (
             justifyContent: 'center',
             maxWidth: '900px',
             width: '100%',
-            padding: '16px',
-            margin: '0 auto 8px auto'
+            padding: '12px',
+            margin: '0 auto 2px auto'
           }}>
             {initialSuggestions.map((sug: string, sugIndex: number) => (
               <button

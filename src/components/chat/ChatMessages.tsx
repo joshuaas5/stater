@@ -83,7 +83,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
               }
             `}
           >
-            <div className={`text-sm leading-relaxed whitespace-pre-wrap prose dark:prose-invert ${message.sender === 'system' ? 'mb-4 space-y-2' : ''}`}>
+            <div className={`text-sm leading-relaxed whitespace-pre-wrap prose dark:prose-invert ${message.sender === 'system' ? 'mb-2 space-y-2' : ''}`}>
               <ReactMarkdown>
                 {message.text || ''}
               </ReactMarkdown>

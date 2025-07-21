@@ -62,33 +62,37 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
   return (
     <Dialog open={isOpen && !acceptComplete} onOpenChange={onClose}>
       <DialogContent 
-        className="w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] p-0 flex flex-col fixed top-[5vh] left-[2.5vw]"
+        className="w-screen h-screen max-w-none max-h-none p-0 m-0 flex flex-col fixed inset-0"
         style={{ 
           background: 'rgba(49, 81, 139, 0.98)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          borderRadius: '16px',
+          border: 'none',
+          borderRadius: '0',
           color: '#ffffff',
           fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif',
-          zIndex: 9999
+          zIndex: 9999,
+          transform: 'none'
         }}
       >
         <DialogHeader 
-          className="p-4 pb-2 flex-shrink-0 border-b border-white/20"
+          className="p-4 pb-2 flex-shrink-0 border-b border-white/20 safe-top"
           style={{
             background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)'
+            backdropFilter: 'blur(10px)',
+            paddingTop: 'max(16px, env(safe-area-inset-top))'
           }}
         >
           <DialogTitle 
-            className="text-lg md:text-xl font-bold text-center text-white px-2 py-1 rounded-sm" 
+            className="text-base md:text-xl font-bold text-center text-white px-2 py-1 rounded-sm" 
             style={{ 
               color: '#ffffff',
               textShadow: '0 2px 10px rgba(0,0,0,0.3)',
-              fontWeight: 600
+              fontWeight: 600,
+              fontSize: '18px',
+              lineHeight: '1.3'
             }}
           >
-            Termos de Uso e Política de Privacidade - Stater
+            Termos de Uso e Política de Privacidade
           </DialogTitle>
         </DialogHeader>
         
@@ -251,9 +255,10 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           </div>
 
           <div 
-            className="flex flex-col gap-3 p-3 rounded-md"
+            className="flex flex-col gap-3 p-4 rounded-md safe-bottom"
             style={{
-              background: 'rgba(255, 255, 255, 0.05)'
+              background: 'rgba(255, 255, 255, 0.05)',
+              paddingBottom: 'max(16px, env(safe-area-inset-bottom))'
             }}
           >
             <Button 

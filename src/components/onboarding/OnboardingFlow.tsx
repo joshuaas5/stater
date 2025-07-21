@@ -99,18 +99,42 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
   const step = onboardingSteps[currentStep];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <Card className="w-full max-w-sm sm:max-w-md mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4"
+      style={{
+        background: 'rgba(0, 0, 0, 0.8)',
+        backdropFilter: 'blur(8px)'
+      }}
+    >
+      <Card 
+        className="w-full max-w-sm sm:max-w-md mx-auto rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto"
+        style={{
+          background: 'rgba(49, 81, 139, 0.95)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif'
+        }}
+      >
         {/* Header com progresso */}
-        <div className="p-4 sm:p-6 pb-3 sm:pb-4">
+        <div 
+          className="p-4 sm:p-6 pb-3 sm:pb-4"
+          style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+          }}
+        >
           <div className="flex justify-between items-center mb-3 sm:mb-4">
             <div className="flex space-x-1.5 sm:space-x-2">
               {onboardingSteps.map((_, index) => (
                 <div
                   key={index}
                   className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-colors ${
-                    index <= currentStep ? 'bg-blue-500' : 'bg-gray-300'
+                    index <= currentStep ? 'bg-white' : 'bg-white/30'
                   }`}
+                  style={{
+                    backgroundColor: index <= currentStep ? '#ffffff' : 'rgba(255, 255, 255, 0.3)'
+                  }}
                 />
               ))}
             </div>
@@ -118,7 +142,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
               variant="ghost"
               size="sm"
               onClick={handleSkip}
-              className="text-gray-500 hover:text-gray-700 text-xs sm:text-sm px-2 py-1"
+              className="text-white/70 hover:text-white hover:bg-white/20 text-xs sm:text-sm px-2 py-1"
+              style={{
+                color: 'rgba(255, 255, 255, 0.7)',
+                fontWeight: 500
+              }}
             >
               Pular
             </Button>
@@ -138,13 +166,31 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
 
           {/* Títulos */}
           <div className="text-center mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">
+            <h2 
+              className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2"
+              style={{
+                color: '#ffffff',
+                textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                fontWeight: 600
+              }}
+            >
               {step.title}
             </h2>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-600 mb-2 sm:mb-3">
+            <h3 
+              className="text-base sm:text-lg font-semibold text-white/80 mb-2 sm:mb-3"
+              style={{
+                color: 'rgba(255, 255, 255, 0.8)',
+                fontWeight: 500
+              }}
+            >
               {step.subtitle}
             </h3>
-            <p className="text-sm sm:text-base text-gray-500 leading-relaxed px-2">
+            <p 
+              className="text-sm sm:text-base text-white/70 leading-relaxed px-2"
+              style={{
+                color: 'rgba(255, 255, 255, 0.7)'
+              }}
+            >
               {step.description}
             </p>
           </div>
@@ -154,10 +200,28 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
             {step.features.map((feature, index) => (
               <div
                 key={index}
-                className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gray-50 rounded-lg"
+                className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)'
+                }}
               >
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full flex-shrink-0" />
-                <span className="text-sm sm:text-base text-gray-700 font-medium">{feature}</span>
+                <div 
+                  className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0"
+                  style={{
+                    backgroundColor: '#3b82f6'
+                  }}
+                />
+                <span 
+                  className="text-sm sm:text-base font-medium"
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    fontWeight: 500
+                  }}
+                >
+                  {feature}
+                </span>
               </div>
             ))}
           </div>
@@ -166,7 +230,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
           <div className="space-y-3">
             <Button
               onClick={handleNext}
-              className="w-full py-2.5 sm:py-3 text-base sm:text-lg font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
+              className="w-full py-2.5 sm:py-3 text-base sm:text-lg font-semibold text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
+              style={{
+                background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: '#ffffff',
+                fontWeight: 600
+              }}
             >              {currentStep === onboardingSteps.length - 1 ? (
                 <>
                   🚀 Transformar Minhas Finanças!
@@ -180,14 +250,24 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
             </Button>
 
             {currentStep === onboardingSteps.length - 1 && (
-              <div className="text-center pt-3 sm:pt-4 border-t border-gray-200">
-                <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3">
+              <div 
+                className="text-center pt-3 sm:pt-4 border-t"
+                style={{
+                  borderColor: 'rgba(255, 255, 255, 0.2)'
+                }}
+              >
+                <p 
+                  className="text-xs sm:text-sm mb-2 sm:mb-3"
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.8)'
+                  }}
+                >
                   🎉 Pronto para começar sua jornada financeira!
                 </p>
-                <div className="flex flex-col space-y-1 sm:space-y-2 text-xs text-gray-400">
-                  <span>📱 App otimizado para mobile</span>
-                  <span>🔒 Seus dados estão seguros</span>
-                  <span>🚀 Interface simples e intuitiva</span>
+                <div className="flex flex-col space-y-1 sm:space-y-2 text-xs">
+                  <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>📱 App otimizado para mobile</span>
+                  <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>🔒 Seus dados estão seguros</span>
+                  <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>🚀 Interface simples e intuitiva</span>
                 </div>
               </div>
             )}

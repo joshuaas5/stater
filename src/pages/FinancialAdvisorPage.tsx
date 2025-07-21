@@ -2415,7 +2415,7 @@ return (
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '12px 30px',
+          padding: '16px 30px',
           background: '#31518b !important',
           borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
           position: 'fixed',
@@ -2423,13 +2423,13 @@ return (
           left: 0,
           right: 0,
           zIndex: 1001,
-          height: '60px',
+          height: '70px',
           backdropFilter: 'none !important',
           WebkitBackdropFilter: 'none !important'
         }}
       >        <h1 
           style={{
-            fontSize: '24px',
+            fontSize: '26px',
             fontWeight: 800,
             color: '#ffffff',
             fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
@@ -2514,10 +2514,10 @@ return (
           margin: '0 auto',
           width: '100%',
           padding: '0 20px',
-          paddingTop: '80px', // Espaço para header fixo
+          paddingTop: '90px', // Espaço para header fixo
           paddingBottom: '90px', // Espaço adequado para input fixo
           boxSizing: 'border-box',
-          minHeight: 'calc(100vh - 80px)' // Ajustado para header fixo
+          minHeight: 'calc(100vh - 90px)' // Ajustado para header fixo
         }}
       >        {/* Chat Messages */}
         <ChatMessages
@@ -3105,15 +3105,15 @@ return (
           }          /* Responsividade melhorada */
           @media (max-width: 768px) {
             .header {
-              padding: 10px 15px !important;
-              height: 50px !important;
+              padding: 12px 15px !important;
+              height: 60px !important;
             }
             .header h1 {
-              font-size: 18px !important;
+              font-size: 20px !important;
             }
             .chat-container {
               padding: 0 15px !important;
-              padding-top: 70px !important;
+              padding-top: 80px !important;
               padding-bottom: 85px !important;
             }
             .chat-messages {
@@ -3130,15 +3130,15 @@ return (
           
           @media (max-width: 480px) {
             .header {
-              padding: 8px 12px !important;
-              height: 45px !important;
+              padding: 10px 12px !important;
+              height: 55px !important;
             }
             .header h1 {
-              font-size: 16px !important;
+              font-size: 18px !important;
             }
             .chat-container {
               padding: 0 12px !important;
-              padding-top: 65px !important;
+              padding-top: 75px !important;
               padding-bottom: 80px !important;
             }
             

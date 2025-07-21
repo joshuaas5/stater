@@ -236,10 +236,10 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
           disabled={disabled || isProcessing}
-          title={audioState.isRecording ? `Gravando... ${formatTime(audioState.recordingTime)} - Solte para parar` : "🎤 Manter pressionado para gravar"}
+          title={audioState.isRecording ? `Gravando... ${formatTime(audioState.recordingTime)} - Solte para parar` : "🎤 Toque para gravar"}
           style={{
-            width: '58px',
-            height: '58px',
+            width: '44px',
+            height: '44px',
             background: audioState.isRecording 
               ? 'rgba(239, 68, 68, 0.3)' 
               : 'rgba(255, 255, 255, 0.15)',

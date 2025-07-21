@@ -7,7 +7,7 @@ import NavBar from '@/components/navigation/NavBar';
 
 // Lazy load dos componentes pesados
 const ModernCharts = lazy(() => import('@/components/dashboard/ModernCharts'));
-const FinancialHealthScoreCard = lazy(() => import('@/components/personal_analysis/FinancialHealthScoreCard'));
+const ScientificFinancialHealth = lazy(() => import('@/components/dashboard/ScientificFinancialHealth'));
 const FinancialInsights = lazy(() => import('@/components/dashboard/FinancialInsights'));
 const BookOfTheWeek = lazy(() => import('@/components/personal_analysis/BookOfTheWeek'));
 
@@ -158,8 +158,8 @@ const FinancialAnalysisPage: React.FC = () => {
           {/* Tab: Saúde Financeira */}
           <TabsContent value="health" className="space-y-4">
             <ComponentErrorBoundary>
-              <Suspense fallback={<LoadingCard title="análise de saúde financeira" />}>
-                <FinancialHealthScoreCard />
+              <Suspense fallback={<LoadingCard title="análise científica de saúde financeira" />}>
+                <ScientificFinancialHealth />
               </Suspense>
             </ComponentErrorBoundary>
           </TabsContent>

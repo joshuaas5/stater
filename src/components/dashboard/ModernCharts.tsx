@@ -123,14 +123,18 @@ const ModernCharts: React.FC = () => {
     return null;
   };
 
-  const ChartCard: React.FC<{ children: React.ReactNode; title: string; className?: string }> = ({ 
+  const ChartCard: React.FC<{ children: React.ReactNode; title: string; description?: string; className?: string }> = ({ 
     children, 
     title, 
+    description,
     className = "" 
   }) => (
     <Card className={`bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm ${className}`}>
       <CardHeader>
         <CardTitle className="text-gray-800 dark:text-gray-200 text-lg font-semibold">{title}</CardTitle>
+        {description && (
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{description}</p>
+        )}
       </CardHeader>
       <CardContent>
         {children}
@@ -276,20 +280,56 @@ const ModernCharts: React.FC = () => {
 
       {/* Gráficos */}
       {selectedChart === 'trend' && (
-        <ChartCard title="Evolução Financeira Mensal">
+        <ChartCard 
+          title="📈 Evolução Financeira Mensal" 
+          description="Acompanhe o crescimento das suas receitas e despesas ao longo dos últimos 6 meses. As áreas mostram o volume financeiro e as tendências de cada categoria."
+        >
           {renderTrendChart()}
+          <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: BLUE_COLORS.primary }}></div>
+              <span className="text-gray-600 dark:text-gray-400">Receitas (Entradas de dinheiro)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: BLUE_COLORS.secondary }}></div>
+              <span className="text-gray-600 dark:text-gray-400">Despesas (Saídas de dinheiro)</span>
+            </div>
+          </div>
         </ChartCard>
       )}
 
       {selectedChart === 'categories' && (
-        <ChartCard title="Gastos por Categoria">
+        <ChartCard 
+          title="🎯 Distribuição de Gastos por Categoria"
+          description="Visualize onde seu dinheiro é mais gasto. Cada fatia representa uma categoria de despesa com sua respectiva porcentagem do total."
+        >
           {renderCategoryChart()}
+          <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+            <p>Cada cor representa uma categoria diferente de gasto.</p>
+            <p>Os percentuais mostram a proporção de cada categoria no total de despesas.</p>
+          </div>
         </ChartCard>
       )}
 
       {selectedChart === 'comparison' && (
-        <ChartCard title="Receitas vs Despesas">
+        <ChartCard 
+          title="⚖️ Comparativo: Receitas vs Despesas"
+          description="Compare mês a mês suas entradas e saídas de dinheiro. Barras azuis mais altas que as escuras indicam meses lucrativos."
+        >
           {renderComparisonChart()}
+          <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: BLUE_COLORS.primary }}></div>
+              <span className="text-gray-600 dark:text-gray-400">Receitas - Dinheiro que entrou</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: BLUE_COLORS.secondary }}></div>
+              <span className="text-gray-600 dark:text-gray-400">Despesas - Dinheiro que saiu</span>
+            </div>
+          </div>
+          <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm text-blue-800 dark:text-blue-200">
+            <strong>💡 Dica:</strong> Quando a barra azul clara (receitas) for maior que a azul escura (despesas), você teve lucro no mês!
+          </div>
         </ChartCard>
       )}
     </div>

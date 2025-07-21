@@ -144,36 +144,36 @@ const PreferencesPage: React.FC = () => {
   };
   
   return (
-    <div className="bg-galileo-background min-h-screen flex flex-col items-center pb-20">
+    <div className="min-h-screen flex flex-col items-center pb-20" style={{ background: '#31518b', color: 'white' }}>
       <div className="w-full max-w-md p-4 space-y-6">
-      <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
-        <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
-          <UserCircle2 size={18} className="mr-2" /> {t('aboutYourAccount')}
+      <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
+        <h2 className="text-base font-semibold text-white mb-3 flex items-center">
+          <UserCircle2 size={18} className="mr-2 text-white" /> {t('aboutYourAccount')}
         </h2>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-galileo-text">Nome de usuário</span>
-            <span className="text-galileo-secondaryText font-medium">{getCurrentUser()?.username}</span>
+            <span className="text-white/80">Nome de usuário</span>
+            <span className="text-white font-medium">{getCurrentUser()?.username}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-galileo-text">Email</span>
-            <span className="text-galileo-secondaryText font-medium">{getCurrentUser()?.email}</span>
+            <span className="text-white/80">Email</span>
+            <span className="text-white font-medium">{getCurrentUser()?.email}</span>
           </div>
         </div>
       </div>
-        <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
-          <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
-            <Paintbrush size={18} className="mr-2" /> {t('theme')}
+        <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
+          <h2 className="text-base font-semibold text-white mb-3 flex items-center">
+            <Paintbrush size={18} className="mr-2 text-white" /> {t('theme')}
           </h2>
           <div className="flex space-x-4">
-            <Button variant={theme === 'light' ? 'default' : 'outline'} onClick={() => handleThemeChange('light')} className="flex-1 flex items-center justify-center"><Sun size={16} className="mr-1" />{t('light')}</Button>
-            <Button variant={theme === 'dark' ? 'default' : 'outline'} onClick={() => handleThemeChange('dark')} className="flex-1 flex items-center justify-center"><Moon size={16} className="mr-1" />{t('dark')}</Button>
+            <Button variant={theme === 'light' ? 'default' : 'outline'} onClick={() => handleThemeChange('light')} className="flex-1 flex items-center justify-center bg-white/10 border-white/20 text-white hover:bg-white/20"><Sun size={16} className="mr-1" />{t('light')}</Button>
+            <Button variant={theme === 'dark' ? 'default' : 'outline'} onClick={() => handleThemeChange('dark')} className="flex-1 flex items-center justify-center bg-white/10 border-white/20 text-white hover:bg-white/20"><Moon size={16} className="mr-1" />{t('dark')}</Button>
           </div>
         </div>
 
-        <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5 mb-4">
-          <h2 className="text-base font-semibold text-galileo-text mb-3 flex items-center">
-            <Bell size={18} className="mr-2" /> {t('notifications')}
+        <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
+          <h2 className="text-base font-semibold text-white mb-3 flex items-center">
+            <Bell size={18} className="mr-2 text-white" /> {t('notifications')}
           </h2>
           
           <div className="space-y-4">

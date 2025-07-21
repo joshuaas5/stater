@@ -3,13 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Transaction, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
 import { getCurrentUser, getTransactions, updateTransaction, deleteTransaction } from '@/utils/localStorage';
 import { getRecurringTransactionsStats, calculateNextOccurrence } from '@/utils/recurringProcessor';
+import { TransactionModal } from '@/components/modals/TransactionModal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { 
   ArrowLeft, 
@@ -28,6 +25,7 @@ const RecurringTransactionsPage: React.FC = () => {
   const [recurringTransactions, setRecurringTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Carregar dados
   const loadData = () => {
@@ -52,22 +50,28 @@ const RecurringTransactionsPage: React.FC = () => {
   // Editar transação recorrente
   const handleEditRecurring = (transaction: Transaction) => {
     setEditingTransaction(transaction);
+    setIsModalOpen(true);
   };
 
   // Salvar edição da transação recorrente
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async (updatedTransaction: Partial<Transaction>) => {
     if (!editingTransaction) return;
 
     try {
       // Recalcular a próxima ocorrência baseada nas novas configurações
-      const updatedTransaction = {
+      const finalTransaction = {
         ...editingTransaction,
-        nextOccurrence: calculateNextOccurrence(editingTransaction)
+        ...updatedTransaction,
+        nextOccurrence: calculateNextOccurrence({
+          ...editingTransaction,
+          ...updatedTransaction
+        } as Transaction)
       };
       
-      updateTransaction(updatedTransaction);
+      updateTransaction(finalTransaction as Transaction);
       loadData();
       setEditingTransaction(null);
+      setIsModalOpen(false);
       
       toast({
         title: "Transação atualizada!",
@@ -366,183 +370,18 @@ const RecurringTransactionsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal de Edição */}
-      <Dialog open={!!editingTransaction} onOpenChange={() => setEditingTransaction(null)}>
-        <DialogContent className="sm:max-w-[425px] bg-white/10 backdrop-blur-xl border border-white/20 text-white">
-          <DialogHeader>
-            <DialogTitle 
-              className="text-white"
-              style={{
-                fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px, rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
-                filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 2px 4px)',
-                WebkitTextStroke: '0.5px rgba(0, 0, 0, 0.3)'
-              }}
-            >
-              Editar Transação Recorrente
-            </DialogTitle>
-          </DialogHeader>
-          
-          {editingTransaction && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right text-white/80">
-                  Título
-                </Label>
-                <Input
-                  id="title"
-                  value={editingTransaction.title}
-                  onChange={(e) => setEditingTransaction({
-                    ...editingTransaction,
-                    title: e.target.value
-                  })}
-                  className="col-span-3 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="amount" className="text-right text-white/80">
-                  Valor
-                </Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  value={editingTransaction.amount}
-                  onChange={(e) => setEditingTransaction({
-                    ...editingTransaction,
-                    amount: parseFloat(e.target.value) || 0
-                  })}
-                  className="col-span-3 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right text-white/80">
-                  Categoria
-                </Label>
-                <Select
-                  value={editingTransaction.category || ''}
-                  onValueChange={(value) => setEditingTransaction({
-                    ...editingTransaction,
-                    category: value
-                  })}
-                >
-                  <SelectTrigger className="col-span-3 bg-white/10 border-white/20 text-white">
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white/10 backdrop-blur-xl border-white/20 text-white">
-                    {(editingTransaction.type === 'income' 
-                      ? INCOME_CATEGORIES 
-                      : EXPENSE_CATEGORIES
-                    ).map((category) => (
-                      <SelectItem 
-                        key={category} 
-                        value={category}
-                        className="text-white hover:bg-white/20"
-                      >
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="frequency" className="text-right text-white/80">
-                  Frequência
-                </Label>
-                <Select
-                  value={editingTransaction.recurrenceFrequency || 'monthly'}
-                  onValueChange={(value: 'weekly' | 'monthly' | 'yearly') => setEditingTransaction({
-                    ...editingTransaction,
-                    recurrenceFrequency: value
-                  })}
-                >
-                  <SelectTrigger className="col-span-3 bg-white/10 border-white/20 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white/10 backdrop-blur-xl border-white/20 text-white">
-                    <SelectItem value="weekly" className="text-white hover:bg-white/20">
-                      Semanal
-                    </SelectItem>
-                    <SelectItem value="monthly" className="text-white hover:bg-white/20">
-                      Mensal
-                    </SelectItem>
-                    <SelectItem value="yearly" className="text-white hover:bg-white/20">
-                      Anual
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {editingTransaction.recurrenceFrequency === 'weekly' && (
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="weekday" className="text-right dark:text-gray-300">
-                    Dia da Semana
-                  </Label>
-                  <Select
-                    value={editingTransaction.recurringWeekday?.toString() || '0'}
-                    onValueChange={(value) => setEditingTransaction({
-                      ...editingTransaction,
-                      recurringWeekday: parseInt(value)
-                    })}
-                  >
-                    <SelectTrigger className="col-span-3 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                      <SelectItem value="0" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Domingo</SelectItem>
-                      <SelectItem value="1" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Segunda-feira</SelectItem>
-                      <SelectItem value="2" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Terça-feira</SelectItem>
-                      <SelectItem value="3" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Quarta-feira</SelectItem>
-                      <SelectItem value="4" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Quinta-feira</SelectItem>
-                      <SelectItem value="5" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Sexta-feira</SelectItem>
-                      <SelectItem value="6" className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700">Sábado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              
-              {(editingTransaction.recurrenceFrequency === 'monthly' || editingTransaction.recurrenceFrequency === 'yearly') && (
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="day" className="text-right dark:text-gray-300">
-                    Dia {editingTransaction.recurrenceFrequency === 'monthly' ? 'do Mês' : 'do Ano'}
-                  </Label>
-                  <Input
-                    id="day"
-                    type="number"
-                    min="1"
-                    max={editingTransaction.recurrenceFrequency === 'monthly' ? '31' : '365'}
-                    value={editingTransaction.recurringDay || ''}
-                    onChange={(e) => setEditingTransaction({
-                      ...editingTransaction,
-                      recurringDay: parseInt(e.target.value) || 1
-                    })}
-                    className="col-span-3 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-white/40"
-                  />
-                </div>
-              )}
-              
-              <div className="flex justify-end gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setEditingTransaction(null)}
-                  className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  onClick={handleSaveEdit}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
-                >
-                  Salvar
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Modal de Edição com TransactionModal moderno */}
+      <TransactionModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingTransaction(null);
+        }}
+        transaction={editingTransaction}
+        type={editingTransaction?.type || 'expense'}
+        onSave={handleSaveEdit}
+        categories={editingTransaction?.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES}
+      />
     </div>
   );
 };

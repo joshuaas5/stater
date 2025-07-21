@@ -2515,7 +2515,7 @@ return (
           width: '100%',
           padding: '0 20px',
           paddingTop: '90px', // Espaço para header fixo
-          paddingBottom: '140px', // Espaço para ChatInput (80px) + sugestões (60px)
+          paddingBottom: '100px', // Espaço para ChatInput (80px) + espaço mínimo
           boxSizing: 'border-box',
           minHeight: 'calc(100vh - 90px)' // Ajustado para header fixo
         }}
@@ -2537,7 +2537,7 @@ return (
             maxWidth: '900px',
             width: '100%',
             padding: '16px',
-            margin: '0 auto 20px auto'
+            margin: '0 auto 8px auto'
           }}>
             {initialSuggestions.map((sug: string, sugIndex: number) => (
               <button

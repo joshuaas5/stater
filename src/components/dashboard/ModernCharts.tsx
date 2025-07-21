@@ -184,41 +184,6 @@ export default function ModernCharts() {
 
     return (
       <div className="space-y-6">
-        {/* Cards de métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-            <div className="text-green-600 text-lg mb-1">💰</div>
-            <div className="text-2xl font-bold text-gray-800">
-              R$ {maxIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </div>
-            <div className="text-gray-500 text-sm">Maior Receita</div>
-          </div>
-          
-          <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-            <div className="text-red-500 text-lg mb-1">💸</div>
-            <div className="text-2xl font-bold text-gray-800">
-              R$ {maxExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </div>
-            <div className="text-gray-500 text-sm">Maior Despesa</div>
-          </div>
-          
-          <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-            <div className="text-blue-600 text-lg mb-1">📊</div>
-            <div className="text-2xl font-bold text-gray-800">
-              R$ {maxBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </div>
-            <div className="text-gray-500 text-sm">Melhor Saldo</div>
-          </div>
-          
-          <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-            <div className="text-purple-600 text-lg mb-1">📈</div>
-            <div className="text-2xl font-bold text-gray-800">
-              {totalGrowth > 0 ? '+' : ''}{totalGrowth.toFixed(1)}%
-            </div>
-            <div className="text-gray-500 text-sm">Crescimento</div>
-          </div>
-        </div>
-
         {/* Gráfico principal */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
           <div className="text-center mb-6">

@@ -19,6 +19,31 @@ import { getTransactions } from '@/utils/localStorage';
 import { formatCurrency } from '@/utils/dataProcessing';
 import { Transaction } from '@/types';
 
+// CSS para scrollbar customizada
+const customScrollbarStyles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+  }
+`;
+
+// Injetar os estilos
+if (typeof document !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = customScrollbarStyles;
+  document.head.appendChild(styleElement);
+}
+
 interface ChartData {
   month: string;
   income: number;
@@ -136,140 +161,297 @@ const ModernCharts: React.FC = () => {
     </Card>
   );
 
-  // Gráfico de evolução financeira totalmente reformulado e inteligente
+  // Gráfico de evolução financeira inspirado em psicologia financeira
   const renderTrendChart = () => {
     const maxValue = Math.max(
       ...monthlyData.map(d => Math.max(d.income, d.expenses))
     );
 
+    // Análise comportamental dos dados
+    const behavioralAnalysis = monthlyData.map((data, index) => {
+      const balance = data.income - data.expenses;
+      const spendingRatio = data.expenses / (data.income || 1);
+      
+      let emotionalState = 'equilibrado';
+      let financialWellness = 50;
+      
+      if (balance > 1000) {
+        emotionalState = 'disciplinado';
+        financialWellness = 85;
+      } else if (balance > 0) {
+        emotionalState = 'controlado';
+        financialWellness = 70;
+      } else if (balance > -500) {
+        emotionalState = 'atento';
+        financialWellness = 40;
+      } else {
+        emotionalState = 'preocupado';
+        financialWellness = 25;
+      }
+      
+      return {
+        ...data,
+        balance,
+        spendingRatio,
+        emotionalState,
+        financialWellness,
+        category: balance > 500 ? 'Poupador' : balance > 0 ? 'Equilibrado' : 'Gastador'
+      };
+    });
+
+    const CustomTooltip = ({ active, payload, label }: any) => {
+      if (active && payload && payload.length) {
+        const data = behavioralAnalysis.find(item => item.month === label);
+        if (!data) return null;
+        
+        return (
+          <div className="bg-black/80 backdrop-blur-xl p-5 rounded-xl border-2 border-blue-400/50 shadow-2xl">
+            <p className="text-blue-400 font-bold text-lg mb-3">{`📅 ${label} - Perfil Financeiro`}</p>
+            <div className="space-y-2">
+              <p className="text-green-400 flex items-center gap-2">
+                <span>💰</span>
+                {`Receitas: R$ ${data.income.toLocaleString('pt-BR')}`}
+              </p>
+              <p className="text-red-400 flex items-center gap-2">
+                <span>💸</span>
+                {`Despesas: R$ ${data.expenses.toLocaleString('pt-BR')}`}
+              </p>
+              <p className={`${data.balance >= 0 ? 'text-green-400' : 'text-red-400'} flex items-center gap-2`}>
+                <span>⚖️</span>
+                {`Saldo: R$ ${data.balance.toLocaleString('pt-BR')}`}
+              </p>
+              <hr className="border-gray-600 my-2"/>
+              <p className="text-yellow-400 flex items-center gap-2">
+                <span>😊</span>
+                {`Estado: ${data.emotionalState}`}
+              </p>
+              <p className="text-orange-400 flex items-center gap-2">
+                <span>🧠</span>
+                {`Bem-estar: ${data.financialWellness}%`}
+              </p>
+              <p className="text-purple-400 flex items-center gap-2">
+                <span>🎯</span>
+                {`Perfil: ${data.category}`}
+              </p>
+            </div>
+          </div>
+        );
+      }
+      return null;
+    };
+
+    const getEmotionalColor = (state: string) => {
+      const colors: { [key: string]: string } = {
+        'disciplinado': '#10b981',
+        'controlado': '#3b82f6', 
+        'equilibrado': '#06b6d4',
+        'atento': '#f59e0b',
+        'preocupado': '#ef4444'
+      };
+      return colors[state] || '#6b7280';
+    };
+
     return (
-      <div className="space-y-6">
-        {/* Métricas principais */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
-            <div className="text-green-700 font-semibold text-sm">Total Receitas</div>
-            <div className="text-2xl font-bold text-green-800">
-              R$ {monthlyData.reduce((sum, d) => sum + d.income, 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-            </div>
-            <div className="text-xs text-green-600 mt-1">Últimos 6 meses</div>
+      <div className="relative space-y-6">
+        {/* Background com gradiente animado */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-indigo-800/5 rounded-xl"></div>
+        
+        <div className="relative space-y-6">
+          {/* Header com glassmorphism */}
+          <div className="text-center bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 p-4">
+            <h1 className="text-2xl font-bold text-white drop-shadow-lg mb-2">
+              🧠 Psicologia dos Seus Gastos
+            </h1>
+            <p className="text-white/70">
+              Análise Comportamental Baseada em Inteligência Financeira
+            </p>
           </div>
-          
-          <div className="bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-lg border border-red-200">
-            <div className="text-red-700 font-semibold text-sm">Total Despesas</div>
-            <div className="text-2xl font-bold text-red-800">
-              R$ {monthlyData.reduce((sum, d) => sum + d.expenses, 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-            </div>
-            <div className="text-xs text-red-600 mt-1">Últimos 6 meses</div>
-          </div>
-          
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
-            <div className="text-blue-700 font-semibold text-sm">Saldo Total</div>
-            <div className={`text-2xl font-bold ${monthlyData.reduce((sum, d) => sum + d.balance, 0) >= 0 ? 'text-green-800' : 'text-red-800'}`}>
-              R$ {monthlyData.reduce((sum, d) => sum + d.balance, 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-            </div>
-            <div className="text-xs text-blue-600 mt-1">Lucro/Prejuízo</div>
-          </div>
-        </div>
 
-        {/* Gráfico de barras moderno */}
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
-            <defs>
-              <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
-                <stop offset="100%" stopColor="#059669" stopOpacity={1}/>
-              </linearGradient>
-              <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#ef4444" stopOpacity={1}/>
-                <stop offset="100%" stopColor="#dc2626" stopOpacity={1}/>
-              </linearGradient>
-            </defs>
+          {/* Métricas principais com glassmorphism */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-white/10 backdrop-blur-xl rounded-xl border border-green-400/30 p-4 hover:bg-white/15 transition-all">
+              <div className="text-green-400 font-semibold text-sm mb-1 flex items-center gap-2">
+                <span>💰</span>
+                Total Receitas
+              </div>
+              <div className="text-2xl font-bold text-white drop-shadow-sm">
+                R$ {monthlyData.reduce((sum, d) => sum + d.income, 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+              </div>
+              <div className="text-xs text-green-300 mt-1">Últimos 6 meses</div>
+            </div>
             
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
+            <div className="bg-white/10 backdrop-blur-xl rounded-xl border border-red-400/30 p-4 hover:bg-white/15 transition-all">
+              <div className="text-red-400 font-semibold text-sm mb-1 flex items-center gap-2">
+                <span>💸</span>
+                Total Despesas
+              </div>
+              <div className="text-2xl font-bold text-white drop-shadow-sm">
+                R$ {monthlyData.reduce((sum, d) => sum + d.expenses, 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+              </div>
+              <div className="text-xs text-red-300 mt-1">Últimos 6 meses</div>
+            </div>
             
-            <XAxis 
-              dataKey="month" 
-              stroke="#64748b" 
-              fontSize={12} 
-              tickLine={false}
-              axisLine={false}
-              tick={{ fill: '#64748b', fontWeight: 500 }}
-            />
-            
-            <YAxis 
-              stroke="#64748b" 
-              fontSize={11} 
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => value >= 1000 ? `R$${(value/1000).toFixed(0)}k` : `R$${value}`}
-              tick={{ fill: '#64748b' }}
-              width={60}
-            />
-            
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(0, 0, 0, 0.1)',
-                borderRadius: '12px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-                padding: '12px'
-              }}
-              formatter={(value: number, name: string) => [
-                `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-                name === 'income' ? '💰 Receitas' : '💸 Despesas'
-              ]}
-              labelFormatter={(label) => `📅 ${label}`}
-            />
-            
-            <Legend 
-              verticalAlign="top" 
-              height={36} 
-              iconType="rect"
-              wrapperStyle={{ paddingBottom: '20px' }}
-            />
-            
-            <Bar 
-              dataKey="income" 
-              name="💰 Receitas"
-              fill="url(#incomeGradient)"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={60}
-            />
-            
-            <Bar 
-              dataKey="expenses" 
-              name="💸 Despesas"
-              fill="url(#expenseGradient)"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={60}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+            <div className="bg-white/10 backdrop-blur-xl rounded-xl border border-blue-400/30 p-4 hover:bg-white/15 transition-all">
+              <div className="text-blue-400 font-semibold text-sm mb-1 flex items-center gap-2">
+                <span>⚖️</span>
+                Saldo Total
+              </div>
+              <div className={`text-2xl font-bold drop-shadow-sm ${monthlyData.reduce((sum, d) => sum + d.balance, 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                R$ {monthlyData.reduce((sum, d) => sum + d.balance, 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+              </div>
+              <div className="text-xs text-blue-300 mt-1">Lucro/Prejuízo</div>
+            </div>
+          </div>
 
-        {/* Análise inteligente */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="font-semibold text-gray-800 mb-2">📊 Análise Inteligente</h4>
-          <div className="space-y-2 text-sm text-gray-600">
-            {(() => {
-              const totalIncome = monthlyData.reduce((sum, d) => sum + d.income, 0);
-              const totalExpenses = monthlyData.reduce((sum, d) => sum + d.expenses, 0);
-              const avgIncome = totalIncome / monthlyData.length;
-              const avgExpenses = totalExpenses / monthlyData.length;
-              const profitableMonths = monthlyData.filter(d => d.balance > 0).length;
-              
-              return (
-                <>
-                  <p>• Você teve <strong>{profitableMonths}</strong> meses com saldo positivo dos últimos 6 meses</p>
-                  <p>• Sua receita média mensal é de <strong>R$ {avgIncome.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong></p>
-                  <p>• Seus gastos médios mensais são de <strong>R$ {avgExpenses.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong></p>
-                  <p>• {totalIncome > totalExpenses ? 
-                    `✅ Parabéns! Você economizou R$ ${(totalIncome - totalExpenses).toLocaleString('pt-BR', {minimumFractionDigits: 2})} no período` :
-                    `⚠️ Atenção: Você gastou R$ ${(totalExpenses - totalIncome).toLocaleString('pt-BR', {minimumFractionDigits: 2})} a mais do que ganhou`
-                  }</p>
-                </>
-              );
-            })()}
+          {/* Gráfico principal com glassmorphism */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 p-6">
+            <h3 className="text-white font-bold text-xl mb-4 flex items-center gap-2 drop-shadow-sm">
+              <span>📊</span>
+              Evolução Comportamental dos Gastos
+            </h3>
+            
+            <ResponsiveContainer width="100%" height={450}>
+              <AreaChart data={behavioralAnalysis} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
+                <defs>
+                  <linearGradient id="incomeGradientNew" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                    <stop offset="50%" stopColor="#10b981" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="expenseGradientNew" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
+                    <stop offset="50%" stopColor="#ef4444" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                  </linearGradient>
+                </defs>
+                
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#9ca3af" 
+                  fontSize={12}
+                  tick={{ fill: '#e5e7eb' }}
+                />
+                
+                <YAxis 
+                  stroke="#9ca3af" 
+                  fontSize={11}
+                  tickFormatter={(value) => value >= 1000 ? `R$${(value/1000).toFixed(0)}k` : `R$${value}`}
+                  tick={{ fill: '#e5e7eb' }}
+                  width={60}
+                />
+                
+                <Tooltip content={<CustomTooltip />} />
+                
+                {/* Áreas de receitas e despesas */}
+                <Area 
+                  type="monotone" 
+                  dataKey="income" 
+                  stackId="1"
+                  stroke="#10b981" 
+                  fill="url(#incomeGradientNew)"
+                  strokeWidth={3}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="expenses" 
+                  stackId="2"
+                  stroke="#ef4444" 
+                  fill="url(#expenseGradientNew)"
+                  strokeWidth={3}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Timeline emocional */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 p-6">
+            <h3 className="text-white font-bold text-xl mb-4 flex items-center gap-2 drop-shadow-sm">
+              <span>😊</span>
+              Estados Emocionais vs Gastos
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              {behavioralAnalysis.map((data, index) => {
+                const total = data.income + data.expenses;
+                return (
+                  <div key={index} className="bg-white/5 backdrop-blur-md rounded-lg p-4 border border-white/10 hover:bg-white/10 transition-all group">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div 
+                          className="w-4 h-4 rounded-full border border-white/30"
+                          style={{ backgroundColor: getEmotionalColor(data.emotionalState) }}
+                        ></div>
+                        <div>
+                          <p className="text-white font-semibold drop-shadow-sm">{data.month}</p>
+                          <p className="text-white/70 text-sm">{data.emotionalState}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <p className="text-white/90 font-mono text-sm">
+                        R$ {data.balance.toLocaleString('pt-BR')}
+                      </p>
+                      <div className="flex items-center space-x-1">
+                        <div className={`w-2 h-2 rounded-full ${data.financialWellness > 70 ? 'bg-green-400' : data.financialWellness > 50 ? 'bg-yellow-400' : 'bg-red-400'}`}></div>
+                        <p className="text-white/60 text-xs">{data.financialWellness}% bem-estar</p>
+                      </div>
+                      <p className="text-white/50 text-xs">{data.category}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Insights de IA com glassmorphism */}
+          <div className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 backdrop-blur-xl rounded-xl p-6 border border-indigo-400/30">
+            <div className="flex items-center mb-4">
+              <span className="text-3xl mr-3">🤖</span>
+              <h3 className="text-indigo-300 font-bold text-xl drop-shadow-sm">Insights da IA Comportamental</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(() => {
+                const totalIncome = monthlyData.reduce((sum, d) => sum + d.income, 0);
+                const totalExpenses = monthlyData.reduce((sum, d) => sum + d.expenses, 0);
+                const avgBalance = behavioralAnalysis.reduce((sum, d) => sum + d.balance, 0) / behavioralAnalysis.length;
+                const positiveMonths = behavioralAnalysis.filter(d => d.balance > 0).length;
+                const avgWellness = behavioralAnalysis.reduce((sum, d) => sum + d.financialWellness, 0) / behavioralAnalysis.length;
+                
+                return (
+                  <>
+                    <div className="space-y-3">
+                      <p className="text-white/90 flex items-start gap-2">
+                        <span className="text-yellow-400 text-lg">💡</span>
+                        <span><strong>Padrão Identificado:</strong> Você teve {positiveMonths} meses positivos nos últimos 6 meses</span>
+                      </p>
+                      <p className="text-white/90 flex items-start gap-2">
+                        <span className="text-green-400 text-lg">📈</span>
+                        <span><strong>Bem-estar Médio:</strong> {avgWellness.toFixed(0)}% - {avgWellness > 70 ? 'Excelente controle!' : avgWellness > 50 ? 'Bom controle' : 'Precisa melhorar'}</span>
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <p className="text-white/90 flex items-start gap-2">
+                        <span className="text-purple-400 text-lg">🎯</span>
+                        <span><strong>Saldo Médio:</strong> R$ {avgBalance.toLocaleString('pt-BR')} por mês</span>
+                      </p>
+                      <p className="text-white/90 flex items-start gap-2">
+                        <span className="text-cyan-400 text-lg">🧠</span>
+                        <span><strong>Dica Neural:</strong> {totalIncome > totalExpenses ? 'Continue mantendo esse padrão positivo!' : 'Foque em reduzir gastos impulsivos'}</span>
+                      </p>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
           </div>
         </div>
       </div>
@@ -279,152 +461,234 @@ const ModernCharts: React.FC = () => {
   const renderCategoryChart = () => {
     if (categoryData.length === 0) {
       return (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">📊</div>
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">Nenhuma despesa encontrada</h3>
-          <p className="text-gray-500">Adicione algumas transações para ver a análise por categorias</p>
+        <div className="relative overflow-hidden">
+          {/* Background com gradiente */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-blue-800/20 rounded-xl"></div>
+          
+          {/* Glassmorphism container */}
+          <div className="relative bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 p-12 text-center">
+            <div className="text-6xl mb-4 filter drop-shadow-lg">📊</div>
+            <h3 className="text-xl font-semibold text-white mb-3 drop-shadow-sm">Nenhuma despesa encontrada</h3>
+            <p className="text-white/70">Adicione algumas transações para ver a análise por categorias</p>
+          </div>
         </div>
       );
     }
 
     const totalValue = categoryData.reduce((sum, item) => sum + item.value, 0);
     const CATEGORY_COLORS = [
-      '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', 
-      '#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#84cc16'
+      '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', 
+      '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'
     ];
 
     return (
-      <div className="space-y-6">
-        {/* Gráfico de pizza responsivo */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="flex-1">
-            <ResponsiveContainer width="100%" height={350}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={120}
-                  innerRadius={50}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]}
-                      stroke="#fff"
-                      strokeWidth={2}
+      <div className="relative space-y-6">
+        {/* Background animado */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-indigo-800/10 rounded-xl animate-pulse"></div>
+        
+        <div className="relative space-y-6">
+          {/* Container principal com glassmorphism */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Gráfico de pizza com glassmorphism */}
+            <div className="relative">
+              <div className="bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 p-6 shadow-2xl">
+                <div className="text-center mb-4">
+                  <h4 className="text-lg font-bold text-white drop-shadow-sm">💰 Distribuição de Gastos</h4>
+                  <p className="text-white/70 text-sm">Visualização por categorias</p>
+                </div>
+                
+                <ResponsiveContainer width="100%" height={320}>
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      innerRadius={40}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]}
+                          stroke="rgba(255,255,255,0.3)"
+                          strokeWidth={2}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: number) => [
+                        `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                        'Valor gasto'
+                      ]}
+                      contentStyle={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                        color: 'white'
+                      }}
                     />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value: number) => [
-                    `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-                    'Valor gasto'
-                  ]}
-                  contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: '1px solid rgba(0,0,0,0.1)',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Lista detalhada das categorias */}
-          <div className="flex-1 space-y-3">
-            <h4 className="font-semibold text-gray-800 mb-4">📋 Detalhamento por Categoria</h4>
-            {categoryData.map((category, index) => {
-              const percentage = (category.value / totalValue) * 100;
-              const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
-              
-              return (
-                <div key={category.name} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
-                        style={{ backgroundColor: color }}
-                      />
-                      <span className="font-medium text-gray-800">{category.name}</span>
-                    </div>
-                    <span className="text-sm font-semibold text-gray-600">
-                      {percentage.toFixed(1)}%
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 bg-gray-200 rounded-full h-2 mr-3">
-                      <div 
-                        className="h-2 rounded-full transition-all duration-300"
-                        style={{ 
-                          width: `${percentage}%`,
-                          backgroundColor: color
-                        }}
-                      />
-                    </div>
-                    <span className="text-lg font-bold text-gray-800">
-                      R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
+                  </PieChart>
+                </ResponsiveContainer>
+                
+                {/* Valor total central */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+                  <div className="text-xs text-white/60">Total Gasto</div>
+                  <div className="text-lg font-bold text-white drop-shadow-sm">
+                    R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              </div>
+            </div>
 
-        {/* Estatísticas inteligentes */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
-          <h4 className="font-semibold text-gray-800 mb-3">🧠 Insights Inteligentes</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2 text-sm">
+            {/* Lista detalhada com glassmorphism */}
+            <div className="space-y-3">
+              <div className="bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 p-4 shadow-2xl">
+                <h4 className="font-bold text-white mb-4 drop-shadow-sm flex items-center gap-2">
+                  <span className="text-xl">📋</span>
+                  Detalhamento Inteligente
+                </h4>
+                
+                <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                  {categoryData.map((category, index) => {
+                    const percentage = (category.value / totalValue) * 100;
+                    const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
+                    
+                    return (
+                      <div key={category.name} className="group relative">
+                        {/* Glassmorphism card para cada categoria */}
+                        <div className="bg-white/5 backdrop-blur-md rounded-lg p-4 border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div 
+                                className="w-4 h-4 rounded-full border-2 border-white/30 shadow-lg"
+                                style={{ backgroundColor: color }}
+                              />
+                              <span className="font-semibold text-white drop-shadow-sm">{category.name}</span>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-bold text-white drop-shadow-sm">
+                                {percentage.toFixed(1)}%
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Barra de progresso glassmorphism */}
+                          <div className="mb-2">
+                            <div className="bg-white/10 backdrop-blur-sm rounded-full h-2 overflow-hidden">
+                              <div 
+                                className="h-full rounded-full transition-all duration-700 shadow-sm"
+                                style={{ 
+                                  width: `${percentage}%`,
+                                  background: `linear-gradient(90deg, ${color}, ${color}dd)`
+                                }}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-white/70 text-sm">Valor gasto</span>
+                            <span className="text-lg font-bold text-white drop-shadow-sm">
+                              R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Insights inteligentes com glassmorphism */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 p-6 shadow-2xl">
+            <h4 className="font-bold text-white mb-4 drop-shadow-sm flex items-center gap-2">
+              <span className="text-xl">🧠</span>
+              Insights Inteligentes
+            </h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {(() => {
                 const topCategory = categoryData[0];
                 const secondCategory = categoryData[1];
                 const smallCategories = categoryData.filter(cat => (cat.value / totalValue) * 100 < 5).length;
+                const avgSpending = totalValue / categoryData.length;
                 
                 return (
                   <>
-                    <p className="flex items-center gap-2">
-                      <span className="text-xl">🏆</span>
-                      <span><strong>{topCategory?.name}</strong> é sua maior categoria de gasto ({((topCategory?.value || 0) / totalValue * 100).toFixed(1)}%)</span>
-                    </p>
-                    
+                    {/* Top categoria */}
+                    <div className="bg-white/5 backdrop-blur-md rounded-lg p-4 border border-white/10 hover:bg-white/10 transition-all">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">🏆</span>
+                        <span className="text-white font-semibold drop-shadow-sm">Maior Gasto</span>
+                      </div>
+                      <p className="text-white/80 text-sm mb-1">
+                        <strong className="text-yellow-300">{topCategory?.name}</strong>
+                      </p>
+                      <p className="text-white/60 text-xs">
+                        {((topCategory?.value || 0) / totalValue * 100).toFixed(1)}% do total
+                      </p>
+                    </div>
+
+                    {/* Segunda categoria */}
                     {secondCategory && (
-                      <p className="flex items-center gap-2">
-                        <span className="text-xl">🥈</span>
-                        <span><strong>{secondCategory.name}</strong> vem em segundo lugar ({((secondCategory.value || 0) / totalValue * 100).toFixed(1)}%)</span>
-                      </p>
+                      <div className="bg-white/5 backdrop-blur-md rounded-lg p-4 border border-white/10 hover:bg-white/10 transition-all">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xl">🥈</span>
+                          <span className="text-white font-semibold drop-shadow-sm">Segundo Lugar</span>
+                        </div>
+                        <p className="text-white/80 text-sm mb-1">
+                          <strong className="text-blue-300">{secondCategory.name}</strong>
+                        </p>
+                        <p className="text-white/60 text-xs">
+                          {((secondCategory.value || 0) / totalValue * 100).toFixed(1)}% do total
+                        </p>
+                      </div>
                     )}
-                    
-                    {smallCategories > 0 && (
-                      <p className="flex items-center gap-2">
-                        <span className="text-xl">📌</span>
-                        <span>Você tem <strong>{smallCategories}</strong> categoria(s) com gastos baixos (&lt;5%)</span>
+
+                    {/* Estatísticas */}
+                    <div className="bg-white/5 backdrop-blur-md rounded-lg p-4 border border-white/10 hover:bg-white/10 transition-all">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">�</span>
+                        <span className="text-white font-semibold drop-shadow-sm">Média</span>
+                      </div>
+                      <p className="text-white/80 text-sm mb-1">
+                        <strong className="text-green-300">R$ {avgSpending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
                       </p>
-                    )}
+                      <p className="text-white/60 text-xs">
+                        por categoria
+                      </p>
+                    </div>
                   </>
                 );
               })()}
             </div>
             
-            <div className="space-y-2 text-sm">
-              <div className="bg-white/70 p-3 rounded-lg">
-                <div className="text-xs text-gray-600 mb-1">Gasto médio por categoria</div>
-                <div className="text-xl font-bold text-gray-800">
-                  R$ {(totalValue / categoryData.length).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </div>
+            {/* Dicas inteligentes */}
+            <div className="mt-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg p-4 border border-blue-400/30">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl">💡</span>
+                <span className="text-white font-semibold drop-shadow-sm">Dica Inteligente</span>
               </div>
-              
-              <div className="bg-white/70 p-3 rounded-lg">
-                <div className="text-xs text-gray-600 mb-1">Total de categorias</div>
-                <div className="text-xl font-bold text-gray-800">
-                  {categoryData.length} categorias
-                </div>
-              </div>
+              <p className="text-white/90 text-sm">
+                {(() => {
+                  const topCategory = categoryData[0];
+                  const topPercentage = ((topCategory?.value || 0) / totalValue * 100);
+                  
+                  if (topPercentage > 40) {
+                    return `Sua categoria "${topCategory?.name}" representa ${topPercentage.toFixed(1)}% dos gastos. Considere revisar esses gastos para otimizar seu orçamento.`;
+                  } else if (categoryData.length > 5) {
+                    return `Você tem ${categoryData.length} categorias ativas. Considere consolidar algumas para um controle mais eficiente.`;
+                  } else {
+                    return `Sua distribuição de gastos está bem equilibrada entre ${categoryData.length} categorias. Continue monitorando!`;
+                  }
+                })()}
+              </p>
             </div>
           </div>
         </div>

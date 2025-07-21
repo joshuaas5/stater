@@ -2531,7 +2531,7 @@ return (
         {showSuggestions && memoizedMessages.length > 0 && memoizedMessages[0].sender === 'system' && !pendingAction && (
           <div style={{ 
             position: 'fixed',
-            bottom: '90px', // Posiciona acima do ChatInput (que tem ~80px de altura)
+            bottom: '110px', // Aumentei de 90px para 110px para subir mais
             left: '50%',
             transform: 'translateX(-50%)',
             display: 'flex',

@@ -2515,7 +2515,7 @@ return (
           width: '100%',
           padding: '0 20px',
           paddingTop: '90px', // Espaço para header fixo
-          paddingBottom: '5px', // Reduzido drasticamente de 20px para 5px - elimina completamente o gap gigante
+          paddingBottom: '140px', // Espaço para ChatInput (80px) + sugestões (60px)
           boxSizing: 'border-box',
           minHeight: 'calc(100vh - 90px)' // Ajustado para header fixo
         }}
@@ -2530,12 +2530,17 @@ return (
         {/* Sugestões integradas na primeira mensagem do sistema */}
         {showSuggestions && memoizedMessages.length > 0 && memoizedMessages[0].sender === 'system' && !pendingAction && (
           <div style={{ 
-            padding: '0 20px',
-            marginBottom: '10px', // Reduzido para diminuir o gap
+            position: 'fixed',
+            bottom: '90px', // Posiciona acima do ChatInput (que tem ~80px de altura)
+            left: '50%',
+            transform: 'translateX(-50%)',
             display: 'flex',
             flexWrap: 'wrap',
             gap: '8px',
-            justifyContent: 'center' // Centraliza os botões
+            justifyContent: 'center',
+            maxWidth: '900px',
+            width: '90%',
+            zIndex: 999
           }}>
             {initialSuggestions.map((sug: string, sugIndex: number) => (
               <button

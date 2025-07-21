@@ -206,24 +206,45 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 transaction-modal">
       {/* Backdrop with blur */}
       <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-md transition-opacity duration-300 transaction-modal-backdrop"
+        className="absolute inset-0 backdrop-blur-md transition-opacity duration-300 transaction-modal-backdrop"
+        style={{ background: 'rgba(49, 81, 139, 0.8)' }}
         onClick={onClose}
       />
       
       {/* Modal */}
-      <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 max-h-[85vh] overflow-hidden transaction-modal-content">
+      <div 
+        className="relative w-full max-w-sm rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 max-h-[85vh] overflow-hidden transaction-modal-content"
+        style={{
+          background: 'rgba(49, 81, 139, 0.95)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}
+      >
         {/* Header */}
-        <div className="px-5 py-4 bg-gray-50 border-b border-gray-200 relative overflow-hidden">
+        <div 
+          className="px-5 py-4 border-b relative overflow-hidden"
+          style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            borderColor: 'rgba(255, 255, 255, 0.2)'
+          }}
+        >
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <DollarSign className="h-6 w-6 text-blue-600" />
+              <div 
+                className="p-3 rounded-xl"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
+                <DollarSign className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-800">
+                <h2 className="text-xl font-bold text-white">
                   {isEditing ? 'Editar' : 'Nova'} {isIncome ? 'Entrada' : 'Saída'}
                 </h2>
-                <p className="text-gray-600 text-sm font-medium">
+                <p className="text-white/70 text-sm font-medium">
                   {isIncome ? 'Receita financeira' : 'Despesa ou gasto'}
                 </p>
               </div>
@@ -231,19 +252,22 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             <button
               onClick={onClose}
               disabled={isSubmitting}
-              className="p-2 hover:bg-gray-100 rounded-xl transition-all duration-200 disabled:opacity-50"
+              className="p-2 hover:bg-white/20 rounded-xl transition-all duration-200 disabled:opacity-50"
             >
-              <X className="h-5 w-5 text-gray-600" />
+              <X className="h-5 w-5 text-white" />
             </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-5 space-y-4 overflow-y-auto max-h-[calc(85vh-180px)] transaction-modal-scroll bg-white">
+        <div 
+          className="p-5 space-y-4 overflow-y-auto max-h-[calc(85vh-180px)] transaction-modal-scroll"
+          style={{ background: 'rgba(49, 81, 139, 0.95)' }}
+        >
           {/* Descrição */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Tag className="h-4 w-4 text-gray-600" />
+            <label className="text-sm font-semibold text-white flex items-center gap-2">
+              <Tag className="h-4 w-4 text-white/80" />
               Descrição
             </label>
             <input
@@ -251,16 +275,20 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
               placeholder={`Ex: ${isIncome ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
-              className={`w-full px-4 py-3.5 border-2 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200 outline-none font-medium text-gray-800 placeholder-gray-400 ${
+              className={`w-full px-4 py-3.5 border-2 rounded-xl transition-all duration-200 outline-none font-medium text-white placeholder-white/50 ${
                 errors.title 
-                  ? 'border-red-300 focus:border-red-500 bg-red-50 input-error-shake' 
-                  : 'border-gray-200 focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/10'
+                  ? 'border-red-400 focus:border-red-300 input-error-shake' 
+                  : 'border-white/20 focus:border-white/40 focus:shadow-lg focus:shadow-white/10'
               }`}
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)'
+              }}
               disabled={isSubmitting}
             />
             {errors.title && (
-              <p className="text-red-500 text-xs font-medium flex items-center gap-1">
-                <span className="w-1 h-1 bg-red-500 rounded-full" />
+              <p className="text-red-300 text-xs font-medium flex items-center gap-1">
+                <span className="w-1 h-1 bg-red-300 rounded-full" />
                 {errors.title}
               </p>
             )}
@@ -268,12 +296,12 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
           {/* Valor */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-gray-600" />
+            <label className="text-sm font-semibold text-white flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-white/80" />
               Valor
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-bold text-lg">
+              <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 font-bold text-lg">
                 R$
               </span>
               <input
@@ -283,17 +311,21 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                 value={formData.amount}
                 onChange={(e) => handleInputChange('amount', e.target.value)}
                 placeholder="0,00"
-                className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200 outline-none font-bold text-lg text-gray-800 placeholder-gray-400 ${
+                className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-xl transition-all duration-200 outline-none font-bold text-lg text-white placeholder-white/50 ${
                   errors.amount 
-                    ? 'border-red-300 focus:border-red-500 bg-red-50 input-error-shake' 
-                    : 'border-gray-200 focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/10'
+                    ? 'border-red-400 focus:border-red-300 input-error-shake' 
+                    : 'border-white/20 focus:border-white/40 focus:shadow-lg focus:shadow-white/10'
                 }`}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)'
+                }}
                 disabled={isSubmitting}
               />
             </div>
             {errors.amount && (
-              <p className="text-red-500 text-xs font-medium flex items-center gap-1">
-                <span className="w-1 h-1 bg-red-500 rounded-full" />
+              <p className="text-red-300 text-xs font-medium flex items-center gap-1">
+                <span className="w-1 h-1 bg-red-300 rounded-full" />
                 {errors.amount}
               </p>
             )}
@@ -301,8 +333,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
           {/* Categoria */}
           <div className="space-y-2 relative category-dropdown">
-            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Tag className="h-4 w-4 text-gray-600" />
+            <label className="text-sm font-semibold text-white flex items-center gap-2">
+              <Tag className="h-4 w-4 text-white/80" />
               Categoria
             </label>
             
@@ -311,31 +343,47 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                className={`w-full px-4 py-3.5 border-2 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200 outline-none font-medium text-gray-900 flex items-center justify-between ${
+                className={`w-full px-4 py-3.5 border-2 rounded-xl transition-all duration-200 outline-none font-medium text-white flex items-center justify-between ${
                   errors.category 
-                    ? 'border-red-300 focus:border-red-500 bg-red-50 input-error-shake' 
-                    : 'border-gray-200 focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/10'
+                    ? 'border-red-400 focus:border-red-300 input-error-shake' 
+                    : 'border-white/20 focus:border-white/40 focus:shadow-lg focus:shadow-white/10'
                 }`}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)'
+                }}
                 disabled={isSubmitting}
               >
-                <span className={formData.category ? 'text-gray-900' : 'text-gray-500'}>
+                <span className={formData.category ? 'text-white' : 'text-white/50'}>
                   {formData.category || 'Selecione uma categoria'}
                 </span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-4 w-4 transition-transform text-white/70 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               
               {isCategoryDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-60 overflow-hidden">
+                <div 
+                  className="absolute top-full left-0 right-0 mt-1 border rounded-xl shadow-lg z-50 max-h-60 overflow-hidden"
+                  style={{
+                    background: 'rgba(49, 81, 139, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    borderColor: 'rgba(255, 255, 255, 0.2)'
+                  }}
+                >
                   {/* Campo de busca */}
-                  <div className="p-3 border-b border-gray-100">
+                  <div className="p-3 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}>
                     <div className="relative">
-                      <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" />
                       <input
                         type="text"
                         placeholder="Buscar categoria..."
                         value={categorySearchTerm}
                         onChange={(e) => setCategorySearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-500 outline-none text-gray-900"
+                        className="w-full pl-10 pr-4 py-2 text-sm border rounded-lg focus:border-white/40 outline-none text-white placeholder-white/50"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          backdropFilter: 'blur(10px)',
+                          borderColor: 'rgba(255, 255, 255, 0.2)'
+                        }}
                       />
                     </div>
                   </div>
@@ -352,15 +400,15 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                             setIsCategoryDropdownOpen(false);
                             setCategorySearchTerm('');
                           }}
-                          className={`w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors ${
-                            formData.category === category ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'
+                          className={`w-full px-4 py-2.5 text-left text-sm hover:bg-white/10 transition-colors ${
+                            formData.category === category ? 'bg-white/20 text-white font-medium' : 'text-white/90'
                           }`}
                         >
                           {category}
                         </button>
                       ))
                     ) : (
-                      <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                      <div className="px-4 py-3 text-sm text-white/60 text-center">
                         Nenhuma categoria encontrada
                       </div>
                     )}
@@ -370,20 +418,33 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             </div>
             
             {errors.category && (
-              <p className="text-red-500 text-xs font-medium flex items-center gap-1">
-                <span className="w-1 h-1 bg-red-500 rounded-full" />
+              <p className="text-red-300 text-xs font-medium flex items-center gap-1">
+                <span className="w-1 h-1 bg-red-300 rounded-full" />
                 {errors.category}
               </p>
             )}
           </div>
 
           {/* Recorrência */}
-          <div className="space-y-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+          <div 
+            className="space-y-3 p-4 rounded-xl border"
+            style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
+              borderColor: 'rgba(255, 255, 255, 0.2)'
+            }}
+          >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500 rounded-lg">
+              <div 
+                className="p-2 rounded-lg"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
                 <Repeat className="h-4 w-4 text-white" />
               </div>
-              <span className="font-semibold text-gray-700">Transação Recorrente</span>
+              <span className="font-semibold text-white">Transação Recorrente</span>
             </div>
             
             <div className="flex items-center gap-3">
@@ -392,10 +453,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                 id="recurring"
                 checked={formData.isRecurring}
                 onChange={(e) => handleInputChange('isRecurring', e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-blue-400 rounded focus:ring-blue-300 bg-white/20 border-white/30"
                 disabled={isSubmitting}
               />
-              <label htmlFor="recurring" className="text-sm text-gray-600 font-medium">
+              <label htmlFor="recurring" className="text-sm text-white/90 font-medium">
                 Repetir esta transação automaticamente
               </label>
             </div>
@@ -403,56 +464,71 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             {formData.isRecurring && (
               <div className="space-y-3 mt-3">
                 <div>
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">
+                  <label className="text-xs font-medium text-white/80 mb-1 block">
                     Frequência de Repetição
                   </label>
                   <select
                     value={formData.recurrenceFrequency}
                     onChange={(e) => handleInputChange('recurrenceFrequency', e.target.value)}
-                    className="w-full px-3 py-2 border border-blue-200 rounded-lg bg-white text-sm font-medium focus:border-blue-500 outline-none text-gray-900"
+                    className="w-full px-3 py-2 border rounded-lg text-sm font-medium focus:border-white/40 outline-none text-white"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      backdropFilter: 'blur(10px)',
+                      borderColor: 'rgba(255, 255, 255, 0.2)'
+                    }}
                     disabled={isSubmitting}
                   >
-                    <option value="weekly">Semanal</option>
-                    <option value="monthly">Mensal</option>
-                    <option value="yearly">Anual</option>
+                    <option value="weekly" style={{ background: '#31518b', color: 'white' }}>Semanal</option>
+                    <option value="monthly" style={{ background: '#31518b', color: 'white' }}>Mensal</option>
+                    <option value="yearly" style={{ background: '#31518b', color: 'white' }}>Anual</option>
                   </select>
                 </div>
 
                 {formData.recurrenceFrequency === 'weekly' && (
                   <div>
-                    <label className="text-xs font-medium text-gray-600 mb-1 block">
+                    <label className="text-xs font-medium text-white/80 mb-1 block">
                       Dia da Semana
                     </label>
                     <select
                       value={formData.recurringWeekday}
                       onChange={(e) => handleInputChange('recurringWeekday', parseInt(e.target.value))}
-                      className="w-full px-3 py-2 border border-blue-200 rounded-lg bg-white text-sm font-medium focus:border-blue-500 outline-none text-gray-900"
+                      className="w-full px-3 py-2 border rounded-lg text-sm font-medium focus:border-white/40 outline-none text-white"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        borderColor: 'rgba(255, 255, 255, 0.2)'
+                      }}
                       disabled={isSubmitting}
                     >
-                      <option value={0}>Domingo</option>
-                      <option value={1}>Segunda-feira</option>
-                      <option value={2}>Terça-feira</option>
-                      <option value={3}>Quarta-feira</option>
-                      <option value={4}>Quinta-feira</option>
-                      <option value={5}>Sexta-feira</option>
-                      <option value={6}>Sábado</option>
+                      <option value={0} style={{ background: '#31518b', color: 'white' }}>Domingo</option>
+                      <option value={1} style={{ background: '#31518b', color: 'white' }}>Segunda-feira</option>
+                      <option value={2} style={{ background: '#31518b', color: 'white' }}>Terça-feira</option>
+                      <option value={3} style={{ background: '#31518b', color: 'white' }}>Quarta-feira</option>
+                      <option value={4} style={{ background: '#31518b', color: 'white' }}>Quinta-feira</option>
+                      <option value={5} style={{ background: '#31518b', color: 'white' }}>Sexta-feira</option>
+                      <option value={6} style={{ background: '#31518b', color: 'white' }}>Sábado</option>
                     </select>
                   </div>
                 )}
 
                 {(formData.recurrenceFrequency === 'monthly' || formData.recurrenceFrequency === 'yearly') && (
                   <div>
-                    <label className="text-xs font-medium text-gray-600 mb-1 block">
+                    <label className="text-xs font-medium text-white/80 mb-1 block">
                       Dia do Mês
                     </label>
                     <select
                       value={formData.recurringDay}
                       onChange={(e) => handleInputChange('recurringDay', parseInt(e.target.value))}
-                      className="w-full px-3 py-2 border border-blue-200 rounded-lg bg-white text-sm font-medium focus:border-blue-500 outline-none text-gray-900"
+                      className="w-full px-3 py-2 border rounded-lg text-sm font-medium focus:border-white/40 outline-none text-white"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        borderColor: 'rgba(255, 255, 255, 0.2)'
+                      }}
                       disabled={isSubmitting}
                     >
                       {Array.from({ length: 31 }, (_, i) => (
-                        <option key={i + 1} value={i + 1}>
+                        <option key={i + 1} value={i + 1} style={{ background: '#31518b', color: 'white' }}>
                           Dia {i + 1}
                         </option>
                       ))}
@@ -460,7 +536,13 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                   </div>
                 )}
 
-                <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded-lg">
+                <div 
+                  className="text-xs text-white/90 p-2 rounded-lg"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
                   💡 <strong>Transações recorrentes</strong> serão processadas automaticamente e aparecerão na página de Contas.
                 </div>
               </div>
@@ -469,7 +551,14 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-5 border-t border-gray-100 bg-gray-50/50">
+        <div 
+          className="p-5 border-t"
+          style={{
+            background: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(10px)',
+            borderColor: 'rgba(255, 255, 255, 0.1)'
+          }}
+        >
           <div className="flex gap-3">
             {isEditing && onDelete && (
               <button

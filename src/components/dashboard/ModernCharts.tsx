@@ -16,6 +16,7 @@ import {
   Legend
 } from 'recharts';
 import { getTransactions } from '@/utils/localStorage';
+import { formatCurrency } from '@/utils/dataProcessing';
 import { Transaction } from '@/types';
 
 interface ChartData {
@@ -100,14 +101,6 @@ const ModernCharts: React.FC = () => {
     setCategoryData(categoryArray);
   }, []);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 0
-    }).format(value);
-  };
-
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -143,77 +136,301 @@ const ModernCharts: React.FC = () => {
     </Card>
   );
 
-  // Gráfico de evolução mais claro: AreaChart com gradiente
-  const renderTrendChart = () => (
-    <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={monthlyData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-        <defs>
-          <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={BLUE_COLORS.income} stopOpacity={0.8}/>
-            <stop offset="95%" stopColor={BLUE_COLORS.income} stopOpacity={0}/>
-          </linearGradient>
-          <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={BLUE_COLORS.expense} stopOpacity={0.8}/>
-            <stop offset="95%" stopColor={BLUE_COLORS.expense} stopOpacity={0}/>
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-        <XAxis 
-          dataKey="month" 
-          stroke="#6b7280" 
-          fontSize={12} 
-          tickLine={false}
-          axisLine={false}
-          tick={{ fill: '#6b7280' }}
-        />
-        <YAxis 
-          stroke="#6b7280" 
-          fontSize={12} 
-          tickLine={false}
-          axisLine={false}
-          tickFormatter={(value) => `R$${(value/1000).toFixed(0)}k`}
-          tick={{ fill: '#6b7280' }}
-          width={50}
-        />
-        <Tooltip 
-          contentStyle={{ 
-            backgroundColor: 'rgba(255, 255, 255, 0.8)', 
-            backdropFilter: 'blur(5px)',
-            border: '1px solid rgba(0, 0, 0, 0.1)',
-            borderRadius: '10px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-          }}
-          formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-        />
-        <Legend verticalAlign="top" height={36} iconType="circle"/>
-        <Area type="monotone" dataKey="income" name="Receitas" stroke={BLUE_COLORS.income} fillOpacity={1} fill="url(#colorIncome)" strokeWidth={2} />
-        <Area type="monotone" dataKey="expenses" name="Despesas" stroke={BLUE_COLORS.expense} fillOpacity={1} fill="url(#colorExpense)" strokeWidth={2} />
-      </AreaChart>
-    </ResponsiveContainer>
-  );
+  // Gráfico de evolução financeira totalmente reformulado e inteligente
+  const renderTrendChart = () => {
+    const maxValue = Math.max(
+      ...monthlyData.map(d => Math.max(d.income, d.expenses))
+    );
 
-  const renderCategoryChart = () => (
-    <ResponsiveContainer width="100%" height={300}>
-      <PieChart>
-        <Pie
-          data={categoryData}
-          cx="50%"
-          cy="50%"
-          outerRadius={80}
-          fill={BLUE_COLORS.primary}
-          dataKey="value"
-          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-          labelLine={false}
-          fontSize={10}
-        >
-          {categoryData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-          ))}
-        </Pie>
-        <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-      </PieChart>
-    </ResponsiveContainer>
-  );
+    return (
+      <div className="space-y-6">
+        {/* Métricas principais */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+            <div className="text-green-700 font-semibold text-sm">Total Receitas</div>
+            <div className="text-2xl font-bold text-green-800">
+              R$ {monthlyData.reduce((sum, d) => sum + d.income, 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+            </div>
+            <div className="text-xs text-green-600 mt-1">Últimos 6 meses</div>
+          </div>
+          
+          <div className="bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-lg border border-red-200">
+            <div className="text-red-700 font-semibold text-sm">Total Despesas</div>
+            <div className="text-2xl font-bold text-red-800">
+              R$ {monthlyData.reduce((sum, d) => sum + d.expenses, 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+            </div>
+            <div className="text-xs text-red-600 mt-1">Últimos 6 meses</div>
+          </div>
+          
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+            <div className="text-blue-700 font-semibold text-sm">Saldo Total</div>
+            <div className={`text-2xl font-bold ${monthlyData.reduce((sum, d) => sum + d.balance, 0) >= 0 ? 'text-green-800' : 'text-red-800'}`}>
+              R$ {monthlyData.reduce((sum, d) => sum + d.balance, 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+            </div>
+            <div className="text-xs text-blue-600 mt-1">Lucro/Prejuízo</div>
+          </div>
+        </div>
+
+        {/* Gráfico de barras moderno */}
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
+            <defs>
+              <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
+                <stop offset="100%" stopColor="#059669" stopOpacity={1}/>
+              </linearGradient>
+              <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ef4444" stopOpacity={1}/>
+                <stop offset="100%" stopColor="#dc2626" stopOpacity={1}/>
+              </linearGradient>
+            </defs>
+            
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
+            
+            <XAxis 
+              dataKey="month" 
+              stroke="#64748b" 
+              fontSize={12} 
+              tickLine={false}
+              axisLine={false}
+              tick={{ fill: '#64748b', fontWeight: 500 }}
+            />
+            
+            <YAxis 
+              stroke="#64748b" 
+              fontSize={11} 
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => value >= 1000 ? `R$${(value/1000).toFixed(0)}k` : `R$${value}`}
+              tick={{ fill: '#64748b' }}
+              width={60}
+            />
+            
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(0, 0, 0, 0.1)',
+                borderRadius: '12px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                padding: '12px'
+              }}
+              formatter={(value: number, name: string) => [
+                `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                name === 'income' ? '💰 Receitas' : '💸 Despesas'
+              ]}
+              labelFormatter={(label) => `📅 ${label}`}
+            />
+            
+            <Legend 
+              verticalAlign="top" 
+              height={36} 
+              iconType="rect"
+              wrapperStyle={{ paddingBottom: '20px' }}
+            />
+            
+            <Bar 
+              dataKey="income" 
+              name="💰 Receitas"
+              fill="url(#incomeGradient)"
+              radius={[4, 4, 0, 0]}
+              maxBarSize={60}
+            />
+            
+            <Bar 
+              dataKey="expenses" 
+              name="💸 Despesas"
+              fill="url(#expenseGradient)"
+              radius={[4, 4, 0, 0]}
+              maxBarSize={60}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+
+        {/* Análise inteligente */}
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h4 className="font-semibold text-gray-800 mb-2">📊 Análise Inteligente</h4>
+          <div className="space-y-2 text-sm text-gray-600">
+            {(() => {
+              const totalIncome = monthlyData.reduce((sum, d) => sum + d.income, 0);
+              const totalExpenses = monthlyData.reduce((sum, d) => sum + d.expenses, 0);
+              const avgIncome = totalIncome / monthlyData.length;
+              const avgExpenses = totalExpenses / monthlyData.length;
+              const profitableMonths = monthlyData.filter(d => d.balance > 0).length;
+              
+              return (
+                <>
+                  <p>• Você teve <strong>{profitableMonths}</strong> meses com saldo positivo dos últimos 6 meses</p>
+                  <p>• Sua receita média mensal é de <strong>R$ {avgIncome.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong></p>
+                  <p>• Seus gastos médios mensais são de <strong>R$ {avgExpenses.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong></p>
+                  <p>• {totalIncome > totalExpenses ? 
+                    `✅ Parabéns! Você economizou R$ ${(totalIncome - totalExpenses).toLocaleString('pt-BR', {minimumFractionDigits: 2})} no período` :
+                    `⚠️ Atenção: Você gastou R$ ${(totalExpenses - totalIncome).toLocaleString('pt-BR', {minimumFractionDigits: 2})} a mais do que ganhou`
+                  }</p>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderCategoryChart = () => {
+    if (categoryData.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">📊</div>
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">Nenhuma despesa encontrada</h3>
+          <p className="text-gray-500">Adicione algumas transações para ver a análise por categorias</p>
+        </div>
+      );
+    }
+
+    const totalValue = categoryData.reduce((sum, item) => sum + item.value, 0);
+    const CATEGORY_COLORS = [
+      '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', 
+      '#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#84cc16'
+    ];
+
+    return (
+      <div className="space-y-6">
+        {/* Gráfico de pizza responsivo */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex-1">
+            <ResponsiveContainer width="100%" height={350}>
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={120}
+                  innerRadius={50}
+                  paddingAngle={2}
+                  dataKey="value"
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]}
+                      stroke="#fff"
+                      strokeWidth={2}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value: number) => [
+                    `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                    'Valor gasto'
+                  ]}
+                  contentStyle={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    border: '1px solid rgba(0,0,0,0.1)',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Lista detalhada das categorias */}
+          <div className="flex-1 space-y-3">
+            <h4 className="font-semibold text-gray-800 mb-4">📋 Detalhamento por Categoria</h4>
+            {categoryData.map((category, index) => {
+              const percentage = (category.value / totalValue) * 100;
+              const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
+              
+              return (
+                <div key={category.name} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                        style={{ backgroundColor: color }}
+                      />
+                      <span className="font-medium text-gray-800">{category.name}</span>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-600">
+                      {percentage.toFixed(1)}%
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 bg-gray-200 rounded-full h-2 mr-3">
+                      <div 
+                        className="h-2 rounded-full transition-all duration-300"
+                        style={{ 
+                          width: `${percentage}%`,
+                          backgroundColor: color
+                        }}
+                      />
+                    </div>
+                    <span className="text-lg font-bold text-gray-800">
+                      R$ {category.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Estatísticas inteligentes */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
+          <h4 className="font-semibold text-gray-800 mb-3">🧠 Insights Inteligentes</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2 text-sm">
+              {(() => {
+                const topCategory = categoryData[0];
+                const secondCategory = categoryData[1];
+                const smallCategories = categoryData.filter(cat => (cat.value / totalValue) * 100 < 5).length;
+                
+                return (
+                  <>
+                    <p className="flex items-center gap-2">
+                      <span className="text-xl">🏆</span>
+                      <span><strong>{topCategory?.name}</strong> é sua maior categoria de gasto ({((topCategory?.value || 0) / totalValue * 100).toFixed(1)}%)</span>
+                    </p>
+                    
+                    {secondCategory && (
+                      <p className="flex items-center gap-2">
+                        <span className="text-xl">🥈</span>
+                        <span><strong>{secondCategory.name}</strong> vem em segundo lugar ({((secondCategory.value || 0) / totalValue * 100).toFixed(1)}%)</span>
+                      </p>
+                    )}
+                    
+                    {smallCategories > 0 && (
+                      <p className="flex items-center gap-2">
+                        <span className="text-xl">📌</span>
+                        <span>Você tem <strong>{smallCategories}</strong> categoria(s) com gastos baixos (&lt;5%)</span>
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+            
+            <div className="space-y-2 text-sm">
+              <div className="bg-white/70 p-3 rounded-lg">
+                <div className="text-xs text-gray-600 mb-1">Gasto médio por categoria</div>
+                <div className="text-xl font-bold text-gray-800">
+                  R$ {(totalValue / categoryData.length).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </div>
+              </div>
+              
+              <div className="bg-white/70 p-3 rounded-lg">
+                <div className="text-xs text-gray-600 mb-1">Total de categorias</div>
+                <div className="text-xl font-bold text-gray-800">
+                  {categoryData.length} categorias
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderComparisonChart = () => (
     <ResponsiveContainer width="100%" height={300}>
@@ -283,54 +500,40 @@ const ModernCharts: React.FC = () => {
       {/* Gráficos */}
       {selectedChart === 'trend' && (
         <ChartCard 
-          title="📈 Evolução Financeira Mensal" 
-          description="Acompanhe o crescimento das suas receitas e despesas ao longo dos últimos 6 meses. As áreas mostram o volume financeiro e as tendências de cada categoria."
+          title="📈 Evolução Financeira Inteligente" 
+          description="Análise completa das suas finanças com métricas, gráficos e insights automáticos para você entender melhor seus padrões de receitas e despesas."
         >
           {renderTrendChart()}
-          <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: BLUE_COLORS.primary }}></div>
-              <span className="text-gray-600 dark:text-gray-400">Receitas (Entradas de dinheiro)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: BLUE_COLORS.secondary }}></div>
-              <span className="text-gray-600 dark:text-gray-400">Despesas (Saídas de dinheiro)</span>
-            </div>
-          </div>
         </ChartCard>
       )}
 
       {selectedChart === 'categories' && (
         <ChartCard 
-          title="🎯 Distribuição de Gastos por Categoria"
-          description="Visualize onde seu dinheiro é mais gasto. Cada fatia representa uma categoria de despesa com sua respectiva porcentagem do total."
+          title="🎯 Análise Detalhada de Categorias"
+          description="Visualização completa de onde seu dinheiro é gasto, com gráfico interativo, lista detalhada e insights inteligentes sobre seus padrões de consumo."
         >
           {renderCategoryChart()}
-          <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-            <p>Cada cor representa uma categoria diferente de gasto.</p>
-            <p>Os percentuais mostram a proporção de cada categoria no total de despesas.</p>
-          </div>
         </ChartCard>
       )}
 
       {selectedChart === 'comparison' && (
         <ChartCard 
           title="⚖️ Comparativo: Receitas vs Despesas"
-          description="Compare mês a mês suas entradas e saídas de dinheiro. Barras azuis mais altas que as escuras indicam meses lucrativos."
+          description="Compare mês a mês suas entradas e saídas de dinheiro. Barras verdes mais altas que as vermelhas indicam meses lucrativos."
         >
           {renderComparisonChart()}
           <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: BLUE_COLORS.primary }}></div>
-              <span className="text-gray-600 dark:text-gray-400">Receitas - Dinheiro que entrou</span>
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: BLUE_COLORS.income }}></div>
+              <span className="text-gray-600 dark:text-gray-400">💰 Receitas - Dinheiro que entrou</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: BLUE_COLORS.secondary }}></div>
-              <span className="text-gray-600 dark:text-gray-400">Despesas - Dinheiro que saiu</span>
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: BLUE_COLORS.expense }}></div>
+              <span className="text-gray-600 dark:text-gray-400">💸 Despesas - Dinheiro que saiu</span>
             </div>
           </div>
           <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm text-blue-800 dark:text-blue-200">
-            <strong>💡 Dica:</strong> Quando a barra azul clara (receitas) for maior que a azul escura (despesas), você teve lucro no mês!
+            <strong>💡 Dica:</strong> Quando a barra verde (receitas) for maior que a vermelha (despesas), você teve lucro no mês!
           </div>
         </ChartCard>
       )}

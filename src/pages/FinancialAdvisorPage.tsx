@@ -2527,20 +2527,17 @@ return (
           userAvatar={USER_AVATAR}
         />
 
-        {/* Sugestões integradas na primeira mensagem do sistema */}
+        {/* Sugestões integradas após as mensagens */}
         {showSuggestions && memoizedMessages.length > 0 && memoizedMessages[0].sender === 'system' && !pendingAction && (
           <div style={{ 
-            position: 'fixed',
-            bottom: '110px', // Aumentei de 90px para 110px para subir mais
-            left: '50%',
-            transform: 'translateX(-50%)',
             display: 'flex',
             flexWrap: 'wrap',
             gap: '8px',
             justifyContent: 'center',
             maxWidth: '900px',
-            width: '90%',
-            zIndex: 999
+            width: '100%',
+            padding: '16px',
+            margin: '0 auto 20px auto'
           }}>
             {initialSuggestions.map((sug: string, sugIndex: number) => (
               <button
@@ -2551,9 +2548,9 @@ return (
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '15px',
-                  padding: '6px 12px',
+                  padding: '8px 16px',
                   color: 'white',
-                  fontSize: '13px',
+                  fontSize: '14px',
                   fontWeight: '500',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
@@ -2562,10 +2559,12 @@ return (
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
                   e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
                   e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               >
                 {sug}

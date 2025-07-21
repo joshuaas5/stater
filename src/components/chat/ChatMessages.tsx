@@ -25,7 +25,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
   userAvatar
 }) => {
   return (
-    <div className="flex-1 overflow-y-auto p-2 space-y-2">
+    <div className="flex-1 overflow-y-auto p-1 space-y-1">
       {messages.map((message) => (
         <div
           key={message.id}
@@ -83,7 +83,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
               }
             `}
           >
-            <div className={`text-sm leading-relaxed whitespace-pre-wrap prose dark:prose-invert ${message.sender === 'system' ? 'mb-2 space-y-2' : ''}`}>
+            <div className={`text-sm leading-relaxed whitespace-pre-wrap prose dark:prose-invert ${message.sender === 'system' ? 'mb-1 space-y-1' : ''}`}>
               <ReactMarkdown>
                 {message.text || ''}
               </ReactMarkdown>

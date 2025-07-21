@@ -2404,7 +2404,7 @@ return (
         color: 'white',
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: '75px', // Espaço para o chat fixo no bottom - reduzido de 80px
+        paddingBottom: '65px', // Espaço para o chat fixo no bottom - reduzido drasticamente de 75px
         overflow: 'hidden',
         position: 'relative'
       }}
@@ -2515,7 +2515,7 @@ return (
           width: '100%',
           padding: '0 20px',
           paddingTop: '90px', // Espaço para header fixo
-          paddingBottom: '85px', // Espaço para ChatInput reduzido de 100px para 85px
+          paddingBottom: '70px', // Espaço para ChatInput reduzido drasticamente de 85px para 70px
           boxSizing: 'border-box',
           minHeight: 'calc(100vh - 90px)' // Ajustado para header fixo
         }}
@@ -2532,12 +2532,12 @@ return (
           <div style={{ 
             display: 'flex',
             flexWrap: 'wrap',
-            gap: '8px',
+            gap: '6px',
             justifyContent: 'center',
             maxWidth: '900px',
             width: '100%',
-            padding: '12px',
-            margin: '0 auto 2px auto'
+            padding: '8px',
+            margin: '0 auto 0px auto'
           }}>
             {initialSuggestions.map((sug: string, sugIndex: number) => (
               <button
@@ -2547,10 +2547,10 @@ return (
                   background: 'rgba(255, 255, 255, 0.2)',
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '15px',
-                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  padding: '6px 12px',
                   color: 'white',
-                  fontSize: '14px',
+                  fontSize: '13px',
                   fontWeight: '500',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',

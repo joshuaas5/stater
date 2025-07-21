@@ -2404,7 +2404,7 @@ return (
         color: 'white',
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: '65px', // Espaço para o chat fixo no bottom - reduzido drasticamente de 75px
+        paddingBottom: '59px', // Espaço para o chat fixo no bottom - reduzido em 6px (65px → 59px)
         overflow: 'hidden',
         position: 'relative'
       }}
@@ -2425,7 +2425,8 @@ return (
           zIndex: 1001,
           height: '70px',
           backdropFilter: 'none !important',
-          WebkitBackdropFilter: 'none !important'
+          WebkitBackdropFilter: 'none !important',
+          overflow: 'hidden'
         }}
       >        <h1 
           style={{
@@ -2434,10 +2435,10 @@ return (
             color: '#ffffff',
             fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
             letterSpacing: '1px',
-            textShadow: '2px 2px 0px #3b82f6, 4px 4px 0px #1d4ed8, 0 0 20px rgba(59, 130, 246, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
+            textShadow: '1px 1px 0px #3b82f6, 2px 2px 0px #1d4ed8, 0 0 10px rgba(59, 130, 246, 0.6)',
             textTransform: 'uppercase',
             position: 'relative',
-            filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))',
+            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))',
             margin: 0,
             padding: 0,
             background: 'none',
@@ -2445,7 +2446,9 @@ return (
             border: 'none',
             outline: 'none',
             boxShadow: 'none',
-            display: 'inline-block'
+            display: 'inline-block',
+            overflow: 'visible',
+            clipPath: 'inset(0px 0px -5px 0px)'
           }}
         >
           STATER IA
@@ -2515,7 +2518,7 @@ return (
           width: '100%',
           padding: '0 20px',
           paddingTop: '90px', // Espaço para header fixo
-          paddingBottom: '66px', // Espaço para ChatInput reduzido em 4px (70px → 66px)
+          paddingBottom: '52px', // Espaço para ChatInput reduzido em 14px (66px → 52px)
           boxSizing: 'border-box',
           minHeight: 'calc(100vh - 90px)' // Ajustado para header fixo
         }}

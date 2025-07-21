@@ -1352,23 +1352,21 @@ const Dashboard: React.FC = () => {
         </div>
       
         <div className="px-4 mb-4">
-          <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4">
-            <div className="flex flex-col gap-3">
-              {/* Botão de Filtros Avançados sempre visível */}
-              <div className="flex justify-center">
-                <Button 
-                  onClick={() => setShowDateFilters(!showDateFilters)} 
-                  variant="outline" 
-                  size="sm"
-                  className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg transition-all duration-300"
-                >
-                  {showDateFilters ? 'Ocultar Filtros' : 'Filtros Avançados'}
-                </Button>
-              </div>
+          <div className="flex justify-start">
+            <Button 
+              onClick={() => setShowDateFilters(!showDateFilters)} 
+              variant="outline" 
+              size="sm"
+              className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg transition-all duration-300"
+            >
+              {showDateFilters ? 'Ocultar Filtros' : 'Filtros Avançados'}
+            </Button>
+          </div>
 
-              {/* Container dos filtros - só aparece quando showDateFilters = true */}
-              {showDateFilters && (
-                <div className="flex flex-col gap-3">
+          {/* Container dos filtros - só aparece quando showDateFilters = true */}
+          {showDateFilters && (
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 mt-3">
+              <div className="flex flex-col gap-3">
                   {/* Filtro por nome */}
                   <div className="flex-1">
                     <Input 
@@ -1437,9 +1435,8 @@ const Dashboard: React.FC = () => {
                     </Button>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            )}
         </div>
       
       {(() => {

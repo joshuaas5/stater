@@ -773,8 +773,6 @@ const Dashboard: React.FC = () => {
       style={{
         background: '#31518b',
         fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif',
-        transform: 'translate3d(0,0,0)',
-        willChange: 'transform',
         backfaceVisibility: 'hidden'
       }}
     >
@@ -790,26 +788,19 @@ const Dashboard: React.FC = () => {
               left: i === 0 ? '10%' : i === 1 ? '85%' : '20%',
               top: i === 0 ? '20%' : i === 1 ? '60%' : '70%',
               animation: `float${i + 1} 6s ease-in-out infinite`,
-              animationDelay: `${i * 2}s`,
-              transform: 'translate3d(0,0,0)',
-              willChange: 'transform'
+              animationDelay: `${i * 2}s`
             }}
           />
         ))}
       </div>
       
-      <div className="relative z-10" style={{
-        transform: 'translate3d(0,0,0)',
-        willChange: 'transform'
-      }}>
+      <div className="relative z-10">
         {/* Premium Header */}
         <div 
           className="text-center pt-4 pb-6 px-4 relative"
           style={{
             background: '#31518b',
-            backdropFilter: 'blur(10px)',
-            transform: 'translate3d(0,0,0)',
-            willChange: 'transform'
+            backdropFilter: 'blur(10px)'
           }}
         >
           <div className="absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
@@ -876,16 +867,12 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Premium Balance Section */}
-        <div className="pt-10 pb-9 px-8 text-center relative" style={{
-          transform: 'translate3d(0,0,0)',
-          willChange: 'transform'
-        }}>
+        <div className="pt-10 pb-9 px-8 text-center relative">
           <div className="flex items-center justify-between mb-6">
             <div 
               className="text-white/80 font-medium text-base uppercase tracking-wider"
               style={{ 
-                letterSpacing: '1px',
-                transform: 'translate3d(0,0,0)'
+                letterSpacing: '1px'
               }}
             >
               Saldo da Conta
@@ -949,19 +936,14 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Premium Quick Actions */}
-        <div className="flex px-8 gap-3 mb-4" style={{
-          transform: 'translate3d(0,0,0)',
-          willChange: 'transform'
-        }}>
+        <div className="flex px-8 gap-3 mb-4">
           <button 
             onClick={() => handleAddTransaction('income')}
             className="flex-1 flex items-center justify-center gap-2 py-5 px-3 rounded-2xl text-white font-medium text-sm hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
             style={{
               background: 'linear-gradient(135deg, rgba(46, 204, 113, 0.3), rgba(39, 174, 96, 0.2))',
               backdropFilter: 'blur(15px)',
-              border: '2px solid rgba(46, 204, 113, 0.5)',
-              transform: 'translate3d(0,0,0)',
-              willChange: 'transform'
+              border: '2px solid rgba(46, 204, 113, 0.5)'
             }}
           >
             <span style={{ fontSize: '16px' }}>↗</span>
@@ -973,9 +955,7 @@ const Dashboard: React.FC = () => {
             style={{
               background: 'linear-gradient(135deg, rgba(231, 76, 60, 0.3), rgba(192, 57, 43, 0.2))',
               backdropFilter: 'blur(15px)',
-              border: '2px solid rgba(231, 76, 60, 0.5)',
-              transform: 'translate3d(0,0,0)',
-              willChange: 'transform'
+              border: '2px solid rgba(231, 76, 60, 0.5)'
             }}
           >
             <span style={{ fontSize: '16px' }}>↙</span>

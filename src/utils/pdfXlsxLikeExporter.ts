@@ -149,7 +149,7 @@ export function generateXlsxLikePDF(data: ReportData): Blob {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Página ${i} de ${pageCount} - ICTUS`, pageWidth / 2, 290, { align: 'center' });
+    doc.text(`Página ${i} de ${pageCount} - STATER`, pageWidth / 2, 290, { align: 'center' });
   }
 
   return doc.output('blob');

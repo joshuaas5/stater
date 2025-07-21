@@ -604,7 +604,7 @@ export const generateExcelLikePDF = (data: ReportData): Blob => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor('#FFFFFF'); // Branco para o texto do rodapé
-    doc.text('Relatório gerado por ICTUS - Seu aplicativo de gestão financeira', pageWidth / 2, doc.internal.pageSize.height - 15, { align: 'center' });
+    doc.text('Relatório gerado por STATER - Inteligência para prosperar', pageWidth / 2, doc.internal.pageSize.height - 15, { align: 'center' });
     
     // Retornar o documento como blob
     return new Blob([doc.output('arraybuffer')], { type: 'application/pdf' });

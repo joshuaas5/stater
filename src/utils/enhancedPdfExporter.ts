@@ -317,7 +317,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150); // Cinza claro para rodapé
-    doc.text(`Página ${i} de ${pageCount} - ICTUS`, pageWidth / 2, pageHeight - 7, { align: 'center' });
+    doc.text(`Página ${i} de ${pageCount} - STATER`, pageWidth / 2, pageHeight - 7, { align: 'center' });
   }
 
   return doc.output('blob');

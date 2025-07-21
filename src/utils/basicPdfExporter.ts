@@ -396,7 +396,7 @@ export const generateSimplePDF = (data: ReportData): Blob => {
     // Rodapé
     doc.setFontSize(8);
     doc.setTextColor(colorText);
-    doc.text('Relatório gerado por ICTUS - Seu aplicativo de gestão financeira', pageWidth / 2, doc.internal.pageSize.height - 10, { align: 'center' });
+    doc.text('Relatório gerado por STATER - Inteligência para prosperar', pageWidth / 2, doc.internal.pageSize.height - 10, { align: 'center' });
     
     // Retornar o documento como blob
     return new Blob([doc.output('arraybuffer')], { type: 'application/pdf' });

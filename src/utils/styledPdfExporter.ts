@@ -316,7 +316,7 @@ export const generateStyledPDF = (data: ReportData): Blob => {
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
       doc.text(`Pu00e1gina ${pageNum} de ${totalPages}`, pageWidth / 2, footerY, { align: 'center' });
-      doc.text('Gerado por ICTUS - Sistema de Gestu00e3o Financeira Pessoal', pageWidth / 2, footerY + 5, { align: 'center' });
+      doc.text('Gerado por STATER - Inteligência para prosperar', pageWidth / 2, footerY + 5, { align: 'center' });
     };
     
     // Aplicar rodapu00e9 em todas as pu00e1ginas

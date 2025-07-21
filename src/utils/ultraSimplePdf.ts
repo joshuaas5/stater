@@ -102,7 +102,7 @@ export const generateUltraSimplePDF = (data: ReportData): Blob => {
     pdfContent += `DICA FINANCEIRA\n`;
     pdfContent += `Poupe hoje para garantir seu futuro. Economizar mensalmente, mesmo que pouco, é o primeiro passo para a independência financeira.\n\n`;
 
-    pdfContent += `Relatório gerado por ICTUS - Seu aplicativo de gestão financeira`;
+    pdfContent += `Relatório gerado por STATER - Inteligência para prosperar`;
 
     // Converter texto em blob
     const blob = new Blob([pdfContent], { type: 'text/plain' });

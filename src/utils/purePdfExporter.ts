@@ -372,7 +372,7 @@ export const generatePurePDF = (data: ReportData): Blob => {
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
       doc.text(`Página ${i} de ${pageCount}`, pageWidth / 2, footerY, { align: 'center' });
-      doc.text('Gerado por ICTUS - Sistema de Gestão Financeira Pessoal', pageWidth / 2, footerY + 5, { align: 'center' });
+      doc.text('Gerado por STATER - Inteligência para prosperar', pageWidth / 2, footerY + 5, { align: 'center' });
     }
     
     // Retornar o PDF como Blob

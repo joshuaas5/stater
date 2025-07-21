@@ -224,10 +224,13 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         <div 
           className="px-5 py-4 border-b relative overflow-hidden"
           style={{
-            background: 'rgba(255, 255, 255, 0.15)',
-            backdropFilter: 'blur(20px)',
-            borderColor: 'rgba(255, 255, 255, 0.3)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+            background: 'rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(40px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+            borderColor: 'rgba(255, 255, 255, 0.18)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            borderRadius: '0'
           }}
         >
           <div className="relative flex items-center justify-between">
@@ -235,9 +238,11 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               <div 
                 className="p-3 rounded-xl"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.25)',
-                  backdropFilter: 'blur(15px)',
-                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3)'
+                  background: 'rgba(255, 255, 255, 0.12)',
+                  backdropFilter: 'blur(30px) saturate(150%)',
+                  WebkitBackdropFilter: 'blur(30px) saturate(150%)',
+                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
                 }}
               >
                 <DollarSign className="h-6 w-6 text-white drop-shadow-lg" />

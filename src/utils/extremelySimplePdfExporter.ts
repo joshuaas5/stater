@@ -161,7 +161,7 @@ export const generateExtremelySafePDF = (data: ReportData): Blob => {
       doc.setPage(i);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.text(`Pu00e1gina ${i} de ${pageCount} - ICTUS - Sistema de Gestu00e3o Financeira Pessoal`, 105, 290, { align: 'center' });
+      doc.text(`Página ${i} de ${pageCount} - STATER - Inteligência para prosperar`, 105, 290, { align: 'center' });
     }
     
     // Retornar o PDF como Blob

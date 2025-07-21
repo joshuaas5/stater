@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { saveUser, getCurrentUser } from '@/utils/localStorage';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -60,7 +60,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
   };
 
   return (
-    <Dialog open={isOpen && !acceptComplete} onOpenChange={onClose}>
+    <Dialog open={isOpen && !acceptComplete} onOpenChange={() => {}}>
       <DialogContent 
         className="w-screen h-screen max-w-none max-h-none p-0 m-0 flex flex-col fixed inset-0"
         style={{ 
@@ -73,6 +73,9 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           zIndex: 9999,
           transform: 'none'
         }}
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => e.preventDefault()}
       >
         <DialogHeader 
           className="p-4 pb-2 flex-shrink-0 border-b border-white/20 safe-top"
@@ -96,8 +99,16 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           </DialogTitle>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 px-4 md:px-6">
-          <div className="space-y-4 text-sm text-white">
+        <div 
+          className="flex-1 overflow-y-auto px-4 md:px-6 overscroll-contain"
+          style={{
+            WebkitOverflowScrolling: 'touch',
+            scrollBehavior: 'smooth'
+          }}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+        >
+          <div className="space-y-4 text-sm text-white py-4">
             <div className="text-center text-white/60 text-xs">
               ÚLTIMA ATUALIZAÇÃO: 27 de junho de 2025
             </div>
@@ -199,7 +210,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
               <p className="text-white/90">Estes termos são regidos pela legislação brasileira (LGPD - Lei nº 13.709/2018).</p>
             </section>
           </div>
-        </ScrollArea>
+        </div>
 
         <div 
           className="p-4 pt-2 border-t border-white/20 space-y-4 flex-shrink-0"

@@ -240,7 +240,7 @@ const BillsPage: React.FC = () => {
       {/* Seletores de Mês e Ano */}
       <div className="px-4 pt-4 pb-3 sticky z-10 border-b border-white/20" style={{ top: '60px', background: '#31518b' }}>
         <div className="flex flex-col sm:flex-row gap-3 items-center">
-          <div className="flex items-center bg-white/10 backdrop-blur-xl rounded-lg p-1 border border-white/20 w-full sm:w-auto">
+          <div className="flex items-center bg-white/15 backdrop-blur-xl rounded-lg p-1 border border-white/20 w-full sm:w-auto">
             <div className="flex items-center flex-1 sm:flex-auto">
               <Calendar size={18} className="ml-3 mr-2 text-white/70" />
               <div className="relative flex-1 sm:w-44">
@@ -338,7 +338,7 @@ const BillsPage: React.FC = () => {
       <div className="mt-4 pb-16" style={{ background: '#31518b' }}>
         {getBillsToDisplay().length > 0 ? (
           getBillsToDisplay().map((bill) => (
-            <Card key={bill.id} className="mx-4 mb-3 overflow-hidden border border-white/20 bg-white/10 backdrop-blur-xl">
+            <Card key={bill.id} className="mx-4 mb-3 overflow-hidden border border-white/20 bg-white/15 backdrop-blur-xl">
               <CardContent className="p-0">
                 <div className="flex items-center gap-4 px-4 py-3">
                   <div className={`text-white flex items-center justify-center rounded-lg ${bill.isPaid ? 'bg-green-500' : activeTab === 'overdue' ? 'bg-galileo-negative' : 'bg-galileo-accent'} shrink-0 size-12`}>

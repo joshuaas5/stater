@@ -304,7 +304,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                     display: 'flex',
                     flexDirection: 'column-reverse',
                     gap: '8px',
-                    alignItems: 'flex-end',
+                    alignItems: 'center', // Centraliza perfeitamente na vertical
                     zIndex: 1001,
                     animation: 'slideInFromBottom 0.3s ease-out'
                   }}

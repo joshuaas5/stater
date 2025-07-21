@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Transaction, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
-import { getCurrentUser, getTransactions, updateTransaction, deleteTransaction } from '@/utils/localStorage';
+import { getCurrentUser, getTransactions, updateTransaction, deleteTransaction, saveTransaction } from '@/utils/localStorage';
 import { getRecurringTransactionsStats, calculateNextOccurrence } from '@/utils/recurringProcessor';
 import { TransactionModal } from '@/components/modals/TransactionModal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +26,8 @@ const RecurringTransactionsPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [newTransactionType, setNewTransactionType] = useState<'income' | 'expense'>('expense');
 
   // Carregar dados
   const loadData = () => {
@@ -50,39 +52,70 @@ const RecurringTransactionsPage: React.FC = () => {
   // Editar transação recorrente
   const handleEditRecurring = (transaction: Transaction) => {
     setEditingTransaction(transaction);
+    setIsCreatingNew(false);
     setIsModalOpen(true);
   };
 
-  // Salvar edição da transação recorrente
-  const handleSaveEdit = async (updatedTransaction: Partial<Transaction>) => {
-    if (!editingTransaction) return;
+  // Criar nova transação
+  const handleCreateNew = (type: 'income' | 'expense') => {
+    setEditingTransaction(null);
+    setNewTransactionType(type);
+    setIsCreatingNew(true);
+    setIsModalOpen(true);
+  };
 
+  // Salvar transação (criação ou edição)
+  const handleSaveTransaction = async (transactionData: Partial<Transaction>) => {
     try {
-      // Recalcular a próxima ocorrência baseada nas novas configurações
-      const finalTransaction = {
-        ...editingTransaction,
-        ...updatedTransaction,
-        nextOccurrence: calculateNextOccurrence({
+      if (isCreatingNew) {
+        // Criar nova transação
+        const newTransaction: Transaction = {
+          id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          type: newTransactionType,
+          date: new Date(),
+          createdAt: new Date(),
+          ...transactionData,
+          nextOccurrence: transactionData.isRecurring 
+            ? calculateNextOccurrence(transactionData as Transaction)
+            : undefined
+        } as Transaction;
+        
+        saveTransaction(newTransaction);
+        
+        toast({
+          title: "Transação criada!",
+          description: "A nova transação recorrente foi criada com sucesso.",
+          variant: "default"
+        });
+      } else if (editingTransaction) {
+        // Editar transação existente
+        const finalTransaction = {
           ...editingTransaction,
-          ...updatedTransaction
-        } as Transaction)
-      };
+          ...transactionData,
+          nextOccurrence: calculateNextOccurrence({
+            ...editingTransaction,
+            ...transactionData
+          } as Transaction)
+        };
+        
+        updateTransaction(finalTransaction as Transaction);
+        
+        toast({
+          title: "Transação atualizada!",
+          description: "A transação recorrente foi editada com sucesso.",
+          variant: "default"
+        });
+      }
       
-      updateTransaction(finalTransaction as Transaction);
       loadData();
       setEditingTransaction(null);
+      setIsCreatingNew(false);
       setIsModalOpen(false);
-      
-      toast({
-        title: "Transação atualizada!",
-        description: "A transação recorrente foi editada com sucesso.",
-        variant: "default"
-      });
     } catch (error) {
-      console.error('Erro ao editar transação:', error);
+      console.error('Erro ao salvar transação:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível editar a transação.",
+        description: "Não foi possível salvar a transação.",
         variant: "destructive"
       });
     }
@@ -157,30 +190,9 @@ const RecurringTransactionsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 pb-20">
-      {/* Partículas flutuantes - Performance otimizada */}
-      <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: 15 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
-            }}
-          />
-        ))}
-      </div>
-      
-      {/* Background Effects - Otimizado */}
-      <div className="absolute inset-0 bg-black/10" />
-      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-10 right-10 w-64 h-64 bg-blue-600/15 rounded-full blur-3xl animate-pulse" />
-      
+    <div className="min-h-screen relative overflow-hidden pb-20" style={{ background: '#31518b' }}>
       {/* Header */}
-      <div className="relative z-10 bg-white/10 backdrop-blur-xl shadow-xl border-b border-white/20">
+      <div className="relative z-10 bg-transparent">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <Button 
@@ -192,15 +204,7 @@ const RecurringTransactionsPage: React.FC = () => {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 
-                className="text-xl font-bold text-white"
-                style={{
-                  fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                  textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px, rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
-                  filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 2px 4px)',
-                  WebkitTextStroke: '0.5px rgba(0, 0, 0, 0.3)'
-                }}
-              >
+              <h1 className="text-xl font-bold text-white">
                 Transações Recorrentes
               </h1>
               <p className="text-sm text-white/70">
@@ -215,36 +219,36 @@ const RecurringTransactionsPage: React.FC = () => {
       <div className="relative z-10 p-4">
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/15 transition-colors duration-300">
+            <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-blue-300">
+                <p className="text-2xl font-bold text-white">
                   {stats.totalRecurring}
                 </p>
                 <p className="text-sm text-white/70">Total</p>
               </div>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/15 transition-colors duration-300">
+            <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-orange-300">
+                <p className="text-2xl font-bold text-white">
                   {stats.byFrequency.weekly}
                 </p>
                 <p className="text-sm text-white/70">Semanais</p>
               </div>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/15 transition-colors duration-300">
+            <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-green-300">
+                <p className="text-2xl font-bold text-white">
                   {stats.byFrequency.monthly}
                 </p>
                 <p className="text-sm text-white/70">Mensais</p>
               </div>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/15 transition-colors duration-300">
+            <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-purple-300">
+                <p className="text-2xl font-bold text-white">
                   {stats.byFrequency.yearly}
                 </p>
                 <p className="text-sm text-white/70">Anuais</p>
@@ -256,32 +260,32 @@ const RecurringTransactionsPage: React.FC = () => {
         {/* Lista de Transações Recorrentes */}
         <div className="space-y-4">
           {recurringTransactions.length === 0 ? (
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8 text-center hover:bg-white/15 transition-colors duration-300">
+            <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-8 text-center">
               <BarChart3 className="h-12 w-12 text-white/40 mx-auto mb-4" />
-              <h3 
-                className="text-lg font-medium text-white mb-2"
-                style={{
-                  fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                  textShadow: 'rgba(0, 0, 0, 0.8) 2px 2px 4px, rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
-                  filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 2px 4px)',
-                  WebkitTextStroke: '0.5px rgba(0, 0, 0, 0.3)'
-                }}
-              >
+              <h3 className="text-lg font-medium text-white mb-2">
                 Nenhuma transação recorrente
               </h3>
               <p className="text-white/70 mb-4">
                 Configure transações recorrentes para automatizar seus lançamentos.
               </p>
-              <Button 
-                onClick={() => navigate('/dashboard')}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                Criar Nova Transação
-              </Button>
+              <div className="flex gap-2 justify-center">
+                <Button 
+                  onClick={() => handleCreateNew('income')}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  + Receita
+                </Button>
+                <Button 
+                  onClick={() => handleCreateNew('expense')}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  + Despesa
+                </Button>
+              </div>
             </div>
           ) : (
             recurringTransactions.map((transaction) => (
-              <div key={transaction.id} className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/15 transition-colors duration-300">
+              <div key={transaction.id} className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex items-start gap-4 flex-1">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
@@ -370,17 +374,22 @@ const RecurringTransactionsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal de Edição com TransactionModal moderno */}
+      {/* Modal de Edição/Criação com TransactionModal moderno */}
       <TransactionModal
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
           setEditingTransaction(null);
+          setIsCreatingNew(false);
         }}
         transaction={editingTransaction}
-        type={editingTransaction?.type || 'expense'}
-        onSave={handleSaveEdit}
-        categories={editingTransaction?.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES}
+        type={isCreatingNew ? newTransactionType : (editingTransaction?.type || 'expense')}
+        onSave={handleSaveTransaction}
+        categories={
+          (isCreatingNew ? newTransactionType : editingTransaction?.type) === 'income' 
+            ? INCOME_CATEGORIES 
+            : EXPENSE_CATEGORIES
+        }
       />
     </div>
   );

@@ -211,25 +211,19 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       />
       
       {/* Modal */}
-      <div className="relative w-full max-w-sm bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 max-h-[85vh] overflow-hidden transaction-modal-content">
-        {/* Header Glassmorphism */}
-        <div className="px-5 py-4 bg-white/10 backdrop-blur-xl border-b border-white/20 relative overflow-hidden">
-          {/* Subtle background pattern */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-blue-400/30" />
-            <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-blue-400/20" />
-          </div>
-          
+      <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 max-h-[85vh] overflow-hidden transaction-modal-content">
+        {/* Header */}
+        <div className="px-5 py-4 bg-gray-50 border-b border-gray-200 relative overflow-hidden">
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30">
-                <DollarSign className="h-6 w-6 text-white" />
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <DollarSign className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white drop-shadow-sm">
+                <h2 className="text-xl font-bold text-gray-800">
                   {isEditing ? 'Editar' : 'Nova'} {isIncome ? 'Entrada' : 'Saída'}
                 </h2>
-                <p className="text-white/80 text-sm font-medium drop-shadow-sm">
+                <p className="text-gray-600 text-sm font-medium">
                   {isIncome ? 'Receita financeira' : 'Despesa ou gasto'}
                 </p>
               </div>
@@ -237,15 +231,15 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             <button
               onClick={onClose}
               disabled={isSubmitting}
-              className="p-2 hover:bg-white/30 rounded-xl transition-all duration-200 disabled:opacity-50 bg-white/10 backdrop-blur-sm border border-white/20"
+              className="p-2 hover:bg-gray-100 rounded-xl transition-all duration-200 disabled:opacity-50"
             >
-              <X className="h-5 w-5 text-white drop-shadow-sm" />
+              <X className="h-5 w-5 text-gray-600" />
             </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-5 space-y-4 overflow-y-auto max-h-[calc(85vh-180px)] transaction-modal-scroll bg-white/5 backdrop-blur-sm">
+        <div className="p-5 space-y-4 overflow-y-auto max-h-[calc(85vh-180px)] transaction-modal-scroll bg-white">
           {/* Descrição */}
           <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -257,15 +251,11 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
               placeholder={`Ex: ${isIncome ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
-              className={`w-full px-4 py-3.5 border-2 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200 outline-none font-medium ${
+              className={`w-full px-4 py-3.5 border-2 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200 outline-none font-medium text-gray-800 placeholder-gray-400 ${
                 errors.title 
                   ? 'border-red-300 focus:border-red-500 bg-red-50 input-error-shake' 
                   : 'border-gray-200 focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/10'
               }`}
-              style={{ 
-                color: '#111827 !important',
-                backgroundColor: errors.title ? '#fef2f2' : '#f9fafb'
-              }}
               disabled={isSubmitting}
             />
             {errors.title && (
@@ -293,15 +283,11 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                 value={formData.amount}
                 onChange={(e) => handleInputChange('amount', e.target.value)}
                 placeholder="0,00"
-                className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200 outline-none font-bold text-lg ${
+                className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-xl bg-gray-50 focus:bg-white transition-all duration-200 outline-none font-bold text-lg text-gray-800 placeholder-gray-400 ${
                   errors.amount 
                     ? 'border-red-300 focus:border-red-500 bg-red-50 input-error-shake' 
                     : 'border-gray-200 focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/10'
                 }`}
-                style={{ 
-                  color: '#111827 !important',
-                  backgroundColor: errors.amount ? '#fef2f2' : '#f9fafb'
-                }}
                 disabled={isSubmitting}
               />
             </div>

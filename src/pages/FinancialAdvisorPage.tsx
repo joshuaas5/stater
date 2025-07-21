@@ -2439,11 +2439,8 @@ return (
             textTransform: 'uppercase',
             position: 'relative',
             filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))',
-            background: '#31518b !important',
-            padding: '4px 8px',
-            borderRadius: '8px',
-            backdropFilter: 'none !important',
-            WebkitBackdropFilter: 'none !important'
+            background: 'transparent !important',
+            backgroundColor: 'transparent !important'
           }}
         >
           Stater IA

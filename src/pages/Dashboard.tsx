@@ -28,15 +28,6 @@ import { getCurrentUser, getTransactions, isLoggedIn, saveTransaction, updateTra
 import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -44,6 +35,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useScrollOptimization } from '@/hooks/useScrollOptimization';
 import VirtualizedTransactionList from '@/components/virtualized/VirtualizedTransactionList';
+import { TransactionModal } from '@/components/modals/TransactionModal';
 
 //  DEBUG: Log para identificar re-renderizaes do Dashboard
 console.log(' Dashboard.tsx carregado/re-renderizado:', new Date().toISOString());
@@ -717,20 +709,9 @@ const Dashboard: React.FC = () => {
       userId: user.id,
       isRecurring: newTransaction.isRecurring,
       recurrenceFrequency: newTransaction.isRecurring ? newTransaction.recurrenceFrequency : undefined,
-      // Para transaes recorrentes, adicionar campos necessrios
-      ...(newTransaction.isRecurring && {
-        recurringDay: newTransaction.recurringDay,
-        recurringWeekday: newTransaction.recurringWeekday,
-        nextOccurrence: calculateNextOccurrence({
-          ...newTransaction,
-          recurrenceFrequency: newTransaction.recurrenceFrequency!,
-          recurringDay: newTransaction.recurringDay,
-          recurringWeekday: newTransaction.recurringWeekday
-        } as Transaction),
-        // Transaes recorrentes NO devem afetar o saldo imediatamente
-        dontAdjustBalanceOnSave: true
-      }),
-      dontAdjustBalanceOnSave: editingTransaction ? editingTransactionDontAdjustBalance : newTransaction.isRecurring // Para recorrentes, sempre true
+      recurringDay: newTransaction.isRecurring ? newTransaction.recurringDay : undefined,
+      recurringWeekday: newTransaction.isRecurring ? newTransaction.recurringWeekday : undefined,
+      dontAdjustBalanceOnSave: newTransaction.isRecurring // Para recorrentes, sempre true
     };
     
     saveTransaction(transaction);
@@ -1101,243 +1082,95 @@ const Dashboard: React.FC = () => {
           )}
         </div>
 
-      <Dialog open={dialogOpen} onOpenChange={(open: boolean) => {
-        setDialogOpen(open);
-        if (!open) {
-          setEditingTransaction(null);
-          setEditingTransactionDontAdjustBalance(false); // Resetar aqui
-        }
-      }}>
-        <DialogContent 
-          className="max-h-[90vh] overflow-y-auto border-0"
-          style={{
-            background: '#31518b',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.4)'
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle className="text-white text-xl font-semibold">
-              {editingTransaction
-                ? (editingTransaction.type === 'income' ? 'Editar Entrada' : 'Editar Saída')
-                : (newTransaction.type === 'income' ? 'Adicionar Nova Entrada' : 'Adicionar Nova Saída')}
-            </DialogTitle>
-            <DialogDescription className="text-white/80">
-              {editingTransaction
-                ? (editingTransaction.type === 'income' ? 'Edite uma receita ou entrada financeira.' : 'Edite uma despesa ou saída financeira.')
-                : (newTransaction.type === 'income' ? 'Adicione uma nova receita ou entrada financeira.' : 'Adicione uma nova despesa ou saída financeira.')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
-            <div className="grid gap-2">
-              <Label htmlFor="title" className="text-white font-medium">Descrição</Label>
-              <Input 
-                id="title" 
-                name="title"
-                value={editingTransaction ? editingTransaction.title : newTransaction.title} 
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  if (editingTransaction) setEditingTransaction({...editingTransaction, title: e.target.value});
-                  else handleNewTransactionChange(e);
-                }}
-                placeholder={`Ex: ${(editingTransaction ? editingTransaction.type : newTransaction.type) === 'income' ? 'Salário, Freelance' : 'Aluguel, Supermercado'}`}
-                className="bg-white/10 border-white/20 text-white placeholder-white/60 focus:border-blue-400 focus:bg-white/20"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="amount" className="text-white font-medium">Valor</Label>
-              <Input 
-                id="amount" 
-                name="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                value={editingTransaction ? String(editingTransaction.amount ?? '') : newTransaction.amount} 
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  if (editingTransaction) setEditingTransaction({...editingTransaction, amount: parseFloat(e.target.value) || 0});
-                  else handleNewTransactionChange(e);
-                }}
-                placeholder="0,00"
-                className="bg-white/10 border-white/20 text-white placeholder-white/60 focus:border-blue-400 focus:bg-white/20"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="category" className="text-white font-medium">Categoria</Label>
-              <Select
-                value={editingTransaction ? editingTransaction.category : newTransaction.category}
-                onValueChange={value => {
-                  if (editingTransaction) setEditingTransaction({ ...editingTransaction, category: value });
-                  else setNewTransaction((prev: any) => ({ ...prev, category: value }));
-                }}
-              >
-                <SelectTrigger 
-                  id="category" 
-                  name="category" 
-                  className="bg-white/10 border-white/20 text-white focus:border-blue-400 focus:bg-white/20"
-                >
-                  <SelectValue placeholder="Selecione uma categoria" className="text-white/80" />
-                </SelectTrigger>
-                <SelectContent 
-                  className="border-white/20"
-                  style={{
-                    background: '#31518b',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255,255,255,0.2)'
-                  }}
-                >
-                  {((editingTransaction ? editingTransaction.type : newTransaction.type) === 'income'
-                    ? INCOME_CATEGORIES
-                    : EXPENSE_CATEGORIES).map((category: string) => (
-                      <SelectItem 
-                        key={category} 
-                        value={category}
-                        className="text-white hover:bg-white/10 focus:bg-white/20"
-                      >
-                        {category}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Configurao de Recorrncia */}
-            <RecurrenceConfig
-              transaction={editingTransaction || newTransaction}
-              onChange={(updated) => {
-                if (editingTransaction) {
-                  setEditingTransaction(prev => ({
-                    ...prev,
-                    ...updated
-                  }));
-                } else {
-                  setNewTransaction(prev => ({
-                    ...prev,
-                    ...updated
-                  }));
-                }
-              }}
-            />
-            
-            {editingTransaction && (
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="dontAdjustBalance" 
-                  checked={editingTransactionDontAdjustBalance}
-                  onCheckedChange={(val: boolean) => {
-                    setEditingTransactionDontAdjustBalance(!!val);
-                  }}
-                />                  <Label 
-                    htmlFor="dontAdjustBalance" 
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Não ajustar saldo
-                  </Label>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-  {editingTransaction ? (
-    <div className="flex flex-col sm:flex-row justify-end gap-2 w-full">
-      <Button
-        onClick={() => {
-          if (!editingTransaction) return; // Safety check
-
-          const user = getCurrentUser();
-          if (!user) {
-            navigate('/login');
-            return;
-          }
-
-          // Robust amount parsing
-          let finalAmount: number;
-          // Allow currentAmountFromState to be string or number to handle parsing from form input
-          const currentAmountFromState: string | number = editingTransaction.amount as (string | number);
-
-          if (typeof currentAmountFromState === 'string') {
-            const cleanedAmountString = currentAmountFromState.replace(/[^0-9.,]/g, '').replace(',', '.');
-            finalAmount = parseFloat(cleanedAmountString);
-          } else if (typeof currentAmountFromState === 'number') {
-            finalAmount = currentAmountFromState;
-          } else {
-            // Handle undefined, null, or other unexpected types
-            finalAmount = NaN; // This will trigger the validation error below
-          }
-
-          const transactionToUpdate: Transaction = {
-            ...editingTransaction,
-            amount: finalAmount, // Use the correctly parsed numeric amount
-            date: new Date(editingTransaction.date), // Ensure date is a Date object
-            dontAdjustBalanceOnSave: editingTransactionDontAdjustBalance,
-          };
-
-          updateTransaction(transactionToUpdate);
-
-          if (editingTransactionDontAdjustBalance) {
-            setLastEditedTransactionIdForBalanceSkip(transactionToUpdate.id);
-          }
-          
-          toast({ title: "Sucesso", description: "Transação atualizada." });
-          setDialogOpen(false); // Close dialog after successful save
-        }}
-        className={
-          editingTransaction.type === 'income'
-            ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-300'
-            : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300'
-        }
-      >
-        Salvar {editingTransaction.type === 'income' ? 'Entrada' : 'Saída'}
-      </Button>
-      <Button
-        variant="destructive"
-        onClick={() => {
-          const user = getCurrentUser();
-          if (!user) {
-            navigate('/login');
-            return;
-          }
-          if (editingTransaction) {
-            deleteTransaction(editingTransaction.id);
-          }
+      {/* Novo Modal Otimizado */}
+      <TransactionModal
+        isOpen={dialogOpen}
+        onClose={() => {
           setDialogOpen(false);
           setEditingTransaction(null);
+          setEditingTransactionDontAdjustBalance(false);
+        }}
+        transaction={editingTransaction}
+        type={editingTransaction?.type || newTransaction.type}
+        onSave={(transactionData) => {
+          if (editingTransaction) {
+            // Lógica de edição
+            const updatedTransaction: Transaction = {
+              ...editingTransaction,
+              ...transactionData,
+              dontAdjustBalanceOnSave: editingTransactionDontAdjustBalance,
+            };
+            updateTransaction(updatedTransaction);
+            
+            if (editingTransactionDontAdjustBalance) {
+              setLastEditedTransactionIdForBalanceSkip(updatedTransaction.id);
+            }
+            
+            toast({ title: "Sucesso", description: "Transação atualizada." });
+          } else {
+            // Lógica de criação
+            const user = getCurrentUser();
+            if (!user) {
+              navigate('/login');
+              return;
+            }
+
+            const transaction: Transaction = {
+              id: uuidv4(),
+              title: transactionData.title!,
+              amount: transactionData.amount!,
+              type: transactionData.type!,
+              category: transactionData.category!,
+              date: new Date(),
+              userId: user.id,
+              isRecurring: transactionData.isRecurring || false,
+              recurrenceFrequency: transactionData.recurrenceFrequency,
+              recurringDay: transactionData.recurringDay,
+              recurringWeekday: transactionData.recurringWeekday,
+              dontAdjustBalanceOnSave: transactionData.isRecurring || false
+            };
+
+            saveTransaction(transaction);
+            
+            // Resetar formulário
+            setNewTransaction({
+              title: '',
+              amount: '',
+              category: '',
+              type: 'expense',
+              isRecurring: false,
+              recurrenceFrequency: 'monthly',
+              recurringDay: 1,
+              recurringWeekday: 1
+            });
+
+            toast({
+              title: `${transaction.type === 'income' ? 'Entrada' : 'Saída'} adicionada`,
+              description: `${transaction.title} foi adicionada com sucesso`
+            });
+
+            // Atualizar dados
+            setTimeout(() => {
+              loadTransactions(selectedMonth, selectedYear);
+            }, 100);
+          }
+        }}
+        onDelete={(transactionId) => {
+          const user = getCurrentUser();
+          if (!user) {
+            navigate('/login');
+            return;
+          }
+          deleteTransaction(transactionId);
           toast({
             title: 'Transação excluída',
             description: 'A transação foi removida com sucesso.'
           });
         }}
-        className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-        data-testid="delete-transaction-btn"
-      >
-        Excluir
-      </Button>
-    </div>
-  ) : (
-    <Button
-      onClick={() => {
-          // Garante que a converso para nmero ocorra aqui tambm, como no onChange do input.
-          const amountAsNumber = parseFloat(newTransaction.amount.replace(/[^\.d0-9]/g, '').replace(',', '.'));
-          if (isNaN(amountAsNumber) || amountAsNumber <= 0) {
-            toast({
-              title: 'Valor Inválido',
-              description: 'Por favor, insira um valor numérico válido para a transação.',
-              variant: 'destructive',
-            });
-            return;
-          }
-          handleSaveTransaction();
-        }}
-      className={
-        newTransaction.type === 'income'
-          ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-300'
-          : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300'
-      }
-    >
-      Salvar {newTransaction.type === 'income' ? 'Entrada' : 'Saída'}
-    </Button>
-  )}
-</DialogFooter>
-        </DialogContent>
-      </Dialog>
+        categories={editingTransaction?.type === 'income' || newTransaction.type === 'income' 
+          ? INCOME_CATEGORIES 
+          : EXPENSE_CATEGORIES}
+      />
       
         <div className="px-4 mb-4">
           <h2 

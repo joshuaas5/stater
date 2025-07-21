@@ -221,7 +221,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           >            <textarea
               ref={inputRef}
               className="message-input"
-              placeholder={loading ? "Enviando mensagem..." : "Digite sua mensagem aqui..."}
+              placeholder={loading ? "Enviando mensagem..." : "Digite sua mensagem"}
               value={message}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
@@ -235,7 +235,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 borderRadius: '25px',
                 padding: '18px 24px', // Aumentado para 18px
                 color: 'white',
-                fontSize: '15px',
+                fontSize: '14px',
                 outline: 'none',
                 transition: 'all 0.3s ease',
                 resize: 'none',

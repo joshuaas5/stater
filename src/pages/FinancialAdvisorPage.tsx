@@ -2427,8 +2427,7 @@ return (
           backdropFilter: 'none !important',
           WebkitBackdropFilter: 'none !important'
         }}
-      >        <div 
-          className="logo"
+      >        <h1 
           style={{
             fontSize: '24px',
             fontWeight: 800,
@@ -2436,17 +2435,19 @@ return (
             fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
             letterSpacing: '1px',
             textTransform: 'uppercase',
-            position: 'relative',
-            filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
-            background: 'transparent !important',
-            backgroundColor: 'transparent !important',
-            border: 'none !important',
-            outline: 'none !important',
-            boxShadow: 'none !important'
+            margin: 0,
+            padding: 0,
+            background: 'none',
+            backgroundColor: 'transparent',
+            border: 'none',
+            outline: 'none',
+            boxShadow: 'none',
+            textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+            display: 'inline-block'
           }}
         >
           Stater IA
-        </div>
+        </h1>
         <div 
           className="user-info"
           style={{
@@ -2601,7 +2602,9 @@ return (
           <div 
             className="modal-content"
             style={{
-              background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
               borderRadius: '20px',
               width: '100%',
               maxWidth: '500px',
@@ -2610,7 +2613,7 @@ return (
               display: 'flex',
               flexDirection: 'column',
               color: 'white',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               overflow: 'hidden'
             }}
@@ -3103,7 +3106,7 @@ return (
               padding: 10px 15px !important;
               height: 50px !important;
             }
-            .logo {
+            .header h1 {
               font-size: 18px !important;
             }
             .chat-container {
@@ -3128,7 +3131,7 @@ return (
               padding: 8px 12px !important;
               height: 45px !important;
             }
-            .logo {
+            .header h1 {
               font-size: 16px !important;
             }
             .chat-container {

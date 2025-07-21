@@ -51,6 +51,19 @@ export const generateSimplePDF = (data: ReportData): Blob => {
     const pageWidth = doc.internal.pageSize.width;
     let yPos = margin;
     
+    // Logo Stater (se disponível)
+    try {
+      // Adicionar o logo (será carregado via base64 se disponível)
+      const logoSize = 30;
+      doc.setFontSize(16);
+      doc.setTextColor(colorPrimary);
+      doc.text('Stater - Inteligência para prosperar', pageWidth / 2, yPos, { align: 'center' });
+      yPos += 15;
+    } catch (logoError) {
+      console.log('Logo não carregado, continuando sem logo');
+      yPos += 5;
+    }
+    
     // Título do relatório
     doc.setFontSize(18);
     doc.setTextColor(colorPrimary);

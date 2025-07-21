@@ -42,6 +42,13 @@ export function generateXlsxLikePDF(data: ReportData): Blob {
   const pageWidth = doc.internal.pageSize.getWidth();
   let y = 20;
 
+  // Logo Stater
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(65, 105, 225);
+  doc.text('Stater - Inteligência para prosperar', pageWidth / 2, y, { align: 'center' });
+  y += 15;
+
   // Cabeçalho azul
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(22);

@@ -74,6 +74,13 @@ export const generatePurePDF = (data: ReportData): Blob => {
     const contentWidth = pageWidth - (margin * 2);
     let y = 20; // Posição vertical inicial
     
+    // Logo Stater
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(0, 51, 102); // Azul escuro
+    doc.text('Stater - Inteligência para prosperar', pageWidth / 2, y, { align: 'center' });
+    y += 15;
+    
     // Funções auxiliares para desenhar no PDF
     const addTitle = (text: string) => {
       doc.setFont('helvetica', 'bold');

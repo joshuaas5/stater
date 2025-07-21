@@ -172,26 +172,39 @@ const ExportReportPage: React.FC = () => {
   };
   
   return (
-    <div className="bg-galileo-background min-h-screen pb-20">
-      <PageHeader title="Exportar Relatório Financeiro" />
+    <div className="min-h-screen relative overflow-hidden pb-20" style={{ background: '#31518b' }}>
+      {/* Header */}
+      <div className="relative z-10 bg-transparent">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate(-1)}
+              className="p-2 text-white hover:text-white hover:bg-white/20 backdrop-blur-sm rounded-lg transition-all duration-300"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-bold text-white">
+                Exportar Relatório Financeiro
+              </h1>
+              <p className="text-sm text-white/70">
+                Selecione o período e formato para gerar seu relatório
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
       
-      <div className="container mx-auto px-4 py-6">
-        <Button 
-          variant="ghost" 
-          className="flex items-center mb-4" 
-          onClick={() => navigate(-1)}
-        >
-          <ChevronLeft className="mr-1" size={16} />
-          Voltar
-        </Button>
-        
-        <Card className="w-full max-w-4xl mx-auto">
+      <div className="relative z-10 p-4">
+        <div className="w-full max-w-4xl mx-auto bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-6">
           <CardHeader>
-            <CardTitle className="text-xl flex items-center gap-2">
+            <CardTitle className="text-xl flex items-center gap-2 text-white">
               <FileText className="h-5 w-5" />
               Exportar Relatório Financeiro
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-white/70">
               Selecione o período e o formato para exportar seu relatório financeiro personalizado.
             </CardDescription>
           </CardHeader>
@@ -200,12 +213,12 @@ const ExportReportPage: React.FC = () => {
             {/* Seleção de período */}
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label>Data inicial</Label>
+                <Label className="text-white">Data inicial</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-full justify-start text-left font-normal"
+                      className="w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {startDate ? format(startDate, 'PPP', { locale: ptBR }) : <span>Selecione uma data</span>}
@@ -223,12 +236,12 @@ const ExportReportPage: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label>Data final</Label>
+                <Label className="text-white">Data final</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-full justify-start text-left font-normal"
+                      className="w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {endDate ? format(endDate, 'PPP', { locale: ptBR }) : <span>Selecione uma data</span>}
@@ -248,7 +261,7 @@ const ExportReportPage: React.FC = () => {
             
             {/* Opções de conteúdo */}
             <div className="space-y-4">
-              <h3 className="text-sm font-medium">Conteúdo do relatório</h3>
+              <h3 className="text-sm font-medium text-white">Conteúdo do relatório</h3>
               
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
@@ -257,7 +270,7 @@ const ExportReportPage: React.FC = () => {
                     checked={includeTransactions}
                     onCheckedChange={(checked) => setIncludeTransactions(checked === true)}
                   />
-                  <Label htmlFor="transactions">Incluir transações</Label>
+                  <Label htmlFor="transactions" className="text-white">Incluir transações</Label>
                 </div>
                 
                 <div className="flex items-center space-x-2">
@@ -266,68 +279,68 @@ const ExportReportPage: React.FC = () => {
                     checked={includeBills}
                     onCheckedChange={(checked) => setIncludeBills(checked === true)}
                   />
-                  <Label htmlFor="bills">Incluir contas a pagar/receber</Label>
+                  <Label htmlFor="bills" className="text-white">Incluir contas a pagar/receber</Label>
                 </div>
               </div>
             </div>
             
             {/* Seleção de formato */}
             <div className="grid grid-cols-1 gap-4 mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Formato de exportação</CardTitle>
-                  <CardDescription>
+              <div className="bg-white/5 backdrop-blur-[8px] rounded-lg border border-white/20 p-4">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-white">Formato de exportação</h3>
+                  <p className="text-sm text-white/70">
                     Selecione o formato para exportar seu relatório financeiro.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
+                  </p>
+                </div>
+                <div>
                   <RadioGroup value={exportFormat} onValueChange={(value) => setExportFormat(value as 'xlsx' | 'pdf' | 'ofx' | 'csv')} className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="xlsx" id="format-xlsx" />
-                      <Label htmlFor="format-xlsx" className="flex items-center cursor-pointer">
-                        <FileType2 className="h-5 w-5 mr-2 text-green-500" />
+                      <Label htmlFor="format-xlsx" className="flex items-center cursor-pointer text-white">
+                        <FileType2 className="h-5 w-5 mr-2 text-green-400" />
                         <div>
                           <p className="font-medium">Excel (XLSX)</p>
-                          <p className="text-sm text-muted-foreground">Planilha formatada compatível com Microsoft Excel</p>
+                          <p className="text-sm text-white/60">Planilha formatada compatível com Microsoft Excel</p>
                         </div>
                       </Label>
                     </div>
                     
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="pdf" id="format-pdf" />
-                      <Label htmlFor="format-pdf" className="flex items-center cursor-pointer">
-                        <FileOutput className="h-5 w-5 mr-2 text-red-500" />
+                      <Label htmlFor="format-pdf" className="flex items-center cursor-pointer text-white">
+                        <FileOutput className="h-5 w-5 mr-2 text-red-400" />
                         <div>
                           <p className="font-medium">PDF</p>
-                          <p className="text-sm text-muted-foreground">Documento formatado com layout profissional</p>
+                          <p className="text-sm text-white/60">Documento formatado com layout profissional</p>
                         </div>
                       </Label>
                     </div>
                     
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="ofx" id="format-ofx" />
-                      <Label htmlFor="format-ofx" className="flex items-center cursor-pointer">
-                        <FileType2 className="h-5 w-5 mr-2 text-blue-500" />
+                      <Label htmlFor="format-ofx" className="flex items-center cursor-pointer text-white">
+                        <FileType2 className="h-5 w-5 mr-2 text-blue-400" />
                         <div>
                           <p className="font-medium">OFX</p>
-                          <p className="text-sm text-muted-foreground">Formato para importação em softwares financeiros e bancos</p>
+                          <p className="text-sm text-white/60">Formato para importação em softwares financeiros e bancos</p>
                         </div>
                       </Label>
                     </div>
                     
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="csv" id="format-csv" />
-                      <Label htmlFor="format-csv" className="flex items-center cursor-pointer">
-                        <FileText className="h-5 w-5 mr-2 text-gray-500" />
+                      <Label htmlFor="format-csv" className="flex items-center cursor-pointer text-white">
+                        <FileText className="h-5 w-5 mr-2 text-gray-400" />
                         <div>
                           <p className="font-medium">CSV</p>
-                          <p className="text-sm text-muted-foreground">Arquivo de texto com valores separados por vírgula</p>
+                          <p className="text-sm text-white/60">Arquivo de texto com valores separados por vírgula</p>
                         </div>
                       </Label>
                     </div>
                   </RadioGroup>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           </CardContent>
           
@@ -335,7 +348,7 @@ const ExportReportPage: React.FC = () => {
             <Button 
               onClick={handleExport} 
               disabled={isGenerating || !includeTransactions && !includeBills}
-              className="w-full flex items-center justify-center bg-galileo-accent hover:bg-galileo-accent/90"
+              className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white backdrop-blur-[8px] border border-blue-500/30"
             >
               {isGenerating ? (
                 <>
@@ -350,7 +363,7 @@ const ExportReportPage: React.FC = () => {
               )}
             </Button>
           </CardFooter>
-        </Card>
+        </div>
       </div>
       
       <NavBar />

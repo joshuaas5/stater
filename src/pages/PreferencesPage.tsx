@@ -161,15 +161,6 @@ const PreferencesPage: React.FC = () => {
           </div>
         </div>
       </div>
-        <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
-          <h2 className="text-base font-semibold text-white mb-3 flex items-center">
-            <Paintbrush size={18} className="mr-2 text-white" /> {t('theme')}
-          </h2>
-          <div className="flex space-x-4">
-            <Button variant={theme === 'light' ? 'default' : 'outline'} onClick={() => handleThemeChange('light')} className="flex-1 flex items-center justify-center bg-white/10 border-white/20 text-white hover:bg-white/20"><Sun size={16} className="mr-1" />{t('light')}</Button>
-            <Button variant={theme === 'dark' ? 'default' : 'outline'} onClick={() => handleThemeChange('dark')} className="flex-1 flex items-center justify-center bg-white/10 border-white/20 text-white hover:bg-white/20"><Moon size={16} className="mr-1" />{t('dark')}</Button>
-          </div>
-        </div>
 
         <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
           <h2 className="text-base font-semibold text-white mb-3 flex items-center">
@@ -179,7 +170,7 @@ const PreferencesPage: React.FC = () => {
           <div className="space-y-4">
             {/* Switch simples para permitir notificações */}
             <div className="flex items-center justify-between">
-              <Label htmlFor="enable-notifications" className="cursor-pointer">Permitir notificações</Label>
+              <Label htmlFor="enable-notifications" className="cursor-pointer text-black">Permitir notificações</Label>
               <Switch 
                 id="enable-notifications" 
                 checked={preferences.enableNotifications}
@@ -250,7 +241,7 @@ const PreferencesPage: React.FC = () => {
             </select>
           </div>
           <div className="flex items-center justify-between">
-            <Label htmlFor="show-cents" className="cursor-pointer">{t('showCents')}</Label>
+            <Label htmlFor="show-cents" className="cursor-pointer text-black">{t('showCents')}</Label>
             <Switch 
               id="show-cents" 
               checked={preferences.showCents}
@@ -290,14 +281,7 @@ const PreferencesPage: React.FC = () => {
         <h2 className="text-base font-semibold text-white mb-3 flex items-center">
           <Star size={18} className="mr-2" /> Recursos adicionais
         </h2>
-        <div className="space-y-3">          <Button 
-            variant="outline"
-            className="w-full border border-galileo-accent bg-white/5 backdrop-blur-[8px] text-galileo-accent hover:bg-galileo-accent/10 hover:backdrop-blur-[12px] transition-all duration-300"
-            onClick={() => navigate('/analise-financeira')}
-          >
-            <Star size={16} className="mr-2" /> Acessar Análise Financeira
-          </Button>
-          
+        <div className="space-y-3">          
           <Button 
             variant="outline"
             className="w-full border border-galileo-accent bg-white/5 backdrop-blur-[8px] text-galileo-accent hover:bg-galileo-accent/10 hover:backdrop-blur-[12px] transition-all duration-300"

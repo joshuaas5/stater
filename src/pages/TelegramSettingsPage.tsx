@@ -201,176 +201,179 @@ const TelegramSettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-galileo-background min-h-screen flex flex-col items-center pb-20">
-      <div className="w-full max-w-md p-4 space-y-6">
+    <div className="min-h-screen relative overflow-hidden pb-20" style={{ background: '#31518b' }}>
+      <div className="relative z-10 p-4">
         
         {/* Header personalizado */}
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigate('/preferences')}
-            className="p-2 hover:bg-galileo-card rounded-lg transition-colors"
+            className="p-2 text-white hover:bg-white/20 backdrop-blur-sm rounded-lg transition-all duration-300"
           >
-            <ArrowLeft size={20} className="text-galileo-text" />
+            <ArrowLeft size={20} />
           </button>
-          <h1 className="text-lg font-semibold text-galileo-text">Bot Telegram</h1>
+          <h1 className="text-lg font-semibold text-white">Bot Telegram</h1>
           <div className="w-9 h-9" /> {/* Spacer */}
         </div>
 
-        {/* Status da conexão */}
-        <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <MessageCircle size={24} className="text-blue-500" />
-            <div>
-              <h2 className="text-base font-semibold text-galileo-text">
-                Status da Conexão
-              </h2>
-              <p className="text-sm text-galileo-secondaryText">
-                {isConnected ? 'Conectado ao Telegram' : 'Não conectado'}
-              </p>
+        <div className="w-full max-w-md mx-auto space-y-6">
+          {/* Status da conexão */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <MessageCircle size={24} className="text-blue-400" />
+              <div>
+                <h2 className="text-base font-semibold text-white">
+                  Status da Conexão
+                </h2>
+                <p className="text-sm text-white/70">
+                  {isConnected ? 'Conectado ao Telegram' : 'Não conectado'}
+                </p>
+              </div>
+              {isConnected ? (
+                <CheckCircle size={20} className="text-green-400 ml-auto" />
+              ) : (
+                <AlertCircle size={20} className="text-orange-400 ml-auto" />
+              )}
             </div>
-            {isConnected ? (
-              <CheckCircle size={20} className="text-green-500 ml-auto" />
-            ) : (
-              <AlertCircle size={20} className="text-orange-500 ml-auto" />
+            
+            {isConnected && telegramInfo && (
+              <div className="bg-green-500/20 backdrop-blur-[8px] p-3 rounded-lg border border-green-400/30 mb-4">
+                <p className="text-sm text-green-200">
+                  <strong>Conectado como:</strong> {telegramInfo.user_name}<br/>
+                  <strong>Data de conexão:</strong> {new Date(telegramInfo.linked_at).toLocaleDateString()}
+                </p>
+              </div>
             )}
           </div>
-          
-          {isConnected && telegramInfo && (
-            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800 mb-4">
-              <p className="text-sm text-green-700 dark:text-green-300">
-                <strong>Conectado como:</strong> {telegramInfo.user_name}<br/>
-                <strong>Data de conexão:</strong> {new Date(telegramInfo.linked_at).toLocaleDateString()}
-              </p>
+
+          {/* Seção de conexão */}
+          {!isConnected ? (
+            <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-5">
+              <h2 className="text-base font-semibold text-white mb-4 flex items-center">
+                <Smartphone size={18} className="mr-2" /> Como Conectar
+              </h2>
+              
+              <div className="space-y-4">
+                <div className="bg-blue-500/20 backdrop-blur-[8px] p-4 rounded-lg border border-blue-400/30">
+                  <h3 className="font-medium text-white mb-2">📱 Passo a Passo:</h3>
+                  <ol className="text-sm text-white/80 space-y-2">
+                    <li>1. Gere um código de vinculação abaixo</li>
+                    <li>2. Clique em "Abrir Bot Telegram"</li>
+                    <li>3. Cole o código no bot do Telegram</li>
+                    <li>4. Pronto! Sua conta estará conectada</li>
+                  </ol>
+                </div>
+                
+                <Button 
+                  onClick={openTelegram}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white backdrop-blur-[8px]"
+                >
+                  <MessageCircle size={16} className="mr-2" /> Abrir Bot Telegram
+                </Button>
+                
+                <div className="border-t border-white/20 pt-4">
+                  <h4 className="font-medium text-white mb-2">🔐 Código de Vinculação</h4>
+                  
+                  {linkCode ? (
+                    <div className="bg-white/5 backdrop-blur-[8px] p-3 rounded-lg border border-white/20">
+                      <div className="flex items-center justify-between">
+                        <code className="text-lg font-mono font-bold text-blue-300">
+                          {linkCode}
+                        </code>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={copyLinkCode}
+                          className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                        >
+                          <Copy size={14} className="mr-1" /> Copiar
+                        </Button>
+                      </div>
+                      <p className="text-xs text-white/60 mt-2">
+                        ⏰ Este código expira em 15 minutos
+                      </p>
+                    </div>
+                  ) : (
+                    <Button 
+                      onClick={generateLinkCode}
+                      disabled={isLoading}
+                      variant="outline"
+                      className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                    >
+                      {isLoading ? 'Gerando...' : 'Gerar Código de Vinculação'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-5">
+              <h2 className="text-base font-semibold text-white mb-4 flex items-center">
+                <Zap size={18} className="mr-2" /> Recursos Disponíveis
+              </h2>
+              
+              <div className="space-y-3">
+                <div className="bg-white/5 backdrop-blur-[8px] p-3 rounded-lg border border-white/20">
+                  <h4 className="font-medium text-white">📸 Análise de Extratos</h4>
+                  <p className="text-sm text-white/70">
+                    Envie fotos dos seus extratos bancários para análise automática
+                  </p>
+                </div>
+                
+                <div className="bg-white/5 backdrop-blur-[8px] p-3 rounded-lg border border-white/20">
+                  <h4 className="font-medium text-white">💬 Chat Inteligente</h4>
+                  <p className="text-sm text-white/70">
+                    Converse sobre suas finanças e receba insights personalizados
+                  </p>
+                </div>
+                
+                <div className="bg-white/5 backdrop-blur-[8px] p-3 rounded-lg border border-white/20">
+                  <h4 className="font-medium text-white">🔔 Notificações</h4>
+                  <p className="text-sm text-white/70">
+                    Receba alertas sobre contas vencendo e transações importantes
+                  </p>
+                </div>
+              </div>
+              
+              <div className="pt-4 border-t border-white/20 mt-4">
+                <Button 
+                  onClick={disconnectTelegram}
+                  variant="outline"
+                  className="w-full border-red-400 bg-white/5 backdrop-blur-[8px] text-red-400 hover:bg-red-400/10"
+                >
+                  Desconectar do Telegram
+                </Button>
+              </div>
             </div>
           )}
-        </div>
 
-        {/* Seção de conexão */}
-        {!isConnected ? (
-          <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5">
-            <h2 className="text-base font-semibold text-galileo-text mb-4 flex items-center">
-              <Smartphone size={18} className="mr-2" /> Como Conectar
+          {/* Seção de segurança */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-5">
+            <h2 className="text-base font-semibold text-white mb-4 flex items-center">
+              <Shield size={18} className="mr-2" /> Segurança & Privacidade
             </h2>
             
-            <div className="space-y-4">
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                <h3 className="font-medium text-galileo-text mb-2">📱 Passo a Passo:</h3>
-                <ol className="text-sm text-galileo-secondaryText space-y-2">
-                  <li>1. Gere um código de vinculação abaixo</li>
-                  <li>2. Clique em "Abrir Bot Telegram"</li>
-                  <li>3. Cole o código no bot do Telegram</li>
-                  <li>4. Pronto! Sua conta estará conectada</li>
-                </ol>
+            <div className="space-y-3 text-sm text-white/80">
+              <div className="flex items-start gap-2">
+                <CheckCircle size={16} className="text-green-400 mt-0.5 flex-shrink-0" />
+                <span>Seus dados financeiros são criptografados</span>
               </div>
-              
-              <Button 
-                onClick={openTelegram}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-              >
-                <MessageCircle size={16} className="mr-2" /> Abrir Bot Telegram
-              </Button>
-              
-              <div className="border-t border-galileo-border pt-4">
-                <h4 className="font-medium text-galileo-text mb-2">🔐 Código de Vinculação</h4>
-                
-                {linkCode ? (
-                  <div className="bg-galileo-background p-3 rounded-lg border border-galileo-border">
-                    <div className="flex items-center justify-between">
-                      <code className="text-lg font-mono font-bold text-galileo-accent">
-                        {linkCode}
-                      </code>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={copyLinkCode}
-                      >
-                        <Copy size={14} className="mr-1" /> Copiar
-                      </Button>
-                    </div>
-                    <p className="text-xs text-galileo-secondaryText mt-2">
-                      ⏰ Este código expira em 15 minutos
-                    </p>
-                  </div>
-                ) : (
-                  <Button 
-                    onClick={generateLinkCode}
-                    disabled={isLoading}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    {isLoading ? 'Gerando...' : 'Gerar Código de Vinculação'}
-                  </Button>
-                )}
+              <div className="flex items-start gap-2">
+                <CheckCircle size={16} className="text-green-400 mt-0.5 flex-shrink-0" />
+                <span>Códigos de vinculação expiram automaticamente</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle size={16} className="text-green-400 mt-0.5 flex-shrink-0" />
+                <span>Você pode desconectar a qualquer momento</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle size={16} className="text-green-400 mt-0.5 flex-shrink-0" />
+                <span>Nenhum dado é compartilhado com terceiros</span>
               </div>
             </div>
           </div>
-        ) : (
-          <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5">
-            <h2 className="text-base font-semibold text-galileo-text mb-4 flex items-center">
-              <Zap size={18} className="mr-2" /> Recursos Disponíveis
-            </h2>
-            
-            <div className="space-y-3">
-              <div className="bg-galileo-background p-3 rounded-lg border border-galileo-border">
-                <h4 className="font-medium text-galileo-text">📸 Análise de Extratos</h4>
-                <p className="text-sm text-galileo-secondaryText">
-                  Envie fotos dos seus extratos bancários para análise automática
-                </p>
-              </div>
-              
-              <div className="bg-galileo-background p-3 rounded-lg border border-galileo-border">
-                <h4 className="font-medium text-galileo-text">💬 Chat Inteligente</h4>
-                <p className="text-sm text-galileo-secondaryText">
-                  Converse sobre suas finanças e receba insights personalizados
-                </p>
-              </div>
-              
-              <div className="bg-galileo-background p-3 rounded-lg border border-galileo-border">
-                <h4 className="font-medium text-galileo-text">🔔 Notificações</h4>
-                <p className="text-sm text-galileo-secondaryText">
-                  Receba alertas sobre contas vencendo e transações importantes
-                </p>
-              </div>
-            </div>
-            
-            <div className="pt-4 border-t border-galileo-border mt-4">
-              <Button 
-                onClick={disconnectTelegram}
-                variant="outline"
-                className="w-full border-red-500 text-red-500 hover:bg-red-50"
-              >
-                Desconectar do Telegram
-              </Button>
-            </div>
-          </div>
-        )}
 
-        {/* Seção de segurança */}
-        <div className="rounded-xl shadow-md bg-white dark:bg-galileo-card border border-galileo-border p-5">
-          <h2 className="text-base font-semibold text-galileo-text mb-4 flex items-center">
-            <Shield size={18} className="mr-2" /> Segurança & Privacidade
-          </h2>
-          
-          <div className="space-y-3 text-sm text-galileo-secondaryText">
-            <div className="flex items-start gap-2">
-              <CheckCircle size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
-              <span>Seus dados financeiros são criptografados</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <CheckCircle size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
-              <span>Códigos de vinculação expiram automaticamente</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <CheckCircle size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
-              <span>Você pode desconectar a qualquer momento</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <CheckCircle size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
-              <span>Nenhum dado é compartilhado com terceiros</span>
-            </div>
-          </div>
         </div>
-
       </div>
       <NavBar />
     </div>

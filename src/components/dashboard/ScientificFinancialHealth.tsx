@@ -274,7 +274,7 @@ const ScientificFinancialHealth: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            � Análise de Saúde Financeira
+            Análise de Saúde Financeira
             <Badge className={`${riskInfo.color} border`}>
               {riskInfo.icon}
               <span className="ml-1">{riskInfo.title}</span>

@@ -2515,7 +2515,7 @@ return (
           width: '100%',
           padding: '0 20px',
           paddingTop: '90px', // Espaço para header fixo
-          paddingBottom: '70px', // Espaço para ChatInput reduzido drasticamente de 85px para 70px
+          paddingBottom: '66px', // Espaço para ChatInput reduzido em 4px (70px → 66px)
           boxSizing: 'border-box',
           minHeight: 'calc(100vh - 90px)' // Ajustado para header fixo
         }}

@@ -136,19 +136,18 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     }
   }, [audioState.isRecording]);
 
-  const handleMouseDown = useCallback(() => {
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!compact || disabled || isProcessing) return;
     
+    e.preventDefault();
     isHoldingRef.current = true;
     
-    startTimeoutRef.current = setTimeout(() => {
-      if (isHoldingRef.current) {
-        startRecording();
-      }
-    }, 100);
+    // Inicia gravação imediatamente, sem delay
+    startRecording();
   }, [compact, disabled, isProcessing, startRecording]);
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
     isHoldingRef.current = false;
     
     if (startTimeoutRef.current) {
@@ -162,14 +161,52 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   }, [audioState.isRecording, stopRecording]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!compact || disabled || isProcessing) return;
+    
     e.preventDefault();
-    handleMouseDown();
-  }, [handleMouseDown]);
+    isHoldingRef.current = true;
+    
+    // Inicia gravação imediatamente no mobile também
+    startRecording();
+  }, [compact, disabled, isProcessing, startRecording]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
-    handleMouseUp();
-  }, [handleMouseUp]);
+    isHoldingRef.current = false;
+    
+    if (audioState.isRecording) {
+      stopRecording();
+    }
+  }, [audioState.isRecording, stopRecording]);
+
+  // Adicionar suporte para eventos globais (quando o usuário solta fora do botão)
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isHoldingRef.current && audioState.isRecording) {
+        isHoldingRef.current = false;
+        stopRecording();
+      }
+    };
+
+    const handleGlobalTouchEnd = () => {
+      if (isHoldingRef.current && audioState.isRecording) {
+        isHoldingRef.current = false;
+        stopRecording();
+      }
+    };
+
+    if (audioState.isRecording) {
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('touchend', handleGlobalTouchEnd);
+      document.addEventListener('touchcancel', handleGlobalTouchEnd);
+    }
+
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('touchend', handleGlobalTouchEnd);
+      document.removeEventListener('touchcancel', handleGlobalTouchEnd);
+    };
+  }, [audioState.isRecording, stopRecording]);
 
   useEffect(() => {
     return () => {
@@ -199,36 +236,48 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
           disabled={disabled || isProcessing}
-          title={audioState.isRecording ? `Gravando... ${formatTime(audioState.recordingTime)}` : "Segurar para gravar áudio"}
+          title={audioState.isRecording ? `Gravando... ${formatTime(audioState.recordingTime)} - Solte para parar` : "🎤 Manter pressionado para gravar"}
           style={{
             width: '58px',
             height: '58px',
             background: audioState.isRecording 
-              ? 'rgba(239, 68, 68, 0.2)' 
+              ? 'rgba(239, 68, 68, 0.3)' 
               : 'rgba(255, 255, 255, 0.15)',
             backdropFilter: 'blur(10px)',
-            border: `2px solid ${audioState.isRecording ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255, 255, 255, 0.2)'}`,
+            border: `2px solid ${audioState.isRecording ? 'rgba(239, 68, 68, 0.8)' : 'rgba(255, 255, 255, 0.2)'}`,
             borderRadius: '50%',
             color: 'white',
             cursor: (disabled || isProcessing) ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'all 0.3s ease',
+            transition: 'all 0.2s ease',
             fontSize: '18px',
             opacity: (disabled || isProcessing) ? 0.5 : 1,
-            userSelect: 'none'
+            userSelect: 'none',
+            transform: audioState.isRecording ? 'scale(1.1)' : 'scale(1)',
+            boxShadow: audioState.isRecording 
+              ? '0 0 20px rgba(239, 68, 68, 0.5), inset 0 0 10px rgba(239, 68, 68, 0.2)' 
+              : '0 4px 15px rgba(0, 0, 0, 0.2)',
+            animation: audioState.isRecording ? 'pulse 1.5s infinite' : 'none'
           }}
         >
           {isProcessing ? (
             <Loader2 size={20} className="animate-spin" />
           ) : audioState.isRecording ? (
-            <MicOff size={20} />
+            <div style={{
+              width: '12px',
+              height: '12px',
+              backgroundColor: '#ef4444',
+              borderRadius: '2px',
+              animation: 'blink 1s infinite'
+            }} />
           ) : (
             <Mic size={20} />
           )}
         </button>
 
+        {/* Indicador de tempo de gravação */}
         {audioState.isRecording && (
           <div style={{
             position: 'absolute',
@@ -242,16 +291,36 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             fontSize: '12px',
             fontWeight: 'bold',
             whiteSpace: 'nowrap',
-            pointerEvents: 'none'
+            animation: 'fadeIn 0.3s ease-out'
           }}>
             🔴 {formatTime(audioState.recordingTime)}
+          </div>
+        )}
+
+        {/* Texto de instrução quando não está gravando */}
+        {!audioState.isRecording && !isProcessing && (
+          <div style={{
+            position: 'absolute',
+            top: '-35px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(0, 0, 0, 0.7)',
+            color: 'white',
+            padding: '2px 6px',
+            borderRadius: '8px',
+            fontSize: '10px',
+            whiteSpace: 'nowrap',
+            opacity: 0.8,
+            pointerEvents: 'none'
+          }}>
+            Manter pressionado
           </div>
         )}
 
         {error && (
           <div style={{
             position: 'absolute',
-            top: '70px',
+            top: '-45px',
             left: '50%',
             transform: 'translateX(-50%)',
             background: 'rgba(239, 68, 68, 0.9)',
@@ -260,24 +329,163 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             borderRadius: '8px',
             fontSize: '10px',
             whiteSpace: 'nowrap',
-            maxWidth: '200px',
+            maxWidth: '150px',
             textAlign: 'center'
           }}>
             {error}
           </div>
         )}
+
+        <style>{`
+          @keyframes pulse {
+            0% { transform: scale(1.1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1.1); }
+          }
+          
+          @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+          }
+          
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(-5px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+          }
+        `}</style>
       </div>
     );
   }
 
+  // Componente não-compacto (versão completa)
   return (
-    <div className="voice-recorder bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
-      <div className="text-center">
-        <p className="text-white/80 mb-4">🎤 Sistema de áudio disponível apenas no modo compacto</p>
-        <p className="text-white/60 text-sm">Use o botão de microfone no chat para gravar mensagens de voz</p>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '10px',
+      padding: '20px',
+      background: 'rgba(255, 255, 255, 0.1)',
+      backdropFilter: 'blur(10px)',
+      borderRadius: '15px',
+      border: '1px solid rgba(255, 255, 255, 0.2)'
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '15px'
+      }}>
+        <button
+          onClick={audioState.isRecording ? stopRecording : startRecording}
+          disabled={disabled || isProcessing}
+          style={{
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            border: 'none',
+            background: audioState.isRecording 
+              ? 'linear-gradient(45deg, #ef4444, #dc2626)' 
+              : 'linear-gradient(45deg, #3b82f6, #2563eb)',
+            color: 'white',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+            opacity: disabled ? 0.5 : 1,
+            transform: audioState.isRecording ? 'scale(1.1)' : 'scale(1)',
+            boxShadow: audioState.isRecording 
+              ? '0 0 20px rgba(239, 68, 68, 0.5)' 
+              : '0 4px 15px rgba(59, 130, 246, 0.3)'
+          }}
+        >
+          {isProcessing ? (
+            <Loader2 size={24} className="animate-spin" />
+          ) : audioState.isRecording ? (
+            <MicOff size={24} />
+          ) : (
+            <Mic size={24} />
+          )}
+        </button>
+
+        {audioState.isRecording && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            color: 'white'
+          }}>
+            <div style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#ef4444',
+              animation: 'blink 1s infinite'
+            }} />
+            <span style={{
+              fontSize: '18px',
+              fontWeight: 'bold',
+              fontFamily: 'monospace'
+            }}>
+              {formatTime(audioState.recordingTime)}
+            </span>
+          </div>
+        )}
       </div>
+
+      {audioState.audioBlob && !audioState.isRecording && (
+        <div style={{
+          display: 'flex',
+          gap: '10px',
+          alignItems: 'center'
+        }}>
+          <button
+            onClick={() => onAudioSend(audioState.audioBlob!)}
+            disabled={isProcessing}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              background: 'linear-gradient(45deg, #10b981, #059669)',
+              color: 'white',
+              cursor: isProcessing ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              opacity: isProcessing ? 0.5 : 1
+            }}
+          >
+            {isProcessing ? 'Enviando...' : 'Enviar'}
+          </button>
+          
+          <button
+            onClick={() => setAudioState(prev => ({ ...prev, audioBlob: null }))}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              background: 'rgba(239, 68, 68, 0.8)',
+              color: 'white',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            Descartar
+          </button>
+        </div>
+      )}
+
+      {error && (
+        <div style={{
+          background: 'rgba(239, 68, 68, 0.9)',
+          color: 'white',
+          padding: '8px 16px',
+          borderRadius: '8px',
+          fontSize: '12px',
+          textAlign: 'center',
+          maxWidth: '200px'
+        }}>
+          {error}
+        </div>
+      )}
     </div>
   );
 };
-
-export default VoiceRecorder;

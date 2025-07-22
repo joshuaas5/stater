@@ -133,6 +133,24 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     if (mediaRecorderRef.current && audioState.isRecording) {
       mediaRecorderRef.current.stop();
       console.log('🎤 Gravação finalizada');
+      
+      // Parar todos os tracks de áudio
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => {
+          track.stop();
+          console.log('🎤 Track de áudio parado');
+        });
+        streamRef.current = null;
+      }
+      
+      // Limpar mediaRecorder
+      mediaRecorderRef.current = null;
+      
+      // Atualizar estado
+      setAudioState(prev => ({
+        ...prev,
+        isRecording: false
+      }));
     }
   }, [audioState.isRecording]);
 
@@ -148,6 +166,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
+    console.log('🎤 Mouse UP detectado');
     isHoldingRef.current = false;
     
     if (startTimeoutRef.current) {
@@ -156,6 +175,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     }
     
     if (audioState.isRecording) {
+      console.log('🎤 Parando gravação via mouse up');
       stopRecording();
     }
   }, [audioState.isRecording, stopRecording]);
@@ -236,10 +256,9 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
           disabled={disabled || isProcessing}
-          title={audioState.isRecording ? `Gravando... ${formatTime(audioState.recordingTime)} - Solte para parar` : "🎤 Manter pressionado para gravar"}
           style={{
-            width: '58px',
-            height: '58px',
+            width: '44px',
+            height: '44px',
             background: audioState.isRecording 
               ? 'rgba(239, 68, 68, 0.3)' 
               : 'rgba(255, 255, 255, 0.15)',
@@ -263,17 +282,17 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           }}
         >
           {isProcessing ? (
-            <Loader2 size={20} className="animate-spin" />
+            <Loader2 size={16} className="animate-spin" />
           ) : audioState.isRecording ? (
             <div style={{
-              width: '12px',
-              height: '12px',
+              width: '10px',
+              height: '10px',
               backgroundColor: '#ef4444',
               borderRadius: '2px',
               animation: 'blink 1s infinite'
             }} />
           ) : (
-            <Mic size={20} />
+            <Mic size={16} />
           )}
         </button>
 

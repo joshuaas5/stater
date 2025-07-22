@@ -133,6 +133,17 @@ export const FinancialAdvisorPage: React.FC = () => {
   // Hook para gerenciar múltiplos estados de loading
   const { setLoading: setLoadingState, isLoading: isLoadingState, isAnyLoading } = useLoadingStates();
 
+  // Ref para controlar cancelamento de requisições
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Function to cancel ongoing requests
+  const handleCancelRequest = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      console.log("🚫 Request cancelled by user");
+    }
+  };
+
   // Inicializar Web Speech API
   useEffect(() => {
     // Verificar se o navegador suporta Web Speech API
@@ -413,12 +424,14 @@ const isAddBillIntent = (msg: string) => {
         setMessages(prev => [...prev, userMessage]);
         
         // Ativar modal de confirmação diretamente com os dados da transação
-        setPendingActionDetails({
-          type: result.transaction_type || 'expense',
-          amount: result.amount,
-          description: result.description,
-          category: result.category || 'Outros',
-          date: new Date().toISOString().split('T')[0]
+        setPendingAction({
+          tipo: result.transaction_type || 'expense',
+          dados: {
+            amount: result.amount,
+            description: result.description,
+            category: result.category || 'Outros',
+            date: new Date().toISOString().split('T')[0]
+          }
         });
         setWaitingConfirmation(true);
         
@@ -1065,7 +1078,8 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
       // Fim da lógica de verificação de limite de tokens e requisições
 
       // Get session token
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      try {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !sessionData?.session) {
         setMessages(prev => [...prev, { id: uuidv4(), text: "❌ Erro: Não foi possível obter a sessão. Faça login novamente.", sender: 'system', timestamp: new Date() }]);
         setLoadingState('ai-thinking', false);
@@ -1124,6 +1138,10 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
 
       // Call our backend API
       console.log(`FinancialAdvisorPage: Calling backend /api/gemini with prompt: "${userPrompt}"`);
+      
+      // Create AbortController for request cancellation
+      abortControllerRef.current = new AbortController();
+      
       const backendApiResponse = await fetch('/api/gemini', {
         method: 'POST',
         headers: {
@@ -1131,6 +1149,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
           'Authorization': `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ originalPrompt: userPrompt }),
+        signal: abortControllerRef.current.signal
       });
 
       if (!backendApiResponse.ok) {
@@ -1530,6 +1549,34 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
       setLoadingState('transaction-save', false);
       setSavingTransactions(false);
     }
+  } catch (error: any) {
+    console.error("Erro na requisição para a IA:", error);
+    
+    // Check if request was cancelled
+    if (error.name === 'AbortError') {
+      setMessages(prev => [...prev, {
+        id: uuidv4(),
+        text: "⚠️ Operação cancelada pelo usuário.",
+        sender: 'system',
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
+      }]);
+    } else {
+      setMessages(prev => [...prev, {
+        id: uuidv4(),
+        text: `❌ Erro ao processar sua solicitação: ${error.message || 'Erro desconhecido'}. Tente novamente.`,
+        sender: 'system',
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
+      }]);
+    }
+  } finally {
+    setLoadingState('ai-thinking', false);
+    setLoadingState('transaction-save', false);
+    setSavingTransactions(false);
+    // Clear the abort controller reference
+    abortControllerRef.current = null;
+  }
   };  // Função para detectar listas de transações em texto
   const detectTransactionListInText = (userMessage: string) => {
     const originalMessage = userMessage.toLowerCase();
@@ -2116,9 +2163,9 @@ const handleImageUpload = async (imageBase64: string) => {
       avatarUrl: IA_AVATAR
     }]);
 
-    // Chamar API de OCR funcional com timeout ajustadopara plano gratuito Vercel (60s máximo)
+    // Chamar API de OCR funcional com timeout ajustado para plano gratuito Vercel (60s máximo)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 segundos (deixa margem para o Vercel)
+    const timeoutId = setTimeout(() => controller.abort(), 40000); // OTIMIZADO: Reduzido de 55s para 40s para feedback mais rápido
     
     // Preparar dados para envio baseado no tipo de arquivo
     let requestBody: any;
@@ -2158,7 +2205,7 @@ const handleImageUpload = async (imageBase64: string) => {
       // Verificar se é erro de abort (timeout do cliente)
       if (controller.signal.aborted) {        setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: "⏱️ Timeout no Processamento (1 minuto)\n\nO documento demorou muito para processar.\n\n💡 Soluções recomendadas:\n• Para PDFs grandes: Divida em seções menores ou use imagens\n• Para extratos longos: Faça capturas de tela de partes específicas\n• Alternativa rápida: Tire fotos das páginas importantes\n• Documentos complexos: Simplifique removendo páginas extras\n\n🔄 Quer tentar novamente? Envie um documento menor ou em formato de imagem.",
+          text: "⏱️ Processamento Otimizado (40s)\n\nO documento está sendo processado de forma mais rápida agora.\n\n💡 Dicas para acelerar ainda mais:\n• Para PDFs grandes: Divida em seções menores ou use imagens\n• Para extratos longos: Faça capturas de tela de partes específicas\n• Alternativa mais rápida: Tire fotos claras das páginas importantes\n• Documentos complexos: Simplifique removendo páginas extras\n\n� Quer tentar novamente? O sistema está otimizado para respostas mais rápidas!",
           sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
@@ -2569,6 +2616,7 @@ return (
           pendingActionDetails={pendingAction ? pendingAction.dados : null} 
           onConfirm={() => handleSendMessage('sim')} 
           onCancel={() => handleSendMessage('não')}
+          onCancelRequest={handleCancelRequest}
           // Props para áudio
           onAudioSend={handleAudioMessage}
           isProcessingAudio={isLoadingState('audio-processing')}

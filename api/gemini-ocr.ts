@@ -440,6 +440,10 @@ export default async function handler(req: any, res: any) {
       mimeType = "application/pdf";
       console.log('[OCR] Detectado: PDF');
       
+      // OTIMIZAÇÃO ESPECÍFICA PARA PDF
+      modelToUse = "gemini-2.5-flash"; // Modelo mais estável para PDFs
+      console.log('[OCR] PDF detectado - usando modelo mais estável');
+      
       // Não fazer detecção preventiva de PDF protegido
       // Deixar o Gemini tentar processar e tratar erro se necessário
       console.log('[OCR] PDF será processado normalmente pelo Gemini');
@@ -631,15 +635,15 @@ IMPORTANTE:
         ]
       }],      generationConfig: {
         temperature: 0.1, // Muito baixo para precisão
-        topK: 8,          // OTIMIZADO: Reduzido de 16 para 8 para mais velocidade
-        topP: 0.7,        // OTIMIZADO: Reduzido de 0.8 para 0.7 para acelerar
-        maxOutputTokens: 6144, // OTIMIZADO: Reduzido de 8192 para 6144
+        topK: mimeType === "application/pdf" ? 4 : 8,     // OTIMIZADO: Mais conservador para PDFs
+        topP: mimeType === "application/pdf" ? 0.5 : 0.7,  // OTIMIZADO: Mais conservador para PDFs
+        maxOutputTokens: mimeType === "application/pdf" ? 4096 : 6144, // OTIMIZADO: Menor para PDFs
       }
     };    console.log('[OCR] Chamando Gemini:', modelToUse);
 
     // Implementar retry para erros 503 (UNAVAILABLE)
     let retryCount = 0;
-    const maxRetries = 3;
+    const maxRetries = 2; // OTIMIZADO: Reduzido de 3 para 2 para acelerar
     let lastError = null;
     let ocrResult: any = null;
     let responseData: any = null;
@@ -648,9 +652,12 @@ IMPORTANTE:
       try {
         console.log(`[OCR] Tentativa ${retryCount + 1}/${maxRetries + 1}`);
         
-        // TIMEOUT OTIMIZADO: 30 segundos por tentativa
+        // TIMEOUT OTIMIZADO: 50 segundos por tentativa (aumentado para PDFs grandes)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        const timeoutId = setTimeout(() => {
+          console.log('[OCR] ⏱️ Timeout de 50s atingido, cancelando requisição...');
+          controller.abort();
+        }, 50000);
         
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`,
@@ -882,8 +889,8 @@ IMPORTANTE:
         
         // Verificar se é erro de timeout (AbortController)
         if (requestError.name === 'AbortError') {
-          console.log(`[OCR] ⏱️ Timeout de 30s atingido na tentativa ${retryCount + 1}`);
-          lastError = new Error(`Timeout: Requisição demorou mais que 30 segundos`);
+          console.log(`[OCR] ⏱️ Timeout de 50s atingido na tentativa ${retryCount + 1}`);
+          lastError = new Error(`Timeout: Requisição demorou mais que 50 segundos`);
         }
         
         if (retryCount < maxRetries) {

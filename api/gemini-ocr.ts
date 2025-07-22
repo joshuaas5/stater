@@ -398,18 +398,21 @@ IMPORTANTE:
 }
 
 export default async function handler(req: any, res: any) {
-  console.log('[OCR] Iniciando processamento...');
+  const startTime = Date.now();
+  console.log('[OCR] 🚀 Iniciando processamento...', new Date().toISOString());
   
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }  try {
     const { imageBase64, fileName, fileType, csvData, textData, excelData } = req.body;
     
-    console.log('[OCR] Verificando dados recebidos...');
-    console.log('[OCR] Imagem/arquivo presente:', !!imageBase64);
-    console.log('[OCR] Nome do arquivo:', fileName);
-    console.log('[OCR] Tipo do arquivo:', fileType);
-    console.log('[OCR] Dados CSV:', !!csvData);    console.log('[OCR] Dados Excel:', !!excelData);
+    console.log('[OCR] 📊 Dados recebidos:');
+    console.log('[OCR] - Arquivo presente:', !!imageBase64);
+    console.log('[OCR] - Nome:', fileName);
+    console.log('[OCR] - Tipo:', fileType);
+    console.log('[OCR] - Tamanho base64:', imageBase64?.length || 0);
+    console.log('[OCR] - API Key válida:', !!GEMINI_API_KEY && GEMINI_API_KEY.startsWith('AIza'));
+    console.log('[OCR] - Dados CSV:', !!csvData);    console.log('[OCR] - Dados Excel:', !!excelData);
     
     // Se for CSV, XLS, XLSM ou TXT, processar como texto
     if (fileType && (fileType.includes('csv') || fileType.includes('excel') || fileType.includes('sheet') || fileType.includes('text'))) {
@@ -424,7 +427,7 @@ export default async function handler(req: any, res: any) {
 
     let processedImageBase64 = imageBase64;// Detectar tipo de arquivo pelo cabeçalho base64
     let mimeType = "image/jpeg"; // padrão
-    let modelToUse = "gemini-2.0-flash-exp"; // 2.0 Flash Experimental para fotos
+    let modelToUse = "gemini-2.5-flash-preview-05-20"; // OTIMIZADO: Modelo mais rápido por padrão
     
     console.log('[OCR] Primeiros 20 chars do base64:', imageBase64.substring(0, 20));
     
@@ -628,9 +631,9 @@ IMPORTANTE:
         ]
       }],      generationConfig: {
         temperature: 0.1, // Muito baixo para precisão
-        topK: 16,         // Reduzido para foco
-        topP: 0.8,        // Mais determinístico
-        maxOutputTokens: 8192, // Dobrado para faturas grandes
+        topK: 8,          // OTIMIZADO: Reduzido de 16 para 8 para mais velocidade
+        topP: 0.7,        // OTIMIZADO: Reduzido de 0.8 para 0.7 para acelerar
+        maxOutputTokens: 6144, // OTIMIZADO: Reduzido de 8192 para 6144
       }
     };    console.log('[OCR] Chamando Gemini:', modelToUse);
 
@@ -645,14 +648,21 @@ IMPORTANTE:
       try {
         console.log(`[OCR] Tentativa ${retryCount + 1}/${maxRetries + 1}`);
         
+        // TIMEOUT OTIMIZADO: 30 segundos por tentativa
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: controller.signal
           }
         );
+        
+        clearTimeout(timeoutId);
 
         console.log('[OCR] Resposta Gemini - Status:', response.status);
 
@@ -870,6 +880,12 @@ IMPORTANTE:
         lastError = requestError;
         console.error(`[OCR] Erro na tentativa ${retryCount + 1}:`, requestError.message);
         
+        // Verificar se é erro de timeout (AbortController)
+        if (requestError.name === 'AbortError') {
+          console.log(`[OCR] ⏱️ Timeout de 30s atingido na tentativa ${retryCount + 1}`);
+          lastError = new Error(`Timeout: Requisição demorou mais que 30 segundos`);
+        }
+        
         if (retryCount < maxRetries) {
           const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
           console.log(`[OCR] Aguardando ${delay}ms antes da próxima tentativa...`);
@@ -884,7 +900,10 @@ IMPORTANTE:
     }
 
     // Se saiu do loop sem erro, o processamento foi bem-sucedido
-    console.log('[OCR] Processamento concluído com sucesso!');
+    const endTime = Date.now();
+    const processingTime = endTime - startTime;
+    console.log('[OCR] ✅ Processamento concluído com sucesso!');
+    console.log('[OCR] ⏱️ Tempo total:', processingTime, 'ms');
 
     return res.status(200).json({
       success: true,
@@ -892,8 +911,9 @@ IMPORTANTE:
       metadata: {
         processedAt: new Date().toISOString(),
         tokensUsed: responseData?.usageMetadata?.totalTokenCount || 0,
-        processingMode: ocrResult.description?.includes('extraída') ? 'fallback' : 'gemini',
-        retryCount: retryCount
+        processingMode: (ocrResult && ocrResult.description?.includes('extraída')) ? 'fallback' : 'gemini',
+        retryCount: retryCount,
+        processingTimeMs: processingTime
       }
     });
 

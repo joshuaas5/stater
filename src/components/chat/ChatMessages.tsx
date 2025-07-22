@@ -89,20 +89,31 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
               </ReactMarkdown>
             </div>
             {message.sender === 'system' && transactions && transactions.length > 0 && (
-              <div className="mt-2 pt-2 space-y-1.5 border-t border-primary-foreground/30">
-                <p className="font-medium text-xs opacity-90">Transações identificadas:</p>
-                {transactions.map((tx, index) => (
-                  <div key={index} className="flex justify-between items-center text-xs bg-background/20 rounded-lg px-3 py-1.5">
-                    <span className="font-medium">{tx.title}</span>
-                    <span className={
-                      tx.type === 'income' 
-                        ? 'text-green-300 bg-green-700/50 px-2 py-0.5 rounded-full font-medium' 
-                        : 'text-red-300 bg-red-700/50 px-2 py-0.5 rounded-full font-medium'
-                    }>
-                      {formatCurrency(tx.type === 'expense' ? -Math.abs(tx.amount) : Math.abs(tx.amount))}
-                    </span>
-                  </div>
-                ))}
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2 text-xs font-medium opacity-90">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span>Transações identificadas</span>
+                </div>
+                <div className="grid gap-2">
+                  {transactions.map((tx, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-white/10 border border-white/20 rounded-xl backdrop-blur-sm hover:bg-white/15 transition-all duration-200">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className={`w-3 h-3 rounded-full ${tx.type === 'income' ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{tx.title}</p>
+                          <p className="text-xs opacity-75">{tx.type === 'income' ? 'Receita' : 'Despesa'}</p>
+                        </div>
+                      </div>
+                      <div className={`px-3 py-1.5 rounded-lg text-sm font-semibold ${
+                        tx.type === 'income' 
+                          ? 'text-green-100 bg-green-600/80' 
+                          : 'text-red-100 bg-red-600/80'
+                      }`}>
+                        {formatCurrency(tx.type === 'expense' ? -Math.abs(tx.amount) : Math.abs(tx.amount))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

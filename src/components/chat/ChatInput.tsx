@@ -99,10 +99,33 @@ const ChatInput: React.FC<ChatInputProps> = ({
       setStream(mediaStream);
       setShowCamera(true);
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        videoRef.current.play();
-      }
+      // Aguardar o próximo frame para garantir que o DOM foi atualizado
+      setTimeout(async () => {
+        if (videoRef.current && mediaStream) {
+          const video = videoRef.current;
+          video.srcObject = mediaStream;
+          
+          // Adicionar event listener para garantir que o vídeo carregou
+          video.addEventListener('loadedmetadata', () => {
+            console.log('Vídeo carregado, dimensões:', video.videoWidth, 'x', video.videoHeight);
+          });
+          
+          video.addEventListener('canplay', () => {
+            console.log('Vídeo pronto para reproduzir');
+          });
+          
+          try {
+            await video.play();
+            console.log('Vídeo reproduzindo com sucesso');
+          } catch (playError) {
+            console.error('Erro ao reproduzir vídeo:', playError);
+            // Tentar reproduzir novamente após um delay
+            setTimeout(() => {
+              video.play().catch(e => console.error('Segundo erro ao reproduzir:', e));
+            }, 500);
+          }
+        }
+      }, 100);
     } catch (error) {
       console.error('Erro ao acessar a câmera:', error);
       toast({
@@ -122,11 +145,28 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const capturePhoto = async () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current || !canvasRef.current) {
+      toast({
+        title: "Erro",
+        description: "Câmera não está pronta",
+        variant: "destructive"
+      });
+      return;
+    }
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
+
+    // Verificar se o vídeo tem dimensões válidas
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      toast({
+        title: "Aguarde",
+        description: "Câmera ainda carregando. Tente novamente em alguns segundos.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     if (context) {
       canvas.width = video.videoWidth;
@@ -138,9 +178,20 @@ const ChatInput: React.FC<ChatInputProps> = ({
       
       if (onImageUpload) {
         onImageUpload(base64Data);
+        toast({
+          title: "Foto capturada!",
+          description: "Imagem enviada com sucesso",
+          variant: "default"
+        });
       }
       
       stopCamera();
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não foi possível processar a imagem",
+        variant: "destructive"
+      });
     }
   };
 
@@ -508,7 +559,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             fontWeight: '600',
             zIndex: 1002
           }}>
-            📷 Capturar Extrato
+            📷 Capturar Foto
           </div>
           
           {/* Botão fechar */}

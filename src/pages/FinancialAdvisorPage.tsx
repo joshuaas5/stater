@@ -408,11 +408,10 @@ const isAddBillIntent = (msg: string) => {
       
       setMessages(prev => [...prev, userMessage]);
       
-      // IMPORTANTE: Processar a transcrição através do pipeline normal de mensagens
+      // CORREÇÃO CRÍTICA: Processar a transcrição diretamente via handleSendMessage
       // para ativar detecção de transações e fluxo de confirmação
-      setTimeout(() => {
-        handleSendMessage(result.transcription || '');
-      }, 100);
+      // skipAddingUserMessage = true pois já adicionamos a mensagem acima
+      await handleSendMessage(result.transcription || '', true);
 
       // As mensagens são salvas automaticamente através do useEffect
 
@@ -475,7 +474,7 @@ const isAddBillIntent = (msg: string) => {
     setWaitingConfirmation(true);
   }, []);
 
-const handleSendMessage = async (message: string) => {
+const handleSendMessage = async (message: string, skipAddingUserMessage = false) => {
   // Validação robusta da entrada
   const validatedMessage = validateUserInput(message);
   if (!validatedMessage) {
@@ -940,9 +939,11 @@ const handleSendMessage = async (message: string) => {
       return; // Importante sair após tratar o cancelamento
     }
 
-  // Adiciona a mensagem do usuário à interface
-  const newUserMessage: ChatMessage = { id: uuidv4(), text: message, sender: 'user', timestamp: new Date(), avatarUrl: USER_AVATAR };
-  setMessages(prevMessages => [...prevMessages, newUserMessage]);
+  // Adiciona a mensagem do usuário à interface (apenas se não foi já adicionada)
+  if (!skipAddingUserMessage) {
+    const newUserMessage: ChatMessage = { id: uuidv4(), text: message, sender: 'user', timestamp: new Date(), avatarUrl: USER_AVATAR };
+    setMessages(prevMessages => [...prevMessages, newUserMessage]);
+  }
   setLoadingState('ai-thinking', true);
   setError('');
   setShowSuggestions(false);

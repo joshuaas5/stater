@@ -459,85 +459,78 @@ export default async function handler(req: any, res: any) {
     if (!GEMINI_API_KEY) {
       console.log('[OCR] Erro: API Key não encontrada');
       return res.status(500).json({ error: 'API não configurada' });
-    }    // Prompt especializado para documentos financeiros avançados
+    }    // Prompt especializado para documentos financeiros com foco em NUBANK
     const prompt = `
-VOCÊ É UM ESPECIALISTA EM ANÁLISE DE DOCUMENTOS FINANCEIROS COMPLEXOS.
+VOCÊ É UM ESPECIALISTA EM ANÁLISE DE DOCUMENTOS FINANCEIROS, ESPECIALIZADO EM FATURAS NUBANK.
 
-ANALISE ESTE DOCUMENTO e extraia TODAS as transações com MÁXIMA PRECISÃO, identificando corretamente ENTRADAS e SAÍDAS.
+🟣 INSTRUÇÕES ESPECÍFICAS PARA FATURAS NUBANK:
 
-TIPOS DE DOCUMENTOS SUPORTADOS:
-- Faturas de cartão de crédito (APENAS saídas/despesas - NÃO incluir pagamentos da fatura)
+PROCURE ESPECIFICAMENTE POR:
+1. 📍 SEÇÃO "COMPRAS PRESENCIAIS" ou "Compras em estabelecimentos"
+2. 📍 SEÇÃO "COMPRAS ONLINE" ou "Compras na internet"  
+3. 📍 SEÇÃO "ASSINATURAS" ou "Assinaturas e recorrentes"
+4. 📍 SEÇÃO "SAQUES" ou "Saques no cartão"
+5. 📍 SEÇÃO "OUTRAS TRANSAÇÕES" ou transações diversas
+6. 📍 LISTA DE ESTABELECIMENTOS com datas e valores
+
+FORMATO TÍPICO NUBANK:
+- Data (DD/MM ou DD MMM)
+- Nome do estabelecimento
+- Valor em R$ (sempre positivo na fatura)
+- Possível parcelamento (ex: "2/3", "1/6")
+
+EXEMPLOS DE TRANSAÇÕES VÁLIDAS NUBANK:
+✅ "15/12 MERCADO EXTRA R$ 127,89"
+✅ "20 DEZ POSTO SHELL R$ 85,50"
+✅ "NETFLIX.COM R$ 39,90"
+✅ "UBER *TRIP R$ 23,45"
+✅ "AMAZON PRIME R$ 14,90"
+✅ "FARMACIA RAIA R$ 67,23"
+✅ "IFOOD *HAMBURGUER R$ 45,80"
+✅ "SPOTIFY R$ 21,90"
+
+❌ NÃO INCLUIR:
+- "Total da fatura"
+- "Valor mínimo"
+- "Pagamento recebido"
+- "Limite disponível"
+- Cashback já aplicado
+- Rendimentos baixos (centavos)
+
+🔍 ESTRATÉGIA DE ANÁLISE NUBANK:
+1. EXAMINE TODA A PÁGINA - O Nubank pode ter múltiplas seções
+2. PROCURE por listas com DATAS + ESTABELECIMENTOS + VALORES
+3. IGNORE cabeçalhos, totais, limites e informações da conta
+4. FOQUE em transações comerciais reais
+5. Se não encontrar nada, EXAMINE NOVAMENTE toda a imagem
+
+OUTROS TIPOS DE DOCUMENTOS:
 - Extratos bancários (entradas E saídas)
 - Extratos de conta corrente (entradas E saídas)  
 - Extratos de poupança (entradas E saídas)
 - Relatórios de investimentos (entradas E saídas)
 - Extratos de carteira digital/PIX (entradas E saídas)
-- LISTAS MANUSCRITAS: fotos de papel com gastos, entradas ou saídas escritos à mão
+- LISTAS MANUSCRITAS: fotos de papel com gastos escritos à mão
 
-ANÁLISE DE LISTAS MANUSCRITAS:
-✅ RECONHEÇA que usuários podem fotografar:
-- Listas de gastos escritas à mão em papel
-- Anotações de despesas/receitas manuscritas  
-- Cadernos com registros financeiros
-- Papéis com valores e descrições escritos
-- Blocos de notas com transações anotadas
-
-REGRAS PARA LISTAS MANUSCRITAS:
-- Identifique valores escritos à mão (R$ 50, 100,00, etc.)
-- Reconheça descrições manuscritas (mercado, posto, farmácia)
-- Considere como transações válidas mesmo que escritas de forma simples
-- Se houver símbolos (+/-) ou palavras (gasto/receita), identifique o tipo
-- Categorize automaticamente baseado na descrição escrita
-
-REGRAS CRÍTICAS PARA FATURAS DE CARTÃO:
-❌ NÃO INCLUIR como transações:
-- Pagamentos da fatura (ex: "Pagamento recebido", "Débito em conta")
-- Valores totais da fatura
-- Saldo anterior, saldo atual
-- Limite de crédito
-- Valor mínimo
-
-✅ INCLUIR APENAS:
-- Compras em estabelecimentos
-- Saques no cartão
-- Anuidades e taxas do cartão
-- IOF e juros
-- Estornos (como receita/entrada)
-
-REGRAS CRÍTICAS PARA EXTRATOS BANCÁRIOS:
+REGRAS GERAIS:
 🔴 SAÍDAS/DESPESAS (type: "expense"):
-- Compras com débito/crédito
+- Compras em estabelecimentos (FATURA DE CARTÃO)
 - Saques em dinheiro
-- PIX/TED/transferências ENVIADAS
+- PIX/TED/transferências ENVIADAS (EXTRATO)
 - Pagamentos de contas/boletos
 - Taxas bancárias
-- Débitos automáticos
-- Valores com (-) ou em vermelho
 
 🟢 ENTRADAS/RECEITAS (type: "income"):
-- Depósitos
 - PIX/TED/transferências RECEBIDAS
-- Salários
+- Salários e depósitos
 - Rendimentos
 - Estornos
-- Valores com (+) ou em verde
 
-ANÁLISE CONTEXTUAL AVANÇADA:
-1. Para NUBANK e bancos digitais: 
-   - Observe padrões de cores (verde=entrada, vermelho=saída)
-   - Procure por ícones de direção (setas, símbolos)
-   - Analise descrições como "Pix enviado", "Pix recebido", "Transferência"
-   - IGNORE rendimentos do Nubank (geralmente centavos)
-2. Para extratos tradicionais: analise códigos de operação
-3. Valores pequenos podem ser taxas ou rendimentos - analise o contexto
-4. Se encontrar apenas valores muito baixos (ex: R$ 0,01), PROCURE MAIS TRANSAÇÕES
-5. Para FATURAS DE CARTÃO: NÃO inclua o pagamento da fatura como despesa
-
-VALIDAÇÃO DE QUALIDADE:
-- Extratos típicos têm MÚLTIPLAS transações com valores VARIADOS
-- Se identificar apenas 1-2 transações pequenas, REANALISE o documento
-- Para Nubank: procure por seções como "Gastos", "Transferências", "Pagamentos"
-- Valores comuns: compras (R$ 20-500), transferências (R$ 50-2000), salários (R$ 1000+)
+VALIDAÇÃO CRÍTICA:
+- Faturas Nubank normalmente têm 5-20+ transações
+- Se encontrar menos de 3 transações, REEXAMINE o documento
+- Valores típicos: R$ 15-500 por transação
+- SEMPRE examine toda a página/documento completo
 
 PADRÕES ESPECÍFICOS POR BANCO BRASILEIRO:
 
@@ -594,18 +587,18 @@ PADRÕES ESPECÍFICOS FATURA ITAÚ:
 RETORNE APENAS JSON VÁLIDO no formato:
 
 {
-  "documentType": "extrato_bancario" ou "fatura_cartao" ou "extrato_pix" ou "relatorio_investimento",
+  "documentType": "fatura_nubank" ou "extrato_bancario" ou "fatura_cartao" ou "extrato_pix" ou "relatorio_investimento",
   "confidence": 0.95,
   "summary": {
     "totalAmount": [soma de todas as transações],
     "totalIncome": [soma apenas das entradas],
     "totalExpense": [soma apenas das saídas],
-    "establishment": "Nome da instituição/banco",
+    "establishment": "Nubank" ou "Nome da instituição/banco",
     "period": "Período do documento se identificável"
   },
   "transactions": [
     {
-      "description": "Descrição exata da transação",
+      "description": "Nome do estabelecimento exato da fatura",
       "amount": 150.50,
       "type": "expense" ou "income",
       "category": "categoria_apropriada",
@@ -615,12 +608,23 @@ RETORNE APENAS JSON VÁLIDO no formato:
   ]
 }
 
-IMPORTANTE: 
+CATEGORIZAÇÃO AUTOMÁTICA PARA NUBANK:
+- MERCADO/SUPERMERCADO/EXTRA/CARREFOUR → "Alimentação"
+- POSTO/SHELL/PETROBRAS/IPIRANGA → "Transporte"  
+- FARMÁCIA/DROGARIA/RAIA/PACHECO → "Saúde"
+- NETFLIX/SPOTIFY/AMAZON PRIME → "Entretenimento"
+- UBER/99/CABIFY → "Transporte"
+- IFOOD/RAPPI/DELIVERY → "Alimentação"
+- ZARA/RENNER/LOJAS → "Cuidados Pessoais"
+- SHOPPING/MAGAZINE → "Outros"
+
+INSTRUÇÕES FINAIS:
 - Seja MUITO criterioso para identificar corretamente entrada vs saída
-- Em caso de dúvida sobre o tipo, analise o contexto e descrição
-- Para documentos complexos, priorize precisão sobre quantidade
+- Para FATURAS: todas as transações são despesas (type: "expense")
+- Para EXTRATOS: analise contexto para determinar entrada/saída
 - NÃO invente transações que não existem claramente no documento
-`;
+- Se não encontrar transações válidas, retorne transactions: []
+- SEMPRE examine toda a imagem antes de concluir`;
 
     console.log('[OCR] Preparando payload para Gemini...');
 
@@ -869,13 +873,37 @@ IMPORTANTE:
           console.log('[OCR] Total receitas:', totalIncome);
           console.log('[OCR] Total despesas:', totalExpense);
           
-          // VALIDAÇÃO DE QUALIDADE DOS RESULTADOS
+          // VALIDAÇÃO DE QUALIDADE DOS RESULTADOS - AJUSTADA PARA NUBANK
           const hasOnlySmallValues = ocrResult.transactions.every((t: any) => (t.amount || 0) < 1.0);
-          const hasVeryFewTransactions = ocrResult.transactions.length <= 2;
+          const hasVeryFewTransactions = ocrResult.transactions.length <= 1; // Reduzido para ser mais tolerante
           const totalValue = totalIncome + totalExpense;
+
+          // Para faturas Nubank, ser mais criterioso na validação
+          const isNubankDocument = ocrResult.documentType?.includes('nubank') || 
+                                   ocrResult.summary?.establishment?.toLowerCase().includes('nubank');
 
           if (hasOnlySmallValues && hasVeryFewTransactions && totalValue < 5.0) {
             console.log('[OCR] ⚠️ Resultado suspeito: valores muito baixos ou poucas transações');
+            console.log('[OCR] É documento Nubank?', isNubankDocument);
+            console.log('[OCR] Total de transações:', ocrResult.transactions.length);
+            console.log('[OCR] Valor total:', totalValue);
+            
+            // Para Nubank, dar uma segunda chance com feedback específico
+            if (isNubankDocument || ocrResult.transactions.length === 0) {
+              return res.status(400).json({
+                success: false,
+                error: 'Fatura Nubank não foi lida corretamente',
+                details: 'O sistema não conseguiu encontrar as transações na fatura do Nubank.',
+                suggestions: [
+                  '🟣 CERTIFIQUE-SE de que a fatura está completa e legível',
+                  '📸 TIRE UMA FOTO clara da seção "COMPRAS" da fatura',
+                  '✅ VERIFIQUE se há transações visíveis na tela antes de fotografar',
+                  '📋 COPIE o texto da fatura e cole no chat como alternativa'
+                ],
+                needsManualReview: true,
+                isNubankSpecific: true
+              });
+            }
             
             return res.status(400).json({
               success: false,

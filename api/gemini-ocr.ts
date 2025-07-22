@@ -647,6 +647,7 @@ IMPORTANTE:
     let lastError = null;
     let ocrResult: any = null;
     let responseData: any = null;
+    let processingComplete = false;
 
     while (retryCount <= maxRetries) {
       try {
@@ -847,6 +848,7 @@ IMPORTANTE:
           }
 
           // Se chegou até aqui, o processamento foi bem-sucedido
+          processingComplete = true;
           break;
 
         } catch (parseError: any) {
@@ -860,6 +862,7 @@ IMPORTANTE:
               const partialJson = jsonMatches[0];
               ocrResult = JSON.parse(partialJson);
               console.log('[OCR] JSON parcial extraído com sucesso');
+              processingComplete = true;
               break; // Sair do loop se conseguiu parsear
             } else {
               throw new Error('Nenhum JSON encontrado');
@@ -904,6 +907,16 @@ IMPORTANTE:
           throw new Error(`Falha após ${maxRetries + 1} tentativas: ${requestError.message}`);
         }
       }
+    }
+
+    // VALIDAÇÃO CRÍTICA: Verificar se o processamento foi realmente bem-sucedido
+    if (!processingComplete || !ocrResult) {
+      console.error('[OCR] ❌ Processamento falhou - ocrResult não definido');
+      return res.status(500).json({ 
+        error: 'Erro no processamento do documento',
+        details: lastError?.message || 'Falha inesperada no processamento',
+        timestamp: new Date().toISOString()
+      });
     }
 
     // Se saiu do loop sem erro, o processamento foi bem-sucedido

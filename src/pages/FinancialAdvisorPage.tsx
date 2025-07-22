@@ -141,6 +141,9 @@ export const FinancialAdvisorPage: React.FC = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       console.log("🚫 Request cancelled by user");
+      abortControllerRef.current = null;
+      setLoading(false);
+      setLoadingState('ai-thinking', false);
     }
   };
 
@@ -2290,16 +2293,27 @@ const handleImageUpload = async (imageBase64: string) => {
     const result = await response.json();
     console.log('Resultado da API OCR:', result);
     
+    // VALIDAÇÃO MELHORADA: Verificar múltiplas condições
     if (!result.success) {
       throw new Error(result.error || 'Falha no processamento do documento');
     }
 
     const ocrData = result.data;
     
-    // VALIDAÇÃO: Verificar se ocrData existe e tem estrutura válida
-    if (!ocrData || !ocrData.transactions || !Array.isArray(ocrData.transactions)) {
-      console.error('❌ Estrutura de dados inválida:', ocrData);
-      throw new Error('Resposta da API com estrutura inválida');
+    // VALIDAÇÃO CRÍTICA: Verificar se ocrData existe e tem estrutura válida
+    if (!ocrData) {
+      console.error('❌ Dados OCR nulos:', result);
+      throw new Error('Resposta da API com dados nulos - documento não foi processado');
+    }
+
+    if (!ocrData.transactions) {
+      console.error('❌ Transações não encontradas:', ocrData);
+      throw new Error('Documento processado mas sem transações identificadas');
+    }
+
+    if (!Array.isArray(ocrData.transactions)) {
+      console.error('❌ Transações não são array:', typeof ocrData.transactions);
+      throw new Error('Formato de transações inválido');
     }
     
     const transactions = ocrData.transactions;    // Criar mensagem com resultados e instruções claras
@@ -2382,8 +2396,12 @@ const handleImageUpload = async (imageBase64: string) => {
         timestamp: new Date(),
         avatarUrl: IA_AVATAR      }]);
     }  } finally {
-    // Cleanup básico
+    // Cleanup completo
     setLoading(false);
+    setLoadingState('ai-thinking', false);
+    if (abortControllerRef.current) {
+      abortControllerRef.current = null;
+    }
   }
 };
 

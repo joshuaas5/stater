@@ -395,8 +395,38 @@ const isAddBillIntent = (msg: string) => {
         success: true
       });
 
-      // CORREÇÃO: Usar o fluxo normal de mensagens para ativar detecção de transações
-      console.log('🎤 [AUDIO_FIX] Transcrição processada:', result.transcription);
+      // CORREÇÃO: Verificar se o áudio contém dados de transação estruturados
+      console.log('🎤 [AUDIO_FIX] Resultado processado:', result);
+      
+      // Se o áudio contém uma transação estruturada, ativar modal diretamente
+      if (result.action === 'add_transaction' && result.amount && result.description) {
+        console.log('🎤 [AUDIO_TRANSACTION] Transação detectada no áudio, ativando modal');
+        
+        // Adicionar mensagem do usuário com a transcrição
+        const userMessage: ChatMessage = {
+          id: uuidv4(),
+          text: result.transcription || '',
+          sender: 'user',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, userMessage]);
+        
+        // Ativar modal de confirmação diretamente com os dados da transação
+        setPendingActionDetails({
+          type: result.transaction_type || 'expense',
+          amount: result.amount,
+          description: result.description,
+          category: result.category || 'Outros',
+          date: new Date().toISOString().split('T')[0]
+        });
+        setWaitingConfirmation(true);
+        
+        return;
+      }
+      
+      // Se não é transação estruturada, usar o fluxo normal
+      console.log('🎤 [AUDIO_FIX] Transcrição processada (fluxo normal):', result.transcription);
       
       // Adicionar mensagem do usuário com a transcrição
       const userMessage: ChatMessage = {
@@ -408,7 +438,7 @@ const isAddBillIntent = (msg: string) => {
       
       setMessages(prev => [...prev, userMessage]);
       
-      // CORREÇÃO CRÍTICA: Processar a transcrição diretamente via handleSendMessage
+      // Processar a transcrição diretamente via handleSendMessage
       // para ativar detecção de transações e fluxo de confirmação
       // skipAddingUserMessage = true pois já adicionamos a mensagem acima
       await handleSendMessage(result.transcription || '', true);

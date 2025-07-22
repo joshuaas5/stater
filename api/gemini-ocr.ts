@@ -634,20 +634,61 @@ IMPORTANTE:
       }
     };    console.log('[OCR] Chamando Gemini:', modelToUse);
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }
-    );
+    // Implementar retry para erros 503 (UNAVAILABLE)
+    let retryCount = 0;
+    const maxRetries = 3;
+    let lastError = null;
+    let ocrResult: any = null;
+    let responseData: any = null;
 
-    console.log('[OCR] Resposta Gemini - Status:', response.status);    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[OCR] Erro Gemini:', errorText);
-      
-      // Verificar se é erro "The document has no pages" - PDF protegido
+    while (retryCount <= maxRetries) {
+      try {
+        console.log(`[OCR] Tentativa ${retryCount + 1}/${maxRetries + 1}`);
+        
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }
+        );
+
+        console.log('[OCR] Resposta Gemini - Status:', response.status);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[OCR] Erro Gemini:', errorText);
+          
+          // Parse do erro para obter detalhes
+          let errorDetails = null;
+          try {
+            errorDetails = JSON.parse(errorText);
+          } catch (e) {
+            console.warn('[OCR] Não foi possível parsear erro como JSON');
+          }
+          
+          // Verificar se é erro 503 (UNAVAILABLE) - tentar novamente
+          if (response.status === 503 || 
+              (errorDetails?.error?.status === 'UNAVAILABLE') ||
+              (errorDetails?.error?.code === 503)) {
+            
+            lastError = new Error(`Gemini API temporariamente indisponível (503). Tentativa ${retryCount + 1}/${maxRetries + 1}`);
+            console.log(`[OCR] Erro 503 detectado, aguardando antes da próxima tentativa...`);
+            
+            if (retryCount < maxRetries) {
+              // Aguardar antes de tentar novamente (backoff exponencial)
+              const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+              await new Promise(resolve => setTimeout(resolve, delay));
+              retryCount++;
+              continue;
+            } else {
+              // Último retry falhado
+              throw new Error('API Gemini indisponível após múltiplas tentativas. Tente novamente em alguns minutos.');
+            }
+          }
+          
+          // Verificar se é erro "The document has no pages" - PDF protegido
       if (errorText.includes('The document has no pages')) {
         console.log('[OCR] PDF protegido detectado via erro "no pages"');
         return res.status(400).json({ 
@@ -679,140 +720,170 @@ IMPORTANTE:
           message: 'O arquivo PDF fornecido está corrompido ou não é um PDF válido.'
         });
       }
-      
-      return res.status(500).json({ 
-        error: 'Erro na API Gemini',
-        details: errorText.substring(0, 500) // Limitar tamanho do erro
-      });
-    }
-
-    const data = await response.json() as any;
-    console.log('[OCR] Resposta Gemini recebida');
-
-    if (!data.candidates || data.candidates.length === 0) {
-      console.error('[OCR] Nenhum candidato na resposta');
-      return res.status(500).json({ error: 'Nenhuma resposta da IA' });
-    }
-
-    const candidate = data.candidates[0];
-    if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
-      console.error('[OCR] Estrutura de resposta inválida');
-      return res.status(500).json({ error: 'Resposta inválida da IA' });
-    }
-
-    const responseText = candidate.content.parts[0].text;
-    console.log('[OCR] Texto da resposta (primeiros 200 chars):', responseText.substring(0, 200));
-
-    // Parse do JSON
-    let ocrResult;
-    try {
-      // Limpar possíveis marcadores de código
-      const cleanText = responseText
-        .replace(/```json\n?/g, '')
-        .replace(/```\n?/g, '')
-        .replace(/^[^{]*/, '') // Removes leading text until first {
-        .replace(/[^}]*$/, '') // Removes trailing text after last }
-        .trim();
-      
-      console.log('[OCR] Texto limpo para parse:', cleanText.substring(0, 100));
-      ocrResult = JSON.parse(cleanText);
-        // Validar estrutura básica
-      if (!ocrResult.transactions || !Array.isArray(ocrResult.transactions)) {
-        throw new Error('Estrutura inválida: transactions não é array');
-      }
-      
-      // Validar e corrigir campos obrigatórios
-      ocrResult.transactions = ocrResult.transactions.map((transaction: any) => {
-        // Garantir que o tipo seja válido
-        if (!transaction.type || (transaction.type !== 'income' && transaction.type !== 'expense')) {
-          // Se não especificado, assumir despesa como padrão para compatibilidade
-          transaction.type = 'expense';
+          
+          return res.status(500).json({ 
+            error: 'Erro na API Gemini',
+            details: errorText.substring(0, 500) // Limitar tamanho do erro
+          });
         }
-        
-        // Garantir que o amount seja numérico
-        if (typeof transaction.amount === 'string') {
-          transaction.amount = parseFloat(transaction.amount.replace(/[R$\s,]/g, '').replace(',', '.')) || 0;
+
+        // Se chegou até aqui, a requisição foi bem-sucedida
+        responseData = await response.json() as any;
+        console.log('[OCR] Resposta Gemini recebida com sucesso na tentativa', retryCount + 1);
+
+        if (!responseData.candidates || responseData.candidates.length === 0) {
+          console.error('[OCR] Nenhum candidato na resposta');
+          return res.status(500).json({ error: 'Nenhuma resposta da IA' });
         }
-        
-        // Garantir confidence padrão
-        if (!transaction.confidence) {
-          transaction.confidence = 0.8;
+
+        const candidate = responseData.candidates[0];
+        if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+          console.error('[OCR] Estrutura de resposta inválida');
+          return res.status(500).json({ error: 'Resposta inválida da IA' });
         }
-        
-        return transaction;
-      });
-      
-      // Atualizar summary com informações de entrada/saída
-      if (!ocrResult.summary) {
-        ocrResult.summary = {};
-      }
-      
-      const totalIncome = ocrResult.transactions
-        .filter((t: any) => t.type === 'income')
-        .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
-        
-      const totalExpense = ocrResult.transactions
-        .filter((t: any) => t.type === 'expense')
-        .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
-      
-      ocrResult.summary.totalIncome = totalIncome;
-      ocrResult.summary.totalExpense = totalExpense;
-      ocrResult.summary.totalAmount = totalIncome + totalExpense;
-      ocrResult.summary.itemCount = ocrResult.transactions.length;
-        console.log('[OCR] JSON parseado com sucesso!');
-      console.log('[OCR] Transações encontradas:', ocrResult.transactions.length);
-      console.log('[OCR] Total receitas:', totalIncome);
-      console.log('[OCR] Total despesas:', totalExpense);
-      
-      // VALIDAÇÃO DE QUALIDADE DOS RESULTADOS
-      const hasOnlySmallValues = ocrResult.transactions.every((t: any) => (t.amount || 0) < 1.0);
-      const hasVeryFewTransactions = ocrResult.transactions.length <= 2;
-      const totalValue = totalIncome + totalExpense;
-        if (hasOnlySmallValues && hasVeryFewTransactions && totalValue < 5.0) {
-        console.log('[OCR] ⚠️ Resultado suspeito: valores muito baixos ou poucas transações');
-          return res.status(400).json({
-          success: false,
-          error: 'Documento não foi lido corretamente',
-          details: 'O sistema não conseguiu extrair as transações do documento.',
-          suggestions: [
-            '✅ OPÇÃO 1: Tire uma FOTO clara do extrato com seu celular',
-            '✅ OPÇÃO 2: Copie o texto do extrato e cole no chat',
-            '✅ OPÇÃO 3: Divida em páginas menores e envie uma por vez'
-          ],
-          needsManualReview: true
-        });
-      }
+
+        const responseText = candidate.content.parts[0].text;
+        console.log('[OCR] Texto da resposta (primeiros 200 chars):', responseText.substring(0, 200));
+
+        // Parse do JSON
+        let ocrResult;
+        try {
+          // Limpar possíveis marcadores de código
+          const cleanText = responseText
+            .replace(/```json\n?/g, '')
+            .replace(/```\n?/g, '')
+            .replace(/^[^{]*/, '') // Removes leading text until first {
+            .replace(/[^}]*$/, '') // Removes trailing text after last }
+            .trim();
+          
+          console.log('[OCR] Texto limpo para parse:', cleanText.substring(0, 100));
+          ocrResult = JSON.parse(cleanText);
+
+          // Validar estrutura básica
+          if (!ocrResult.transactions || !Array.isArray(ocrResult.transactions)) {
+            throw new Error('Estrutura inválida: transactions não é array');
+          }
+
+          // Validar e corrigir campos obrigatórios
+          ocrResult.transactions = ocrResult.transactions.map((transaction: any) => {
+            // Garantir que o tipo seja válido
+            if (!transaction.type || (transaction.type !== 'income' && transaction.type !== 'expense')) {
+              // Se não especificado, assumir despesa como padrão para compatibilidade
+              transaction.type = 'expense';
+            }
+            
+            // Garantir que o amount seja numérico
+            if (typeof transaction.amount === 'string') {
+              transaction.amount = parseFloat(transaction.amount.replace(/[R$\s,]/g, '').replace(',', '.')) || 0;
+            }
+            
+            // Garantir confidence padrão
+            if (!transaction.confidence) {
+              transaction.confidence = 0.8;
+            }
+            
+            return transaction;
+          });
+          
+          // Atualizar summary com informações de entrada/saída
+          if (!ocrResult.summary) {
+            ocrResult.summary = {};
+          }
+          
+          const totalIncome = ocrResult.transactions
+            .filter((t: any) => t.type === 'income')
+            .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+            
+          const totalExpense = ocrResult.transactions
+            .filter((t: any) => t.type === 'expense')
+            .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+          
+          ocrResult.summary.totalIncome = totalIncome;
+          ocrResult.summary.totalExpense = totalExpense;
+          ocrResult.summary.totalAmount = totalIncome + totalExpense;
+          ocrResult.summary.itemCount = ocrResult.transactions.length;
+
+          console.log('[OCR] JSON parseado com sucesso!');
+          console.log('[OCR] Transações encontradas:', ocrResult.transactions.length);
+          console.log('[OCR] Total receitas:', totalIncome);
+          console.log('[OCR] Total despesas:', totalExpense);
+          
+          // VALIDAÇÃO DE QUALIDADE DOS RESULTADOS
+          const hasOnlySmallValues = ocrResult.transactions.every((t: any) => (t.amount || 0) < 1.0);
+          const hasVeryFewTransactions = ocrResult.transactions.length <= 2;
+          const totalValue = totalIncome + totalExpense;
+
+          if (hasOnlySmallValues && hasVeryFewTransactions && totalValue < 5.0) {
+            console.log('[OCR] ⚠️ Resultado suspeito: valores muito baixos ou poucas transações');
+            
+            return res.status(400).json({
+              success: false,
+              error: 'Documento não foi lido corretamente',
+              details: 'O sistema não conseguiu extrair as transações do documento.',
+              suggestions: [
+                '✅ OPÇÃO 1: Tire uma FOTO clara do extrato com seu celular',
+                '✅ OPÇÃO 2: Copie o texto do extrato e cole no chat',
+                '✅ OPÇÃO 3: Divida em páginas menores e envie uma por vez'
+              ],
+              needsManualReview: true
+            });
+          }
+
+          // Se chegou até aqui, o processamento foi bem-sucedido
+          break;
+
         } catch (parseError: any) {
-      console.error('[OCR] Erro ao parsear JSON:', parseError.message);
-      console.error('[OCR] Texto problemático:', responseText);
-      
-      // Para faturas grandes, tentar extrair JSON parcial
-      try {
-        const jsonMatches = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatches) {
-          const partialJson = jsonMatches[0];
-          ocrResult = JSON.parse(partialJson);
-          console.log('[OCR] JSON parcial extraído com sucesso');
+          console.error('[OCR] Erro ao parsear JSON:', parseError.message);
+          console.error('[OCR] Texto problemático:', responseText);
+          
+          // Para faturas grandes, tentar extrair JSON parcial
+          try {
+            const jsonMatches = responseText.match(/\{[\s\S]*\}/);
+            if (jsonMatches) {
+              const partialJson = jsonMatches[0];
+              ocrResult = JSON.parse(partialJson);
+              console.log('[OCR] JSON parcial extraído com sucesso');
+              break; // Sair do loop se conseguiu parsear
+            } else {
+              throw new Error('Nenhum JSON encontrado');
+            }
+          } catch (partialError) {
+            console.log('[OCR] Falha ao extrair JSON da resposta');
+            
+            return res.status(400).json({
+              success: false,
+              error: 'Documento não foi lido corretamente',
+              details: 'O arquivo não pôde ser processado. Pode estar protegido, corrompido ou em formato incompatível.',
+              suggestions: [
+                '✅ OPÇÃO 1: Tire uma FOTO clara do documento com seu celular',
+                '✅ OPÇÃO 2: Copie o texto do extrato e cole no chat',
+                '✅ OPÇÃO 3: Converta para imagem (JPG/PNG) e envie'
+              ],
+              needsManualReview: true
+            });
+          }
+          
+          console.log('[OCR] Usando dados de fallback ou parciais');
+        }
+
+      } catch (requestError: any) {
+        lastError = requestError;
+        console.error(`[OCR] Erro na tentativa ${retryCount + 1}:`, requestError.message);
+        
+        if (retryCount < maxRetries) {
+          const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+          console.log(`[OCR] Aguardando ${delay}ms antes da próxima tentativa...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          retryCount++;
+          continue;
         } else {
-          throw new Error('Nenhum JSON encontrado');
-        }      } catch (partialError) {
-        console.log('[OCR] Falha ao extrair JSON da resposta');
-          return res.status(400).json({
-          success: false,
-          error: 'Documento não foi lido corretamente',
-          details: 'O arquivo não pôde ser processado. Pode estar protegido, corrompido ou em formato incompatível.',
-          suggestions: [
-            '✅ OPÇÃO 1: Tire uma FOTO clara do documento com seu celular',
-            '✅ OPÇÃO 2: Copie o texto do extrato e cole no chat',
-            '✅ OPÇÃO 3: Converta para imagem (JPG/PNG) e envie'
-          ],
-          needsManualReview: true
-        });
+          // Último retry falhado
+          throw new Error(`Falha após ${maxRetries + 1} tentativas: ${requestError.message}`);
+        }
       }
-      
-      console.log('[OCR] Usando dados de fallback ou parciais');
     }
 
+    // Se saiu do loop sem erro, o processamento foi bem-sucedido
     console.log('[OCR] Processamento concluído com sucesso!');
 
     return res.status(200).json({
@@ -820,8 +891,9 @@ IMPORTANTE:
       data: ocrResult,
       metadata: {
         processedAt: new Date().toISOString(),
-        tokensUsed: data.usageMetadata?.totalTokenCount || 0,
-        processingMode: ocrResult.description?.includes('extraída') ? 'fallback' : 'gemini'
+        tokensUsed: responseData?.usageMetadata?.totalTokenCount || 0,
+        processingMode: ocrResult.description?.includes('extraída') ? 'fallback' : 'gemini',
+        retryCount: retryCount
       }
     });
 

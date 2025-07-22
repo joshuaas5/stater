@@ -7,6 +7,13 @@ export interface AudioProcessingResult {
   response?: string;
   error?: string;
   debug?: any;
+  // Novos campos para detecção de transações
+  action?: string;
+  transaction_type?: 'income' | 'expense';
+  description?: string;
+  amount?: number;
+  category?: string;
+  hasFinancialContent?: boolean;
 }
 
 /**
@@ -37,10 +44,31 @@ IMPORTANTE:
 - Apenas considere hasFinancialContent: true se houver FALA HUMANA CLARA sobre finanças, transações, dinheiro
 - Se não for voz humana, use uma mensagem educativa na response
 
-Responda em JSON:
+DETECÇÃO DE TRANSAÇÕES EM ÁUDIO:
+Se detectar INTENÇÃO DE TRANSAÇÃO (adicionar/registrar/anotar/gastar/pagar/receber + valor), retorne JSON com action:
+{
+  "transcription": "texto transcrito da fala",
+  "hasFinancialContent": true,
+  "action": "add_transaction",
+  "transaction_type": "income" ou "expense",
+  "description": "descrição_breve",
+  "amount": valor_numerico,
+  "category": "categoria_automatica_obrigatoria",
+  "response": "Transação detectada! Confirme os dados."
+}
+
+CATEGORIAS AUTOMÁTICAS PARA ÁUDIO:
+- "Alimentação": mercado, supermercado, restaurante, delivery, padaria
+- "Transporte": uber, taxi, combustível, ônibus, pedágio
+- "Saúde": farmácia, médico, consulta, exame, remédio
+- "Entretenimento": cinema, streaming, bar, festa, viagem
+- "Moradia": aluguel, água, luz, gás, internet
+- "Outros": quando não conseguir identificar categoria específica
+
+Se NÃO for intenção de transação, responda em JSON simples:
 {
   "transcription": "texto transcrito SE FOR VOZ HUMANA, senão deixe vazio",
-  "hasFinancialContent": false,
+  "hasFinancialContent": false ou true,
   "response": "Se não for voz humana: 'Não detectei fala humana neste áudio. Por favor, fale claramente para que eu possa ajudá-lo com suas finanças.' | Se for voz mas sem conteúdo financeiro: resposta útil | Se for financeiro: resposta específica"
 }`;
 
@@ -103,6 +131,13 @@ Responda em JSON:
       success: true,
       transcription: parsedResponse.transcription || geminiResponse,
       response: parsedResponse.response || responseText,
+      // Novos campos para detecção de transações
+      action: parsedResponse.action,
+      transaction_type: parsedResponse.transaction_type,
+      description: parsedResponse.description,
+      amount: parsedResponse.amount,
+      category: parsedResponse.category,
+      hasFinancialContent: parsedResponse.hasFinancialContent,
       debug: {
         audioSize: audioBlob.size,
         audioType: audioBlob.type,

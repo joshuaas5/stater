@@ -824,6 +824,11 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
               avatarUrl: IA_AVATAR
             }
           ]);
+          
+          // Resetar estados após processamento das transações OCR
+          setPendingAction(null);
+          setWaitingConfirmation(false);
+          setEditableTransactions([]);
         }
         // Processar transações normais
         else if (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense') {
@@ -2328,10 +2333,10 @@ const handleImageUpload = async (imageBase64: string) => {
     
     // Verificar se há transações válidas
     if (transactions.length === 0) {
-      console.log('⚠️ Nenhuma transação encontrada no documento');
+      console.log('⚠️ Nenhuma transação encontrada no documento - permitindo adição manual');
       setMessages(prev => [...prev, {
         id: uuidv4(),
-        text: `📄 **Documento lido, mas sem transações**\n\nO sistema conseguiu ler o documento, mas não identificou transações financeiras.\n\n💡 **Possíveis causas:**\n• Documento muito claro/escuro\n• Formato não suportado\n• Documento sem movimentações\n• Qualidade da imagem baixa\n\n**Tente:**\n• Tire uma foto mais nítida\n• Use melhor iluminação\n• Digite as informações manualmente\n• Envie uma captura de tela`,
+        text: `📄 **Documento lido**\n\nO sistema conseguiu ler o documento, mas não identificou transações automaticamente.\n\n💡 **Você pode:**\n• Adicionar transações manualmente digitando abaixo\n• Enviar outro documento\n• Tirar nova foto com melhor qualidade\n\nDigite algo como: "Adicionar despesa de R$ 150,00 em supermercado"`,
         sender: 'system',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR
@@ -2765,13 +2770,14 @@ return (
               <button
                 onClick={() => handleSendMessage('não')}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '2px solid #ef4444',
                   borderRadius: '8px',
-                  color: 'white',
+                  color: '#dc2626', // Vermelho escuro para contraste
                   padding: '8px',
                   cursor: 'pointer',
                   fontSize: '18px',
+                  fontWeight: 'bold',
                   width: '36px',
                   height: '36px',
                   display: 'flex',
@@ -2794,11 +2800,12 @@ return (
             }}>
               {editableTransactions.map((transaction, index) => (
                 <div key={index} style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
+                  background: 'rgba(255, 255, 255, 0.95)', // Fundo bem sólido
                   backdropFilter: 'blur(10px)',
                   borderRadius: '15px',
                   padding: '20px',
-                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                  border: '2px solid rgba(59, 130, 246, 0.3)',
+                  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                 }}>
                   <div style={{
                     display: 'flex',
@@ -2813,7 +2820,8 @@ return (
                         marginBottom: '5px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px'
+                        gap: '8px',
+                        color: '#1f2937' // Texto escuro
                       }}>
                         {transaction.type === 'income' ? '💰' : '💸'}
                         <input
@@ -2822,14 +2830,15 @@ return (
                           onChange={(e) => updateTransaction(index, { ...transaction, description: e.target.value })}
                           placeholder="Descrição da transação..."
                           style={{
-                            background: 'rgba(255, 255, 255, 0.2)',
-                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            background: 'white', // Fundo branco sólido
+                            border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             padding: '8px 12px',
-                            color: 'white',
+                            color: '#1f2937', // Texto escuro
                             fontSize: '14px',
                             flex: 1,
-                            outline: 'none'
+                            outline: 'none',
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                           }}
                         />
                       </div>
@@ -2841,7 +2850,13 @@ return (
                         marginBottom: '10px'
                       }}>
                         <div>
-                          <label style={{ fontSize: '12px', opacity: 0.8, display: 'block', marginBottom: '5px' }}>
+                          <label style={{ 
+                            fontSize: '12px', 
+                            color: '#374151', // Cinza escuro
+                            fontWeight: '600',
+                            display: 'block', 
+                            marginBottom: '5px' 
+                          }}>
                             Valor (R$)
                           </label>
                           <input
@@ -2852,20 +2867,27 @@ return (
                               amount: transaction.type === 'expense' ? -Math.abs(parseFloat(e.target.value) || 0) : Math.abs(parseFloat(e.target.value) || 0)
                             })}
                             style={{
-                              background: 'rgba(255, 255, 255, 0.2)',
-                              border: '1px solid rgba(255, 255, 255, 0.3)',
+                              background: 'white', // Fundo branco sólido
+                              border: '2px solid #e5e7eb',
                               borderRadius: '8px',
                               padding: '8px 12px',
-                              color: 'white',
+                              color: '#1f2937', // Texto escuro
                               fontSize: '14px',
                               width: '100%',
-                              outline: 'none'
+                              outline: 'none',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                             }}
                           />
                         </div>
                         
                         <div>
-                          <label style={{ fontSize: '12px', opacity: 0.8, display: 'block', marginBottom: '5px' }}>
+                          <label style={{ 
+                            fontSize: '12px', 
+                            color: '#374151', // Cinza escuro
+                            fontWeight: '600',
+                            display: 'block', 
+                            marginBottom: '5px' 
+                          }}>
                             Data
                           </label>
                           <input
@@ -2873,46 +2895,54 @@ return (
                             value={transaction.date || new Date().toISOString().split('T')[0]}
                             onChange={(e) => updateTransaction(index, { ...transaction, date: e.target.value })}
                             style={{
-                              background: 'rgba(255, 255, 255, 0.2)',
-                              border: '1px solid rgba(255, 255, 255, 0.3)',
+                              background: 'white', // Fundo branco sólido
+                              border: '2px solid #e5e7eb',
                               borderRadius: '8px',
                               padding: '8px 12px',
-                              color: 'white',
+                              color: '#1f2937', // Texto escuro
                               fontSize: '14px',
                               width: '100%',
-                              outline: 'none'
+                              outline: 'none',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                             }}
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label style={{ fontSize: '12px', opacity: 0.8, display: 'block', marginBottom: '5px' }}>
+                        <label style={{ 
+                          fontSize: '12px', 
+                          color: '#374151', // Cinza escuro
+                          fontWeight: '600',
+                          display: 'block', 
+                          marginBottom: '5px' 
+                        }}>
                           Categoria
                         </label>
                         <select
                           value={transaction.category || ''}
                           onChange={(e) => updateTransaction(index, { ...transaction, category: e.target.value })}
                           style={{
-                            background: 'rgba(255, 255, 255, 0.2)',
-                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            background: 'white', // Fundo branco sólido
+                            border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             padding: '8px 12px',
-                            color: 'white',
+                            color: '#1f2937', // Texto escuro
                             fontSize: '14px',
                             width: '100%',
-                            outline: 'none'
+                            outline: 'none',
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                           }}
                         >
-                          <option value="" style={{ background: '#333', color: 'white' }}>Selecione uma categoria</option>
-                          <option value="alimentacao" style={{ background: '#333', color: 'white' }}>🍽️ Alimentação</option>
-                          <option value="transporte" style={{ background: '#333', color: 'white' }}>🚗 Transporte</option>
-                          <option value="lazer" style={{ background: '#333', color: 'white' }}>🎮 Lazer</option>
-                          <option value="saude" style={{ background: '#333', color: 'white' }}>⚕️ Saúde</option>
-                          <option value="educacao" style={{ background: '#333', color: 'white' }}>📚 Educação</option>
-                          <option value="casa" style={{ background: '#333', color: 'white' }}>🏠 Casa</option>
-                          <option value="trabalho" style={{ background: '#333', color: 'white' }}>💼 Trabalho</option>
-                          <option value="outros" style={{ background: '#333', color: 'white' }}>📦 Outros</option>
+                          <option value="" style={{ background: 'white', color: '#1f2937' }}>Selecione uma categoria</option>
+                          <option value="alimentacao" style={{ background: 'white', color: '#1f2937' }}>🍽️ Alimentação</option>
+                          <option value="transporte" style={{ background: 'white', color: '#1f2937' }}>🚗 Transporte</option>
+                          <option value="lazer" style={{ background: 'white', color: '#1f2937' }}>🎮 Lazer</option>
+                          <option value="saude" style={{ background: 'white', color: '#1f2937' }}>⚕️ Saúde</option>
+                          <option value="educacao" style={{ background: 'white', color: '#1f2937' }}>📚 Educação</option>
+                          <option value="casa" style={{ background: 'white', color: '#1f2937' }}>🏠 Casa</option>
+                          <option value="trabalho" style={{ background: 'white', color: '#1f2937' }}>💼 Trabalho</option>
+                          <option value="outros" style={{ background: 'white', color: '#1f2937' }}>📦 Outros</option>
                         </select>
                       </div>
                     </div>
@@ -2920,13 +2950,14 @@ return (
                     <button
                       onClick={() => deleteTransaction(index)}
                       style={{
-                        background: 'rgba(239, 68, 68, 0.2)',
-                        border: '1px solid rgba(239, 68, 68, 0.4)',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '2px solid #ef4444',
                         borderRadius: '8px',
-                        color: '#ff6b6b',
+                        color: '#dc2626', // Vermelho escuro
                         padding: '8px',
                         cursor: 'pointer',
                         fontSize: '14px',
+                        fontWeight: 'bold',
                         marginLeft: '10px',
                         width: '36px',
                         height: '36px',
@@ -2945,8 +2976,8 @@ return (
             {/* Footer com Botões */}
             <div style={{
               padding: '20px 25px',
-              borderTop: '1px solid rgba(255, 255, 255, 0.15)',
-              background: 'rgba(255, 255, 255, 0.05)',
+              borderTop: '2px solid rgba(59, 130, 246, 0.2)',
+              background: 'rgba(255, 255, 255, 0.1)',
               display: 'flex',
               gap: '15px',
               justifyContent: 'space-between'
@@ -2954,24 +2985,27 @@ return (
               <button
                 onClick={() => handleSendMessage('não')}
                 style={{
-                  background: 'rgba(239, 68, 68, 0.2)',
-                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                  background: '#ef4444', // Vermelho sólido
+                  border: 'none',
                   borderRadius: '12px',
-                  color: '#ff6b6b',
+                  color: 'white',
                   padding: '12px 24px',
                   cursor: 'pointer',
                   fontSize: '16px',
                   fontWeight: '600',
                   flex: 1,
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)';
+                  e.currentTarget.style.background = '#dc2626';
                   e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                  e.currentTarget.style.background = '#ef4444';
                   e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.3)';
                 }}
               >
                 ❌ Cancelar
@@ -2982,8 +3016,8 @@ return (
                 disabled={savingTransactions}
                 style={{
                   background: savingTransactions 
-                    ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
-                    : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                    ? '#9ca3af' 
+                    : '#3b82f6', // Azul sólido
                   border: 'none',
                   borderRadius: '12px',
                   color: 'white',
@@ -2992,7 +3026,7 @@ return (
                   fontSize: '16px',
                   fontWeight: '600',
                   flex: 2,
-                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
+                  boxShadow: savingTransactions ? 'none' : '0 4px 15px rgba(59, 130, 246, 0.3)',
                   transition: 'all 0.2s ease',
                   display: 'flex',
                   alignItems: 'center',
@@ -3083,9 +3117,9 @@ return (
             <button
               onClick={() => handleSendMessage('não')}
               style={{
-                background: 'rgba(239, 68, 68, 0.1)',
+                background: 'white',
                 color: '#dc2626',
-                border: '1px solid rgba(239, 68, 68, 0.2)',
+                border: '2px solid #dc2626',
                 borderRadius: '8px',
                 padding: '8px 16px',
                 fontWeight: '600',

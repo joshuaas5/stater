@@ -130,20 +130,6 @@ const HomePage: React.FC = () => {
                     <strong> comprovante</strong>. A IA digitaliza e organiza tudo em segundos.
                   </p>
                 </div>
-                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">📈 Acompanhamento Total</h3>
-                  <p className="text-blue-100 text-sm">
-                    Visualize <strong>onde vai seu dinheiro</strong> com gráficos interativos e 
-                    <strong> relatórios detalhados</strong> atualizados em tempo real.
-                  </p>
-                </div>
-                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-3">🔍 Insights Inteligentes</h3>
-                  <p className="text-blue-100 text-sm">
-                    Descubra <strong>onde está o problema</strong>: "Seus gastos com delivery aumentaram 40% - 
-                    sugerimos definir um limite mensal" com <strong>soluções personalizadas</strong>.
-                  </p>
-                </div>
               </div>
               
               <p className="text-2xl text-blue-200 font-bold mb-10">
@@ -169,63 +155,6 @@ const HomePage: React.FC = () => {
                   </Button>
                 </Link>
               </div>
-            </div>
-          </div>
-
-          {/* Principais Recursos */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
-            <div className="text-center p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
-              <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 border border-blue-400/30">
-                <Mic className="h-10 w-10 text-blue-300" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">
-                Comando de Voz
-              </h3>
-              <p className="text-blue-100 leading-relaxed">
-                Registre gastos falando naturalmente: <strong>"Gastei R$ 25 no almoço do restaurante"</strong> 
-                ou entradas: <strong>"Recebi R$ 500 do freelance"</strong>. A IA entende contexto e categoriza tudo.
-              </p>
-            </div>
-
-            <div className="text-center p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
-              <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 border border-blue-400/30">
-                <Camera className="h-10 w-10 text-blue-300" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">
-                Leitura Automática
-              </h3>
-              <p className="text-blue-100 leading-relaxed">
-                Tire uma foto do <strong>extrato bancário</strong>, <strong>nota fiscal</strong> ou 
-                <strong>comprovante</strong>. A IA digitaliza tudo em segundos.
-              </p>
-            </div>
-
-            <div className="text-center p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
-              <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 border border-blue-400/30">
-                <Brain className="h-10 w-10 text-blue-300" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">
-                Inteligência Real
-              </h3>
-              <p className="text-blue-100 leading-relaxed">
-                A IA aprende seus hábitos e oferece <strong>acompanhamento inteligente</strong>: 
-                lembra contas recorrentes (luz, água, condomínio), detecta padrões de gastos e oferece 
-                insights que realmente <strong>protegem e otimizam seu dinheiro</strong>.
-              </p>
-            </div>
-
-            <div className="text-center p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
-              <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 border border-blue-400/30">
-                <Bell className="h-10 w-10 text-blue-300" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">
-                Nunca Mais Esqueça
-              </h3>
-              <p className="text-blue-100 leading-relaxed">
-                <strong>Nunca mais se esqueça de pagar uma conta</strong>. Receba alertas inteligentes 
-                sobre contas que estão para vencer ou já venceram, garantindo que você 
-                <strong> nunca perca um prazo importante</strong>.
-              </p>
             </div>
           </div>
 
@@ -301,29 +230,30 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Como funciona */}
-          <div className="grid md:grid-cols-2 gap-8 mb-20">
-            <div className="p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
+          <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl p-8 mb-20">
+            <h3 className="text-2xl font-bold text-white mb-6 text-center">
+              Como usar o Stater
+            </h3>
+            <div className="grid md:grid-cols-2 gap-8">
               <div className="flex items-start space-x-4">
                 <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center border border-blue-400/30">
                   <MessageCircle className="h-8 w-8 text-blue-300" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-3">Telegram</h3>
+                  <h4 className="text-xl font-bold text-white mb-3">Telegram</h4>
                   <p className="text-blue-100 leading-relaxed">
                     Use o <strong>Telegram agora mesmo</strong> para enviar mensagens ou áudios. 
-                    Funciona como conversar com um amigo <strong>(em breve também no WhatsApp)</strong>.
+                    Funciona como conversar com um amigo.
                   </p>
                 </div>
               </div>
-            </div>
 
-            <div className="p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
               <div className="flex items-start space-x-4">
                 <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center border border-blue-400/30">
                   <Smartphone className="h-8 w-8 text-blue-300" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-3">App Completo</h3>
+                  <h4 className="text-xl font-bold text-white mb-3">App Completo</h4>
                   <p className="text-blue-100 leading-relaxed">
                     Relatórios completos, gráficos interativos e insights poderosos. 
                     <strong>Tudo sincronizado</strong> em tempo real.

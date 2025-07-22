@@ -750,14 +750,44 @@ IMPORTANTE:
         console.log('[OCR] Resposta Gemini recebida com sucesso na tentativa', retryCount + 1);
 
         if (!responseData.candidates || responseData.candidates.length === 0) {
-          console.error('[OCR] Nenhum candidato na resposta');
-          return res.status(500).json({ error: 'Nenhuma resposta da IA' });
+          console.error('[OCR] Nenhum candidato na resposta - usando fallback');
+          // Ao invés de retornar erro 500, criar estrutura válida
+          ocrResult = {
+            documentType: "documento_não_identificado",
+            confidence: 0.3,
+            summary: {
+              totalAmount: 0,
+              totalIncome: 0,
+              totalExpense: 0,
+              establishment: "Documento não processado",
+              period: "Não identificado",
+              itemCount: 0
+            },
+            transactions: []
+          };
+          processingComplete = true;
+          break;
         }
 
         const candidate = responseData.candidates[0];
         if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
-          console.error('[OCR] Estrutura de resposta inválida');
-          return res.status(500).json({ error: 'Resposta inválida da IA' });
+          console.error('[OCR] Estrutura de resposta inválida - usando fallback');
+          // Ao invés de retornar erro 500, criar estrutura válida
+          ocrResult = {
+            documentType: "documento_não_identificado",
+            confidence: 0.3,
+            summary: {
+              totalAmount: 0,
+              totalIncome: 0,
+              totalExpense: 0,
+              establishment: "Documento não processado",
+              period: "Não identificado",
+              itemCount: 0
+            },
+            transactions: []
+          };
+          processingComplete = true;
+          break;
         }
 
         const responseText = candidate.content.parts[0].text;
@@ -990,10 +1020,34 @@ IMPORTANTE:
     console.error('[OCR] Erro geral:', error.message);
     console.error('[OCR] Stack:', error.stack);
     
-    return res.status(500).json({ 
-      error: 'Erro interno do servidor',
-      message: error.message,
-      timestamp: new Date().toISOString()
+    // Ao invés de retornar erro 500, sempre retornar dados válidos
+    const fallbackResult = {
+      documentType: "documento_com_erro",
+      confidence: 0.1,
+      summary: {
+        totalAmount: 0,
+        totalIncome: 0,
+        totalExpense: 0,
+        establishment: "Erro no processamento",
+        period: "Não identificado",
+        itemCount: 0
+      },
+      transactions: []
+    };
+    
+    return res.status(200).json({
+      success: true,
+      data: fallbackResult,
+      metadata: {
+        processedAt: new Date().toISOString(),
+        tokensUsed: 0,
+        processingMode: 'fallback',
+        retryCount: 0,
+        processingTimeMs: Date.now() - startTime,
+        hadErrors: true,
+        errorDetails: error.message,
+        fallbackUsed: true
+      }
     });
   }
 }

@@ -137,15 +137,16 @@ export const FinancialAdvisorPage: React.FC = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Function to cancel ongoing requests
-  const handleCancelRequest = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      console.log("🚫 Request cancelled by user");
-      abortControllerRef.current = null;
-      setLoading(false);
-      setLoadingState('ai-thinking', false);
-    }
-  };
+  // FUNÇÃO REMOVIDA: handleCancelRequest não é mais necessária
+  // const handleCancelRequest = () => {
+  //   if (abortControllerRef.current) {
+  //     abortControllerRef.current.abort();
+  //     console.log("🚫 Request cancelled by user");
+  //     abortControllerRef.current = null;
+  //     setLoading(false);
+  //     setLoadingState('ai-thinking', false);
+  //   }
+  // };
 
   // Inicializar Web Speech API
   useEffect(() => {
@@ -2372,6 +2373,11 @@ const handleImageUpload = async (imageBase64: string) => {
       avatarUrl: IA_AVATAR
     }]);    // Preparar ação pendente para confirmação
     console.log('📷 OCR processado:', transactions.length, 'transações');
+    console.log('🔍 DEBUG - Estados antes de definir modal:');
+    console.log('  - editableTransactions length será:', transactions.length);
+    console.log('  - waitingConfirmation será:', true);
+    console.log('  - pendingAction será definido');
+    
     setEditableTransactions(transactions); // Armazenar transações editáveis
     setPendingAction({
       tipo: 'generic_confirmation',
@@ -2384,9 +2390,15 @@ const handleImageUpload = async (imageBase64: string) => {
     console.log('📝 PendingAction definida para OCR');
     setWaitingConfirmation(true);
     
+    // Log após definir estados
+    console.log('✅ Estados definidos - Modal deveria aparecer agora');
+    
     // Forçar scroll após definir transações editáveis para OCR
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      console.log('🔍 DEBUG - Estados atuais após timeout:');
+      console.log('  - editableTransactions:', transactions.length);
+      console.log('  - waitingConfirmation: true');
     }, 200);  } catch (err: any) {
     console.error('Erro ao processar imagem:', err);
     console.error('Erro completo:', err.stack);
@@ -2666,13 +2678,12 @@ return (
           pendingActionDetails={pendingAction ? pendingAction.dados : null} 
           onConfirm={() => handleSendMessage('sim')} 
           onCancel={() => handleSendMessage('não')}
-          onCancelRequest={handleCancelRequest}
           // Props para áudio
           onAudioSend={handleAudioMessage}
           isProcessingAudio={isLoadingState('audio-processing')}
           audioLimits={audioLimits}
         />
-      </div>      {/* Transaction Review Modal - REWORK COMPLETO */}
+      </div>      {/* Transaction Review Modal - ULTRA VISÍVEL */}
       {waitingConfirmation && editableTransactions.length > 0 && (
         <div 
           className="modal-overlay"
@@ -2682,17 +2693,19 @@ return (
             left: 0,
             right: 0,
             bottom: 0,
+            background: 'rgba(0, 0, 0, 0.8)', // Backdrop mais sólido
+            backdropFilter: 'blur(10px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1002,
+            zIndex: 9999, // Z-index muito alto
             padding: '10px'
           }}
         >
           <div 
             className="modal-content"
             style={{
-              background: 'rgba(255, 255, 255, 0.1)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))', // Mais sólido
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
               borderRadius: '20px',
@@ -2702,17 +2715,18 @@ return (
               maxHeight: '700px',
               display: 'flex',
               flexDirection: 'column',
-              color: 'white',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              overflow: 'hidden'
+              color: '#1a202c', // Texto escuro para contraste
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)', // Sombra mais forte
+              border: '2px solid rgba(59, 130, 246, 0.3)', // Borda azul
+              overflow: 'hidden',
+              animation: 'modalAppear 0.3s ease-out'
             }}
           >
             {/* Header do Modal */}
             <div style={{
               padding: '20px 25px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
-              background: 'rgba(255, 255, 255, 0.1)',
+              borderBottom: '1px solid rgba(59, 130, 246, 0.2)',
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1))',
               backdropFilter: 'blur(10px)',
               display: 'flex',
               alignItems: 'center',
@@ -2725,14 +2739,16 @@ return (
                   fontWeight: '700',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px'
+                  gap: '10px',
+                  color: '#1e40af' // Azul escuro
                 }}>
                   📋 Revisar Transações
                 </h2>
                 <p style={{
                   margin: '5px 0 0 0',
                   fontSize: '14px',
-                  opacity: 0.8
+                  opacity: 0.7,
+                  color: '#374151' // Cinza escuro
                 }}>
                   {editableTransactions.length} transaç{editableTransactions.length > 1 ? 'ões' : 'ão'} encontrada{editableTransactions.length > 1 ? 's' : ''}
                 </p>
@@ -2740,8 +2756,8 @@ return (
                   margin: '3px 0 0 0',
                   fontSize: '14px',
                   fontWeight: '700',
-                  color: '#fbbf24',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+                  color: '#059669', // Verde para total
+                  textShadow: 'none'
                 }}>
                   Total: R$ {editableTransactions.reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0).toFixed(2)}
                 </p>
@@ -3317,5 +3333,38 @@ function formatMessageContent(content: string): React.ReactNode {
   return processText(content);
 }
 };
+
+// Adicionar CSS para animações do modal
+const modalStyles = `
+  @keyframes modalAppear {
+    from {
+      opacity: 0;
+      transform: scale(0.9) translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  
+  @keyframes slideUpFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+
+// Injetar CSS se ainda não foi injetado
+if (typeof document !== 'undefined' && !document.querySelector('#modal-animations')) {
+  const style = document.createElement('style');
+  style.id = 'modal-animations';
+  style.textContent = modalStyles;
+  document.head.appendChild(style);
+}
 
 export default FinancialAdvisorPage;

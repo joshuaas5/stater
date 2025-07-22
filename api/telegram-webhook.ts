@@ -391,10 +391,10 @@ Resposta:`;
         parts: [{text: fullPrompt}] 
       }],
       generationConfig: {
-        temperature: 0.1, // OTIMIZAÇÃO: Mais baixo para respostas mais rápidas e consistentes
-        topK: 20, // OTIMIZAÇÃO: Reduzido para acelerar
-        topP: 0.7, // OTIMIZAÇÃO: Reduzido para acelerar
-        maxOutputTokens: 1500, // OTIMIZAÇÃO: Reduzido para respostas mais concisas
+        temperature: 0.05, // OTIMIZAÇÃO: Ainda mais baixo para máxima velocidade
+        topK: 16, // OTIMIZAÇÃO: Reduzido de 20 para 16 para acelerar
+        topP: 0.6, // OTIMIZAÇÃO: Reduzido de 0.7 para 0.6 para acelerar
+        maxOutputTokens: 1200, // OTIMIZAÇÃO: Reduzido de 1500 para 1200 para respostas mais rápidas
       }
     };
 

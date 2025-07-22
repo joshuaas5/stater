@@ -2164,8 +2164,13 @@ const handleImageUpload = async (imageBase64: string) => {
     }]);
 
     // Chamar API de OCR funcional com timeout ajustado para plano gratuito Vercel (60s máximo)
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 40000); // OTIMIZADO: Reduzido de 55s para 40s para feedback mais rápido
+    abortControllerRef.current = new AbortController();
+    const timeoutId = setTimeout(() => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        console.log('⏱️ Timeout de 40s atingido, cancelando requisição...');
+      }
+    }, 40000); // OTIMIZADO: Reduzido de 55s para 40s para feedback mais rápido
     
     // Preparar dados para envio baseado no tipo de arquivo
     let requestBody: any;
@@ -2194,7 +2199,7 @@ const handleImageUpload = async (imageBase64: string) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(requestBody),
-      signal: controller.signal
+      signal: abortControllerRef.current.signal
     });
       clearTimeout(timeoutId);
 
@@ -2203,7 +2208,7 @@ const handleImageUpload = async (imageBase64: string) => {
       console.error('Erro da API OCR:', errorData);
       
       // Verificar se é erro de abort (timeout do cliente)
-      if (controller.signal.aborted) {        setMessages(prev => [...prev, {
+      if (abortControllerRef.current && abortControllerRef.current.signal.aborted) {        setMessages(prev => [...prev, {
           id: uuidv4(),
           text: "⏱️ Processamento Otimizado (40s)\n\nO documento está sendo processado de forma mais rápida agora.\n\n💡 Dicas para acelerar ainda mais:\n• Para PDFs grandes: Divida em seções menores ou use imagens\n• Para extratos longos: Faça capturas de tela de partes específicas\n• Alternativa mais rápida: Tire fotos claras das páginas importantes\n• Documentos complexos: Simplifique removendo páginas extras\n\n� Quer tentar novamente? O sistema está otimizado para respostas mais rápidas!",
           sender: 'system',
@@ -2290,6 +2295,13 @@ const handleImageUpload = async (imageBase64: string) => {
     }
 
     const ocrData = result.data;
+    
+    // VALIDAÇÃO: Verificar se ocrData existe e tem estrutura válida
+    if (!ocrData || !ocrData.transactions || !Array.isArray(ocrData.transactions)) {
+      console.error('❌ Estrutura de dados inválida:', ocrData);
+      throw new Error('Resposta da API com estrutura inválida');
+    }
+    
     const transactions = ocrData.transactions;    // Criar mensagem com resultados e instruções claras
     let resultMessage = `✅ **Documento processado com sucesso!**\n\n`;
     resultMessage += `📋 **Tipo:** ${ocrData.documentType.replace('_', ' ')}\n`;

@@ -101,7 +101,13 @@ self.addEventListener('fetch', (event) => {
     return; // Não interceptar - deixa a requisição normal acontecer
   }
   
-  // Para todas as outras requisições, tentamos cache-first
+  // NÃO CACHEAR requisições POST, PUT, DELETE
+  if (event.request.method !== 'GET') {
+    console.log('[SW] Ignorando requisição não-GET:', event.request.method, url);
+    return; // Não interceptar métodos HTTP que modificam dados
+  }
+  
+  // Para todas as outras requisições GET, tentamos cache-first
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -124,7 +130,7 @@ self.addEventListener('fetch', (event) => {
             // Clonar a resposta porque precisamos dela em dois lugares
             const responseToCache = response.clone();
             
-            // Salvar no cache
+            // Salvar no cache (APENAS para GET)
             caches.open(CACHE_NAME)
               .then(cache => {
                 cache.put(event.request, responseToCache);

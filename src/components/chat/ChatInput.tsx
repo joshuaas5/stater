@@ -16,8 +16,6 @@ interface ChatInputProps {
   onAudioSend?: (audioBlob: Blob) => Promise<void>;
   isProcessingAudio?: boolean;
   audioLimits?: any;
-  // Nova prop para cancelar requisição
-  onCancelRequest?: () => void;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({ 
@@ -31,9 +29,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   // Props de áudio
   onAudioSend,
   isProcessingAudio = false,
-  audioLimits,
-  // Nova prop para cancelar
-  onCancelRequest
+  audioLimits
 }) => {
   const [message, setMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -477,61 +473,33 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 </div>
               )}
 
-              {/* Botão de Enviar/Cancelar */}
-              {loading ? (
-                // Botão de cancelar quando está carregando
-                <button
-                  type="button"
-                  onClick={onCancelRequest}
-                  title="Cancelar"
-                  style={{
-                    width: '44px',
-                    height: '44px',
-                    background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                    border: 'none',
-                    borderRadius: '50%',
-                    color: 'white',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)'
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              ) : (
-                // Botão de enviar normal
-                <button
-                  type="submit"
-                  disabled={!message.trim()}
-                  title="Enviar"
-                  style={{
-                    width: '44px',
-                    height: '44px',
-                    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                    border: 'none',
-                    borderRadius: '50%',
-                    color: 'white',
-                    cursor: !message.trim() ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.3s ease',
-                    opacity: !message.trim() ? 0.5 : 1,
-                    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
-                  }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22,2 15,22 11,13 2,9"></polygon>
-                  </svg>
-                </button>
-              )}
+              {/* Botão de Enviar com indicador de loading */}
+              <button
+                type="submit"
+                disabled={!message.trim() || loading}
+                title="Enviar"
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  color: 'white',
+                  cursor: (!message.trim() || loading) ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                  opacity: (!message.trim() || loading) ? 0.6 : 1,
+                  boxShadow: loading ? '0 4px 15px rgba(59, 130, 246, 0.6)' : '0 4px 15px rgba(59, 130, 246, 0.3)'
+                }}
+              >
+                {loading ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Send size={16} />
+                )}
+              </button>
             </div>
           </form>
         </div>

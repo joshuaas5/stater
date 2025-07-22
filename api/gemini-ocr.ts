@@ -459,172 +459,139 @@ export default async function handler(req: any, res: any) {
     if (!GEMINI_API_KEY) {
       console.log('[OCR] Erro: API Key não encontrada');
       return res.status(500).json({ error: 'API não configurada' });
-    }    // Prompt especializado para documentos financeiros com foco em NUBANK
-    const prompt = `
-VOCÊ É UM ESPECIALISTA EM ANÁLISE DE DOCUMENTOS FINANCEIROS, ESPECIALIZADO EM FATURAS NUBANK.
 
-🟣 INSTRUÇÕES ESPECÍFICAS PARA FATURAS NUBANK:
+    }    // Prompt generalizado para qualquer banco ou fatura
+    const prompt = `
+VOCÊ É UM ESPECIALISTA EM ANÁLISE DE DOCUMENTOS FINANCEIROS, ESPECIALIZADO EM EXTRATOS E FATURAS BRASILEIROS.
+
+🏦 INSTRUÇÕES GERAIS PARA TODOS OS DOCUMENTOS BANCÁRIOS:
 
 PROCURE ESPECIFICAMENTE POR:
-1. 📍 SEÇÃO "COMPRAS PRESENCIAIS" ou "Compras em estabelecimentos"
-2. 📍 SEÇÃO "COMPRAS ONLINE" ou "Compras na internet"  
-3. 📍 SEÇÃO "ASSINATURAS" ou "Assinaturas e recorrentes"
-4. 📍 SEÇÃO "SAQUES" ou "Saques no cartão"
-5. 📍 SEÇÃO "OUTRAS TRANSAÇÕES" ou transações diversas
-6. 📍 LISTA DE ESTABELECIMENTOS com datas e valores
+1. 📍 LISTA DE TRANSAÇÕES com datas e valores
+2. 📍 COMPRAS ou PAGAMENTOS com nome de estabelecimentos
+3. 📍 TRANSFERÊNCIAS recebidas ou enviadas
+4. 📍 DEPÓSITOS e SAQUES
+5. 📍 OUTRAS MOVIMENTAÇÕES relevantes
 
-FORMATO TÍPICO NUBANK:
-- Data (DD/MM ou DD MMM)
-- Nome do estabelecimento
-- Valor em R$ (sempre positivo na fatura)
-- Possível parcelamento (ex: "2/3", "1/6")
+ANALISE TODO O DOCUMENTO CUIDADOSAMENTE, PROCURANDO:
+- Data da transação (DD/MM ou DD MMM)
+- Nome do estabelecimento/descrição
+- Valor em R$
+- Sinal positivo/negativo ou indicadores C/D
 
-EXEMPLOS DE TRANSAÇÕES VÁLIDAS NUBANK:
+EXEMPLOS DE TRANSAÇÕES VÁLIDAS EM DIVERSOS BANCOS:
 ✅ "15/12 MERCADO EXTRA R$ 127,89"
-✅ "20 DEZ POSTO SHELL R$ 85,50"
+✅ "20/06 POSTO SHELL R$ 85,50"
 ✅ "NETFLIX.COM R$ 39,90"
 ✅ "UBER *TRIP R$ 23,45"
-✅ "AMAZON PRIME R$ 14,90"
-✅ "FARMACIA RAIA R$ 67,23"
-✅ "IFOOD *HAMBURGUER R$ 45,80"
-✅ "SPOTIFY R$ 21,90"
+✅ "PIX ENVIADO PARA JOÃO R$ 50,00"
+✅ "PIX RECEBIDO DE MARIA R$ 100,00"
+✅ "TED RECEBIDA DE XYZ LTDA R$ 1500,00"
+✅ "PAGAMENTO DE BOLETO R$ 299,50"
 
 ❌ NÃO INCLUIR:
-- "Total da fatura"
-- "Valor mínimo"
-- "Pagamento recebido"
-- "Limite disponível"
-- Cashback já aplicado
-- Rendimentos baixos (centavos)
+- Totais de fatura ou extrato
+- Valores mínimos para pagamento
+- Pagamentos já efetuados (de faturas)
+- Limite disponível/usado
+- Cashback ou rendimentos já aplicados
+- Itens puramente informativos
 
-🔍 ESTRATÉGIA DE ANÁLISE NUBANK:
-1. EXAMINE TODA A PÁGINA - O Nubank pode ter múltiplas seções
-2. PROCURE por listas com DATAS + ESTABELECIMENTOS + VALORES
-3. IGNORE cabeçalhos, totais, limites e informações da conta
+🔍 ESTRATÉGIA DE ANÁLISE:
+1. EXAMINE TODA A PÁGINA, do topo à base, esquerda à direita
+2. IDENTIFIQUE todas as seções de transações ou movimentações
+3. IGNORE cabeçalhos, totais e informações da conta
 4. FOQUE em transações comerciais reais
-5. Se não encontrar nada, EXAMINE NOVAMENTE toda a imagem
 
-OUTROS TIPOS DE DOCUMENTOS:
-- Extratos bancários (entradas E saídas)
-- Extratos de conta corrente (entradas E saídas)  
-- Extratos de poupança (entradas E saídas)
-- Relatórios de investimentos (entradas E saídas)
-- Extratos de carteira digital/PIX (entradas E saídas)
-- LISTAS MANUSCRITAS: fotos de papel com gastos escritos à mão
+⚠️ ATENÇÃO ESPECIAL PARA DIFERENTES FORMATOS:
+- LISTA TRADICIONAL: linha por linha com data + descrição + valor
+- TABELAS: organizadas em colunas com valores alinhados
+- BOLETOS: dados do pagador, beneficiário e valores principais
+- FATURAS: seções separadas por tipos de compras
+- LAYOUTS MODERNOS: blocos visuais de transações (apps digitais)
 
-REGRAS GERAIS:
-🔴 SAÍDAS/DESPESAS (type: "expense"):
-- Compras em estabelecimentos (FATURA DE CARTÃO)
-- Saques em dinheiro
-- PIX/TED/transferências ENVIADAS (EXTRATO)
-- Pagamentos de contas/boletos
-- Taxas bancárias
-
-🟢 ENTRADAS/RECEITAS (type: "income"):
-- PIX/TED/transferências RECEBIDAS
-- Salários e depósitos
-- Rendimentos
-- Estornos
-
-VALIDAÇÃO CRÍTICA:
-- Faturas Nubank normalmente têm 5-20+ transações
-- Se encontrar menos de 3 transações, REEXAMINE o documento
-- Valores típicos: R$ 15-500 por transação
-- SEMPRE examine toda a página/documento completo
-
-PADRÕES ESPECÍFICOS POR BANCO BRASILEIRO:
-
-🏛️ BANCO DO BRASIL:
-- Formato típico: "DATA | DESCRIÇÃO | VALOR | SALDO"
-- Códigos de operação: "TED", "PIX", "DÉBITO AUTOMÁTICO"
-- SAÍDAS: valores com (-) ou "D" ao lado
-- ENTRADAS: valores com (+) ou "C" ao lado
-- Ignore: "SALDO ANTERIOR", "SALDO ATUAL"
-
-🏦 BRADESCO:
-- Formato típico: "Data | Histórico | Valor | Saldo"
-- SAÍDAS: "SAQUE", "DÉBITO", "TRANSFERÊNCIA ENVIADA"
-- ENTRADAS: "DEPÓSITO", "CRÉDITO", "TRANSFERÊNCIA RECEBIDA"
-- Ignore: linhas de saldo, limites, anuidades já pagas
-
-🏢 CAIXA ECONÔMICA:
-- Formato típico: "DATA | HISTÓRICO | DOCUMENTO | VALOR | SALDO"
-- Códigos específicos: "DÉBITO CONTA", "CRÉDITO CONTA"
-- SAÍDAS: valores negativos ou com código "D"
-- ENTRADAS: valores positivos ou com código "C"
-- Ignore: "SALDO DO DIA", rendimentos baixos da poupança
+🏛️ RECONHECIMENTO DE BANCOS BRASILEIROS:
 
 💜 NUBANK:
-- Visual moderno com cores
-- Verde = ENTRADA (Pix recebido, transferência recebida)
-- Vermelho = SAÍDA (Pix enviado, compras, transferências enviadas)
-- Descrições claras: "Compra aprovada", "Pix para João"
-- Ignore: rendimentos baixos (centavos), cashback já aplicado
+- Faturas com cores roxas características
+- Seções de "COMPRAS PRESENCIAIS", "COMPRAS ONLINE", "ASSINATURAS"
+- Listagem clara de estabelecimentos com data (DD/MM) e valor
 
-🏦 ITAÚ:
-- Formato: "Data | Lançamento | Valor | Saldo"
-- SAÍDAS: "DÉBITO", "SAQUE", "TEV ELETRÔNICA ENVIADA", "PAC ELETRÔNICO"
-- ENTRADAS: "CRÉDITO", "DEPÓSITO", "TEV ELETRÔNICA RECEBIDA"
-- Ignore: "SALDO ANTERIOR", taxas já debitadas em outras linhas
+🟢 BRADESCO:
+- Formato típico: "Data | Histórico | Valor | Saldo"
+- SAÍDAS: "SAQUE", "DÉBITO", "TRANSFERÊNCIA ENVIADA", "D" ou valores negativos
+- ENTRADAS: "DEPÓSITO", "CRÉDITO", "TRANSFERÊNCIA RECEBIDA", "C" ou valores positivos
 
-🔴 FATURA ITAÚ - REGRAS ESPECIAIS:
-EXAMINE TODA A PÁGINA, ESPECIALMENTE O LADO DIREITO que pode conter:
-- "Lançamentos: compras e saques" (seção principal de transações)
-- "Compras parceladas - próximas faturas" (compras futuras, IGNORE)
-- "Lançamentos no cartão" com DATA, ESTABELECIMENTO e VALOR
-- Valores na coluna da direita são os valores das transações
-- Procure por seções como "Limite de crédito", "Compras presenciais", "Compras com Contactless"
-- SEMPRE examine ambos os lados da página - esquerda E direita
-- FOQUE na seção "LANÇAMENTOS" que contém as transações reais
+🔶 ITAÚ:
+- Formato tabular com colunas bem definidas
+- Lado direito mostra valores das transações
+- Seções como "Lançamentos", "Compras", "Pagamentos"
+- FATURA: procurar seções como "Lançamentos: compras e saques"
 
-PADRÕES ESPECÍFICOS FATURA ITAÚ:
-- Data formato DD/MM 
-- Estabelecimentos comerciais (MERCADO, FARMÁCIA, POSTO, etc.)
-- Valores sempre como DESPESAS (type: "expense")
-- Ignore: pagamentos da fatura, limites, saldos anteriores
-- Categorize por tipo de estabelecimento
+🔵 CAIXA:
+- Formato em tabela com colunas para data, histórico, documento, valor
+- SAÍDAS: valores negativos, código "D"
+- ENTRADAS: valores positivos, código "C"
+
+🟡 BANCO DO BRASIL:
+- Layout em tabela com data, histórico, documento, valor
+- Indicadores "D" para débito e "C" para crédito
+- Frequentes códigos internos antes das descrições
+
+PADRÕES ESPECÍFICOS POR TIPO DE DOCUMENTO:
+
+📊 EXTRATOS BANCÁRIOS:
+- Identifique claramente ENTRADAS vs SAÍDAS
+- Para ENTRADAS (income): PIX recebido, transferência recebida, depósito, estorno
+- Para SAÍDAS (expense): PIX enviado, compra, pagamento, transferência enviada
+
+📄 FATURAS DE CARTÃO:
+- Por padrão, todas transações são DESPESAS (expense)
+- Exceção: "pagamento recebido", "crédito", "estorno" são ENTRADAS (income)
+- Procurar data, estabelecimento e valor para cada compra
+- Verificar possíveis parcelamentos (ex: "2/12")
+
+REGRAS PARA CATEGORIZAÇÃO AUTOMÁTICA:
+- MERCADO/SUPERMERCADO/EXTRA/CARREFOUR/PÃO DE AÇÚCAR → "Alimentação"
+- POSTO/SHELL/PETROBRAS/IPIRANGA/BR → "Transporte"  
+- FARMÁCIA/DROGARIA/RAIA/PACHECO → "Saúde"
+- NETFLIX/SPOTIFY/AMAZON/CINEMA → "Entretenimento"
+- UBER/99/CABIFY/METRÔ/PASSAGEM → "Transporte"
+- IFOOD/RAPPI/ZOMATO/DELIVERY → "Alimentação"
+- ZARA/RENNER/LOJAS/SHOPPING → "Cuidados Pessoais"
+- HOSPITAL/LABORATÓRIO/CONSULTA → "Saúde"
+- ESCOLA/FACULDADE/CURSO → "Educação"
+- LUZ/ÁGUA/INTERNET/ALUGUEL → "Habitação"
+
+VALIDAÇÃO CRÍTICA:
+- Documentos bancários normalmente têm 3+ transações variadas
+- Se encontrar menos de 3 transações, REEXAMINE o documento
+- Valores típicos: R$ 15-500 por transação
+- SEMPRE examine todo o documento completo, lado a lado
 
 RETORNE APENAS JSON VÁLIDO no formato:
 
 {
-  "documentType": "fatura_nubank" ou "extrato_bancario" ou "fatura_cartao" ou "extrato_pix" ou "relatorio_investimento",
+  "documentType": "fatura_cartao" ou "extrato_bancario" ou "extrato_pix",
   "confidence": 0.95,
   "summary": {
     "totalAmount": [soma de todas as transações],
     "totalIncome": [soma apenas das entradas],
     "totalExpense": [soma apenas das saídas],
-    "establishment": "Nubank" ou "Nome da instituição/banco",
+    "establishment": "Nome do banco/instituição identificado",
     "period": "Período do documento se identificável"
   },
   "transactions": [
     {
-      "description": "Nome do estabelecimento exato da fatura",
+      "description": "Nome do estabelecimento/descrição da transação",
       "amount": 150.50,
       "type": "expense" ou "income",
       "category": "categoria_apropriada",
-      "date": "2024-12-25",
+      "date": "2024-06-15",
       "confidence": 0.9
     }
   ]
-}
-
-CATEGORIZAÇÃO AUTOMÁTICA PARA NUBANK:
-- MERCADO/SUPERMERCADO/EXTRA/CARREFOUR → "Alimentação"
-- POSTO/SHELL/PETROBRAS/IPIRANGA → "Transporte"  
-- FARMÁCIA/DROGARIA/RAIA/PACHECO → "Saúde"
-- NETFLIX/SPOTIFY/AMAZON PRIME → "Entretenimento"
-- UBER/99/CABIFY → "Transporte"
-- IFOOD/RAPPI/DELIVERY → "Alimentação"
-- ZARA/RENNER/LOJAS → "Cuidados Pessoais"
-- SHOPPING/MAGAZINE → "Outros"
-
-INSTRUÇÕES FINAIS:
-- Seja MUITO criterioso para identificar corretamente entrada vs saída
-- Para FATURAS: todas as transações são despesas (type: "expense")
-- Para EXTRATOS: analise contexto para determinar entrada/saída
-- NÃO invente transações que não existem claramente no documento
-- Se não encontrar transações válidas, retorne transactions: []
-- SEMPRE examine toda a imagem antes de concluir`;
+}`;
 
     console.log('[OCR] Preparando payload para Gemini...');
 
@@ -797,23 +764,34 @@ INSTRUÇÕES FINAIS:
         const responseText = candidate.content.parts[0].text;
         console.log('[OCR] Texto da resposta (primeiros 200 chars):', responseText.substring(0, 200));
 
-        // Parse do JSON
+
+        // Parse do JSON com fallback robusto e logs
         try {
-          // Limpar possíveis marcadores de código
-          const cleanText = responseText
-            .replace(/```json\n?/g, '')
-            .replace(/```\n?/g, '')
-            .replace(/^[^{]*/, '') // Removes leading text until first {
-            .replace(/[^}]*$/, '') // Removes trailing text after last }
-            .trim();
-          
-          console.log('[OCR] Texto limpo para parse:', cleanText.substring(0, 100));
-          ocrResult = JSON.parse(cleanText);
+          // Log completo do texto recebido
+          console.log('[OCR] Texto completo recebido:', responseText);
+          // Regex para capturar o maior JSON possível
+          const jsonRegex = /\{(?:[^{}]|(?:\{(?:[^{}]|(?:\{[^{}]*\}))*\}))*\}/g;
+          const jsonMatches = responseText.match(jsonRegex);
+          if (jsonMatches && jsonMatches.length > 0) {
+            // Tentar o match mais longo primeiro (provavelmente o JSON completo)
+            const sortedMatches = jsonMatches.sort((a: string, b: string) => b.length - a.length);
+            ocrResult = JSON.parse(sortedMatches[0]);
+            console.log('[OCR] JSON extraído com regex avançado');
+          } else {
+            // Limpar possíveis marcadores de código (fallback)
+            const cleanText = responseText
+              .replace(/```json\n?/g, '')
+              .replace(/```\n?/g, '')
+              .replace(/^[^{]*/, '')
+              .replace(/[^}]*$/, '')
+              .trim();
+            ocrResult = JSON.parse(cleanText);
+            console.log('[OCR] JSON extraído com fallback cleanText');
+          }
 
           // Validar estrutura básica
           if (!ocrResult.transactions || !Array.isArray(ocrResult.transactions)) {
             console.warn('[OCR] Estrutura inválida: transactions não é array - criando estrutura padrão');
-            // Ao invés de falhar, criar estrutura básica
             ocrResult = {
               documentType: "extrato_bancario",
               confidence: 0.7,
@@ -831,38 +809,24 @@ INSTRUÇÕES FINAIS:
 
           // Validar e corrigir campos obrigatórios
           ocrResult.transactions = ocrResult.transactions.map((transaction: any) => {
-            // Garantir que o tipo seja válido
             if (!transaction.type || (transaction.type !== 'income' && transaction.type !== 'expense')) {
-              // Se não especificado, assumir despesa como padrão para compatibilidade
               transaction.type = 'expense';
             }
-            
-            // Garantir que o amount seja numérico
             if (typeof transaction.amount === 'string') {
               transaction.amount = parseFloat(transaction.amount.replace(/[R$\s,]/g, '').replace(',', '.')) || 0;
             }
-            
-            // Garantir confidence padrão
             if (!transaction.confidence) {
               transaction.confidence = 0.8;
             }
-            
             return transaction;
           });
-          
-          // Atualizar summary com informações de entrada/saída
+
+          // Atualizar summary
           if (!ocrResult.summary) {
             ocrResult.summary = {};
           }
-          
-          const totalIncome = ocrResult.transactions
-            .filter((t: any) => t.type === 'income')
-            .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
-            
-          const totalExpense = ocrResult.transactions
-            .filter((t: any) => t.type === 'expense')
-            .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
-          
+          const totalIncome = ocrResult.transactions.filter((t: any) => t.type === 'income').reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+          const totalExpense = ocrResult.transactions.filter((t: any) => t.type === 'expense').reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
           ocrResult.summary.totalIncome = totalIncome;
           ocrResult.summary.totalExpense = totalExpense;
           ocrResult.summary.totalAmount = totalIncome + totalExpense;
@@ -872,47 +836,21 @@ INSTRUÇÕES FINAIS:
           console.log('[OCR] Transações encontradas:', ocrResult.transactions.length);
           console.log('[OCR] Total receitas:', totalIncome);
           console.log('[OCR] Total despesas:', totalExpense);
-          
-          // VALIDAÇÃO DE QUALIDADE DOS RESULTADOS - AJUSTADA PARA NUBANK
-          const hasOnlySmallValues = ocrResult.transactions.every((t: any) => (t.amount || 0) < 1.0);
-          const hasVeryFewTransactions = ocrResult.transactions.length <= 1; // Reduzido para ser mais tolerante
+
+          // VALIDAÇÃO DE QUALIDADE MAIS TOLERANTE
+          const hasNoTransactions = ocrResult.transactions.length === 0;
+          const hasOnlyMicroValues = ocrResult.transactions.every((t: any) => (t.amount || 0) < 0.1);
           const totalValue = totalIncome + totalExpense;
-
-          // Para faturas Nubank, ser mais criterioso na validação
-          const isNubankDocument = ocrResult.documentType?.includes('nubank') || 
-                                   ocrResult.summary?.establishment?.toLowerCase().includes('nubank');
-
-          if (hasOnlySmallValues && hasVeryFewTransactions && totalValue < 5.0) {
-            console.log('[OCR] ⚠️ Resultado suspeito: valores muito baixos ou poucas transações');
-            console.log('[OCR] É documento Nubank?', isNubankDocument);
-            console.log('[OCR] Total de transações:', ocrResult.transactions.length);
-            console.log('[OCR] Valor total:', totalValue);
-            
-            // Para Nubank, dar uma segunda chance com feedback específico
-            if (isNubankDocument || ocrResult.transactions.length === 0) {
-              return res.status(400).json({
-                success: false,
-                error: 'Fatura Nubank não foi lida corretamente',
-                details: 'O sistema não conseguiu encontrar as transações na fatura do Nubank.',
-                suggestions: [
-                  '🟣 CERTIFIQUE-SE de que a fatura está completa e legível',
-                  '📸 TIRE UMA FOTO clara da seção "COMPRAS" da fatura',
-                  '✅ VERIFIQUE se há transações visíveis na tela antes de fotografar',
-                  '📋 COPIE o texto da fatura e cole no chat como alternativa'
-                ],
-                needsManualReview: true,
-                isNubankSpecific: true
-              });
-            }
-            
+          if (hasNoTransactions || (hasOnlyMicroValues && totalValue < 1.0)) {
+            console.log('[OCR] ⚠️ Documento sem transações válidas detectado');
             return res.status(400).json({
               success: false,
               error: 'Documento não foi lido corretamente',
-              details: 'O sistema não conseguiu extrair as transações do documento.',
+              details: 'O sistema não conseguiu extrair transações válidas.',
               suggestions: [
-                '✅ OPÇÃO 1: Tire uma FOTO clara do extrato com seu celular',
-                '✅ OPÇÃO 2: Copie o texto do extrato e cole no chat',
-                '✅ OPÇÃO 3: Divida em páginas menores e envie uma por vez'
+                '📸 TIRE UMA FOTO clara do extrato ou fatura',
+                '📋 COPIE o texto do documento e cole no chat',
+                '💾 SALVE como PDF e tente novamente'
               ],
               needsManualReview: true
             });
@@ -925,7 +863,41 @@ INSTRUÇÕES FINAIS:
         } catch (parseError: any) {
           console.error('[OCR] Erro ao parsear JSON:', parseError.message);
           console.error('[OCR] Texto problemático:', responseText.substring(0, 300));
-          
+
+          // Fallback alternativo: tentar extrair valores monetários do texto
+          const amountRegex = /R\$\s*(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?|\d+,\d{2}|\d+\.\d{2})/g;
+          let amounts = [];
+          let match;
+          while ((match = amountRegex.exec(responseText)) !== null) {
+            const amountStr = match[1].replace('.', '').replace(',', '.');
+            amounts.push(parseFloat(amountStr));
+          }
+          if (amounts.length > 0) {
+            ocrResult = {
+              documentType: "extrato_recuperado",
+              confidence: 0.6,
+              summary: {
+                totalAmount: amounts.reduce((sum, val) => sum + val, 0),
+                totalIncome: 0,
+                totalExpense: amounts.reduce((sum, val) => sum + val, 0),
+                establishment: fileName?.includes('nubank') ? "Nubank" : "Documento financeiro",
+                period: new Date().toISOString().substring(0, 7),
+                itemCount: amounts.length
+              },
+              transactions: amounts.map((amount, idx) => ({
+                description: `Transação ${idx + 1}`,
+                amount: amount,
+                type: "expense",
+                category: "Outros",
+                date: new Date().toISOString().substring(0, 10),
+                confidence: 0.5
+              }))
+            };
+            console.log('[OCR] ✅ Recuperadas', amounts.length, 'transações via método alternativo');
+            processingComplete = true;
+            break;
+          }
+
           // Ao invés de falhar completamente, criar resultado vazio mas válido
           console.log('[OCR] Criando estrutura de fallback devido a erro de parsing');
           ocrResult = {
@@ -941,24 +913,8 @@ INSTRUÇÕES FINAIS:
             },
             transactions: []
           };
-          
-          // Para faturas grandes, tentar extrair JSON parcial como último recurso
-          try {
-            const jsonMatches = responseText.match(/\{[\s\S]*\}/);
-            if (jsonMatches) {
-              const partialJson = jsonMatches[0];
-              const partialResult = JSON.parse(partialJson);
-              if (partialResult.transactions && Array.isArray(partialResult.transactions)) {
-                ocrResult = partialResult;
-                console.log('[OCR] JSON parcial extraído com sucesso');
-              }
-            }
-          } catch (partialError) {
-            console.log('[OCR] Fallback para JSON parcial também falhou, usando estrutura vazia');
-          }
-          
-          processingComplete = true; // Marcar como completo mesmo com erro
-          break; // Sair do loop
+          processingComplete = true;
+          break;
         }
 
       } catch (requestError: any) {

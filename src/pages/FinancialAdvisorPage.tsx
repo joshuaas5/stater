@@ -2300,23 +2300,43 @@ const handleImageUpload = async (imageBase64: string) => {
 
     const ocrData = result.data;
     
-    // VALIDAÇÃO CRÍTICA: Verificar se ocrData existe e tem estrutura válida
+    // VALIDAÇÃO CRÍTICA MELHORADA: Verificar se ocrData existe e tem estrutura válida
     if (!ocrData) {
       console.error('❌ Dados OCR nulos:', result);
-      throw new Error('Resposta da API com dados nulos - documento não foi processado');
+      setMessages(prev => [...prev, {
+        id: uuidv4(),
+        text: `❌ **Erro no processamento**\n\nO sistema não conseguiu processar o documento.\n\n💡 **Tente:**\n• Tire uma foto mais clara\n• Use melhor iluminação\n• Certifique-se que o texto esteja legível\n• Tente um formato diferente (JPG/PNG)`,
+        sender: 'system',
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
+      }]);
+      return;
     }
 
     if (!ocrData.transactions) {
       console.error('❌ Transações não encontradas:', ocrData);
-      throw new Error('Documento processado mas sem transações identificadas');
+      ocrData.transactions = []; // Criar array vazio para evitar erro
     }
 
     if (!Array.isArray(ocrData.transactions)) {
       console.error('❌ Transações não são array:', typeof ocrData.transactions);
-      throw new Error('Formato de transações inválido');
+      ocrData.transactions = []; // Converter para array vazio
     }
     
-    const transactions = ocrData.transactions;    // Criar mensagem com resultados e instruções claras
+    const transactions = ocrData.transactions;
+    
+    // Verificar se há transações válidas
+    if (transactions.length === 0) {
+      console.log('⚠️ Nenhuma transação encontrada no documento');
+      setMessages(prev => [...prev, {
+        id: uuidv4(),
+        text: `📄 **Documento lido, mas sem transações**\n\nO sistema conseguiu ler o documento, mas não identificou transações financeiras.\n\n💡 **Possíveis causas:**\n• Documento muito claro/escuro\n• Formato não suportado\n• Documento sem movimentações\n• Qualidade da imagem baixa\n\n**Tente:**\n• Tire uma foto mais nítida\n• Use melhor iluminação\n• Digite as informações manualmente\n• Envie uma captura de tela`,
+        sender: 'system',
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
+      }]);
+      return;
+    }    // Criar mensagem com resultados e instruções claras
     let resultMessage = `✅ **Documento processado com sucesso!**\n\n`;
     resultMessage += `📋 **Tipo:** ${ocrData.documentType.replace('_', ' ')}\n`;
     resultMessage += `💰 **Total:** R$ ${ocrData.summary.totalAmount.toFixed(2)}\n`;

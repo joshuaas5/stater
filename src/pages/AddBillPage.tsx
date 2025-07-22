@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import PageHeader from '@/components/header/PageHeader';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Bill, CardItem, EXPENSE_CATEGORIES } from '@/types';
 import { getCurrentUser, saveBill } from '@/utils/localStorage';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, CreditCard, Plus, X } from 'lucide-react';
+import { ArrowLeft, Calendar, CreditCard, Plus, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import NavBar from '@/components/navigation/NavBar';
 
@@ -176,29 +175,53 @@ const AddBillPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-galileo-background min-h-screen pb-20">
-      <PageHeader title="Adicionar Conta" showSearch={false} />
-      
-      <div className="px-4 py-6">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-galileo-text">Título</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Ex: Aluguel, Conta de Luz..." 
-                      {...field} 
-                      className="bg-galileo-accent text-white placeholder:text-gray-300 dark:text-white dark:placeholder:text-gray-400"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <div className="min-h-screen relative overflow-hidden pb-20" style={{ background: '#31518b' }}>
+      {/* Header */}
+      <div className="relative z-10 bg-transparent">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/bills')}
+              className="p-2 text-white hover:text-white hover:bg-white/20 backdrop-blur-sm rounded-lg transition-all duration-300"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-bold text-white">
+                Adicionar Conta
+              </h1>
+              <p className="text-sm text-white/70">
+                Cadastre uma nova conta a pagar
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 p-4">
+        <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white font-medium">Título</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Ex: Aluguel, Conta de Luz..." 
+                        {...field} 
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             
             <FormField
               control={form.control}
@@ -224,12 +247,12 @@ const AddBillPage: React.FC = () => {
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-galileo-text">Valor</FormLabel>
+                    <FormLabel className="text-white font-medium">Valor</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="R$ 0,00" 
                         {...field} 
-                        className="bg-galileo-accent text-white placeholder:text-gray-300 dark:text-white dark:placeholder:text-gray-400"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40"
                       />
                     </FormControl>
                     <FormMessage />
@@ -238,20 +261,20 @@ const AddBillPage: React.FC = () => {
               />
             ) : (
               <div className="space-y-4">
-                <div className="rounded-lg border p-4">
-                  <h3 className="text-galileo-text font-medium mb-2">Itens da Fatura</h3>
+                <div className="rounded-lg border border-white/20 bg-white/10 backdrop-blur-xl p-4">
+                  <h3 className="text-white font-medium mb-2">Itens da Fatura</h3>
                   
                   {cardItems.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center mb-2 p-2 bg-galileo-accent rounded">
-                      <div className="text-galileo-text">{item.description}</div>
+                    <div key={item.id} className="flex justify-between items-center mb-2 p-2 bg-white/10 border-white/20 rounded">
+                      <div className="text-white">{item.description}</div>
                       <div className="flex items-center">
-                        <span className="text-galileo-text mr-2">
+                        <span className="text-white mr-2">
                           R$ {item.amount.toFixed(2).replace('.', ',')}
                         </span>
                         <button 
                           type="button"
                           onClick={() => handleRemoveCardItem(item.id)}
-                          className="text-galileo-negative"
+                          className="text-red-300 hover:text-red-200"
                         >
                           <X size={16} />
                         </button>
@@ -264,26 +287,27 @@ const AddBillPage: React.FC = () => {
                       placeholder="Descrição"
                       value={cardItemDescription}
                       onChange={(e) => setCardItemDescription(e.target.value)}
-                      className="bg-galileo-accent text-white placeholder:text-gray-300"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/60"
                     />
                     <Input
                       placeholder="R$ 0,00"
                       value={cardItemAmount}
                       onChange={(e) => setCardItemAmount(e.target.value)}
-                      className="bg-galileo-accent text-white placeholder:text-gray-300"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/60"
                     />
                     <Button 
                       type="button"
                       variant="outline"
                       onClick={handleAddCardItem}
+                      className="border-white/20 text-white hover:bg-white/10"
                     >
                       <Plus size={16} />
                     </Button>
                   </div>
                   
                   <div className="mt-4 flex justify-between items-center">
-                    <span className="text-galileo-text font-medium">Total</span>
-                    <span className="text-galileo-text font-medium">
+                    <span className="text-white font-medium">Total</span>
+                    <span className="text-white font-medium">
                       R$ {cardItems.reduce((sum, item) => sum + item.amount, 0).toFixed(2).replace('.', ',')}
                     </span>
                   </div>
@@ -308,18 +332,22 @@ const AddBillPage: React.FC = () => {
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-galileo-text">Categoria</FormLabel>
+                  <FormLabel className="text-white font-medium">Categoria</FormLabel>
                   <FormControl>
                     <Select 
                       value={field.value}
                       onValueChange={field.onChange}
                     >
-                      <SelectTrigger className="bg-galileo-accent text-white">
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white focus:border-white/40">
                         <SelectValue placeholder="Selecione uma categoria" className="text-white" />
                       </SelectTrigger>
-                      <SelectContent className="bg-galileo-card text-galileo-text">
+                      <SelectContent className="bg-[#31518b] border-white/20">
                         {EXPENSE_CATEGORIES.map((category) => (
-                          <SelectItem key={category} value={category.toLowerCase()}>
+                          <SelectItem 
+                            key={category} 
+                            value={category.toLowerCase()}
+                            className="text-white hover:bg-white/10 focus:bg-white/10"
+                          >
                             {category}
                           </SelectItem>
                         ))}
@@ -336,15 +364,15 @@ const AddBillPage: React.FC = () => {
               name="dueDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-galileo-text">Data de Vencimento</FormLabel>
+                  <FormLabel className="text-white font-medium">Data de Vencimento</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         type="date"
                         {...field}
-                        className="bg-galileo-accent text-white placeholder:text-gray-300 appearance-none"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 appearance-none"
                       />
-                      <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+                      <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-white/40" />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -356,9 +384,9 @@ const AddBillPage: React.FC = () => {
               control={form.control}
               name="isRecurring"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 bg-white/10 p-3 shadow-sm">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-galileo-text">Conta Recorrente</FormLabel>
+                    <FormLabel className="text-white font-medium">Conta Recorrente</FormLabel>
                   </div>
                   <FormControl>
                     <Switch
@@ -377,8 +405,8 @@ const AddBillPage: React.FC = () => {
                   control={form.control}
                   name="totalInstallments"
                   render={({ field }) => (
-                    <FormItem className="bg-galileo-card p-4 rounded-lg border shadow">
-                      <FormLabel className="text-galileo-text">Número de Parcelas</FormLabel>
+                    <FormItem className="bg-white/10 border-white/20 p-4 rounded-lg border shadow">
+                      <FormLabel className="text-white font-medium">Número de Parcelas</FormLabel>
                       <FormControl>
                         <Input 
                           type="number" 
@@ -386,11 +414,11 @@ const AddBillPage: React.FC = () => {
                           {...field}
                           value={field.value || ''}
                           disabled={isInfiniteRecurrence}
-                          className={`bg-galileo-inputField text-galileo-text dark:text-white placeholder:text-galileo-placeholder ${isInfiniteRecurrence ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          className={`bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 ${isInfiniteRecurrence ? 'opacity-50 cursor-not-allowed' : ''}`}
                         />
                       </FormControl>
                       {!isInfiniteRecurrence && (
-                        <FormDescription className="text-xs text-galileo-secondaryText">
+                        <FormDescription className="text-xs text-white/70">
                           Deixe em branco para uma única parcela.
                         </FormDescription>
                       )}
@@ -421,11 +449,11 @@ const AddBillPage: React.FC = () => {
                       <div className="grid gap-1.5 leading-none">
                         <FormLabel 
                           htmlFor="isInfiniteRecurrenceCheckbox"
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-galileo-text cursor-pointer"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white cursor-pointer"
                         >
                           Sem Fim Definido
                         </FormLabel>
-                        <FormDescription className="text-xs text-galileo-secondaryText">
+                        <FormDescription className="text-xs text-white/70">
                           Para contas sem um número fixo de parcelas (ex: assinatura).
                         </FormDescription>
                       </div>
@@ -439,9 +467,9 @@ const AddBillPage: React.FC = () => {
               control={form.control}
               name="notificationsEnabled"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 bg-white/10 p-3 shadow-sm">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-galileo-text">Notificações</FormLabel>
+                    <FormLabel className="text-white font-medium">Notificações</FormLabel>
                   </div>
                   <FormControl>
                     <Switch
@@ -455,12 +483,13 @@ const AddBillPage: React.FC = () => {
             
             <Button 
               type="submit" 
-              className="w-full bg-galileo-accent hover:bg-galileo-secondaryText text-galileo-text"
+              className="w-full bg-white text-[#31518b] hover:bg-white/90 font-semibold py-3 rounded-lg transition-all duration-300"
             >
               Salvar Conta
             </Button>
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </div>
       </div>
       <NavBar />
     </div>

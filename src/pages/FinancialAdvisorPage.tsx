@@ -12,7 +12,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { fetchGeminiFlashLite, GeminiTransactionIntent } from '@/utils/gemini';
 import { supabase } from '@/lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Tag, ChevronDown, Search } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Componentes de voz
 import { VoiceRecorder } from '@/components/voice/VoiceRecorder';
@@ -127,6 +127,11 @@ export const FinancialAdvisorPage: React.FC = () => {
   // Novos hooks para funcionalidades avançadas de voz
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
   const [audioResponse, setAudioResponse] = useState<string | null>(null);
+  
+  // Estados para dropdown de categorias no modal de múltiplas transações
+  const [categoryDropdownStates, setCategoryDropdownStates] = useState<{[key: number]: boolean}>({});
+  const [categorySearchTerms, setCategorySearchTerms] = useState<{[key: number]: string}>({});
+  
   const tts = useTextToSpeech();
   const audioLimits = useAudioLimits(currentUserId || null);
 
@@ -238,11 +243,35 @@ export const FinancialAdvisorPage: React.FC = () => {
       console.log('💬 [CHAT SAVE] Apenas mensagem inicial, não salvando');
     }
   }, [messages, currentUserId]);
+  
   useEffect(() => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 50);
   }, [messages]);
+
+  // useEffect para fechar dropdowns de categoria quando clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
+      // Verificar se o clique foi fora de qualquer dropdown de categoria
+      if (!target.closest('[data-category-dropdown]')) {
+        setCategoryDropdownStates({});
+        setCategorySearchTerms({});
+      }
+    };
+
+    // Adicionar listener apenas se algum dropdown estiver aberto
+    const hasOpenDropdown = Object.values(categoryDropdownStates).some(Boolean);
+    if (hasOpenDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [categoryDropdownStates]);
 
   // Novo useEffect para scroll quando transações editáveis mudarem
   useEffect(() => {
@@ -350,6 +379,7 @@ const isAddBillIntent = (msg: string) => {
     }
 
     setIsProcessingAudio(true);
+    setLoadingState('audio-processing', true);
     setError('');
 
     const startTime = Date.now();
@@ -392,6 +422,8 @@ const isAddBillIntent = (msg: string) => {
           success: true
         });
         
+        setIsProcessingAudio(false);
+        setLoadingState('audio-processing', false);
         return;
       }
 
@@ -439,6 +471,8 @@ const isAddBillIntent = (msg: string) => {
         });
         setWaitingConfirmation(true);
         
+        setIsProcessingAudio(false);
+        setLoadingState('audio-processing', false);
         return;
       }
       
@@ -511,6 +545,7 @@ const isAddBillIntent = (msg: string) => {
       }]);
     } finally {
       setIsProcessingAudio(false);
+      setLoadingState('audio-processing', false);
     }
   }, [currentUserId, audioLimits]);
 
@@ -2493,6 +2528,40 @@ const deleteTransaction = (index: number) => {
   }
 };
 
+// Funções para controlar o dropdown de categorias
+const toggleCategoryDropdown = (index: number) => {
+  setCategoryDropdownStates(prev => ({
+    ...prev,
+    [index]: !prev[index]
+  }));
+};
+
+const setCategorySearch = (index: number, searchTerm: string) => {
+  setCategorySearchTerms(prev => ({
+    ...prev,
+    [index]: searchTerm
+  }));
+};
+
+const selectCategory = (index: number, category: string) => {
+  updateTransaction(index, { ...editableTransactions[index], category: category.toLowerCase() });
+  setCategoryDropdownStates(prev => ({
+    ...prev,
+    [index]: false
+  }));
+  setCategorySearchTerms(prev => ({
+    ...prev,
+    [index]: ''
+  }));
+};
+
+const getFilteredCategories = (index: number) => {
+  const searchTerm = categorySearchTerms[index] || '';
+  return EXPENSE_CATEGORIES.filter(category =>
+    category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+};
+
 return (
   <>    <div 
       className="financial-advisor-page"
@@ -3155,30 +3224,149 @@ return (
                           display: 'block', 
                           marginBottom: '5px' 
                         }}>
+                          <Tag style={{ width: '12px', height: '12px', display: 'inline-block', marginRight: '4px' }} />
                           Categoria
                         </label>
-                        <select
-                          value={transaction.category || ''}
-                          onChange={(e) => updateTransaction(index, { ...transaction, category: e.target.value })}
-                          style={{
-                            background: 'white', // Fundo branco sólido
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '8px',
-                            padding: '8px 12px',
-                            color: '#1f2937', // Texto escuro
-                            fontSize: '14px',
-                            width: '100%',
-                            outline: 'none',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                          }}
-                        >
-                          <option value="" style={{ background: 'white', color: '#1f2937' }}>Selecione uma categoria</option>
-                          {EXPENSE_CATEGORIES.map((category) => (
-                            <option key={category} value={category.toLowerCase()} style={{ background: 'white', color: '#1f2937' }}>
-                              {category}
-                            </option>
-                          ))}
-                        </select>
+                        
+                        {/* Dropdown customizado igual ao da dashboard */}
+                        <div style={{ position: 'relative' }} data-category-dropdown>
+                          <button
+                            type="button"
+                            onClick={() => toggleCategoryDropdown(index)}
+                            style={{
+                              width: '100%',
+                              padding: '8px 12px',
+                              border: '2px solid #e5e7eb',
+                              borderRadius: '8px',
+                              background: 'white',
+                              color: transaction.category ? '#1f2937' : '#9ca3af',
+                              fontSize: '14px',
+                              textAlign: 'left',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              cursor: 'pointer',
+                              outline: 'none',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <span>
+                              {transaction.category 
+                                ? EXPENSE_CATEGORIES.find(cat => cat.toLowerCase() === transaction.category) || transaction.category
+                                : 'Selecione uma categoria'
+                              }
+                            </span>
+                            <ChevronDown 
+                              style={{ 
+                                width: '16px', 
+                                height: '16px', 
+                                color: '#6b7280',
+                                transform: categoryDropdownStates[index] ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s ease'
+                              }} 
+                            />
+                          </button>
+                          
+                          {categoryDropdownStates[index] && (
+                            <div 
+                              style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                right: 0,
+                                marginTop: '4px',
+                                backgroundColor: 'white',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px',
+                                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                                zIndex: 50,
+                                maxHeight: '200px',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              {/* Campo de busca */}
+                              <div style={{ padding: '8px', borderBottom: '1px solid #f3f4f6' }}>
+                                <div style={{ position: 'relative' }}>
+                                  <Search 
+                                    style={{ 
+                                      position: 'absolute', 
+                                      left: '8px', 
+                                      top: '50%', 
+                                      transform: 'translateY(-50%)', 
+                                      width: '14px', 
+                                      height: '14px', 
+                                      color: '#9ca3af' 
+                                    }} 
+                                  />
+                                  <input
+                                    type="text"
+                                    placeholder="Buscar categoria..."
+                                    value={categorySearchTerms[index] || ''}
+                                    onChange={(e) => setCategorySearch(index, e.target.value)}
+                                    style={{
+                                      width: '100%',
+                                      paddingLeft: '28px',
+                                      paddingRight: '8px',
+                                      paddingTop: '6px',
+                                      paddingBottom: '6px',
+                                      fontSize: '12px',
+                                      border: '1px solid #e5e7eb',
+                                      borderRadius: '6px',
+                                      outline: 'none',
+                                      color: '#1f2937'
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              
+                              {/* Lista de categorias */}
+                              <div style={{ maxHeight: '140px', overflowY: 'auto' }}>
+                                {getFilteredCategories(index).length > 0 ? (
+                                  getFilteredCategories(index).map((category) => (
+                                    <button
+                                      key={category}
+                                      type="button"
+                                      onClick={() => selectCategory(index, category)}
+                                      style={{
+                                        width: '100%',
+                                        padding: '8px 12px',
+                                        textAlign: 'left',
+                                        fontSize: '14px',
+                                        color: '#1f2937',
+                                        backgroundColor: transaction.category === category.toLowerCase() ? '#f3f4f6' : 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        transition: 'background-color 0.1s ease'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (transaction.category !== category.toLowerCase()) {
+                                          e.currentTarget.style.backgroundColor = '#f9fafb';
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        if (transaction.category !== category.toLowerCase()) {
+                                          e.currentTarget.style.backgroundColor = 'transparent';
+                                        }
+                                      }}
+                                    >
+                                      {category}
+                                    </button>
+                                  ))
+                                ) : (
+                                  <div style={{ 
+                                    padding: '12px', 
+                                    fontSize: '12px', 
+                                    color: '#9ca3af', 
+                                    textAlign: 'center' 
+                                  }}>
+                                    Nenhuma categoria encontrada
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
 

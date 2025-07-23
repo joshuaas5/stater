@@ -1,6 +1,128 @@
 // API OCR funcional - baseada no teste que funcionou
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyDTTPO0otruHVzh7bXsi7MCyG674P03758";
 
+// Categorias exatas do sistema (importadas do frontend)
+const INCOME_CATEGORIES = [
+  'Salário', 'Salário 13º', 'Férias', 'PLR/Participação nos Lucros', 'Comissões', 'Hora Extra',
+  'Renda de Trabalho Autônomo', 'Freelance', 'Consultoria', 'Prestação de Serviços', 'Venda de Produtos',
+  'E-commerce', 'Investimentos', 'Dividendos', 'Juros de Aplicações', 'Rendimentos CDB', 'Rendimentos Poupança',
+  'Venda de Ações', 'Fundos Imobiliários', 'Renda de Aluguel', 'Renda de Pensão', 'Aposentadoria',
+  'Auxílios Governamentais', 'Bolsa Família', 'Auxílio Brasil', 'Seguro Desemprego', 'FGTS', 'Restituição de IR',
+  'Presentes em Dinheiro', 'Vendas Ocasionais', 'Venda de Veículo', 'Venda de Imóvel', 'Cashback', 'Reembolsos',
+  'Prêmios e Sorteios', 'Renda Extra', 'Monetização Online', 'YouTube/Criador de Conteúdo', 'Afiliados',
+  'Royalties', 'Outras Receitas'
+];
+
+const EXPENSE_CATEGORIES = [
+  // Habitação
+  'Aluguel', 'Financiamento Imobiliário', 'Condomínio', 'IPTU', 'Luz', 'Água', 'Gás', 'Internet', 'TV por Assinatura',
+  'Telefone Fixo', 'Manutenção da Casa', 'Móveis e Decoração', 'Eletrodomésticos',
+  // Transporte
+  'Combustível', 'Transporte Público', 'Uber/99/Táxi', 'Estacionamento', 'Pedágio', 'Manutenção do Veículo',
+  'Seguro do Veículo', 'IPVA', 'Licenciamento', 'Multas de Trânsito', 'Financiamento do Veículo',
+  // Alimentação
+  'Supermercado', 'Açougue/Peixaria', 'Padaria', 'Feira', 'Restaurantes', 'Lanchonetes', 'Fast Food', 'Delivery',
+  'Bebidas', 'Doces e Sobremesas',
+  // Saúde
+  'Plano de Saúde', 'Consultas Médicas', 'Exames', 'Medicamentos', 'Farmácia', 'Dentista', 'Psicólogo',
+  'Fisioterapia', 'Academia', 'Suplementos',
+  // Educação
+  'Mensalidade Escolar', 'Faculdade', 'Cursos Online', 'Livros', 'Material Escolar', 'Cursos de Idiomas', 'Certificações',
+  // Entretenimento
+  'Cinema', 'Teatro', 'Shows', 'Streaming (Netflix, etc)', 'Jogos', 'Viagens', 'Hotéis', 'Passeios', 'Bares e Baladas', 'Hobbies',
+  // Cuidados Pessoais
+  'Cabeleireiro', 'Manicure/Pedicure', 'Estética', 'Roupas', 'Calçados', 'Acessórios', 'Perfumes', 'Cosméticos', 'Produtos de Higiene',
+  // Tecnologia
+  'Celular (Conta)', 'Aplicativos', 'Software', 'Equipamentos Eletrônicos', 'Computador', 'Acessórios Tech',
+  // Financeiro
+  'Pagamentos de Dívidas', 'Cartão de Crédito', 'Financiamentos', 'Empréstimos', 'Juros e Multas', 'Anuidade do Cartão', 'Tarifa Bancária',
+  // Investimentos e Poupança
+  'Poupança', 'Investimentos', 'Previdência Privada', 'Seguro de Vida', 'Capitalização',
+  // Impostos e Taxas
+  'Imposto de Renda', 'Impostos Diversos', 'Taxas Governamentais', 'Cartório', 'Despachante',
+  // Família e Pets
+  'Presentes', 'Doações', 'Mesada dos Filhos', 'Pet Shop', 'Veterinário', 'Ração para Pets',
+  // Trabalho
+  'Transporte para Trabalho', 'Almoço no Trabalho', 'Material de Trabalho', 'Uniformes',
+  // Casa e Manutenção
+  'Ferramentas', 'Jardinagem', 'Limpeza', 'Segurança', 'Reformas',
+  // Emergências
+  'Gastos Médicos de Emergência', 'Reparos Emergenciais', 'Gastos Inesperados',
+  // Outros
+  'Despesas Diversas', 'Não Categorizado'
+];
+
+// Função para selecionar categoria automaticamente baseada nas transações
+function selectAutomaticCategory(transactions: any[]): string {
+  if (!transactions || transactions.length === 0) {
+    return 'Não Categorizado';
+  }
+
+  // Contar frequência de categorias
+  const categoryCount: { [key: string]: number } = {};
+  const categoryValue: { [key: string]: number } = {};
+
+  transactions.forEach(transaction => {
+    const category = transaction.category || 'Não Categorizado';
+    categoryCount[category] = (categoryCount[category] || 0) + 1;
+    categoryValue[category] = (categoryValue[category] || 0) + (transaction.amount || 0);
+  });
+
+  // Encontrar categoria mais relevante (por valor total)
+  let maxValue = 0;
+  let selectedCategory = 'Não Categorizado';
+
+  Object.entries(categoryValue).forEach(([category, value]) => {
+    if (value > maxValue) {
+      maxValue = value;
+      selectedCategory = category;
+    }
+  });
+
+  // Verificar se a categoria selecionada existe nas categorias válidas
+  const allCategories = [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES];
+  if (!allCategories.includes(selectedCategory)) {
+    // Se não existe, tentar mapear para uma categoria válida baseada na descrição
+    const firstTransaction = transactions[0];
+    if (firstTransaction && firstTransaction.description) {
+      const description = firstTransaction.description.toLowerCase();
+      
+      // Mapeamento inteligente baseado em palavras-chave
+      if (description.includes('supermercado') || description.includes('mercado') || description.includes('extra') || description.includes('carrefour')) {
+        return 'Supermercado';
+      }
+      if (description.includes('combustível') || description.includes('posto') || description.includes('gasolina') || description.includes('álcool')) {
+        return 'Combustível';
+      }
+      if (description.includes('restaurante') || description.includes('lanchonete') || description.includes('delivery')) {
+        return 'Restaurantes';
+      }
+      if (description.includes('farmácia') || description.includes('medicamento') || description.includes('remédio')) {
+        return 'Farmácia';
+      }
+      if (description.includes('uber') || description.includes('99') || description.includes('taxi')) {
+        return 'Uber/99/Táxi';
+      }
+      if (description.includes('netflix') || description.includes('spotify') || description.includes('streaming')) {
+        return 'Streaming (Netflix, etc)';
+      }
+      if (description.includes('aluguel')) {
+        return 'Aluguel';
+      }
+      if (description.includes('salário') || description.includes('pagamento')) {
+        return 'Salário';
+      }
+      if (description.includes('pix recebido') || description.includes('transferência recebida')) {
+        return 'Outras Receitas';
+      }
+    }
+    
+    return 'Não Categorizado';
+  }
+
+  return selectedCategory;
+}
+
 // Função para processar PDF com senha
 async function processPdfWithPassword(pdfBase64: string, password?: string): Promise<string> {
   try {
@@ -191,21 +313,28 @@ FORMATO JSON OBRIGATÓRIO:
 }
 
 CATEGORIAS VÁLIDAS (use exatamente esses nomes):
-- "Alimentação": supermercados, restaurantes, delivery, padarias, açougues
-- "Transporte": combustível, uber, táxi, ônibus, pedágios, estacionamento
-- "Saúde": farmácias, consultas médicas, planos de saúde, clínicas
-- "Entretenimento": cinema, streaming, jogos, viagens, bares, baladas
-- "Habitação": aluguel, condomínio, água, luz, gás, internet, telefone
-- "Educação": cursos, livros, mensalidades escolares, material escolar
-- "Cuidados Pessoais": salão, barbeiro, cosméticos, produtos de higiene
-- "Impostos": taxas governamentais, IPTU, multas
-- "Poupança e Investimentos": aplicações, transferências para poupança
-- "Pagamentos de Dívidas": empréstimos, financiamentos, cartão de crédito
-- "Outros": categoria genérica para itens não categorizados
+
+**RECEITAS:**
+${INCOME_CATEGORIES.map(cat => `"${cat}"`).join(', ')}
+
+**DESPESAS:**
+${EXPENSE_CATEGORIES.map(cat => `"${cat}"`).join(', ')}
 
 REGRAS DE CATEGORIZAÇÃO AUTOMÁTICA:
-- MERCADO/SUPERMERCADO/EXTRA/CARREFOUR/PÃO DE AÇÚCAR → "Alimentação"
-- POSTO/SHELL/PETROBRAS/IPIRANGA/BR → "Transporte"  
+- MERCADO/SUPERMERCADO/EXTRA/CARREFOUR/PÃO DE AÇÚCAR → "Supermercado"
+- POSTO/SHELL/PETROBRAS/IPIRANGA/BR → "Combustível"  
+- FARMÁCIA/DROGARIA/RAIA/PACHECO → "Farmácia"
+- CINEMA/NETFLIX/SPOTIFY/AMAZON PRIME → "Streaming (Netflix, etc)"
+- ENEL/SABESP/COMGÁS/NET/VIVO/TIM → "Internet" ou "Luz" ou "Água" ou "Gás"
+- ESCOLA/FACULDADE/CURSO/LIVRARIA → "Mensalidade Escolar" ou "Faculdade"
+- SALÃO/BARBEARIA/O BOTICÁRIO/NATURA → "Cabeleireiro" ou "Cosméticos"
+- RECEITA FEDERAL/DETRAN/PREFEITURA → "Impostos Diversos"
+- BANCO/INVEST/POUPANÇA/APLICAÇÃO → "Investimentos" ou "Poupança"
+- EMPRÉSTIMO/FINANCIAMENTO/CARTÃO → "Cartão de Crédito" ou "Financiamentos"
+- UBER/99/TAXI → "Uber/99/Táxi"
+- ALUGUEL → "Aluguel"
+- SALÁRIO/PAGAMENTO → "Salário"
+- Outros casos → "Não Categorizado"  
 - FARMÁCIA/DROGARIA/RAIA/PACHECO → "Saúde"
 - CINEMA/NETFLIX/SPOTIFY/AMAZON PRIME → "Entretenimento"
 - ENEL/SABESP/COMGÁS/NET/VIVO/TIM → "Habitação"
@@ -371,9 +500,21 @@ IMPORTANTE:
         };
       }
 
+      // SELEÇÃO AUTOMÁTICA DE CATEGORIA PARA ARQUIVOS DE TEXTO
+      let selectedCategory = 'Não Categorizado';
+      if (textResult && textResult.transactions && textResult.transactions.length > 0) {
+        selectedCategory = selectAutomaticCategory(textResult.transactions);
+        console.log('[TEXT] 🎯 Categoria selecionada automaticamente:', selectedCategory);
+      }
+
       return res.status(200).json({
         success: true,
-        data: textResult
+        data: textResult,
+        selectedCategory: selectedCategory,
+        availableCategories: {
+          income: INCOME_CATEGORIES,
+          expense: EXPENSE_CATEGORIES
+        }
       });
 
     } catch (parseError: any) {
@@ -588,8 +729,29 @@ FORMATO DE SAÍDA OBRIGATÓRIO (JSON PURO):
   ]
 }
 
-CATEGORIAS DISPONÍVEIS:
-"Alimentação", "Transporte", "Saúde", "Entretenimento", "Habitação", "Educação", "Cuidados Pessoais", "Impostos", "Poupança e Investimentos", "Pagamentos de Dívidas", "Outros"
+CATEGORIAS DISPONÍVEIS (use exatamente esses nomes):
+
+**RECEITAS:**
+${INCOME_CATEGORIES.map(cat => `"${cat}"`).join(', ')}
+
+**DESPESAS:**
+${EXPENSE_CATEGORIES.map(cat => `"${cat}"`).join(', ')}
+
+REGRAS DE CATEGORIZAÇÃO AUTOMÁTICA:
+- MERCADO/SUPERMERCADO/EXTRA/CARREFOUR/PÃO DE AÇÚCAR → "Supermercado"
+- POSTO/SHELL/PETROBRAS/IPIRANGA/BR → "Combustível"  
+- FARMÁCIA/DROGARIA/RAIA/PACHECO → "Farmácia"
+- CINEMA/NETFLIX/SPOTIFY/AMAZON PRIME → "Streaming (Netflix, etc)"
+- ENEL/SABESP/COMGÁS/NET/VIVO/TIM → "Internet" ou "Luz" ou "Água" ou "Gás"
+- ESCOLA/FACULDADE/CURSO/LIVRARIA → "Mensalidade Escolar" ou "Faculdade"
+- SALÃO/BARBEARIA/O BOTICÁRIO/NATURA → "Cabeleireiro" ou "Cosméticos"
+- RECEITA FEDERAL/DETRAN/PREFEITURA → "Impostos Diversos"
+- BANCO/INVEST/POUPANÇA/APLICAÇÃO → "Investimentos" ou "Poupança"
+- EMPRÉSTIMO/FINANCIAMENTO/CARTÃO → "Cartão de Crédito" ou "Financiamentos"
+- UBER/99/TAXI → "Uber/99/Táxi"
+- ALUGUEL → "Aluguel"
+- SALÁRIO/PAGAMENTO → "Salário"
+- Outros casos → "Não Categorizado"
 
 🚨 IMPORTANTE:
 - Retorne APENAS o JSON válido, sem texto adicional
@@ -1074,10 +1236,22 @@ CATEGORIAS DISPONÍVEIS:
     console.log('[OCR] ⏱️ Tempo total:', processingTime, 'ms');
     console.log('[OCR] 📊 Transações encontradas:', ocrResult?.transactions?.length || 0);
 
+    // SELEÇÃO AUTOMÁTICA DE CATEGORIA
+    let selectedCategory = 'Não Categorizado';
+    if (ocrResult && ocrResult.transactions && ocrResult.transactions.length > 0) {
+      selectedCategory = selectAutomaticCategory(ocrResult.transactions);
+      console.log('[OCR] 🎯 Categoria selecionada automaticamente:', selectedCategory);
+    }
+
     // Sempre retornar sucesso, mesmo que com dados vazios
     return res.status(200).json({
       success: true,
       data: ocrResult,
+      selectedCategory: selectedCategory, // ← NOVA PROPRIEDADE PARA A CATEGORIA SELECIONADA
+      availableCategories: {
+        income: INCOME_CATEGORIES,
+        expense: EXPENSE_CATEGORIES
+      },
       metadata: {
         processedAt: new Date().toISOString(),
         tokensUsed: responseData?.usageMetadata?.totalTokenCount || 0,
@@ -1085,7 +1259,8 @@ CATEGORIAS DISPONÍVEIS:
         retryCount: retryCount,
         processingTimeMs: processingTime,
         hadErrors: (ocrResult?.transactions?.length || 0) === 0,
-        fallbackUsed: ocrResult?.confidence < 0.8
+        fallbackUsed: ocrResult?.confidence < 0.8,
+        selectedCategory: selectedCategory
       }
     });
 

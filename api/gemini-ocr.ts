@@ -443,18 +443,13 @@ export default async function handler(req: any, res: any) {
       // É uma imagem (JPEG, PNG, GIF)
       mimeType = imageBase64.startsWith('/9j/') ? "image/jpeg" : 
                  imageBase64.startsWith('iVBOR') ? "image/png" : "image/gif";
-      console.log('[OCR] Detectado: Imagem', mimeType);    } else if (imageBase64.startsWith('JVBERi0') || imageBase64.startsWith('data:application/pdf')) {
-      // É um PDF
+      console.log('[OCR] Detectado: Imagem', mimeType);
+    } else if (imageBase64.startsWith('JVBERi0') || imageBase64.startsWith('data:application/pdf')) {
+      // É um PDF - USAR GEMINI 2.5 FLASH (MELHOR PARA PDFs)
       mimeType = "application/pdf";
-      console.log('[OCR] Detectado: PDF');
-      
-      // OTIMIZAÇÃO ESPECÍFICA PARA PDF
-      modelToUse = "gemini-2.5-flash"; // Modelo mais estável para PDFs
-      console.log('[OCR] PDF detectado - usando modelo mais estável');
-      
-      // Não fazer detecção preventiva de PDF protegido
-      // Deixar o Gemini tentar processar e tratar erro se necessário
-      console.log('[OCR] PDF será processado normalmente pelo Gemini');
+      modelToUse = "gemini-2.5-flash"; // MODELO CORRETO PARA PDFs
+      console.log('[OCR] � PDF detectado - usando Gemini 2.5 Flash (modelo otimizado para PDFs)');
+      console.log('[OCR] 🎯 Modelo selecionado:', modelToUse);
     }else {
       console.log('[OCR] Tipo de arquivo não reconhecido, assumindo imagem JPEG');
       console.log('[OCR] Base64 começa com:', imageBase64.substring(0, 10));
@@ -691,13 +686,37 @@ CATEGORIAS DISPONÍVEIS:
           }
           
           // Verificar se é erro "The document has no pages" - PDF protegido
-      if (errorText.includes('The document has no pages')) {
-        console.log('[OCR] PDF protegido detectado via erro "no pages"');
-        return res.status(400).json({ 
-          error: 'PDF protegido por senha detectado',
-          needsPassword: false, // Não suportamos senha
-          message: '🔒 Este PDF está protegido por senha e não pode ser processado.\n\n💡 **Solução:** Faça uma captura de tela (screenshot) do PDF aberto e envie a imagem.',
-          isPdfProtected: true
+      if (errorText.includes('The document has no pages') || 
+          errorText.includes('cannot be processed') ||
+          errorText.includes('PDF parsing failed') ||
+          errorText.includes('unsupported')) {
+        console.log('[OCR] PDF não suportado ou protegido detectado');
+        return res.status(200).json({ 
+          success: true,
+          data: {
+            documentType: "pdf_não_suportado",
+            confidence: 0.1,
+            summary: {
+              totalAmount: 0,
+              totalIncome: 0,
+              totalExpense: 0,
+              establishment: "PDF não processado",
+              period: "Não identificado",
+              itemCount: 0
+            },
+            transactions: []
+          },
+          metadata: {
+            processedAt: new Date().toISOString(),
+            tokensUsed: 0,
+            processingMode: 'pdf_fallback',
+            retryCount: 0,
+            processingTimeMs: Date.now() - startTime,
+            hadErrors: true,
+            pdfError: true,
+            fallbackUsed: true,
+            userMessage: '📄 Este PDF não pode ser processado automaticamente.\n\n💡 **Soluções que funcionam 100%:**\n\n📸 **Tire fotos das páginas importantes:**\n• Abra o PDF no computador/celular\n• Tire screenshots ou fotos das páginas\n• Envie as imagens aqui\n\n🖼️ **Converta para imagem:**\n• Use ferramentas online gratuitas\n• Converta PDF → PNG/JPG\n• Envie as imagens resultantes\n\n📋 **Método manual:**\n• Copie o texto do PDF\n• Cole aqui no chat\n• Eu processarei como texto\n\n✅ **Essas soluções sempre funcionam!**'
+          }
         });
       }
       
@@ -705,21 +724,68 @@ CATEGORIAS DISPONÍVEIS:
       const errorLower = errorText.toLowerCase();
       if (errorLower.includes('password') || errorLower.includes('encrypted') || 
           errorLower.includes('protected') || errorLower.includes('decrypt') ||
-          errorLower.includes('permission') || errorLower.includes('secure')) {
-        console.log('[OCR] PDF protegido por senha detectado via outras mensagens');
-        return res.status(400).json({ 
-          error: 'PDF protegido por senha',
-          needsPassword: false, // Não suportamos mais
-          message: '🔒 Este PDF está protegido por senha.\n\n💡 **Solução:** Faça um screenshot do PDF e envie a imagem.',
-          isPdfProtected: true
+          errorLower.includes('permission') || errorLower.includes('secure') ||
+          errorLower.includes('pdf') && (errorLower.includes('invalid') || 
+          errorLower.includes('corrupt') || errorLower.includes('unsupported'))) {
+        console.log('[OCR] PDF com problemas detectado - retornando fallback');
+        return res.status(200).json({ 
+          success: true,
+          data: {
+            documentType: "pdf_com_problemas",
+            confidence: 0.1,
+            summary: {
+              totalAmount: 0,
+              totalIncome: 0,
+              totalExpense: 0,
+              establishment: "PDF não processado",
+              period: "Não identificado",
+              itemCount: 0
+            },
+            transactions: []
+          },
+          metadata: {
+            processedAt: new Date().toISOString(),
+            tokensUsed: 0,
+            processingMode: 'pdf_error_fallback',
+            retryCount: 0,
+            processingTimeMs: Date.now() - startTime,
+            hadErrors: true,
+            pdfError: true,
+            fallbackUsed: true,
+            userMessage: '🔒 **PDF protegido ou com problemas**\n\n❌ Este PDF não pode ser processado (protegido por senha, corrompido ou formato não suportado).\n\n💡 **Soluções garantidas:**\n\n📸 **Screenshots funcionam sempre:**\n• Abra o PDF e tire fotos da tela\n• Envie as imagens uma por uma\n• Processamento será 100% preciso\n\n🔓 **Para PDFs protegidos:**\n• Remova a proteção (se possível)\n• Tire screenshots das páginas\n• Use "Imprimir como PDF" sem proteção\n\n📋 **Última opção:**\n• Copie o texto manualmente\n• Cole aqui no chat\n\n✅ **Qualquer imagem funciona perfeitamente!**'
+          }
         });
       }
       
-      // Verificar se é erro de PDF corrompido ou inválido
+      // Verificar se é erro de PDF corrompido ou inválido específico
       if (errorLower.includes('pdf') && (errorLower.includes('invalid') || errorLower.includes('corrupt'))) {
-        return res.status(400).json({ 
-          error: 'PDF inválido ou corrompido',
-          message: 'O arquivo PDF fornecido está corrompido ou não é um PDF válido.'
+        console.log('[OCR] PDF corrompido detectado');
+        return res.status(200).json({ 
+          success: true,
+          data: {
+            documentType: "pdf_corrompido",
+            confidence: 0.1,
+            summary: {
+              totalAmount: 0,
+              totalIncome: 0,
+              totalExpense: 0,
+              establishment: "PDF corrompido",
+              period: "Não identificado",
+              itemCount: 0
+            },
+            transactions: []
+          },
+          metadata: {
+            processedAt: new Date().toISOString(),
+            tokensUsed: 0,
+            processingMode: 'pdf_corrupt_fallback',
+            retryCount: 0,
+            processingTimeMs: Date.now() - startTime,
+            hadErrors: true,
+            pdfError: true,
+            fallbackUsed: true,
+            userMessage: '📄 **PDF corrompido detectado**\n\n❌ Este arquivo PDF está corrompido ou em formato não suportado.\n\n💡 **Soluções:**\n• Baixe o PDF novamente da fonte original\n• Tire fotos das páginas importantes\n• Solicite uma nova versão do documento\n\n📸 **Screenshots sempre funcionam!**'
+          }
         });
       }
           

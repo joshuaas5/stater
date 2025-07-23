@@ -1286,7 +1286,24 @@ export default async function handler(req: any, res: any) {
             console.log('✅ Resultado da API OCR:', ocrResult);
             
             // Processar o resultado da API
-            let responseMessage = '';            // Se retornou transações estruturadas (a API OCR retorna em data.transactions)
+            let responseMessage = '';
+            
+            // VERIFICAR SE HOUVE ERRO ESPECÍFICO DE PDF
+            if (ocrResult.success === false || ocrResult.metadata?.pdfError || ocrResult.metadata?.userMessage) {
+              console.log('📄 PDF não suportado detectado na resposta da API');
+              
+              let userMessage = ocrResult.message || ocrResult.metadata?.userMessage;
+              
+              // Se não tem mensagem personalizada, usar nossa mensagem padrão
+              if (!userMessage) {
+                userMessage = '📄 **Este PDF não pode ser processado automaticamente**\n\n❌ O sistema não consegue ler PDFs diretamente.\n\n✅ **SOLUÇÕES QUE FUNCIONAM 100%:**\n\n� **MÉTODO MAIS FÁCIL:**\n• Abra o PDF no seu celular/computador\n• Tire uma FOTO da tela (screenshot)\n• Envie a foto aqui\n• Processamento será perfeito!\n\n🖼️ **CONVERSÃO ONLINE:**\n• Use sites como: pdf2go.com, ilovepdf.com\n• Converta PDF → PNG/JPG\n• Envie as imagens aqui\n\n📋 **MÉTODO MANUAL:**\n• Copie o texto do PDF\n• Cole aqui no chat\n• Eu processo como texto\n\n💡 **Por que isso acontece?**\nPDFs têm proteções e formatos complexos que a IA não consegue ler diretamente. Imagens (PNG/JPG) funcionam perfeitamente!';
+              }
+              
+              await sendTelegramMessage(chatId, userMessage);
+              return res.status(200).json({ ok: true, message: 'PDF não suportado - orientações enviadas' });
+            }
+            
+            // Se retornou transações estruturadas (a API OCR retorna em data.transactions)
             const transactions = ocrResult.data?.transactions || ocrResult.transactions;
             const summary = ocrResult.data?.summary || ocrResult.summary;
             
@@ -1398,12 +1415,33 @@ export default async function handler(req: any, res: any) {
             const errorResult = await ocrResponse.json().catch(() => ({})) as any;
             console.error('❌ Erro na API OCR:', ocrResponse.status, errorResult);
             
-            // Tratar erros específicos
-            if (errorResult.error && errorResult.error.includes('PDF protegido')) {
-              await sendTelegramMessage(chatId, 
-                `🔒 <b>PDF Protegido Detectado</b>\n\n❌ Este PDF está protegido por senha e não pode ser processado automaticamente.\n\n💡 <b>Soluções:</b>\n• Remova a proteção do PDF\n• Tire fotos das páginas importantes\n• Solicite uma versão não protegida\n\nDesculpe pelo inconveniente!`
-              );
-            } else if (errorResult.suggestions && Array.isArray(errorResult.suggestions)) {
+            // Tratar erros específicos de PDF
+            if (fileName.toLowerCase().endsWith('.pdf') || mimeType === 'application/pdf') {
+              console.log('📄 Erro específico de PDF detectado');
+              
+              let pdfErrorMessage = `� **Problema com PDF detectado**\n\n`;
+              pdfErrorMessage += `❌ Este PDF não pode ser processado automaticamente.\n\n`;
+              pdfErrorMessage += `💡 **Soluções que SEMPRE funcionam:**\n\n`;
+              pdfErrorMessage += `📸 **Tire fotos das páginas:**\n`;
+              pdfErrorMessage += `• Abra o PDF no seu dispositivo\n`;
+              pdfErrorMessage += `• Tire screenshots ou fotos da tela\n`;
+              pdfErrorMessage += `• Envie as imagens aqui\n\n`;
+              pdfErrorMessage += `🖼️ **Converta para imagem:**\n`;
+              pdfErrorMessage += `• Use ferramentas online gratuitas\n`;
+              pdfErrorMessage += `• Converta PDF → PNG/JPG\n`;
+              pdfErrorMessage += `• Envie as imagens resultantes\n\n`;
+              pdfErrorMessage += `📋 **Copie e cole texto:**\n`;
+              pdfErrorMessage += `• Selecione o texto do PDF\n`;
+              pdfErrorMessage += `• Copie e cole aqui no chat\n`;
+              pdfErrorMessage += `• Eu processarei como texto\n\n`;
+              pdfErrorMessage += `✅ **Garantia:** Qualquer imagem (foto ou screenshot) será processada perfeitamente!`;
+              
+              await sendTelegramMessage(chatId, pdfErrorMessage);
+              return res.status(200).json({ ok: true, message: 'PDF error handled with guidance' });
+            }
+            
+            // Tratar outros erros
+            if (errorResult.suggestions && Array.isArray(errorResult.suggestions)) {
               let errorMessage = `❌ <b>Problema ao processar o documento</b>\n\n`;
               errorMessage += `💡 <b>Soluções sugeridas:</b>\n`;
               errorResult.suggestions.forEach((suggestion: string) => {

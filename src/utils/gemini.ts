@@ -435,7 +435,24 @@ export async function fetchGeminiAudio(
     }
 
     const data = await response.json();
-    const aiMessage = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não consegui processar o áudio.';
+    let aiMessage = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não consegui processar o áudio.';
+
+    // CORREÇÃO: Se a resposta parece ser JSON bruto, extrair apenas a parte amigável
+    if (typeof aiMessage === 'string') {
+      try {
+        // Se for JSON, tentar extrair a mensagem response
+        if (aiMessage.trim().startsWith('{') || aiMessage.trim().startsWith('[')) {
+          const cleanedText = aiMessage.replace(/```json\n?|```\n?/g, '').trim();
+          const parsed = JSON.parse(cleanedText);
+          aiMessage = parsed.response || 'Não detectei fala humana neste áudio. Por favor, fale claramente para que eu possa ajudá-lo com suas finanças.';
+        }
+      } catch (parseError) {
+        // Se não conseguir parsear, usar mensagem padrão amigável
+        if (aiMessage.trim().startsWith('{') || aiMessage.trim().startsWith('[')) {
+          aiMessage = 'Não detectei fala humana neste áudio. Por favor, fale claramente para que eu possa ajudá-lo com suas finanças.';
+        }
+      }
+    }
 
     // Log da chamada bem-sucedida
     await logApiCallDetails({

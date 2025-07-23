@@ -442,23 +442,31 @@ const isAddBillIntent = (msg: string) => {
         return;
       }
       
-      // Se não é transação estruturada, usar o fluxo normal
+      // Se não é transação estruturada, usar resposta direta do processamento de áudio
       console.log('🎤 [AUDIO_FIX] Transcrição processada (fluxo normal):', result.transcription);
+      console.log('🎤 [AUDIO_FIX] Resposta tratada do áudio:', result.response);
       
-      // Adicionar mensagem do usuário com a transcrição
-      const userMessage: ChatMessage = {
+      // Adicionar mensagem do usuário com a transcrição (SE houver transcrição válida)
+      if (result.transcription && result.transcription.trim()) {
+        const userMessage: ChatMessage = {
+          id: uuidv4(),
+          text: result.transcription,
+          sender: 'user',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, userMessage]);
+      }
+      
+      // Adicionar resposta da IA diretamente (já tratada no processamento de áudio)
+      const assistantMessage: ChatMessage = {
         id: uuidv4(),
-        text: result.transcription || '',
-        sender: 'user',
-        timestamp: new Date()
+        text: result.response || '🎤 Não foi possível processar o áudio. Tente falar mais claramente.',
+        sender: 'assistant',
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
       };
       
-      setMessages(prev => [...prev, userMessage]);
-      
-      // Processar a transcrição diretamente via handleSendMessage
-      // para ativar detecção de transações e fluxo de confirmação
-      // skipAddingUserMessage = true pois já adicionamos a mensagem acima
-      await handleSendMessage(result.transcription || '', true);
+      setMessages(prev => [...prev, assistantMessage]);
 
       // As mensagens são salvas automaticamente através do useEffect
 

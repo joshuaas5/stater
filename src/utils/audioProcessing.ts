@@ -109,20 +109,29 @@ Se NÃO for intenção de transação, responda em JSON simples:
       // Limpar possíveis caracteres markdown
       const cleanedText = geminiResponse.replace(/```json\n?|```\n?/g, '').trim();
       parsedResponse = JSON.parse(cleanedText);
-      responseText = parsedResponse.response || geminiResponse;
+      responseText = parsedResponse.response || 'Não detectei fala humana neste áudio. Por favor, fale claramente para que eu possa ajudá-lo com suas finanças.';
     } catch (parseError) {
       console.warn('⚠️ Não foi possível parsear JSON, usando resposta direta');
-      // Se a resposta "parece" JSON, retorna mensagem amigável
-      if (typeof geminiResponse === 'string' && (geminiResponse.trim().startsWith('{') || geminiResponse.trim().startsWith('['))) {
-        responseText = 'Não detectei fala humana neste áudio. Por favor, fale claramente para que eu possa ajudá-lo com suas finanças.';
+      
+      // Se a resposta "parece" JSON ou está vazia, retorna mensagem amigável
+      if (typeof geminiResponse === 'string' && 
+          (geminiResponse.trim().startsWith('{') || 
+           geminiResponse.trim().startsWith('[') || 
+           geminiResponse.trim().length < 5)) {
+        responseText = 'Não detectei fala humana clara neste áudio. Por favor, fale claramente para que eu possa ajudá-lo com suas finanças.';
+        parsedResponse = {
+          transcription: '',
+          hasFinancialContent: false,
+          response: responseText
+        };
       } else {
         responseText = geminiResponse;
+        parsedResponse = {
+          transcription: geminiResponse,
+          hasFinancialContent: true,
+          response: responseText
+        };
       }
-      parsedResponse = {
-        transcription: geminiResponse,
-        hasFinancialContent: true,
-        response: responseText
-      };
     }
 
     console.log('✅ Processamento concluído:', parsedResponse);

@@ -3173,14 +3173,11 @@ return (
                           }}
                         >
                           <option value="" style={{ background: 'white', color: '#1f2937' }}>Selecione uma categoria</option>
-                          <option value="alimentacao" style={{ background: 'white', color: '#1f2937' }}>🍕 Alimentação</option>
-                          <option value="transporte" style={{ background: 'white', color: '#1f2937' }}>🚗 Transporte</option>
-                          <option value="lazer" style={{ background: 'white', color: '#1f2937' }}>🎬 Lazer</option>
-                          <option value="saude" style={{ background: 'white', color: '#1f2937' }}>⚕️ Saúde</option>
-                          <option value="educacao" style={{ background: 'white', color: '#1f2937' }}>📚 Educação</option>
-                          <option value="casa" style={{ background: 'white', color: '#1f2937' }}>🏠 Casa</option>
-                          <option value="trabalho" style={{ background: 'white', color: '#1f2937' }}>💼 Trabalho</option>
-                          <option value="outros" style={{ background: 'white', color: '#1f2937' }}>📦 Outros</option>
+                          {EXPENSE_CATEGORIES.map((category) => (
+                            <option key={category} value={category.toLowerCase()} style={{ background: 'white', color: '#1f2937' }}>
+                              {category}
+                            </option>
+                          ))}
                         </select>
                       </div>
                     </div>

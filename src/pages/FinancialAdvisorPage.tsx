@@ -446,8 +446,19 @@ const isAddBillIntent = (msg: string) => {
       console.log('🎤 [AUDIO_FIX] Transcrição processada (fluxo normal):', result.transcription);
       console.log('🎤 [AUDIO_FIX] Resposta tratada do áudio:', result.response);
       
+      // Verificar se a resposta não é JSON bruto antes de exibir
+      let finalResponse = result.response || '🎤 Não foi possível processar o áudio. Tente falar mais claramente.';
+      
+      // Se a resposta parece ser JSON, usar mensagem amigável
+      if (typeof finalResponse === 'string' && 
+          (finalResponse.trim().startsWith('{') || finalResponse.trim().startsWith('['))) {
+        finalResponse = '🎤 Não detectei fala humana clara neste áudio. Por favor, fale claramente para que eu possa ajudá-lo com suas finanças.';
+      }
+      
       // Adicionar mensagem do usuário com a transcrição (SE houver transcrição válida)
-      if (result.transcription && result.transcription.trim()) {
+      if (result.transcription && result.transcription.trim() && 
+          !result.transcription.trim().startsWith('{') && 
+          !result.transcription.trim().startsWith('[')) {
         const userMessage: ChatMessage = {
           id: uuidv4(),
           text: result.transcription,
@@ -460,7 +471,7 @@ const isAddBillIntent = (msg: string) => {
       // Adicionar resposta da IA diretamente (já tratada no processamento de áudio)
       const assistantMessage: ChatMessage = {
         id: uuidv4(),
-        text: result.response || '🎤 Não foi possível processar o áudio. Tente falar mais claramente.',
+        text: finalResponse,
         sender: 'assistant',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR
@@ -2915,237 +2926,372 @@ return (
         </div>
       )}
 
-      {/* Modal Grande para Múltiplas Transações */}
-      {editableTransactions.length > 0 && (
+      {/* Transaction Review Modal - ULTRA VISÍVEL */}
+      {waitingConfirmation && editableTransactions.length > 0 && (
         <div 
+          className="modal-overlay"
           style={{
             position: 'fixed',
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 1000,
+            background: 'rgba(0, 0, 0, 0.8)', // Backdrop mais sólido
+            backdropFilter: 'blur(10px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '20px',
-            animation: 'modalAppear 0.3s ease-out'
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              // Fechar modal clicando fora
-              setEditableTransactions([]);
-              setPendingAction(null);
-              setWaitingConfirmation(false);
-            }
+            zIndex: 9999, // Z-index muito alto
+            padding: '10px'
           }}
         >
           <div 
             className="modal-content"
             style={{
-              backgroundColor: 'white',
-              borderRadius: '12px',
-              maxWidth: '800px',
-              maxHeight: '90vh',
-              width: '90vw',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))', // Mais sólido
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              borderRadius: '20px',
+              width: '100%',
+              maxWidth: '500px',
+              height: '90vh',
+              maxHeight: '700px',
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-              animation: 'modalSlideIn 0.3s ease-out'
+              color: '#1a202c', // Texto escuro para contraste
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)', // Sombra mais forte
+              border: '2px solid rgba(59, 130, 246, 0.3)', // Borda azul
+              overflow: 'hidden',
+              animation: 'modalAppear 0.3s ease-out'
             }}
           >
             {/* Header do Modal */}
             <div style={{
-              padding: '24px 24px 0 24px',
-              borderBottom: '1px solid #e5e7eb',
-              marginBottom: '24px'
+              padding: '20px 25px',
+              borderBottom: '1px solid rgba(59, 130, 246, 0.2)',
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1))',
+              backdropFilter: 'blur(10px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
             }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '16px'
-              }}>
+              <div>
                 <h2 style={{
-                  fontSize: '24px',
+                  margin: 0,
+                  fontSize: '20px',
                   fontWeight: '700',
-                  color: '#1f2937',
-                  margin: 0
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  color: '#1e40af' // Azul escuro
                 }}>
-                  📋 Confirmar Transações
+                  📋 Revisar Transações
                 </h2>
-                <button
-                  onClick={() => {
-                    setEditableTransactions([]);
-                    setPendingAction(null);
-                    setWaitingConfirmation(false);
-                  }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '24px',
-                    cursor: 'pointer',
-                    color: '#6b7280',
-                    padding: '4px',
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  ✕
-                </button>
+                <p style={{
+                  margin: '5px 0 0 0',
+                  fontSize: '14px',
+                  opacity: 0.7,
+                  color: '#374151' // Cinza escuro
+                }}>
+                  {editableTransactions.length} transação{editableTransactions.length > 1 ? 'ões' : 'ão'} encontrada{editableTransactions.length > 1 ? 's' : ''}
+                </p>
+                <p style={{
+                  margin: '3px 0 0 0',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  color: '#059669', // Verde para total
+                  textShadow: 'none'
+                }}>
+                  Total: R$ {editableTransactions.reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0).toFixed(2)}
+                </p>
               </div>
-              <p style={{
-                color: '#6b7280',
-                margin: 0,
-                fontSize: '16px'
-              }}>
-                Revise e edite as transações antes de confirmar
-              </p>
+              <button
+                onClick={() => handleSendMessage('não')}
+                style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '2px solid #ef4444',
+                  borderRadius: '8px',
+                  color: '#dc2626', // Vermelho escuro para contraste
+                  padding: '8px',
+                  cursor: 'pointer',
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ✕
+              </button>
             </div>
 
-            {/* Conteúdo com TransactionList */}
+            {/* Lista de Transações */}
             <div style={{
               flex: 1,
-              overflow: 'hidden',
-              padding: '0 24px'
+              padding: '20px 25px',
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '15px'
             }}>
-              <TransactionList
-                transactions={editableTransactions}
-                onUpdate={(index, updatedTransaction) => {
-                  const newTransactions = [...editableTransactions];
-                  newTransactions[index] = updatedTransaction;
-                  setEditableTransactions(newTransactions);
-                }}
-                onDelete={(index) => {
-                  const newTransactions = editableTransactions.filter((_, i) => i !== index);
-                  setEditableTransactions(newTransactions);
-                }}
-              />
+              {editableTransactions.map((transaction, index) => (
+                <div key={index} style={{
+                  background: 'rgba(255, 255, 255, 0.95)', // Fundo bem sólido
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: '15px',
+                  padding: '20px',
+                  border: '2px solid rgba(59, 130, 246, 0.3)',
+                  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    marginBottom: '15px'
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        marginBottom: '5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        color: '#1f2937' // Texto escuro
+                      }}>
+                        {transaction.type === 'income' ? '💰' : '💸'}
+                        <input
+                          type="text"
+                          value={transaction.description || ''}
+                          onChange={(e) => updateTransaction(index, { ...transaction, description: e.target.value })}
+                          placeholder="Descrição da transação..."
+                          style={{
+                            background: 'white', // Fundo branco sólido
+                            border: '2px solid #e5e7eb',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                            color: '#1f2937', // Texto escuro
+                            fontSize: '14px',
+                            flex: 1,
+                            outline: 'none',
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                          }}
+                        />
+                      </div>
+                      
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '10px',
+                        marginBottom: '10px'
+                      }}>
+                        <div>
+                          <label style={{ 
+                            fontSize: '12px', 
+                            color: '#374151', // Cinza escuro
+                            fontWeight: '600',
+                            display: 'block', 
+                            marginBottom: '5px' 
+                          }}>
+                            Valor (R$)
+                          </label>
+                          <input
+                            type="number"
+                            value={Math.abs(transaction.amount || 0)}
+                            onChange={(e) => updateTransaction(index, { 
+                              ...transaction, 
+                              amount: transaction.type === 'expense' ? -Math.abs(parseFloat(e.target.value) || 0) : Math.abs(parseFloat(e.target.value) || 0)
+                            })}
+                            style={{
+                              background: 'white', // Fundo branco sólido
+                              border: '2px solid #e5e7eb',
+                              borderRadius: '8px',
+                              padding: '8px 12px',
+                              color: '#1f2937', // Texto escuro
+                              fontSize: '14px',
+                              width: '100%',
+                              outline: 'none',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                            }}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label style={{ 
+                            fontSize: '12px', 
+                            color: '#374151', // Cinza escuro
+                            fontWeight: '600',
+                            display: 'block', 
+                            marginBottom: '5px' 
+                          }}>
+                            Data
+                          </label>
+                          <input
+                            type="date"
+                            value={transaction.date || new Date().toISOString().split('T')[0]}
+                            onChange={(e) => updateTransaction(index, { ...transaction, date: e.target.value })}
+                            style={{
+                              background: 'white', // Fundo branco sólido
+                              border: '2px solid #e5e7eb',
+                              borderRadius: '8px',
+                              padding: '8px 12px',
+                              color: '#1f2937', // Texto escuro
+                              fontSize: '14px',
+                              width: '100%',
+                              outline: 'none',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label style={{ 
+                          fontSize: '12px', 
+                          color: '#374151', // Cinza escuro
+                          fontWeight: '600',
+                          display: 'block', 
+                          marginBottom: '5px' 
+                        }}>
+                          Categoria
+                        </label>
+                        <select
+                          value={transaction.category || ''}
+                          onChange={(e) => updateTransaction(index, { ...transaction, category: e.target.value })}
+                          style={{
+                            background: 'white', // Fundo branco sólido
+                            border: '2px solid #e5e7eb',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                            color: '#1f2937', // Texto escuro
+                            fontSize: '14px',
+                            width: '100%',
+                            outline: 'none',
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                          }}
+                        >
+                          <option value="" style={{ background: 'white', color: '#1f2937' }}>Selecione uma categoria</option>
+                          <option value="alimentacao" style={{ background: 'white', color: '#1f2937' }}>🍕 Alimentação</option>
+                          <option value="transporte" style={{ background: 'white', color: '#1f2937' }}>🚗 Transporte</option>
+                          <option value="lazer" style={{ background: 'white', color: '#1f2937' }}>🎬 Lazer</option>
+                          <option value="saude" style={{ background: 'white', color: '#1f2937' }}>⚕️ Saúde</option>
+                          <option value="educacao" style={{ background: 'white', color: '#1f2937' }}>📚 Educação</option>
+                          <option value="casa" style={{ background: 'white', color: '#1f2937' }}>🏠 Casa</option>
+                          <option value="trabalho" style={{ background: 'white', color: '#1f2937' }}>💼 Trabalho</option>
+                          <option value="outros" style={{ background: 'white', color: '#1f2937' }}>📦 Outros</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => deleteTransaction(index)}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '2px solid #ef4444',
+                        borderRadius: '8px',
+                        color: '#dc2626', // Vermelho escuro
+                        padding: '8px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        marginLeft: '10px',
+                        width: '36px',
+                        height: '36px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {/* Footer com botões */}
+            {/* Footer com Botões */}
             <div style={{
-              padding: '24px',
-              borderTop: '1px solid #e5e7eb',
+              padding: '20px 25px',
+              borderTop: '2px solid rgba(59, 130, 246, 0.2)',
+              background: 'rgba(255, 255, 255, 0.1)',
               display: 'flex',
-              gap: '12px',
-              justifyContent: 'flex-end'
+              gap: '15px',
+              justifyContent: 'space-between'
             }}>
               <button
-                onClick={() => {
-                  setEditableTransactions([]);
-                  setPendingAction(null);
-                  setWaitingConfirmation(false);
-                }}
+                onClick={() => handleSendMessage('não')}
                 style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#f3f4f6',
-                  color: '#374151',
+                  background: '#ef4444', // Vermelho sólido
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '12px',
+                  color: 'white',
+                  padding: '12px 24px',
+                  cursor: 'pointer',
                   fontSize: '16px',
                   fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
+                  flex: 1,
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#e5e7eb';
+                  e.currentTarget.style.background = '#dc2626';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f3f4f6';
+                  e.currentTarget.style.background = '#ef4444';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.3)';
                 }}
               >
                 ❌ Cancelar
               </button>
+              
               <button
-                onClick={async () => {
-                  if (editableTransactions.length > 0) {
-                    setSavingTransactions(true);
-                    
-                    try {
-                      // Usar a mesma lógica de processamento que existe no handleSendMessage
-                      const transactionsToProcess = editableTransactions;
-                      
-                      for (const transaction of transactionsToProcess) {
-                        const transactionToSave: Transaction = {
-                          id: uuidv4(),
-                          title: transaction.description,
-                          amount: Number(transaction.amount),
-                          type: transaction.type as 'income' | 'expense',
-                          category: transaction.category || '',
-                          date: new Date(),
-                          userId: currentUserId || 'unknown'
-                        };
-                        saveTransactionUtil(transactionToSave);
-                      }
-                      
-                      // Limpar estado após sucesso
-                      setEditableTransactions([]);
-                      setPendingAction(null);
-                      setWaitingConfirmation(false);
-                      
-                      // Adicionar mensagem de sucesso
-                      const successMessage: ChatMessage = {
-                        id: uuidv4(),
-                        text: `✅ ${transactionsToProcess.length} transações adicionadas com sucesso!`,
-                        sender: 'assistant',
-                        timestamp: new Date(),
-                        avatarUrl: IA_AVATAR
-                      };
-                      setMessages(prev => [...prev, successMessage]);
-                      
-                    } catch (error) {
-                      console.error('Erro ao salvar transações:', error);
-                      setError('Erro ao salvar transações. Tente novamente.');
-                    } finally {
-                      setSavingTransactions(false);
-                    }
-                  }
-                }}
-                disabled={savingTransactions || editableTransactions.length === 0}
+                onClick={() => handleSendMessage('sim')}
+                disabled={savingTransactions}
                 style={{
-                  padding: '12px 24px',
-                  backgroundColor: savingTransactions ? '#9ca3af' : '#3b82f6',
-                  color: 'white',
+                  background: savingTransactions 
+                    ? '#9ca3af' 
+                    : '#3b82f6', // Azul sólido
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '12px',
+                  color: 'white',
+                  padding: '12px 24px',
+                  cursor: savingTransactions ? 'not-allowed' : 'pointer',
                   fontSize: '16px',
                   fontWeight: '600',
-                  cursor: savingTransactions ? 'not-allowed' : 'pointer',
+                  flex: 2,
+                  boxShadow: savingTransactions ? 'none' : '0 4px 15px rgba(59, 130, 246, 0.3)',
                   transition: 'all 0.2s ease',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px'
+                  justifyContent: 'center',
+                  gap: '8px',
+                  opacity: savingTransactions ? 0.7 : 1
                 }}
                 onMouseEnter={(e) => {
                   if (!savingTransactions) {
-                    e.currentTarget.style.backgroundColor = '#2563eb';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!savingTransactions) {
-                    e.currentTarget.style.backgroundColor = '#3b82f6';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
                   }
                 }}
               >
                 {savingTransactions ? (
                   <>
-                    <div style={{
-                      width: '16px',
-                      height: '16px',
-                      border: '2px solid #ffffff',
-                      borderTop: '2px solid transparent',
-                      borderRadius: '50%',
-                      animation: 'spin 1s linear infinite'
-                    }} />
-                    Salvando...
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Salvando {editableTransactions.length} Transação{editableTransactions.length > 1 ? 'ões' : 'ão'}...
                   </>
                 ) : (
-                  `✅ Confirmar ${editableTransactions.length} Transações`
+                  `✅ Salvar ${editableTransactions.length} Transação${editableTransactions.length > 1 ? 'ões' : 'ão'}`
                 )}
               </button>
             </div>

@@ -138,7 +138,7 @@ Se NÃO for intenção de transação, responda em JSON simples:
 
     return {
       success: true,
-      transcription: parsedResponse.transcription || geminiResponse,
+      transcription: parsedResponse.transcription || '',
       response: parsedResponse.response || responseText,
       // Novos campos para detecção de transações
       action: parsedResponse.action,

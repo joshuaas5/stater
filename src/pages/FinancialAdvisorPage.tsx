@@ -2913,7 +2913,247 @@ return (
             </button>
           </div>
         </div>
-      )}{/* CSS Animation */}
+      )}
+
+      {/* Modal Grande para Múltiplas Transações */}
+      {editableTransactions.length > 0 && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            animation: 'modalAppear 0.3s ease-out'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              // Fechar modal clicando fora
+              setEditableTransactions([]);
+              setPendingAction(null);
+              setWaitingConfirmation(false);
+            }
+          }}
+        >
+          <div 
+            className="modal-content"
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              maxWidth: '800px',
+              maxHeight: '90vh',
+              width: '90vw',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+              animation: 'modalSlideIn 0.3s ease-out'
+            }}
+          >
+            {/* Header do Modal */}
+            <div style={{
+              padding: '24px 24px 0 24px',
+              borderBottom: '1px solid #e5e7eb',
+              marginBottom: '24px'
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px'
+              }}>
+                <h2 style={{
+                  fontSize: '24px',
+                  fontWeight: '700',
+                  color: '#1f2937',
+                  margin: 0
+                }}>
+                  📋 Confirmar Transações
+                </h2>
+                <button
+                  onClick={() => {
+                    setEditableTransactions([]);
+                    setPendingAction(null);
+                    setWaitingConfirmation(false);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '24px',
+                    cursor: 'pointer',
+                    color: '#6b7280',
+                    padding: '4px',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+              <p style={{
+                color: '#6b7280',
+                margin: 0,
+                fontSize: '16px'
+              }}>
+                Revise e edite as transações antes de confirmar
+              </p>
+            </div>
+
+            {/* Conteúdo com TransactionList */}
+            <div style={{
+              flex: 1,
+              overflow: 'hidden',
+              padding: '0 24px'
+            }}>
+              <TransactionList
+                transactions={editableTransactions}
+                onUpdate={(index, updatedTransaction) => {
+                  const newTransactions = [...editableTransactions];
+                  newTransactions[index] = updatedTransaction;
+                  setEditableTransactions(newTransactions);
+                }}
+                onDelete={(index) => {
+                  const newTransactions = editableTransactions.filter((_, i) => i !== index);
+                  setEditableTransactions(newTransactions);
+                }}
+              />
+            </div>
+
+            {/* Footer com botões */}
+            <div style={{
+              padding: '24px',
+              borderTop: '1px solid #e5e7eb',
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={() => {
+                  setEditableTransactions([]);
+                  setPendingAction(null);
+                  setWaitingConfirmation(false);
+                }}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#f3f4f6',
+                  color: '#374151',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#e5e7eb';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f3f4f6';
+                }}
+              >
+                ❌ Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  if (editableTransactions.length > 0) {
+                    setSavingTransactions(true);
+                    
+                    try {
+                      // Usar a mesma lógica de processamento que existe no handleSendMessage
+                      const transactionsToProcess = editableTransactions;
+                      
+                      for (const transaction of transactionsToProcess) {
+                        const transactionToSave: Transaction = {
+                          id: uuidv4(),
+                          title: transaction.description,
+                          amount: Number(transaction.amount),
+                          type: transaction.type as 'income' | 'expense',
+                          category: transaction.category || '',
+                          date: new Date(),
+                          userId: currentUserId || 'unknown'
+                        };
+                        saveTransactionUtil(transactionToSave);
+                      }
+                      
+                      // Limpar estado após sucesso
+                      setEditableTransactions([]);
+                      setPendingAction(null);
+                      setWaitingConfirmation(false);
+                      
+                      // Adicionar mensagem de sucesso
+                      const successMessage: ChatMessage = {
+                        id: uuidv4(),
+                        text: `✅ ${transactionsToProcess.length} transações adicionadas com sucesso!`,
+                        sender: 'assistant',
+                        timestamp: new Date(),
+                        avatarUrl: IA_AVATAR
+                      };
+                      setMessages(prev => [...prev, successMessage]);
+                      
+                    } catch (error) {
+                      console.error('Erro ao salvar transações:', error);
+                      setError('Erro ao salvar transações. Tente novamente.');
+                    } finally {
+                      setSavingTransactions(false);
+                    }
+                  }
+                }}
+                disabled={savingTransactions || editableTransactions.length === 0}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: savingTransactions ? '#9ca3af' : '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: savingTransactions ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  if (!savingTransactions) {
+                    e.currentTarget.style.backgroundColor = '#2563eb';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!savingTransactions) {
+                    e.currentTarget.style.backgroundColor = '#3b82f6';
+                  }
+                }}
+              >
+                {savingTransactions ? (
+                  <>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid #ffffff',
+                      borderTop: '2px solid transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }} />
+                    Salvando...
+                  </>
+                ) : (
+                  `✅ Confirmar ${editableTransactions.length} Transações`
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSS Animation */}
       <style dangerouslySetInnerHTML={{
         __html: `
           @keyframes spin {

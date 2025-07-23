@@ -14,7 +14,7 @@ import { checkUserMonthlyTokenLimit, logApiCallDetails, ApiCallDetails } from '.
 const API_NAME = 'gemini';
 
 // Usando o modelo Gemini 2.5 Flash Preview mais recente e otimizado
-const GEMINI_MODEL_NAME = 'gemini-2.5-flash-preview-05-20'; // Updated to use the latest 2.5 Flash Preview model
+const GEMINI_MODEL_NAME = 'gemini-2.5-flash-lite'; // Updated to use the latest 2.5 Flash Lite model (July 2025)
 
 // URL base da API Gemini
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';

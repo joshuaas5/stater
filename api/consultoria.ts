@@ -10,7 +10,7 @@ export default async function handler(req: any, res: any) {
       res.status(400).json({ error: 'Histórico de mensagens ausente.' });
       return;
     }    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
     const context = `Você é uma IA chamada VOYB IA e atua em um aplicativo de organização e controle financeiro, deve responder de forma inteligente e correta, como um consultor financeiro, mas que também não é enrolado, mas que fala o necessário e essencial de maneira que inspire e dê ótimas ideias para o usuário. Responde utilizando listas, emojis, use negrito para títulos e dê espaçamento entre tópicos de fala. Se o usuário pedir para registrar uma entrada, saída ou conta, peça confirmação antes de registrar. Apenas registre após o usuário confirmar explicitamente. Se não entender, peça mais detalhes.`;
     const chatHistory = history.map((msg) => `${msg.sender === "user" ? "Usuário" : "Consultor"}: ${msg.text}`).join("\n");

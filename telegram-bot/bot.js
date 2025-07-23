@@ -519,7 +519,7 @@ Retorne APENAS o array JSON, sem explicações adicionais.`;
         
         // Chamar Gemini API
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GEMINI_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
                 contents: [{
                     parts: [
@@ -839,7 +839,7 @@ async function callGeminiForChat(message, userContext, userSession) {
 IMPORTANTE: Ao confirmar receitas ou transações, seja conciso e direto. NÃO mencione totais de receitas/despesas desnecessariamente - foque apenas na confirmação específica da ação solicitada.`;
         
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GEMINI_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
                 contents: [{
                     parts: [{ text: contextPrompt }]

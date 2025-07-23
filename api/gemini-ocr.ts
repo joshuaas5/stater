@@ -277,7 +277,7 @@ IMPORTANTE:
         maxOutputTokens: 8192,
       }
     };    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -435,7 +435,7 @@ export default async function handler(req: any, res: any) {
 
     let processedImageBase64 = imageBase64;// Detectar tipo de arquivo pelo cabeçalho base64
     let mimeType = "image/jpeg"; // padrão
-    let modelToUse = "gemini-2.5-flash-preview-05-20"; // OTIMIZADO: Modelo mais rápido por padrão
+    let modelToUse = "gemini-2.5-flash-lite"; // NOVO: Gemini 2.5 Flash Lite (lançado julho 2025)
     
     console.log('[OCR] Primeiros 20 chars do base64:', imageBase64.substring(0, 20));
     
@@ -445,9 +445,9 @@ export default async function handler(req: any, res: any) {
                  imageBase64.startsWith('iVBOR') ? "image/png" : "image/gif";
       console.log('[OCR] Detectado: Imagem', mimeType);
     } else if (imageBase64.startsWith('JVBERi0') || imageBase64.startsWith('data:application/pdf')) {
-      // É um PDF - USAR GEMINI 2.5 FLASH (MELHOR PARA PDFs)
+      // É um PDF - USAR GEMINI 2.5 FLASH LITE (NOVO MODELO MAIS EFICIENTE)
       mimeType = "application/pdf";
-      modelToUse = "gemini-2.5-flash"; // MODELO CORRETO PARA PDFs
+      modelToUse = "gemini-2.5-flash-lite"; // NOVO: Gemini 2.5 Flash Lite para PDFs
       console.log('[OCR] � PDF detectado - usando Gemini 2.5 Flash (modelo otimizado para PDFs)');
       console.log('[OCR] 🎯 Modelo selecionado:', modelToUse);
     }else {

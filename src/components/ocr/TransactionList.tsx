@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Edit2, Check, X, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { EXPENSE_CATEGORIES } from '@/types';
 
 interface Transaction {
   description: string;
@@ -19,10 +20,8 @@ interface TransactionListProps {
   onDelete: (index: number) => void;
 }
 
-const categories = [
-  'alimentacao', 'transporte', 'saude', 'educacao', 'lazer', 
-  'casa', 'tecnologia', 'roupas', 'servicos', 'outros'
-];
+// Usar as categorias oficiais do sistema
+const categories = EXPENSE_CATEGORIES;
 
 export const TransactionList: React.FC<TransactionListProps> = ({ 
   transactions, 
@@ -176,7 +175,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                           <SelectContent>
                             {categories.map(cat => (
                               <SelectItem key={cat} value={cat}>
-                                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                                {cat}
                               </SelectItem>
                             ))}
                           </SelectContent>

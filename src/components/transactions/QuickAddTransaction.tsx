@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PlusCircle, MinusCircle, Calendar, Tag, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { EXPENSE_CATEGORIES } from '@/types';
 
 interface QuickAddTransactionProps {
   isOpen: boolean;
@@ -21,19 +22,8 @@ interface QuickTransaction {
   date: string;
 }
 
-const categories = [
-  'Alimentação',
-  'Transporte',
-  'Moradia',
-  'Saúde',
-  'Educação',
-  'Entretenimento',
-  'Compras',
-  'Investimentos',
-  'Salário',
-  'Freelance',
-  'Outros'
-];
+// Usar as categorias oficiais do sistema
+const categories = EXPENSE_CATEGORIES;
 
 export const QuickAddTransaction: React.FC<QuickAddTransactionProps> = ({
   isOpen,

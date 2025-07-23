@@ -6,7 +6,7 @@ import ChatInput from '@/components/chat/ChatInput';
 import { TransactionList } from '@/components/ocr/TransactionList';
 import { isLoggedIn, saveTransaction as saveTransactionUtil, getCurrentUser, saveUser } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
-import { ChatMessage, Transaction } from '@/types';
+import { ChatMessage, Transaction, EXPENSE_CATEGORIES } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '@/hooks/use-translation';
 import { fetchGeminiFlashLite, GeminiTransactionIntent } from '@/utils/gemini';
@@ -1126,7 +1126,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
           `- APENAS retorne JSON quando o usuário EXPLICITAMENTE pedir para "adicionar", "incluir", "registrar" uma LISTA de transações (2 ou mais itens)\n` +
           `- JSON FORMAT: [{"description":"Nome","amount":123.45,"type":"expense/income","category":"categoria","date":"YYYY-MM-DD"},...]\n` +
           `- Use "expense" para gastos/saídas e "income" para receitas/entradas\n` +
-          `- Categorias: "alimentacao", "transporte", "saude", "lazer", "moradia", "educacao", "tecnologia", "servicos", "outros"\n\n` +
+          `- Categorias válidas: "${EXPENSE_CATEGORIES.slice(0, 10).join('", "')}", "Outros" (use as categorias oficiais do sistema)\n\n` +
           `PERGUNTAS SOBRE CONSULTA (responder em TEXTO):\n` +
           `- "Verificar saldo", "Qual meu saldo", "Como estão minhas finanças" = TEXTO NORMAL\n` +
           `- "Resumo financeiro", "Análise", "Gastos do mês" = TEXTO NORMAL\n\n` +
@@ -1788,94 +1788,77 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
     
     return transactions.length >= 2 ? transactions : []; // Só considerar lista se tiver 2+ transações
   };
-    // Função para inferir categoria baseada na descrição
+    // Função para inferir categoria baseada na descrição usando categorias oficiais
   const getCategoryFromDescription = (description: string) => {
     const desc = description.toLowerCase();
     
-    // Moradia e habitação
-    if (desc.includes('aluguel') || desc.includes('apartamento') || desc.includes('condomínio') || 
-        desc.includes('taxa de condomínio') || desc.includes('casa') || desc.includes('imóvel')) {
-      return 'Moradia';
-    }
-    
-    // Saúde
-    if (desc.includes('plano de saúde') || desc.includes('saúde') || desc.includes('farmácia') || 
-        desc.includes('remédio') || desc.includes('medicina') || desc.includes('médico') ||
-        desc.includes('consulta') || desc.includes('exame') || desc.includes('hospital')) {
-      return 'Saúde';
-    }
-    
-    // Internet e tecnologia
-    if (desc.includes('internet') || desc.includes('5g') || desc.includes('wifi') || 
-        desc.includes('conexão') || desc.includes('streaming') || desc.includes('aplicativo') ||
-        desc.includes('app') || desc.includes('software') || desc.includes('tecnologia')) {
-      return 'Internet/Tecnologia';
-    }
-    
-    // Educação
-    if (desc.includes('curso') || desc.includes('idiomas') || desc.includes('educação') || 
-        desc.includes('aula') || desc.includes('professor') || desc.includes('ensino') ||
-        desc.includes('treinamento') || desc.includes('capacitação')) {
-      return 'Educação';
-    }
-    
-    // Transporte e veículos
-    if (desc.includes('carro') || desc.includes('veículo') || desc.includes('manutenção') ||
-        desc.includes('gasolina') || desc.includes('combustível') || desc.includes('posto') ||
-        desc.includes('seguro') || desc.includes('revisão') || desc.includes('elétrico')) {
-      return 'Transporte';
-    }
-    
-    // Telefonia
-    if (desc.includes('telefonia') || desc.includes('celular') || desc.includes('móvel') ||
-        desc.includes('ligação') || desc.includes('dados') || desc.includes('roaming') ||
-        desc.includes('plano') && (desc.includes('telefone') || desc.includes('celular'))) {
-      return 'Telefonia';
-    }
-    
-    // Entretenimento e lazer
-    if (desc.includes('clube') || desc.includes('assinatura') || desc.includes('vinhos') ||
-        desc.includes('entretenimento') || desc.includes('lazer') || desc.includes('netflix') ||
-        desc.includes('spotify') || desc.includes('fitness') || desc.includes('academia') ||
-        desc.includes('treino') || desc.includes('personal')) {
-      return 'Entretenimento';
-    }
-    
-    // Serviços domésticos
-    if (desc.includes('limpeza') || desc.includes('faxina') || desc.includes('serviço') ||
-        desc.includes('doméstico') || desc.includes('residencial') || desc.includes('casa')) {
-      return 'Serviços';
-    }
-      // Alimentação (mantendo os anteriores)
+    // Alimentação
     if (desc.includes('mercado') || desc.includes('supermercado') || desc.includes('feira') ||
         desc.includes('restaurante') || desc.includes('lanche') || desc.includes('comida') ||
         desc.includes('padaria') || desc.includes('açougue') || desc.includes('delivery') ||
         desc.includes('ifood') || desc.includes('uber eats') || desc.includes('pizza') ||
         desc.includes('hamburguer') || desc.includes('sanduiche') || desc.includes('café') ||
         desc.includes('almoço') || desc.includes('jantar') || desc.includes('bebida')) {
-      return 'Alimentação';
+      return 'Supermercado';
     }
     
-    // Transporte (mais abrangente)
+    // Transporte
     if (desc.includes('uber') || desc.includes('99') || desc.includes('táxi') ||
         desc.includes('ônibus') || desc.includes('metro') || desc.includes('combustível') ||
         desc.includes('gasolina') || desc.includes('posto') || desc.includes('pedágio') ||
         desc.includes('estacionamento') || desc.includes('carro') || desc.includes('moto')) {
-      return 'Transporte';
+      return 'Combustível';
     }
     
-    // Contas (mantendo os anteriores)
+    // Habitação
+    if (desc.includes('aluguel') || desc.includes('apartamento') || desc.includes('condomínio') || 
+        desc.includes('taxa de condomínio') || desc.includes('casa') || desc.includes('imóvel')) {
+      return 'Aluguel';
+    }
+    
+    // Saúde
+    if (desc.includes('plano de saúde') || desc.includes('saúde') || desc.includes('farmácia') || 
+        desc.includes('remédio') || desc.includes('medicina') || desc.includes('médico') ||
+        desc.includes('consulta') || desc.includes('exame') || desc.includes('hospital')) {
+      return 'Farmácia';
+    }
+    
+    // Educação
+    if (desc.includes('curso') || desc.includes('idiomas') || desc.includes('educação') || 
+        desc.includes('aula') || desc.includes('professor') || desc.includes('ensino') ||
+        desc.includes('treinamento') || desc.includes('capacitação')) {
+      return 'Cursos Online';
+    }
+    
+    // Tecnologia
+    if (desc.includes('internet') || desc.includes('5g') || desc.includes('wifi') || 
+        desc.includes('conexão') || desc.includes('streaming') || desc.includes('aplicativo') ||
+        desc.includes('app') || desc.includes('software') || desc.includes('tecnologia')) {
+      return 'Internet';
+    }
+    
+    // Entretenimento
+    if (desc.includes('clube') || desc.includes('assinatura') || desc.includes('vinhos') ||
+        desc.includes('entretenimento') || desc.includes('lazer') || desc.includes('netflix') ||
+        desc.includes('spotify') || desc.includes('fitness') || desc.includes('academia') ||
+        desc.includes('treino') || desc.includes('personal')) {
+      return 'Streaming (Netflix, etc)';
+    }
+    
+    // Contas e serviços
     if (desc.includes('conta') || desc.includes('boleto') || desc.includes('fatura') ||
-        desc.includes('taxa')) {
-      return 'Contas';
+        desc.includes('taxa') || desc.includes('limpeza') || desc.includes('faxina') || 
+        desc.includes('serviço') || desc.includes('doméstico') || desc.includes('residencial')) {
+      return 'Luz';
     }
     
-    // Compras (mantendo os anteriores)
+    // Compras
     if (desc.includes('shopping') || desc.includes('loja') || desc.includes('roupa') ||
-        desc.includes('compra')) {
-      return 'Compras';
+        desc.includes('compra') || desc.includes('celular') || desc.includes('telefone')) {
+      return 'Roupas';
     }
-      return 'Outros';
+      
+    return 'Despesas Diversas';
   };
 
   // Função para detectar listas de transações em respostas de texto livre da IA
@@ -2688,480 +2671,232 @@ return (
           isProcessingAudio={isLoadingState('audio-processing')}
           audioLimits={audioLimits}
         />
-      </div>      {/* Transaction Review Modal - ULTRA VISÍVEL */}
-      {waitingConfirmation && editableTransactions.length > 0 && (
-        <div 
-          className="modal-overlay"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.8)', // Backdrop mais sólido
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999, // Z-index muito alto
-            padding: '10px'
-          }}
-        >
-          <div 
-            className="modal-content"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))', // Mais sólido
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              borderRadius: '20px',
-              width: '100%',
-              maxWidth: '500px',
-              height: '90vh',
-              maxHeight: '700px',
-              display: 'flex',
-              flexDirection: 'column',
-              color: '#1a202c', // Texto escuro para contraste
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)', // Sombra mais forte
-              border: '2px solid rgba(59, 130, 246, 0.3)', // Borda azul
-              overflow: 'hidden',
-              animation: 'modalAppear 0.3s ease-out'
-            }}
-          >
-            {/* Header do Modal */}
-            <div style={{
-              padding: '20px 25px',
-              borderBottom: '1px solid rgba(59, 130, 246, 0.2)',
-              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1))',
-              backdropFilter: 'blur(10px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <div>
-                <h2 style={{
-                  margin: 0,
-                  fontSize: '20px',
-                  fontWeight: '700',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  color: '#1e40af' // Azul escuro
-                }}>
-                  📋 Revisar Transações
-                </h2>
-                <p style={{
-                  margin: '5px 0 0 0',
-                  fontSize: '14px',
-                  opacity: 0.7,
-                  color: '#374151' // Cinza escuro
-                }}>
-                  {editableTransactions.length} transaç{editableTransactions.length > 1 ? 'ões' : 'ão'} encontrada{editableTransactions.length > 1 ? 's' : ''}
-                </p>
-                <p style={{
-                  margin: '3px 0 0 0',
-                  fontSize: '14px',
-                  fontWeight: '700',
-                  color: '#059669', // Verde para total
-                  textShadow: 'none'
-                }}>
-                  Total: R$ {editableTransactions.reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0).toFixed(2)}
-                </p>
-              </div>
-              <button
-                onClick={() => handleSendMessage('não')}
-                style={{
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '2px solid #ef4444',
-                  borderRadius: '8px',
-                  color: '#dc2626', // Vermelho escuro para contraste
-                  padding: '8px',
-                  cursor: 'pointer',
-                  fontSize: '18px',
-                  fontWeight: 'bold',
-                  width: '36px',
-                  height: '36px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Lista de Transações */}
-            <div style={{
-              flex: 1,
-              padding: '20px 25px',
-              overflowY: 'auto',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '15px'
-            }}>
-              {editableTransactions.map((transaction, index) => (
-                <div key={index} style={{
-                  background: 'rgba(255, 255, 255, 0.95)', // Fundo bem sólido
-                  backdropFilter: 'blur(10px)',
-                  borderRadius: '15px',
-                  padding: '20px',
-                  border: '2px solid rgba(59, 130, 246, 0.3)',
-                  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    marginBottom: '15px'
-                  }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        marginBottom: '5px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        color: '#1f2937' // Texto escuro
-                      }}>
-                        {transaction.type === 'income' ? '💰' : '💸'}
-                        <input
-                          type="text"
-                          value={transaction.description || ''}
-                          onChange={(e) => updateTransaction(index, { ...transaction, description: e.target.value })}
-                          placeholder="Descrição da transação..."
-                          style={{
-                            background: 'white', // Fundo branco sólido
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '8px',
-                            padding: '8px 12px',
-                            color: '#1f2937', // Texto escuro
-                            fontSize: '14px',
-                            flex: 1,
-                            outline: 'none',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                          }}
-                        />
-                      </div>
-                      
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: '10px',
-                        marginBottom: '10px'
-                      }}>
-                        <div>
-                          <label style={{ 
-                            fontSize: '12px', 
-                            color: '#374151', // Cinza escuro
-                            fontWeight: '600',
-                            display: 'block', 
-                            marginBottom: '5px' 
-                          }}>
-                            Valor (R$)
-                          </label>
-                          <input
-                            type="number"
-                            value={Math.abs(transaction.amount || 0)}
-                            onChange={(e) => updateTransaction(index, { 
-                              ...transaction, 
-                              amount: transaction.type === 'expense' ? -Math.abs(parseFloat(e.target.value) || 0) : Math.abs(parseFloat(e.target.value) || 0)
-                            })}
-                            style={{
-                              background: 'white', // Fundo branco sólido
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
-                              padding: '8px 12px',
-                              color: '#1f2937', // Texto escuro
-                              fontSize: '14px',
-                              width: '100%',
-                              outline: 'none',
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                            }}
-                          />
-                        </div>
-                        
-                        <div>
-                          <label style={{ 
-                            fontSize: '12px', 
-                            color: '#374151', // Cinza escuro
-                            fontWeight: '600',
-                            display: 'block', 
-                            marginBottom: '5px' 
-                          }}>
-                            Data
-                          </label>
-                          <input
-                            type="date"
-                            value={transaction.date || new Date().toISOString().split('T')[0]}
-                            onChange={(e) => updateTransaction(index, { ...transaction, date: e.target.value })}
-                            style={{
-                              background: 'white', // Fundo branco sólido
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
-                              padding: '8px 12px',
-                              color: '#1f2937', // Texto escuro
-                              fontSize: '14px',
-                              width: '100%',
-                              outline: 'none',
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label style={{ 
-                          fontSize: '12px', 
-                          color: '#374151', // Cinza escuro
-                          fontWeight: '600',
-                          display: 'block', 
-                          marginBottom: '5px' 
-                        }}>
-                          Categoria
-                        </label>
-                        <select
-                          value={transaction.category || ''}
-                          onChange={(e) => updateTransaction(index, { ...transaction, category: e.target.value })}
-                          style={{
-                            background: 'white', // Fundo branco sólido
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '8px',
-                            padding: '8px 12px',
-                            color: '#1f2937', // Texto escuro
-                            fontSize: '14px',
-                            width: '100%',
-                            outline: 'none',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                          }}
-                        >
-                          <option value="" style={{ background: 'white', color: '#1f2937' }}>Selecione uma categoria</option>
-                          <option value="alimentacao" style={{ background: 'white', color: '#1f2937' }}>🍽️ Alimentação</option>
-                          <option value="transporte" style={{ background: 'white', color: '#1f2937' }}>🚗 Transporte</option>
-                          <option value="lazer" style={{ background: 'white', color: '#1f2937' }}>🎮 Lazer</option>
-                          <option value="saude" style={{ background: 'white', color: '#1f2937' }}>⚕️ Saúde</option>
-                          <option value="educacao" style={{ background: 'white', color: '#1f2937' }}>📚 Educação</option>
-                          <option value="casa" style={{ background: 'white', color: '#1f2937' }}>🏠 Casa</option>
-                          <option value="trabalho" style={{ background: 'white', color: '#1f2937' }}>💼 Trabalho</option>
-                          <option value="outros" style={{ background: 'white', color: '#1f2937' }}>📦 Outros</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => deleteTransaction(index)}
-                      style={{
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        border: '2px solid #ef4444',
-                        borderRadius: '8px',
-                        color: '#dc2626', // Vermelho escuro
-                        padding: '8px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        marginLeft: '10px',
-                        width: '36px',
-                        height: '36px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Footer com Botões */}
-            <div style={{
-              padding: '20px 25px',
-              borderTop: '2px solid rgba(59, 130, 246, 0.2)',
-              background: 'rgba(255, 255, 255, 0.1)',
-              display: 'flex',
-              gap: '15px',
-              justifyContent: 'space-between'
-            }}>
-              <button
-                onClick={() => handleSendMessage('não')}
-                style={{
-                  background: '#ef4444', // Vermelho sólido
-                  border: 'none',
-                  borderRadius: '12px',
-                  color: 'white',
-                  padding: '12px 24px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  flex: 1,
-                  transition: 'all 0.2s ease',
-                  boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#dc2626';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#ef4444';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.3)';
-                }}
-              >
-                ❌ Cancelar
-              </button>
-              
-              <button
-                onClick={() => handleSendMessage('sim')}
-                disabled={savingTransactions}
-                style={{
-                  background: savingTransactions 
-                    ? '#9ca3af' 
-                    : '#3b82f6', // Azul sólido
-                  border: 'none',
-                  borderRadius: '12px',
-                  color: 'white',
-                  padding: '12px 24px',
-                  cursor: savingTransactions ? 'not-allowed' : 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  flex: 2,
-                  boxShadow: savingTransactions ? 'none' : '0 4px 15px rgba(59, 130, 246, 0.3)',
-                  transition: 'all 0.2s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  opacity: savingTransactions ? 0.7 : 1
-                }}
-                onMouseEnter={(e) => {
-                  if (!savingTransactions) {
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!savingTransactions) {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
-                  }
-                }}
-              >
-                {savingTransactions ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Salvando {editableTransactions.length} Transaç{editableTransactions.length > 1 ? 'ões' : 'ão'}...
-                  </>
-                ) : (
-                  `✅ Salvar ${editableTransactions.length} Transaç${editableTransactions.length > 1 ? 'ões' : 'ão'}`
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}      {/* Confirmation Popup - Pequeno popup na parte inferior */}
-      {waitingConfirmation && pendingAction && editableTransactions.length === 0 && (
+      </div>      {/* Confirmation Popup - Modal Único com Liquid Glass */}
+      {waitingConfirmation && pendingAction && (
         <div 
           className="confirmation-popup"
           style={{
             position: 'fixed',
-            bottom: '100px', // Acima da barra de input
+            bottom: '100px',
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))',
-            backdropFilter: 'blur(20px)',
-            borderRadius: '16px',
-            padding: '16px 20px',
-            maxWidth: '350px',
+            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 197, 253, 0.15))',
+            backdropFilter: 'blur(25px)',
+            WebkitBackdropFilter: 'blur(25px)',
+            borderRadius: '20px',
+            padding: '24px',
+            maxWidth: '400px',
             width: '90%',
-            color: '#2d3748',
-            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
+            color: '#1e293b',
+            boxShadow: '0 20px 40px rgba(59, 130, 246, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2)',
+            border: '1px solid rgba(59, 130, 246, 0.3)',
             zIndex: 999,
-            animation: 'slideUpFadeIn 0.3s ease-out',
+            animation: 'liquidGlassAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
             textAlign: 'center'
           }}
         >
-          <div style={{ marginBottom: '12px' }}>
-            <p style={{ 
-              fontSize: '14px',
+          {/* Header com ícone */}
+          <div style={{
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: pendingAction.tipo === 'income' 
+                ? 'linear-gradient(135deg, #10b981, #059669)'
+                : 'linear-gradient(135deg, #ef4444, #dc2626)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px',
+              boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)'
+            }}>
+              {pendingAction.tipo === 'income' ? '💰' : '💸'}
+            </div>
+          </div>
+
+          {/* Tipo de transação */}
+          <div style={{
+            background: pendingAction.tipo === 'income' 
+              ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15))'
+              : 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15))',
+            padding: '8px 16px',
+            borderRadius: '12px',
+            fontSize: '14px',
+            fontWeight: '700',
+            color: pendingAction.tipo === 'income' ? '#059669' : '#dc2626',
+            marginBottom: '16px',
+            border: `1px solid ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+            backdropFilter: 'blur(10px)'
+          }}>
+            {pendingAction.tipo === 'income' ? '📈 ENTRADA' : '📉 SAÍDA'}
+          </div>
+
+          {/* Valor principal */}
+          <div style={{ marginBottom: '16px' }}>
+            <p style={{
+              fontSize: '16px',
               fontWeight: '600',
               margin: '0 0 8px 0',
-              lineHeight: '1.3'
+              lineHeight: '1.4',
+              color: '#334155'
             }}>
-              Você deseja confirmar a {pendingAction.tipo === 'income' ? 'entrada' : 'saída'} no valor de{' '}
-              <span style={{ 
-                color: pendingAction.tipo === 'income' ? '#16a34a' : '#dc2626',
-                fontWeight: '700'
-              }}>
-                R$ {pendingAction.dados.amount?.toFixed(2) || '0,00'}
-              </span>?
+              Confirmar transação no valor de
             </p>
-            {pendingAction.dados.description && (
-              <p style={{ 
-                fontSize: '12px',
-                color: '#666',
+            <p style={{
+              fontSize: '24px',
+              fontWeight: '800',
+              margin: '0',
+              color: pendingAction.tipo === 'income' ? '#059669' : '#dc2626',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+            }}>
+              R$ {pendingAction.dados.amount?.toFixed(2) || '0,00'}
+            </p>
+          </div>
+
+          {/* Descrição */}
+          {pendingAction.dados.description && (
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '12px',
+              padding: '12px',
+              marginBottom: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.3)'
+            }}>
+              <p style={{
+                fontSize: '13px',
+                color: '#64748b',
+                margin: '0 0 4px 0',
+                fontWeight: '600'
+              }}>
+                📝 Descrição:
+              </p>
+              <p style={{
+                fontSize: '14px',
+                color: '#334155',
                 margin: '0',
-                lineHeight: '1.2'
+                fontWeight: '500',
+                lineHeight: '1.3'
               }}>
                 {pendingAction.dados.description}
               </p>
-            )}
-          </div>
+            </div>
+          )}
 
-          <div style={{ 
-            display: 'flex', 
-            gap: '8px', 
+          {/* Categoria */}
+          {pendingAction.dados.category && (
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '12px',
+              padding: '12px',
+              marginBottom: '20px',
+              border: '1px solid rgba(255, 255, 255, 0.3)'
+            }}>
+              <p style={{
+                fontSize: '13px',
+                color: '#64748b',
+                margin: '0 0 4px 0',
+                fontWeight: '600'
+              }}>
+                🏷️ Categoria:
+              </p>
+              <p style={{
+                fontSize: '14px',
+                color: '#334155',
+                margin: '0',
+                fontWeight: '500'
+              }}>
+                {pendingAction.dados.category}
+              </p>
+            </div>
+          )}
+
+          {/* Botões de ação */}
+          <div style={{
+            display: 'flex',
+            gap: '12px',
             justifyContent: 'center'
           }}>
             <button
               onClick={() => handleSendMessage('não')}
               style={{
-                background: 'white',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7))',
                 color: '#dc2626',
                 border: '2px solid #dc2626',
-                borderRadius: '8px',
-                padding: '8px 16px',
-                fontWeight: '600',
-                fontSize: '12px',
+                borderRadius: '12px',
+                padding: '12px 20px',
+                fontWeight: '700',
+                fontSize: '14px',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '6px',
                 flex: 1,
-                justifyContent: 'center'
+                justifyContent: 'center',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 4px 15px rgba(220, 38, 38, 0.2)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(220, 38, 38, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(220, 38, 38, 0.2)';
               }}
             >
               ❌ Cancelar
             </button>
-            <button              
+            <button
               onClick={() => handleSendMessage('sim')}
               disabled={savingTransactions}
               style={{
-                background: savingTransactions 
-                  ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
+                background: savingTransactions
+                  ? 'linear-gradient(135deg, #9ca3af, #6b7280)'
                   : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                 color: 'white',
                 border: 'none',
-                borderRadius: '8px',
-                padding: '8px 16px',
-                fontWeight: '600',
-                fontSize: '12px',
+                borderRadius: '12px',
+                padding: '12px 20px',
+                fontWeight: '700',
+                fontSize: '14px',
                 cursor: savingTransactions ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '6px',
                 flex: 1,
                 justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)',
-                opacity: savingTransactions ? 0.7 : 1
+                boxShadow: savingTransactions 
+                  ? 'none' 
+                  : '0 8px 25px rgba(59, 130, 246, 0.4)',
+                opacity: savingTransactions ? 0.7 : 1,
+                backdropFilter: 'blur(10px)'
+              }}
+              onMouseEnter={(e) => {
+                if (!savingTransactions) {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 12px 35px rgba(59, 130, 246, 0.5)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!savingTransactions) {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.4)';
+                }
               }}
             >
               {savingTransactions ? (
                 <>
-                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Salvando...
                 </>
               ) : (
@@ -3177,7 +2912,24 @@ return (
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
           }
-            @keyframes modalSlideIn {
+          
+          @keyframes liquidGlassAppear {
+            0% { 
+              opacity: 0; 
+              transform: translateX(-50%) translateY(30px) scale(0.9);
+              backdropFilter: blur(0px);
+            }
+            60% {
+              transform: translateX(-50%) translateY(-5px) scale(1.02);
+            }
+            100% { 
+              opacity: 1; 
+              transform: translateX(-50%) translateY(0) scale(1);
+              backdropFilter: blur(25px);
+            }
+          }
+          
+          @keyframes modalSlideIn {
             0% { 
               opacity: 0; 
               transform: translateY(-30px) scale(0.95); 

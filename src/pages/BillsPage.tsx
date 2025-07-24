@@ -10,8 +10,11 @@ import { formatCurrency, getOverdueBills, getBillsDueInNextDays } from '@/utils/
 import { useToast } from '@/hooks/use-toast';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { AdManager } from '@/utils/adManager';
+import { AdCooldownManager } from '@/utils/adCooldownManager';
 import { AdModal, useAdModal } from '@/components/ui/AdModal';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
+import { AdCooldownStatus } from '@/components/monetization/AdCooldownStatus';
+import ContextualAdModal from '@/components/monetization/ContextualAdModal';
 import { 
   CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
   Edit, MoreVertical, Trash, Calendar
@@ -89,6 +92,7 @@ const BillsPage: React.FC = () => {
   // Estados de monetização
   const [userId, setUserId] = useState<string | null>(null);
   const [userPlan, setUserPlan] = useState<any>(null);
+  const [showContextualAd, setShowContextualAd] = useState<{ show: boolean; action: 'bills' | 'transactions' }>({ show: false, action: 'bills' });
   const { isOpen: adModalOpen, adType, showAd, closeAd } = useAdModal();
   const { isOpen: paywallOpen, trigger: paywallTrigger, openPaywall, closePaywall } = usePaywallModal();
   
@@ -218,10 +222,39 @@ const BillsPage: React.FC = () => {
         return;
       }
 
-      // Verificar limites diários para usuários gratuitos
-      const canAddBill = await UserPlanManager.checkDailyLimit(userId, 'bills');
-      console.log('📊 [LIMITE] canAddBill:', canAddBill);
+      // NOVO: Verificar cooldown de ads contextuais para bills
+      const permission = await AdCooldownManager.canPerformAction(userId, 'bills');
+      console.log('🎯 [COOLDOWN] Permissão para bills:', permission);
       
+      if (permission.allowed) {
+        console.log('✅ [COOLDOWN] Ação permitida, navegando para /add-bill');
+        // Consumir uma ação se for free_actions
+        if (permission.reason === 'free_actions') {
+          await AdCooldownManager.consumeAction(userId, 'bills');
+        }
+        navigate('/add-bill');
+        return;
+      }
+      
+      // Se não pode realizar ação, verificar o motivo
+      if (permission.reason === 'cooldown_active') {
+        console.log('⏰ [COOLDOWN] Cooldown ativo');
+        toast({
+          title: 'Aguarde o cooldown',
+          description: `Próximo anúncio disponível em ${permission.minutesUntilNextAd} minutos.`,
+          variant: 'default'
+        });
+        return;
+      }
+      
+      if (permission.reason === 'need_ad') {
+        console.log('🎬 [COOLDOWN] Precisa ver anúncio contextual');
+        setShowContextualAd({ show: true, action: 'bills' });
+        return;
+      }
+
+      // Fallback para sistema antigo se necessário
+      const canAddBill = await UserPlanManager.checkDailyLimit(userId, 'bills');
       if (!canAddBill) {
         console.log('📊 [LIMITE] Limite atingido, abrindo paywall');
         toast({
@@ -232,18 +265,8 @@ const BillsPage: React.FC = () => {
         return;
       }
 
-      // Verificar se deve mostrar anúncio
-      const shouldShowAd = await AdManager.shouldShowAdForBill(userId);
-      console.log('🎬 [AD] shouldShowAd:', shouldShowAd);
-      
-      if (shouldShowAd) {
-        console.log('🎬 [AD] Mostrando anúncio');
-        showAd('bills');
-      } else {
-        console.log('➡️ [NAVEGAÇÃO] Indo direto para /add-bill');
-        // Ir direto para a página de adicionar conta
-        navigate('/add-bill');
-      }
+      // Se chegou até aqui, navegar normalmente
+      navigate('/add-bill');
       
     } catch (error) {
       console.error('❌ [ERRO] Erro ao verificar permissões para adicionar conta:', error);
@@ -294,6 +317,7 @@ const BillsPage: React.FC = () => {
 
   const handleUpgrade = async (planType: PlanType) => {
     try {
+      if (!userId) return;
       // Ativar o plano (integração com Google Play Billing será feita depois)
       await UserPlanManager.activatePlan(userId, planType);
       
@@ -472,6 +496,13 @@ const BillsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Status de Cooldown de Anúncios */}
+      {userId && (
+        <div className="px-4 py-2">
+          <AdCooldownStatus userId={userId} />
+        </div>
+      )}
 
       {/* Abas de Filtro */}
       <div className="px-4 py-3 flex justify-around border-b border-white/20 sticky top-[calc(var(--header-height)_+_60px)] z-10 sm:top-[calc(var(--header-height)_+_60px)]" style={{ background: '#31518b' }}>
@@ -873,7 +904,7 @@ const BillsPage: React.FC = () => {
         onClose={closeAd}
         onReward={handleAdReward}
         type={adType}
-        userId={userId}
+        userId={userId || ''}
       />
 
       {/* Modal de Paywall */}
@@ -882,7 +913,27 @@ const BillsPage: React.FC = () => {
         onClose={closePaywall}
         onUpgrade={handleUpgrade}
         trigger={paywallTrigger}
-        userId={userId}
+        userId={userId || ''}
+      />
+
+      {/* Modal de Anúncio Contextual */}
+      <ContextualAdModal
+        isOpen={showContextualAd.show}
+        onClose={() => setShowContextualAd({ show: false, action: 'bills' })}
+        onWatchAd={async () => {
+          try {
+            if (!userId) return;
+            await AdCooldownManager.watchAdForActions(userId, 'bills');
+            setShowContextualAd({ show: false, action: 'bills' });
+            // Tentar adicionar conta novamente
+            handleAddBill();
+          } catch (error) {
+            console.error('Erro ao assistir anúncio:', error);
+          }
+        }}
+        action={showContextualAd.action}
+        actionsWillGrant={3}
+        cooldownMinutes={30}
       />
 
       {/* Banner de Publicidade */}

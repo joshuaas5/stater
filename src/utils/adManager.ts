@@ -20,6 +20,13 @@ export interface RewardedAdResult {
   error?: string;
 }
 
+export interface ContextualAdResult {
+  watched: boolean;
+  actionsGranted: number;
+  error?: string;
+  cooldownMinutes?: number;
+}
+
 /**
  * Gerenciador de anúncios estratégicos para monetização
  */
@@ -474,6 +481,88 @@ export class AdManager {
         currentDay: 1,
         adsWatched: 0,
         adsRequired: 0
+      };
+    }
+  }
+
+  /**
+   * Mostra anúncio contextual para ações específicas (bills/transactions)
+   */
+  static async showContextualAd(
+    userId: string, 
+    action: 'bills' | 'transactions'
+  ): Promise<ContextualAdResult> {
+    try {
+      console.log(`🎯 Exibindo anúncio contextual para ${action} - usuário: ${userId}`);
+      
+      // Simular carregamento do anúncio
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Simular sucesso do anúncio (95% taxa de sucesso)
+      const adSuccess = Math.random() < 0.95;
+      
+      if (!adSuccess) {
+        return {
+          watched: false,
+          actionsGranted: 0,
+          error: 'Falha ao carregar anúncio. Tente novamente.'
+        };
+      }
+      
+      // Simular assistir anúncio de 30 segundos
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      const rewardConfig = {
+        bills: { actions: 3, cooldown: 30 },
+        transactions: { actions: 5, cooldown: 20 }
+      };
+      
+      const reward = rewardConfig[action];
+      
+      console.log(`✅ Anúncio contextual assistido! ${reward.actions} ${action} liberadas`);
+      
+      return {
+        watched: true,
+        actionsGranted: reward.actions,
+        cooldownMinutes: reward.cooldown
+      };
+      
+    } catch (error) {
+      console.error('Erro ao exibir anúncio contextual:', error);
+      return {
+        watched: false,
+        actionsGranted: 0,
+        error: 'Erro interno. Tente novamente.'
+      };
+    }
+  }
+
+  /**
+   * Obtém estatísticas de anúncios contextuais
+   */
+  static async getContextualAdStats(userId: string): Promise<{
+    billsAdsWatched: number;
+    transactionsAdsWatched: number;
+    totalActionsGranted: number;
+  }> {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      const billsAds = parseInt(localStorage.getItem(`contextualAds_${userId}_bills_${today}`) || '0');
+      const transactionsAds = parseInt(localStorage.getItem(`contextualAds_${userId}_transactions_${today}`) || '0');
+      
+      return {
+        billsAdsWatched: billsAds,
+        transactionsAdsWatched: transactionsAds,
+        totalActionsGranted: (billsAds * 3) + (transactionsAds * 5)
+      };
+      
+    } catch (error) {
+      console.error('Erro ao obter estatísticas de ads contextuais:', error);
+      return {
+        billsAdsWatched: 0,
+        transactionsAdsWatched: 0,
+        totalActionsGranted: 0
       };
     }
   }

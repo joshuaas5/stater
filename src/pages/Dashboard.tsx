@@ -78,8 +78,6 @@ const Dashboard: React.FC = () => {
   const [nameFilter, setNameFilter] = useState<string>('');
   
   // Estados para monetização
-  const [shouldShowBanner, setShouldShowBanner] = useState(false);
-  const [isCheckingPlan, setIsCheckingPlan] = useState(false);
   
   // ADICIONADO: Estados para paginação das últimas transações
   const [transactionsPage, setTransactionsPage] = useState(1);
@@ -390,28 +388,6 @@ const Dashboard: React.FC = () => {
     setTransactionsPage(1); // Reset paginação quando mudar filtro
     loadTransactions(selectedMonth, selectedYear, !!startDate && !!endDate);
   }, [nameFilter]);
-
-  // Verificar se deve mostrar banner de upgrade
-  useEffect(() => {
-    const checkUpgradeBanner = async () => {
-      if (!user?.id) return;
-      
-      setIsCheckingPlan(true);
-      try {
-        const shouldShow = await UserPlanManager.shouldShowUpgradeBanner(user.id);
-        setShouldShowBanner(shouldShow);
-        
-        console.log('🎯 Verificação de banner:', { userId: user.id, shouldShow });
-      } catch (error) {
-        console.error('Erro ao verificar banner de upgrade:', error);
-        setShouldShowBanner(false);
-      } finally {
-        setIsCheckingPlan(false);
-      }
-    };
-
-    checkUpgradeBanner();
-  }, [user?.id]);
 
   const calculateTotalBalance = () => {
     const allTransactions = getTransactions();
@@ -1476,14 +1452,6 @@ const Dashboard: React.FC = () => {
         }}
       />
       
-      {/* Banner de upgrade para usuários gratuitos */}
-      {shouldShowBanner && !isCheckingPlan && (
-        <AdBanner
-          position="bottom"
-          onClose={() => setShouldShowBanner(false)}
-          showCloseButton={true}
-        />
-      )}
       </div>
     </div>
   );

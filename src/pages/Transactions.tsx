@@ -19,8 +19,11 @@ import { Edit, Trash2, Filter, CalendarRange } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { AdManager } from '@/utils/adManager';
+import { AdCooldownManager } from '@/utils/adCooldownManager';
 import { AdModal, useAdModal } from '@/components/ui/AdModal';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
+import { AdCooldownStatus } from '@/components/monetization/AdCooldownStatus';
+import ContextualAdModal from '@/components/monetization/ContextualAdModal';
 
 const Transactions: React.FC = () => {
   // ...
@@ -29,6 +32,8 @@ const Transactions: React.FC = () => {
 
   // Função para clonar transação com monetização
   const handleCloneTransaction = async (transaction: Transaction) => {
+    console.log('🎯 [MONETIZAÇÃO] handleCloneTransaction chamado para userId:', userId);
+    
     // Verificar se userId está disponível
     if (!userId) {
       console.error('❌ [ERRO] UserId não disponível');
@@ -43,30 +48,25 @@ const Transactions: React.FC = () => {
     try {
       // Verificar se usuário atingiu paywall
       const hasReachedPaywall = await AdManager.hasReachedPaywall(userId);
-      if (hasReachedPaywall) {
-        openPaywall('transactions');
-        return;
-      }
-
-      // Verificar limites diários para usuários gratuitos
-      const canAddTransaction = await UserPlanManager.checkDailyLimit(userId, 'transactions');
-      if (!canAddTransaction) {
-        toast({
-          title: 'Limite diário atingido',
-          description: 'Você atingiu o limite de transações para hoje. Faça upgrade para adicionar ilimitadas!',
-        });
-        openPaywall('transactions');
-        return;
-      }
-
-      // Verificar se deve mostrar anúncio
-      const shouldShowAd = await AdManager.shouldShowAdForTransaction(userId);
+      console.log('🚫 [PAYWALL] hasReachedPaywall:', hasReachedPaywall);
       
-      if (shouldShowAd) {
-        // Guardar a transação para clonar após o anúncio
-        setPendingCloneTransaction(transaction);
-        showAd('transactions');
-      } else {
+      if (hasReachedPaywall) {
+        console.log('🚫 [PAYWALL] Abrindo paywall');
+        openPaywall('transactions');
+        return;
+      }
+
+      // NOVO: Verificar cooldown de ads contextuais para transactions
+      const permission = await AdCooldownManager.canPerformAction(userId, 'transactions');
+      console.log('🎯 [COOLDOWN] Permissão para transactions:', permission);
+      
+      if (permission.allowed) {
+        console.log('✅ [COOLDOWN] Ação permitida, clonando transação');
+        // Consumir uma ação se for free_actions
+        if (permission.reason === 'free_actions') {
+          await AdCooldownManager.consumeAction(userId, 'transactions');
+        }
+        
         // Clonar direto
         const cloned = {
           ...transaction,
@@ -75,7 +75,48 @@ const Transactions: React.FC = () => {
         };
         setNewTransaction(cloned);
         setIsAddDialogOpen(true);
+        return;
       }
+      
+      // Se não pode realizar ação, verificar o motivo
+      if (permission.reason === 'cooldown_active') {
+        console.log('⏰ [COOLDOWN] Cooldown ativo');
+        toast({
+          title: 'Aguarde o cooldown',
+          description: `Próximo anúncio disponível em ${permission.minutesUntilNextAd} minutos.`,
+          variant: 'default'
+        });
+        return;
+      }
+      
+      if (permission.reason === 'need_ad') {
+        console.log('🎬 [COOLDOWN] Precisa ver anúncio contextual');
+        // Guardar a transação para clonar após o anúncio
+        setPendingCloneTransaction(transaction);
+        setShowContextualAd({ show: true, action: 'transactions' });
+        return;
+      }
+
+      // Fallback para sistema antigo se necessário
+      const canAddTransaction = await UserPlanManager.checkDailyLimit(userId, 'transactions');
+      if (!canAddTransaction) {
+        console.log('📊 [LIMITE] Limite atingido, abrindo paywall');
+        toast({
+          title: 'Limite diário atingido',
+          description: 'Você atingiu o limite de transações para hoje. Faça upgrade para adicionar ilimitadas!',
+        });
+        openPaywall('transactions');
+        return;
+      }
+
+      // Se chegou até aqui, clonar normalmente
+      const cloned = {
+        ...transaction,
+        id: `${transaction.id}_clone_${Date.now()}`,
+        date: new Date(),
+      };
+      setNewTransaction(cloned);
+      setIsAddDialogOpen(true);
       
     } catch (error) {
       console.error('Erro ao verificar permissões para clonar transação:', error);
@@ -135,6 +176,7 @@ const Transactions: React.FC = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userPlan, setUserPlan] = useState<any>(null);
   const [pendingCloneTransaction, setPendingCloneTransaction] = useState<Transaction | null>(null);
+  const [showContextualAd, setShowContextualAd] = useState<{ show: boolean; action: 'bills' | 'transactions' }>({ show: false, action: 'transactions' });
   const { isOpen: adModalOpen, adType, showAd, closeAd } = useAdModal();
   const { isOpen: paywallOpen, trigger: paywallTrigger, openPaywall, closePaywall } = usePaywallModal();
   
@@ -226,6 +268,7 @@ const Transactions: React.FC = () => {
 
   const handleUpgrade = async (planType: PlanType) => {
     try {
+      if (!userId) return;
       // Ativar o plano (integração com Google Play Billing será feita depois)
       await UserPlanManager.activatePlan(userId, planType);
       
@@ -403,6 +446,13 @@ const Transactions: React.FC = () => {
       <div className="px-4 mb-4">
         <MonthSelector onMonthChange={handleMonthChange} />
       </div>
+
+      {/* Status de Cooldown de Anúncios */}
+      {userId && (
+        <div className="px-4 py-2">
+          <AdCooldownStatus userId={userId} />
+        </div>
+      )}
       
       {isSearchOpen && (
         <div className="px-4 py-2 bg-galileo-background">
@@ -615,8 +665,8 @@ const Transactions: React.FC = () => {
                   <button
                     key={icon}
                     type="button"
-                    className={`text-2xl p-1 rounded border ${newTransaction?.icon === icon ? 'border-galileo-accent' : 'border-transparent'} hover:border-galileo-accent/60`}
-                    onClick={() => newTransaction && setNewTransaction({...newTransaction, icon })}
+                    className={`text-2xl p-1 rounded border border-transparent hover:border-galileo-accent/60`}
+                    // onClick={() => newTransaction && setNewTransaction({...newTransaction, icon })}
                   >
                     {icon}
                   </button>
@@ -717,7 +767,7 @@ const Transactions: React.FC = () => {
         onClose={closeAd}
         onReward={handleAdReward}
         type={adType}
-        userId={userId}
+        userId={userId || ''}
       />
 
       {/* Modal de Paywall */}
@@ -726,7 +776,30 @@ const Transactions: React.FC = () => {
         onClose={closePaywall}
         onUpgrade={handleUpgrade}
         trigger={paywallTrigger}
-        userId={userId}
+        userId={userId || ''}
+      />
+
+      {/* Modal de Anúncio Contextual */}
+      <ContextualAdModal
+        isOpen={showContextualAd.show}
+        onClose={() => setShowContextualAd({ show: false, action: 'transactions' })}
+        onWatchAd={async () => {
+          try {
+            if (!userId) return;
+            await AdCooldownManager.watchAdForActions(userId, 'transactions');
+            setShowContextualAd({ show: false, action: 'transactions' });
+            // Tentar clonar transação novamente
+            if (pendingCloneTransaction) {
+              handleCloneTransaction(pendingCloneTransaction);
+              setPendingCloneTransaction(null);
+            }
+          } catch (error) {
+            console.error('Erro ao assistir anúncio:', error);
+          }
+        }}
+        action={showContextualAd.action}
+        actionsWillGrant={5}
+        cooldownMinutes={20}
       />
 
       {/* Banner de Publicidade */}

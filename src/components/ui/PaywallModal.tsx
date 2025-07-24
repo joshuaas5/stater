@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { PlanType, PlanFeatures, UserPlan } from '@/types';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { AdManager } from '@/utils/adManager';
+import { GooglePlayBilling, PLAY_STORE_PRODUCTS } from '@/utils/googlePlayBilling';
 
 interface PaywallModalProps {
   isOpen: boolean;
@@ -150,16 +151,119 @@ export function PaywallModal({ isOpen, onClose, onUpgrade, trigger, userId }: Pa
   const handleUpgrade = async (planType: PlanType) => {
     setLoading(true);
     try {
-      // TODO: Integrar com Google Play Billing
       console.log(`🛒 Iniciando compra do plano: ${planType}`);
       
-      // Simular processo de compra
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Verificar se não é plano FREE (que não tem produto na loja)
+      if (planType === PlanType.FREE) {
+        throw new Error('Plano gratuito não pode ser comprado');
+      }
+
+      // Obter productId do Google Play Store
+      const productInfo = PLAY_STORE_PRODUCTS[planType];
+      if (!productInfo) {
+        throw new Error(`Produto não encontrado para o plano: ${planType}`);
+      }
+
+      // Inicializar Google Play Billing se necessário
+      const isInitialized = await GooglePlayBilling.initialize();
+      if (!isInitialized) {
+        console.warn('⚠️ Google Play Billing não inicializado, usando método legacy');
+        onUpgrade(planType);
+        onClose();
+        return;
+      }
+
+      // Processar compra através do Google Play Billing
+      const purchaseResult = await GooglePlayBilling.purchaseSubscription(
+        productInfo.productId, 
+        userId
+      );
+
+      if (purchaseResult.success && purchaseResult.purchaseData) {
+        console.log('✅ Compra realizada com sucesso:', purchaseResult.purchaseData);
+
+        // Fazer acknowledgment da compra (obrigatório)
+        await GooglePlayBilling.acknowledgePurchase(purchaseResult.purchaseData.purchaseToken);
+
+        // Ativar o plano no sistema interno com dados da compra
+        await UserPlanManager.activatePlan(
+          userId,
+          planType,
+          purchaseResult.purchaseData.purchaseToken,
+          purchaseResult.purchaseData.productId
+        );
+
+        console.log(`🎉 Plano ${planType} ativado com sucesso!`);
+        onUpgrade(planType);
+        onClose();
+      } else {
+        throw new Error(purchaseResult.error || 'Erro na compra');
+      }
       
-      onUpgrade(planType);
-      onClose();
     } catch (error) {
-      console.error('Erro ao processar upgrade:', error);
+      console.error('❌ Erro ao processar upgrade:', error);
+      
+      // Mostrar erro amigável para o usuário
+      if (error instanceof Error) {
+        if (error.message.includes('cancelada')) {
+          console.log('ℹ️ Compra cancelada pelo usuário');
+        } else {
+          alert(`Erro na compra: ${error.message}`);
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestorePurchases = async () => {
+    setLoading(true);
+    try {
+      console.log('🔄 Restaurando compras...');
+      
+      const isInitialized = await GooglePlayBilling.initialize();
+      if (!isInitialized) {
+        alert('Google Play Billing não disponível');
+        return;
+      }
+
+      const subscriptions = await GooglePlayBilling.restorePurchases();
+      
+      if (subscriptions.length === 0) {
+        alert('Nenhuma compra encontrada');
+        return;
+      }
+
+      // Processar cada assinatura ativa
+      for (const subscription of subscriptions) {
+        // Verificar se ainda está ativa
+        if (subscription.expiryTimeMillis > Date.now() && subscription.paymentState === 1) {
+          // Encontrar o tipo de plano baseado no productId
+          const planType = Object.entries(PLAY_STORE_PRODUCTS).find(
+            ([_, product]) => product.productId === subscription.productId
+          )?.[0] as PlanType;
+
+          if (planType) {
+            await UserPlanManager.activatePlan(
+              userId,
+              planType,
+              subscription.purchaseToken,
+              subscription.productId
+            );
+            
+            console.log(`✅ Plano ${planType} restaurado com sucesso!`);
+            onUpgrade(planType);
+            onClose();
+            return;
+          }
+        }
+      }
+
+      alert('Nenhuma assinatura ativa encontrada');
+      
+    } catch (error) {
+      console.error('❌ Erro ao restaurar compras:', error);
+      alert('Erro ao restaurar compras');
     } finally {
       setLoading(false);
     }
@@ -190,7 +294,7 @@ export function PaywallModal({ isOpen, onClose, onUpgrade, trigger, userId }: Pa
           {currentPlan?.planType === PlanType.FREE && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
               <p className="text-amber-800 text-sm">
-                <strong>Plano atual:</strong> Gratuito • {currentPlan.trialDaysUsed}/3 dias explorados
+                <strong>Plano atual:</strong> Gratuito
               </p>
             </div>
           )}
@@ -286,6 +390,16 @@ export function PaywallModal({ isOpen, onClose, onUpgrade, trigger, userId }: Pa
             <span>📱 Cancele quando quiser</span>
             <span>🎯 Sem taxas escondidas</span>
           </div>
+
+          {/* Botão Restaurar Compras */}
+          <Button
+            variant="outline"
+            onClick={handleRestorePurchases}
+            disabled={loading}
+            className="text-blue-600 border-blue-300 hover:bg-blue-50"
+          >
+            {loading ? 'Verificando...' : '🔄 Restaurar Compras'}
+          </Button>
 
           {!hasReachedPaywall && (
             <Button

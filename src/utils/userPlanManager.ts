@@ -1,4 +1,34 @@
 import { PlanType, UserPlan, PlanFeatures, UserUsage, UserJourney } from '@/types';
+import { supabase } from '@/lib/supabase';
+
+// Lista de usuários beta/especiais com acesso ilimitado
+const BETA_USERS = [
+  'joshuaas500@gmail.com',
+  'pedro_hs5@hotmail.com',
+  // Adicione outros emails aqui conforme necessário
+];
+
+// Configuração especial para usuários beta (acesso ilimitado)
+const BETA_USER_FEATURES: PlanFeatures = {
+  // Acesso ilimitado total
+  dailyMessages: -1,          // Mensagens ilimitadas
+  dailyAudioMinutes: -1,      // Áudio ilimitado
+  dailyOcrScans: -1,          // OCR ilimitado
+  dailyPdfPages: -1,          // PDF ilimitado
+  monthlyExports: -1,         // Exports ilimitados
+  
+  // Todas funcionalidades liberadas
+  telegramBot: true,          // Telegram liberado
+  exportReports: true,        // Relatórios liberados
+  ocrScanning: true,          // OCR liberado
+  pdfProcessing: true,        // PDF liberado
+  advancedAnalytics: true,    // Analytics avançado liberado
+  prioritySupport: true,      // Suporte prioritário
+  
+  // Sem anúncios nem limitações
+  adsRequired: false,         // Sem anúncios
+  showBanner: false           // Sem banner
+};
 
 // Configuração dos limites e recursos por plano
 export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
@@ -87,6 +117,27 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
 export class UserPlanManager {
   
   /**
+   * Verifica se um usuário é beta tester (acesso ilimitado)
+   */
+  static isBetaUser(userEmail: string): boolean {
+    return BETA_USERS.includes(userEmail.toLowerCase());
+  }
+
+  /**
+   * Obtém as features corretas baseado no plano e status beta
+   */
+  static getUserFeatures(planType: PlanType, userEmail?: string): PlanFeatures {
+    // Se for beta user, retorna acesso ilimitado
+    if (userEmail && this.isBetaUser(userEmail)) {
+      console.log(`🚀 [BETA USER] Acesso ilimitado para: ${userEmail}`);
+      return BETA_USER_FEATURES;
+    }
+    
+    // Caso contrário, retorna features normais do plano
+    return PLAN_FEATURES[planType];
+  }
+  
+  /**
    * Obtém o plano atual do usuário
    */
   static async getUserPlan(userId: string): Promise<UserPlan> {
@@ -152,6 +203,17 @@ export class UserPlanManager {
    */
   static async hasFeatureAccess(userId: string, feature: keyof PlanFeatures): Promise<boolean> {
     try {
+      // Verificar se é beta user primeiro (usando o auth do Supabase para obter email)
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email && this.isBetaUser(user.email)) {
+          console.log(`🚀 [BETA USER] Acesso ilimitado à feature "${feature}" para: ${user.email}`);
+          return true;
+        }
+      } catch (authError) {
+        console.log('Auth check falhou, continuando com verificação normal do plano');
+      }
+      
       const userPlan = await this.getUserPlan(userId);
       const features = PLAN_FEATURES[userPlan.planType];
       
@@ -168,6 +230,17 @@ export class UserPlanManager {
    */
   static async checkDailyLimit(userId: string, action: 'messages' | 'transactions' | 'bills'): Promise<boolean> {
     try {
+      // Verificar se é beta user primeiro - acesso ilimitado
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email && this.isBetaUser(user.email)) {
+          console.log(`🚀 [BETA USER] Limite diário ilimitado para "${action}" - usuário: ${user.email}`);
+          return true;
+        }
+      } catch (authError) {
+        console.log('Auth check falhou, continuando com verificação normal do plano');
+      }
+      
       const userPlan = await this.getUserPlan(userId);
       const features = PLAN_FEATURES[userPlan.planType];
       
@@ -386,6 +459,18 @@ export class UserPlanManager {
    */
   static async checkAndUseMessage(userId: string): Promise<{ allowed: boolean; remaining: number }> {
     try {
+      // Verificar se é beta user primeiro - acesso ilimitado
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email && this.isBetaUser(user.email)) {
+          console.log(`🚀 [BETA USER] Mensagens ilimitadas para usuário: ${user.email}`);
+          await this.incrementUsage(userId, 'messages');
+          return { allowed: true, remaining: -1 };
+        }
+      } catch (authError) {
+        console.log('Auth check falhou, continuando com verificação normal do plano');
+      }
+      
       const userPlan = await this.getUserPlan(userId);
       const features = PLAN_FEATURES[userPlan.planType];
       
@@ -420,6 +505,17 @@ export class UserPlanManager {
    */
   static async checkAudioAccess(userId: string, minutesNeeded: number = 1): Promise<boolean> {
     try {
+      // Verificar se é beta user primeiro - acesso ilimitado
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email && this.isBetaUser(user.email)) {
+          console.log(`🚀 [BETA USER] Acesso ilimitado ao áudio para usuário: ${user.email}`);
+          return true;
+        }
+      } catch (authError) {
+        console.log('Auth check falhou, continuando com verificação normal do plano');
+      }
+      
       const userPlan = await this.getUserPlan(userId);
       const features = PLAN_FEATURES[userPlan.planType];
       
@@ -447,6 +543,17 @@ export class UserPlanManager {
    */
   static async checkOcrAccess(userId: string): Promise<boolean> {
     try {
+      // Verificar se é beta user primeiro - acesso ilimitado
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email && this.isBetaUser(user.email)) {
+          console.log(`🚀 [BETA USER] Acesso ilimitado ao OCR para usuário: ${user.email}`);
+          return true;
+        }
+      } catch (authError) {
+        console.log('Auth check falhou, continuando com verificação normal do plano');
+      }
+      
       const userPlan = await this.getUserPlan(userId);
       const features = PLAN_FEATURES[userPlan.planType];
       
@@ -463,6 +570,17 @@ export class UserPlanManager {
    */
   static async checkPdfAccess(userId: string, pagesNeeded: number = 1): Promise<boolean> {
     try {
+      // Verificar se é beta user primeiro - acesso ilimitado
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email && this.isBetaUser(user.email)) {
+          console.log(`🚀 [BETA USER] Acesso ilimitado ao PDF para usuário: ${user.email}`);
+          return true;
+        }
+      } catch (authError) {
+        console.log('Auth check falhou, continuando com verificação normal do plano');
+      }
+      
       const userPlan = await this.getUserPlan(userId);
       const features = PLAN_FEATURES[userPlan.planType];
       
@@ -479,6 +597,17 @@ export class UserPlanManager {
    */
   static async checkExportAccess(userId: string): Promise<boolean> {
     try {
+      // Verificar se é beta user primeiro - acesso ilimitado
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email && this.isBetaUser(user.email)) {
+          console.log(`🚀 [BETA USER] Acesso ilimitado ao export para usuário: ${user.email}`);
+          return true;
+        }
+      } catch (authError) {
+        console.log('Auth check falhou, continuando com verificação normal do plano');
+      }
+      
       const userPlan = await this.getUserPlan(userId);
       const features = PLAN_FEATURES[userPlan.planType];
       
@@ -495,6 +624,17 @@ export class UserPlanManager {
    */
   static async shouldShowAds(userId: string): Promise<boolean> {
     try {
+      // Verificar se é beta user primeiro - sem anúncios
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email && this.isBetaUser(user.email)) {
+          console.log(`🚀 [BETA USER] Sem anúncios para usuário: ${user.email}`);
+          return false;
+        }
+      } catch (authError) {
+        console.log('Auth check falhou, continuando com verificação normal do plano');
+      }
+      
       const userPlan = await this.getUserPlan(userId);
       const features = PLAN_FEATURES[userPlan.planType];
       
@@ -511,6 +651,17 @@ export class UserPlanManager {
    */
   static async shouldShowUpgradeBanner(userId: string): Promise<boolean> {
     try {
+      // Verificar se é beta user primeiro - sem banner de upgrade
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email && this.isBetaUser(user.email)) {
+          console.log(`🚀 [BETA USER] Sem banner de upgrade para usuário: ${user.email}`);
+          return false;
+        }
+      } catch (authError) {
+        console.log('Auth check falhou, continuando com verificação normal do plano');
+      }
+      
       const userPlan = await this.getUserPlan(userId);
       const features = PLAN_FEATURES[userPlan.planType];
       

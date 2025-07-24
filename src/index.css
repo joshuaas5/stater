@@ -34,6 +34,28 @@
   visibility: visible !important;
 }
 
+/* TOAST NOTIFICATIONS - FORÇA ACIMA DA NAVBAR */
+[data-state="open"][data-radix-collection-item],
+[data-radix-toast-viewport] {
+  z-index: 2147483648 !important; /* Acima do máximo z-index da navbar */
+  position: fixed !important;
+}
+
+/* Toast individual sempre visível */
+[role="status"][aria-live][data-state="open"] {
+  z-index: 2147483648 !important;
+  position: fixed !important;
+  pointer-events: auto !important;
+}
+
+/* Container de toasts no topo */
+[data-radix-toast-viewport] {
+  top: 16px !important;
+  right: 16px !important;
+  bottom: auto !important;
+  z-index: 2147483648 !important;
+}
+
 @layer base {
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;700;900&family=Fredoka+One&display=swap');
 

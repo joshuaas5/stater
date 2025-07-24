@@ -23,6 +23,9 @@ import { processAudioWithGemini, AudioProcessingResult } from '@/utils/audioProc
 import { LoadingState, CardLoading, useLoadingStates } from '@/components/ui/loading-states';
 import { saveChatMessages, loadChatMessages, clearChatMessages, hasSavedMessages } from '@/utils/chatPersistence';
 import { validateUserInput, validateChatMessage, validateTransactionData, sanitizeString } from '@/utils/dataValidation';
+import { UserPlanManager } from '@/utils/userPlanManager';
+import { PaywallModal } from '@/components/ui/PaywallModal';
+import { AdManager } from '@/utils/adManager';
 
 
 const IA_AVATAR = '/stater-logo.png'; // Logo do Stater
@@ -132,6 +135,11 @@ export const FinancialAdvisorPage: React.FC = () => {
   const [categoryDropdownStates, setCategoryDropdownStates] = useState<{[key: number]: boolean}>({});
   const [categorySearchTerms, setCategorySearchTerms] = useState<{[key: number]: string}>({});
   
+  // Estados para monetização e controle de acesso
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [messageLimit, setMessageLimit] = useState<number>(3);
+  const [messagesUsedToday, setMessagesUsedToday] = useState<number>(0);
+  
   const tts = useTextToSpeech();
   const audioLimits = useAudioLimits(currentUserId || null);
 
@@ -207,6 +215,36 @@ export const FinancialAdvisorPage: React.FC = () => {
         navigate('/login');
     }
   }, [navigate, currentUserId, isLoggedIn]); // Depend on currentUserId as well
+
+  // Carregar status inicial do plano do usuário
+  useEffect(() => {
+    const loadUserPlanStatus = async () => {
+      if (!currentUserId) return;
+      
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) return;
+
+        // Carregar estatísticas do plano
+        const stats = await UserPlanManager.getPlanStats(user.id);
+        
+        // Atualizar estado com limites atuais
+        setMessageLimit(stats.features.dailyMessages === -1 ? -1 : stats.features.dailyMessages);
+        setMessagesUsedToday(stats.todayUsage.messagesUsed);
+        
+        console.log(`📊 Status do plano carregado:`, {
+          plano: stats.plan.planType,
+          limiteMsg: stats.features.dailyMessages,
+          usadasHoje: stats.todayUsage.messagesUsed
+        });
+        
+      } catch (error) {
+        console.error('Erro ao carregar status do plano:', error);
+      }
+    };
+
+    loadUserPlanStatus();
+  }, [currentUserId]);
 
   // Forçar salvamento imediatamente sempre que uma nova mensagem for adicionada
   useEffect(() => {
@@ -586,6 +624,55 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
 
   // Usar a mensagem validada e sanitizada
   const safeMessage = validatedMessage;
+
+  // ========================================
+  // VERIFICAÇÃO DE LIMITE DE MENSAGENS IA
+  // ========================================
+  if (!skipAddingUserMessage) { // Só verifica limite para mensagens do usuário, não respostas do sistema
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) {
+        setError("Erro: Usuário não identificado. Por favor, faça login novamente.");
+        return;
+      }
+
+      // Verificar limite de mensagens
+      const { allowed, remaining } = await UserPlanManager.checkAndUseMessage(user.id);
+      
+      if (!allowed) {
+        console.log('🚫 Limite de mensagens atingido para usuário:', user.id);
+        
+        // Mostrar modal de paywall
+        setShowPaywall(true);
+        
+        // Adicionar mensagem informativa do sistema
+        const limitMessage: ChatMessage = {
+          id: uuidv4(),
+          text: "🚫 **Limite diário atingido!**\n\nVocê atingiu o limite de mensagens gratuitas para hoje. Faça upgrade do seu plano para continuar conversando com a IA sem limites!",
+          sender: 'system',
+          timestamp: new Date()
+        };
+        
+        const validatedLimitMessage = validateChatMessage(limitMessage);
+        if (validatedLimitMessage) {
+          setMessages(prev => [...prev, validatedLimitMessage]);
+        }
+        
+        return; // Bloquear envio da mensagem
+      }
+      
+      // Atualizar contador na UI
+      setMessagesUsedToday(prev => prev + 1);
+      setMessageLimit(remaining >= 0 ? remaining : -1);
+      
+      console.log(`✅ Mensagem permitida. Restantes hoje: ${remaining >= 0 ? remaining : 'ilimitado'}`);
+      
+    } catch (error) {
+      console.error('Erro ao verificar limite de mensagens:', error);
+      setError("Erro ao verificar limite. Tente novamente.");
+      return;
+    }
+  }
 
   if (isAddBillIntent(safeMessage)) {
     const userMessage: ChatMessage = {
@@ -3705,6 +3792,20 @@ return (
     </div>
     
     {/* NavBar removido do Stater IA para melhor experiência */}
+    
+    {/* Modal de Paywall para limites atingidos */}
+    <PaywallModal
+      isOpen={showPaywall}
+      onClose={() => setShowPaywall(false)}
+      trigger="messages"
+      userId={currentUserId || ''}
+      onUpgrade={(planType: any) => {
+        setShowPaywall(false);
+        console.log('Upgrade selecionado:', planType);
+        // Redirecionar para página de planos ou processar upgrade
+        navigate('/settings');
+      }}
+    />
   </>
 );
 

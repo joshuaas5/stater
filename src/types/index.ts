@@ -338,12 +338,24 @@ export interface UserPlan {
 }
 
 export interface PlanFeatures {
-  dailyMessages: number; // -1 = ilimitado
-  telegramBot: boolean;
-  exportReports: boolean;
-  ocrScanning: boolean;
-  adsRequired: boolean;
-  prioritySupport?: boolean;
+  // Limites de uso diário
+  dailyMessages: number;         // IA Chat (-1 = ilimitado)
+  dailyAudioMinutes: number;     // Processamento de áudio em minutos
+  dailyOcrScans: number;         // Scans OCR de fotos/documentos
+  dailyPdfPages: number;         // Páginas de PDF processadas
+  monthlyExports: number;        // Exports de relatórios por mês
+  
+  // Funcionalidades boolean
+  telegramBot: boolean;          // Acesso ao bot do Telegram
+  exportReports: boolean;        // Capacidade de exportar relatórios
+  ocrScanning: boolean;          // Scanning OCR de imagens
+  pdfProcessing: boolean;        // Processamento de arquivos PDF
+  advancedAnalytics: boolean;    // Analytics avançados
+  prioritySupport?: boolean;     // Suporte prioritário (apenas PRO)
+  
+  // Configurações de monetização
+  adsRequired: boolean;          // Se anúncios são obrigatórios
+  showBanner?: boolean;          // Se deve mostrar banner de upgrade
 }
 
 export interface UserUsage {

@@ -38,6 +38,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useScrollOptimization } from '@/hooks/useScrollOptimization';
 import VirtualizedTransactionList from '@/components/virtualized/VirtualizedTransactionList';
 import { TransactionModal } from '@/components/modals/TransactionModal';
+import { AdBanner } from '@/components/monetization/AdBanner';
+import { UserPlanManager } from '@/utils/userPlanManager';
 
 //  DEBUG: Log para identificar re-renderizaes do Dashboard
 console.log(' Dashboard.tsx carregado/re-renderizado:', new Date().toISOString());
@@ -74,6 +76,10 @@ const Dashboard: React.FC = () => {
   const [endDate, setEndDate] = useState<string | null>(null);
   const [showDateFilters, setShowDateFilters] = useState(false);
   const [nameFilter, setNameFilter] = useState<string>('');
+  
+  // Estados para monetização
+  const [shouldShowBanner, setShouldShowBanner] = useState(false);
+  const [isCheckingPlan, setIsCheckingPlan] = useState(false);
   
   // ADICIONADO: Estados para paginação das últimas transações
   const [transactionsPage, setTransactionsPage] = useState(1);
@@ -384,6 +390,28 @@ const Dashboard: React.FC = () => {
     setTransactionsPage(1); // Reset paginação quando mudar filtro
     loadTransactions(selectedMonth, selectedYear, !!startDate && !!endDate);
   }, [nameFilter]);
+
+  // Verificar se deve mostrar banner de upgrade
+  useEffect(() => {
+    const checkUpgradeBanner = async () => {
+      if (!user?.id) return;
+      
+      setIsCheckingPlan(true);
+      try {
+        const shouldShow = await UserPlanManager.shouldShowUpgradeBanner(user.id);
+        setShouldShowBanner(shouldShow);
+        
+        console.log('🎯 Verificação de banner:', { userId: user.id, shouldShow });
+      } catch (error) {
+        console.error('Erro ao verificar banner de upgrade:', error);
+        setShouldShowBanner(false);
+      } finally {
+        setIsCheckingPlan(false);
+      }
+    };
+
+    checkUpgradeBanner();
+  }, [user?.id]);
 
   const calculateTotalBalance = () => {
     const allTransactions = getTransactions();
@@ -772,7 +800,7 @@ const Dashboard: React.FC = () => {
       .replace(/[._-]/g, ' ')
       // Capitalizar primeira letra de cada palavra
       .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
     
     // Tratar casos especiais como "Dr", "Dra" etc
@@ -901,7 +929,7 @@ const Dashboard: React.FC = () => {
             </div>
             <button
               aria-label={balanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 hover:scale-110 relative z-10"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 hover:scale-110 relative z-0"
               onClick={() => setBalanceVisible((v: boolean) => !v)}
               style={{
                 background: 'rgba(255,255,255,0.1)',
@@ -1447,6 +1475,15 @@ const Dashboard: React.FC = () => {
           }, 2000);
         }}
       />
+      
+      {/* Banner de upgrade para usuários gratuitos */}
+      {shouldShowBanner && !isCheckingPlan && (
+        <AdBanner
+          position="bottom"
+          onClose={() => setShouldShowBanner(false)}
+          showCloseButton={true}
+        />
+      )}
       </div>
     </div>
   );

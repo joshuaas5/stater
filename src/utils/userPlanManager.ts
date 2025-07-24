@@ -3,33 +3,81 @@ import { PlanType, UserPlan, PlanFeatures, UserUsage, UserJourney } from '@/type
 // Configuração dos limites e recursos por plano
 export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
   [PlanType.FREE]: {
-    dailyMessages: 3,
-    telegramBot: false,
-    exportReports: false,
-    ocrScanning: false,
-    adsRequired: true
+    // Jornada progressiva de 3 dias
+    dailyMessages: 3,           // Varia conforme jornada (1-5 mensagens + ads)
+    dailyAudioMinutes: 0,       // Áudio: Bloqueado
+    dailyOcrScans: 0,           // OCR/Fotos: Bloqueado
+    dailyPdfPages: 0,           // PDF: Bloqueado
+    monthlyExports: 0,          // Exports: Bloqueado
+    
+    // Funcionalidades bloqueadas
+    telegramBot: false,         // Telegram: Bloqueado
+    exportReports: false,       // Relatórios: Bloqueados
+    ocrScanning: false,         // OCR: Bloqueado
+    pdfProcessing: false,       // PDF: Bloqueado
+    advancedAnalytics: false,   // Analytics avançado: Bloqueado
+    
+    // Monetização ativa
+    adsRequired: true,          // Anúncios obrigatórios
+    showBanner: true            // Banner de upgrade
   },
   [PlanType.WEEKLY]: {
-    dailyMessages: 50,
-    telegramBot: true,
-    exportReports: true,
-    ocrScanning: false,
-    adsRequired: false
+    // SEMANAL - R$ 8,90 - EXATAMENTE COMO DEFINIDO
+    dailyMessages: 10,          // 10 mensagens de texto/dia
+    dailyAudioMinutes: 3,       // 3 análises de áudio/dia
+    dailyOcrScans: 3,           // 3 análises de fotos/dia
+    dailyPdfPages: 0,           // 0 leitura de PDFs
+    monthlyExports: 0,          // Sem exports
+    
+    // Funcionalidades liberadas
+    telegramBot: true,          // Bot Telegram integrado (limites compartilhados)
+    exportReports: false,       // Relatórios: Ainda bloqueados
+    ocrScanning: true,          // OCR: Liberado
+    pdfProcessing: false,       // PDF: Ainda bloqueado
+    advancedAnalytics: false,   // Analytics avançado: Ainda bloqueado
+    
+    // 100% livre de anúncios
+    adsRequired: false,         // Sem anúncios
+    showBanner: false           // Sem banner
   },
   [PlanType.MONTHLY]: {
-    dailyMessages: 100,
-    telegramBot: true,
-    exportReports: true,
-    ocrScanning: true,
-    adsRequired: false
+    // MENSAL - R$ 15,90 - EXATAMENTE COMO DEFINIDO
+    dailyMessages: 20,          // 20 mensagens de texto/dia
+    dailyAudioMinutes: 10,      // 10 análises de áudio/dia
+    dailyOcrScans: 10,          // 10 análises de fotos/dia
+    dailyPdfPages: 0,           // 0 leitura de PDFs
+    monthlyExports: -1,         // Exports ilimitados (PDF, XLSX, OFX, CSV)
+    
+    // Funcionalidades do semanal + relatórios
+    telegramBot: true,          // Telegram: Liberado
+    exportReports: true,        // Exportar relatórios liberado
+    ocrScanning: true,          // OCR: Liberado
+    pdfProcessing: false,       // PDF: Ainda bloqueado
+    advancedAnalytics: true,    // Análises financeiras avançadas
+    
+    // Premium sem anúncios
+    adsRequired: false,         // Sem anúncios
+    showBanner: false           // Sem banner
   },
   [PlanType.PRO]: {
-    dailyMessages: -1, // Ilimitado
-    telegramBot: true,
-    exportReports: true,
-    ocrScanning: true,
-    adsRequired: false,
-    prioritySupport: true
+    // PRO - R$ 29,90 - EXATAMENTE COMO DEFINIDO
+    dailyMessages: 30,          // 30 mensagens de texto/dia
+    dailyAudioMinutes: 15,      // 15 análises de áudio/dia
+    dailyOcrScans: 15,          // 15 análises de fotos/dia
+    dailyPdfPages: 5,           // 5 leituras de PDFs/dia
+    monthlyExports: -1,         // Exports ilimitados
+    
+    // Todas funcionalidades + PDFs
+    telegramBot: true,          // Telegram: Liberado
+    exportReports: true,        // Relatórios: Liberados
+    ocrScanning: true,          // OCR avançado para documentos
+    pdfProcessing: true,        // Leitura e análise de PDFs
+    advancedAnalytics: true,    // Insights de despesas por categoria
+    prioritySupport: true,      // Suporte prioritário
+    
+    // Experiência premium
+    adsRequired: false,         // Sem anúncios
+    showBanner: false           // Sem banner
   }
 };
 
@@ -328,7 +376,152 @@ export class UserPlanManager {
       console.error('Erro ao ativar plano:', error);
     }
   }
-  
+
+  // ========================================
+  // NOVOS MÉTODOS PARA CONTROLE ESPECÍFICO
+  // ========================================
+
+  /**
+   * Verifica e contabiliza uso de mensagens IA
+   */
+  static async checkAndUseMessage(userId: string): Promise<{ allowed: boolean; remaining: number }> {
+    try {
+      const userPlan = await this.getUserPlan(userId);
+      const features = PLAN_FEATURES[userPlan.planType];
+      
+      // Se for plano PRO (ilimitado)
+      if (features.dailyMessages === -1) {
+        await this.incrementUsage(userId, 'messages');
+        return { allowed: true, remaining: -1 };
+      }
+      
+      const today = new Date().toISOString().split('T')[0];
+      const usage = await this.getTodayUsage(userId, today);
+      
+      // Verifica limite
+      if (usage.messagesUsed >= features.dailyMessages) {
+        return { allowed: false, remaining: 0 };
+      }
+      
+      // Incrementa uso e permite
+      await this.incrementUsage(userId, 'messages');
+      const remaining = features.dailyMessages - (usage.messagesUsed + 1);
+      
+      return { allowed: true, remaining };
+      
+    } catch (error) {
+      console.error('Erro ao verificar uso de mensagem:', error);
+      return { allowed: false, remaining: 0 };
+    }
+  }
+
+  /**
+   * Verifica se pode usar funcionalidade de áudio
+   */
+  static async checkAudioAccess(userId: string, minutesNeeded: number = 1): Promise<boolean> {
+    try {
+      const userPlan = await this.getUserPlan(userId);
+      const features = PLAN_FEATURES[userPlan.planType];
+      
+      // Se áudio está bloqueado no plano
+      if (features.dailyAudioMinutes === 0) {
+        return false;
+      }
+      
+      // Se é ilimitado
+      if (features.dailyAudioMinutes === -1) {
+        return true;
+      }
+      
+      // Verificar uso diário (implementar quando tiver controle de áudio)
+      return true; // Por enquanto, libera se o plano permite
+      
+    } catch (error) {
+      console.error('Erro ao verificar acesso ao áudio:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Verifica se pode usar OCR/scanning
+   */
+  static async checkOcrAccess(userId: string): Promise<boolean> {
+    try {
+      const userPlan = await this.getUserPlan(userId);
+      const features = PLAN_FEATURES[userPlan.planType];
+      
+      return features.ocrScanning && features.dailyOcrScans !== 0;
+      
+    } catch (error) {
+      console.error('Erro ao verificar acesso ao OCR:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Verifica se pode processar PDF
+   */
+  static async checkPdfAccess(userId: string, pagesNeeded: number = 1): Promise<boolean> {
+    try {
+      const userPlan = await this.getUserPlan(userId);
+      const features = PLAN_FEATURES[userPlan.planType];
+      
+      return features.pdfProcessing && features.dailyPdfPages !== 0;
+      
+    } catch (error) {
+      console.error('Erro ao verificar acesso ao PDF:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Verifica se pode exportar relatórios
+   */
+  static async checkExportAccess(userId: string): Promise<boolean> {
+    try {
+      const userPlan = await this.getUserPlan(userId);
+      const features = PLAN_FEATURES[userPlan.planType];
+      
+      return features.exportReports && features.monthlyExports !== 0;
+      
+    } catch (error) {
+      console.error('Erro ao verificar acesso ao export:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Verifica se deve mostrar anúncios
+   */
+  static async shouldShowAds(userId: string): Promise<boolean> {
+    try {
+      const userPlan = await this.getUserPlan(userId);
+      const features = PLAN_FEATURES[userPlan.planType];
+      
+      return features.adsRequired;
+      
+    } catch (error) {
+      console.error('Erro ao verificar necessidade de anúncios:', error);
+      return true; // Em caso de erro, mostrar anúncios por segurança
+    }
+  }
+
+  /**
+   * Verifica se deve mostrar banner de upgrade
+   */
+  static async shouldShowUpgradeBanner(userId: string): Promise<boolean> {
+    try {
+      const userPlan = await this.getUserPlan(userId);
+      const features = PLAN_FEATURES[userPlan.planType];
+      
+      return features.showBanner || false;
+      
+    } catch (error) {
+      console.error('Erro ao verificar banner de upgrade:', error);
+      return true; // Em caso de erro, mostrar banner por segurança
+    }
+  }
+
   /**
    * Obtém estatísticas do plano atual
    */

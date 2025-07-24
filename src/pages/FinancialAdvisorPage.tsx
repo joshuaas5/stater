@@ -1433,8 +1433,9 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         console.log('🔍 [CONSULTA] Pergunta identificada como consulta - pulando detecção de JSON');
       }
 
-      // NOVO: Se não conseguiu detectar JSON, tentar detectar lista na resposta da IA em texto livre
-      if (!isTransactionJson) {
+      // NOVO: Se não conseguiu detectar JSON, tentar detectar lista na resposta da IA APENAS se a mensagem original era sobre transações
+      if (!isTransactionJson && isTransactionRelatedMessage(message)) {
+        console.log('🔍 [AI_FILTER] Aplicando detecção de transações na resposta da IA para mensagem relacionada a transações');
         const aiTransactionList = detectTransactionListInAIResponse(botResponseText);
         if (aiTransactionList.length >= 2) {
           console.log("🤖 Lista de transações detectada na resposta da IA:", aiTransactionList);
@@ -1484,6 +1485,8 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
           setLoadingState('ai-thinking', false);
           return;
         }
+      } else if (!isTransactionJson) {
+        console.log('🔍 [AI_FILTER] Mensagem não relacionada a transações - pulando detecção na resposta da IA');
       }
 
       if (isTransactionJson) {
@@ -1529,69 +1532,79 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationMessageForChat, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
         setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
         } else if (!pendingAction) { 
-        // NOVO: Primeiro tentar detectar LISTA de transações
-        const detectedTransactionList = detectTransactionListInText(message);
-        
-        if (detectedTransactionList.length >= 2) {
-          // Detectou uma lista de transações - mostrar interface de revisão
-          let resultMessage = `🤖 Detectei ${detectedTransactionList.length} transações na sua mensagem!\n\n`;
+        // NOVO: Verificar se a mensagem é realmente sobre transações antes de tentar detectar
+        if (isTransactionRelatedMessage(message)) {
+          console.log('🔍 [TRANSACTION_FILTER] Mensagem identificada como relacionada a transações:', message);
           
-          const totalAmount = detectedTransactionList.reduce((sum, tx) => sum + tx.amount, 0);
-          resultMessage += `💰 Total: R$ ${totalAmount.toFixed(2)}\n\n`;
-          resultMessage += `Transações encontradas:\n\n`;
-
-          // Listar cada transação
-          for (let i = 0; i < detectedTransactionList.length; i++) {
-            const transaction = detectedTransactionList[i];
-            resultMessage += `${i + 1}. ${transaction.description}\n`;
-            resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
-            resultMessage += `   📁 Categoria: ${transaction.category}\n`;
-            resultMessage += `   📅 Data: Hoje\n\n`;
-          }          // Adicionar mensagem com resultados
-          setMessages(prev => [...prev, {
-            id: uuidv4(),
-            text: resultMessage,
-            sender: 'system',
-            timestamp: new Date(),
-            avatarUrl: IA_AVATAR
-          }]);
-
-          // Preparar ação pendente para confirmação (igual ao OCR)          console.log('🔍 Lista de transações detectada:', detectedTransactionList);
-          setEditableTransactions(detectedTransactionList);
-          setPendingAction({
-            tipo: 'generic_confirmation',
-            dados: {
-              ocrTransactions: detectedTransactionList,
-              documentType: 'text_list',
-              establishment: 'Lista de transações'
-            }
-          });
-          console.log('📝 PendingAction definida para lista de texto');
-          setWaitingConfirmation(true);
+          // Primeiro tentar detectar LISTA de transações
+          const detectedTransactionList = detectTransactionListInText(message);
           
-          // Forçar scroll após definir transações editáveis
-          setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-          }, 200);
-        } else {
-          // Se não é lista, tentar detectar transação individual
-          const detectedTransaction = detectTransactionInText(botResponseText, message);
-          
-          if (detectedTransaction) {
-            // Se detectamos uma transação, criar confirmação
-            const transactionTypeWord = detectedTransaction.tipo === 'income' ? 'receita 🤑' : 'despesa 💸';
-            const confirmationText = `📝 Detectei que você mencionou uma ${transactionTypeWord} de R$${detectedTransaction.dados.amount.toFixed(2)}${detectedTransaction.dados.description ? ` - ${detectedTransaction.dados.description}` : ''}.\n\nVocê confirma o registro desta transação? (sim/não)`;
+          if (detectedTransactionList.length >= 2) {
+            // Detectou uma lista de transações - mostrar interface de revisão
+            let resultMessage = `🤖 Detectei ${detectedTransactionList.length} transações na sua mensagem!\n\n`;
             
-            setPendingAction(detectedTransaction);
+            const totalAmount = detectedTransactionList.reduce((sum, tx) => sum + tx.amount, 0);
+            resultMessage += `💰 Total: R$ ${totalAmount.toFixed(2)}\n\n`;
+            resultMessage += `Transações encontradas:\n\n`;
+
+            // Listar cada transação
+            for (let i = 0; i < detectedTransactionList.length; i++) {
+              const transaction = detectedTransactionList[i];
+              resultMessage += `${i + 1}. ${transaction.description}\n`;
+              resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
+              resultMessage += `   📁 Categoria: ${transaction.category}\n`;
+              resultMessage += `   📅 Data: Hoje\n\n`;
+            }            // Adicionar mensagem com resultados
+            setMessages(prev => [...prev, {
+              id: uuidv4(),
+              text: resultMessage,
+              sender: 'system',
+              timestamp: new Date(),
+              avatarUrl: IA_AVATAR
+            }]);
+
+            // Preparar ação pendente para confirmação (igual ao OCR)            console.log('🔍 Lista de transações detectada:', detectedTransactionList);
+            setEditableTransactions(detectedTransactionList);
+            setPendingAction({
+              tipo: 'generic_confirmation',
+              dados: {
+                ocrTransactions: detectedTransactionList,
+                documentType: 'text_list',
+                establishment: 'Lista de transações'
+              }
+            });
+            console.log('📝 PendingAction definida para lista de texto');
             setWaitingConfirmation(true);
             
-            const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
-            setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+            // Forçar scroll após definir transações editáveis
+            setTimeout(() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            }, 200);
           } else {
-            // Resposta normal se não detectou transação - ÚNICA RESPOSTA
-            const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
-            setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+            // Se não é lista, tentar detectar transação individual
+            const detectedTransaction = detectTransactionInText(botResponseText, message);
+            
+            if (detectedTransaction) {
+              // Se detectamos uma transação, criar confirmação
+              const transactionTypeWord = detectedTransaction.tipo === 'income' ? 'receita 🤑' : 'despesa 💸';
+              const confirmationText = `📝 Detectei que você mencionou uma ${transactionTypeWord} de R$${detectedTransaction.dados.amount.toFixed(2)}${detectedTransaction.dados.description ? ` - ${detectedTransaction.dados.description}` : ''}.\n\nVocê confirma o registro desta transação? (sim/não)`;
+              
+              setPendingAction(detectedTransaction);
+              setWaitingConfirmation(true);
+              
+              const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+              setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+            } else {
+              // Resposta normal se não detectou transação - ÚNICA RESPOSTA
+              const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+              setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+            }
           }
+        } else {
+          console.log('🔍 [TRANSACTION_FILTER] Mensagem não relacionada a transações, respondendo normalmente:', message);
+          // Resposta normal se não é relacionada a transações
+          const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+          setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
         }
       }
       
@@ -2034,6 +2047,66 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
     console.log('🤖 Transações detectadas na resposta da IA:', transactions);
     
     return transactions.length >= 2 ? transactions : []; // Só considerar lista se tiver 2+ transações
+  };
+
+  // NOVA FUNÇÃO: Verifica se uma mensagem é realmente sobre transações antes de processar
+  const isTransactionRelatedMessage = (message: string): boolean => {
+    const lowerMessage = message.toLowerCase().trim();
+    
+    // PALAVRAS-CHAVE POSITIVAS - indicam que é sobre transações
+    const transactionKeywords = [
+      // Ações de registro
+      'registrar', 'adicionar', 'anotar', 'salvar', 'incluir',
+      // Tipos de transação
+      'receita', 'despesa', 'gasto', 'compra', 'venda', 'pagamento',
+      'gastei', 'paguei', 'comprei', 'vendi', 'recebi', 'ganhei',
+      // Contextos financeiros com valores
+      'mercado', 'supermercado', 'farmácia', 'conta', 'boleto',
+      'salário', 'freelance', 'trabalho', 'dinheiro'
+    ];
+    
+    // PALAVRAS-CHAVE NEGATIVAS - indicam que NÃO é sobre transações
+    const nonTransactionKeywords = [
+      'teste', 'test', 'oi', 'olá', 'hello', 'hi', 'tchau', 'bye',
+      'som', 'audio', 'microfone', 'como', 'vai', 'tudo', 'bem',
+      'ajuda', 'help', 'sobre', 'app', 'aplicativo', 'funciona'
+    ];
+    
+    // Se contém palavras negativas E não tem valor monetário, não é transação
+    const hasNegativeWords = nonTransactionKeywords.some(keyword => 
+      lowerMessage.includes(keyword)
+    );
+    
+    // Verificar se tem valor monetário (R$, números + reais, etc.)
+    const hasMonetaryValue = /(?:r\$|reais?|real|\d+[.,]\d{2}|\d+\s*reais?)/.test(lowerMessage);
+    
+    // Verificar se tem palavras-chave de transação
+    const hasTransactionKeywords = transactionKeywords.some(keyword => 
+      lowerMessage.includes(keyword)
+    );
+    
+    // LÓGICA DE DECISÃO:
+    // 1. Se tem palavras negativas e não tem valor monetário → NÃO é transação
+    if (hasNegativeWords && !hasMonetaryValue) {
+      console.log('🚫 [FILTER] Mensagem rejeitada - palavras não-transacionais sem valor monetário');
+      return false;
+    }
+    
+    // 2. Se tem valor monetário OU palavras-chave de transação → É transação
+    if (hasMonetaryValue || hasTransactionKeywords) {
+      console.log('✅ [FILTER] Mensagem aceita - tem valor monetário ou palavras-chave de transação');
+      return true;
+    }
+    
+    // 3. Mensagens muito curtas (< 4 caracteres) não são transações
+    if (lowerMessage.length < 4) {
+      console.log('🚫 [FILTER] Mensagem rejeitada - muito curta');
+      return false;
+    }
+    
+    // 4. Por padrão, mensagens genéricas não são consideradas transações
+    console.log('🚫 [FILTER] Mensagem rejeitada - não atende critérios de transação');
+    return false;
   };
 
   // Função de fallback para detectar transações que a IA pode ter perdido

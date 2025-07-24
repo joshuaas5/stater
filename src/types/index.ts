@@ -16,6 +16,7 @@ export interface Transaction {
   isRecurring?: boolean;
   recurringDay?: number; // Dia do mês para transações recorrentes mensais/anuais (1-31)
   recurringWeekday?: number; // Dia da semana para transações semanais (0-6, domingo a sábado)
+  recurringMonth?: number; // Mês para transações recorrentes anuais (1-12)
   recurrenceFrequency?: 'weekly' | 'monthly' | 'yearly'; // Frequência de recorrência
   nextOccurrence?: Date; // Próxima data de execução da recorrência
   lastProcessed?: Date; // Última vez que a recorrência foi processada

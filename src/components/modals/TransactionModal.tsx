@@ -29,7 +29,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     isRecurring: false,
     recurrenceFrequency: 'monthly',
     recurringDay: 1,
-    recurringWeekday: 1
+    recurringWeekday: 1,
+    recurringMonth: 1
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -75,7 +76,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         isRecurring: transaction.isRecurring || false,
         recurrenceFrequency: transaction.recurrenceFrequency || 'monthly',
         recurringDay: transaction.recurringDay || 1,
-        recurringWeekday: transaction.recurringWeekday || 1
+        recurringWeekday: transaction.recurringWeekday || 1,
+        recurringMonth: transaction.recurringMonth || 1
       });
     } else {
       setFormData({
@@ -85,7 +87,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         isRecurring: false,
         recurrenceFrequency: 'monthly',
         recurringDay: 1,
-        recurringWeekday: 1
+        recurringWeekday: 1,
+        recurringMonth: 1
       });
     }
     setErrors({});
@@ -553,6 +556,38 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                           Dia {i + 1}
                         </option>
                       ))}
+                    </select>
+                  </div>
+                )}
+
+                {formData.recurrenceFrequency === 'yearly' && (
+                  <div>
+                    <label className="text-xs font-medium text-white/80 mb-1 block">
+                      Mês
+                    </label>
+                    <select
+                      value={formData.recurringMonth || new Date().getMonth() + 1}
+                      onChange={(e) => handleInputChange('recurringMonth', parseInt(e.target.value))}
+                      className="w-full px-3 py-2 border rounded-lg text-sm font-medium focus:border-white/40 outline-none text-white"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        borderColor: 'rgba(255, 255, 255, 0.2)'
+                      }}
+                      disabled={isSubmitting}
+                    >
+                      <option value={1} style={{ background: '#31518b', color: 'white' }}>Janeiro</option>
+                      <option value={2} style={{ background: '#31518b', color: 'white' }}>Fevereiro</option>
+                      <option value={3} style={{ background: '#31518b', color: 'white' }}>Março</option>
+                      <option value={4} style={{ background: '#31518b', color: 'white' }}>Abril</option>
+                      <option value={5} style={{ background: '#31518b', color: 'white' }}>Maio</option>
+                      <option value={6} style={{ background: '#31518b', color: 'white' }}>Junho</option>
+                      <option value={7} style={{ background: '#31518b', color: 'white' }}>Julho</option>
+                      <option value={8} style={{ background: '#31518b', color: 'white' }}>Agosto</option>
+                      <option value={9} style={{ background: '#31518b', color: 'white' }}>Setembro</option>
+                      <option value={10} style={{ background: '#31518b', color: 'white' }}>Outubro</option>
+                      <option value={11} style={{ background: '#31518b', color: 'white' }}>Novembro</option>
+                      <option value={12} style={{ background: '#31518b', color: 'white' }}>Dezembro</option>
                     </select>
                   </div>
                 )}

@@ -233,7 +233,7 @@ Este é um relatório automático gerado pelo sistema de tratamento de erros.
                 <Button
                   onClick={this.handleReload}
                   variant="outline"
-                  className="w-full border-white/20 text-white hover:bg-white/10"
+                  className="w-full bg-white/20 border-white/40 text-white hover:bg-white/30 font-semibold"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Recarregar Página
@@ -242,7 +242,7 @@ Este é um relatório automático gerado pelo sistema de tratamento de erros.
                 <Button
                   onClick={this.handleGoHome}
                   variant="outline"
-                  className="w-full border-white/20 text-white hover:bg-white/10"
+                  className="w-full bg-white/20 border-white/40 text-white hover:bg-white/30 font-semibold"
                 >
                   <Home className="w-4 h-4 mr-2" />
                   Voltar ao Início
@@ -251,7 +251,7 @@ Este é um relatório automático gerado pelo sistema de tratamento de erros.
                 <Button
                   onClick={this.handleReportError}
                   variant="ghost"
-                  className="w-full text-white/70 hover:bg-white/5"
+                  className="w-full bg-white/10 text-white hover:bg-white/20 font-semibold"
                 >
                   <Bug className="w-4 h-4 mr-2" />
                   Reportar Erro

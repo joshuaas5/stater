@@ -304,8 +304,7 @@ const BillsPage: React.FC = () => {
             </Button>
             <Button 
               onClick={handleAddBill} 
-              className="flex-1 sm:flex-none bg-white/20 hover:bg-white/30 text-white font-semibold backdrop-blur-sm border border-white/30 transition-all duration-200"
-              style={{ color: '#ffffff !important' }}
+              className="flex-1 sm:flex-none bg-green-600/80 hover:bg-green-600 text-white font-semibold border border-green-500/50 hover:border-green-500 transition-all duration-200"
             >
               <Plus size={18} className="mr-2 text-white" /> Adicionar Conta
             </Button>

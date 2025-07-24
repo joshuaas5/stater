@@ -450,7 +450,10 @@ const RecurringTransactionsPage: React.FC = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => navigate('/bills')}
+                      onClick={() => {
+                        // Navegar para bills e manter na página
+                        window.open('/bills', '_blank');
+                      }}
                       className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs"
                     >
                       <Settings className="h-4 w-4 mr-1" />

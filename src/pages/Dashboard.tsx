@@ -1123,11 +1123,6 @@ const Dashboard: React.FC = () => {
           )}
         </div>
 
-        {/* Bills Due Widget */}
-        <div className="mx-8 mb-6">
-          <BillsDueWidget />
-        </div>
-
       {/* Novo Modal Otimizado */}
       <TransactionModal
         isOpen={dialogOpen}

@@ -3,10 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
-import { Bill, CardItem, EXPENSE_CATEGORIES } from '@/types';
+import { Bill, CardItem, EXPENSE_CATEGORIES, PlanType } from '@/types';
 import { getBills, isLoggedIn, markBillAsPaid, saveBill, updateBill, deleteBill } from '@/utils/localStorage';
 import { formatCurrency, getOverdueBills, getBillsDueInNextDays } from '@/utils/dataProcessing';
 import { useToast } from '@/hooks/use-toast';
+import { UserPlanManager } from '@/utils/userPlanManager';
+import { AdManager } from '@/utils/adManager';
+import { AdModal, useAdModal } from '@/components/ui/AdModal';
+import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
 import { 
   CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
   Edit, MoreVertical, Trash, Calendar
@@ -69,7 +73,7 @@ const formatBillDisplayDateAndStatus = (bill: Bill): { text: string; className: 
 };
 
 const BillsPage: React.FC = () => {
-  // ... (outros estados existentes)
+  // Estados principais
   const [bills, setBills] = useState<Bill[]>([]);
   const [overdueBills, setOverdueBills] = useState<Bill[]>([]);
   const [upcomingBills, setUpcomingBills] = useState<Bill[]>([]);
@@ -81,14 +85,31 @@ const BillsPage: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth()); // 0-11
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   
+  // Estados de monetização
+  const [userId] = useState<string>('user_001'); // TODO: Pegar do contexto de auth
+  const [userPlan, setUserPlan] = useState<any>(null);
+  const { isOpen: adModalOpen, adType, showAd, closeAd } = useAdModal();
+  const { isOpen: paywallOpen, trigger: paywallTrigger, openPaywall, closePaywall } = usePaywallModal();
+  
   const navigate = useNavigate();
+  
   useEffect(() => {
     if (!isLoggedIn()) {
       navigate('/login');
       return;
     }
     loadBills();
+    loadUserPlan();
   }, [navigate, selectedMonth, selectedYear]); // Adicionado selectedMonth e selectedYear às dependências
+  
+  const loadUserPlan = async () => {
+    try {
+      const plan = await UserPlanManager.getUserPlan(userId);
+      setUserPlan(plan);
+    } catch (error) {
+      console.error('Erro ao carregar plano do usuário:', error);
+    }
+  };
   
   const loadBills = () => {
     const allUserBills = getBills().map(bill => ({
@@ -144,8 +165,41 @@ const BillsPage: React.FC = () => {
     }
   };
 
-  const handleAddBill = () => {
-    navigate('/add-bill');
+  const handleAddBill = async () => {
+    try {
+      // Verificar se usuário atingiu paywall
+      const hasReachedPaywall = await AdManager.hasReachedPaywall(userId);
+      if (hasReachedPaywall) {
+        openPaywall('bills');
+        return;
+      }
+
+      // Verificar limites diários para usuários gratuitos
+      const canAddBill = await UserPlanManager.checkDailyLimit(userId, 'bills');
+      if (!canAddBill) {
+        toast({
+          title: 'Limite diário atingido',
+          description: 'Você atingiu o limite de contas para hoje. Faça upgrade para adicionar ilimitadas!',
+        });
+        openPaywall('bills');
+        return;
+      }
+
+      // Verificar se deve mostrar anúncio
+      const shouldShowAd = await AdManager.shouldShowAdForBill(userId);
+      
+      if (shouldShowAd) {
+        showAd('bills');
+      } else {
+        // Ir direto para a página de adicionar conta
+        navigate('/add-bill');
+      }
+      
+    } catch (error) {
+      console.error('Erro ao verificar permissões para adicionar conta:', error);
+      // Em caso de erro, permitir que o usuário continue
+      navigate('/add-bill');
+    }
   };
 
   const handleMarkAsPaid = (billId: string) => {
@@ -166,6 +220,51 @@ const BillsPage: React.FC = () => {
       isPaid: false,
     });
     setShowEditBillModal(true); // Alterado de setShowAddBillModal para setShowEditBillModal
+  };
+
+  // Handlers para monetização
+  const handleAdReward = async (success: boolean, reward?: string) => {
+    if (success) {
+      toast({
+        title: '🎉 Anúncio assistido!',
+        description: reward || 'Continue adicionando suas contas',
+      });
+      
+      // Navegar para a página de adicionar conta após o anúncio
+      navigate('/add-bill');
+    } else {
+      toast({
+        title: 'Anúncio não concluído',
+        description: 'Assista até o fim para continuar sem limites',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleUpgrade = async (planType: PlanType) => {
+    try {
+      // Ativar o plano (integração com Google Play Billing será feita depois)
+      await UserPlanManager.activatePlan(userId, planType);
+      
+      // Recarregar dados do usuário
+      await loadUserPlan();
+      
+      toast({
+        title: '🚀 Upgrade realizado!',
+        description: `Bem-vindo ao plano ${planType}! Aproveite todos os recursos.`,
+      });
+      
+      // Navegar para a página de adicionar conta
+      navigate('/add-bill');
+      
+    } catch (error) {
+      console.error('Erro ao processar upgrade:', error);
+      toast({
+        title: 'Erro no upgrade',
+        description: 'Tente novamente ou entre em contato com o suporte.',
+        variant: 'destructive'
+      });
+    }
   };
 
   const getBillsToDisplay = () => {
@@ -716,6 +815,24 @@ const BillsPage: React.FC = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Modal de Anúncio */}
+      <AdModal
+        isOpen={adModalOpen}
+        onClose={closeAd}
+        onReward={handleAdReward}
+        type={adType}
+        userId={userId}
+      />
+
+      {/* Modal de Paywall */}
+      <PaywallModal
+        isOpen={paywallOpen}
+        onClose={closePaywall}
+        onUpgrade={handleUpgrade}
+        trigger={paywallTrigger}
+        userId={userId}
+      />
 
     </div>
   );

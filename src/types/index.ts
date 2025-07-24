@@ -314,3 +314,52 @@ export const EXPENSE_CATEGORIES = [
   'Despesas Diversas',
   'Não Categorizado'
 ];
+
+// ===== SISTEMA DE MONETIZAÇÃO =====
+
+export enum PlanType {
+  FREE = 'free',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly', 
+  PRO = 'pro'
+}
+
+export interface UserPlan {
+  userId: string;
+  planType: PlanType;
+  isActive: boolean;
+  startDate: Date;
+  expiresAt?: Date;
+  trialEndsAt?: Date;
+  isOnTrial: boolean;
+  paymentStatus: 'active' | 'pending' | 'failed' | 'cancelled';
+  purchaseToken?: string;
+  productId?: string;
+}
+
+export interface PlanFeatures {
+  dailyMessages: number; // -1 = ilimitado
+  telegramBot: boolean;
+  exportReports: boolean;
+  ocrScanning: boolean;
+  adsRequired: boolean;
+  prioritySupport?: boolean;
+}
+
+export interface UserUsage {
+  userId: string;
+  date: string; // YYYY-MM-DD
+  messagesUsed: number;
+  transactionsAdded: number;
+  billsAdded: number;
+  adsWatched: number;
+}
+
+export interface UserJourney {
+  userId: string;
+  startDate: Date;
+  currentDay: number;
+  adsWatchedToday: number;
+  messagesGrantedToday: number;
+  hasReachedPaywall: boolean;
+}

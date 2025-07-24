@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useForm } from 'react-hook-form';
@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Calendar, CreditCard, Plus, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import NavBar from '@/components/navigation/NavBar';
+import { UserPlanManager } from '@/utils/userPlanManager';
 
 const formSchema = z.object({
   title: z.string().min(2, { message: "Título deve ter pelo menos 2 caracteres." }),
@@ -34,6 +35,7 @@ const AddBillPage: React.FC = () => {
   const [cardItems, setCardItems] = useState<CardItem[]>([]);
   const [cardItemDescription, setCardItemDescription] = useState('');
   const [cardItemAmount, setCardItemAmount] = useState('');
+  const [userId] = useState<string>('user_001'); // TODO: Pegar do contexto de auth
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -165,6 +167,11 @@ const AddBillPage: React.FC = () => {
       };
       saveBill(newBill);
     }
+    
+    // Incrementar o uso de bills para monetização
+    UserPlanManager.incrementUsage(userId, 'billsAdded').catch(error => {
+      console.error('Erro ao incrementar uso de bills:', error);
+    });
     
     toast({
       title: "Conta adicionada",

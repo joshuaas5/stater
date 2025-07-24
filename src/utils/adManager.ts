@@ -1,0 +1,324 @@
+import { UserPlanManager } from './userPlanManager';
+import { PlanType } from '@/types';
+
+export interface AdCooldown {
+  lastAdShown: Date;
+  cooldownMinutes: number;
+}
+
+export interface AdResult {
+  success: boolean;
+  reward?: string;
+  error?: string;
+}
+
+/**
+ * Gerenciador de anúncios estratégicos para monetização
+ */
+export class AdManager {
+  
+  /**
+   * Verifica se deve mostrar anúncio para adicionar bill
+   * Estratégia: Alternado (1º sem ad, 2º com ad, 3º sem ad...)
+   */
+  static async shouldShowAdForBill(userId: string): Promise<boolean> {
+    try {
+      const userPlan = await UserPlanManager.getUserPlan(userId);
+      
+      // Usuários pagos não veem ads
+      if (userPlan.planType !== PlanType.FREE) {
+        return false;
+      }
+      
+      const today = new Date().toISOString().split('T')[0];
+      const usage = await UserPlanManager.getTodayUsage(userId, today);
+      
+      // Primeira bill sempre sem ad (boa primeira impressão)
+      if (usage.billsAdded === 0) {
+        return false;
+      }
+      
+      // A partir da segunda, alternar: par = com ad, ímpar = sem ad
+      const isEvenBill = (usage.billsAdded + 1) % 2 === 0;
+      
+      if (isEvenBill) {
+        // Verificar cooldown
+        return await this.checkCooldown(userId, 'bills', 5); // 5 minutos
+      }
+      
+      return false;
+      
+    } catch (error) {
+      console.error('Erro ao verificar ad para bill:', error);
+      return false;
+    }
+  }
+  
+  /**
+   * Verifica se deve mostrar anúncio para adicionar transação
+   * Estratégia: A cada 3ª transação
+   */
+  static async shouldShowAdForTransaction(userId: string): Promise<boolean> {
+    try {
+      const userPlan = await UserPlanManager.getUserPlan(userId);
+      
+      // Usuários pagos não veem ads
+      if (userPlan.planType !== PlanType.FREE) {
+        return false;
+      }
+      
+      const today = new Date().toISOString().split('T')[0];
+      const usage = await UserPlanManager.getTodayUsage(userId, today);
+      
+      // A cada 3ª transação
+      const isThirdTransaction = (usage.transactionsAdded + 1) % 3 === 0;
+      
+      if (isThirdTransaction) {
+        // Verificar cooldown
+        return await this.checkCooldown(userId, 'transactions', 3); // 3 minutos
+      }
+      
+      return false;
+      
+    } catch (error) {
+      console.error('Erro ao verificar ad para transação:', error);
+      return false;
+    }
+  }
+  
+  /**
+   * Verifica se deve mostrar anúncio para mensagens (jornada progressiva)
+   */
+  static async shouldShowAdForMessages(userId: string): Promise<{
+    shouldShow: boolean;
+    adsRequired: number;
+    messagesReward: number;
+    day: number;
+  }> {
+    try {
+      const userPlan = await UserPlanManager.getUserPlan(userId);
+      
+      // Usuários pagos não veem ads
+      if (userPlan.planType !== PlanType.FREE) {
+        return {
+          shouldShow: false,
+          adsRequired: 0,
+          messagesReward: 0,
+          day: 0
+        };
+      }
+      
+      const journey = await UserPlanManager.getUserJourney(userId);
+      
+      // Jornada progressiva de 3 dias
+      const journeyConfig = {
+        1: { adsRequired: 1, messagesReward: 3 },
+        2: { adsRequired: 2, messagesReward: 4 },
+        3: { adsRequired: 3, messagesReward: 5 }
+      };
+      
+      // Dia 4+ = paywall obrigatório
+      if (journey.currentDay >= 4) {
+        await UserPlanManager.updateUserJourney(userId, { hasReachedPaywall: true });
+        return {
+          shouldShow: false,
+          adsRequired: 0,
+          messagesReward: 0,
+          day: journey.currentDay
+        };
+      }
+      
+      const dayConfig = journeyConfig[journey.currentDay as keyof typeof journeyConfig];
+      
+      if (!dayConfig) {
+        return {
+          shouldShow: false,
+          adsRequired: 0,
+          messagesReward: 0,
+          day: journey.currentDay
+        };
+      }
+      
+      // Verificar se já assistiu os ads necessários hoje
+      const shouldShow = journey.adsWatchedToday < dayConfig.adsRequired;
+      
+      return {
+        shouldShow,
+        adsRequired: dayConfig.adsRequired,
+        messagesReward: dayConfig.messagesReward,
+        day: journey.currentDay
+      };
+      
+    } catch (error) {
+      console.error('Erro ao verificar ad para mensagens:', error);
+      return {
+        shouldShow: false,
+        adsRequired: 0,
+        messagesReward: 0,
+        day: 1
+      };
+    }
+  }
+  
+  /**
+   * Verifica cooldown entre anúncios da mesma categoria
+   */
+  static async checkCooldown(userId: string, category: 'bills' | 'transactions', cooldownMinutes: number): Promise<boolean> {
+    try {
+      const cooldownKey = `adCooldown_${userId}_${category}`;
+      const cooldownData = localStorage.getItem(cooldownKey);
+      
+      if (!cooldownData) {
+        return true; // Não há cooldown ativo
+      }
+      
+      const cooldown: AdCooldown = JSON.parse(cooldownData);
+      const now = new Date();
+      const lastAd = new Date(cooldown.lastAdShown);
+      const minutesSinceLastAd = (now.getTime() - lastAd.getTime()) / (1000 * 60);
+      
+      return minutesSinceLastAd >= cooldownMinutes;
+      
+    } catch (error) {
+      console.error('Erro ao verificar cooldown:', error);
+      return true; // Em caso de erro, permitir anúncio
+    }
+  }
+  
+  /**
+   * Marca que um anúncio foi mostrado (para cooldown)
+   */
+  static async markAdShown(userId: string, category: 'bills' | 'transactions'): Promise<void> {
+    try {
+      const cooldownKey = `adCooldown_${userId}_${category}`;
+      const cooldown: AdCooldown = {
+        lastAdShown: new Date(),
+        cooldownMinutes: category === 'bills' ? 5 : 3
+      };
+      
+      localStorage.setItem(cooldownKey, JSON.stringify(cooldown));
+      console.log(`🎬 Ad marcado como mostrado: ${category} para usuário ${userId}`);
+      
+    } catch (error) {
+      console.error('Erro ao marcar ad como mostrado:', error);
+    }
+  }
+  
+  /**
+   * Simula a exibição de um anúncio rewarded
+   * TODO: Integrar com AdMob ou similar
+   */
+  static async showRewardedAd(type: 'bills' | 'transactions' | 'messages'): Promise<AdResult> {
+    try {
+      // Por enquanto, simular anúncio
+      console.log(`🎬 Mostrando anúncio rewarded: ${type}`);
+      
+      // Simular tempo de anúncio (5-8 segundos)
+      const adDuration = Math.random() * 3000 + 5000; // 5-8 segundos
+      
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          // 90% de chance de sucesso (usuário assiste até o fim)
+          const success = Math.random() > 0.1;
+          
+          if (success) {
+            resolve({
+              success: true,
+              reward: this.getAdReward(type)
+            });
+          } else {
+            resolve({
+              success: false,
+              error: 'Anúncio não foi assistido até o fim'
+            });
+          }
+        }, adDuration);
+      });
+      
+    } catch (error) {
+      console.error('Erro ao mostrar anúncio:', error);
+      return {
+        success: false,
+        error: 'Erro ao carregar anúncio'
+      };
+    }
+  }
+  
+  /**
+   * Define a recompensa baseada no tipo de anúncio
+   */
+  static getAdReward(type: 'bills' | 'transactions' | 'messages'): string {
+    switch (type) {
+      case 'bills':
+        return 'Continue adicionando contas';
+      case 'transactions':
+        return 'Continue adicionando transações';
+      case 'messages':
+        return 'Mensagens liberadas para uso';
+      default:
+        return 'Obrigado por assistir!';
+    }
+  }
+  
+  /**
+   * Processa a recompensa após assistir um anúncio
+   */
+  static async processAdReward(userId: string, type: 'bills' | 'transactions' | 'messages'): Promise<void> {
+    try {
+      // Marcar que o ad foi assistido
+      if (type === 'bills' || type === 'transactions') {
+        await this.markAdShown(userId, type);
+      }
+      
+      // Para mensagens, atualizar jornada
+      if (type === 'messages') {
+        const journey = await UserPlanManager.getUserJourney(userId);
+        await UserPlanManager.updateUserJourney(userId, {
+          adsWatchedToday: journey.adsWatchedToday + 1
+        });
+        
+        // Incrementar uso de ads
+        const today = new Date().toISOString().split('T')[0];
+        const usage = await UserPlanManager.getTodayUsage(userId, today);
+        usage.adsWatched++;
+        localStorage.setItem(`userUsage_${userId}_${today}`, JSON.stringify(usage));
+      }
+      
+      console.log(`💰 Recompensa processada: ${type} para usuário ${userId}`);
+      
+    } catch (error) {
+      console.error('Erro ao processar recompensa do ad:', error);
+    }
+  }
+  
+  /**
+   * Verifica se o usuário atingiu o paywall
+   */
+  static async hasReachedPaywall(userId: string): Promise<boolean> {
+    try {
+      const journey = await UserPlanManager.getUserJourney(userId);
+      return journey.currentDay >= 4 || journey.hasReachedPaywall;
+      
+    } catch (error) {
+      console.error('Erro ao verificar paywall:', error);
+      return false;
+    }
+  }
+  
+  /**
+   * Força o usuário a atingir o paywall (para testes)
+   */
+  static async forcePaywall(userId: string): Promise<void> {
+    try {
+      await UserPlanManager.updateUserJourney(userId, {
+        currentDay: 4,
+        hasReachedPaywall: true
+      });
+      
+      console.log(`🚫 Paywall forçado para usuário ${userId}`);
+      
+    } catch (error) {
+      console.error('Erro ao forçar paywall:', error);
+    }
+  }
+}

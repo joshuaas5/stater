@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
 import TransactionItem from '@/components/transactions/TransactionItem';
-import { Transaction, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
+import { Transaction, INCOME_CATEGORIES, EXPENSE_CATEGORIES, PlanType } from '@/types';
 import { getTransactions, isLoggedIn, getCurrentUser } from '@/utils/localStorage';
 import { formatCurrency } from '@/utils/dataProcessing';
 import { MonthSelector } from '@/components/ui/month-selector';
@@ -16,21 +16,66 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Edit, Trash2, Filter, CalendarRange } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { UserPlanManager } from '@/utils/userPlanManager';
+import { AdManager } from '@/utils/adManager';
+import { AdModal, useAdModal } from '@/components/ui/AdModal';
+import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
 
 const Transactions: React.FC = () => {
   // ...
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTransaction, setNewTransaction] = useState<Transaction | null>(null);
 
-  // Função para clonar transação
-  const handleCloneTransaction = (transaction: Transaction) => {
-    const cloned = {
-      ...transaction,
-      id: `${transaction.id}_clone_${Date.now()}`,
-      date: new Date(),
-    };
-    setNewTransaction(cloned);
-    setIsAddDialogOpen(true);
+  // Função para clonar transação com monetização
+  const handleCloneTransaction = async (transaction: Transaction) => {
+    try {
+      // Verificar se usuário atingiu paywall
+      const hasReachedPaywall = await AdManager.hasReachedPaywall(userId);
+      if (hasReachedPaywall) {
+        openPaywall('transactions');
+        return;
+      }
+
+      // Verificar limites diários para usuários gratuitos
+      const canAddTransaction = await UserPlanManager.checkDailyLimit(userId, 'transactions');
+      if (!canAddTransaction) {
+        toast({
+          title: 'Limite diário atingido',
+          description: 'Você atingiu o limite de transações para hoje. Faça upgrade para adicionar ilimitadas!',
+        });
+        openPaywall('transactions');
+        return;
+      }
+
+      // Verificar se deve mostrar anúncio
+      const shouldShowAd = await AdManager.shouldShowAdForTransaction(userId);
+      
+      if (shouldShowAd) {
+        // Guardar a transação para clonar após o anúncio
+        setPendingCloneTransaction(transaction);
+        showAd('transactions');
+      } else {
+        // Clonar direto
+        const cloned = {
+          ...transaction,
+          id: `${transaction.id}_clone_${Date.now()}`,
+          date: new Date(),
+        };
+        setNewTransaction(cloned);
+        setIsAddDialogOpen(true);
+      }
+      
+    } catch (error) {
+      console.error('Erro ao verificar permissões para clonar transação:', error);
+      // Em caso de erro, permitir que o usuário continue
+      const cloned = {
+        ...transaction,
+        id: `${transaction.id}_clone_${Date.now()}`,
+        date: new Date(),
+      };
+      setNewTransaction(cloned);
+      setIsAddDialogOpen(true);
+    }
   };
 
   // Função para adicionar transação clonada
@@ -74,6 +119,13 @@ const Transactions: React.FC = () => {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [filterType, setFilterType] = useState<string>('all');
   
+  // Estados de monetização
+  const [userId] = useState<string>('user_001'); // TODO: Pegar do contexto de auth
+  const [userPlan, setUserPlan] = useState<any>(null);
+  const [pendingCloneTransaction, setPendingCloneTransaction] = useState<Transaction | null>(null);
+  const { isOpen: adModalOpen, adType, showAd, closeAd } = useAdModal();
+  const { isOpen: paywallOpen, trigger: paywallTrigger, openPaywall, closePaywall } = usePaywallModal();
+  
   useEffect(() => {
     // Verificar se o usuário está logado
     if (!isLoggedIn()) {
@@ -81,6 +133,7 @@ const Transactions: React.FC = () => {
       return;
     }
     loadTransactions();
+    loadUserPlan();
     // Listener para atualizar quando houver novas transações adicionadas pelo consultor IA
     const handleTransactionsUpdated = () => {
       loadTransactions();
@@ -90,6 +143,79 @@ const Transactions: React.FC = () => {
       window.removeEventListener('transactionsUpdated', handleTransactionsUpdated);
     };
   }, [navigate, selectedMonth, selectedYear]);
+  
+  const loadUserPlan = async () => {
+    try {
+      const plan = await UserPlanManager.getUserPlan(userId);
+      setUserPlan(plan);
+    } catch (error) {
+      console.error('Erro ao carregar plano do usuário:', error);
+    }
+  };
+
+  // Handlers para monetização
+  const handleAdReward = async (success: boolean, reward?: string) => {
+    if (success) {
+      toast({
+        title: '🎉 Anúncio assistido!',
+        description: reward || 'Continue adicionando suas transações',
+      });
+      
+      // Se havia uma transação pendente para clonar, fazer isso agora
+      if (pendingCloneTransaction) {
+        const cloned = {
+          ...pendingCloneTransaction,
+          id: `${pendingCloneTransaction.id}_clone_${Date.now()}`,
+          date: new Date(),
+        };
+        setNewTransaction(cloned);
+        setIsAddDialogOpen(true);
+        setPendingCloneTransaction(null);
+      }
+    } else {
+      toast({
+        title: 'Anúncio não concluído',
+        description: 'Assista até o fim para continuar sem limites',
+        variant: 'destructive'
+      });
+      setPendingCloneTransaction(null);
+    }
+  };
+
+  const handleUpgrade = async (planType: PlanType) => {
+    try {
+      // Ativar o plano (integração com Google Play Billing será feita depois)
+      await UserPlanManager.activatePlan(userId, planType);
+      
+      // Recarregar dados do usuário
+      await loadUserPlan();
+      
+      toast({
+        title: '🚀 Upgrade realizado!',
+        description: `Bem-vindo ao plano ${planType}! Aproveite todos os recursos.`,
+      });
+      
+      // Se havia uma transação pendente para clonar, fazer isso agora
+      if (pendingCloneTransaction) {
+        const cloned = {
+          ...pendingCloneTransaction,
+          id: `${pendingCloneTransaction.id}_clone_${Date.now()}`,
+          date: new Date(),
+        };
+        setNewTransaction(cloned);
+        setIsAddDialogOpen(true);
+        setPendingCloneTransaction(null);
+      }
+      
+    } catch (error) {
+      console.error('Erro ao processar upgrade:', error);
+      toast({
+        title: 'Erro no upgrade',
+        description: 'Tente novamente ou entre em contato com o suporte.',
+        variant: 'destructive'
+      });
+    }
+  };
   
   const loadTransactions = () => {
     // Carregar as transações do usuário
@@ -542,6 +668,24 @@ const Transactions: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal de Anúncio */}
+      <AdModal
+        isOpen={adModalOpen}
+        onClose={closeAd}
+        onReward={handleAdReward}
+        type={adType}
+        userId={userId}
+      />
+
+      {/* Modal de Paywall */}
+      <PaywallModal
+        isOpen={paywallOpen}
+        onClose={closePaywall}
+        onUpgrade={handleUpgrade}
+        trigger={paywallTrigger}
+        userId={userId}
+      />
       
       <NavBar />
     </div>

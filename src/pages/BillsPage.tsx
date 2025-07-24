@@ -454,8 +454,7 @@ const BillsPage: React.FC = () => {
             <p className="text-sm mt-1">Adicione novas contas para gerenciar seus pagamentos</p>
             <Button 
               onClick={handleAddBill}
-              variant="outline" 
-              className="mt-4 border-white/30 text-white hover:bg-white/20"
+              className="mt-4 bg-green-600/80 text-white border border-green-500/50 hover:bg-green-600 hover:border-green-500 backdrop-blur-sm"
             >
               <Plus size={16} className="mr-1" /> Adicionar Conta
             </Button>

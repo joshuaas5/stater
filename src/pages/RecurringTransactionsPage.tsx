@@ -63,6 +63,28 @@ const RecurringTransactionsPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  // Converter Bill para Transaction e editar
+  const handleEditBill = (bill: Bill) => {
+    const transaction: Transaction = {
+      id: bill.id,
+      title: bill.title,
+      amount: bill.amount,
+      type: 'expense', // Bills são sempre despesas
+      category: bill.category,
+      date: bill.dueDate,
+      userId: bill.userId,
+      isRecurring: bill.isRecurring,
+      recurringDay: bill.recurringDay,
+      dueDate: bill.dueDate,
+      isPaid: bill.isPaid,
+      totalInstallments: bill.totalInstallments,
+      currentInstallment: bill.currentInstallment,
+      isCardBill: bill.isCardBill,
+      cardItems: bill.cardItems,
+    };
+    handleEditRecurring(transaction);
+  };
+
   // Criar nova transação
   const handleCreateNew = (type: 'income' | 'expense') => {
     setEditingTransaction(null);
@@ -450,10 +472,7 @@ const RecurringTransactionsPage: React.FC = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        // Navegar para bills e manter na página
-                        window.open('/bills', '_blank');
-                      }}
+                      onClick={() => handleEditBill(bill)}
                       className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs"
                     >
                       <Settings className="h-4 w-4 mr-1" />

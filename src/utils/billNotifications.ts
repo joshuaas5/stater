@@ -78,6 +78,13 @@ export const checkBillDueDates = (): BillNotification[] => {
 const notificationCache = new Set<string>();
 
 /**
+ * Limpar cache de notificações (chamar ao adicionar/editar contas)
+ */
+export const clearNotificationCache = (): void => {
+  notificationCache.clear();
+};
+
+/**
  * Exibe notificações de contas próximas do vencimento (apenas as essenciais)
  */
 export const showBillNotifications = (): void => {

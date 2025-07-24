@@ -305,8 +305,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               }`}
               style={{
                 background: 'rgba(255, 255, 255, 0.08)',
-                backdropFilter: 'blur(20px) saturate(120%)',
-                WebkitBackdropFilter: 'blur(20px) saturate(120%)'
+                backdropFilter: 'blur(3px) saturate(120%)',
+                WebkitBackdropFilter: 'blur(3px) saturate(120%)'
               }}
               disabled={isSubmitting}
             />
@@ -342,7 +342,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                 }`}
                 style={{
                   background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)'
+                  backdropFilter: 'blur(2px)'
                 }}
                 disabled={isSubmitting}
               />

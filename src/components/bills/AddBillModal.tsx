@@ -155,8 +155,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
       billsToSave.forEach(b => saveBill(b));
       savedBill = billsToSave[0];
       
-      // Limpar cache de notificações para múltiplas contas
-      clearNotificationCache();
+      // REMOVIDO: Notificações para múltiplas contas - clearNotificationCache();
     } else {
       const newBill: Bill = {
         id: uuidv4(),
@@ -198,7 +197,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
     }
     
     // Limpar cache de notificações para atualizar imediatamente
-    clearNotificationCache();
+    // REMOVIDO: clearNotificationCache(); - Usuário não quer notificações ao adicionar conta
     
     if (onSuccess && savedBill) onSuccess(savedBill);
     handleClose();
@@ -277,7 +276,8 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
                     type="button" 
                     onClick={handleAddCardItem} 
                     size="sm" 
-                    className="p-2 bg-galileo-primary/80 hover:bg-galileo-primary text-white border border-galileo-primary"
+                    variant="default"
+                    className="!p-2 !bg-green-600 hover:!bg-green-700 !text-white !border-green-500"
                   >
                     <Plus size={16} />
                   </Button>

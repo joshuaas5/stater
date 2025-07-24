@@ -325,7 +325,15 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               Valor
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 font-bold text-lg">
+              <span 
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white font-bold text-lg z-10"
+                style={{ 
+                  filter: 'none',
+                  backdropFilter: 'none',
+                  WebkitBackdropFilter: 'none',
+                  textShadow: '0 0 4px rgba(0,0,0,0.5)'
+                }}
+              >
                 R$
               </span>
               <input
@@ -341,8 +349,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                     : 'border-white/20 focus:border-white/40 focus:shadow-lg focus:shadow-white/10'
                 }`}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(2px)'
+                  background: 'rgba(255, 255, 255, 0.1)'
                 }}
                 disabled={isSubmitting}
               />

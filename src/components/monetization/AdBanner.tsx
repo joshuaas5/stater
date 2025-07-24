@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { UserPlanManager } from '@/utils/userPlanManager';
+import { PlanType } from '@/types';
 import { getCurrentUser } from '@/utils/localStorage';
 
 interface AdBannerProps {
@@ -88,11 +89,10 @@ export const AdBanner: React.FC<AdBannerProps> = ({
           return;
         }
 
-        const planManager = new UserPlanManager();
-        const userPlan = await planManager.getUserPlan(user.id);
+        const userPlan = await UserPlanManager.getUserPlan(user.id);
         
         // Só mostrar para usuários FREE
-        if (userPlan.planType === 'FREE') {
+        if (userPlan.planType === PlanType.FREE) {
           setShouldShow(true);
         } else {
           setShouldShow(false);

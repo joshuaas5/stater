@@ -295,18 +295,29 @@ const BillsPage: React.FC = () => {
           
           <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
             <Button 
-              onClick={() => navigate('/recurring-transactions')} 
+              onClick={() => navigate('/recommendations')} 
               variant="outline"
-              className="flex-1 sm:flex-none bg-blue-600/20 hover:bg-blue-600/30 text-white font-semibold border-blue-400/50 hover:border-blue-400/70 backdrop-blur-sm transition-all duration-200"
+              className="flex-1 sm:flex-none bg-purple-600/20 hover:bg-purple-600/30 text-white font-semibold border-purple-400/50 hover:border-purple-400/70 backdrop-blur-sm transition-all duration-200 text-xs sm:text-sm"
               style={{ color: '#ffffff !important' }}
             >
-              <Calendar size={18} className="mr-2 text-white" /> Recorrentes
+              <svg className="h-4 w-4 mr-1 sm:mr-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Relatório
+            </Button>
+            <Button 
+              onClick={() => navigate('/recurring-transactions')} 
+              variant="outline"
+              className="flex-1 sm:flex-none bg-blue-600/20 hover:bg-blue-600/30 text-white font-semibold border-blue-400/50 hover:border-blue-400/70 backdrop-blur-sm transition-all duration-200 text-xs sm:text-sm"
+              style={{ color: '#ffffff !important' }}
+            >
+              <Calendar size={16} className="mr-1 sm:mr-2 text-white" /> Recorrentes
             </Button>
             <Button 
               onClick={handleAddBill} 
-              className="flex-1 sm:flex-none bg-green-600/80 hover:bg-green-600 text-white font-semibold border border-green-500/50 hover:border-green-500 transition-all duration-200"
+              className="flex-1 sm:flex-none bg-green-600/80 hover:bg-green-600 text-white font-semibold border border-green-500/50 hover:border-green-500 transition-all duration-200 text-xs sm:text-sm"
             >
-              <Plus size={18} className="mr-2 text-white" /> Adicionar Conta
+              <Plus size={16} className="mr-1 sm:mr-2 text-white" /> Adicionar
             </Button>
           </div>
         </div>

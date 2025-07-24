@@ -210,7 +210,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg relative mx-2 flex flex-col max-h-[90vh]" style={{ width: '95vw', maxWidth: 400 }}>
         {/* Header Section (Not scrollable) */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-          <h2 className="text-xl font-semibold text-galileo-text">Adicionar Nova Conta</h2>
+          <h2 className="text-xl font-semibold text-white">Adicionar Nova Conta</h2>
           <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" onClick={handleClose}>
             <X size={20} />
           </button>
@@ -222,7 +222,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
             {/* Title Field */}
             <FormField control={form.control} name="title" render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-galileo-text">Título</FormLabel>
+                <FormLabel className="text-white font-medium">Título</FormLabel>
                 <FormControl>
                   <Input placeholder="Ex: Conta de Luz" {...field} className="bg-galileo-accent text-white placeholder:text-gray-300" />
                 </FormControl>
@@ -234,7 +234,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
             <FormField control={form.control} name="isCardBill" render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-galileo-text font-semibold">Fatura de Cartão de Crédito</FormLabel>
+                  <FormLabel className="text-white font-semibold">Fatura de Cartão de Crédito</FormLabel>
                 </div>
                 <FormControl>
                   <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -245,7 +245,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
             {/* Conditional Card Items Section */}
             {isCardBill && (
               <div className="space-y-3 p-3 border rounded-md">
-                <h3 className="text-sm font-medium text-galileo-text">Itens da Fatura</h3>
+                <h3 className="text-sm font-medium text-white">Itens da Fatura</h3>
                 {cardItems.map(item => (
                   <div key={item.id} className="flex items-center justify-between text-xs p-1.5 bg-galileo-accent/50 rounded">
                     <span>{item.description}</span>
@@ -288,7 +288,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
             {/* Amount Field (conditionally disabled if card bill) */}
             <FormField control={form.control} name="amount" render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-galileo-text">Valor</FormLabel>
+                <FormLabel className="text-white font-medium">Valor</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="Ex: 150,00"
@@ -392,7 +392,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
             {/* Due Date Field */}
             <FormField control={form.control} name="dueDate" render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-galileo-text">Data de Vencimento</FormLabel>
+                <FormLabel className="text-white font-medium">Data de Vencimento</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input type="date" {...field} className="bg-galileo-accent text-white placeholder:text-gray-300 appearance-none" />
@@ -407,7 +407,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
             <FormField control={form.control} name="isRecurring" render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-galileo-text">Conta Recorrente</FormLabel>
+                  <FormLabel className="text-white font-medium">Conta Recorrente</FormLabel>
                 </div>
                 <FormControl>
                   <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -421,7 +421,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
                 <FormField control={form.control} name="isInfiniteRecurrence" render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-galileo-text">Recorrência Infinita</FormLabel>
+                      <FormLabel className="text-white font-medium">Recorrência Infinita</FormLabel>
                     </div>
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -431,7 +431,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
                 {!isInfiniteRecurrence && (
                   <FormField control={form.control} name="totalInstallments" render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-galileo-text">Número de Parcelas</FormLabel>
+                      <FormLabel className="text-white font-medium">Número de Parcelas</FormLabel>
                       <FormControl>
                         <Input placeholder="Ex: 12" {...field} className="bg-galileo-accent text-white placeholder:text-gray-300" />
                       </FormControl>
@@ -446,7 +446,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
             <FormField control={form.control} name="notificationsEnabled" render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-galileo-text">Notificações Ativadas</FormLabel>
+                  <FormLabel className="text-white font-medium">Notificações Ativadas</FormLabel>
                 </div>
                 <FormControl>
                   <Checkbox checked={field.value} onCheckedChange={field.onChange} />

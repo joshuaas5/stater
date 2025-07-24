@@ -248,7 +248,7 @@ const RecurringTransactionsPage: React.FC = () => {
       <div className="relative z-10 p-4">
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-white">
                   {stats.totalRecurring}
@@ -257,7 +257,7 @@ const RecurringTransactionsPage: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-white">
                   {stats.byFrequency.weekly}
@@ -266,7 +266,7 @@ const RecurringTransactionsPage: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-white">
                   {stats.byFrequency.monthly}
@@ -275,7 +275,7 @@ const RecurringTransactionsPage: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-white">
                   {stats.byFrequency.yearly}
@@ -289,7 +289,7 @@ const RecurringTransactionsPage: React.FC = () => {
         {/* Lista de Transações Recorrentes */}
         <div className="space-y-4">
           {recurringTransactions.length === 0 ? (
-            <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-8 text-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-8 text-center">
               <BarChart3 className="h-12 w-12 text-white/40 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-white mb-2">
                 Nenhuma transação recorrente
@@ -314,7 +314,7 @@ const RecurringTransactionsPage: React.FC = () => {
             </div>
           ) : (
             recurringTransactions.map((transaction) => (
-              <div key={transaction.id} className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-4">
+              <div key={transaction.id} className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex items-start gap-4 flex-1">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
@@ -412,7 +412,7 @@ const RecurringTransactionsPage: React.FC = () => {
           </div>
 
           {recurringBills.length === 0 ? (
-            <div className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-8 text-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-8 text-center">
               <Calendar className="h-12 w-12 text-white/40 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-white mb-2">
                 Nenhuma conta recorrente
@@ -429,7 +429,7 @@ const RecurringTransactionsPage: React.FC = () => {
             </div>
           ) : (
             recurringBills.map((bill) => (
-              <div key={bill.id} className="bg-white/10 backdrop-blur-xl rounded-lg border border-white/20 p-4">
+              <div key={bill.id} className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex items-start gap-4 flex-1">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center bg-orange-500/20 border border-orange-400/30">

@@ -234,7 +234,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
             <FormField control={form.control} name="isCardBill" render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-white font-semibold">Fatura de Cartão de Crédito</FormLabel>
+                  <FormLabel className="text-white font-medium">Fatura de Cartão de Crédito</FormLabel>
                 </div>
                 <FormControl>
                   <Switch checked={field.value} onCheckedChange={field.onChange} />

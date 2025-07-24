@@ -3107,18 +3107,22 @@ return (
             }}>
               {editableTransactions.map((transaction, index) => (
                 <div key={index} style={{
-                  background: 'rgba(255, 255, 255, 0.95)', // Fundo bem sólido
+                  background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(10px)',
                   borderRadius: '15px',
                   padding: '20px',
                   border: '2px solid rgba(59, 130, 246, 0.3)',
-                  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+                  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column'
                 }}>
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'flex-start',
-                    marginBottom: '15px'
+                    marginBottom: '15px',
+                    gap: '10px'
                   }}>
                     <div style={{ flex: 1 }}>
                       <div style={{
@@ -3376,17 +3380,25 @@ return (
                         background: 'rgba(239, 68, 68, 0.1)',
                         border: '2px solid #ef4444',
                         borderRadius: '8px',
-                        color: '#dc2626', // Vermelho escuro
+                        color: '#dc2626',
                         padding: '8px',
                         cursor: 'pointer',
                         fontSize: '14px',
                         fontWeight: 'bold',
-                        marginLeft: '10px',
                         width: '36px',
                         height: '36px',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        position: 'relative',
+                        zIndex: 10
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
                       }}
                     >
                       🗑️

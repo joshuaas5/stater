@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from "@/components/ui/checkbox";
-import { Bill, CardItem, EXPENSE_CATEGORIES } from '@/types';
-import { getCurrentUser, saveBill } from '@/utils/localStorage';
+import { Bill, CardItem, EXPENSE_CATEGORIES, Transaction } from '@/types';
+import { getCurrentUser, saveBill, saveTransaction } from '@/utils/localStorage';
 import { Calendar, Plus, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -35,6 +35,8 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
   const [cardItems, setCardItems] = useState<CardItem[]>([]);
   const [cardItemDescription, setCardItemDescription] = useState('');
   const [cardItemAmount, setCardItemAmount] = useState('');
+  const [categorySearchTerm, setCategorySearchTerm] = useState('');
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,6 +56,11 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
   const isCardBill = form.watch('isCardBill');
   const isRecurring = form.watch('isRecurring');
   const isInfiniteRecurrence = form.watch('isInfiniteRecurrence');
+
+  // Filtrar categorias com base na busca
+  const filteredCategories = EXPENSE_CATEGORIES.filter(category =>
+    category.toLowerCase().includes(categorySearchTerm.toLowerCase())
+  );
 
   const handleAddCardItem = () => {
     if (cardItemDescription && cardItemAmount) {
@@ -80,6 +87,8 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
     setCardItems([]);
     setCardItemDescription('');
     setCardItemAmount('');
+    setCategorySearchTerm('');
+    setIsCategoryDropdownOpen(false);
     onClose();
   };
 
@@ -145,6 +154,24 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
       };
       saveBill(newBill);
       savedBill = newBill;
+      
+      // Se for recorrente, criar também uma transação recorrente
+      if (values.isRecurring) {
+        const recurringTransaction: Transaction = {
+          id: uuidv4(),
+          title: `${values.title} (Recorrente)`,
+          amount: -amount, // Negativo para despesa
+          type: 'expense' as const,
+          category: values.category,
+          date: originalDueDate,
+          userId: user.id,
+          isRecurring: true,
+          recurrenceFrequency: 'monthly',
+          recurringDay: recurringDay,
+          recurringWeekday: originalDueDate.getDay()
+        };
+        saveTransaction(recurringTransaction);
+      }
     }
     if (onSuccess && savedBill) onSuccess(savedBill);
     handleClose();
@@ -181,7 +208,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
             <FormField control={form.control} name="isCardBill" render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-galileo-text">Fatura de Cartão?</FormLabel>
+                  <FormLabel className="text-galileo-text font-semibold">Fatura de Cartão de Crédito</FormLabel>
                 </div>
                 <FormControl>
                   <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -219,7 +246,12 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
                     onChange={(e) => setCardItemAmount(e.target.value)}
                     className="bg-galileo-accent text-white placeholder:text-gray-300 text-sm p-1.5 w-20"
                   />
-                  <Button type="button" onClick={handleAddCardItem} size="sm" className="p-1.5 bg-galileo-primary/80 hover:bg-galileo-primary">
+                  <Button 
+                    type="button" 
+                    onClick={handleAddCardItem} 
+                    size="sm" 
+                    className="p-2 bg-galileo-primary/80 hover:bg-galileo-primary text-white border border-galileo-primary"
+                  >
                     <Plus size={16} />
                   </Button>
                 </div>
@@ -242,23 +274,62 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
               </FormItem>
             )} />
             
-            {/* Category Field */}
+            {/* Category Field with Search */}
             <FormField control={form.control} name="category" render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-galileo-text">Categoria</FormLabel>
                 <FormControl>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <SelectTrigger className="bg-galileo-accent text-white">
-                      <SelectValue placeholder="Selecione uma categoria" className="text-white" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-galileo-card text-galileo-text">
-                      {EXPENSE_CATEGORIES.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="relative">
+                    <div 
+                      className="bg-galileo-accent text-white p-3 rounded-md border cursor-pointer flex justify-between items-center"
+                      onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                    >
+                      <span className={field.value ? "text-white" : "text-gray-300"}>
+                        {field.value || "Selecione uma categoria"}
+                      </span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                    
+                    {isCategoryDropdownOpen && (
+                      <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg">
+                        {/* Campo de busca */}
+                        <div className="p-2 border-b">
+                          <Input
+                            type="text"
+                            placeholder="Buscar categoria..."
+                            value={categorySearchTerm}
+                            onChange={(e) => setCategorySearchTerm(e.target.value)}
+                            className="w-full text-black"
+                          />
+                        </div>
+                        
+                        {/* Lista de categorias */}
+                        <div className="max-h-40 overflow-y-auto">
+                          {filteredCategories.length > 0 ? (
+                            filteredCategories.map((category) => (
+                              <div
+                                key={category}
+                                className="p-2 hover:bg-gray-100 cursor-pointer text-black"
+                                onClick={() => {
+                                  field.onChange(category);
+                                  setIsCategoryDropdownOpen(false);
+                                  setCategorySearchTerm('');
+                                }}
+                              >
+                                {category}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-2 text-gray-500 text-center">
+                              Nenhuma categoria encontrada
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

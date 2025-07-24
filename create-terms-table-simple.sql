@@ -1,4 +1,4 @@
--- Script simplificado para criar tabela de aceite dos termos
+  -- Script simplificado para criar tabela de aceite dos termos
 -- Execute este SQL no Supabase SQL Editor
 
 CREATE TABLE user_terms_acceptance (

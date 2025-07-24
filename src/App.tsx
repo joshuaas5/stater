@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotificationToastManager from "@/components/notifications/NotificationToastManager";
 import { startRecurringProcessor } from "@/utils/recurringProcessor";
+import { initializeBillNotifications } from "@/utils/billNotifications";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import TermsWrapper from "@/components/terms/TermsWrapper";
 import { appRoutes } from "@/router/routes";
@@ -17,6 +18,9 @@ const queryClient = new QueryClient();
 
 // PROCESSADOR AUTOMÁTICO REMOVIDO - Sistema manual apenas para evitar notificações indesejadas
 // startRecurringProcessor();
+
+// Inicializar sistema de notificações de contas
+initializeBillNotifications();
 
 // Component to handle route preloading
 const RoutePreloadingProvider = ({ children }: { children: React.ReactNode }) => {

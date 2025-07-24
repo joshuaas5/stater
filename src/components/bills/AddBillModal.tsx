@@ -13,6 +13,7 @@ import { getCurrentUser, saveBill, saveTransaction } from '@/utils/localStorage'
 import { clearNotificationCache } from '@/utils/billNotifications';
 import { Calendar, Plus, X, Tag, ChevronDown, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { UserPlanManager } from '@/utils/userPlanManager';
 
 interface AddBillModalProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
   const [cardItemAmount, setCardItemAmount] = useState('');
   const [categorySearchTerm, setCategorySearchTerm] = useState('');
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [userId] = useState<string>('user_001'); // TODO: Pegar do contexto de auth
 
   // Close dropdown when clicking outside
   React.useEffect(() => {
@@ -195,6 +197,11 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
         saveTransaction(recurringTransaction);
       }
     }
+    
+    // Incrementar uso apenas aqui no modal (evitar duplicação)
+    UserPlanManager.incrementUsage(userId, 'billsAdded').catch(error => {
+      console.error('❌ [MODAL] Erro ao incrementar uso de bills:', error);
+    });
     
     // Limpar cache de notificações para atualizar imediatamente
     // REMOVIDO: clearNotificationCache(); - Usuário não quer notificações ao adicionar conta

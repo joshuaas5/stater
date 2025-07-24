@@ -168,16 +168,12 @@ const AddBillPage: React.FC = () => {
       saveBill(newBill);
     }
     
-    // Incrementar o uso de bills para monetização
-    UserPlanManager.incrementUsage(userId, 'billsAdded').catch(error => {
-      console.error('Erro ao incrementar uso de bills:', error);
-    });
+    // REMOVIDO: Incremento de uso movido para o AddBillModal para evitar duplicação
+    // UserPlanManager.incrementUsage(userId, 'billsAdded').catch(error => {
+    //   console.error('Erro ao incrementar uso de bills:', error);
+    // });
     
-    toast({
-      title: "Conta adicionada",
-      description: "A conta foi adicionada com sucesso."
-    });
-    
+    // Navegar de volta para a página de bills (sem toast de notificação)
     navigate('/bills');
   };
 

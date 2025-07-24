@@ -166,17 +166,25 @@ const BillsPage: React.FC = () => {
   };
 
   const handleAddBill = async () => {
+    console.log('🎯 [MONETIZAÇÃO] handleAddBill chamado para userId:', userId);
+    
     try {
       // Verificar se usuário atingiu paywall
       const hasReachedPaywall = await AdManager.hasReachedPaywall(userId);
+      console.log('🚫 [PAYWALL] hasReachedPaywall:', hasReachedPaywall);
+      
       if (hasReachedPaywall) {
+        console.log('🚫 [PAYWALL] Abrindo paywall');
         openPaywall('bills');
         return;
       }
 
       // Verificar limites diários para usuários gratuitos
       const canAddBill = await UserPlanManager.checkDailyLimit(userId, 'bills');
+      console.log('📊 [LIMITE] canAddBill:', canAddBill);
+      
       if (!canAddBill) {
+        console.log('📊 [LIMITE] Limite atingido, abrindo paywall');
         toast({
           title: 'Limite diário atingido',
           description: 'Você atingiu o limite de contas para hoje. Faça upgrade para adicionar ilimitadas!',
@@ -187,16 +195,19 @@ const BillsPage: React.FC = () => {
 
       // Verificar se deve mostrar anúncio
       const shouldShowAd = await AdManager.shouldShowAdForBill(userId);
+      console.log('🎬 [AD] shouldShowAd:', shouldShowAd);
       
       if (shouldShowAd) {
+        console.log('🎬 [AD] Mostrando anúncio');
         showAd('bills');
       } else {
+        console.log('➡️ [NAVEGAÇÃO] Indo direto para /add-bill');
         // Ir direto para a página de adicionar conta
         navigate('/add-bill');
       }
       
     } catch (error) {
-      console.error('Erro ao verificar permissões para adicionar conta:', error);
+      console.error('❌ [ERRO] Erro ao verificar permissões para adicionar conta:', error);
       // Em caso de erro, permitir que o usuário continue
       navigate('/add-bill');
     }

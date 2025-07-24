@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
+import { AdBanner } from '@/components/monetization/AdBanner';
 import TransactionItem from '@/components/transactions/TransactionItem';
 import { Transaction, INCOME_CATEGORIES, EXPENSE_CATEGORIES, PlanType } from '@/types';
 import { getTransactions, isLoggedIn, getCurrentUser } from '@/utils/localStorage';
@@ -28,6 +29,17 @@ const Transactions: React.FC = () => {
 
   // Função para clonar transação com monetização
   const handleCloneTransaction = async (transaction: Transaction) => {
+    // Verificar se userId está disponível
+    if (!userId) {
+      console.error('❌ [ERRO] UserId não disponível');
+      toast({
+        title: 'Erro de autenticação',
+        description: 'Por favor, faça login novamente.',
+      });
+      navigate('/login');
+      return;
+    }
+    
     try {
       // Verificar se usuário atingiu paywall
       const hasReachedPaywall = await AdManager.hasReachedPaywall(userId);
@@ -120,7 +132,7 @@ const Transactions: React.FC = () => {
   const [filterType, setFilterType] = useState<string>('all');
   
   // Estados de monetização
-  const [userId] = useState<string>('user_001'); // TODO: Pegar do contexto de auth
+  const [userId, setUserId] = useState<string | null>(null);
   const [userPlan, setUserPlan] = useState<any>(null);
   const [pendingCloneTransaction, setPendingCloneTransaction] = useState<Transaction | null>(null);
   const { isOpen: adModalOpen, adType, showAd, closeAd } = useAdModal();
@@ -132,8 +144,47 @@ const Transactions: React.FC = () => {
       navigate('/login');
       return;
     }
+    initializeUser();
     loadTransactions();
-    loadUserPlan();
+  }, [navigate, selectedMonth, selectedYear]);
+  
+  // Inicializar usuário do Supabase
+  const initializeUser = async () => {
+    try {
+      const { supabase } = await import('@/lib/supabase');
+      const { data: { user }, error } = await supabase.auth.getUser();
+      
+      if (error || !user) {
+        console.error('Erro ao obter usuário:', error);
+        navigate('/login');
+        return;
+      }
+      
+      setUserId(user.id);
+      console.log('🔐 [TRANSACTIONS] Usuário autenticado:', user.id);
+      
+      // Carregar plano após definir userId
+      loadUserPlan(user.id);
+    } catch (error) {
+      console.error('Erro na inicialização do usuário:', error);
+      navigate('/login');
+    }
+  };
+  
+  const loadUserPlan = async (userIdParam?: string) => {
+    const targetUserId = userIdParam || userId;
+    if (!targetUserId) return;
+    
+    try {
+      const plan = await UserPlanManager.getUserPlan(targetUserId);
+      setUserPlan(plan);
+      console.log('📊 [TRANSACTIONS] Plano carregado:', plan.planType);
+    } catch (error) {
+      console.error('Erro ao carregar plano do usuário:', error);
+    }
+  };
+  
+  useEffect(() => {
     // Listener para atualizar quando houver novas transações adicionadas pelo consultor IA
     const handleTransactionsUpdated = () => {
       loadTransactions();
@@ -142,16 +193,7 @@ const Transactions: React.FC = () => {
     return () => {
       window.removeEventListener('transactionsUpdated', handleTransactionsUpdated);
     };
-  }, [navigate, selectedMonth, selectedYear]);
-  
-  const loadUserPlan = async () => {
-    try {
-      const plan = await UserPlanManager.getUserPlan(userId);
-      setUserPlan(plan);
-    } catch (error) {
-      console.error('Erro ao carregar plano do usuário:', error);
-    }
-  };
+  }, []);
 
   // Handlers para monetização
   const handleAdReward = async (success: boolean, reward?: string) => {
@@ -351,7 +393,7 @@ const Transactions: React.FC = () => {
     });
   
   return (
-    <div className="bg-galileo-background min-h-screen pb-20">
+    <div className="bg-galileo-background min-h-screen pb-32">
       <PageHeader 
         title="Transações" 
         showSearch={true}
@@ -686,6 +728,9 @@ const Transactions: React.FC = () => {
         trigger={paywallTrigger}
         userId={userId}
       />
+
+      {/* Banner de Publicidade */}
+      <AdBanner position="bottom" />
       
       <NavBar />
     </div>

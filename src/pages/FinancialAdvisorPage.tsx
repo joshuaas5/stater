@@ -2053,59 +2053,56 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
   const isTransactionRelatedMessage = (message: string): boolean => {
     const lowerMessage = message.toLowerCase().trim();
     
-    // PALAVRAS-CHAVE POSITIVAS - indicam que é sobre transações
-    const transactionKeywords = [
-      // Ações de registro
-      'registrar', 'adicionar', 'anotar', 'salvar', 'incluir',
-      // Tipos de transação
-      'receita', 'despesa', 'gasto', 'compra', 'venda', 'pagamento',
-      'gastei', 'paguei', 'comprei', 'vendi', 'recebi', 'ganhei',
-      // Contextos financeiros com valores
-      'mercado', 'supermercado', 'farmácia', 'conta', 'boleto',
-      'salário', 'freelance', 'trabalho', 'dinheiro'
-    ];
-    
-    // PALAVRAS-CHAVE NEGATIVAS - indicam que NÃO é sobre transações
-    const nonTransactionKeywords = [
+    // FILTROS IMEDIATOS - Se contém essas frases, NÃO É transação
+    const immediateRejectPhrases = [
+      'me da', 'me dá', 'dar um', 'dar uma', 'ceder', 'emprestar',
+      'posso ter', 'pode me dar', 'quero ganhar', 'preciso de',
+      'como conseguir', 'onde arrumar', 'como ganhar dinheiro',
       'teste', 'test', 'oi', 'olá', 'hello', 'hi', 'tchau', 'bye',
-      'som', 'audio', 'microfone', 'como', 'vai', 'tudo', 'bem',
-      'ajuda', 'help', 'sobre', 'app', 'aplicativo', 'funciona'
+      'som', 'audio', 'microfone', 'como vai', 'tudo bem',
+      'ajuda', 'help', 'sobre o app', 'como funciona'
     ];
     
-    // Se contém palavras negativas E não tem valor monetário, não é transação
-    const hasNegativeWords = nonTransactionKeywords.some(keyword => 
-      lowerMessage.includes(keyword)
-    );
-    
-    // Verificar se tem valor monetário (R$, números + reais, etc.)
-    const hasMonetaryValue = /(?:r\$|reais?|real|\d+[.,]\d{2}|\d+\s*reais?)/.test(lowerMessage);
-    
-    // Verificar se tem palavras-chave de transação
-    const hasTransactionKeywords = transactionKeywords.some(keyword => 
-      lowerMessage.includes(keyword)
-    );
-    
-    // LÓGICA DE DECISÃO:
-    // 1. Se tem palavras negativas e não tem valor monetário → NÃO é transação
-    if (hasNegativeWords && !hasMonetaryValue) {
-      console.log('🚫 [FILTER] Mensagem rejeitada - palavras não-transacionais sem valor monetário');
+    // Se contém qualquer frase de rejeição imediata, NÃO é transação
+    if (immediateRejectPhrases.some(phrase => lowerMessage.includes(phrase))) {
+      console.log('🚫 [FILTER] Mensagem rejeitada - frase não-transacional detectada');
       return false;
     }
     
-    // 2. Se tem valor monetário OU palavras-chave de transação → É transação
-    if (hasMonetaryValue || hasTransactionKeywords) {
-      console.log('✅ [FILTER] Mensagem aceita - tem valor monetário ou palavras-chave de transação');
+    // PALAVRAS-CHAVE ESPECÍFICAS DE TRANSAÇÃO REAL
+    const specificTransactionActions = [
+      'registrar receita', 'registrar despesa', 'anotar gasto', 'salvar transação',
+      'adicionar receita', 'adicionar despesa', 'incluir gasto',
+      'gastei', 'paguei', 'comprei', 'vendi', 'recebi por', 'ganhei com',
+      'saiu da conta', 'entrou na conta', 'débito de', 'crédito de'
+    ];
+    
+    // CONTEXTOS ESPECÍFICOS COM VALORES MONETÁRIOS
+    const monetaryContexts = [
+      /(?:gastei|paguei|comprei|recebi|ganhei|entrou|saiu)\s+(?:r\$\s*)?(\d+(?:[.,]\d{2})?)/i,
+      /(?:r\$\s*)?(\d+(?:[.,]\d{2})?)\s+(?:no|na|para|do|da)\s+(?:mercado|supermercado|farmácia|conta|boleto|salário|trabalho)/i,
+      /(?:registr|adicion|inclu|anot)\w*\s+(?:receita|despesa|gasto|transação)/i
+    ];
+    
+    // Verificar se tem ação específica de transação
+    const hasSpecificAction = specificTransactionActions.some(action => 
+      lowerMessage.includes(action)
+    );
+    
+    // Verificar se tem contexto monetário válido
+    const hasValidMonetaryContext = monetaryContexts.some(pattern => 
+      pattern.test(lowerMessage)
+    );
+    
+    // LÓGICA RESTRITIVA:
+    // Só é transação se tem ação específica OU contexto monetário válido
+    if (hasSpecificAction || hasValidMonetaryContext) {
+      console.log('✅ [FILTER] Mensagem aceita - ação específica de transação ou contexto monetário válido');
       return true;
     }
     
-    // 3. Mensagens muito curtas (< 4 caracteres) não são transações
-    if (lowerMessage.length < 4) {
-      console.log('🚫 [FILTER] Mensagem rejeitada - muito curta');
-      return false;
-    }
-    
-    // 4. Por padrão, mensagens genéricas não são consideradas transações
-    console.log('🚫 [FILTER] Mensagem rejeitada - não atende critérios de transação');
+    // Por padrão, todas as outras mensagens NÃO são transações
+    console.log('🚫 [FILTER] Mensagem rejeitada - não é uma ação específica de transação');
     return false;
   };
 

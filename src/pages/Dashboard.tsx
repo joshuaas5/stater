@@ -901,7 +901,7 @@ const Dashboard: React.FC = () => {
             </div>
             <button
               aria-label={balanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 hover:scale-110"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 hover:scale-110 relative z-10"
               onClick={() => setBalanceVisible((v: boolean) => !v)}
               style={{
                 background: 'rgba(255,255,255,0.1)',

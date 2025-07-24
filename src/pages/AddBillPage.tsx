@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { AdBanner } from '@/components/monetization/AdBanner';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Bill, CardItem, EXPENSE_CATEGORIES } from '@/types';
 import { getCurrentUser, saveBill } from '@/utils/localStorage';
@@ -35,7 +36,31 @@ const AddBillPage: React.FC = () => {
   const [cardItems, setCardItems] = useState<CardItem[]>([]);
   const [cardItemDescription, setCardItemDescription] = useState('');
   const [cardItemAmount, setCardItemAmount] = useState('');
-  const [userId] = useState<string>('user_001'); // TODO: Pegar do contexto de auth
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  // Inicializar usuário do Supabase
+  useEffect(() => {
+    const initializeUser = async () => {
+      try {
+        const { supabase } = await import('@/lib/supabase');
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error || !user) {
+          console.error('Erro ao obter usuário:', error);
+          navigate('/login');
+          return;
+        }
+        
+        setUserId(user.id);
+        console.log('🔐 [ADD_BILL] Usuário autenticado:', user.id);
+      } catch (error) {
+        console.error('Erro na inicialização do usuário:', error);
+        navigate('/login');
+      }
+    };
+
+    initializeUser();
+  }, [navigate]);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -178,7 +203,7 @@ const AddBillPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden pb-20" style={{ background: '#31518b' }}>
+    <div className="min-h-screen relative overflow-hidden pb-32" style={{ background: '#31518b' }}>
       {/* Header */}
       <div className="relative z-10 bg-transparent">
         <div className="flex items-center justify-between p-4">
@@ -494,6 +519,10 @@ const AddBillPage: React.FC = () => {
           </Form>
         </div>
       </div>
+      
+      {/* Banner de Publicidade */}
+      <AdBanner position="bottom" />
+      
       <NavBar />
     </div>
   );

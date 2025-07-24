@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import PageHeader from '@/components/header/PageHeader';
 import NavBar from '@/components/navigation/NavBar';
+import { AdBanner } from '@/components/monetization/AdBanner';
 import { Bill, CardItem, EXPENSE_CATEGORIES, PlanType } from '@/types';
 import { getBills, isLoggedIn, markBillAsPaid, saveBill, updateBill, deleteBill } from '@/utils/localStorage';
 import { formatCurrency, getOverdueBills, getBillsDueInNextDays } from '@/utils/dataProcessing';
@@ -86,7 +87,7 @@ const BillsPage: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   
   // Estados de monetização
-  const [userId] = useState<string>('user_001'); // TODO: Pegar do contexto de auth
+  const [userId, setUserId] = useState<string | null>(null);
   const [userPlan, setUserPlan] = useState<any>(null);
   const { isOpen: adModalOpen, adType, showAd, closeAd } = useAdModal();
   const { isOpen: paywallOpen, trigger: paywallTrigger, openPaywall, closePaywall } = usePaywallModal();
@@ -98,14 +99,41 @@ const BillsPage: React.FC = () => {
       navigate('/login');
       return;
     }
+    initializeUser();
     loadBills();
-    loadUserPlan();
   }, [navigate, selectedMonth, selectedYear]); // Adicionado selectedMonth e selectedYear às dependências
   
-  const loadUserPlan = async () => {
+  // Inicializar usuário do Supabase
+  const initializeUser = async () => {
     try {
-      const plan = await UserPlanManager.getUserPlan(userId);
+      const { supabase } = await import('@/lib/supabase');
+      const { data: { user }, error } = await supabase.auth.getUser();
+      
+      if (error || !user) {
+        console.error('Erro ao obter usuário:', error);
+        navigate('/login');
+        return;
+      }
+      
+      setUserId(user.id);
+      console.log('🔐 [BILLS] Usuário autenticado:', user.id);
+      
+      // Carregar plano após definir userId
+      loadUserPlan(user.id);
+    } catch (error) {
+      console.error('Erro na inicialização do usuário:', error);
+      navigate('/login');
+    }
+  };
+  
+  const loadUserPlan = async (userIdParam?: string) => {
+    const targetUserId = userIdParam || userId;
+    if (!targetUserId) return;
+    
+    try {
+      const plan = await UserPlanManager.getUserPlan(targetUserId);
       setUserPlan(plan);
+      console.log('📊 [BILLS] Plano carregado:', plan.planType);
     } catch (error) {
       console.error('Erro ao carregar plano do usuário:', error);
     }
@@ -168,6 +196,17 @@ const BillsPage: React.FC = () => {
   const handleAddBill = async () => {
     console.log('🎯 [MONETIZAÇÃO] handleAddBill chamado para userId:', userId);
     
+    // Verificar se userId está disponível
+    if (!userId) {
+      console.error('❌ [ERRO] UserId não disponível');
+      toast({
+        title: 'Erro de autenticação',
+        description: 'Por favor, faça login novamente.',
+      });
+      navigate('/login');
+      return;
+    }
+    
     try {
       // Verificar se usuário atingiu paywall
       const hasReachedPaywall = await AdManager.hasReachedPaywall(userId);
@@ -215,10 +254,11 @@ const BillsPage: React.FC = () => {
 
   const handleMarkAsPaid = (billId: string) => {
     markBillAsPaid(billId, (bill) => {
-      toast({
-        title: `Conta paga: ${bill.title}`,
-        description: `A conta foi marcada como paga com sucesso.`,
-      });
+      // REMOVIDO: Toast bugado que aparecia "Conta paga: Add (1/2)"
+      // toast({
+      //   title: `Conta paga: ${bill.title}`,
+      //   description: `A conta foi marcada como paga com sucesso.`,
+      // });
       loadBills();
     });
   };
@@ -313,7 +353,7 @@ const BillsPage: React.FC = () => {
   const [editBill, setEditBill] = useState<Bill | null>(null);
 
   return (
-    <div className="flex flex-col min-h-screen pb-16" style={{ background: '#31518b' }}>
+    <div className="flex flex-col min-h-screen pb-32" style={{ background: '#31518b' }}>
       {/* Header com glassmorphism igual ao Análise Financeira */}
       <div 
         className="sticky top-0 z-50"
@@ -844,6 +884,9 @@ const BillsPage: React.FC = () => {
         trigger={paywallTrigger}
         userId={userId}
       />
+
+      {/* Banner de Publicidade */}
+      <AdBanner position="bottom" />
 
     </div>
   );

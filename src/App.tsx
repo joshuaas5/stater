@@ -1,5 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { CustomToastContainer } from "@/components/ui/CustomToast";
+import { useCustomToast } from "@/hooks/useCustomToast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -28,6 +30,18 @@ const RoutePreloadingProvider = ({ children }: { children: React.ReactNode }) =>
   return <>{children}</>;
 };
 
+// Toast Provider Component
+const ToastProvider = ({ children }: { children: React.ReactNode }) => {
+  const { toasts, removeToast } = useCustomToast();
+  
+  return (
+    <>
+      {children}
+      <CustomToastContainer toasts={toasts} onRemove={removeToast} />
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ErrorBoundary>
@@ -37,10 +51,11 @@ const App = () => (
             <TermsWrapper>
               <NotificationProvider>
                 <RoutePreloadingProvider>
-                  <TooltipProvider>
-                    <Toaster />
-                    <Sonner />
-                    <NotificationToastManager />
+                  <ToastProvider>
+                    <TooltipProvider>
+                      <Toaster />
+                      <Sonner />
+                      <NotificationToastManager />
                     <Routes>
                       {appRoutes.map((route, index) => (
                         <Route
@@ -50,7 +65,8 @@ const App = () => (
                         />
                       ))}
                     </Routes>
-                  </TooltipProvider>
+                    </TooltipProvider>
+                  </ToastProvider>
                 </RoutePreloadingProvider>
               </NotificationProvider>
             </TermsWrapper>

@@ -48,6 +48,45 @@
   pointer-events: auto !important;
 }
 
+/* ANIMAÇÕES CUSTOMIZADAS PARA MODAIS */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.3) translateY(-50px); opacity: 0; }
+  50% { transform: scale(1.1); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes slideInFromTop {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.6); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-bounceIn {
+  animation: bounceIn 0.6s ease-out;
+}
+
+.animate-slideInFromTop {
+  animation: slideInFromTop 0.4s ease-out;
+}
+
+.animate-pulseGlow {
+  animation: pulseGlow 2s infinite;
+}
+
 /* Container de toasts no topo */
 [data-radix-toast-viewport] {
   top: 16px !important;

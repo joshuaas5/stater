@@ -10,6 +10,7 @@ import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
 import NavBar from '@/components/navigation/NavBar';
 import BalanceCard from '@/components/dashboard/BalanceCard';
 import BillsDueWidget from '@/components/bills/BillsDueWidget';
+import NotificationIcon from '@/components/notifications/NotificationIcon';
 import { Eye, EyeOff, Edit } from 'lucide-react';
 import SpendingChart from '@/components/dashboard/SpendingChart';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -835,6 +836,9 @@ const Dashboard: React.FC = () => {
                 Olá, {userName}!
               </h2>
             </div>
+            
+            {/* Notification Icon */}
+            <NotificationIcon />
           </div>
           
           {/* Date Navigation */}

@@ -73,36 +73,51 @@ export const checkBillDueDates = (): BillNotification[] => {
 };
 
 /**
- * Exibe notificações de contas próximas do vencimento
+ * Cache para evitar spam de notificações
+ */
+const notificationCache = new Set<string>();
+
+/**
+ * Exibe notificações de contas próximas do vencimento (apenas as essenciais)
  */
 export const showBillNotifications = (): void => {
   const notifications = checkBillDueDates();
   
-  notifications.forEach(notification => {
+  // Filtrar apenas notificações realmente importantes
+  const importantNotifications = notifications.filter(notification => {
+    const cacheKey = `${notification.billId}_${notification.type}_${new Date().toDateString()}`;
+    
+    // Evitar spam - só mostrar uma vez por dia por conta
+    if (notificationCache.has(cacheKey)) {
+      return false;
+    }
+    
+    // Apenas notificações do dia e atraso até 3 dias
+    if (notification.type === 'week_warning') {
+      return false; // Remover notificações de 7 dias
+    }
+    
+    if (notification.type === 'overdue') {
+      const daysOverdue = Math.ceil((new Date().getTime() - notification.dueDate.getTime()) / (1000 * 3600 * 24));
+      return daysOverdue <= 3; // Só mostrar até 3 dias de atraso
+    }
+    
+    return true;
+  });
+  
+  importantNotifications.forEach(notification => {
+    const cacheKey = `${notification.billId}_${notification.type}_${new Date().toDateString()}`;
+    notificationCache.add(cacheKey);
+    
     switch (notification.type) {
-      case 'week_warning':
+      case 'day_warning':
         toast.warning(notification.title, {
           description: notification.message,
-          duration: 5000,
+          duration: 6000,
           action: {
             label: 'Ver conta',
             onClick: () => {
-              // Navegar para a página de contas
               window.location.hash = '#/bills';
-            }
-          }
-        });
-        break;
-        
-      case 'day_warning':
-        toast.error(notification.title, {
-          description: notification.message,
-          duration: 8000,
-          action: {
-            label: 'Marcar como paga',
-            onClick: () => {
-              // Implementar marcar como paga
-              markBillAsPaid(notification.billId);
             }
           }
         });
@@ -111,9 +126,9 @@ export const showBillNotifications = (): void => {
       case 'overdue':
         toast.error(notification.title, {
           description: notification.message,
-          duration: 10000,
+          duration: 8000,
           action: {
-            label: 'Resolver agora',
+            label: 'Ver conta',
             onClick: () => {
               window.location.hash = '#/bills';
             }
@@ -142,20 +157,37 @@ const markBillAsPaid = (billId: string): void => {
 };
 
 /**
- * Inicializar sistema de notificações automáticas
+ * Inicializar sistema de notificações automáticas (menos invasivo)
  */
 export const initializeBillNotifications = (): void => {
-  // Verificar notificações ao carregar a aplicação
-  showBillNotifications();
-  
-  // Verificar notificações a cada 30 minutos
-  setInterval(() => {
+  // Verificar notificações apenas ao carregar a aplicação
+  setTimeout(() => {
     showBillNotifications();
-  }, 30 * 60 * 1000); // 30 minutos
+  }, 5000); // Aguardar 5 segundos após o carregamento
   
-  // Verificar notificações quando a aba ganhar foco
+  // Verificar notificações apenas 2 vezes por dia (8h e 20h)
+  const checkNotifications = () => {
+    const now = new Date();
+    const hour = now.getHours();
+    
+    // Apenas nos horários estratégicos
+    if (hour === 8 || hour === 20) {
+      showBillNotifications();
+    }
+  };
+  
+  // Verificar a cada hora, mas só notificar nos horários específicos
+  setInterval(checkNotifications, 60 * 60 * 1000); // 1 hora
+  
+  // Verificar quando a aba ganhar foco (apenas uma vez por sessão)
+  let hasCheckedOnFocus = false;
   window.addEventListener('focus', () => {
-    showBillNotifications();
+    if (!hasCheckedOnFocus) {
+      setTimeout(() => {
+        showBillNotifications();
+      }, 2000);
+      hasCheckedOnFocus = true;
+    }
   });
 };
 

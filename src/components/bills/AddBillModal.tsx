@@ -38,6 +38,25 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
   const [categorySearchTerm, setCategorySearchTerm] = useState('');
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.category-dropdown')) {
+        setIsCategoryDropdownOpen(false);
+        setCategorySearchTerm('');
+      }
+    };
+
+    if (isCategoryDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isCategoryDropdownOpen]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -274,44 +293,72 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
               </FormItem>
             )} />
             
-            {/* Category Field with Search */}
+            {/* Category Field with Search - Identical to TransactionModal */}
             <FormField control={form.control} name="category" render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-galileo-text">Categoria</FormLabel>
+                <FormLabel className="text-galileo-text flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-white/80" />
+                  Categoria
+                </FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <div 
-                      className="bg-galileo-accent text-white p-3 rounded-md border cursor-pointer flex justify-between items-center"
+                  <div className="relative category-dropdown">
+                    <button
+                      type="button"
                       onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                      className={`w-full px-4 py-3.5 border-2 rounded-xl transition-all duration-200 outline-none font-medium text-white flex items-center justify-between ${
+                        field.value ? 'border-white/40' : 'border-white/20'
+                      } focus:border-white/40 focus:shadow-lg focus:shadow-white/10`}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)'
+                      }}
                     >
-                      <span className={field.value ? "text-white" : "text-gray-300"}>
-                        {field.value || "Selecione uma categoria"}
+                      <span className={field.value ? 'text-white' : 'text-white/50'}>
+                        {field.value || 'Selecione uma categoria'}
                       </span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`h-4 w-4 transition-transform text-white/70 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
-                    </div>
+                    </button>
                     
                     {isCategoryDropdownOpen && (
-                      <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg">
+                      <div 
+                        className="absolute top-full left-0 right-0 mt-1 border rounded-xl shadow-lg z-50 max-h-60 overflow-hidden"
+                        style={{
+                          background: 'rgba(49, 81, 139, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          borderColor: 'rgba(255, 255, 255, 0.2)'
+                        }}
+                      >
                         {/* Campo de busca */}
-                        <div className="p-2 border-b">
-                          <Input
-                            type="text"
-                            placeholder="Buscar categoria..."
-                            value={categorySearchTerm}
-                            onChange={(e) => setCategorySearchTerm(e.target.value)}
-                            className="w-full text-black"
-                          />
+                        <div className="p-3 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+                          <div className="relative">
+                            <svg className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input
+                              type="text"
+                              placeholder="Buscar categoria..."
+                              value={categorySearchTerm}
+                              onChange={(e) => setCategorySearchTerm(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2 rounded-lg border-0 outline-none font-medium text-white placeholder-white/50"
+                              style={{
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                backdropFilter: 'blur(10px)'
+                              }}
+                              autoFocus={isCategoryDropdownOpen}
+                            />
+                          </div>
                         </div>
                         
                         {/* Lista de categorias */}
-                        <div className="max-h-40 overflow-y-auto">
+                        <div className="max-h-48 overflow-y-auto">
                           {filteredCategories.length > 0 ? (
                             filteredCategories.map((category) => (
-                              <div
+                              <button
                                 key={category}
-                                className="p-2 hover:bg-gray-100 cursor-pointer text-black"
+                                type="button"
+                                className="w-full px-4 py-3 text-left hover:bg-white/10 transition-colors text-white font-medium"
                                 onClick={() => {
                                   field.onChange(category);
                                   setIsCategoryDropdownOpen(false);
@@ -319,10 +366,10 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
                                 }}
                               >
                                 {category}
-                              </div>
+                              </button>
                             ))
                           ) : (
-                            <div className="p-2 text-gray-500 text-center">
+                            <div className="p-4 text-white/50 text-center font-medium">
                               Nenhuma categoria encontrada
                             </div>
                           )}

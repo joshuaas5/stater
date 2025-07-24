@@ -8,9 +8,9 @@ const BillsDueWidget = () => {
 
   const totalDueToday = dueToday.reduce((sum, bill) => sum + bill.amount, 0);
   const totalDueThisWeek = dueThisWeek.reduce((sum, bill) => sum + bill.amount, 0);
-  const totalOverdue = overdue.reduce((sum, bill) => sum + bill.amount, 0);
 
-  if (dueToday.length === 0 && dueThisWeek.length === 0 && overdue.length === 0) {
+  // Não mostrar contas em atraso no dashboard (apenas hoje e esta semana)
+  if (dueToday.length === 0 && dueThisWeek.length === 0) {
     return (
       <Card className="bg-green-50 border-green-200">
         <CardHeader className="pb-2">
@@ -30,38 +30,6 @@ const BillsDueWidget = () => {
 
   return (
     <div className="space-y-3">
-      {/* Contas em Atraso */}
-      {overdue.length > 0 && (
-        <Card className="bg-red-50 border-red-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-red-800 flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              Contas em Atraso ({overdue.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p className="text-lg font-semibold text-red-600">
-                R$ {totalOverdue.toFixed(2)}
-              </p>
-              <div className="space-y-1">
-                {overdue.slice(0, 3).map(bill => (
-                  <div key={bill.id} className="text-xs text-red-700 flex justify-between">
-                    <span className="truncate">{bill.title}</span>
-                    <span>R$ {bill.amount.toFixed(2)}</span>
-                  </div>
-                ))}
-                {overdue.length > 3 && (
-                  <p className="text-xs text-red-600">
-                    +{overdue.length - 3} outras contas...
-                  </p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Contas que Vencem Hoje */}
       {dueToday.length > 0 && (
         <Card className="bg-orange-50 border-orange-200">

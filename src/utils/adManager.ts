@@ -1,4 +1,5 @@
 import { UserPlanManager } from './userPlanManager';
+import { UserJourneyManager } from './userJourneyManager';
 import { PlanType } from '@/types';
 
 export interface AdCooldown {
@@ -9,6 +10,13 @@ export interface AdCooldown {
 export interface AdResult {
   success: boolean;
   reward?: string;
+  error?: string;
+}
+
+export interface RewardedAdResult {
+  success: boolean;
+  rewardGranted: boolean;
+  messagesGranted: number;
   error?: string;
 }
 
@@ -319,6 +327,154 @@ export class AdManager {
       
     } catch (error) {
       console.error('Erro ao forçar paywall:', error);
+    }
+  }
+
+  // ========================================
+  // SISTEMA DE ADS REWARDED (JORNADA 3 DIAS)
+  // ========================================
+
+  /**
+   * Simula um anúncio rewarded para jornada (substituir por AdMob quando disponível)
+   */
+  static async showJourneyRewardedAd(): Promise<RewardedAdResult> {
+    try {
+      // Simular delay do anúncio
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Simular 95% de sucesso (alguns ads podem falhar)
+      const success = Math.random() > 0.05;
+      
+      if (!success) {
+        return {
+          success: false,
+          rewardGranted: false,
+          messagesGranted: 0,
+          error: 'Anúncio não pôde ser carregado. Tente novamente.'
+        };
+      }
+      
+      console.log('🎬 Ad rewarded simulado com sucesso');
+      
+      return {
+        success: true,
+        rewardGranted: true,
+        messagesGranted: 0, // Será definido pelo UserJourneyManager
+      };
+      
+    } catch (error) {
+      console.error('Erro ao mostrar ad rewarded:', error);
+      return {
+        success: false,
+        rewardGranted: false,
+        messagesGranted: 0,
+        error: 'Erro interno do anúncio'
+      };
+    }
+  }
+
+  /**
+   * Executa o fluxo completo de ad rewarded para mensagens
+   */
+  static async watchRewardedAdForMessages(userId: string): Promise<RewardedAdResult> {
+    try {
+      // Verificar se pode assistir ad
+      const canWatch = await UserJourneyManager.canWatchAdForMessages(userId);
+      if (!canWatch.canWatch) {
+        return {
+          success: false,
+          rewardGranted: false,
+          messagesGranted: 0,
+          error: 'Não é possível assistir mais anúncios hoje'
+        };
+      }
+      
+      // Mostrar anúncio
+      const adResult = await this.showJourneyRewardedAd();
+      if (!adResult.success) {
+        return adResult;
+      }
+      
+      // Conceder recompensa
+      const rewardResult = await UserJourneyManager.watchAdReward(userId);
+      if (!rewardResult.success) {
+        return {
+          success: false,
+          rewardGranted: false,
+          messagesGranted: 0,
+          error: 'Erro ao conceder recompensa'
+        };
+      }
+      
+      console.log(`✨ Recompensa concedida: ${rewardResult.messagesGranted} mensagens`);
+      
+      return {
+        success: true,
+        rewardGranted: true,
+        messagesGranted: rewardResult.messagesGranted
+      };
+      
+    } catch (error) {
+      console.error('Erro no fluxo de ad rewarded:', error);
+      return {
+        success: false,
+        rewardGranted: false,
+        messagesGranted: 0,
+        error: 'Erro interno'
+      };
+    }
+  }
+
+  /**
+   * Verifica se o usuário precisa ver ads para continuar usando o app
+   */
+  static async needsRewardedAd(userId: string): Promise<{
+    needsAd: boolean;
+    reason: 'no_messages' | 'daily_limit' | 'paywall_time' | 'none';
+    currentDay: number;
+    adsWatched: number;
+    adsRequired: number;
+  }> {
+    try {
+      const canSend = await UserJourneyManager.canSendMessage(userId);
+      
+      if (canSend.reason === 'need_ad') {
+        return {
+          needsAd: true,
+          reason: 'no_messages',
+          currentDay: canSend.currentDay,
+          adsWatched: canSend.adsWatched,
+          adsRequired: canSend.adsRequired
+        };
+      }
+      
+      if (canSend.reason === 'paywall_required') {
+        return {
+          needsAd: false,
+          reason: 'paywall_time',
+          currentDay: canSend.currentDay,
+          adsWatched: canSend.adsWatched,
+          adsRequired: canSend.adsRequired
+        };
+      }
+      
+      return {
+        needsAd: false,
+        reason: 'none',
+        currentDay: canSend.currentDay,
+        adsWatched: canSend.adsWatched,
+        adsRequired: canSend.adsRequired
+      };
+      
+    } catch (error) {
+      console.error('Erro ao verificar necessidade de ad:', error);
+      return {
+        needsAd: false,
+        reason: 'none',
+        currentDay: 1,
+        adsWatched: 0,
+        adsRequired: 0
+      };
     }
   }
 }

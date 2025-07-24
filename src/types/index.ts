@@ -374,4 +374,5 @@ export interface UserJourney {
   adsWatchedToday: number;
   messagesGrantedToday: number;
   hasReachedPaywall: boolean;
+  lastResetDate?: string; // YYYY-MM-DD - Para controle de reset diário
 }

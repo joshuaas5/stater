@@ -24,7 +24,9 @@ import { LoadingState, CardLoading, useLoadingStates } from '@/components/ui/loa
 import { saveChatMessages, loadChatMessages, clearChatMessages, hasSavedMessages } from '@/utils/chatPersistence';
 import { validateUserInput, validateChatMessage, validateTransactionData, sanitizeString } from '@/utils/dataValidation';
 import { UserPlanManager } from '@/utils/userPlanManager';
+import { UserJourneyManager } from '@/utils/userJourneyManager';
 import { PaywallModal } from '@/components/ui/PaywallModal';
+import { AdRewardModal } from '@/components/monetization/AdRewardModal';
 import { AdManager } from '@/utils/adManager';
 
 
@@ -137,8 +139,13 @@ export const FinancialAdvisorPage: React.FC = () => {
   
   // Estados para monetização e controle de acesso
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showAdReward, setShowAdReward] = useState(false);
   const [messageLimit, setMessageLimit] = useState<number>(3);
   const [messagesUsedToday, setMessagesUsedToday] = useState<number>(0);
+  const [currentDay, setCurrentDay] = useState<number>(1);
+  const [adsWatched, setAdsWatched] = useState<number>(0);
+  const [adsRequired, setAdsRequired] = useState<number>(1);
+  const [isWatchingAd, setIsWatchingAd] = useState(false);
   
   const tts = useTextToSpeech();
   const audioLimits = useAudioLimits(currentUserId || null);
@@ -225,17 +232,32 @@ export const FinancialAdvisorPage: React.FC = () => {
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error || !user) return;
 
-        // Carregar estatísticas do plano
-        const stats = await UserPlanManager.getPlanStats(user.id);
+        // Carregar estatísticas do plano E da jornada
+        const [stats, journeyStatus] = await Promise.all([
+          UserPlanManager.getPlanStats(user.id),
+          UserJourneyManager.getJourneyStatus(user.id)
+        ]);
         
         // Atualizar estado com limites atuais
         setMessageLimit(stats.features.dailyMessages === -1 ? -1 : stats.features.dailyMessages);
         setMessagesUsedToday(stats.todayUsage.messagesUsed);
         
+        // Atualizar estado da jornada
+        setCurrentDay(journeyStatus.journey.currentDay);
+        setAdsWatched(journeyStatus.journey.adsWatchedToday);
+        
+        // Definir ads necessários baseado no dia
+        const dayConfig = journeyStatus.dayConfig;
+        if (dayConfig) {
+          setAdsRequired(dayConfig.adsRequired);
+        }
+        
         console.log(`📊 Status do plano carregado:`, {
           plano: stats.plan.planType,
           limiteMsg: stats.features.dailyMessages,
-          usadasHoje: stats.todayUsage.messagesUsed
+          usadasHoje: stats.todayUsage.messagesUsed,
+          diaAtual: journeyStatus.journey.currentDay,
+          adsAssistidos: journeyStatus.journey.adsWatchedToday
         });
         
       } catch (error) {
@@ -613,6 +635,61 @@ const isAddBillIntent = (msg: string) => {
     setWaitingConfirmation(true);
   }, []);
 
+  // Função para assistir ad rewarded e ganhar mensagens
+  const handleWatchAdReward = async () => {
+    if (!currentUserId) return;
+    
+    setIsWatchingAd(true);
+    
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) {
+        console.error('Usuário não autenticado');
+        return;
+      }
+
+      const result = await AdManager.watchRewardedAdForMessages(user.id);
+      
+      if (result.success && result.messagesGranted > 0) {
+        // Atualizar estados locais
+        const journeyStatus = await UserJourneyManager.getJourneyStatus(user.id);
+        setAdsWatched(journeyStatus.journey.adsWatchedToday);
+        setMessagesUsedToday(journeyStatus.usage.messagesUsed);
+        
+        // Mostrar mensagem de sucesso
+        const successMessage: ChatMessage = {
+          id: uuidv4(),
+          text: `🎉 Parabéns! Você ganhou ${result.messagesGranted} mensagens para usar hoje. Continue explorando o Stater IA!`,
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        };
+        
+        setMessages(prev => [...prev, successMessage]);
+        setShowAdReward(false);
+        
+        console.log(`✨ Ad rewarded assistido com sucesso: +${result.messagesGranted} mensagens`);
+      } else {
+        console.error('Erro no ad rewarded:', result.error);
+        
+        const errorMessage: ChatMessage = {
+          id: uuidv4(),
+          text: result.error || 'Não foi possível processar o anúncio. Tente novamente.',
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        };
+        
+        setMessages(prev => [...prev, errorMessage]);
+      }
+      
+    } catch (error) {
+      console.error('Erro ao assistir ad:', error);
+    } finally {
+      setIsWatchingAd(false);
+    }
+  };
+
 const handleSendMessage = async (message: string, skipAddingUserMessage = false) => {
   // Validação robusta da entrada
   const validatedMessage = validateUserInput(message);
@@ -626,7 +703,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
   const safeMessage = validatedMessage;
 
   // ========================================
-  // VERIFICAÇÃO DE LIMITE DE MENSAGENS IA
+  // VERIFICAÇÃO DA JORNADA PROGRESSIVA
   // ========================================
   if (!skipAddingUserMessage) { // Só verifica limite para mensagens do usuário, não respostas do sistema
     try {
@@ -636,40 +713,37 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         return;
       }
 
-      // Verificar limite de mensagens
-      const { allowed, remaining } = await UserPlanManager.checkAndUseMessage(user.id);
+      // Verificar se pode enviar mensagem baseado na jornada
+      const canSend = await UserJourneyManager.canSendMessage(user.id);
       
-      if (!allowed) {
-        console.log('🚫 Limite de mensagens atingido para usuário:', user.id);
+      if (!canSend.allowed) {
+        console.log('🚫 Mensagem bloqueada. Motivo:', canSend.reason);
         
-        // Mostrar modal de paywall
-        setShowPaywall(true);
-        
-        // Adicionar mensagem informativa do sistema
-        const limitMessage: ChatMessage = {
-          id: uuidv4(),
-          text: "🚫 **Limite diário atingido!**\n\nVocê atingiu o limite de mensagens gratuitas para hoje. Faça upgrade do seu plano para continuar conversando com a IA sem limites!",
-          sender: 'system',
-          timestamp: new Date()
-        };
-        
-        const validatedLimitMessage = validateChatMessage(limitMessage);
-        if (validatedLimitMessage) {
-          setMessages(prev => [...prev, validatedLimitMessage]);
+        if (canSend.reason === 'need_ad') {
+          // Precisa assistir ad para continuar
+          setCurrentDay(canSend.currentDay);
+          setAdsWatched(canSend.adsWatched);
+          setAdsRequired(canSend.adsRequired);
+          setShowAdReward(true);
+          
+          console.log(`🎬 Showing ad modal - Dia ${canSend.currentDay}, Ads: ${canSend.adsWatched}/${canSend.adsRequired}`);
+          return;
+          
+        } else if (canSend.reason === 'paywall_required') {
+          // Precisa fazer upgrade (dia 4+ ou limite esgotado)
+          setShowPaywall(true);
+          
+          console.log(`� Showing paywall - Dia ${canSend.currentDay}, limite esgotado`);
+          return;
         }
-        
-        return; // Bloquear envio da mensagem
       }
       
-      // Atualizar contador na UI
-      setMessagesUsedToday(prev => prev + 1);
-      setMessageLimit(remaining >= 0 ? remaining : -1);
-      
-      console.log(`✅ Mensagem permitida. Restantes hoje: ${remaining >= 0 ? remaining : 'ilimitado'}`);
+      // Se chegou até aqui, pode enviar a mensagem
+      console.log(`✅ Mensagem permitida - Restantes: ${canSend.messagesAvailable - canSend.messagesUsed - 1}`);
       
     } catch (error) {
-      console.error('Erro ao verificar limite de mensagens:', error);
-      setError("Erro ao verificar limite. Tente novamente.");
+      console.error('Erro ao verificar jornada do usuário:', error);
+      setError("Erro interno. Tente novamente.");
       return;
     }
   }
@@ -3805,6 +3879,18 @@ return (
         // Redirecionar para página de planos ou processar upgrade
         navigate('/settings');
       }}
+    />
+    
+    {/* Modal de Ad Rewarded para jornada progressiva */}
+    <AdRewardModal
+      isOpen={showAdReward}
+      onClose={() => setShowAdReward(false)}
+      onWatchAd={handleWatchAdReward}
+      currentDay={currentDay}
+      adsWatched={adsWatched}
+      adsRequired={adsRequired}
+      messagesWillGrant={currentDay <= 3 ? [3, 4, 5][currentDay - 1] : 0}
+      isLoading={isWatchingAd}
     />
   </>
 );

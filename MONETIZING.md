@@ -91,7 +91,8 @@ Este documento centraliza as informações **ESSENCIAIS** sobre a implementaçã
 - **Teste grátis**: 3 dias do plano semanal (com cartão)
 
 #### 💎 **PLANOS PAGOS (Ads Free + Funcionalidades Completas)**
-- **Semanal**: R$ 8,90 - Uso básico + Bot Telegram
+- **🔥 SUPER PROMOÇÃO**: R$ 4,99 - Primeira assinatura semanal (única vez)
+- **Semanal**: R$ 8,90 - Uso básico + Bot Telegram (preço regular)
 - **Mensal**: R$ 15,90 - Uso médio + Relatórios
 - **Pro**: R$ 29,90 - Uso avançado + PDFs
 - **Enterprise**: Contato staterbills@gmail.com
@@ -100,7 +101,27 @@ Este documento centraliza as informações **ESSENCIAIS** sobre a implementaçã
 
 ## 💰 ESTRUTURA DE PLANOS E PREÇOS
 
-### **📱 PLANO SEMANAL - R$ 8,90**
+### **� SUPER PROMOÇÃO - R$ 4,99**
+```
+📊 LIMITES DIÁRIOS:
+- 10 mensagens de texto
+- 3 análises de fotos
+- 3 análises de áudio  
+- 0 leitura de PDFs
+
+🚀 FUNCIONALIDADES:
+- Bot Telegram integrado (limites compartilhados)
+- 100% livre de anúncios
+- Suporte básico
+
+⚡ OFERTA ESPECIAL:
+- Apenas primeira assinatura por usuário
+- 3 dias grátis (requer cartão)
+- Após primeira semana: preço sobe para R$ 8,90
+- Oferta única e limitada
+```
+
+### **�📱 PLANO SEMANAL - R$ 8,90**
 ```
 📊 LIMITES DIÁRIOS:
 - 10 mensagens de texto

@@ -59,8 +59,8 @@ export class SuperwallWeb {
             cursor: pointer;
             transition: all 0.3s;
           " onclick="this.style.borderColor='#4ade80'; this.style.background='rgba(74,222,128,0.2)';">
-            💎 <strong>Semanal</strong> - R$ 8,90
-            <br><small style="opacity: 0.8;">3 dias grátis</small>
+            🎉 <strong>Semanal PROMO</strong> - R$ 4,99
+            <br><small style="opacity: 0.8;">1ª assinatura | Normal: R$ 8,99</small>
           </div>
           
           <div style="

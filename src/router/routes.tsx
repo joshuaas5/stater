@@ -10,6 +10,9 @@ import HomePage from "@/pages/HomePage";
 import HomeRedirect from "@/components/auth/HomeRedirect";
 import Login from "@/pages/Login";
 
+// Superwall Tester (for development)
+import { SuperwallTester } from "@/components/SuperwallTester";
+
 // Lazy loaded pages - optimized loading strategy
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Transactions = lazy(() => import("@/pages/Transactions"));
@@ -93,6 +96,10 @@ export const appRoutes: RouteObject[] = [
   {
     path: "/terms",
     element: <LazyPublicRoute><TermsPage /></LazyPublicRoute>
+  },
+  {
+    path: "/superwall-test",
+    element: <SuperwallTester />
   },
   
   // Main dashboard - special loading with onboarding

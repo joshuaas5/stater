@@ -1,9 +1,9 @@
-import React from 'react';
+import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Shield, Smartphone, Users, BarChart3, Zap, MessageCircle, Camera, Mic, Brain, Bell } from 'lucide-react';
 import { SuperwallPlugin } from '@/plugins/superwall';
-import { StaterPaywallSystem } from '@/plugins/superwall-professional';
+import { StaterPaywallModern } from '../plugins/superwall-modern';
 
 const HomePage: React.FC = () => {
   
@@ -18,24 +18,23 @@ const HomePage: React.FC = () => {
     const platform = detectPlatform();
     
     try {
-      console.log(`🧪 Testando paywall profissional: ${paywallName} na plataforma: ${platform}`);
+      console.log(`🧪 Testando paywall moderno: ${paywallName} na plataforma: ${platform}`);
       
       if (platform === 'web') {
-        // Usar sistema profissional Stater
-        await StaterPaywallSystem.initialize();
-        await StaterPaywallSystem.setUserAttributes({
+        // Usar sistema moderno Stater
+        await StaterPaywallModern.setUserAttributes({
           user_id: 'web_user_' + Date.now(),
           platform: 'web',
           plan: 'free',
           usage: 'high',
-          experiment: 'professional_paywalls_v1',
+          experiment: 'modern_paywalls_v1',
           paywall_trigger: paywallName
         });
         
-        // Apresentar paywall profissional
-        await StaterPaywallSystem.presentPaywall(paywallName, {
+        // Apresentar paywall moderno
+        await StaterPaywallModern.presentPaywall(paywallName, {
           source: 'homepage_test',
-          experiment: 'professional_system'
+          experiment: 'modern_system'
         });
         
       } else {

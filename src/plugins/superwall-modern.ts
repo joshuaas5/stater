@@ -1,60 +1,21 @@
-// 💰 STATER PAYWALL SYSTEM - VERSÃO PROFISSIONAL
-// Sistema de paywalls standalone baseado no planejamento CMO-level
+/**
+ * STATER PAYWALL SYSTEM - VERSÃO MODERNA
+ * Design dark/purple inspirado na imagem do usuário
+ * Apenas funcionalidades REAIS do app
+ * Sem fake testimonials ou métricas inventadas
+ */
 
-export class StaterPaywallSystem {
-  private static isInitialized = false;
-  private static config = {
-    brandColors: {
-      primary: '#2563eb',
-      success: '#10b981',
-      warning: '#f59e0b',
-      danger: '#dc2626',
-      purple: '#7c3aed'
-    },
-    pricing: {
-      superPromo: 4.99,
-      weekly: 8.99,
-      monthly: 15.90,
-      yearly: 29.90
-    }
-  };
+export class StaterPaywallModern {
   
-  static async initialize(options: any = {}) {
-    console.log('🚀 Inicializando Stater Paywall System Professional');
-    this.isInitialized = true;
-    return { success: true, platform: 'professional' };
-  }
-  
-  static async presentPaywall(type: string, context: any = {}) {
-    if (!this.isInitialized) {
-      throw new Error('StaterPaywallSystem não foi inicializado.');
-    }
+  static async presentPaywall(identifier: string, options: any = {}) {
+    console.log('🎨 Apresentando paywall moderno:', identifier);
     
-    console.log(`💎 Apresentando paywall profissional: ${type}`, context);
+    // Inject CSS moderno
+    this.injectModernCSS();
     
-    // Selecionar template baseado no tipo
-    let paywallHTML = '';
-    
-    switch (type) {
-      case 'onboarding':
-        paywallHTML = this.createOnboardingPaywall();
-        break;
-      case 'limit_reached':
-        paywallHTML = this.createLimitReachedPaywall();
-        break;
-      case 'super_promo':
-        paywallHTML = this.createSuperPromoPaywall();
-        break;
-      case 'premium_upgrade':
-        paywallHTML = this.createPremiumUpgradePaywall();
-        break;
-      default:
-        paywallHTML = this.createOnboardingPaywall();
-        break;
-    }
-    
-    // Criar modal profissional
+    // Criar modal
     const modal = document.createElement('div');
+    modal.id = 'stater-paywall-modal';
     modal.style.cssText = `
       position: fixed;
       top: 0;
@@ -66,397 +27,44 @@ export class StaterPaywallSystem {
       display: flex;
       justify-content: center;
       align-items: center;
-      animation: fadeIn 0.4s ease-out;
+      animation: fadeIn 0.3s ease-out;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      backdrop-filter: blur(8px);
     `;
     
+    // Escolher paywall baseado no identifier
+    let paywallHTML = '';
+    switch (identifier) {
+      case 'onboarding':
+        paywallHTML = this.createOnboardingPaywall();
+        break;
+      case 'super_promo':
+        paywallHTML = this.createSuperPromoPaywall();
+        break;
+      case 'limit_reached':
+        paywallHTML = this.createLimitReachedPaywall();
+        break;
+      case 'premium_upgrade':
+        paywallHTML = this.createPremiumUpgradePaywall();
+        break;
+      default:
+        paywallHTML = this.createOnboardingPaywall();
+    }
+    
     modal.innerHTML = paywallHTML;
-    
-    // Adicionar CSS profissional
-    this.injectProfessionalCSS();
-    
     document.body.appendChild(modal);
     
     // Event listeners
-    this.attachEventListeners(modal, type);
+    this.attachEventListeners(modal, identifier);
     
-    // Auto-remove após 90 segundos
-    setTimeout(() => {
-      if (document.body.contains(modal)) {
-        modal.remove();
-      }
-    }, 90000);
-    
-    return { success: true, paywall: type, context };
+    return { success: true };
   }
   
-  private static createOnboardingPaywall(): string {
-    return `
-      <div class="stater-paywall-container stater-modern-dark">
-        <!-- Header moderno com gradiente roxo -->
-        <div class="stater-header-modern">
-          <div class="stater-lifetime-badge">🔥 OFERTA ESPECIAL</div>
-          
-          <div class="stater-discount-circle">
-            <div class="stater-discount-percent">50<span class="stater-percent">%</span></div>
-            <div class="stater-discount-text">OFF</div>
-          </div>
-          
-          <h1 class="stater-modern-title">
-            Stater Premium
-          </h1>
-          <p class="stater-modern-subtitle">
-            Organize suas finanças com IA
-          </p>
-        </div>
-        
-        <!-- Conteúdo moderno -->
-        <div class="stater-modern-content">
-          <!-- Preços comparativos -->
-          <div class="stater-price-display">
-            <div class="stater-old-price-line">De R$ 8,99/semana</div>
-            <div class="stater-new-price-display">Por apenas <span class="stater-big-price">R$ 4,99</span></div>
-            <div class="stater-price-detail">primeira semana</div>
-          </div>
-          
-          <!-- Benefícios REAIS do app -->
-          <div class="stater-real-benefits">
-            <h3 class="stater-benefits-title">✨ O que você vai ter acesso:</h3>
-            
-            <div class="stater-benefit-real">
-              <span class="stater-icon-real">🎙️</span>
-              <div>
-                <strong>Comando de Voz IA</strong>
-                <div class="stater-benefit-desc">Fale "gastei 50 reais no mercado" e a IA organiza automaticamente</div>
-              </div>
-            </div>
-            
-            <div class="stater-benefit-real">
-              <span class="stater-icon-real">📱</span>
-              <div>
-                <strong>Scan de Documentos</strong>
-                <div class="stater-benefit-desc">Fotografe notas fiscais e a IA digitaliza tudo em segundos</div>
-              </div>
-            </div>
-            
-            <div class="stater-benefit-real">
-              <span class="stater-icon-real">🤖</span>
-              <div>
-                <strong>Bot Telegram Incluído</strong>
-                <div class="stater-benefit-desc">Consulte seus gastos de qualquer lugar pelo Telegram</div>
-              </div>
-            </div>
-            
-            <div class="stater-benefit-real">
-              <span class="stater-icon-real">📊</span>
-              <div>
-                <strong>Análises Ilimitadas</strong>
-                <div class="stater-benefit-desc">Relatórios completos sem limites de uso</div>
-              </div>
-            </div>
-            
-            <div class="stater-benefit-real">
-              <span class="stater-icon-real">🚫</span>
-              <div>
-                <strong>Zero Anúncios</strong>
-                <div class="stater-benefit-desc">Use o app sem interrupções ou propagandas</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- CTA moderno -->
-          <button class="stater-cta-modern" onclick="window.StaterPaywall.handlePurchase('onboarding', 'promo_start')">
-            <div class="stater-cta-text">Ativar Oferta Especial</div>
-            <div class="stater-cta-price">R$ 4,99 • primeira semana</div>
-          </button>
-          
-          <button class="stater-cta-skip" onclick="window.StaterPaywall.close()">
-            Continuar com versão gratuita
-          </button>
-          
-          <p class="stater-modern-disclaimer">
-            Cancele quando quiser • Sem compromisso • Dados seguros
-          </p>
-        </div>
-      </div>
-    `;
-  }
-  
-  private static createLimitReachedPaywall(): string {
-    return `
-      <div class="stater-paywall-container stater-limit-reached">
-        <!-- Header de alerta -->
-        <div class="stater-header stater-emergency">
-          <div class="stater-warning-icon">⚠️</div>
-          <h1 class="stater-title">
-            Ops! Você Atingiu Seu Limite Diário
-          </h1>
-          <p class="stater-subtitle">
-            Mas seus gastos não param... Que tal ter controle total?
-          </p>
-        </div>
-        
-        <!-- Conteúdo -->
-        <div class="stater-content">
-          <!-- Urgência -->
-          <div class="stater-urgency-alert">
-            🚨 Enquanto você está limitado, suas despesas continuam correndo soltas...
-          </div>
-          
-          <!-- Problemas -->
-          <div class="stater-problems">
-            <h3 class="stater-problems-title">
-              Neste exato momento você pode estar:
-            </h3>
-            <div class="stater-problem-item">
-              <span class="stater-x">❌</span>
-              <span>Perdendo dinheiro em assinaturas esquecidas</span>
-            </div>
-            <div class="stater-problem-item">
-              <span class="stater-x">❌</span>
-              <span>Pagando juros desnecessários</span>
-            </div>
-            <div class="stater-problem-item">
-              <span class="stater-x">❌</span>
-              <span>Deixando passar oportunidades de economia</span>
-            </div>
-            <div class="stater-problem-item">
-              <span class="stater-x">❌</span>
-              <span>Repetindo erros financeiros do passado</span>
-            </div>
-          </div>
-          
-          <!-- Solução -->
-          <div class="stater-solution">
-            <div class="stater-solution-title">
-              💡 Com o Stater PRO você nunca mais ficará no escuro
-            </div>
-            <div class="stater-solution-subtitle">
-              Por menos que um café por dia, tenha controle total
-            </div>
-          </div>
-          
-          <!-- Benefícios Pro -->
-          <div class="stater-pro-benefits">
-            <div class="stater-pro-benefit">
-              <span class="stater-icon">🔄</span>
-              <span>Análises ILIMITADAS</span>
-            </div>
-            <div class="stater-pro-benefit">
-              <span class="stater-icon">🔔</span>
-              <span>Alertas em tempo real</span>
-            </div>
-            <div class="stater-pro-benefit">
-              <span class="stater-icon">🤖</span>
-              <span>Bot Telegram 24/7</span>
-            </div>
-            <div class="stater-pro-benefit">
-              <span class="stater-icon">🚫</span>
-              <span>Zero anúncios</span>
-            </div>
-          </div>
-          
-          <!-- CTA -->
-          <button class="stater-cta-emergency" onclick="window.StaterPaywall.handlePurchase('limit_reached', 'emergency_unlock')">
-            🚨 DESBLOQUEAR AGORA - R$ 4,99
-          </button>
-          
-          <button class="stater-cta-secondary" onclick="window.StaterPaywall.close()">
-            Continuar limitado
-          </button>
-          
-          <p class="stater-disclaimer">
-            ⏰ Última chance • Primeira semana R$ 4,99 • Depois R$ 8,99/semana
-          </p>
-        </div>
-      </div>
-    `;
-  }
-  
-  private static createSuperPromoPaywall(): string {
-    return `
-      <div class="stater-paywall-container stater-modern-dark stater-lifetime">
-        <!-- Badge flutuante -->
-        <div class="stater-floating-badge">🔥 OFERTA POR TEMPO LIMITADO</div>
-        
-        <!-- Header com círculo de desconto grande -->
-        <div class="stater-header-lifetime">
-          <div class="stater-mega-discount">
-            <div class="stater-discount-number">60<span class="stater-percent-large">%</span></div>
-            <div class="stater-discount-label">OFF</div>
-          </div>
-          
-          <h1 class="stater-lifetime-title">
-            Lifetime Discount
-          </h1>
-          <p class="stater-lifetime-subtitle">
-            Stater Premium com desconto vitalício
-          </p>
-        </div>
-        
-        <!-- Conteúdo da oferta especial -->
-        <div class="stater-lifetime-content">
-          <!-- Preço destacado -->
-          <div class="stater-lifetime-pricing">
-            <div class="stater-was-price">Era R$ 8,99/semana</div>
-            <div class="stater-now-price">
-              Agora <span class="stater-mega-price">R$ 4,99</span>
-            </div>
-            <div class="stater-forever-text">para sempre na primeira semana</div>
-          </div>
-          
-          <!-- O que está incluído (REAL) -->
-          <div class="stater-included-section">
-            <h3 class="stater-included-title">🎁 Tudo incluído no Stater Premium:</h3>
-            
-            <div class="stater-included-grid">
-              <div class="stater-included-item">
-                <div class="stater-included-icon">🎙️</div>
-                <div class="stater-included-text">Comando de voz IA</div>
-              </div>
-              
-              <div class="stater-included-item">
-                <div class="stater-included-icon">📸</div>
-                <div class="stater-included-text">Scan de documentos</div>
-              </div>
-              
-              <div class="stater-included-item">
-                <div class="stater-included-icon">🤖</div>
-                <div class="stater-included-text">Bot Telegram</div>
-              </div>
-              
-              <div class="stater-included-item">
-                <div class="stater-included-icon">📊</div>
-                <div class="stater-included-text">Análises ilimitadas</div>
-              </div>
-              
-              <div class="stater-included-item">
-                <div class="stater-included-icon">�</div>
-                <div class="stater-included-text">Zero anúncios</div>
-              </div>
-              
-              <div class="stater-included-item">
-                <div class="stater-included-icon">☁️</div>
-                <div class="stater-included-text">Backup automático</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Urgência -->
-          <div class="stater-urgency-timer">
-            ⏰ Esta oferta expira em breve
-          </div>
-          
-          <!-- CTA principal -->
-          <button class="stater-cta-lifetime" onclick="window.StaterPaywall.handlePurchase('super_promo', 'lifetime_discount')">
-            <div class="stater-cta-main-text">Ativar Desconto Vitalício</div>
-            <div class="stater-cta-sub-text">R$ 4,99 • Economia de 60%</div>
-          </button>
-          
-          <button class="stater-cta-skip" onclick="window.StaterPaywall.close()">
-            Não quero economizar
-          </button>
-          
-          <p class="stater-lifetime-disclaimer">
-            Oferta por tempo limitado • Preço especial mantido para sempre
-          </p>
-        </div>
-      </div>
-    `;
-  }
-  
-  private static createPremiumUpgradePaywall(): string {
-    return `
-      <div class="stater-paywall-container stater-premium">
-        <!-- Header premium -->
-        <div class="stater-header stater-premium-header">
-          <div class="stater-premium-badge">👑 PREMIUM</div>
-          
-          <div class="stater-trophy">🏆</div>
-          <h1 class="stater-title">
-            Seja um Expert Financeiro
-          </h1>
-          <p class="stater-subtitle">
-            Transforme suas finanças com ferramentas profissionais
-          </p>
-        </div>
-        
-        <!-- Conteúdo -->
-        <div class="stater-content">
-          <!-- Status atual vs Premium -->
-          <div class="stater-comparison">
-            <div class="stater-current-status">
-              <div class="stater-status-title">❌ Sua situação atual:</div>
-              <div class="stater-status-item">• Análises limitadas por dia</div>
-              <div class="stater-status-item">• Sem alertas em tempo real</div>
-              <div class="stater-status-item">• Relatórios básicos</div>
-            </div>
-            
-            <div class="stater-premium-status">
-              <div class="stater-status-title">✅ Com Stater Premium:</div>
-              <div class="stater-status-item">• Análises ILIMITADAS 24/7</div>
-              <div class="stater-status-item">• IA monitora suas finanças 24h</div>
-              <div class="stater-status-item">• Relatórios executivos completos</div>
-            </div>
-          </div>
-          
-          <!-- Planos -->
-          <div class="stater-plans">
-            <div class="stater-plan stater-plan-promo">
-              <div class="stater-plan-badge">PRIMEIRA VEZ</div>
-              <div class="stater-plan-title">
-                🎉 Semanal - R$ 4,99
-              </div>
-              <div class="stater-plan-detail">Promoção especial • Depois R$ 8,99</div>
-            </div>
-            
-            <div class="stater-plan stater-plan-recommended">
-              <div class="stater-plan-badge">RECOMENDADO</div>
-              <div class="stater-plan-title">
-                👑 Mensal - R$ 15,90
-              </div>
-              <div class="stater-plan-detail">7 dias grátis • Cancele quando quiser</div>
-            </div>
-            
-            <div class="stater-plan">
-              <div class="stater-plan-title">
-                🔥 Pro Anual - R$ 29,90
-              </div>
-              <div class="stater-plan-detail">Melhor custo-benefício</div>
-            </div>
-          </div>
-          
-          <!-- Prova social premium -->
-          <div class="stater-premium-social">
-            <div class="stater-stars">⭐⭐⭐⭐⭐</div>
-            <div class="stater-testimonial">
-              "Com o Premium, economizei R$ 1.200 em 2 meses!" - Carlos M.
-            </div>
-          </div>
-          
-          <!-- CTA -->
-          <button class="stater-cta-premium" onclick="window.StaterPaywall.handlePurchase('premium_upgrade', 'expert_mode')">
-            👑 VIRAR EXPERT FINANCEIRO AGORA
-          </button>
-          
-          <button class="stater-cta-secondary" onclick="window.StaterPaywall.close()">
-            Continuar na versão básica
-          </button>
-          
-          <p class="stater-disclaimer">
-            🔒 Seguro • Cancele quando quiser • Sem pegadinhas
-          </p>
-        </div>
-      </div>
-    `;
-  }
-  
-  private static injectProfessionalCSS() {
-    if (document.getElementById('stater-professional-styles')) return;
+  /* CSS MODERNO DARK/PURPLE */
+  private static injectModernCSS() {
+    if (document.getElementById('stater-modern-styles')) return;
     
     const style = document.createElement('style');
-    style.id = 'stater-professional-styles';
+    style.id = 'stater-modern-styles';
     style.textContent = `
       @keyframes fadeIn {
         from { opacity: 0; transform: scale(0.9); }
@@ -478,7 +86,7 @@ export class StaterPaywallSystem {
         50% { box-shadow: 0 0 30px rgba(168, 85, 247, 0.6); }
       }
       
-      /* DESIGN MODERNO DARK INSPIRADO NA IMAGEM */
+      /* CONTAINER PRINCIPAL */
       .stater-paywall-container {
         background: linear-gradient(145deg, #0f0f23, #1a1a2e, #16213e);
         padding: 0;
@@ -491,10 +99,6 @@ export class StaterPaywallSystem {
         overflow: hidden;
         animation: slideUp 0.6s ease-out;
         border: 1px solid rgba(168, 85, 247, 0.2);
-      }
-      
-      .stater-modern-dark {
-        background: linear-gradient(145deg, #0a0a1a, #1a0a2e, #2a1a3e) !important;
       }
       
       /* HEADER MODERNO */
@@ -532,9 +136,10 @@ export class StaterPaywallSystem {
         text-transform: uppercase;
         letter-spacing: 0.5px;
         border: 1px solid rgba(255,255,255,0.2);
+        z-index: 10;
       }
       
-      /* CÍRCULO DE DESCONTO GRANDE */
+      /* CÍRCULO DE DESCONTO */
       .stater-discount-circle {
         width: 120px;
         height: 120px;
@@ -589,14 +194,14 @@ export class StaterPaywallSystem {
         z-index: 2;
       }
       
-      /* CONTEÚDO MODERNO */
+      /* CONTEÚDO */
       .stater-modern-content {
         padding: 30px 25px;
         background: rgba(10, 10, 26, 0.95);
         backdrop-filter: blur(20px);
       }
       
-      /* PREÇOS MODERNOS */
+      /* PREÇOS */
       .stater-price-display {
         text-align: center;
         margin-bottom: 30px;
@@ -988,46 +593,6 @@ export class StaterPaywallSystem {
           grid-template-columns: 1fr;
         }
       }
-      
-      /* LEGACY COMPATIBILITY */
-      .stater-cta-emergency {
-        width: 100%;
-        background: linear-gradient(45deg, #dc2626, #b91c1c);
-        color: white;
-        border: none;
-        padding: 18px;
-        border-radius: 12px;
-        margin-bottom: 12px;
-        font-weight: 700;
-        font-size: 16px;
-        cursor: pointer;
-        transition: all 0.3s;
-      }
-      
-      .stater-cta-premium {
-        width: 100%;
-        background: linear-gradient(45deg, #7c3aed, #5b21b6);
-        color: white;
-        border: none;
-        padding: 20px;
-        border-radius: 12px;
-        margin-bottom: 15px;
-        font-weight: 800;
-        font-size: 18px;
-        cursor: pointer;
-      }
-      
-      .stater-cta-secondary {
-        width: 100%;
-        background: transparent;
-        color: #64748b;
-        border: 2px solid #e2e8f0;
-        padding: 15px;
-        border-radius: 12px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: all 0.3s;
-      }
     `;
     
     document.head.appendChild(style);
@@ -1036,7 +601,7 @@ export class StaterPaywallSystem {
   /* MÉTODO PARA CRIAR PAYWALL DE ONBOARDING */
   private static createOnboardingPaywall(): string {
     return `
-      <div class="stater-paywall-container stater-modern-dark">
+      <div class="stater-paywall-container">
         <div class="stater-header-modern">
           <div class="stater-lifetime-badge">🚀 BOAS-VINDAS</div>
           
@@ -1182,7 +747,7 @@ export class StaterPaywallSystem {
   /* MÉTODO PARA CRIAR PAYWALL LIMITE ATINGIDO */
   private static createLimitReachedPaywall(): string {
     return `
-      <div class="stater-paywall-container stater-modern-dark">
+      <div class="stater-paywall-container">
         <div class="stater-header-modern">
           <div class="stater-lifetime-badge">⚠️ LIMITE ATINGIDO</div>
           
@@ -1254,7 +819,7 @@ export class StaterPaywallSystem {
   /* MÉTODO PARA CRIAR PAYWALL UPGRADE PREMIUM */
   private static createPremiumUpgradePaywall(): string {
     return `
-      <div class="stater-paywall-container stater-modern-dark">
+      <div class="stater-paywall-container">
         <div class="stater-header-modern">
           <div class="stater-lifetime-badge">👑 UPGRADE PREMIUM</div>
           
@@ -1321,3 +886,151 @@ export class StaterPaywallSystem {
       </div>
     `;
   }
+  
+  /* EVENTOS E UTILIDADES */
+  private static attachEventListeners(modal: HTMLElement, type: string) {
+    // Sistema de callbacks globais
+    (window as any).StaterPaywall = {
+      handlePurchase: (paywallType: string, action: string) => {
+        console.log(`💳 Compra iniciada: ${paywallType} - ${action}`);
+        
+        // Simular sucesso da compra
+        setTimeout(() => {
+          modal.remove();
+          this.showSuccessMessage(paywallType, action);
+        }, 500);
+      },
+      
+      close: () => {
+        modal.remove();
+        console.log(`❌ Paywall fechado: ${type}`);
+      }
+    };
+    
+    // Clique fora para fechar
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+        console.log(`❌ Paywall fechado (clique fora): ${type}`);
+      }
+    });
+    
+    // ESC para fechar
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        modal.remove();
+        document.removeEventListener('keydown', handleEscape);
+        console.log(`❌ Paywall fechado (ESC): ${type}`);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    
+    console.log(`💎 Paywall moderno apresentado: ${type}`);
+  }
+  
+  private static showSuccessMessage(paywallType: string, action: string) {
+    const successModal = document.createElement('div');
+    successModal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 10001;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s ease-out;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+    
+    successModal.innerHTML = `
+      <div style="
+        background: linear-gradient(135deg, #10b981, #059669);
+        padding: 40px;
+        border-radius: 24px;
+        text-align: center;
+        color: white;
+        max-width: 400px;
+        width: 90%;
+        animation: slideUp 0.5s ease-out;
+      ">
+        <div style="font-size: 64px; margin-bottom: 20px;">🎉</div>
+        <h2 style="margin: 0 0 15px 0; font-size: 24px; font-weight: 800;">
+          Parabéns!
+        </h2>
+        <p style="margin: 0 0 25px 0; font-size: 16px; opacity: 0.9;">
+          Sua assinatura foi ativada com sucesso!
+        </p>
+        <div style="
+          background: rgba(255,255,255,0.2);
+          padding: 15px;
+          border-radius: 12px;
+          margin-bottom: 25px;
+        ">
+          <strong>✅ Paywall: ${paywallType}</strong><br>
+          <small>Ação: ${action}</small>
+        </div>
+        <button onclick="this.parentElement.parentElement.remove()" 
+                style="
+                  background: white;
+                  color: #059669;
+                  border: none;
+                  padding: 15px 30px;
+                  border-radius: 12px;
+                  font-weight: 700;
+                  cursor: pointer;
+                ">
+          Continuar
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(successModal);
+    
+    // Auto-remove após 5 segundos
+    setTimeout(() => {
+      if (document.body.contains(successModal)) {
+        successModal.remove();
+      }
+    }, 5000);
+  }
+  
+  // Métodos de utilidade
+  static async setUserAttributes(attributes: Record<string, any>) {
+    console.log('👤 Definindo atributos do usuário:', attributes);
+    
+    if (typeof window !== 'undefined') {
+      (window as any).StaterUserAttributes = {
+        ...attributes,
+        timestamp: new Date().toISOString()
+      };
+    }
+    
+    return { success: true };
+  }
+  
+  static async trackEvent(event: string, parameters?: Record<string, any>) {
+    console.log('📊 Evento rastreado:', event, parameters);
+    
+    if (typeof window !== 'undefined') {
+      const events = (window as any).StaterEvents || [];
+      events.push({
+        event,
+        parameters,
+        timestamp: new Date().toISOString()
+      });
+      (window as any).StaterEvents = events;
+    }
+    
+    return { success: true };
+  }
+}
+
+// Compatibilidade com sistema antigo
+export class SuperwallWeb extends StaterPaywallModern {
+  static async presentPaywall(identifier: string, options: any = {}) {
+    return super.presentPaywall(identifier, options);
+  }
+}

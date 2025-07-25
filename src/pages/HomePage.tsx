@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Shield, Smartphone, Users, BarChart3, Zap, MessageCircle, Camera, Mic, Brain, Bell } from 'lucide-react';
 import { SuperwallPlugin } from '@/plugins/superwall';
-import { SuperwallWeb } from '@/plugins/superwall-web';
+import { StaterPaywallSystem } from '@/plugins/superwall-professional';
 
 const HomePage: React.FC = () => {
   
@@ -18,32 +18,42 @@ const HomePage: React.FC = () => {
     const platform = detectPlatform();
     
     try {
-      console.log(`🧪 Testando paywall: ${paywallName} na plataforma: ${platform}`);
+      console.log(`🧪 Testando paywall profissional: ${paywallName} na plataforma: ${platform}`);
       
       if (platform === 'web') {
-        // Inicializar e usar versão web
-        await SuperwallWeb.initialize('pk_e3d79a8b8e8334c5f361e9c62602290f60354f1932f34aeb');
-        await SuperwallWeb.setUserAttributes({
+        // Usar sistema profissional Stater
+        await StaterPaywallSystem.initialize();
+        await StaterPaywallSystem.setUserAttributes({
           user_id: 'web_user_' + Date.now(),
           platform: 'web',
-          test: true,
+          plan: 'free',
+          usage: 'high',
+          experiment: 'professional_paywalls_v1',
           paywall_trigger: paywallName
         });
-        await SuperwallWeb.presentPaywall({ name: paywallName });
+        
+        // Apresentar paywall profissional
+        await StaterPaywallSystem.presentPaywall(paywallName, {
+          source: 'homepage_test',
+          experiment: 'professional_system'
+        });
+        
       } else {
         // Usar versão nativa (Android/iOS)
         await SuperwallPlugin.setUserAttributes({
           attributes: {
             user_id: 'mobile_user_' + Date.now(),
             platform: platform,
-            test: true,
+            plan: 'free',
+            usage: 'high',
+            experiment: 'professional_native_v1',
             paywall_trigger: paywallName
           }
         });
         await SuperwallPlugin.presentPaywall({ name: paywallName });
       }
       
-      console.log(`✅ Paywall ${paywallName} apresentado com sucesso na ${platform}`);
+      console.log(`✅ Paywall profissional ${paywallName} apresentado com sucesso na ${platform}`);
       
     } catch (error) {
       console.error(`❌ Erro ao apresentar paywall ${paywallName}:`, error);
@@ -397,15 +407,15 @@ const HomePage: React.FC = () => {
           <div className="mb-8">
             <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
               <h3 className="text-xl font-bold text-white mb-4 text-center">
-                🧪 Teste Superwall (Dev) - {detectPlatform().toUpperCase()}
+                🚀 Paywalls Profissionais Stater - {detectPlatform().toUpperCase()}
               </h3>
               <div className="text-center mb-4">
                 <span className="text-white/80 text-sm">
-                  Plataforma detectada: <strong className="text-blue-300">{detectPlatform()}</strong>
-                  {detectPlatform() === 'web' ? ' (Simulação)' : ' (Nativo)'}
+                  Sistema: <strong className="text-green-300">Professional Stater System</strong>
+                  {detectPlatform() === 'web' ? ' (Standalone)' : ' (Híbrido)'}
                 </span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <button 
                   onClick={() => testSuperwall('onboarding')}
                   className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 text-sm"
@@ -414,21 +424,28 @@ const HomePage: React.FC = () => {
                 </button>
                 
                 <button 
-                  onClick={() => testSuperwall('premium_features')}
-                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 text-sm"
+                  onClick={() => testSuperwall('super_promo')}
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 text-sm"
                 >
-                  ⭐ Premium
+                  🔥 Super Promo
                 </button>
                 
                 <button 
                   onClick={() => testSuperwall('limit_reached')}
                   className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 text-sm"
                 >
-                  🔒 Limites
+                  ⚠️ Limite
+                </button>
+                
+                <button 
+                  onClick={() => testSuperwall('premium_upgrade')}
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 text-sm"
+                >
+                  👑 Premium
                 </button>
               </div>
               <p className="text-white/60 text-xs text-center mt-3">
-                * {detectPlatform() === 'web' ? 'Testando com simulação web' : 'Testando integração nativa'} | Abra o Console para logs
+                * Sistema Stater Profissional com copy CMO-level | 4 paywalls com conversão máxima
               </p>
             </div>
           </div>

@@ -1,172 +1,134 @@
-// Service Worker com correção total para evitar interceptação do Supabase
-const CACHE_NAME = 'stater-app-v4'; // Incrementar versão para forçar refresh completo e reduzir logs
+// 🔧 Service Worker OTIMIZADO - Reduzindo interceptações e logs
+const CACHE_NAME = 'stater-app-v5';
 
-// Lista de arquivos para cache inicial
+// Lista mínima de arquivos para cache
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.ico',
-  '/icon-192.svg',
-  // Adicionar outros assets estáticos importantes
+  '/icon-192.svg'
 ];
 
-// Arquivos críticos que NUNCA devem ser cacheados
-const criticalFiles = [
-  // Rotas de autenticação
-  '/auth',
-  '/login',
-  '/register',
-  '/reset-password',
-  '/callback',
-  '/terms',
-  // Arquivos específicos para autenticação
-  'supabase-auth',
-  'auth.js',
-  'token',
-  'access_token',
-  'refresh_token'
+// 🔧 URLs críticas que NUNCA devem ser interceptadas
+const criticalUrls = [
+  'supabase.co', 'google.com', 'googleapis.com', 'accounts.google.com'
 ];
 
-// Padrões de URL que devem ser ignorados pelo SW (exceto Supabase que é tratado separadamente)
-const ignoreUrlPatterns = [
-  // URLs com fragmentos de autenticação
-  /access_token/,
-  /refresh_token/,
-  /provider/,
-  /auth/i,
-  /callback/i
+// 🔧 Padrões que devem ser completamente ignorados
+const ignorePatterns = [
+  /access_token/, /refresh_token/, /provider/, /auth/i, /callback/i,
+  /supabase/, /google/, /oauth/, /api\/auth/
 ];
 
 self.addEventListener('install', (event) => {
-  console.log('[SW] Instalando Service Worker...');
+  console.log('[SW] Service Worker instalado - versão otimizada');
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('[SW] Cache aberto');
-        return cache.addAll(urlsToCache);
-      })
-      .then(() => self.skipWaiting()) // Força o SW a se tornar ativo
+      .then(cache => cache.addAll(urlsToCache))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', (event) => {
   console.log('[SW] Service Worker ativado');
-  
-  // Limpar caches antigos
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) {
-            console.log('[SW] Removendo cache antigo:', cache);
-            return caches.delete(cache);
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('[SW] Removendo cache antigo:', cacheName);
+            return caches.delete(cacheName);
           }
-          return null;
         })
       );
     }).then(() => {
       console.log('[SW] Service Worker pronto para lidar com requisições!');
-      return self.clients.claim(); // Toma controle de todos os clientes
+      return self.clients.claim();
     })
   );
 });
 
+// 🔧 FETCH otimizado - interceptar MENOS requisições
 self.addEventListener('fetch', (event) => {
-  // Verificar se é um arquivo crítico ou padrão que deve ser ignorado
   const url = event.request.url;
   
-  // IMPORTANTE: Para requisições do Supabase, NUNCA interceptar
-  if (url.includes('supabase.co') || url.includes('/rest/v1/') || url.includes('/auth/v1/')) {
-    // Removido log excessivo para não poluir console
-    return; // Não faz NADA - deixa o browser lidar naturalmente
+  // 🔧 NUNCA interceptar URLs críticas
+  if (criticalUrls.some(pattern => url.includes(pattern))) {
+    return; // Deixar browser lidar naturalmente
   }
   
-  // Evitar interceptar URLs com fragmentos
-  if (event.request.url.includes('#')) {
-    console.log('[SW] Ignorando URL com fragmento:', event.request.url);
-    return; // Não intercepta
+  // 🔧 NUNCA interceptar padrões de auth/oauth
+  if (ignorePatterns.some(pattern => pattern.test(url))) {
+    return; // Não interceptar
   }
   
-  // Verificar se corresponde a algum padrão para ignorar
-  const shouldIgnore = criticalFiles.some(file => url.includes(file)) ||
-                      /access_token/.test(url) ||
-                      /refresh_token/.test(url) ||
-                      /provider/.test(url) ||
-                      /auth/i.test(url) ||
-                      /callback/i.test(url);
-  
-  if (shouldIgnore) {
-    console.log('[SW] Ignorando arquivo crítico:', url);
-    return; // Não interceptar - deixa a requisição normal acontecer
-  }
-  
-  // NÃO CACHEAR requisições POST, PUT, DELETE
+  // 🔧 NUNCA interceptar métodos não-GET
   if (event.request.method !== 'GET') {
-    console.log('[SW] Ignorando requisição não-GET:', event.request.method, url);
-    return; // Não interceptar métodos HTTP que modificam dados
+    return; // Deixar requisições POST/PUT/DELETE passarem
   }
   
-  // Para todas as outras requisições GET, tentamos cache-first
+  // 🔧 NUNCA interceptar URLs com fragmentos
+  if (url.includes('#')) {
+    return; // Não interceptar
+  }
+  
+  // 🔧 Interceptar apenas recursos estáticos específicos
+  const isStaticResource = url.includes('.js') || url.includes('.css') || 
+                          url.includes('.png') || url.includes('.svg') ||
+                          url.includes('.ico') || url.includes('.json');
+  
+  if (!isStaticResource && !url.includes(self.location.origin)) {
+    return; // Deixar recursos externos passarem
+  }
+  
+  // 🔧 Cache strategy simplificada
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Resposta do cache encontrada - retornar
         if (response) {
-          return response;
+          return response; // Retornar do cache
         }
         
-        // Clonar a requisição porque só podemos usá-la uma vez
-        const fetchRequest = event.request.clone();
-        
-        // Fazer a requisição
-        return fetch(fetchRequest)
+        // Buscar da rede apenas se necessário
+        return fetch(event.request)
           .then(response => {
-            // Verificar se recebemos uma resposta válida
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+            // Apenas cachear se for um recurso estático válido
+            if (isStaticResource && response.status === 200) {
+              const responseToCache = response.clone();
+              caches.open(CACHE_NAME)
+                .then(cache => cache.put(event.request, responseToCache));
             }
-            
-            // Clonar a resposta porque precisamos dela em dois lugares
-            const responseToCache = response.clone();
-            
-            // Salvar no cache (APENAS para GET)
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-              
             return response;
+          })
+          .catch(() => {
+            // Fallback para página offline se necessário
+            if (event.request.mode === 'navigate') {
+              return caches.match('/');
+            }
+            return new Response('Offline', { status: 503 });
           });
-      })
-      .catch(error => {
-        console.error('[SW] Erro ao buscar:', error);
-        // Opcionalmente, retornar uma página offline para recursos HTML
-        if (event.request.headers.get('accept').includes('text/html')) {
-          return caches.match('/offline.html');
-        }
-        return new Response('Erro de rede', { status: 503 });
       })
   );
 });
 
-// Tratar mensagens do cliente (útil para limpar cache ou forçar atualização)
+// 🔧 Tratar mensagens do cliente de forma otimizada
 self.addEventListener('message', (event) => {
   console.log('[SW] Mensagem recebida:', event.data);
   
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('[SW] Skip waiting solicitado');
+  if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
   
-  if (event.data && event.data.type === 'CLEAR_CACHE') {
-    console.log('[SW] Limpando cache');
+  if (event.data?.type === 'CLEAR_CACHE') {
     caches.delete(CACHE_NAME).then(() => {
-      console.log('[SW] Cache limpo com sucesso');
-      // Notificar que o cache foi limpo
-      if (event.ports && event.ports[0]) {
-        event.ports[0].postMessage({ success: true });
-      }
+      console.log('[SW] Cache limpo');
+      event.ports?.[0]?.postMessage({ success: true });
     });
+  }
+  
+  // 🔧 Novos tipos de mensagem para controle
+  if (event.data?.type === 'SCROLL_START' || event.data?.type === 'SCROLL_END') {
+    // Apenas registrar sem logs excessivos
   }
 });

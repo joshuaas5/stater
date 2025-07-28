@@ -33,44 +33,71 @@ const Login: React.FC = () => {
       setCurrentView('login');
     }
     
-    // Check if there's an authentication flow in progress
+    // 🔧 CORREÇÃO: Melhor tratamento de redirects OAuth
     const handleAuthRedirect = async () => {
-      // Verificar se o usuário acabou de fazer logout manualmente
-      const isManualLogout = localStorage.getItem('manual_logout') === 'true';
-      
-      // Se for um logout manual, não redirecionar automaticamente
-      if (isManualLogout) {
-        return;
-      }
-      
-      // Check URL for auth parameters
-      const params = new URLSearchParams(location.search);
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      
-      console.log("Auth redirect - URL params:", Object.fromEntries(params));
-      console.log("Auth redirect - Hash params:", Object.fromEntries(hashParams));
-      
-      // Check for Supabase auth redirect (Google auth)
-      if (params.get('provider') || hashParams.get('provider')) {
-        const provider = params.get('provider') || hashParams.get('provider');
+      try {
+        // Verificar se o usuário acabou de fazer logout manualmente
+        const isManualLogout = localStorage.getItem('manual_logout') === 'true';
         
-        toast({
-          title: `Login com ${provider} concluído`,
-          description: "Autenticação realizada com sucesso!",
-        });
+        // Se for um logout manual, não redirecionar automaticamente
+        if (isManualLogout) {
+          console.log('🔒 [LOGIN] Logout manual detectado - não redirecionando');
+          return;
+        }
         
-        // Redirect to dashboard after successful auth
-        setTimeout(() => navigate('/dashboard'), 1000);
-        return;
-      }
-      
-      // Check if there's a session
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        navigate('/dashboard');
+        // Verificar fragmentos OAuth na URL
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const urlParams = new URLSearchParams(location.search);
+        
+        console.log("🔒 [LOGIN] Auth redirect - URL params:", Object.fromEntries(urlParams));
+        console.log("🔒 [LOGIN] Auth redirect - Hash params:", Object.fromEntries(hashParams));
+        
+        // Se há tokens OAuth na URL, aguardar o processamento pelo AuthContext
+        if (hashParams.get('access_token') || hashParams.get('refresh_token')) {
+          console.log('🔒 [LOGIN] Tokens OAuth detectados - aguardando processamento...');
+          
+          // Aguardar o AuthContext processar os tokens
+          setTimeout(async () => {
+            const { data } = await supabase.auth.getSession();
+            if (data.session) {
+              console.log('🔒 [LOGIN] Sessão OAuth confirmada - redirecionando para dashboard');
+              navigate('/dashboard', { replace: true });
+            }
+          }, 1500);
+          return;
+        }
+        
+        // Check for provider redirect
+        const provider = urlParams.get('provider') || hashParams.get('provider');
+        if (provider) {
+          console.log(`🔒 [LOGIN] Redirect de ${provider} detectado`);
+          
+          // Aguardar sessão ser estabelecida
+          setTimeout(async () => {
+            const { data } = await supabase.auth.getSession();
+            if (data.session) {
+              toast({
+                title: `Login com ${provider} concluído`,
+                description: "Autenticação realizada com sucesso!",
+              });
+              navigate('/dashboard', { replace: true });
+            }
+          }, 1000);
+          return;
+        }
+        
+        // Verificar se já há uma sessão válida
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          console.log('🔒 [LOGIN] Sessão existente detectada - redirecionando');
+          navigate('/dashboard', { replace: true });
+        }
+      } catch (error) {
+        console.error('🔒 [LOGIN] Erro no handleAuthRedirect:', error);
       }
     };
     
+    // Executar verificação de redirect
     handleAuthRedirect();
   }, [location, navigate, toast]);
 

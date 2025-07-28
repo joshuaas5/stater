@@ -213,181 +213,159 @@ const Dashboard: React.FC = () => {
     recurringWeekday: 1
   });
   
-  // useEffect NICO e CONSOLIDADO para inicializao do Dashboard
+  // 🔧 CORREÇÃO: useEffect OTIMIZADO para evitar loops
   useEffect(() => {
     if (!isLoggedIn()) {
       navigate('/login');
       return;
     }
 
-    console.log(' [Dashboard] INICIALIZAO NICA E CONSOLIDADA - EVITANDO RACE CONDITIONS');
+    console.log('🔧 [Dashboard] INICIALIZAÇÃO OTIMIZADA - Evitando race conditions');
     
+    let mounted = true;
     let debounceTimer: NodeJS.Timeout;
     let telegramToastTimer: NodeJS.Timeout;
     
-    // Funo de inicializao nica
+    // Função de inicialização única e controlada
     const executarInicializacaoCompleta = async () => {
+      if (!mounted) return;
+      
       try {
-        // 1. Iniciar sincronizao automtica
+        // 1. Iniciar sincronização automática apenas uma vez
         startAutoSync();
         
-        // 2. Carregar transaes LOCAL primeiro (para exibio imediata)
+        // 2. Carregar dados locais primeiro (não bloquear UI)
         const allTransactions = getTransactions();
-        console.log(` [Dashboard] Carregando ${allTransactions.length} transaes locais primeiro`);
+        console.log(`🔧 [Dashboard] Carregando ${allTransactions.length} transações locais`);
         
-        if (allTransactions && allTransactions.length > 0) {
-          // Filtrar transaes recorrentes no processadas
-          const validTransactions = allTransactions.filter(t => {
-            if (t.isRecurring && !t.isRecurringInstance) {
-              return false;
-            }
-            return true;
-          });
+        if (mounted && allTransactions.length > 0) {
+          const validTransactions = allTransactions.filter(t => 
+            !(t.isRecurring && !t.isRecurringInstance)
+          );
           
-          // Calcular saldo inicial
           const totalBalance = calculateBalance(validTransactions, []);
           setBalance(totalBalance);
-          console.log(' [Dashboard] Saldo inicial (local):', totalBalance);
+          console.log('🔧 [Dashboard] Saldo inicial (local):', totalBalance);
         }
         
-        // 3. Carregar transaes para exibio (local primeiro)
-        loadTransactions(selectedMonth, selectedYear);
+        // 3. Carregar transações para exibição apenas uma vez
+        if (mounted) {
+          loadTransactions(selectedMonth, selectedYear);
+        }
         
-        // 4. DEPOIS sincronizar com Supabase (no bloquear UI)
+        // 4. Sincronização background (não bloquear)
         setTimeout(async () => {
+          if (!mounted) return;
+          
           try {
             await forceSupabaseSync();
-            console.log(' [Dashboard] Sincronizao Supabase concluda (background)');
+            console.log('🔧 [Dashboard] Sincronização background concluída');
           } catch (error) {
-            console.error(' [Dashboard] Erro na sincronizao background:', error);
+            console.error('🔧 [Dashboard] Erro sincronização background:', error);
           }
-        }, 1500); // Delay para no bloquear renderizao inicial
+        }, 2000);
         
-        // 5. Agendar lembretes de contas
-        import('@/utils/localStorage').then(({ getBills }) => {
-          import('@/services/NotificationService').then(({ NotificationService }) => {
-            const bills = getBills();
-            NotificationService.scheduleBillReminders(bills);
+        // 5. Configurar lembretes (background)
+        if (mounted) {
+          import('@/utils/localStorage').then(({ getBills }) => {
+            import('@/services/NotificationService').then(({ NotificationService }) => {
+              const bills = getBills();
+              NotificationService.scheduleBillReminders(bills);
+            });
           });
-        });
+        }
         
-        console.log(' [Dashboard] Inicializao consolidada concluda');
+        console.log('🔧 [Dashboard] Inicialização otimizada concluída');
       } catch (error) {
-        console.error(' [Dashboard] Erro na inicializao:', error);
+        console.error('🔧 [Dashboard] Erro na inicialização:', error);
       }
     };
     
-    // Listeners para atualizaes (com debounce)
-    const handler = () => {
-      console.log(' [Dashboard] Evento transactionsUpdated recebido!');
+    // Handlers com debounce otimizado
+    const createDebouncedHandler = (name: string, delay = 1500) => (event?: any) => {
+      if (!mounted) return;
       
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        loadTransactions(selectedMonth, selectedYear);
-        
-        const allTransactions = getTransactions();
-        if (allTransactions && allTransactions.length > 0) {
-          const validTransactions = allTransactions.filter(t => {
-            if (t.isRecurring && !t.isRecurringInstance) {
-              return false;
-            }
-            return true;
-          });
-          
-          const totalBalance = calculateBalance(validTransactions, []);
-          setBalance(totalBalance);
-          console.log(' [Dashboard] Saldo recalculado (handler):', totalBalance);
-        }
-      }, 1000);
-    };
-    
-    const forceReloadHandler = (event: any) => {
-      console.log(' [Dashboard] Force reload trigger from:', event.detail?.source || 'unknown');
+      console.log(`🔧 [Dashboard] ${name} recebido`);
       
-      if (event.detail?.source?.includes('force-sync')) {
-        console.log(' [Dashboard] Ignorando reload de force-sync para evitar loop');
+      // Evitar loops específicos
+      if (event?.detail?.source?.includes('force-sync')) {
+        console.log(`🔧 [Dashboard] Ignorando ${name} de force-sync`);
         return;
       }
       
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
+        if (!mounted) return;
+        
+        // Recarregar apenas se necessário
+        const allTransactions = getTransactions();
+        const validTransactions = allTransactions.filter(t => 
+          !(t.isRecurring && !t.isRecurringInstance)
+        );
+        
+        setBalance(calculateBalance(validTransactions, []));
         loadTransactions(selectedMonth, selectedYear);
         
-        const allTransactions = getTransactions();
-        if (allTransactions && allTransactions.length > 0) {
-          const validTransactions = allTransactions.filter(t => {
-            if (t.isRecurring && !t.isRecurringInstance) {
-              return false;
-            }
-            return true;
-          });
-          
-          const totalBalance = calculateBalance(validTransactions, []);
-          setBalance(totalBalance);
-          console.log(' [Dashboard] Saldo recalculado (forceReload):', totalBalance);
-        }
-      }, 1000);
+        console.log(`🔧 [Dashboard] ${name} processado`);
+      }, delay);
     };
     
+    const transactionsHandler = createDebouncedHandler('transactionsUpdated');
+    const forceReloadHandler = createDebouncedHandler('forceReload');
+    
     const telegramSyncHandler = (event: any) => {
-      console.log(' [Dashboard] Sincronizao do Telegram detectada:', event.detail);
+      if (!mounted) return;
+      
+      console.log('🔧 [Dashboard] Telegram sync detectado');
       
       clearTimeout(telegramToastTimer);
       telegramToastTimer = setTimeout(() => {
-        if (event.detail?.transactions && event.detail.transactions.length > 0) {
+        if (event.detail?.transactions?.length > 0) {
           toast({
-            title: " Nova transao do Telegram!",
-            description: "Sua transao foi sincronizada automaticamente.",
+            title: "🤖 Nova transação do Telegram!",
+            description: "Sincronização automática concluída.",
             duration: 3000,
           });
         }
       }, 2000);
       
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        loadTransactions(selectedMonth, selectedYear);
-        
-        const allTransactions = getTransactions();
-        if (allTransactions && allTransactions.length > 0) {
-          const validTransactions = allTransactions.filter(t => {
-            if (t.isRecurring && !t.isRecurringInstance) {
-              return false;
-            }
-            return true;
-          });
-          
-          const totalBalance = calculateBalance(validTransactions, []);
-          setBalance(totalBalance);
-          console.log(' [Dashboard] Saldo recalculado (telegram):', totalBalance);
-        }
-      }, 1500);
+      // Usar o mesmo handler debounced
+      transactionsHandler(event);
     };
     
-    // Registrar listeners
-    window.addEventListener('transactionsUpdated', handler);
+    // Registrar listeners apenas uma vez
+    window.addEventListener('transactionsUpdated', transactionsHandler);
     window.addEventListener('forceTransactionReload', forceReloadHandler);
     window.addEventListener('telegram-transaction-sync', telegramSyncHandler);
     
-    // Executar inicializao
+    // Executar inicialização
     executarInicializacaoCompleta();
     
-    // Cleanup
+    // Cleanup otimizado
     return () => {
-      console.log(' [Dashboard] Cleanup - parando sincronizao automtica');
+      mounted = false;
+      console.log('🔧 [Dashboard] Cleanup - parando operações');
+      
       stopAutoSync();
       clearTimeout(debounceTimer);
       clearTimeout(telegramToastTimer);
-      window.removeEventListener('transactionsUpdated', handler);
+      
+      window.removeEventListener('transactionsUpdated', transactionsHandler);
       window.removeEventListener('forceTransactionReload', forceReloadHandler);
       window.removeEventListener('telegram-transaction-sync', telegramSyncHandler);
     };
-  }, [navigate, selectedMonth, selectedYear]);
+  }, [navigate]); // Apenas navigate como dependência
 
-  // UseEffect para reagir s mudanas no filtro de nome
+  // 🔧 CORREÇÃO: useEffect otimizado para filtro de nome (com debounce)
   useEffect(() => {
-    setTransactionsPage(1); // Reset paginação quando mudar filtro
-    loadTransactions(selectedMonth, selectedYear, !!startDate && !!endDate);
-  }, [nameFilter]);
+    const debounceFilter = setTimeout(() => {
+      console.log('🔧 [Dashboard] Aplicando filtro de nome:', nameFilter);
+      setTransactionsPage(1); // Reset paginação
+      loadTransactions(selectedMonth, selectedYear, !!startDate && !!endDate);
+    }, 500); // Debounce de 500ms
+
+    return () => clearTimeout(debounceFilter);
+  }, [nameFilter]); // Apenas nameFilter como dependência
 
   const calculateTotalBalance = () => {
     const allTransactions = getTransactions();

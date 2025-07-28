@@ -1668,8 +1668,10 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
 
           if (parsedJsonDetail && typeof parsedJsonDetail === 'object' && !Array.isArray(parsedJsonDetail)) {
             const transactionTypeWord = parsedJsonDetail.type === 'income' ? 'uma receita 🤑' : (parsedJsonDetail.type === 'expense' ? 'uma despesa 💸' : 'uma transação');
-            const amountValue = parsedJsonDetail.amount ? parseFloat(parsedJsonDetail.amount) : null;
-            const amountString = amountValue ? ` de R$${amountValue.toFixed(2)}` : '';
+            // CORREÇÃO: Validar amount antes de usar
+            const amountValue = parsedJsonDetail.amount ? parseFloat(parsedJsonDetail.amount) : 0;
+            const validAmount = isNaN(amountValue) || amountValue <= 0 ? 0 : amountValue;
+            const amountString = validAmount > 0 ? ` de R$${validAmount.toFixed(2)}` : '';
             const descriptionString = parsedJsonDetail.description || parsedJsonDetail.category || 'esta operação';
             const dateValue = parsedJsonDetail.date ? new Date(parsedJsonDetail.date.includes('T') ? parsedJsonDetail.date : parsedJsonDetail.date + 'T00:00:00') : null;
             const dateString = dateValue ? ` em ${dateValue.toLocaleDateString('pt-BR')}` : '';

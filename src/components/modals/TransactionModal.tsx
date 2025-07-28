@@ -146,10 +146,18 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     setIsSubmitting(true);
 
     try {
+      // Validar amount antes de parseFloat
+      const amountValue = parseFloat(formData.amount);
+      if (isNaN(amountValue) || amountValue <= 0) {
+        setErrors(prev => ({ ...prev, amount: 'Valor deve ser maior que zero' }));
+        setIsSubmitting(false);
+        return;
+      }
+
       const transactionData: Partial<Transaction> = {
         ...transaction,
         title: formData.title.trim(),
-        amount: parseFloat(formData.amount),
+        amount: amountValue, // Usar valor já validado
         category: formData.category,
         type,
         isRecurring: formData.isRecurring,

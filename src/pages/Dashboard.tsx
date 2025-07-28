@@ -581,21 +581,30 @@ const Dashboard: React.FC = () => {
     return parseMonetaryNumber(value).toString();
   };
   
-  // Funo para converter string monetria em nmero
-  const parseMonetaryNumber = (value: string): number => {
-    if (!value) return 0;
-    
-    // Remover espaos e caracteres especiais, manter apenas dgitos, vrgula e ponto
-    let cleaned = value.replace(/[^\d.,]/g, '');
-    
-    // Se no tem vrgula nem ponto,  um nmero inteiro
-    if (!cleaned.includes(',') && !cleaned.includes('.')) {
-      return parseFloat(cleaned) || 0;
+  // Função para converter string monetária em número
+  const parseMonetaryNumber = (value: string | null | undefined): number => {
+    // CORREÇÃO CRÍTICA: Validar entrada null/undefined
+    if (!value || value === null || value === undefined || value === '') {
+      console.warn('⚠️ [PARSE] Valor null/undefined/empty recebido:', value);
+      return 0;
     }
     
-    // Se tem vrgula e ponto, determinar qual  o separador decimal
+    // Converter para string se necessário
+    const stringValue = String(value);
+    
+    // Remover espaços e caracteres especiais, manter apenas dígitos, vírgula e ponto
+    let cleaned = stringValue.replace(/[^\d.,]/g, '');
+    
+    // Se não tem vírgula nem ponto, é um número inteiro
+    if (!cleaned.includes(',') && !cleaned.includes('.')) {
+      const result = parseFloat(cleaned) || 0;
+      console.log('💰 [PARSE] Input:', value, '-> Cleaned:', cleaned, '-> Result:', result);
+      return result;
+    }
+    
+    // Se tem vírgula e ponto, determinar qual é o separador decimal
     if (cleaned.includes(',') && cleaned.includes('.')) {
-      // Se o ltimo  vrgula, ela  o separador decimal
+      // Se o último é vírgula, ela é o separador decimal
       if (cleaned.lastIndexOf(',') > cleaned.lastIndexOf('.')) {
         // Ex: 1.234,56 -> 1234.56
         cleaned = cleaned.replace(/\./g, '').replace(',', '.');
@@ -604,7 +613,7 @@ const Dashboard: React.FC = () => {
         cleaned = cleaned.replace(/,/g, '');
       }
     } else if (cleaned.includes(',')) {
-      // S tem vrgula - pode ser milhares ou decimal
+      // Só tem vírgula - pode ser milhares ou decimal
       const parts = cleaned.split(',');
       if (parts.length === 2 && parts[1].length <= 2) {
         // Provavelmente decimal: 123,45
@@ -614,10 +623,10 @@ const Dashboard: React.FC = () => {
         cleaned = cleaned.replace(/,/g, '');
       }
     }
-    // Se s tem ponto, manter como est (j  formato padro)
+    // Se só tem ponto, manter como está (já é formato padrão)
     
     const result = parseFloat(cleaned) || 0;
-    console.log(' [PARSE] Input:', value, '-> Cleaned:', cleaned, '-> Result:', result);
+    console.log('💰 [PARSE] Input:', value, '-> Cleaned:', cleaned, '-> Result:', result);
     return result;
   };
 
@@ -661,12 +670,22 @@ const Dashboard: React.FC = () => {
       return;
     }
     
-    // Usar a funo parseMonetaryNumber para garantir converso correta
+    // Usar a função parseMonetaryNumber para garantir conversão correta
     const amount = parseMonetaryNumber(newTransaction.amount);
-    if (isNaN(amount) || amount <= 0) {
+    
+    // VALIDAÇÃO CRÍTICA: Garantir que amount nunca seja null, undefined ou NaN
+    if (amount === null || amount === undefined || isNaN(amount) || amount <= 0) {
+      console.error('❌ [AMOUNT VALIDATION] Valor inválido detectado:', {
+        raw: newTransaction.amount,
+        parsed: amount,
+        isNaN: isNaN(amount),
+        isNull: amount === null,
+        isUndefined: amount === undefined
+      });
+      
       toast({
-        title: "Valor invlido",
-        description: "Por favor, informe um valor vlido para a transao",
+        title: "Valor inválido",
+        description: "Por favor, informe um valor válido para a transação",
         variant: "destructive"
       });
       return;
@@ -684,9 +703,9 @@ const Dashboard: React.FC = () => {
     const type = newTransaction.type;
     
     const transaction: Transaction = {
-      id: uuidv4(), // Usar UUID vlido para compatibilidade com o Supabase
+      id: uuidv4(), // Usar UUID válido para compatibilidade com o Supabase
       title: newTransaction.title,
-      amount: amount,
+      amount: Math.max(amount, 0.01), // CRÍTICO: Garantir amount >= 0.01 (nunca null/0)
       type: type,
       category: newTransaction.category || (type === 'income' ? 'Receita' : 'Outros'),
       date: new Date(),
@@ -697,6 +716,15 @@ const Dashboard: React.FC = () => {
       recurringWeekday: newTransaction.isRecurring ? newTransaction.recurringWeekday : undefined,
       dontAdjustBalanceOnSave: newTransaction.isRecurring // Para recorrentes, sempre true
     };
+    
+    // LOG DE DEBUG PARA RASTREAMENTO
+    console.log('🔍 [TRANSACTION CREATE] Dados da transação:', {
+      originalAmount: newTransaction.amount,
+      parsedAmount: amount,
+      finalAmount: transaction.amount,
+      type: transaction.type,
+      title: transaction.title
+    });
     
     saveTransaction(transaction);
     
@@ -1138,10 +1166,15 @@ const Dashboard: React.FC = () => {
               return;
             }
 
+            // VALIDAÇÃO CRÍTICA: Garantir amount válido
+            const validAmount = transactionData.amount && !isNaN(transactionData.amount) && transactionData.amount > 0 
+              ? transactionData.amount 
+              : 0.01;
+
             const transaction: Transaction = {
               id: uuidv4(),
               title: transactionData.title!,
-              amount: transactionData.amount!,
+              amount: validAmount, // CRÍTICO: Usar amount validado
               type: transactionData.type!,
               category: transactionData.category!,
               date: new Date(),
@@ -1152,6 +1185,13 @@ const Dashboard: React.FC = () => {
               recurringWeekday: transactionData.recurringWeekday,
               dontAdjustBalanceOnSave: transactionData.isRecurring || false
             };
+
+            console.log('🔍 [MODAL CREATE] Dados da transação modal:', {
+              originalAmount: transactionData.amount,
+              validAmount: validAmount,
+              type: transaction.type,
+              title: transaction.title
+            });
 
             saveTransaction(transaction);
             

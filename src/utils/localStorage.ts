@@ -97,7 +97,29 @@ const mapTransactionToSupabase = (transaction: Transaction, userId: string) => {
     id: transaction.id || uuidv4(),
     user_id: userId,
     title: transaction.title || 'Sem título',
-    amount: typeof transaction.amount === 'number' ? transaction.amount : parseFloat(String(transaction.amount)) || 0,
+    amount: (() => {
+      // VALIDAÇÃO CRÍTICA: Garantir que amount nunca seja null/undefined/NaN
+      let validAmount = 0;
+      
+      if (typeof transaction.amount === 'number' && !isNaN(transaction.amount)) {
+        validAmount = transaction.amount;
+      } else if (typeof transaction.amount === 'string') {
+        const parsed = parseFloat(String(transaction.amount));
+        validAmount = !isNaN(parsed) ? parsed : 0;
+      }
+      
+      // Garantir que seja pelo menos 0.01 para evitar 0 que pode virar null
+      const finalAmount = Math.max(validAmount, 0.01);
+      
+      console.log('💾 [SUPABASE MAP] Amount validation:', {
+        original: transaction.amount,
+        type: typeof transaction.amount,
+        validAmount,
+        finalAmount
+      });
+      
+      return finalAmount;
+    })(),
     type: transactionType,
     category: transaction.category || (transactionType === 'income' ? 'Receita' : 'Outros'),
     date: dateValue,

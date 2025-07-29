@@ -1375,40 +1375,28 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
 
       // Call our backend API or Gemini directly in development
       console.log(`FinancialAdvisorPage: Calling backend /api/gemini with prompt: "${userPrompt}"`);
+      console.log('🔥 STATER FIX: Starting API call logic...');
       
       // Create AbortController for request cancellation
       abortControllerRef.current = new AbortController();
       
       let botResponseText: string;
+      let backendData: any = { tokens_used: 1000 }; // Default fallback data
       
-      // Check if we're in development mode and backend API is not available
+      // Check if we're in development mode and use Gemini directly
       const isDevelopment = import.meta.env.DEV;
+      const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
       
-      if (isDevelopment) {
+      console.log('🔥 STATER FIX: Development mode:', isDevelopment);
+      console.log('🔥 STATER FIX: Gemini API key available:', !!geminiApiKey);
+      
+      if (isDevelopment && geminiApiKey) {
+        // In development, use Gemini API directly to avoid serverless function issues
+        console.log('Using Gemini API directly in development mode');
+        
         try {
-          // Try backend API first
-          const backendApiResponse = await fetch('/api/gemini', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({ originalPrompt: userPrompt }),
-            signal: abortControllerRef.current.signal
-          });
-
-          if (backendApiResponse.ok) {
-            const backendData = await backendApiResponse.json();
-            botResponseText = backendData.resposta;
-          } else {
-            throw new Error(`Backend API not available (${backendApiResponse.status})`);
-          }
-        } catch (error) {
-          console.log('Backend API not available in development, using Gemini directly:', error);
-          
-          // Use Gemini API directly in development
           const geminiResponse = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiApiKey}`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -1429,17 +1417,34 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
 
           if (!geminiResponse.ok) {
             const errorText = await geminiResponse.text();
-            console.error('Gemini API error:', errorText);
+            console.error('Gemini API direct call error:', errorText);
             setMessages(prev => [...prev, { id: uuidv4(), text: `❌ Erro ao conectar com a IA Gemini: ${errorText}`, sender: 'system', timestamp: new Date() }]);
             setLoadingState('ai-thinking', false);
             return;
           }
 
           const geminiData = await geminiResponse.json();
-          botResponseText = geminiData.candidates[0].content.parts[0].text;
+          console.log('Gemini API direct response:', geminiData);
           
-          // Remove asterisks from response
-          botResponseText = botResponseText.replace(/\*\*/g, '').replace(/\*/g, '');
+          if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content) {
+            botResponseText = geminiData.candidates[0].content.parts[0].text;
+            // Remove asterisks from response
+            botResponseText = botResponseText.replace(/\*\*/g, '').replace(/\*/g, '');
+            console.log('Successfully got response from Gemini direct API');
+            
+            // Set tokens used from Gemini response if available
+            if (geminiData.usageMetadata && geminiData.usageMetadata.totalTokenCount) {
+              backendData.tokens_used = geminiData.usageMetadata.totalTokenCount;
+            }
+          } else {
+            throw new Error('Invalid response format from Gemini API');
+          }
+        } catch (error) {
+          console.error('Error calling Gemini API directly:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+          setMessages(prev => [...prev, { id: uuidv4(), text: `❌ Erro ao conectar com a IA: ${errorMessage}`, sender: 'system', timestamp: new Date() }]);
+          setLoadingState('ai-thinking', false);
+          return;
         }
       } else {
         // Production mode - use backend API
@@ -1491,7 +1496,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
       // --- NOVO: Atualizar uso de tokens e requisições do usuário ---
       try {
         // O backend pode retornar o número de tokens usados na resposta
-        const tokensUsedThisCall = backendData.tokens_used || 1000; // fallback: 1000 tokens por interação
+        const tokensUsedThisCall = backendData?.tokens_used || 1000; // fallback: 1000 tokens por interação
         // Atualizar tokens do mês
         const { data: usageRow, error: usageError } = await supabase
           .from('user_token_usage')
@@ -1881,13 +1886,74 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         avatarUrl: IA_AVATAR
       }]);
     } else {
-      setMessages(prev => [...prev, {
-        id: uuidv4(),
-        text: `❌ Erro ao processar sua solicitação: ${error.message || 'Erro desconhecido'}. Tente novamente.`,
-        sender: 'system',
-        timestamp: new Date(),
-        avatarUrl: IA_AVATAR
-      }]);
+      // 🔥 STATER FIX: Try Gemini API directly as fallback in development
+      const isDevelopment = import.meta.env.DEV;
+      const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      
+      console.log('🔥 STATER FIX: Erro capturado no catch global, tentando fallback...');
+      console.log('🔥 STATER FIX: isDevelopment:', isDevelopment, 'hasGeminiKey:', !!geminiApiKey);
+      
+      if (isDevelopment && geminiApiKey && error.message?.includes('500') || error.message?.includes('API')) {
+        console.log('🔥 STATER FIX: Tentando API do Gemini direta como fallback...');
+        
+        // Try Gemini API directly as fallback
+        fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiApiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{ text: message || 'Olá, como você pode me ajudar?' }]
+              }],
+              generationConfig: {
+                temperature: 0.7,
+                topK: 32,
+                topP: 1,
+                maxOutputTokens: 16384,
+              }
+            })
+          }
+        ).then(async (geminiResponse) => {
+          if (geminiResponse.ok) {
+            const geminiData = await geminiResponse.json();
+            console.log('🔥 STATER FIX: Sucesso no fallback da API Gemini!');
+            
+            if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content) {
+              let botResponseText = geminiData.candidates[0].content.parts[0].text;
+              botResponseText = botResponseText.replace(/\*\*/g, '').replace(/\*/g, '');
+              
+              setMessages(prev => [...prev, {
+                id: uuidv4(),
+                text: `🤖 ${botResponseText}`,
+                sender: 'stater',
+                timestamp: new Date(),
+                avatarUrl: IA_AVATAR
+              }]);
+              console.log('🔥 STATER FIX: Mensagem da IA adicionada com sucesso!');
+              return;
+            }
+          }
+          throw new Error('Fallback também falhou');
+        }).catch((fallbackError) => {
+          console.error('🔥 STATER FIX: Fallback falhou:', fallbackError);
+          setMessages(prev => [...prev, {
+            id: uuidv4(),
+            text: `❌ Erro ao processar sua solicitação. Tanto a API principal quanto o fallback falharam. Tente novamente.`,
+            sender: 'system',
+            timestamp: new Date(),
+            avatarUrl: IA_AVATAR
+          }]);
+        });
+      } else {
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          text: `❌ Erro ao processar sua solicitação: ${error.message || 'Erro desconhecido'}. Tente novamente.`,
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }]);
+      }
     }
   } finally {
     setLoadingState('ai-thinking', false);

@@ -840,12 +840,24 @@ async function callGeminiForChat(message, userContext, userSession) {
 
 IMPORTANTE: Ao confirmar receitas ou transações, seja conciso e direto. NÃO mencione totais de receitas/despesas desnecessariamente - foque apenas na confirmação específica da ação solicitada.`;
         
+        console.log('🤖 [GEMINI] Enviando prompt para API...');
+        console.log('🤖 [GEMINI] API Key presente:', !!process.env.GEMINI_API_KEY);
+        
+        if (!process.env.GEMINI_API_KEY) {
+            console.error('❌ GEMINI_API_KEY não configurada!');
+            return '😔 Erro de configuração. Contate o administrador.';
+        }
+        
         const response = await axios.post(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
                 contents: [{
                     parts: [{ text: contextPrompt }]
-                }]
+                }],
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 2048
+                }
             }
         );
         
@@ -858,6 +870,8 @@ IMPORTANTE: Ao confirmar receitas ou transações, seja conciso e direto. NÃO m
         
     } catch (error) {
         console.error('❌ Erro Gemini chat:', error);
+        console.error('❌ Erro detalhado:', error.response?.data || error.message);
+        console.error('❌ Status do erro:', error.response?.status);
         return '😔 Desculpe, não consegui processar sua pergunta no momento. Tente novamente.';
     }
 }

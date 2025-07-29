@@ -44,7 +44,7 @@ interface GeminiResponse {
 // Protege a chave da Gemini, faz controle de limite E AGORA ACESSA DADOS DO USUÁRIO
 // Tipagens podem ser necessárias para o objeto 'req' e 'res' em um ambiente TS completo.
 
-import { supabaseAdmin } from './supabase-admin'; // ES Module padrão para TypeScript no Vercel
+import { supabaseAdmin } from './supabase-admin.js'; // ES Module padrão para TypeScript no Vercel
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyDTTPO0otruHVzh7bXsi7MCyG674P03758";
 // Updated to gemini-2.5-flash-lite - Latest 2.5 Flash Lite model (July 2025)
@@ -474,8 +474,17 @@ return res.status(200).json({ resposta: outputText });
     console.log('[GEMINI_API_HANDLER_END]');
 
   } catch (e: any) {
-    console.error('Erro ao acessar Gemini ou processar dados:', e);
-    return res.status(500).json({ error: 'Erro ao buscar dados financeiros: ' + e.message });
+    console.error('[GEMINI_API] Erro crítico no handler principal:', e);
+    console.error('[GEMINI_API] Stack trace:', e.stack);
+    console.error('[GEMINI_API] Detalhes do erro:', {
+      message: e.message,
+      name: e.name,
+      code: e.code
+    });
+    return res.status(500).json({ 
+      error: 'Erro ao buscar dados financeiros: ' + e.message,
+      details: process.env.NODE_ENV === 'development' ? e.stack : undefined
+    });
   }
 }
 

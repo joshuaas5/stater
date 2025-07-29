@@ -4005,10 +4005,45 @@ return (
                       
                       <div style={{
                         display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
+                        gridTemplateColumns: '1fr 1fr 1fr',
                         gap: '10px',
                         marginBottom: '10px'
                       }}>
+                        <div>
+                          <label style={{ 
+                            fontSize: '12px', 
+                            color: '#374151', // Cinza escuro
+                            fontWeight: '600',
+                            display: 'block', 
+                            marginBottom: '5px' 
+                          }}>
+                            Tipo
+                          </label>
+                          <select
+                            value={transaction.type || 'expense'}
+                            onChange={(e) => updateTransaction(index, { 
+                              ...transaction, 
+                              type: e.target.value as 'income' | 'expense',
+                              amount: Math.abs(transaction.amount || 0) * (e.target.value === 'expense' ? -1 : 1)
+                            })}
+                            style={{
+                              background: 'white',
+                              border: '2px solid #e5e7eb',
+                              borderRadius: '8px',
+                              padding: '8px 12px',
+                              color: '#1f2937',
+                              fontSize: '14px',
+                              width: '100%',
+                              outline: 'none',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="income">💰 Entrada</option>
+                            <option value="expense">💸 Saída</option>
+                          </select>
+                        </div>
+                        
                         <div>
                           <label style={{ 
                             fontSize: '12px', 

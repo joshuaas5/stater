@@ -1386,13 +1386,18 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
       // Check if we're in development mode and use Gemini directly
       const isDevelopment = import.meta.env.DEV;
       const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       
       console.log('🔥 STATER FIX: Development mode:', isDevelopment);
       console.log('🔥 STATER FIX: Gemini API key available:', !!geminiApiKey);
+      console.log('🔥 STATER FIX: Environment mode:', import.meta.env.MODE);
+      console.log('🔥 STATER FIX: Is localhost:', isLocalhost);
+      console.log('🔥 STATER FIX: Current hostname:', window.location.hostname);
+      console.log('🔥 STATER FIX: Will use direct API?', (isDevelopment || isLocalhost) && geminiApiKey);
       
-      if (isDevelopment && geminiApiKey) {
+      if ((isDevelopment || isLocalhost) && geminiApiKey) {
         // In development, use Gemini API directly to avoid serverless function issues
-        console.log('Using Gemini API directly in development mode');
+        console.log('🔥 STATER FIX: Using Gemini API directly in development mode');
         
         try {
           const geminiResponse = await fetch(
@@ -1417,20 +1422,20 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
 
           if (!geminiResponse.ok) {
             const errorText = await geminiResponse.text();
-            console.error('Gemini API direct call error:', errorText);
+            console.error('🔥 STATER FIX: Gemini API direct call error:', errorText);
             setMessages(prev => [...prev, { id: uuidv4(), text: `❌ Erro ao conectar com a IA Gemini: ${errorText}`, sender: 'system', timestamp: new Date() }]);
             setLoadingState('ai-thinking', false);
             return;
           }
 
           const geminiData = await geminiResponse.json();
-          console.log('Gemini API direct response:', geminiData);
+          console.log('🔥 STATER FIX: Gemini API direct response:', geminiData);
           
           if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content) {
             botResponseText = geminiData.candidates[0].content.parts[0].text;
             // Remove asterisks from response
             botResponseText = botResponseText.replace(/\*\*/g, '').replace(/\*/g, '');
-            console.log('Successfully got response from Gemini direct API');
+            console.log('🔥 STATER FIX: Successfully got response from Gemini direct API');
             
             // Set tokens used from Gemini response if available
             if (geminiData.usageMetadata && geminiData.usageMetadata.totalTokenCount) {
@@ -1440,7 +1445,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
             throw new Error('Invalid response format from Gemini API');
           }
         } catch (error) {
-          console.error('Error calling Gemini API directly:', error);
+          console.error('🔥 STATER FIX: Error calling Gemini API directly:', error);
           const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
           setMessages(prev => [...prev, { id: uuidv4(), text: `❌ Erro ao conectar com a IA: ${errorMessage}`, sender: 'system', timestamp: new Date() }]);
           setLoadingState('ai-thinking', false);
@@ -1874,7 +1879,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
       setSavingTransactions(false);
     }
   } catch (error: any) {
-    console.error("Erro na requisição para a IA:", error);
+    console.error("🔥 STATER FIX: Erro capturado no catch global:", error);
     
     // Check if request was cancelled
     if (error.name === 'AbortError') {
@@ -1886,14 +1891,21 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         avatarUrl: IA_AVATAR
       }]);
     } else {
-      // 🔥 STATER FIX: Try Gemini API directly as fallback in development
-      const isDevelopment = import.meta.env.DEV;
+      // 🔥 STATER FIX: Always try Gemini API directly as fallback when there's an API error
       const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
       
-      console.log('🔥 STATER FIX: Erro capturado no catch global, tentando fallback...');
-      console.log('🔥 STATER FIX: isDevelopment:', isDevelopment, 'hasGeminiKey:', !!geminiApiKey);
+      console.log('🔥 STATER FIX: Erro capturado, tentando fallback...');
+      console.log('🔥 STATER FIX: Error message:', error.message);
+      console.log('🔥 STATER FIX: hasGeminiKey:', !!geminiApiKey);
       
-      if (isDevelopment && geminiApiKey && error.message?.includes('500') || error.message?.includes('API')) {
+      // Check if it's an API-related error (500, fetch error, etc.)
+      const isApiError = error.message?.includes('500') || 
+                        error.message?.includes('API') || 
+                        error.message?.includes('fetch') ||
+                        error.message?.includes('Internal Server Error') ||
+                        error.toString().includes('500');
+      
+      if (geminiApiKey && isApiError) {
         console.log('🔥 STATER FIX: Tentando API do Gemini direta como fallback...');
         
         // Try Gemini API directly as fallback
@@ -1904,7 +1916,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               contents: [{
-                parts: [{ text: message || 'Olá, como você pode me ajudar?' }]
+                parts: [{ text: message || 'Olá, como você pode me ajudar com minhas finanças?' }]
               }],
               generationConfig: {
                 temperature: 0.7,
@@ -1926,7 +1938,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
               setMessages(prev => [...prev, {
                 id: uuidv4(),
                 text: `🤖 ${botResponseText}`,
-                sender: 'stater',
+                sender: 'assistant',
                 timestamp: new Date(),
                 avatarUrl: IA_AVATAR
               }]);
@@ -1939,13 +1951,14 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
           console.error('🔥 STATER FIX: Fallback falhou:', fallbackError);
           setMessages(prev => [...prev, {
             id: uuidv4(),
-            text: `❌ Erro ao processar sua solicitação. Tanto a API principal quanto o fallback falharam. Tente novamente.`,
+            text: `❌ Erro ao processar sua solicitação. API principal falhou e fallback também falhou. Tente novamente.`,
             sender: 'system',
             timestamp: new Date(),
             avatarUrl: IA_AVATAR
           }]);
         });
       } else {
+        console.log('🔥 STATER FIX: Fallback não ativo. isApiError:', isApiError, 'hasKey:', !!geminiApiKey);
         setMessages(prev => [...prev, {
           id: uuidv4(),
           text: `❌ Erro ao processar sua solicitação: ${error.message || 'Erro desconhecido'}. Tente novamente.`,

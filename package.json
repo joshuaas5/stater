@@ -7,9 +7,10 @@
   "homepage": "https://stater.app",
   "scripts": {
     "dev": "vite --mode development",
-    "build": "vite build",
+    "build": "npm run type-check && vite build",
     "build:dev": "vite build --mode development",
-    "build:vercel": "vite build",
+    "build:vercel": "npm run type-check && vite build --mode production",
+    "type-check": "tsc --noEmit",
     "postbuild": "echo 'Build completed successfully'",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -79,6 +80,12 @@
     "undici": "^5.27.2",
     "uuid": "^9.0.1",
     "vaul": "^0.9.3",
+    "vite": "^6.3.5",
+    "@vitejs/plugin-react-swc": "^3.9.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.11",
+    "typescript": "^5.5.3",
     "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
@@ -91,16 +98,10 @@
     "@types/react-dom": "^18.3.7",
     "@types/react-router-dom": "^5.3.3",
     "@types/uuid": "^10.0.0",
-    "@vitejs/plugin-react-swc": "^3.9.0",
-    "autoprefixer": "^10.4.20",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.11",
-    "typescript": "^5.5.3",
-    "typescript-eslint": "^8.0.1",
-    "vite": "^6.3.5"
+    "typescript-eslint": "^8.0.1"
   }
 }

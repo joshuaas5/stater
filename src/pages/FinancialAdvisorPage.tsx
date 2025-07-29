@@ -1452,28 +1452,123 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
           return;
         }
       } else {
-        // Production mode - use backend API
-        const backendApiResponse = await fetch('/api/gemini', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({ originalPrompt: userPrompt }),
-          signal: abortControllerRef.current.signal
-        });
+        // Production mode - use backend API with fallback on error
+        console.log('🔥 STATER FIX: Using production API with fallback capability');
+        
+        try {
+          const backendApiResponse = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({ originalPrompt: userPrompt }),
+            signal: abortControllerRef.current.signal
+          });
 
-        if (!backendApiResponse.ok) {
-          const errorData = await backendApiResponse.json().catch(() => ({ error: 'Erro desconhecido ao chamar a API do consultor.' }));
-          console.error("Backend API error status:", backendApiResponse.status, "Response:", errorData);
-          const userErrorMessage = errorData.details || errorData.error || `Erro ${backendApiResponse.status} ao conectar com o Consultor IA.`;
-          setMessages(prev => [...prev, { id: uuidv4(), text: `❌ ${userErrorMessage}`, sender: 'system', timestamp: new Date() }]);
-          setLoadingState('ai-thinking', false);
-          return; // Return early on API error
+          if (!backendApiResponse.ok) {
+            const errorData = await backendApiResponse.json().catch(() => ({ error: 'Erro desconhecido ao chamar a API do consultor.' }));
+            console.error("🔥 STATER FIX: Backend API error status:", backendApiResponse.status, "Response:", errorData);
+            
+            // If it's a 500 error and we have Gemini API key, try direct fallback
+            if (backendApiResponse.status === 500 && geminiApiKey) {
+              console.log('🔥 STATER FIX: 500 error detected, trying direct Gemini API as fallback...');
+              
+              const geminiResponse = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiApiKey}`,
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    contents: [{
+                      parts: [{ text: userPrompt }]
+                    }],
+                    generationConfig: {
+                      temperature: 0.7,
+                      topK: 32,
+                      topP: 1,
+                      maxOutputTokens: 16384,
+                    }
+                  }),
+                  signal: abortControllerRef.current.signal
+                }
+              );
+
+              if (geminiResponse.ok) {
+                const geminiData = await geminiResponse.json();
+                console.log('🔥 STATER FIX: Fallback successful! Using Gemini direct response');
+                
+                if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content) {
+                  botResponseText = geminiData.candidates[0].content.parts[0].text;
+                  botResponseText = botResponseText.replace(/\*\*/g, '').replace(/\*/g, '');
+                  
+                  if (geminiData.usageMetadata && geminiData.usageMetadata.totalTokenCount) {
+                    backendData.tokens_used = geminiData.usageMetadata.totalTokenCount;
+                  }
+                } else {
+                  throw new Error('Invalid response format from Gemini fallback API');
+                }
+              } else {
+                throw new Error(`Fallback also failed: ${geminiResponse.status}`);
+              }
+            } else {
+              // No fallback available or different error
+              const userErrorMessage = errorData.details || errorData.error || `Erro ${backendApiResponse.status} ao conectar com o Consultor IA.`;
+              setMessages(prev => [...prev, { id: uuidv4(), text: `❌ ${userErrorMessage}`, sender: 'system', timestamp: new Date() }]);
+              setLoadingState('ai-thinking', false);
+              return;
+            }
+          } else {
+            // Success case
+            const backendData_temp = await backendApiResponse.json();
+            botResponseText = backendData_temp.resposta;
+            backendData = backendData_temp;
+          }
+        } catch (error) {
+          // Network error or other issues
+          console.error('🔥 STATER FIX: Network error, trying direct Gemini fallback:', error);
+          
+          if (geminiApiKey) {
+            const geminiResponse = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiApiKey}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{
+                    parts: [{ text: userPrompt }]
+                  }],
+                  generationConfig: {
+                    temperature: 0.7,
+                    topK: 32,
+                    topP: 1,
+                    maxOutputTokens: 16384,
+                  }
+                })
+              }
+            );
+
+            if (geminiResponse.ok) {
+              const geminiData = await geminiResponse.json();
+              console.log('🔥 STATER FIX: Network fallback successful!');
+              
+              if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content) {
+                botResponseText = geminiData.candidates[0].content.parts[0].text;
+                botResponseText = botResponseText.replace(/\*\*/g, '').replace(/\*/g, '');
+                
+                if (geminiData.usageMetadata && geminiData.usageMetadata.totalTokenCount) {
+                  backendData.tokens_used = geminiData.usageMetadata.totalTokenCount;
+                }
+              } else {
+                throw error; // Re-throw original error if fallback parsing fails
+              }
+            } else {
+              throw error; // Re-throw original error if fallback fails
+            }
+          } else {
+            throw error; // Re-throw if no API key for fallback
+          }
         }
-
-        const backendData = await backendApiResponse.json();
-        botResponseText = backendData.resposta;
       }
       
       // Limpar tags HTML da resposta da IA

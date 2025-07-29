@@ -1348,30 +1348,48 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
           balance = allTransactions.reduce((acc, tx) => acc + (tx.type === 'income' ? tx.amount : -tx.amount), 0);
           console.log(`💰 [SALDO] Calculado com ${allTransactions.length} transações: R$ ${balance.toFixed(2)}`);
         }        // Montar prompt rico
-        userPrompt = `Você é um consultor financeiro realista e responsável. Analise a situação abaixo e responda de forma personalizada, citando números, regras de saúde financeira e sugerindo ações realistas.\n\n` +
-          `INSTRUÇÕES CRÍTICAS:\n` +
-          `- Se o usuário perguntar sobre SALDO, GASTOS, ANÁLISE ou CONSULTA: RESPONDA NORMALMENTE em texto\n` +
-          `- SEMPRE retorne JSON quando o usuário pedir para "adicionar", "registrar", "incluir", "anotar" uma transação (mesmo uma só)\n` +
-          `- Para transação ÚNICA: {"description":"Nome","amount":123.45,"type":"expense/income","category":"categoria","date":"YYYY-MM-DD"}\n` +
-          `- Para MÚLTIPLAS transações: [{"description":"Nome","amount":123.45,"type":"expense/income","category":"categoria","date":"YYYY-MM-DD"},...]\n` +
-          `- Use "expense" para gastos/saídas e "income" para receitas/entradas\n` +
-          `- Categorias válidas: "${EXPENSE_CATEGORIES.slice(0, 10).join('", "')}", "Outros" (use as categorias oficiais do sistema)\n\n` +
-          `PERGUNTAS SOBRE CONSULTA (responder em TEXTO):\n` +
-          `- "Verificar saldo", "Qual meu saldo", "Como estão minhas finanças" = TEXTO NORMAL\n` +
-          `- "Resumo financeiro", "Análise", "Gastos do mês" = TEXTO NORMAL\n\n` +
-          `REGISTROS ÚNICOS (responder em JSON):\n` +
-          `- "Adicione 50 reais entrada" = {"description":"Entrada","amount":50,"type":"income","category":"Outros","date":"${new Date().toISOString().split('T')[0]}"}\n` +
-          `- "Registre 30 reais mercado" = {"description":"Mercado","amount":30,"type":"expense","category":"Alimentação","date":"${new Date().toISOString().split('T')[0]}"}\n\n` +
-          `REGISTROS EM LISTA (responder em JSON ARRAY):\n` +
-          `- "Adicione: 50 reais mercado, 30 reais posto, 20 reais farmácia" = JSON ARRAY\n` +
-          `- "Registre essas transações: X, Y, Z" = JSON ARRAY\n\n` +
-          `Saldo atual: R$ ${balance.toFixed(2)} (baseado em ${allTransactions?.length || 0} transações totais)\n` +
-          `Transações recentes (últimas 10):\n` +
+        userPrompt = `Você é um consultor financeiro realista e responsável.
+
+INSTRUÇÕES CRÍTICAS - LEIA COM ATENÇÃO:
+
+1. Se o usuário perguntar sobre SALDO, GASTOS, ANÁLISE ou CONSULTA: RESPONDA EM TEXTO NORMAL
+2. Se o usuário pedir para ADICIONAR, REGISTRAR, INCLUIR, ANOTAR uma transação: RESPONDA APENAS COM JSON
+
+DETECÇÃO DE TRANSAÇÃO:
+- Frases como "adicione 50 reais", "registre 30 mercado", "inclua entrada de 100" = TRANSAÇÃO
+- Para TRANSAÇÃO ÚNICA, retorne EXATAMENTE este formato:
+{"description":"Descrição","amount":50.0,"type":"expense","category":"Outros","date":"${new Date().toISOString().split('T')[0]}"}
+
+- Use "type":"expense" para gastos/saídas
+- Use "type":"income" para receitas/entradas
+- Categorias válidas: "${EXPENSE_CATEGORIES.slice(0, 8).join('", "')}", "Outros"
+
+EXEMPLOS DE TRANSAÇÃO (responder JSON):
+Usuário: "adicione 50 reais" 
+Resposta: {"description":"Entrada de R$ 50","amount":50.0,"type":"income","category":"Outros","date":"${new Date().toISOString().split('T')[0]}"}
+
+Usuário: "registre 30 mercado"
+Resposta: {"description":"Mercado","amount":30.0,"type":"expense","category":"Alimentação","date":"${new Date().toISOString().split('T')[0]}"}
+
+EXEMPLOS DE CONSULTA (responder texto):
+Usuário: "qual meu saldo?"
+Resposta: Seu saldo atual é de R$ X,XX...
+
+Usuário: "como estão minhas finanças?"
+Resposta: Analisando seus dados financeiros...
+
+CONTEXTO FINANCEIRO:
+Saldo atual: R$ ${balance.toFixed(2)} (baseado em ${allTransactions?.length || 0} transações totais)
+Transações recentes (últimas 10):
+` +
           (recentTransactions && recentTransactions.length > 0
             ? recentTransactions.map(tx => `- ${tx.type === 'income' ? 'Receita' : 'Despesa'}: ${tx.title} (${tx.category || 'Sem categoria'}) R$ ${tx.amount} em ${new Date(tx.date).toLocaleDateString('pt-BR')}`).join('\n')
             : 'Nenhuma transação encontrada.') +
-          `\n\nPergunta do usuário: ${message}\n` +
-          `Sempre cite exemplos reais, recomende ações práticas e nunca sugira nada impossível ou ilegal. Seja claro e didático.`;
+          `
+
+PERGUNTA DO USUÁRIO: ${message}
+
+LEMBRE-SE: Se é uma transação, responda APENAS com JSON. Se é consulta, responda em texto normal.`;
       } catch (promptErr) {
         console.warn('Erro ao montar prompt personalizado, usando mensagem original.', promptErr);
       }
@@ -1834,6 +1852,48 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
       // NOVO: Se não conseguiu detectar JSON, tentar detectar lista na resposta da IA APENAS se a mensagem original era sobre transações
       if (!isTransactionJson && isTransactionRelatedMessage(message)) {
         console.log('🔍 [AI_FILTER] Aplicando detecção de transações na resposta da IA para mensagem relacionada a transações');
+        
+        // FALLBACK DIRETO: Se é uma solicitação simples como "adicione X reais", criar transação diretamente
+        const simpleTransactionMatch = message.match(/(?:adicione?|registre?|inclua|anote)\s+(?:r\$\s*)?(\d+(?:[,.]\d{2})?)\s*(?:reais?)?\s*(entrada|saída|receita|despesa)?/i);
+        if (simpleTransactionMatch) {
+          const amount = parseFloat(simpleTransactionMatch[1].replace(',', '.'));
+          const typeHint = simpleTransactionMatch[2]?.toLowerCase();
+          
+          let transactionType: 'income' | 'expense' = 'expense'; // Default para despesa
+          let description = `Transação de R$ ${amount.toFixed(2)}`;
+          
+          // Determinar tipo baseado na dica ou assumir receita se não especificado (para "adicione X reais")
+          if (typeHint) {
+            if (typeHint.includes('entrada') || typeHint.includes('receita')) {
+              transactionType = 'income';
+              description = `Receita de R$ ${amount.toFixed(2)}`;
+            } else if (typeHint.includes('saída') || typeHint.includes('despesa')) {
+              transactionType = 'expense';
+              description = `Despesa de R$ ${amount.toFixed(2)}`;
+            }
+          } else {
+            // Se não especificou tipo, "adicione X reais" provavelmente é receita
+            transactionType = 'income';
+            description = `Entrada de R$ ${amount.toFixed(2)}`;
+          }
+          
+          console.log('🤖 [FALLBACK] Criando transação simples:', { amount, type: transactionType, description });
+          
+          // Ativar modal diretamente
+          setPendingAction({
+            tipo: transactionType,
+            dados: {
+              amount,
+              description,
+              category: 'Outros',
+              date: new Date().toISOString().split('T')[0]
+            }
+          });
+          setWaitingConfirmation(true);
+          setLoadingState('ai-thinking', false);
+          return;
+        }
+        
         const aiTransactionList = detectTransactionListInAIResponse(botResponseText);
         if (aiTransactionList.length >= 2) {
           console.log("🤖 Lista de transações detectada na resposta da IA:", aiTransactionList);

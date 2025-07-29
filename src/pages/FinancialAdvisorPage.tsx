@@ -1669,22 +1669,50 @@ LEMBRE-SE:
       if (typeof botResponseText === 'string') {
         botResponseText = botResponseText.replace(/<\/?strong>/g, '**').replace(/<\/?[^>]+(>|$)/g, '');
         
-        // NOVO: Limpar JSON da resposta para evitar duplicação
-        // Se a resposta contém JSON, remover apenas o JSON e manter o texto
+        // PRESERVAR JSON: Não remover JSON válido, apenas limpar formatação
+        console.log('🔍 [JSON_FIX] Resposta original:', botResponseText);
+        
+        // Limpar blocos de código JSON mas preservar JSON direto
         const jsonBlockMatch = botResponseText.match(/```json\s*([\s\S]*?)\s*```/);
         if (jsonBlockMatch) {
-          botResponseText = botResponseText.replace(/```json\s*([\s\S]*?)\s*```/g, '').trim();
+          // Se tem bloco JSON, extrair o conteúdo e usar apenas ele
+          botResponseText = jsonBlockMatch[1].trim();
+          console.log('🔍 [JSON_FIX] JSON extraído de bloco:', botResponseText);
         }
         
-        // Remover objetos JSON soltos no início da resposta
-        const jsonObjectMatch = botResponseText.match(/^\s*[\[{][\s\S]*?[\]}]\s*/);
-        if (jsonObjectMatch) {
-          botResponseText = botResponseText.replace(/^\s*[\[{][\s\S]*?[\]}]\s*/, '').trim();
+        // NOVO: Tentar reparar JSON malformado/cortado
+        if (botResponseText.includes('{') || botResponseText.includes('[')) {
+          // Se parece ser JSON mas pode estar malformado
+          let repairedJson = botResponseText.trim();
+          
+          // Reparar início cortado de array
+          if (repairedJson.startsWith(',')) {
+            repairedJson = '[' + repairedJson;
+            console.log('🔧 [JSON_REPAIR] Adicionado [ no início');
+          }
+          
+          // Reparar final cortado de array
+          if (repairedJson.includes('[') && !repairedJson.includes(']')) {
+            repairedJson = repairedJson + ']';
+            console.log('🔧 [JSON_REPAIR] Adicionado ] no final');
+          }
+          
+          // Reparar final cortado de objeto
+          if (repairedJson.includes('{') && !repairedJson.includes('}')) {
+            repairedJson = repairedJson + '}';
+            console.log('🔧 [JSON_REPAIR] Adicionado } no final');
+          }
+          
+          botResponseText = repairedJson;
+          console.log('🔍 [JSON_FIX] JSON reparado:', botResponseText);
         }
         
-        // Se após limpeza só restou texto vazio ou muito pequeno, usar mensagem padrão
-        if (!botResponseText || botResponseText.length < 10) {
-          botResponseText = "Entendi sua mensagem. Como posso ajudá-lo com suas finanças?";
+        // Se não é JSON, aplicar limpeza padrão
+        if (!botResponseText.trim().startsWith('[') && !botResponseText.trim().startsWith('{')) {
+          // Se após limpeza só restou texto vazio ou muito pequeno, usar mensagem padrão
+          if (!botResponseText || botResponseText.length < 10) {
+            botResponseText = "Entendi sua mensagem. Como posso ajudá-lo com suas finanças?";
+          }
         }
       }
       // --- NOVO: Atualizar uso de tokens e requisições do usuário ---
@@ -1752,28 +1780,62 @@ LEMBRE-SE:
       if (!isConsultaQuery) {
         try {
           let jsonStringToParse = botResponseText;
+          console.log('🔍 [JSON_PARSE] Iniciando parsing. Resposta original:', botResponseText);
+          
           const jsonBlockMatch = botResponseText.match(/```json\s*([\s\S]*?)\s*```/);
 
           if (jsonBlockMatch && jsonBlockMatch[1]) {
             jsonStringToParse = jsonBlockMatch[1].trim();
+            console.log('🔍 [JSON_PARSE] JSON extraído de bloco código:', jsonStringToParse);
           } else {
-          const firstBrace = botResponseText.indexOf('[');
-          const lastBrace = botResponseText.lastIndexOf(']');
-          if (firstBrace !== -1 && lastBrace > firstBrace) {
-            jsonStringToParse = botResponseText.substring(firstBrace, lastBrace + 1);
-          } else {
-            const firstObjBrace = botResponseText.indexOf('{');
-            const lastObjBrace = botResponseText.lastIndexOf('}');
-            if (firstObjBrace !== -1 && lastObjBrace > firstObjBrace) {
-              jsonStringToParse = botResponseText.substring(firstObjBrace, lastObjBrace + 1);
+            // NOVA LÓGICA: Reparar JSON malformado/cortado ANTES de extrair
+            let repairedResponse = botResponseText.trim();
+            
+            // Reparar início cortado de array (começa com vírgula)
+            if (repairedResponse.startsWith(',')) {
+              repairedResponse = '[' + repairedResponse;
+              console.log('🔧 [JSON_REPAIR] Adicionado [ no início (cortado)');
+            }
+            
+            // Reparar JSON cortado no final
+            if (repairedResponse.includes('[') && !repairedResponse.includes(']')) {
+              repairedResponse = repairedResponse + ']';
+              console.log('🔧 [JSON_REPAIR] Adicionado ] no final (array cortado)');
+            }
+            
+            if (repairedResponse.includes('{') && !repairedResponse.includes('}')) {
+              repairedResponse = repairedResponse + '}';
+              console.log('🔧 [JSON_REPAIR] Adicionado } no final (objeto cortado)');
+            }
+            
+            console.log('🔍 [JSON_PARSE] JSON reparado:', repairedResponse);
+            
+            // Agora extrair JSON do conteúdo reparado
+            const firstBrace = repairedResponse.indexOf('[');
+            const lastBrace = repairedResponse.lastIndexOf(']');
+            if (firstBrace !== -1 && lastBrace > firstBrace) {
+              jsonStringToParse = repairedResponse.substring(firstBrace, lastBrace + 1);
+              console.log('🔍 [JSON_PARSE] Array extraído após reparo:', jsonStringToParse);
             } else {
-              throw new Error("No clear JSON structure found in AI response for transaction parsing.");
+              const firstObjBrace = repairedResponse.indexOf('{');
+              const lastObjBrace = repairedResponse.lastIndexOf('}');
+              if (firstObjBrace !== -1 && lastObjBrace > firstObjBrace) {
+                jsonStringToParse = repairedResponse.substring(firstObjBrace, lastObjBrace + 1);
+                console.log('🔍 [JSON_PARSE] Objeto extraído após reparo:', jsonStringToParse);
+              } else {
+                throw new Error("No clear JSON structure found in AI response for transaction parsing.");
+              }
             }
           }
-        }
         
         const sanitizedJsonString = jsonStringToParse.replace(/,\s*([}\]])/g, '$1');
-        const parsed = JSON.parse(sanitizedJsonString);        if (parsed && typeof parsed === 'object') {
+        console.log('🔍 [JSON_PARSE] JSON sanitizado para parsing:', sanitizedJsonString);
+        
+        const parsed = JSON.parse(sanitizedJsonString);
+        console.log('✅ [JSON_PARSE] JSON parseado com sucesso. Tipo:', Array.isArray(parsed) ? 'Array' : 'Object');
+        console.log('✅ [JSON_PARSE] Conteúdo parseado:', parsed);
+        
+        if (parsed && typeof parsed === 'object') {
           // NOVO: Detectar transação ÚNICA (objeto) retornada pela IA
           if (!Array.isArray(parsed) && parsed.description && parsed.amount && parsed.type) {
             console.log('Detectou transação única da IA:', parsed);
@@ -1800,34 +1862,12 @@ LEMBRE-SE:
           }
           // NOVO: Detectar ARRAY de transações (lista retornada pela IA)
           else if (Array.isArray(parsed) && parsed.length >= 1) {
-            console.log('Detectou array de transações da IA:', parsed);
+            console.log('🎯 [ARRAY_DETECT] Array detectado com', parsed.length, 'items:', parsed);
             
-            // Se é array com apenas 1 item, tratar como transação única
-            if (parsed.length === 1) {
-              const tx = parsed[0];
-              const singleTransaction = {
-                type: tx.tipo === 'receita' || tx.type === 'income' ? 'income' : 'expense',
-                amount: parseFloat(tx.valor || tx.amount || 0),
-                description: tx.descrição || tx.description || 'Transação',
-                category: tx.categoria || tx.category || 'Outros',
-                date: tx.data || tx.date || new Date().toISOString().split('T')[0]
-              };
-              
-              if (singleTransaction.amount > 0) {
-                setPendingAction({
-                  tipo: singleTransaction.type as 'income' | 'expense',
-                  dados: singleTransaction
-                });
-                setWaitingConfirmation(true);
-                isTransactionJson = true;
-              }
-            } 
-            // Array com múltiplas transações - USAR MODAL DE LISTA EDITÁVEL
-            else {
-            
+            // SEMPRE usar modal de lista se é array, mesmo com 1 item (para consistência com PDF/OCR)
             // Converter array de transações da IA para formato esperado
             const transactionList = parsed.map((tx, index) => {
-              console.log(`Processando transação ${index + 1}:`, tx);
+              console.log(`🔄 [ARRAY_CONVERT] Processando item ${index + 1}:`, tx);
               return {
                 type: tx.tipo === 'receita' || tx.type === 'income' ? 'income' : 'expense',
                 amount: parseFloat(tx.valor || tx.amount || 0),
@@ -1837,14 +1877,14 @@ LEMBRE-SE:
               };
             }).filter(tx => tx.amount > 0); // Filtrar transações com valor válido
 
-            console.log('Lista de transações convertida:', transactionList);
+            console.log('✅ [ARRAY_CONVERT] Lista convertida:', transactionList);
 
             if (transactionList.length === 0) {
               throw new Error('Nenhuma transação válida encontrada no array da IA');
             }
 
-            // USAR MODAL DE LISTA EDITÁVEL (igual ao PDF/OCR)
-            console.log('🔄 [MODAL LIST] Ativando modal de lista editável para múltiplas transações');
+            // SEMPRE USAR MODAL DE LISTA EDITÁVEL para arrays (consistente com PDF/OCR)
+            console.log('🔄 [MODAL_LIST] Ativando modal de lista editável para', transactionList.length, 'transações');
             
             // Preparar ação pendente para confirmação no formato do modal de lista
             setEditableTransactions(transactionList);
@@ -1853,7 +1893,7 @@ LEMBRE-SE:
               dados: {
                 ocrTransactions: transactionList,
                 documentType: 'ai_multiple',
-                establishment: 'Lista de transações processada pela IA'
+                establishment: `Lista de ${transactionList.length} transação${transactionList.length > 1 ? 'ões' : ''} processada pela IA`
               }
             });
             setWaitingConfirmation(true);
@@ -1864,7 +1904,6 @@ LEMBRE-SE:
             }, 200);
 
             isTransactionJson = true;
-            }
           }
           // Transação individual (formato existente)
           else if ((parsed.tipo === 'receita' || parsed.tipo === 'despesa') &&

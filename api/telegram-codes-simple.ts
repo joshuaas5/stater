@@ -1,12 +1,12 @@
-// API para gerenciar códigos de conexão Telegram - Stater (v2)
-import { createClient } from '@supabase/supabase-js';
+// API para gerenciar códigos de conexão Telegram - Stater (versão funcional)
+const { createClient } = require('@supabase/supabase-js');
 
-// Configuração direta do Supabase - mais simples
+// Configuração básica e funcional
 const supabaseUrl = 'https://tmucbwlhkffrhtexmjze.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtdWNid2xoa2Zmcmh0ZXhtanplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMzAzMDgsImV4cCI6MjA2MTcwNjMwOH0.rNx8GkxpEeGjtOwYC_LiL4HlAiwZKVMPTRrCqt7UHVo';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtdWNid2xoa2Zmcmh0ZXhtanplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMzAzMDgsImV4cCI6MjA2MTcwNjMwOH0.rNx8GkxpEeGjtOwYC_LiL4HlAiwZKVMPTRrCqt7UHVo';
 
-// Cliente Supabase simplificado
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Cliente Supabase simples
+const supabaseAdmin = createClient(supabaseUrl, supabaseAnonKey);
 
 // Função para gerar código aleatório de 6 dígitos
 function generateCode(): string {
@@ -45,7 +45,7 @@ export default async function handler(req: any, res: any) {
       console.log('🔍 Verificando código:', code);
       
       // Buscar código no banco
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('telegram_link_codes')
         .select('*')
         .eq('code', code)
@@ -78,7 +78,7 @@ export default async function handler(req: any, res: any) {
       // Marcar código como usado
       if (action === 'mark-used' && code) {
         console.log('📝 Marcando código como usado:', code);
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
           .from('telegram_link_codes')
           .update({ 
             used_at: new Date().toISOString()
@@ -103,7 +103,7 @@ export default async function handler(req: any, res: any) {
         }
         
         // Invalidar códigos antigos do usuário
-        await supabase
+        await supabaseAdmin
           .from('telegram_link_codes')
           .update({ used_at: new Date().toISOString() })
           .eq('user_id', userId)
@@ -121,7 +121,7 @@ export default async function handler(req: any, res: any) {
           expiresAt: expiresAt.toISOString()
         });
         
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from('telegram_link_codes')
           .insert([{
             code: newCode,
@@ -172,7 +172,7 @@ export default async function handler(req: any, res: any) {
         console.log('🔑 Gerando código (ação padrão) para usuário:', finalUserId);
         
         // Invalidar códigos antigos do usuário
-        await supabase
+        await supabaseAdmin
           .from('telegram_link_codes')
           .update({ used_at: new Date().toISOString() })
           .eq('user_id', finalUserId)
@@ -190,7 +190,7 @@ export default async function handler(req: any, res: any) {
           expiresAt: expiresAt.toISOString()
         });
         
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from('telegram_link_codes')
           .insert([{
             code: newCode,

@@ -5,6 +5,7 @@ import NavBar from '@/components/navigation/NavBar';
 import { getCurrentUser } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { TelegramConnectModal } from '@/components/telegram/TelegramConnectModal';
 import { 
   MessageCircle, 
   ArrowLeft, 
@@ -21,10 +22,12 @@ const TelegramSettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user] = useState(getCurrentUser());
-  const [linkCode, setLinkCode] = useState<string>('');
   const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [telegramInfo, setTelegramInfo] = useState<any>(null);
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
+  // Estados removidos - agora usando TelegramConnectModal
+  // const [linkCode, setLinkCode] = useState('');
+  // const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     checkTelegramConnection();
@@ -62,104 +65,13 @@ const TelegramSettingsPage: React.FC = () => {
     }
   };
 
-  const generateLinkCode = async () => {
-    if (!user) return;
-    
-    setIsLoading(true);
-    try {
-      // Invalidar códigos antigos primeiro
-      await supabase
-        .from('telegram_link_codes')
-        .update({ used_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .is('used_at', null);
-
-      // Gerar código único (formato mais simples: 6 dígitos)
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Expira em 15 minutos
-      
-      // Salvar no Supabase
-      const { error } = await supabase
-        .from('telegram_link_codes')
-        .insert({
-          code: code,
-          user_id: user.id,
-          user_email: user.email,
-          user_name: user.username,
-          expires_at: expiresAt.toISOString(),
-          created_at: new Date().toISOString()
-        });
-      
-      if (error) {
-        throw error;
-      }
-      
-      setLinkCode(code);
-      
-      // 🔥 CÓPIA AUTOMÁTICA DO CÓDIGO
-      try {
-        await navigator.clipboard.writeText(code);
-        toast({
-          title: '✅ Código copiado automaticamente!',
-          description: `Código ${code} foi copiado. Cole no Telegram para conectar.`,
-          variant: 'default',
-        });
-      } catch (clipboardError) {
-        // Se falhar na cópia automática, avisar o usuário
-        toast({
-          title: 'Código gerado!',
-          description: `Código: ${code}. Clique no botão "Copiar" para usar no Telegram.`,
-          variant: 'default',
-        });
-      }
-      
-      // 🔄 Auto-verificar conexão a cada 3 segundos por 2 minutos
-      const maxChecks = 40; // 2 minutos = 40 checks de 3s
-      let checkCount = 0;
-      
-      const intervalId = setInterval(async () => {
-        checkCount++;
-        console.log(`🔄 Auto-verificação ${checkCount}/${maxChecks}`);
-        
-        await checkTelegramConnection();
-        
-        // Se conectou ou atingiu o limite, parar
-        if (isConnected || checkCount >= maxChecks) {
-          clearInterval(intervalId);
-          if (isConnected) {
-            console.log('✅ Conexão detectada automaticamente!');
-            toast({
-              title: '🎉 Conectado!',
-              description: 'Sua conta foi conectada ao Telegram com sucesso!',
-              variant: 'default',
-            });
-          }
-        }
-      }, 3000);
-      
-    } catch (error) {
-      console.error('Erro ao gerar código:', error);
-      toast({
-        title: 'Erro ao gerar código',
-        description: 'Tente novamente em alguns segundos.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const generateLinkCode = () => {
+    // Agora usando TelegramConnectModal unificado
+    setShowTelegramModal(true);
   };
 
-  const copyLinkCode = () => {
-    if (linkCode) {
-      navigator.clipboard.writeText(linkCode);
-      toast({
-        title: 'Código copiado!',
-        description: 'Cole no Telegram para conectar.',
-        variant: 'default',
-      });
-    }
-  };
+  // Função removida - agora usando TelegramConnectModal
+  // const copyLinkCode = () => { ... }
 
   const disconnectTelegram = async () => {
     if (!user || !telegramInfo) return;
@@ -272,37 +184,19 @@ const TelegramSettingsPage: React.FC = () => {
                 </Button>
                 
                 <div className="border-t border-white/20 pt-4">
-                  <h4 className="font-medium text-white mb-2">🔐 Código de Vinculação</h4>
+                  <h4 className="font-medium text-white mb-2">🔐 Conectar Conta</h4>
                   
-                  {linkCode ? (
-                    <div className="bg-white/5 backdrop-blur-[8px] p-3 rounded-lg border border-white/20">
-                      <div className="flex items-center justify-between">
-                        <code className="text-lg font-mono font-bold text-blue-300">
-                          {linkCode}
-                        </code>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={copyLinkCode}
-                          className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                        >
-                          <Copy size={14} className="mr-1" /> Copiar
-                        </Button>
-                      </div>
-                      <p className="text-xs text-white/60 mt-2">
-                        ⏰ Este código expira em 15 minutos
-                      </p>
-                    </div>
-                  ) : (
-                    <Button 
-                      onClick={generateLinkCode}
-                      disabled={isLoading}
-                      variant="outline"
-                      className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
-                    >
-                      {isLoading ? 'Gerando...' : 'Gerar Código de Vinculação'}
-                    </Button>
-                  )}
+                  <Button 
+                    onClick={generateLinkCode}
+                    variant="outline"
+                    className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  >
+                    🔑 Gerar Código de Conexão
+                  </Button>
+                  
+                  <p className="text-xs text-white/60 mt-2">
+                    Clique para abrir o modal de conexão unificado
+                  </p>
                 </div>
               </div>
             </div>
@@ -376,6 +270,18 @@ const TelegramSettingsPage: React.FC = () => {
         </div>
       </div>
       <NavBar />
+      
+      {/* Modal unificado de conexão Telegram */}
+      <TelegramConnectModal
+        isOpen={showTelegramModal}
+        onClose={() => setShowTelegramModal(false)}
+        onConnect={(code) => {
+          // Callback chamado quando código é gerado
+          setShowTelegramModal(false);
+          // Recarregar status da conexão
+          setTimeout(() => checkTelegramConnection(), 2000);
+        }}
+      />
     </div>
   );
 };

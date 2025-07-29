@@ -1,8 +1,14 @@
-# Stater Project
+# Stater Financial Assistant
 
-**[Nota: Adicione aqui uma breve descrição do que é o projeto Stater e seus principais objetivos.]**
+**Assistente financeiro inteligente com IA integrada**
 
-Este projeto foi desenvolvido utilizando uma stack moderna de tecnologias web e mobile, com foco em fornecer [descrever o propósito principal, ex: uma rica experiência de usuário, uma plataforma de gerenciamento, etc.].
+Este projeto é uma aplicação web moderna desenvolvida com React + TypeScript + Vite, focada em fornecer uma experiência completa de gestão financeira pessoal com integração de inteligência artificial.
+
+## 🚀 Build Status
+- ✅ Vite v6.3.5 
+- ✅ React 18.3.1
+- ✅ TypeScript 5.5.3
+- ✅ Vercel Deploy Ready
 
 ## Visão Geral das Tecnologias
 

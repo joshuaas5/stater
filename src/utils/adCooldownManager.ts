@@ -1,4 +1,4 @@
-import { AdManager } from './adManager';
+import { AdManager, isDeveloperAccount } from './adManager';
 import { UserPlanManager } from './userPlanManager';
 
 interface AdCooldownData {
@@ -51,11 +51,17 @@ export class AdCooldownManager {
     action: 'bills' | 'transactions'
   ): Promise<{
     allowed: boolean;
-    reason: 'free_actions' | 'premium_plan' | 'need_ad' | 'cooldown_active';
+    reason: 'free_actions' | 'premium_plan' | 'need_ad' | 'cooldown_active' | 'developer_account';
     cooldownData?: AdCooldownData;
     minutesUntilNextAd?: number;
   }> {
     try {
+      // Contas de desenvolvedor têm acesso ilimitado
+      if (isDeveloperAccount(userId)) {
+        console.log('🔧 [DEV] Conta desenvolvedor - acesso ilimitado');
+        return { allowed: true, reason: 'developer_account' };
+      }
+      
       // Verificar se é usuário premium
       const shouldShowAds = await UserPlanManager.shouldShowAds(userId);
       if (!shouldShowAds) {

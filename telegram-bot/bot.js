@@ -557,7 +557,7 @@ Retorne APENAS o array JSON, sem explicações adicionais.`;
     }
 }
 
-// Formatar resposta das transações
+// Formatar resposta das transações - FORMATO LIMPO
 function formatTransactionsResponse(transactions) {
     let response = `💰 *Encontrei ${transactions.length} transação(ões):*\n\n`;
     
@@ -565,12 +565,14 @@ function formatTransactionsResponse(transactions) {
         const emoji = t.valor > 0 ? '💚' : '💸';
         const valor = Math.abs(t.valor).toFixed(2).replace('.', ',');
         
-        response += `${emoji} *${t.data}* - ${t.descricao}\n`;
-        response += `   R$ ${t.valor > 0 ? '+' : '-'}${valor}\n`;
-        response += `   📋 ${t.categoria}\n\n`;
+        response += `${emoji} **${t.descricao}**\n`;
+        response += `💵 R$ ${t.valor > 0 ? '+' : '-'}${valor}\n`;
+        response += `📅 ${t.data}\n`;
+        response += `� ${t.categoria}\n`;
+        response += `${'─'.repeat(25)}\n\n`;
     });
     
-    response += '✅ *Confirma essas transações?*';
+    response += '❓ *Confirmar essas transações?*';
     
     return response;
 }

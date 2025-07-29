@@ -1,6 +1,7 @@
 import { UserPlanManager } from './userPlanManager';
 import { UserJourneyManager } from './userJourneyManager';
 import { PlanType } from '@/types';
+import { getCurrentUser } from '@/utils/localStorage';
 
 export interface AdCooldown {
   lastAdShown: Date;
@@ -27,6 +28,27 @@ export interface ContextualAdResult {
   cooldownMinutes?: number;
 }
 
+// Contas de desenvolvedor que não veem ads nem limitações
+const DEVELOPER_ACCOUNTS = [
+  'joshuaas500@gmail.com',
+  'joshua@stater.app'
+];
+
+/**
+ * Verifica se é conta de desenvolvedor
+ */
+export function isDeveloperAccount(userId?: string): boolean {
+  try {
+    const user = getCurrentUser();
+    if (!user) return false;
+    
+    const email = user.email?.toLowerCase();
+    return DEVELOPER_ACCOUNTS.includes(email || '');
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Gerenciador de anúncios estratégicos para monetização
  */
@@ -38,6 +60,12 @@ export class AdManager {
    */
   static async shouldShowAdForBill(userId: string): Promise<boolean> {
     try {
+      // Contas de desenvolvedor nunca veem ads
+      if (isDeveloperAccount(userId)) {
+        console.log('🔧 [DEV] Conta desenvolvedor - sem ads');
+        return false;
+      }
+      
       const userPlan = await UserPlanManager.getUserPlan(userId);
       
       // Usuários pagos não veem ads
@@ -75,6 +103,12 @@ export class AdManager {
    */
   static async shouldShowAdForTransaction(userId: string): Promise<boolean> {
     try {
+      // Contas de desenvolvedor nunca veem ads
+      if (isDeveloperAccount(userId)) {
+        console.log('🔧 [DEV] Conta desenvolvedor - sem ads');
+        return false;
+      }
+      
       const userPlan = await UserPlanManager.getUserPlan(userId);
       
       // Usuários pagos não veem ads
@@ -111,6 +145,17 @@ export class AdManager {
     day: number;
   }> {
     try {
+      // Contas de desenvolvedor nunca veem ads
+      if (isDeveloperAccount(userId)) {
+        console.log('🔧 [DEV] Conta desenvolvedor - sem limitações');
+        return {
+          shouldShow: false,
+          adsRequired: 0,
+          messagesReward: 999, // Mensagens ilimitadas
+          day: 0
+        };
+      }
+      
       const userPlan = await UserPlanManager.getUserPlan(userId);
       
       // Usuários pagos não veem ads
@@ -311,6 +356,12 @@ export class AdManager {
    */
   static async hasReachedPaywall(userId: string): Promise<boolean> {
     try {
+      // Contas de desenvolvedor nunca atingem paywall
+      if (isDeveloperAccount(userId)) {
+        console.log('🔧 [DEV] Conta desenvolvedor - sem paywall');
+        return false;
+      }
+      
       const journey = await UserPlanManager.getUserJourney(userId);
       return journey.currentDay >= 4 || journey.hasReachedPaywall;
       

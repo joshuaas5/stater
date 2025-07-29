@@ -1373,31 +1373,98 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
       }
       // --- FIM NOVO PROMPT ---
 
-      // Call our backend API
+      // Call our backend API or Gemini directly in development
       console.log(`FinancialAdvisorPage: Calling backend /api/gemini with prompt: "${userPrompt}"`);
       
       // Create AbortController for request cancellation
       abortControllerRef.current = new AbortController();
       
-      const backendApiResponse = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ originalPrompt: userPrompt }),
-        signal: abortControllerRef.current.signal
-      });
+      let botResponseText: string;
+      
+      // Check if we're in development mode and backend API is not available
+      const isDevelopment = import.meta.env.DEV;
+      
+      if (isDevelopment) {
+        try {
+          // Try backend API first
+          const backendApiResponse = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({ originalPrompt: userPrompt }),
+            signal: abortControllerRef.current.signal
+          });
 
-      if (!backendApiResponse.ok) {
-        const errorData = await backendApiResponse.json().catch(() => ({ error: 'Erro desconhecido ao chamar a API do consultor.' }));
-        console.error("Backend API error status:", backendApiResponse.status, "Response:", errorData);
-        const userErrorMessage = errorData.details || errorData.error || `Erro ${backendApiResponse.status} ao conectar com o Consultor IA.`;
-        setMessages(prev => [...prev, { id: uuidv4(), text: `❌ ${userErrorMessage}`, sender: 'system', timestamp: new Date() }]);
-        setLoadingState('ai-thinking', false);
-        return; // Return early on API error
-      }      const backendData = await backendApiResponse.json();
-      let botResponseText = backendData.resposta;
+          if (backendApiResponse.ok) {
+            const backendData = await backendApiResponse.json();
+            botResponseText = backendData.resposta;
+          } else {
+            throw new Error(`Backend API not available (${backendApiResponse.status})`);
+          }
+        } catch (error) {
+          console.log('Backend API not available in development, using Gemini directly:', error);
+          
+          // Use Gemini API directly in development
+          const geminiResponse = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{
+                  parts: [{ text: userPrompt }]
+                }],
+                generationConfig: {
+                  temperature: 0.7,
+                  topK: 32,
+                  topP: 1,
+                  maxOutputTokens: 16384,
+                }
+              }),
+              signal: abortControllerRef.current.signal
+            }
+          );
+
+          if (!geminiResponse.ok) {
+            const errorText = await geminiResponse.text();
+            console.error('Gemini API error:', errorText);
+            setMessages(prev => [...prev, { id: uuidv4(), text: `❌ Erro ao conectar com a IA Gemini: ${errorText}`, sender: 'system', timestamp: new Date() }]);
+            setLoadingState('ai-thinking', false);
+            return;
+          }
+
+          const geminiData = await geminiResponse.json();
+          botResponseText = geminiData.candidates[0].content.parts[0].text;
+          
+          // Remove asterisks from response
+          botResponseText = botResponseText.replace(/\*\*/g, '').replace(/\*/g, '');
+        }
+      } else {
+        // Production mode - use backend API
+        const backendApiResponse = await fetch('/api/gemini', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ originalPrompt: userPrompt }),
+          signal: abortControllerRef.current.signal
+        });
+
+        if (!backendApiResponse.ok) {
+          const errorData = await backendApiResponse.json().catch(() => ({ error: 'Erro desconhecido ao chamar a API do consultor.' }));
+          console.error("Backend API error status:", backendApiResponse.status, "Response:", errorData);
+          const userErrorMessage = errorData.details || errorData.error || `Erro ${backendApiResponse.status} ao conectar com o Consultor IA.`;
+          setMessages(prev => [...prev, { id: uuidv4(), text: `❌ ${userErrorMessage}`, sender: 'system', timestamp: new Date() }]);
+          setLoadingState('ai-thinking', false);
+          return; // Return early on API error
+        }
+
+        const backendData = await backendApiResponse.json();
+        botResponseText = backendData.resposta;
+      }
       
       // Limpar tags HTML da resposta da IA
       if (typeof botResponseText === 'string') {

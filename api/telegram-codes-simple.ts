@@ -12,16 +12,21 @@ function generateCode() {
 export default async function handler(req: any, res: any) {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  console.log('API telegram codes:', { method: req.method, body: req.body });
+  console.log('API telegram codes:', { 
+    method: req.method, 
+    query: req.query,
+    body: req.body 
+  });
 
   try {
+    // POST - Gerar novo código
     if (req.method === 'POST') {
       const { user_id, userEmail, userName } = req.body;
       
@@ -29,7 +34,7 @@ export default async function handler(req: any, res: any) {
         return res.status(400).json({ error: 'user_id é obrigatório' });
       }
 
-      // Invalidar códigos antigos
+      // Invalidar códigos antigos do usuário
       await supabase
         .from('telegram_link_codes')
         .update({ used_at: new Date().toISOString() })
@@ -60,12 +65,15 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({ success: true, code, expiresAt: expiresAt.toISOString() });
     }
 
+    // GET - Verificar código
     if (req.method === 'GET') {
       const { code } = req.query;
       
       if (!code) {
         return res.status(400).json({ error: 'Código obrigatório' });
       }
+
+      console.log('Verificando código:', code);
 
       const { data, error } = await supabase
         .from('telegram_link_codes')
@@ -75,16 +83,43 @@ export default async function handler(req: any, res: any) {
         .gte('expires_at', new Date().toISOString());
 
       if (error || !data || data.length === 0) {
+        console.log('Código inválido ou expirado');
         return res.status(404).json({ valid: false, error: 'Código inválido ou expirado' });
       }
 
       const codeData = data[0];
+      console.log('Código válido para usuário:', codeData.user_id);
+      
       return res.status(200).json({
         valid: true,
         userId: codeData.user_id,
         userEmail: codeData.user_email,
         userName: codeData.user_name
       });
+    }
+
+    // PUT - Marcar código como usado
+    if (req.method === 'PUT') {
+      const { code } = req.body;
+      
+      if (!code) {
+        return res.status(400).json({ error: 'Código obrigatório' });
+      }
+
+      console.log('Marcando código como usado:', code);
+
+      const { error } = await supabase
+        .from('telegram_link_codes')
+        .update({ used_at: new Date().toISOString() })
+        .eq('code', code);
+
+      if (error) {
+        console.error('Erro ao marcar código como usado:', error);
+        return res.status(500).json({ error: 'Erro ao marcar código como usado' });
+      }
+
+      console.log('Código marcado como usado com sucesso');
+      return res.status(200).json({ success: true });
     }
 
     return res.status(405).json({ error: 'Método não permitido' });

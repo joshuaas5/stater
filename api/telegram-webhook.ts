@@ -1,12 +1,12 @@
 // API Webhook do Telegram - Integração Completa com Stater IA (CORRIGIDO)
 import { createClient } from '@supabase/supabase-js';
-import { supabaseAdmin } from './supabase-admin';
 
 // Configuração Supabase
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://tmucbwlhkffrhtexmjze.supabase.co';
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtdUNCQ2FsaWZvcm5pYSIsInJvbGUiOiJhbm9uIiwiYXVkIjpudWxsLCJpYXQiOjE3NDYxMzAzMDgsImV4cCI6MjA2MTcwNjMwOH0.rNx8GkxpEeGjtOwYC_LiL4HlAiwZKVMPTRrCqt7UHVo';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseAdmin = supabase; // Usando o mesmo client para simplicidade
 
 // Configuração da API Gemini
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyDTTPO0otruHVzh7bXsi7MCyG674P03758";
@@ -537,10 +537,10 @@ async function saveTelegramLink(chatId: string, code: string, username: string):
     
     // Marcar código como usado via API
     try {
-      const markUsedResponse = await fetch('https://stater.app/api/telegram-codes-simple?action=mark-used', {
-        method: 'POST',
+      const markUsedResponse = await fetch('https://stater.app/api/telegram-codes-simple', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, chatId })
+        body: JSON.stringify({ code })
       });
       
       if (markUsedResponse.ok) {

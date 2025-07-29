@@ -29,7 +29,7 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
     setError('');
     
     try {
-      const response = await fetch('/api/telegram-codes-simple', {
+      const response = await fetch('/api/telegram-codes-basic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

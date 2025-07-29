@@ -4369,10 +4369,10 @@ return (
                 {savingTransactions ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Salvando {editableTransactions.length} Transação{editableTransactions.length > 1 ? 'ões' : 'ão'}...
+                    Salvando {editableTransactions.length} Transaç{editableTransactions.length > 1 ? 'ões' : 'ão'}...
                   </>
                 ) : (
-                  `✅ Salvar ${editableTransactions.length} Transação${editableTransactions.length > 1 ? 'ões' : 'ão'}`
+                  `✅ Salvar ${editableTransactions.length} Transaç${editableTransactions.length > 1 ? 'ões' : 'ão'}`
                 )}
               </button>
             </div>

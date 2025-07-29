@@ -1351,16 +1351,20 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         userPrompt = `Você é um consultor financeiro realista e responsável. Analise a situação abaixo e responda de forma personalizada, citando números, regras de saúde financeira e sugerindo ações realistas.\n\n` +
           `INSTRUÇÕES CRÍTICAS:\n` +
           `- Se o usuário perguntar sobre SALDO, GASTOS, ANÁLISE ou CONSULTA: RESPONDA NORMALMENTE em texto\n` +
-          `- APENAS retorne JSON quando o usuário EXPLICITAMENTE pedir para "adicionar", "incluir", "registrar" uma LISTA de transações (2 ou mais itens)\n` +
-          `- JSON FORMAT: [{"description":"Nome","amount":123.45,"type":"expense/income","category":"categoria","date":"YYYY-MM-DD"},...]\n` +
+          `- SEMPRE retorne JSON quando o usuário pedir para "adicionar", "registrar", "incluir", "anotar" uma transação (mesmo uma só)\n` +
+          `- Para transação ÚNICA: {"description":"Nome","amount":123.45,"type":"expense/income","category":"categoria","date":"YYYY-MM-DD"}\n` +
+          `- Para MÚLTIPLAS transações: [{"description":"Nome","amount":123.45,"type":"expense/income","category":"categoria","date":"YYYY-MM-DD"},...]\n` +
           `- Use "expense" para gastos/saídas e "income" para receitas/entradas\n` +
           `- Categorias válidas: "${EXPENSE_CATEGORIES.slice(0, 10).join('", "')}", "Outros" (use as categorias oficiais do sistema)\n\n` +
           `PERGUNTAS SOBRE CONSULTA (responder em TEXTO):\n` +
           `- "Verificar saldo", "Qual meu saldo", "Como estão minhas finanças" = TEXTO NORMAL\n` +
           `- "Resumo financeiro", "Análise", "Gastos do mês" = TEXTO NORMAL\n\n` +
-          `REGISTROS EM LISTA (responder em JSON):\n` +
-          `- "Adicione: 50 reais mercado, 30 reais posto, 20 reais farmácia" = JSON\n` +
-          `- "Registre essas transações: X, Y, Z" = JSON\n\n` +
+          `REGISTROS ÚNICOS (responder em JSON):\n` +
+          `- "Adicione 50 reais entrada" = {"description":"Entrada","amount":50,"type":"income","category":"Outros","date":"${new Date().toISOString().split('T')[0]}"}\n` +
+          `- "Registre 30 reais mercado" = {"description":"Mercado","amount":30,"type":"expense","category":"Alimentação","date":"${new Date().toISOString().split('T')[0]}"}\n\n` +
+          `REGISTROS EM LISTA (responder em JSON ARRAY):\n` +
+          `- "Adicione: 50 reais mercado, 30 reais posto, 20 reais farmácia" = JSON ARRAY\n` +
+          `- "Registre essas transações: X, Y, Z" = JSON ARRAY\n\n` +
           `Saldo atual: R$ ${balance.toFixed(2)} (baseado em ${allTransactions?.length || 0} transações totais)\n` +
           `Transações recentes (últimas 10):\n` +
           (recentTransactions && recentTransactions.length > 0
@@ -1680,9 +1684,56 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         
         const sanitizedJsonString = jsonStringToParse.replace(/,\s*([}\]])/g, '$1');
         const parsed = JSON.parse(sanitizedJsonString);        if (parsed && typeof parsed === 'object') {
+          // NOVO: Detectar transação ÚNICA (objeto) retornada pela IA
+          if (!Array.isArray(parsed) && parsed.description && parsed.amount && parsed.type) {
+            console.log('Detectou transação única da IA:', parsed);
+            
+            const singleTransaction = {
+              type: parsed.type === 'income' ? 'income' : 'expense',
+              amount: parseFloat(parsed.amount),
+              description: parsed.description,
+              category: parsed.category || 'Outros',
+              date: parsed.date || new Date().toISOString().split('T')[0]
+            };
+            
+            console.log('Transação única convertida:', singleTransaction);
+            
+            if (singleTransaction.amount > 0) {
+              // Ativar modal de confirmação para transação única
+              setPendingAction({
+                tipo: singleTransaction.type,
+                dados: singleTransaction
+              });
+              setWaitingConfirmation(true);
+              isTransactionJson = true;
+            }
+          }
           // NOVO: Detectar ARRAY de transações (lista retornada pela IA)
-          if (Array.isArray(parsed) && parsed.length >= 2) {
+          else if (Array.isArray(parsed) && parsed.length >= 1) {
             console.log('Detectou array de transações da IA:', parsed);
+            
+            // Se é array com apenas 1 item, tratar como transação única
+            if (parsed.length === 1) {
+              const tx = parsed[0];
+              const singleTransaction = {
+                type: tx.tipo === 'receita' || tx.type === 'income' ? 'income' : 'expense',
+                amount: parseFloat(tx.valor || tx.amount || 0),
+                description: tx.descrição || tx.description || 'Transação',
+                category: tx.categoria || tx.category || 'Outros',
+                date: tx.data || tx.date || new Date().toISOString().split('T')[0]
+              };
+              
+              if (singleTransaction.amount > 0) {
+                setPendingAction({
+                  tipo: singleTransaction.type,
+                  dados: singleTransaction
+                });
+                setWaitingConfirmation(true);
+                isTransactionJson = true;
+              }
+            } 
+            // Array com múltiplas transações
+            else {
             
             // Converter array de transações da IA para formato esperado
             const transactionList = parsed.map((tx, index) => {
@@ -1744,6 +1795,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
             }, 200);
 
             isTransactionJson = true;
+            }
           }
           // Transação individual (formato existente)
           else if ((parsed.tipo === 'receita' || parsed.tipo === 'despesa') &&
@@ -2491,14 +2543,18 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
       'registrar receita', 'registrar despesa', 'anotar gasto', 'salvar transação',
       'adicionar receita', 'adicionar despesa', 'incluir gasto',
       'gastei', 'paguei', 'comprei', 'vendi', 'recebi por', 'ganhei com',
-      'saiu da conta', 'entrou na conta', 'débito de', 'crédito de'
+      'saiu da conta', 'entrou na conta', 'débito de', 'crédito de',
+      'adicione', 'adicionar', 'registre', 'registrar', 'anote', 'anotar',
+      'inclua', 'incluir', 'coloque', 'coloca', 'insira', 'inserir'
     ];
     
     // CONTEXTOS ESPECÍFICOS COM VALORES MONETÁRIOS
     const monetaryContexts = [
       /(?:gastei|paguei|comprei|recebi|ganhei|entrou|saiu)\s+(?:r\$\s*)?(\d+(?:[.,]\d{2})?)/i,
       /(?:r\$\s*)?(\d+(?:[.,]\d{2})?)\s+(?:no|na|para|do|da)\s+(?:mercado|supermercado|farmácia|conta|boleto|salário|trabalho)/i,
-      /(?:registr|adicion|inclu|anot)\w*\s+(?:receita|despesa|gasto|transação)/i
+      /(?:registr|adicion|inclu|anot)\w*\s+(?:receita|despesa|gasto|transação)/i,
+      /(?:adicion|registr|anot|inclu|coloqu|insir)\w*\s+(?:r\$\s*)?(\d+(?:[.,]\d{2})?)/i,
+      /(?:r\$\s*)?(\d+(?:[.,]\d{2})?)\s+(?:reais?)\s+(?:entrada|saída|receita|despesa|gasto)/i
     ];
     
     // Verificar se tem ação específica de transação

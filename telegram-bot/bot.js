@@ -408,17 +408,26 @@ bot.on('message', async (msg) => {
     }
     
     // Confirmar transações
-    if (text === '✅ SIM' || text.toLowerCase() === 'sim') {
+    if (text === '✅ SIM' || text === '✅ CONFIRMAR' || text.toLowerCase() === 'sim' || text.toLowerCase() === 'confirmar') {
         console.log(`✅ [MESSAGE] Confirmação detectada: ${text}`);
         await confirmTransactions(chatId);
         return;
     }
     
     // Cancelar transações
-    else if (text === '❌ NÃO' || text.toLowerCase() === 'não' || text.toLowerCase() === 'nao') {
+    else if (text === '❌ NÃO' || text === '❌ CANCELAR' || text.toLowerCase() === 'não' || text.toLowerCase() === 'nao' || text.toLowerCase() === 'cancelar') {
         console.log(`❌ [MESSAGE] Cancelamento detectado: ${text}`);
         pendingTransactions.delete(chatId);
-        await bot.sendMessage(chatId, '❌ *Transações canceladas.*\n\n📷 Envie outra foto quando quiser!', { 
+        await bot.sendMessage(chatId, `❌ *TRANSAÇÕES CANCELADAS*
+
+🗑️ *Todas as transações pendentes foram descartadas.*
+
+💬 *Para adicionar novas transações, fale comigo:*
+• "Adicione 50 reais de mercado"
+• "Recebi 100 de salário"
+• Ou envie uma foto de extrato
+
+🎤 *Estou aqui para ajudar!*`, { 
             parse_mode: 'Markdown',
             reply_markup: { remove_keyboard: true }
         });
@@ -558,22 +567,28 @@ Retorne APENAS o array JSON, sem explicações adicionais.`;
     }
 }
 
-// Formatar resposta das transações - FORMATO LIMPO
+// Formatar resposta das transações - FORMATO LIMPO E BONITO
 function formatTransactionsResponse(transactions) {
-    let response = `💰 *Encontrei ${transactions.length} transação(ões):*\n\n`;
+    let response = `� *Transação detectada!*\n\n`;
     
     transactions.forEach((t, index) => {
-        const emoji = t.valor > 0 ? '💚' : '💸';
-        const valor = Math.abs(t.valor).toFixed(2).replace('.', ',');
+        const isIncome = t.valor > 0;
+        const valor = Math.abs(t.valor).toFixed(2);
+        const tipoEmoji = isIncome ? '📈' : '📉';
+        const tipoTexto = isIncome ? 'RECEITA (aumenta saldo)' : 'DESPESA (diminui saldo)';
+        const valorEmoji = isIncome ? '💰' : '💸';
         
-        response += `${emoji} **${t.descricao}**\n`;
-        response += `💵 R$ ${t.valor > 0 ? '+' : '-'}${valor}\n`;
-        response += `📅 ${t.data}\n`;
-        response += `� ${t.categoria}\n`;
-        response += `${'─'.repeat(25)}\n\n`;
+        response += `${valorEmoji} *${t.descricao}*\n`;
+        response += `� R$ ${valor} | 📂 ${t.categoria.toLowerCase()}\n`;
+        response += `📅 ${new Date().toLocaleDateString('pt-BR')}\n`;
+        response += `📊 Tipo: ${tipoEmoji} *${tipoTexto}*\n\n`;
     });
     
-    response += '❓ *Confirmar essas transações?*';
+    response += `❓ *Confirma que está correto?*\n\n`;
+    response += `💬 *Digite:*\n`;
+    response += `• *SIM* ou *CONFIRMAR* - Para salvar\n`;
+    response += `• *NÃO* ou *CANCELAR* - Para descartar\n\n`;
+    response += `⏰ *Aguardando sua confirmação...*`;
     
     return response;
 }
@@ -618,12 +633,28 @@ async function confirmTransactions(chatId) {
         
         let successMessage;
         if (userId && salvasComSucesso > 0) {
-            successMessage = `✅ *Perfeito! Salvei ${salvasComSucesso} transação(ões) no seu Stater!*
-
-🔗 *Acesse seu dashboard:*
-${process.env.APP_URL}/dashboard
-
-📊 Suas transações já estão disponíveis no app!`;
+            // Buscar saldo atual do usuário
+            const userContext = await getUserContextForChat(userId);
+            const saldoAtual = userContext.balance || 0;
+            
+            // Contar receitas e despesas
+            const receitas = pending.transactions.filter(t => t.valor > 0);
+            const despesas = pending.transactions.filter(t => t.valor < 0);
+            
+            successMessage = `✅ *TRANSAÇÕES SALVAS COM SUCESSO!*\n\n`;
+            successMessage += `💾 *Salvas:* ${salvasComSucesso}/${pending.transactions.length}\n`;
+            
+            if (receitas.length > 0) {
+                successMessage += `📈 *Receitas:* ${receitas.length} (aumentaram o saldo)\n`;
+            }
+            if (despesas.length > 0) {
+                successMessage += `📉 *Despesas:* ${despesas.length} (diminuíram o saldo)\n`;
+            }
+            
+            successMessage += `\n💰 *SEU SALDO ATUALIZADO:* R$ ${saldoAtual.toFixed(2)}\n\n`;
+            successMessage += `🎉 *Todas as transações foram processadas corretamente!*\n`;
+            successMessage += `📱 *Abra seu app para ver o detalhamento completo!*`;
+            
         } else if (!userId) {
             successMessage = `⚠️ *Conta não vinculada!*
 
@@ -740,12 +771,12 @@ async function processChatMessage(chatId, message, userSession) {
         if (isTransactionRequest) {
             console.log(`💰 [TRANSAÇÃO] Detectado pedido de transação: ${message}`);
             
-            // Processar transações do texto com Gemini
-            const processingMsg = await bot.sendMessage(chatId, '💰 *Detectei pedido de transação...*\n🤔 Processando com IA...', { parse_mode: 'Markdown' });
+            // Mostrar mensagem bonita de detecção
+            const detectionMsg = await bot.sendMessage(chatId, `🎤 *Ouvi:* "${message}"\n\n🤔 *Processando com IA...*`, { parse_mode: 'Markdown' });
             
             const transactions = await extractTransactionsFromText(message, userSession);
             
-            await bot.deleteMessage(chatId, processingMsg.message_id);
+            await bot.deleteMessage(chatId, detectionMsg.message_id);
             
             if (transactions && transactions.length > 0) {
                 // Salvar transações pendentes
@@ -756,13 +787,12 @@ async function processChatMessage(chatId, message, userSession) {
                 
                 // Mostrar transações encontradas e pedir confirmação
                 const transactionList = formatTransactionsResponse(transactions);
-                const confirmMessage = `💰 *Encontrei ${transactions.length} transação(ões):*\n\n${transactionList}\n\n❓ *Confirma que devo salvar no seu Stater?*`;
                 
-                await bot.sendMessage(chatId, confirmMessage, { 
+                await bot.sendMessage(chatId, transactionList, { 
                     parse_mode: 'Markdown',
                     reply_markup: {
                         keyboard: [
-                            [{ text: '✅ SIM' }, { text: '❌ NÃO' }]
+                            [{ text: '✅ CONFIRMAR' }, { text: '❌ CANCELAR' }]
                         ],
                         resize_keyboard: true,
                         one_time_keyboard: true
@@ -770,7 +800,14 @@ async function processChatMessage(chatId, message, userSession) {
                 });
                 return;
             } else {
-                await bot.sendMessage(chatId, '🤔 *Não consegui identificar transações claras neste texto.*\n\n💡 Tente ser mais específico:\n• "Adicione gasto de 50 reais com comida"\n• "Entrada de 100 reais salário"', { parse_mode: 'Markdown' });
+                await bot.sendMessage(chatId, `❌ *Não consegui identificar transações claras neste texto.*
+
+💡 *Tente ser mais específico:*
+• "Adicione gasto de 50 reais com comida"
+• "Entrada de 100 reais salário"
+• "Comprei patê por 5 reais"
+
+🎤 *Fale de forma natural que eu entendo!*`, { parse_mode: 'Markdown' });
                 return;
             }
         }

@@ -703,7 +703,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
   const safeMessage = validatedMessage;
 
   // ========================================
-  // VERIFICAÇÃO DA JORNADA PROGRESSIVA
+  // VERIFICAÇÃO DE MENSAGENS: BETA USER + JORNADA PROGRESSIVA
   // ========================================
   if (!skipAddingUserMessage) { // Só verifica limite para mensagens do usuário, não respostas do sistema
     try {
@@ -713,33 +713,46 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         return;
       }
 
-      // Verificar se pode enviar mensagem baseado na jornada
-      const canSend = await UserJourneyManager.canSendMessage(user.id);
+      // 1️⃣ PRIORIDADE: Verificar se é Beta User (acesso ilimitado)
+      const betaUserCheck = await UserPlanManager.checkAndUseMessage(user.id);
       
-      if (!canSend.allowed) {
-        console.log('🚫 Mensagem bloqueada. Motivo:', canSend.reason);
+      if (betaUserCheck.allowed) {
+        // Beta user ou plano PRO - pode enviar mensagem
+        console.log(`✅ [BETA/PRO USER] Mensagem permitida - Restantes: ${betaUserCheck.remaining === -1 ? 'Ilimitado' : betaUserCheck.remaining}`);
+      } else {
+        // 2️⃣ FALLBACK: Verificar jornada progressiva para usuários FREE
+        console.log(`📊 [FREE USER] Verificando jornada progressiva para usuário FREE`);
         
-        if (canSend.reason === 'need_ad') {
-          // Precisa assistir ad para continuar
-          setCurrentDay(canSend.currentDay);
-          setAdsWatched(canSend.adsWatched);
-          setAdsRequired(canSend.adsRequired);
-          setShowAdReward(true);
+        const canSend = await UserJourneyManager.canSendMessage(user.id);
+        
+        if (!canSend.allowed) {
+          console.log('🚫 Mensagem bloqueada. Motivo:', canSend.reason);
           
-          console.log(`🎬 Showing ad modal - Dia ${canSend.currentDay}, Ads: ${canSend.adsWatched}/${canSend.adsRequired}`);
-          return;
-          
-        } else if (canSend.reason === 'paywall_required') {
-          // Precisa fazer upgrade (dia 4+ ou limite esgotado)
-          setShowPaywall(true);
-          
-          console.log(`� Showing paywall - Dia ${canSend.currentDay}, limite esgotado`);
-          return;
+          if (canSend.reason === 'need_ad') {
+            // Precisa assistir ad para continuar
+            setCurrentDay(canSend.currentDay);
+            setAdsWatched(canSend.adsWatched);
+            setAdsRequired(canSend.adsRequired);
+            setShowAdReward(true);
+            
+            console.log(`🎬 Showing ad modal - Dia ${canSend.currentDay}, Ads: ${canSend.adsWatched}/${canSend.adsRequired}`);
+            return;
+            
+          } else if (canSend.reason === 'paywall_required') {
+            // Precisa fazer upgrade (dia 4+ ou limite esgotado)
+            setShowPaywall(true);
+            
+            console.log(`💰 Showing paywall - Dia ${canSend.currentDay}, limite esgotado`);
+            return;
+          } else if (canSend.reason === 'developer_account') {
+            // Conta de desenvolvedor - deve prosseguir
+            console.log(`🚀 Conta de desenvolvedor detectada - prosseguindo com mensagem`);
+          }
+        } else {
+          // Pode enviar mensagem via jornada
+          console.log(`✅ [FREE USER] Mensagem permitida via jornada - Restantes: ${canSend.messagesAvailable - canSend.messagesUsed - 1}`);
         }
       }
-      
-      // Se chegou até aqui, pode enviar a mensagem
-      console.log(`✅ Mensagem permitida - Restantes: ${canSend.messagesAvailable - canSend.messagesUsed - 1}`);
       
     } catch (error) {
       console.error('Erro ao verificar jornada do usuário:', error);

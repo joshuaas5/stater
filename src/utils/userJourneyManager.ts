@@ -1,5 +1,6 @@
 import { UserJourney, UserUsage } from '@/types';
 import { UserPlanManager } from './userPlanManager';
+import { isDeveloperAccount } from './adManager';
 
 /**
  * Gerenciador da jornada progressiva de 3 dias para usuários FREE
@@ -117,6 +118,12 @@ export class UserJourneyManager {
    */
   static async shouldShowPaywall(userId: string): Promise<boolean> {
     try {
+      // VERIFICAÇÃO DE CONTA DE DESENVOLVEDOR - NUNCA PAYWALL
+      if (isDeveloperAccount(userId)) {
+        console.log(`🚀 [DEVELOPER ACCOUNT] Desenvolvedor nunca vê paywall`);
+        return false;
+      }
+      
       const journey = await this.getUserJourney(userId);
       
       // Se já passou do dia 3, deve mostrar paywall
@@ -149,6 +156,17 @@ export class UserJourneyManager {
     messagesWillGrant: number;
   }> {
     try {
+      // VERIFICAÇÃO DE CONTA DE DESENVOLVEDOR - NÃO PRECISA DE ADS
+      if (isDeveloperAccount(userId)) {
+        console.log(`🚀 [DEVELOPER ACCOUNT] Desenvolvedor não precisa assistir ads`);
+        return {
+          canWatch: false, // Desenvolvedor não precisa de ads
+          adsNeeded: 0,
+          adsWatched: 0,
+          messagesWillGrant: 0 // Já tem mensagens ilimitadas
+        };
+      }
+      
       const journey = await this.getUserJourney(userId);
       
       // Se passou do dia 3, não pode mais ver ads
@@ -202,6 +220,17 @@ export class UserJourneyManager {
     isLastAdOfDay: boolean;
   }> {
     try {
+      // VERIFICAÇÃO DE CONTA DE DESENVOLVEDOR - NÃO PRECISA DE ADS
+      if (isDeveloperAccount(userId)) {
+        console.log(`🚀 [DEVELOPER ACCOUNT] Desenvolvedor não precisa assistir ads`);
+        return {
+          success: false, // Não precisa de recompensa por ad
+          messagesGranted: 0, // Já tem mensagens ilimitadas
+          totalMessagesToday: -1, // Ilimitado
+          isLastAdOfDay: false
+        };
+      }
+      
       const journey = await this.getUserJourney(userId);
       const adCheck = await this.canWatchAdForMessages(userId);
       
@@ -266,7 +295,7 @@ export class UserJourneyManager {
    */
   static async canSendMessage(userId: string): Promise<{
     allowed: boolean;
-    reason: 'allowed' | 'need_ad' | 'paywall_required';
+    reason: 'allowed' | 'need_ad' | 'paywall_required' | 'developer_account';
     messagesUsed: number;
     messagesAvailable: number;
     adsWatched: number;
@@ -274,6 +303,20 @@ export class UserJourneyManager {
     currentDay: number;
   }> {
     try {
+      // VERIFICAÇÃO DE CONTA DE DESENVOLVEDOR - ACESSO ILIMITADO
+      if (isDeveloperAccount(userId)) {
+        console.log(`🚀 [DEVELOPER ACCOUNT] Acesso ilimitado para mensagens`);
+        return {
+          allowed: true,
+          reason: 'developer_account',
+          messagesUsed: 0,
+          messagesAvailable: -1, // Ilimitado
+          adsWatched: 0,
+          adsRequired: 0,
+          currentDay: 1
+        };
+      }
+      
       const journey = await this.getUserJourney(userId);
       const usage = await UserPlanManager.getTodayUsage(userId, new Date().toISOString().split('T')[0]);
       
@@ -371,6 +414,36 @@ export class UserJourneyManager {
     dayConfig: { adsRequired: number; messagesGranted: number } | null;
   }> {
     try {
+      // VERIFICAÇÃO DE CONTA DE DESENVOLVEDOR - STATUS ESPECIAL
+      if (isDeveloperAccount(userId)) {
+        console.log(`🚀 [DEVELOPER ACCOUNT] Status especial para desenvolvedor`);
+        const mockJourney: UserJourney = {
+          userId,
+          startDate: new Date(),
+          currentDay: 1,
+          adsWatchedToday: 0,
+          messagesGrantedToday: -1, // Ilimitado
+          hasReachedPaywall: false
+        };
+        const mockUsage: UserUsage = {
+          userId,
+          date: new Date().toISOString().split('T')[0],
+          messagesUsed: 0,
+          transactionsAdded: 0,
+          billsAdded: 0,
+          adsWatched: 0
+        };
+        
+        return {
+          journey: mockJourney,
+          usage: mockUsage,
+          canSendMessage: true, // Sempre pode enviar
+          canWatchAd: false, // Não precisa de ads
+          shouldShowPaywall: false, // Nunca paywall
+          dayConfig: null // Não se aplica
+        };
+      }
+      
       const journey = await this.getUserJourney(userId);
       const usage = await UserPlanManager.getTodayUsage(userId, new Date().toISOString().split('T')[0]);
       const messageCheck = await this.canSendMessage(userId);

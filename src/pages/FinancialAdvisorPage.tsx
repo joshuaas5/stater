@@ -3166,7 +3166,70 @@ const getFilteredCategories = (index: number) => {
 };
 
 return (
-  <>    <div 
+  <>
+    {/* Animações CSS para o modal */}
+    <style>{`
+      @keyframes modalBounceIn {
+        0% {
+          opacity: 0;
+          transform: translateX(-50%) translateY(50px) scale(0.9);
+        }
+        50% {
+          transform: translateX(-50%) translateY(-10px) scale(1.05);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0) scale(1);
+        }
+      }
+      
+      @keyframes backdropFadeIn {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+      }
+      
+      @keyframes iconPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+      }
+      
+      @keyframes ringPulse {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1.4);
+          opacity: 0;
+        }
+      }
+      
+      @keyframes badgeGlow {
+        0%, 100% {
+          box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+        }
+        50% {
+          box-shadow: 0 4px 25px rgba(59, 130, 246, 0.4);
+        }
+      }
+      
+      @keyframes valueGlow {
+        0%, 100% {
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        50% {
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), 0 0 20px currentColor;
+        }
+      }
+      
+      @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        33% { transform: translateY(-10px) rotate(1deg); }
+        66% { transform: translateY(5px) rotate(-1deg); }
+      }
+    `}</style>
+    
+    <div 
       className="financial-advisor-page"
       style={{
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -3362,240 +3425,333 @@ return (
           isProcessingAudio={isLoadingState('audio-processing')}
           audioLimits={audioLimits}
         />
-      </div>      {/* Confirmation Popup - Modal Único com Liquid Glass */}
+      </div>      {/* Confirmation Popup - Modal Único com Design Ultra Moderno */}
       {waitingConfirmation && pendingAction && (
-        <div 
-          className="confirmation-popup"
-          style={{
-            position: 'fixed',
-            bottom: '100px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 197, 253, 0.15))',
-            backdropFilter: 'blur(25px)',
-            WebkitBackdropFilter: 'blur(25px)',
-            borderRadius: '20px',
-            padding: '24px',
-            maxWidth: '400px',
-            width: '90%',
-            color: '#1e293b',
-            boxShadow: '0 20px 40px rgba(59, 130, 246, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2)',
-            border: '1px solid rgba(59, 130, 246, 0.3)',
-            zIndex: 999,
-            animation: 'liquidGlassAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            textAlign: 'center'
-          }}
-        >
-          {/* Header com ícone */}
-          <div style={{
-            marginBottom: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px'
-          }}>
+        <>
+          {/* Backdrop com efeito de blur e gradiente */}
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(45deg, rgba(0, 0, 0, 0.7), rgba(59, 130, 246, 0.2))',
+              backdropFilter: 'blur(15px)',
+              WebkitBackdropFilter: 'blur(15px)',
+              zIndex: 998,
+              animation: 'backdropFadeIn 0.3s ease-out'
+            }}
+            onClick={() => handleSendMessage('não')}
+          />
+          
+          <div 
+            className="confirmation-popup"
+            style={{
+              position: 'fixed',
+              bottom: '100px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9))',
+              backdropFilter: 'blur(30px)',
+              WebkitBackdropFilter: 'blur(30px)',
+              borderRadius: '24px',
+              padding: '28px',
+              maxWidth: '420px',
+              width: '90%',
+              color: '#1e293b',
+              boxShadow: `
+                0 25px 50px rgba(0, 0, 0, 0.25), 
+                0 0 0 1px rgba(255, 255, 255, 0.3),
+                0 0 100px ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}
+              `,
+              border: `2px solid ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
+              zIndex: 999,
+              animation: 'modalBounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              textAlign: 'center',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Efeito de partículas flutuantes */}
             <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              background: pendingAction.tipo === 'income' 
-                ? 'linear-gradient(135deg, #10b981, #059669)'
-                : 'linear-gradient(135deg, #ef4444, #dc2626)',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: `
+                radial-gradient(circle at 20% 20%, ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'} 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)'} 0%, transparent 40%)
+              `,
+              animation: 'float 6s ease-in-out infinite',
+              pointerEvents: 'none'
+            }} />
+
+            {/* Header com ícone pulsante */}
+            <div style={{
+              marginBottom: '20px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '24px',
-              boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)'
+              gap: '8px',
+              position: 'relative'
             }}>
-              {pendingAction.tipo === 'income' ? '💰' : '💸'}
+              <div style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                background: pendingAction.tipo === 'income' 
+                  ? 'linear-gradient(135deg, #10b981, #059669, #047857)'
+                  : 'linear-gradient(135deg, #ef4444, #dc2626, #b91c1c)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '28px',
+                boxShadow: `
+                  0 8px 25px ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'},
+                  0 0 0 4px rgba(255, 255, 255, 0.3)
+                `,
+                animation: 'iconPulse 2s ease-in-out infinite',
+                position: 'relative'
+              }}>
+                {pendingAction.tipo === 'income' ? '💰' : '💸'}
+                
+                {/* Círculos de pulso */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  left: '-4px',
+                  right: '-4px',
+                  bottom: '-4px',
+                  border: `2px solid ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                  borderRadius: '50%',
+                  animation: 'ringPulse 2s ease-in-out infinite'
+                }} />
+              </div>
             </div>
-          </div>
 
-          {/* Tipo de transação */}
-          <div style={{
-            background: pendingAction.tipo === 'income' 
-              ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15))'
-              : 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15))',
-            padding: '8px 16px',
-            borderRadius: '12px',
-            fontSize: '14px',
-            fontWeight: '700',
-            color: pendingAction.tipo === 'income' ? '#059669' : '#dc2626',
-            marginBottom: '16px',
-            border: `1px solid ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
-            backdropFilter: 'blur(10px)'
-          }}>
-            {pendingAction.tipo === 'income' ? '📈 ENTRADA' : '📉 SAÍDA'}
-          </div>
-
-          {/* Valor principal */}
-          <div style={{ marginBottom: '16px' }}>
-            <p style={{
-              fontSize: '16px',
-              fontWeight: '600',
-              margin: '0 0 8px 0',
-              lineHeight: '1.4',
-              color: '#334155'
-            }}>
-              Confirmar transação no valor de
-            </p>
-            <p style={{
-              fontSize: '24px',
+            {/* Badge do tipo de transação */}
+            <div style={{
+              background: pendingAction.tipo === 'income' 
+                ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2))'
+                : 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2))',
+              padding: '10px 20px',
+              borderRadius: '16px',
+              fontSize: '15px',
               fontWeight: '800',
-              margin: '0',
               color: pendingAction.tipo === 'income' ? '#059669' : '#dc2626',
-              textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-            }}>
-              R$ {pendingAction.dados.amount?.toFixed(2) || '0,00'}
-            </p>
-          </div>
-
-          {/* Descrição */}
-          {pendingAction.dados.description && (
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.6)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '12px',
-              padding: '12px',
-              marginBottom: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.3)'
-            }}>
-              <p style={{
-                fontSize: '13px',
-                color: '#64748b',
-                margin: '0 0 4px 0',
-                fontWeight: '600'
-              }}>
-                📝 Descrição:
-              </p>
-              <p style={{
-                fontSize: '14px',
-                color: '#334155',
-                margin: '0',
-                fontWeight: '500',
-                lineHeight: '1.3'
-              }}>
-                {pendingAction.dados.description}
-              </p>
-            </div>
-          )}
-
-          {/* Categoria */}
-          {pendingAction.dados.category && (
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.6)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '12px',
-              padding: '12px',
               marginBottom: '20px',
-              border: '1px solid rgba(255, 255, 255, 0.3)'
+              border: `2px solid ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
+              backdropFilter: 'blur(10px)',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              boxShadow: `0 4px 15px ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+              animation: 'badgeGlow 3s ease-in-out infinite'
             }}>
-              <p style={{
-                fontSize: '13px',
-                color: '#64748b',
-                margin: '0 0 4px 0',
-                fontWeight: '600'
-              }}>
-                🏷️ Categoria:
-              </p>
-              <p style={{
-                fontSize: '14px',
-                color: '#334155',
-                margin: '0',
-                fontWeight: '500'
-              }}>
-                {pendingAction.dados.category}
-              </p>
+              {pendingAction.tipo === 'income' ? '📈 ENTRADA' : '📉 SAÍDA'}
             </div>
-          )}
 
-          {/* Botões de ação */}
-          <div style={{
-            display: 'flex',
-            gap: '12px',
-            justifyContent: 'center'
-          }}>
-            <button
-              onClick={() => handleSendMessage('não')}
-              style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7))',
-                color: '#dc2626',
-                border: '2px solid #dc2626',
-                borderRadius: '12px',
-                padding: '12px 20px',
-                fontWeight: '700',
-                fontSize: '14px',
-                cursor: 'pointer',
-                transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                flex: 1,
-                justifyContent: 'center',
-                backdropFilter: 'blur(10px)',
-                boxShadow: '0 4px 15px rgba(220, 38, 38, 0.2)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 25px rgba(220, 38, 38, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 15px rgba(220, 38, 38, 0.2)';
-              }}
-            >
-              ❌ Cancelar
-            </button>
-            <button
-              onClick={() => handleSendMessage('sim')}
-              disabled={savingTransactions}
-              style={{
-                background: savingTransactions
-                  ? 'linear-gradient(135deg, #9ca3af, #6b7280)'
-                  : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                padding: '12px 20px',
-                fontWeight: '700',
-                fontSize: '14px',
-                cursor: savingTransactions ? 'not-allowed' : 'pointer',
-                transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                flex: 1,
-                justifyContent: 'center',
-                boxShadow: savingTransactions 
-                  ? 'none' 
-                  : '0 8px 25px rgba(59, 130, 246, 0.4)',
-                opacity: savingTransactions ? 0.7 : 1,
+            {/* Valor principal com destaque especial */}
+            <div style={{ marginBottom: '20px', position: 'relative' }}>
+              <p style={{
+                fontSize: '17px',
+                fontWeight: '600',
+                margin: '0 0 12px 0',
+                lineHeight: '1.4',
+                color: '#475569',
+                opacity: 0.9
+              }}>
+                💫 Confirmar transação no valor de
+              </p>
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.6))',
+                borderRadius: '20px',
+                padding: '16px',
+                border: '2px solid rgba(255, 255, 255, 0.5)',
+                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
                 backdropFilter: 'blur(10px)'
-              }}
-              onMouseEnter={(e) => {
-                if (!savingTransactions) {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 12px 35px rgba(59, 130, 246, 0.5)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!savingTransactions) {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.4)';
-                }
-              }}
-            >
-              {savingTransactions ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                '✅ Confirmar'
-              )}
-            </button>
+              }}>
+                <p style={{
+                  fontSize: '32px',
+                  fontWeight: '900',
+                  margin: '0',
+                  color: pendingAction.tipo === 'income' ? '#059669' : '#dc2626',
+                  textShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                  animation: 'valueGlow 2s ease-in-out infinite'
+                }}>
+                  R$ {pendingAction.dados.amount?.toFixed(2) || '0,00'}
+                </p>
+              </div>
+            </div>
+
+            {/* Descrição com design aprimorado */}
+            {pendingAction.dados.description && (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.7))',
+                backdropFilter: 'blur(15px)',
+                borderRadius: '16px',
+                padding: '16px',
+                marginBottom: '18px',
+                border: '2px solid rgba(255, 255, 255, 0.4)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+              }}>
+                <p style={{
+                  fontSize: '14px',
+                  color: '#64748b',
+                  margin: '0 0 6px 0',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  📝 Descrição:
+                </p>
+                <p style={{
+                  fontSize: '16px',
+                  color: '#334155',
+                  margin: '0',
+                  fontWeight: '600',
+                  lineHeight: '1.4'
+                }}>
+                  {pendingAction.dados.description}
+                </p>
+              </div>
+            )}
+
+            {/* Categoria com design aprimorado */}
+            {pendingAction.dados.category && (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.7))',
+                backdropFilter: 'blur(15px)',
+                borderRadius: '16px',
+                padding: '16px',
+                marginBottom: '24px',
+                border: '2px solid rgba(255, 255, 255, 0.4)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+              }}>
+                <p style={{
+                  fontSize: '14px',
+                  color: '#64748b',
+                  margin: '0 0 6px 0',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  🏷️ Categoria:
+                </p>
+                <p style={{
+                  fontSize: '16px',
+                  color: '#334155',
+                  margin: '0',
+                  fontWeight: '600'
+                }}>
+                  {pendingAction.dados.category}
+                </p>
+              </div>
+            )}
+
+            {/* Botões de ação com design ultra moderno */}
+            <div style={{
+              display: 'flex',
+              gap: '16px',
+              justifyContent: 'center'
+            }}>
+              <button
+                onClick={() => handleSendMessage('não')}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85))',
+                  color: '#dc2626',
+                  border: '3px solid #dc2626',
+                  borderRadius: '16px',
+                  padding: '14px 24px',
+                  fontWeight: '800',
+                  fontSize: '15px',
+                  cursor: 'pointer',
+                  transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  flex: 1,
+                  justifyContent: 'center',
+                  backdropFilter: 'blur(15px)',
+                  boxShadow: '0 6px 20px rgba(220, 38, 38, 0.3)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-3px) scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 12px 35px rgba(220, 38, 38, 0.4)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(220, 38, 38, 0.3)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85))';
+                  e.currentTarget.style.color = '#dc2626';
+                }}
+              >
+                ❌ Cancelar
+              </button>
+              
+              <button
+                onClick={() => handleSendMessage('sim')}
+                disabled={savingTransactions}
+                style={{
+                  background: savingTransactions
+                    ? 'linear-gradient(135deg, #9ca3af, #6b7280)'
+                    : 'linear-gradient(135deg, #3b82f6, #1d4ed8, #1e40af)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '16px',
+                  padding: '14px 24px',
+                  fontWeight: '800',
+                  fontSize: '15px',
+                  cursor: savingTransactions ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  flex: 1,
+                  justifyContent: 'center',
+                  boxShadow: savingTransactions 
+                    ? 'none' 
+                    : '0 8px 30px rgba(59, 130, 246, 0.5)',
+                  opacity: savingTransactions ? 0.7 : 1,
+                  backdropFilter: 'blur(15px)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                onMouseEnter={(e) => {
+                  if (!savingTransactions) {
+                    e.currentTarget.style.transform = 'translateY(-3px) scale(1.05)';
+                    e.currentTarget.style.boxShadow = '0 15px 45px rgba(59, 130, 246, 0.6)';
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #1d4ed8, #1e40af, #1e3a8a)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!savingTransactions) {
+                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                    e.currentTarget.style.boxShadow = '0 8px 30px rgba(59, 130, 246, 0.5)';
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6, #1d4ed8, #1e40af)';
+                  }
+                }}
+              >
+                {savingTransactions ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  '✅ Confirmar'
+                )}
+              </button>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Transaction Review Modal - ULTRA VISÍVEL */}

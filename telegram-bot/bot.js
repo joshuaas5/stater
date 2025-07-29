@@ -67,18 +67,12 @@ async function reloadActiveSessions() {
 setInterval(async () => {
     console.log('🔄 [PERSISTÊNCIA] Sincronização automática de sessões...');
     await reloadActiveSessions();
-}, 3 * 60 * 1000); // A cada 3 minutos para ser mais frequente
+}, 10 * 60 * 1000); // A cada 10 minutos (reduzido frequência)
 
 // Carregar sessões na inicialização
 reloadActiveSessions();
 
-// Também recarregar quando receber qualquer mensagem (para ser mais robusto)
-bot.on('message', async (msg) => {
-    if (!userSessions.has(msg.chat.id)) {
-        console.log('🔄 [PERSISTÊNCIA] Sessão não encontrada na memória, tentando recarregar...');
-        await reloadActiveSessions();
-    }
-});
+// REMOVIDO: bot.on('message') que causava loop infinito
 
 // Comando /start
 bot.onText(/\/start(.*)/, async (msg, match) => {
@@ -405,17 +399,24 @@ bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
     
+    console.log(`📨 [MESSAGE] Recebida de ${chatId}: "${text}"`);
+    
     // Ignorar comandos e fotos
-    if (!text || text.startsWith('/') || msg.photo) return;
+    if (!text || text.startsWith('/') || msg.photo) {
+        console.log(`❌ [MESSAGE] Ignorada: texto vazio, comando ou foto`);
+        return;
+    }
     
     // Confirmar transações
     if (text === '✅ SIM' || text.toLowerCase() === 'sim') {
+        console.log(`✅ [MESSAGE] Confirmação detectada: ${text}`);
         await confirmTransactions(chatId);
         return;
     }
     
     // Cancelar transações
     else if (text === '❌ NÃO' || text.toLowerCase() === 'não' || text.toLowerCase() === 'nao') {
+        console.log(`❌ [MESSAGE] Cancelamento detectado: ${text}`);
         pendingTransactions.delete(chatId);
         await bot.sendMessage(chatId, '❌ *Transações canceladas.*\n\n📷 Envie outra foto quando quiser!', { 
             parse_mode: 'Markdown',
@@ -639,10 +640,7 @@ Não foi possível salvar nenhuma transação. Tente novamente.`;
         await bot.sendMessage(chatId, successMessage, { 
             parse_mode: 'Markdown',
             reply_markup: { 
-                remove_keyboard: true,
-                inline_keyboard: [[
-                    { text: '📱 Abrir Stater App', url: process.env.APP_URL }
-                ]]
+                remove_keyboard: true
             }
         });
         
@@ -758,7 +756,7 @@ async function processChatMessage(chatId, message, userSession) {
                 
                 // Mostrar transações encontradas e pedir confirmação
                 const transactionList = formatTransactionsResponse(transactions);
-                const confirmMessage = `� *Encontrei ${transactions.length} transação(ões):*\n\n${transactionList}\n\n❓ *Confirma que devo salvar no seu Stater?*`;
+                const confirmMessage = `💰 *Encontrei ${transactions.length} transação(ões):*\n\n${transactionList}\n\n❓ *Confirma que devo salvar no seu Stater?*`;
                 
                 await bot.sendMessage(chatId, confirmMessage, { 
                     parse_mode: 'Markdown',

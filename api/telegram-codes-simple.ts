@@ -7,6 +7,13 @@ function generateCode(): string {
 }
 
 export default async function handler(req: any, res: any) {
+  console.log('🚀 API telegram-codes-simple chamada:', {
+    method: req.method,
+    query: req.query,
+    body: req.body,
+    timestamp: new Date().toISOString()
+  });
+
   try {
     // GET - Verificar código
     if (req.method === 'GET') {
@@ -87,6 +94,14 @@ export default async function handler(req: any, res: any) {
         const newCode = generateCode();
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
         
+        console.log('📝 Tentando inserir código no banco (action=generate):', {
+          code: newCode,
+          userId,
+          userEmail,
+          userName,
+          expiresAt: expiresAt.toISOString()
+        });
+        
         const { data, error } = await supabaseAdmin
           .from('telegram_link_codes')
           .insert([{
@@ -100,8 +115,18 @@ export default async function handler(req: any, res: any) {
           .select();
         
         if (error) {
-          console.error('❌ Erro ao gerar código:', error);
-          return res.status(500).json({ error: 'Erro ao gerar código' });
+          console.error('❌ Erro detalhado ao gerar código (action=generate):', {
+            error: error,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          return res.status(500).json({ 
+            error: 'Erro ao gerar código',
+            details: error.message,
+            hint: error.hint 
+          });
         }
         
         const insertedCode = data && data[0] ? data[0] : { code: newCode };
@@ -138,6 +163,14 @@ export default async function handler(req: any, res: any) {
         const newCode = generateCode();
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
         
+        console.log('📝 Tentando inserir código no banco:', {
+          code: newCode,
+          userId: finalUserId,
+          userEmail,
+          userName,
+          expiresAt: expiresAt.toISOString()
+        });
+        
         const { data, error } = await supabaseAdmin
           .from('telegram_link_codes')
           .insert([{
@@ -151,8 +184,18 @@ export default async function handler(req: any, res: any) {
           .select();
         
         if (error) {
-          console.error('❌ Erro ao gerar código:', error);
-          return res.status(500).json({ error: 'Erro ao gerar código' });
+          console.error('❌ Erro detalhado ao gerar código:', {
+            error: error,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          return res.status(500).json({ 
+            error: 'Erro ao gerar código',
+            details: error.message,
+            hint: error.hint 
+          });
         }
         
         const insertedCode = data && data[0] ? data[0] : { code: newCode };
@@ -171,10 +214,20 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: 'Método não permitido' });
     
   } catch (error) {
-    console.error('❌ Erro crítico na API codes:', error);
+    console.error('❌ Erro crítico na API telegram-codes-simple:', {
+      error: error,
+      message: error instanceof Error ? error.message : 'Erro desconhecido',
+      stack: error instanceof Error ? error.stack : undefined,
+      method: req.method,
+      query: req.query,
+      body: req.body,
+      timestamp: new Date().toISOString()
+    });
+    
     return res.status(500).json({ 
       error: 'Erro interno do servidor',
-      details: error instanceof Error ? error.message : 'Erro desconhecido'
+      details: error instanceof Error ? error.message : 'Erro desconhecido',
+      timestamp: new Date().toISOString()
     });
   }
 }

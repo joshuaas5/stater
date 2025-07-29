@@ -1159,7 +1159,17 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
           setMessages((prevMessages: ChatMessage[]) => [
             ...prevMessages,
             { id: uuidv4(), text: `✅ ${pendingAction.tipo === 'income' ? 'Receita' : 'Despesa'} registrada com sucesso!`, sender: 'system', timestamp: new Date() }
-          ]);        } else if (pendingAction.tipo === 'bill') {
+          ]);
+          
+          // GARANTIR RESET DOS ESTADOS
+          console.log('🔄 [MODAL FIX] Resetando estados após salvamento...');
+          setPendingAction(null);
+          setWaitingConfirmation(false);
+          setSavingTransactions(false);
+          setEditableTransactions([]);
+          setLoadingState('transaction-save', false);
+          setLoading(false);
+          console.log('✅ [MODAL FIX] Estados resetados - modal deve fechar');        } else if (pendingAction.tipo === 'bill') {
           // Exemplo para contas
           const { valor, descricao, vencimento } = pendingAction.dados;
           
@@ -1189,8 +1199,19 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         setWaitingConfirmation(false); // Reset waitingConfirmation on error
         setPendingAction(null);      // Reset pendingAction on error
       } finally { // Finally for the 'sim' block's try
+        console.log('🔄 [MODAL FIX] Finally block - garantindo reset de todos os estados...');
         setLoading(false);
         setSavingTransactions(false); // Desativar loading específico para salvamento
+        setLoadingState('transaction-save', false);
+        console.log('✅ [MODAL FIX] Finally block - estados de loading resetados');
+        
+        // GARANTIA ADICIONAL: Se ainda há estados pendentes, forçar reset
+        if (waitingConfirmation || pendingAction) {
+          console.log('⚠️ [MODAL FIX] Forçando reset de estados pendentes no finally...');
+          setWaitingConfirmation(false);
+          setPendingAction(null);
+          setEditableTransactions([]);
+        }
       }
       return; // Crucial: return after 'sim' processing is fully handled
     } // Closes 'if (waitingConfirmation && pendingAction && lowerMsg.startsWith('sim'))'
@@ -1719,7 +1740,7 @@ LEMBRE-SE: Se é uma transação, responda APENAS com JSON. Se é consulta, resp
             if (singleTransaction.amount > 0) {
               // Ativar modal de confirmação para transação única
               setPendingAction({
-                tipo: singleTransaction.type,
+                tipo: singleTransaction.type as 'income' | 'expense',
                 dados: singleTransaction
               });
               setWaitingConfirmation(true);
@@ -1743,7 +1764,7 @@ LEMBRE-SE: Se é uma transação, responda APENAS com JSON. Se é consulta, resp
               
               if (singleTransaction.amount > 0) {
                 setPendingAction({
-                  tipo: singleTransaction.type,
+                  tipo: singleTransaction.type as 'income' | 'expense',
                   dados: singleTransaction
                 });
                 setWaitingConfirmation(true);

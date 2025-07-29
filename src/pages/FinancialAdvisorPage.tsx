@@ -505,8 +505,47 @@ const isAddBillIntent = (msg: string) => {
       // CORREÇÃO: Verificar se o áudio contém dados de transação estruturados
       console.log('🎤 [AUDIO_FIX] Resultado processado:', result);
       
-      // Se o áudio contém uma transação estruturada, ativar modal diretamente
-      if (result.action === 'add_transaction' && result.amount && result.description) {
+      // Se o áudio contém múltiplas transações, usar modal de lista editável
+      if (result.transactions && Array.isArray(result.transactions) && result.transactions.length > 1) {
+        console.log('🎤 [AUDIO_MULTIPLE] Múltiplas transações detectadas no áudio, ativando modal de lista');
+        
+        // Adicionar mensagem do usuário com a transcrição
+        const userMessage: ChatMessage = {
+          id: uuidv4(),
+          text: result.transcription || '',
+          sender: 'user',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, userMessage]);
+        
+        // Converter transações do áudio para o formato esperado
+        const audioTransactionList = result.transactions.map((tx: any, index: number) => ({
+          type: tx.type || 'expense',
+          amount: parseFloat(tx.amount || 0),
+          description: tx.description || `Transação ${index + 1}`,
+          category: tx.category || 'Outros',
+          date: tx.date || new Date().toISOString().split('T')[0]
+        })).filter((tx: any) => tx.amount > 0);
+        
+        // Usar modal de lista editável
+        setEditableTransactions(audioTransactionList);
+        setPendingAction({
+          tipo: 'generic_confirmation',
+          dados: {
+            ocrTransactions: audioTransactionList,
+            documentType: 'audio_multiple',
+            establishment: 'Transações detectadas no áudio'
+          }
+        });
+        setWaitingConfirmation(true);
+        
+        setIsProcessingAudio(false);
+        setLoadingState('audio-processing', false);
+        return;
+      }
+      // Se o áudio contém uma transação única, ativar modal simples
+      else if (result.action === 'add_transaction' && result.amount && result.description) {
         console.log('🎤 [AUDIO_TRANSACTION] Transação detectada no áudio, ativando modal');
         
         // Adicionar mensagem do usuário com a transcrição
@@ -1374,30 +1413,39 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
 INSTRUÇÕES CRÍTICAS - LEIA COM ATENÇÃO:
 
 1. Se o usuário perguntar sobre SALDO, GASTOS, ANÁLISE ou CONSULTA: RESPONDA EM TEXTO NORMAL
-2. Se o usuário pedir para ADICIONAR, REGISTRAR, INCLUIR, ANOTAR uma transação: RESPONDA APENAS COM JSON
+2. Se o usuário pedir para ADICIONAR, REGISTRAR, INCLUIR, ANOTAR transação(ões): RESPONDA APENAS COM JSON
 
 DETECÇÃO DE TRANSAÇÃO:
-- Frases como "adicione 50 reais", "registre 30 mercado", "inclua entrada de 100" = TRANSAÇÃO
-- Para TRANSAÇÃO ÚNICA, retorne EXATAMENTE este formato:
+- Frases como "adicione 50 reais", "registre 30 mercado" = TRANSAÇÃO ÚNICA
+- Frases como "adicione 50 mercado e 30 posto", "registre 20 farmácia, 40 gasolina" = MÚLTIPLAS TRANSAÇÕES
+
+FORMATO PARA TRANSAÇÃO ÚNICA:
 {"description":"Descrição","amount":50.0,"type":"expense","category":"Outros","date":"${new Date().toISOString().split('T')[0]}"}
+
+FORMATO PARA MÚLTIPLAS TRANSAÇÕES (ARRAY):
+[
+  {"description":"Mercado","amount":50.0,"type":"expense","category":"Alimentação","date":"${new Date().toISOString().split('T')[0]}"},
+  {"description":"Posto","amount":30.0,"type":"expense","category":"Transporte","date":"${new Date().toISOString().split('T')[0]}"}
+]
 
 - Use "type":"expense" para gastos/saídas
 - Use "type":"income" para receitas/entradas
 - Categorias válidas: "${EXPENSE_CATEGORIES.slice(0, 8).join('", "')}", "Outros"
 
-EXEMPLOS DE TRANSAÇÃO (responder JSON):
+EXEMPLOS DE TRANSAÇÃO ÚNICA (responder JSON OBJETO):
 Usuário: "adicione 50 reais" 
 Resposta: {"description":"Entrada de R$ 50","amount":50.0,"type":"income","category":"Outros","date":"${new Date().toISOString().split('T')[0]}"}
 
-Usuário: "registre 30 mercado"
-Resposta: {"description":"Mercado","amount":30.0,"type":"expense","category":"Alimentação","date":"${new Date().toISOString().split('T')[0]}"}
+EXEMPLOS DE MÚLTIPLAS TRANSAÇÕES (responder JSON ARRAY):
+Usuário: "registre 30 mercado e 20 farmácia"
+Resposta: [{"description":"Mercado","amount":30.0,"type":"expense","category":"Alimentação","date":"${new Date().toISOString().split('T')[0]}"},{"description":"Farmácia","amount":20.0,"type":"expense","category":"Saúde","date":"${new Date().toISOString().split('T')[0]}"}]
+
+Usuário: "adicione 100 salário, 50 freelance, 200 venda"
+Resposta: [{"description":"Salário","amount":100.0,"type":"income","category":"Trabalho","date":"${new Date().toISOString().split('T')[0]}"},{"description":"Freelance","amount":50.0,"type":"income","category":"Trabalho","date":"${new Date().toISOString().split('T')[0]}"},{"description":"Venda","amount":200.0,"type":"income","category":"Outros","date":"${new Date().toISOString().split('T')[0]}"}]
 
 EXEMPLOS DE CONSULTA (responder texto):
 Usuário: "qual meu saldo?"
 Resposta: Seu saldo atual é de R$ X,XX...
-
-Usuário: "como estão minhas finanças?"
-Resposta: Analisando seus dados financeiros...
 
 CONTEXTO FINANCEIRO:
 Saldo atual: R$ ${balance.toFixed(2)} (baseado em ${allTransactions?.length || 0} transações totais)
@@ -1410,7 +1458,10 @@ Transações recentes (últimas 10):
 
 PERGUNTA DO USUÁRIO: ${message}
 
-LEMBRE-SE: Se é uma transação, responda APENAS com JSON. Se é consulta, responda em texto normal.`;
+LEMBRE-SE: 
+- Para uma transação, responda com OBJETO JSON
+- Para múltiplas transações, responda com ARRAY JSON
+- Para consultas, responda em texto normal.`;
       } catch (promptErr) {
         console.warn('Erro ao montar prompt personalizado, usando mensagem original.', promptErr);
       }
@@ -1771,14 +1822,14 @@ LEMBRE-SE: Se é uma transação, responda APENAS com JSON. Se é consulta, resp
                 isTransactionJson = true;
               }
             } 
-            // Array com múltiplas transações
+            // Array com múltiplas transações - USAR MODAL DE LISTA EDITÁVEL
             else {
             
             // Converter array de transações da IA para formato esperado
             const transactionList = parsed.map((tx, index) => {
               console.log(`Processando transação ${index + 1}:`, tx);
               return {
-                type: tx.tipo === 'receita' ? 'income' : 'expense',
+                type: tx.tipo === 'receita' || tx.type === 'income' ? 'income' : 'expense',
                 amount: parseFloat(tx.valor || tx.amount || 0),
                 description: tx.descrição || tx.description || `Transação ${index + 1}`,
                 category: tx.categoria || tx.category || 'Outros',
@@ -1792,38 +1843,17 @@ LEMBRE-SE: Se é uma transação, responda APENAS com JSON. Se é consulta, resp
               throw new Error('Nenhuma transação válida encontrada no array da IA');
             }
 
-            // Criar mensagem de resumo
-            const totalAmount = transactionList.reduce((sum, tx) => sum + tx.amount, 0);
-            let resultMessage = `🤖 A IA detectou ${transactionList.length} transações na sua lista!\n\n`;
-            resultMessage += `💰 Total: R$ ${totalAmount.toFixed(2)}\n\n`;
-            resultMessage += `Transações processadas:\n\n`;
-
-            // Listar cada transação
-            for (let i = 0; i < transactionList.length; i++) {
-              const transaction = transactionList[i];
-              resultMessage += `${i + 1}. ${transaction.description}\n`;
-              resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
-              resultMessage += `   📁 Categoria: ${transaction.category}\n`;
-              resultMessage += `   📅 Data: ${transaction.date === new Date().toISOString().split('T')[0] ? 'Hoje' : transaction.date}\n\n`;
-            }
-
-            // Adicionar mensagem com resultados
-            setMessages(prev => [...prev, {
-              id: uuidv4(),
-              text: resultMessage,
-              sender: 'system',
-              timestamp: new Date(),
-              avatarUrl: IA_AVATAR
-            }]);
-
-            // Preparar ação pendente para confirmação (igual ao OCR)
+            // USAR MODAL DE LISTA EDITÁVEL (igual ao PDF/OCR)
+            console.log('🔄 [MODAL LIST] Ativando modal de lista editável para múltiplas transações');
+            
+            // Preparar ação pendente para confirmação no formato do modal de lista
             setEditableTransactions(transactionList);
             setPendingAction({
               tipo: 'generic_confirmation',
               dados: {
                 ocrTransactions: transactionList,
-                documentType: 'ai_list',
-                establishment: 'Lista processada pela IA'
+                documentType: 'ai_multiple',
+                establishment: 'Lista de transações processada pela IA'
               }
             });
             setWaitingConfirmation(true);

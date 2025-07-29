@@ -593,10 +593,11 @@ async function confirmTransactions(chatId) {
         const userId = await getUserIdFromTelegram(chatId);
         console.log(`🔍 [CONFIRMAÇÃO] UserID encontrado: ${userId}`);
         
+        let salvasComSucesso = 0; // 🔧 CORREÇÃO: Declarar sempre
+        
         if (userId) {
             console.log(`✅ [CONFIRMAÇÃO] Usuário vinculado! Salvando ${pending.transactions.length} transações...`);
             
-            let salvasComSucesso = 0;
             for (const transaction of pending.transactions) {
                 console.log(`💾 [CONFIRMAÇÃO] Salvando: ${transaction.descricao} - R$ ${transaction.valor}`);
                 const sucesso = await saveTransactionToSupabase(userId, transaction);
@@ -733,10 +734,51 @@ async function linkTelegramWithCode(chatId, linkCode) {
 // Processar mensagem de chat com IA
 async function processChatMessage(chatId, message, userSession) {
     try {
-        // Mensagem de processamento
-        const processingMsg = await bot.sendMessage(chatId, '🤔 *Pensando...* Aguarde um momento.', { parse_mode: 'Markdown' });
-        
         console.log(`💬 Processando chat de ${userSession.userName}: ${message}`);
+        
+        // 🔥 DETECTAR SE É PEDIDO DE TRANSAÇÃO (nova funcionalidade)
+        const isTransactionRequest = detectTransactionRequest(message);
+        
+        if (isTransactionRequest) {
+            console.log(`💰 [TRANSAÇÃO] Detectado pedido de transação: ${message}`);
+            
+            // Processar transações do texto com Gemini
+            const processingMsg = await bot.sendMessage(chatId, '💰 *Detectei pedido de transação...*\n🤔 Processando com IA...', { parse_mode: 'Markdown' });
+            
+            const transactions = await extractTransactionsFromText(message, userSession);
+            
+            await bot.deleteMessage(chatId, processingMsg.message_id);
+            
+            if (transactions && transactions.length > 0) {
+                // Salvar transações pendentes
+                pendingTransactions.set(chatId, {
+                    transactions: transactions,
+                    timestamp: Date.now()
+                });
+                
+                // Mostrar transações encontradas e pedir confirmação
+                const transactionList = formatTransactionsResponse(transactions);
+                const confirmMessage = `� *Encontrei ${transactions.length} transação(ões):*\n\n${transactionList}\n\n❓ *Confirma que devo salvar no seu Stater?*`;
+                
+                await bot.sendMessage(chatId, confirmMessage, { 
+                    parse_mode: 'Markdown',
+                    reply_markup: {
+                        keyboard: [
+                            [{ text: '✅ SIM' }, { text: '❌ NÃO' }]
+                        ],
+                        resize_keyboard: true,
+                        one_time_keyboard: true
+                    }
+                });
+                return;
+            } else {
+                await bot.sendMessage(chatId, '🤔 *Não consegui identificar transações claras neste texto.*\n\n💡 Tente ser mais específico:\n• "Adicione gasto de 50 reais com comida"\n• "Entrada de 100 reais salário"', { parse_mode: 'Markdown' });
+                return;
+            }
+        }
+        
+        // Chat normal com IA (se não é transação)
+        const processingMsg = await bot.sendMessage(chatId, '🤔 *Pensando...* Aguarde um momento.', { parse_mode: 'Markdown' });
         
         // Buscar dados do usuário para contexto
         const userContext = await getUserContextForChat(userSession.userId);
@@ -786,10 +828,14 @@ async function getUserContextForChat(userId) {
             console.error('⚠️ Erro ao buscar bills:', billsError);
         }
         
-        // Calcular saldo das transações
+        // Calcular saldo das transações (CORRIGIDO: considerar tipo da transação)
         let balance = 0;
         if (transactions) {
-            balance = transactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+            balance = transactions.reduce((sum, t) => {
+                // Receitas são positivas, despesas são negativas
+                const amount = t.type === 'income' ? Math.abs(t.amount || 0) : -Math.abs(t.amount || 0);
+                return sum + amount;
+            }, 0);
         }
         
         // Calcular estatísticas das bills
@@ -987,6 +1033,98 @@ async function saveTransactionToSupabase(userId, transaction) {
     } catch (error) {
         console.error('❌ Erro salvar transação:', error);
         return false;
+    }
+}
+
+// 🔥 DETECTAR SE MENSAGEM É PEDIDO DE TRANSAÇÃO
+function detectTransactionRequest(message) {
+    const text = message.toLowerCase();
+    
+    // Palavras-chave que indicam transação
+    const transactionKeywords = [
+        'adicione', 'adicionar', 'add', 'registre', 'registrar',
+        'gasto', 'gastei', 'comprei', 'paguei', 'despesa',
+        'recebi', 'entrada', 'receita', 'salário', 'ganho',
+        'transferir', 'saiu', 'entrou', 'débito', 'crédito'
+    ];
+    
+    // Padrões de valor (R$, reais, etc)
+    const valuePatterns = [
+        /\d+\s*(reais|real|r\$)/,
+        /r\$\s*\d+/,
+        /\d+[\.,]\d+\s*(reais|real)/
+    ];
+    
+    const hasKeyword = transactionKeywords.some(keyword => text.includes(keyword));
+    const hasValue = valuePatterns.some(pattern => pattern.test(text));
+    
+    return hasKeyword && hasValue;
+}
+
+// 🔥 EXTRAIR TRANSAÇÕES DO TEXTO COM GEMINI
+async function extractTransactionsFromText(message, userSession) {
+    try {
+        const prompt = `Você é um extrator de transações financeiras. Analise o texto e extraia APENAS transações financeiras claras e específicas.
+
+TEXTO DO USUÁRIO: "${message}"
+
+REGRAS:
+1. Extraia apenas transações com valor específico
+2. Determine se é receita (entrada/ganho) ou despesa (gasto/saída)
+3. Identifique categoria apropriada
+4. Use valores positivos para receitas, negativos para despesas
+
+FORMATO DE RESPOSTA (JSON):
+[
+  {
+    "descricao": "descrição da transação",
+    "valor": 50.00,
+    "categoria": "categoria apropriada"
+  }
+]
+
+CATEGORIAS VÁLIDAS: Alimentação, Transporte, Saúde, Educação, Entretenimento, Compras, Serviços, Salário, Freelance, Investimentos, Outros
+
+Se não encontrar transações claras, retorne: []`;
+
+        const response = await axios.post(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
+            {
+                contents: [{
+                    parts: [{ text: prompt }]
+                }],
+                generationConfig: {
+                    temperature: 0.1,
+                    maxOutputTokens: 1000
+                }
+            },
+            { timeout: 10000 }
+        );
+
+        const aiResponse = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (!aiResponse) {
+            console.error('❌ [EXTRAÇÃO] Resposta vazia do Gemini');
+            return [];
+        }
+
+        console.log(`🤖 [EXTRAÇÃO] Resposta Gemini: ${aiResponse}`);
+
+        // Tentar extrair JSON da resposta
+        const jsonMatch = aiResponse.match(/\[([\s\S]*?)\]/);
+        if (!jsonMatch) {
+            console.log('⚠️ [EXTRAÇÃO] Nenhum JSON encontrado na resposta');
+            return [];
+        }
+
+        const transactions = JSON.parse(jsonMatch[0]);
+        console.log(`✅ [EXTRAÇÃO] ${transactions.length} transações extraídas`);
+        
+        return transactions;
+
+    } catch (error) {
+        console.error('❌ [EXTRAÇÃO] Erro ao extrair transações:', error);
+        return [];
     }
 }
 

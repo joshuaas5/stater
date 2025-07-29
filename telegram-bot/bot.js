@@ -587,29 +587,53 @@ async function confirmTransactions(chatId) {
     }
     
     try {
-        console.log(`💾 Salvando ${pending.transactions.length} transações para ${chatId}`);
+        console.log(`💾 [CONFIRMAÇÃO] Iniciando salvamento de ${pending.transactions.length} transações para chat ${chatId}`);
         
         // Salvar no Supabase (integrar com seu app)
         const userId = await getUserIdFromTelegram(chatId);
+        console.log(`🔍 [CONFIRMAÇÃO] UserID encontrado: ${userId}`);
         
         if (userId) {
+            console.log(`✅ [CONFIRMAÇÃO] Usuário vinculado! Salvando ${pending.transactions.length} transações...`);
+            
+            let salvasComSucesso = 0;
             for (const transaction of pending.transactions) {
-                await saveTransactionToSupabase(userId, transaction);
+                console.log(`💾 [CONFIRMAÇÃO] Salvando: ${transaction.descricao} - R$ ${transaction.valor}`);
+                const sucesso = await saveTransactionToSupabase(userId, transaction);
+                if (sucesso !== false) {
+                    salvasComSucesso++;
+                }
             }
+            
+            console.log(`📊 [CONFIRMAÇÃO] Total salvas: ${salvasComSucesso}/${pending.transactions.length}`);
         } else {
             // Salvar para usuário genérico se não vinculado
-            console.log('⚠️ Usuário não vinculado, salvando como demo');
+            console.log('⚠️ [CONFIRMAÇÃO] Usuário não vinculado, não salvando transações');
         }
         
         // Limpar pendentes
         pendingTransactions.delete(chatId);
         
-        const successMessage = `✅ *Perfeito! Salvei ${pending.transactions.length} transação(ões) no seu Stater!*
+        let successMessage;
+        if (userId && salvasComSucesso > 0) {
+            successMessage = `✅ *Perfeito! Salvei ${salvasComSucesso} transação(ões) no seu Stater!*
 
 🔗 *Acesse seu dashboard:*
 ${process.env.APP_URL}/dashboard
 
 📊 Suas transações já estão disponíveis no app!`;
+        } else if (!userId) {
+            successMessage = `⚠️ *Conta não vinculada!*
+
+Para salvar transações, você precisa vincular sua conta primeiro.
+
+🔗 *Acesse:* ${process.env.APP_URL}
+🤖 Copie o código de vinculação e envie aqui!`;
+        } else {
+            successMessage = `❌ *Erro ao salvar transações.*
+
+Não foi possível salvar nenhuma transação. Tente novamente.`;
+        }
         
         await bot.sendMessage(chatId, successMessage, { 
             parse_mode: 'Markdown',
@@ -928,6 +952,8 @@ async function getUserIdFromTelegram(chatId) {
 // Salvar transação no Supabase
 async function saveTransactionToSupabase(userId, transaction) {
     try {
+        console.log(`💾 [SAVE] Preparando transação: ${transaction.descricao} - R$ ${transaction.valor} para usuário ${userId}`);
+        
         const transactionData = {
             user_id: userId,
             title: transaction.descricao,
@@ -935,9 +961,10 @@ async function saveTransactionToSupabase(userId, transaction) {
             type: transaction.valor > 0 ? 'income' : 'expense',
             category: transaction.categoria,
             date: new Date().toISOString(), // 🔧 CORREÇÃO: Data/hora atual completa
-            source: 'telegram_bot',
             created_at: new Date().toISOString()
         };
+        
+        console.log(`📝 [SAVE] Dados preparados:`, JSON.stringify(transactionData, null, 2));
         
         const { data, error } = await supabase
             .from('transactions')
@@ -946,39 +973,14 @@ async function saveTransactionToSupabase(userId, transaction) {
             .single();
         
         if (error) {
-            console.error('❌ Erro Supabase:', error);
+            console.error('❌ [SAVE] Erro Supabase:', error);
             return false;
         }
         
-        console.log(`✅ Transação salva: ${transaction.descricao} - R$ ${transaction.valor}`);
+        console.log(`✅ [SAVE] Transação salva com ID: ${data.id} - ${transaction.descricao} - R$ ${transaction.valor}`);
         
-        // NOTIFICAR O APP SOBRE A NOVA TRANSAÇÃO
-        try {
-            console.log('📢 [SYNC] Notificando app sobre nova transação do Telegram...');
-            
-            // Fazer múltiplas tentativas de notificação para garantir que o app receba
-            const notificationPromises = [];
-            
-            // Tentar notificar via webhook se disponível
-            if (process.env.APP_URL) {
-                notificationPromises.push(
-                    axios.post(`${process.env.APP_URL}/api/telegram-sync-notification`, {
-                        userId: userId,
-                        transactionId: data.id,
-                        action: 'new_transaction',
-                        timestamp: Date.now()
-                    }, { timeout: 5000 }).catch(err => 
-                        console.log('⚠️ [SYNC] Webhook não disponível:', err.message)
-                    )
-                );
-            }
-            
-            await Promise.allSettled(notificationPromises);
-            console.log('📢 [SYNC] Notificações enviadas');
-            
-        } catch (syncError) {
-            console.log('⚠️ [SYNC] Erro ao notificar app (transação salva mesmo assim):', syncError.message);
-        }
+        // TODO: NOTIFICAR O APP SOBRE A NOVA TRANSAÇÃO (quando webhook estiver configurado)
+        console.log('📢 [SYNC] Transação salva no Supabase - sincronização automática habilitada');
         
         return true;
         

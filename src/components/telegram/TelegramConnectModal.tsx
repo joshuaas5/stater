@@ -65,6 +65,40 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
     }
   };
 
+  const testDebugAPI = async () => {
+    console.log('🔧 [DEBUG] Testando API de debug...');
+    
+    try {
+      const response = await fetch('/api/telegram-debug', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user?.id,
+          userEmail: user?.email,
+          userName: 'Test User'
+        })
+      });
+
+      const data = await response.json();
+      console.log('🔧 [DEBUG] Resposta da API Debug:', data);
+      
+      if (data.success) {
+        console.log('✅ [DEBUG] Todos os testes passaram!');
+        if (data.code) {
+          setGeneratedCode(data.code);
+          await navigator.clipboard.writeText(data.code);
+          setIsCodeCopied(true);
+        }
+      } else {
+        console.error('❌ [DEBUG] Falha nos testes:', data);
+        setError(`Debug Error: ${data.error} - ${JSON.stringify(data.details)}`);
+      }
+    } catch (err: any) {
+      console.error('❌ [DEBUG] Erro na API debug:', err);
+      setError(`Debug API Error: ${err.message}`);
+    }
+  };
+
   const copyCode = async () => {
     if (generatedCode) {
       await navigator.clipboard.writeText(generatedCode);
@@ -139,6 +173,14 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
               ) : (
                 '🔑 Gerar Código de 6 Dígitos'
               )}
+            </button>
+            
+            {/* Botão temporário para debug */}
+            <button
+              onClick={testDebugAPI}
+              className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+            >
+              🔧 TESTAR API DEBUG (TEMPORÁRIO)
             </button>
           </div>
         ) : (

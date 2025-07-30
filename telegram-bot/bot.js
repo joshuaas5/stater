@@ -439,8 +439,8 @@ bot.on('message', async (msg) => {
     if (userSession) {
         await processChatMessage(chatId, text, userSession);
     } else {
-        // Verificar se Ã© um cÃ³digo de vinculaÃ§Ã£o (formato: letras/nÃºmeros maiÃºsculos, 8-12 caracteres)
-        const codePattern = /^[A-Z0-9]{8,12}$/;
+        // Verificar se é um código de vinculação (formato: 6 dígitos)
+        const codePattern = /^\d{6}$/;
         if (codePattern.test(text.trim())) {
             console.log(`ðŸ”— Tentativa de vinculaÃ§Ã£o com cÃ³digo: ${text.trim()}`);
             const linkResult = await linkTelegramWithCode(chatId, text.trim());
@@ -785,6 +785,42 @@ async function linkTelegramWithCode(chatId, linkCode) {
     } catch (error) {
         console.error('âŒ Erro ao vincular:', error);
         return { success: false, message: 'Erro interno. Tente novamente.' };
+    }
+}
+
+// Validar se a sessão ainda é válida no banco de dados
+async function validateUserSession(chatId, userSession) {
+    try {
+        const { data: activeUser, error } = await supabase
+            .from('telegram_users')
+            .select('is_active')
+            .eq('telegram_chat_id', chatId.toString())
+            .eq('user_id', userSession.userId)
+            .eq('is_active', true)
+            .single();
+        
+        if (error || !activeUser) {
+            console.log(`🚫 [SESSÃO] Sessão inválida para ${chatId}, removendo do cache`);
+            userSessions.delete(chatId);
+            
+            await bot.sendMessage(chatId, `🔒 **Sessão expirada**
+
+Sua conexão foi desativada. Para continuar:
+
+**Como reconectar:**
+1. Acesse: ${process.env.APP_URL}
+2. Faça login na sua conta
+3. Vá em Configurações → Bot Telegram  
+4. Gere um novo código de vinculação
+5. Envie o código aqui
+
+💡 Use /help para mais informações.`, { parse_mode: 'Markdown' });
+            return false;
+        }
+        return true;
+    } catch (sessionError) {
+        console.error('❌ [SESSÃO] Erro ao verificar sessão:', sessionError);
+        return true; // Continuar mesmo com erro para não bloquear completamente
     }
 }
 

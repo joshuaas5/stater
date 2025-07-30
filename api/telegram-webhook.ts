@@ -949,6 +949,52 @@ export default async function handler(req: any, res: any) {
 
     console.log(`💬 Mensagem de ${username} (${chatId}): ${messageText}`);
 
+    // ✅ PRIORIDADE MÁXIMA: Verificar códigos de conexão ANTES de qualquer coisa
+    if (messageText) {
+      const codePattern = /^[0-9]{6}$/;
+      const trimmedMessage = messageText.trim();
+      
+      console.log('🔍 [DEBUG] Verificando código de conexão primeiro:', {
+        message: trimmedMessage,
+        isCode: codePattern.test(trimmedMessage)
+      });
+      
+      if (codePattern.test(trimmedMessage)) {
+        console.log('🔑 CÓDIGO DE CONEXÃO DETECTADO!', trimmedMessage);
+        
+        const linkSuccess = await saveTelegramLink(chatId, trimmedMessage, username);
+        
+        if (linkSuccess) {
+          await sendTelegramMessage(chatId, 
+            `✅ <b>Conta vinculada com sucesso!</b>\n\n` +
+            `🎉 Olá ${username}! Sua conta Stater foi conectada.\n\n` +
+            `🤖 Agora posso analisar suas finanças reais e dar conselhos personalizados!\n\n` +
+            `💬 <b>Experimente:</b>\n` +
+            `• "Qual meu saldo atual?"\n` +
+            `• "Análise dos meus gastos"\n` +
+            `• "Como economizar dinheiro?"\n\n` +
+            `Stater IA ativo! 🚀`
+          );
+        } else {
+          await sendTelegramMessage(chatId, 
+            `❌ <b>Código inválido: ${trimmedMessage}</b>\n\n` +
+            `💡 <b>Possíveis causas:</b>\n` +
+            `• Código expirado (válido por 15 min)\n` +
+            `• Código já foi usado\n` +
+            `• Código digitado incorretamente\n\n` +
+            `🔧 <b>Como conectar:</b>\n` +
+            `1. Acesse o app Stater\n` +
+            `2. Vá em Configurações → Telegram\n` +
+            `3. Clique em "Conectar"\n` +
+            `4. Copie o código de 6 dígitos\n` +
+            `5. Cole aqui no chat\n\n` +
+            `🔢 Use apenas 6 números (ex: 123456)`
+          );
+        }
+        return res.status(200).json({ ok: true, message: 'Código processado com prioridade' });
+      }
+    }
+
     // VERIFICAR SE É MENSAGEM DE VOZ
     if (update.message.voice) {
       console.log('🎤 Mensagem de voz detectada!');

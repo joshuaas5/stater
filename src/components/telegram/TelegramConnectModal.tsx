@@ -29,6 +29,8 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
     setError('');
     
     try {
+      console.log('🔧 [TELEGRAM] Gerando código para usuário:', user.id);
+      
       const response = await fetch('/api/telegram-codes-simple', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -39,19 +41,25 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
         })
       });
 
+      console.log('🔧 [TELEGRAM] Resposta da API:', response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error('Erro ao gerar código');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ [TELEGRAM] Erro da API:', errorData);
+        throw new Error(errorData.details || errorData.error || `Erro ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('✅ [TELEGRAM] Código gerado com sucesso');
       setGeneratedCode(data.code);
       
       // Copiar automaticamente para clipboard
       await navigator.clipboard.writeText(data.code);
       setIsCodeCopied(true);
       
-    } catch (err) {
-      setError('Erro ao gerar código. Tente novamente.');
+    } catch (err: any) {
+      console.error('❌ [TELEGRAM] Erro completo:', err);
+      setError(`Erro ao gerar código: ${err.message || 'Tente novamente.'}`);
     } finally {
       setIsGenerating(false);
     }

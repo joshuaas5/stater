@@ -19,31 +19,62 @@ export default async function handler(req: any, res: any) {
     return res.status(200).end();
   }
 
-  console.log('API telegram codes:', { 
+  console.log('🔧 [TELEGRAM API] Iniciando:', { 
     method: req.method, 
     query: req.query,
-    body: req.body 
+    body: req.body,
+    timestamp: new Date().toISOString()
   });
 
   try {
+    // Testar conexão com Supabase primeiro
+    const { data: testData, error: testError } = await supabase
+      .from('telegram_link_codes')
+      .select('count(*)')
+      .limit(1);
+    
+    if (testError) {
+      console.error('❌ [SUPABASE ERROR] Falha na conexão:', testError);
+      return res.status(500).json({ 
+        error: 'Falha na conexão com banco de dados', 
+        details: testError.message,
+        supabaseUrl: supabaseUrl
+      });
+    }
+    
+    console.log('✅ [SUPABASE] Conexão OK');
+
     // POST - Gerar novo código
     if (req.method === 'POST') {
       const { user_id, userEmail, userName } = req.body;
       
+      console.log('📝 [POST] Dados recebidos:', { user_id, userEmail, userName });
+      
       if (!user_id) {
+        console.log('❌ [VALIDATION] user_id é obrigatório');
         return res.status(400).json({ error: 'user_id é obrigatório' });
       }
 
       // Invalidar códigos antigos do usuário
-      await supabase
+      console.log('🔄 [CLEANUP] Invalidando códigos antigos...');
+      const { error: updateError } = await supabase
         .from('telegram_link_codes')
         .update({ used_at: new Date().toISOString() })
         .eq('user_id', user_id)
         .is('used_at', null);
 
+      if (updateError) {
+        console.error('⚠️ [CLEANUP] Erro ao invalidar códigos antigos:', updateError);
+        // Não retornar erro, apenas logar
+      } else {
+        console.log('✅ [CLEANUP] Códigos antigos invalidados');
+      }
+
       // Gerar novo código
       const code = generateCode();
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+      console.log('🔑 [GENERATE] Inserindo código:', { code, user_id, expiresAt });
 
       const { error } = await supabase
         .from('telegram_link_codes')
@@ -57,12 +88,27 @@ export default async function handler(req: any, res: any) {
         }]);
 
       if (error) {
-        console.error('Erro ao gerar código:', error);
-        return res.status(500).json({ error: 'Erro ao gerar código', details: error.message });
+        console.error('❌ [INSERT ERROR] Erro ao gerar código:', error);
+        console.error('❌ [INSERT ERROR] Detalhes:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        return res.status(500).json({ 
+          error: 'Erro ao gerar código', 
+          details: error.message,
+          errorCode: error.code
+        });
       }
 
-      console.log('Código gerado:', code);
-      return res.status(200).json({ success: true, code, expiresAt: expiresAt.toISOString() });
+      console.log('✅ [SUCCESS] Código gerado com sucesso:', code);
+      return res.status(200).json({ 
+        success: true, 
+        code, 
+        expiresAt: expiresAt.toISOString(),
+        timestamp: new Date().toISOString()
+      });
     }
 
     // GET - Verificar código

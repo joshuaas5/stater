@@ -499,8 +499,8 @@ const BillsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Status de Cooldown de Anúncios */}
-      {userId && (
+      {/* Status de Cooldown de Anúncios - TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES */}
+      {false && userId && (
         <div className="px-4 py-2">
           <AdCooldownStatus userId={userId} />
         </div>

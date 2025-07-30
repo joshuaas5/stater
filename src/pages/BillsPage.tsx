@@ -248,9 +248,11 @@ const BillsPage: React.FC = () => {
       }
       
       if (permission.reason === 'need_ad') {
-        console.log('🎬 [COOLDOWN] Precisa ver anúncio contextual');
-        setShowContextualAd({ show: true, action: 'bills' });
-        return;
+        console.log('🎬 [COOLDOWN] Precisa ver anúncio contextual - DESABILITADO PARA INVESTIDORES');
+        // TEMPORARIAMENTE DESABILITADO PARA APRESENTAÇÃO PARA INVESTIDORES
+        // setShowContextualAd({ show: true, action: 'bills' });
+        // return;
+        // Permitir que continue normalmente
       }
 
       // Fallback para sistema antigo se necessário
@@ -916,7 +918,8 @@ const BillsPage: React.FC = () => {
         userId={userId || ''}
       />
 
-      {/* Modal de Anúncio Contextual */}
+      {/* Modal de Anúncio Contextual - TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES */}
+      {false && (
       <ContextualAdModal
         isOpen={showContextualAd.show}
         onClose={() => setShowContextualAd({ show: false, action: 'bills' })}
@@ -935,9 +938,10 @@ const BillsPage: React.FC = () => {
         actionsWillGrant={3}
         cooldownMinutes={30}
       />
+      )}
 
-      {/* Banner de Publicidade */}
-      <AdBanner position="bottom" />
+      {/* Banner de Publicidade - TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES */}
+      {false && <AdBanner position="bottom" />}
 
     </div>
   );

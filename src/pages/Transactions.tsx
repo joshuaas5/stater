@@ -90,11 +90,13 @@ const Transactions: React.FC = () => {
       }
       
       if (permission.reason === 'need_ad') {
-        console.log('🎬 [COOLDOWN] Precisa ver anúncio contextual');
+        console.log('🎬 [COOLDOWN] Precisa ver anúncio contextual - DESABILITADO PARA INVESTIDORES');
+        // TEMPORARIAMENTE DESABILITADO PARA APRESENTAÇÃO PARA INVESTIDORES
         // Guardar a transação para clonar após o anúncio
-        setPendingCloneTransaction(transaction);
-        setShowContextualAd({ show: true, action: 'transactions' });
-        return;
+        // setPendingCloneTransaction(transaction);
+        // setShowContextualAd({ show: true, action: 'transactions' });
+        // return;
+        // Permitir que continue normalmente
       }
 
       // Fallback para sistema antigo se necessário
@@ -779,7 +781,8 @@ const Transactions: React.FC = () => {
         userId={userId || ''}
       />
 
-      {/* Modal de Anúncio Contextual */}
+      {/* Modal de Anúncio Contextual - TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES */}
+      {false && (
       <ContextualAdModal
         isOpen={showContextualAd.show}
         onClose={() => setShowContextualAd({ show: false, action: 'transactions' })}
@@ -801,9 +804,10 @@ const Transactions: React.FC = () => {
         actionsWillGrant={5}
         cooldownMinutes={20}
       />
+      )}
 
-      {/* Banner de Publicidade */}
-      <AdBanner position="bottom" />
+      {/* Banner de Publicidade - TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES */}
+      {false && <AdBanner position="bottom" />}
       
       <NavBar />
     </div>

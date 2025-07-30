@@ -2,11 +2,14 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://tmucbwlhkffrhtexmjze.supabase.co';
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtdWNid2xoa2Zmcmh0ZXhtanplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMzAzMDgsImV4cCI6MjA2MTcwNjMwOH0.rNx8GkxpEeGjtOwYC_LiL4HlAiwZKVMPTRrCqt7UHVo';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 console.log('🔧 [ENV] Supabase URL:', supabaseUrl);
 console.log('🔧 [ENV] Supabase Key exists:', !!supabaseKey);
+console.log('🔧 [ENV] Service Key exists:', !!supabaseServiceKey);
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseAdmin = supabaseServiceKey ? createClient(supabaseUrl, supabaseServiceKey) : null;
 
 function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -89,7 +92,12 @@ module.exports = async function handler(req: any, res: any) {
 
     // Tentar inserir na tabela
     console.log('🔧 [TELEGRAM API] Inserindo na tabela...');
-    const { error: insertError } = await supabase
+    
+    // Usar supabaseAdmin se disponível (contorna RLS), senão usar supabase normal
+    const clientToUse = supabaseAdmin || supabase;
+    console.log('🔧 [TELEGRAM API] Usando cliente:', supabaseAdmin ? 'ADMIN (service_role)' : 'NORMAL (anon)');
+    
+    const { error: insertError } = await clientToUse
       .from('telegram_link_codes')
       .insert([{
         code,

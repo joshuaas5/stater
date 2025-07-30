@@ -31,7 +31,7 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
     try {
       console.log('🔧 [TELEGRAM] Gerando código para usuário:', user.id);
       
-      const response = await fetch('/api/telegram-codes-simple', {
+      const response = await fetch('/api/telegram-codes-clean', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -62,71 +62,6 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
       setError(`Erro ao gerar código: ${err.message || 'Tente novamente.'}`);
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  const testDebugAPI = async () => {
-    console.log('🔧 [DEBUG] Testando API de debug...');
-    
-    try {
-      // Testar API simples primeiro
-      console.log('🔧 [DEBUG] Testando API simples...');
-      const simpleResponse = await fetch('/api/test-simple', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ test: 'simple' })
-      });
-
-      console.log('🔧 [DEBUG] Status API simples:', simpleResponse.status);
-      
-      if (simpleResponse.ok) {
-        const simpleData = await simpleResponse.json();
-        console.log('✅ [DEBUG] API simples funcionando:', simpleData);
-      } else {
-        const errorText = await simpleResponse.text();
-        console.error('❌ [DEBUG] API simples falhou:', simpleResponse.status, errorText);
-        setError(`API simples falhou: ${simpleResponse.status} - ${errorText.substring(0, 100)}`);
-        return;
-      }
-
-      // Se API simples funcionar, testar API debug
-      console.log('🔧 [DEBUG] Testando API debug...');
-      const response = await fetch('/api/telegram-debug', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user?.id,
-          userEmail: user?.email,
-          userName: 'Test User'
-        })
-      });
-
-      console.log('🔧 [DEBUG] Status API debug:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ [DEBUG] API debug falhou:', response.status, errorText);
-        setError(`API debug falhou: ${response.status} - ${errorText.substring(0, 200)}`);
-        return;
-      }
-
-      const data = await response.json();
-      console.log('🔧 [DEBUG] Resposta da API Debug:', data);
-      
-      if (data.success) {
-        console.log('✅ [DEBUG] Todos os testes passaram!');
-        if (data.code) {
-          setGeneratedCode(data.code);
-          await navigator.clipboard.writeText(data.code);
-          setIsCodeCopied(true);
-        }
-      } else {
-        console.error('❌ [DEBUG] Falha nos testes:', data);
-        setError(`Debug Error: ${data.error} - ${JSON.stringify(data.details)}`);
-      }
-    } catch (err: any) {
-      console.error('❌ [DEBUG] Erro na API debug:', err);
-      setError(`Debug API Error: ${err.message}`);
     }
   };
 
@@ -204,133 +139,6 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
               ) : (
                 '🔑 Gerar Código de 6 Dígitos'
               )}
-            </button>
-            
-            {/* Botão temporário para debug */}
-            <button
-              onClick={testDebugAPI}
-              className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
-            >
-              🔧 TESTAR API DEBUG (TEMPORÁRIO)
-            </button>
-            
-            {/* Teste com API limpa */}
-            <button
-              onClick={async () => {
-                try {
-                  console.log('🔧 [CLEAN API] Testando API limpa...');
-                  const response = await fetch('/api/telegram-codes-clean', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      user_id: user?.id,
-                      userEmail: user?.email,
-                      userName: user?.user_metadata?.username || user?.email?.split('@')[0] || 'Usuário'
-                    })
-                  });
-                  
-                  console.log('🔧 [CLEAN API] Status:', response.status);
-                  
-                  if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ [CLEAN API] Sucesso:', data);
-                    if (data.code) {
-                      setGeneratedCode(data.code);
-                      await navigator.clipboard.writeText(data.code);
-                      setIsCodeCopied(true);
-                    }
-                  } else {
-                    const errorText = await response.text();
-                    console.error('❌ [CLEAN API] Erro:', errorText);
-                    setError(`Clean API Error: ${response.status} - ${errorText.substring(0, 200)}`);
-                  }
-                } catch (err: any) {
-                  console.error('❌ [CLEAN API] Exceção:', err);
-                  setError(`Clean API Exception: ${err.message}`);
-                }
-              }}
-              className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
-            >
-              🧪 TESTAR API LIMPA
-            </button>
-            
-            {/* Teste Hello World - sem dependências */}
-            <button
-              onClick={async () => {
-                try {
-                  console.log('🔧 [HELLO] Testando API Hello World...');
-                  const response = await fetch('/api/hello-test', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ test: 'hello world' })
-                  });
-                  
-                  console.log('🔧 [HELLO] Status:', response.status);
-                  console.log('🔧 [HELLO] Headers:', response.headers);
-                  
-                  const responseText = await response.text();
-                  console.log('🔧 [HELLO] Response Text:', responseText);
-                  
-                  if (response.ok) {
-                    try {
-                      const data = JSON.parse(responseText);
-                      console.log('✅ [HELLO] Sucesso:', data);
-                      setError(`Hello Test OK: ${JSON.stringify(data, null, 2)}`);
-                    } catch (jsonErr) {
-                      console.error('❌ [HELLO] JSON Parse Error:', jsonErr);
-                      setError(`Hello Test - Response não é JSON: ${responseText.substring(0, 300)}`);
-                    }
-                  } else {
-                    console.error('❌ [HELLO] HTTP Error:', response.status, responseText);
-                    setError(`Hello Test Error: ${response.status} - ${responseText.substring(0, 200)}`);
-                  }
-                } catch (err: any) {
-                  console.error('❌ [HELLO] Exceção:', err);
-                  setError(`Hello Test Exception: ${err.message}`);
-                }
-              }}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-            >
-              👋 HELLO WORLD TEST
-            </button>
-            
-            {/* Teste Minimal JS - ainda mais simples */}
-            <button
-              onClick={async () => {
-                try {
-                  console.log('🔧 [MINIMAL] Testando API Minimal JS...');
-                  const response = await fetch('/api/minimal-test', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ test: 'minimal' })
-                  });
-                  
-                  console.log('🔧 [MINIMAL] Status:', response.status);
-                  
-                  const responseText = await response.text();
-                  console.log('🔧 [MINIMAL] Response Text:', responseText);
-                  
-                  if (response.ok) {
-                    try {
-                      const data = JSON.parse(responseText);
-                      console.log('✅ [MINIMAL] Sucesso:', data);
-                      setError(`Minimal Test OK: ${JSON.stringify(data, null, 2)}`);
-                    } catch (jsonErr) {
-                      console.error('❌ [MINIMAL] JSON Parse Error:', jsonErr);
-                      setError(`Minimal Test - Response não é JSON: ${responseText.substring(0, 300)}`);
-                    }
-                  } else {
-                    console.error('❌ [MINIMAL] HTTP Error:', response.status, responseText);
-                    setError(`Minimal Test Error: ${response.status} - ${responseText.substring(0, 200)}`);
-                  }
-                } catch (err: any) {
-                  console.error('❌ [MINIMAL] Exceção:', err);
-                  setError(`Minimal Test Exception: ${err.message}`);
-                }
-              }}
-              className="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
-            >
-              🎯 MINIMAL JS TEST
             </button>
           </div>
         ) : (

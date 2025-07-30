@@ -1124,6 +1124,24 @@ async function saveTransactionToSupabase(userId, transaction) {
         
         console.log(`âœ… [SAVE] TransaÃ§Ã£o salva com ID: ${data.id} - ${transaction.descricao} - R$ ${transaction.valor}`);
         
+        // Enviar notificação ao webhook
+        const webhookUrl = process.env.WEBHOOK_URL;
+        if (webhookUrl) {
+            try {
+                const webhookResponse = await axios.post(webhookUrl, {
+                    transactionId: data.id,
+                    description: transaction.descricao,
+                    value: transaction.valor,
+                    userId: transaction.userId
+                });
+                console.log('✅ [WEBHOOK] Notificação enviada:', webhookResponse.status);
+            } catch (webhookError) {
+                console.error('❌ [WEBHOOK] Erro ao enviar notificação:', webhookError);
+            }
+        } else {
+            console.warn('⚠️ [WEBHOOK] URL não configurada. Notificação não enviada.');
+        }
+        
         // TODO: NOTIFICAR O APP SOBRE A NOVA TRANSAÃ‡ÃƒO (quando webhook estiver configurado)
         console.log('ðŸ“¢ [SYNC] TransaÃ§Ã£o salva no Supabase - sincronizaÃ§Ã£o automÃ¡tica habilitada');
         

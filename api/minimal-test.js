@@ -1,6 +1,6 @@
-module.exports = async function handler(req: any, res: any) {
+export default function handler(req, res) {
   try {
-    console.log('🔧 [HELLO TEST] API chamada');
+    console.log('🔧 [MINIMAL] API básica chamada');
     
     // Configurar CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,28 +13,25 @@ module.exports = async function handler(req: any, res: any) {
       return;
     }
     
-    // Teste básico sem dependências
+    // Resposta básica
     const result = {
       success: true,
-      message: 'Hello World Test API',
+      message: 'Minimal API Test',
       timestamp: new Date().toISOString(),
-      method: req.method,
-      headers: req.headers,
-      body: req.body
+      method: req.method
     };
     
-    console.log('✅ [HELLO TEST] Retornando:', result);
+    console.log('✅ [MINIMAL] Retornando:', result);
     
     return res.status(200).json(result);
     
-  } catch (error: any) {
-    console.error('❌ [HELLO TEST] Erro:', error);
+  } catch (error) {
+    console.error('❌ [MINIMAL] Erro:', error);
     
     return res.status(500).json({
       success: false,
-      error: 'Hello Test API Error',
-      message: error?.message || 'Erro desconhecido',
-      stack: error?.stack
+      error: 'Minimal API Error',
+      message: error?.message || 'Erro desconhecido'
     });
   }
-};
+}

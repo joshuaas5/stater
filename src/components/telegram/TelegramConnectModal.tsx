@@ -293,6 +293,45 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
             >
               👋 HELLO WORLD TEST
             </button>
+            
+            {/* Teste Minimal JS - ainda mais simples */}
+            <button
+              onClick={async () => {
+                try {
+                  console.log('🔧 [MINIMAL] Testando API Minimal JS...');
+                  const response = await fetch('/api/minimal-test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ test: 'minimal' })
+                  });
+                  
+                  console.log('🔧 [MINIMAL] Status:', response.status);
+                  
+                  const responseText = await response.text();
+                  console.log('🔧 [MINIMAL] Response Text:', responseText);
+                  
+                  if (response.ok) {
+                    try {
+                      const data = JSON.parse(responseText);
+                      console.log('✅ [MINIMAL] Sucesso:', data);
+                      setError(`Minimal Test OK: ${JSON.stringify(data, null, 2)}`);
+                    } catch (jsonErr) {
+                      console.error('❌ [MINIMAL] JSON Parse Error:', jsonErr);
+                      setError(`Minimal Test - Response não é JSON: ${responseText.substring(0, 300)}`);
+                    }
+                  } else {
+                    console.error('❌ [MINIMAL] HTTP Error:', response.status, responseText);
+                    setError(`Minimal Test Error: ${response.status} - ${responseText.substring(0, 200)}`);
+                  }
+                } catch (err: any) {
+                  console.error('❌ [MINIMAL] Exceção:', err);
+                  setError(`Minimal Test Exception: ${err.message}`);
+                }
+              }}
+              className="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
+            >
+              🎯 MINIMAL JS TEST
+            </button>
           </div>
         ) : (
           <div className="space-y-3">

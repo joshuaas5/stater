@@ -61,7 +61,7 @@ module.exports = async function handler(req: any, res: any) {
     try {
       const { data: testData, error: testError } = await supabase
         .from('transactions')
-        .select('count(*)')
+        .select('id')
         .limit(1);
       
       if (testError) {

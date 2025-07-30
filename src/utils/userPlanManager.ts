@@ -229,6 +229,8 @@ export class UserPlanManager {
    * Verifica se o usuário atingiu o limite diário de uma ação
    */
   static async checkDailyLimit(userId: string, action: 'messages' | 'transactions' | 'bills'): Promise<boolean> {
+    // TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES - SEMPRE PERMITE
+    return true;
     try {
       // Verificar se é beta user primeiro - acesso ilimitado
       try {
@@ -623,6 +625,9 @@ export class UserPlanManager {
    * Verifica se deve mostrar anúncios
    */
   static async shouldShowAds(userId: string): Promise<boolean> {
+    // TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES
+    return false;
+    
     try {
       // Verificar se é beta user primeiro - sem anúncios
       try {
@@ -650,6 +655,8 @@ export class UserPlanManager {
    * Verifica se deve mostrar banner de upgrade
    */
   static async shouldShowUpgradeBanner(userId: string): Promise<boolean> {
+    // TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES
+    return false;
     try {
       // Verificar se é beta user primeiro - sem banner de upgrade
       try {

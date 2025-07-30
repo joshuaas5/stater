@@ -117,6 +117,8 @@ export class UserJourneyManager {
    * Verifica se o usuário precisa ver o paywall (dia 4+)
    */
   static async shouldShowPaywall(userId: string): Promise<boolean> {
+    // TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES
+    return false;
     try {
       // VERIFICAÇÃO DE CONTA DE DESENVOLVEDOR - NUNCA PAYWALL
       if (isDeveloperAccount(userId)) {
@@ -302,6 +304,16 @@ export class UserJourneyManager {
     adsRequired: number;
     currentDay: number;
   }> {
+    // TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES - SEMPRE PERMITE
+    return {
+      allowed: true,
+      reason: 'allowed',
+      messagesUsed: 0,
+      messagesAvailable: -1, // Ilimitado
+      adsWatched: 0,
+      adsRequired: 0,
+      currentDay: 1
+    };
     try {
       // VERIFICAÇÃO DE CONTA DE DESENVOLVEDOR - ACESSO ILIMITADO
       if (isDeveloperAccount(userId)) {

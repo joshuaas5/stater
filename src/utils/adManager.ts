@@ -38,6 +38,9 @@ const DEVELOPER_ACCOUNTS = [
  * Verifica se é conta de desenvolvedor
  */
 export function isDeveloperAccount(userId?: string): boolean {
+  // TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES - TODOS SÃO TRATADOS COMO DEV
+  return true;
+  
   try {
     const user = getCurrentUser();
     if (!user) return false;

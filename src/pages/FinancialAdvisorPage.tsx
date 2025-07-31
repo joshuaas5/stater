@@ -2927,12 +2927,12 @@ const handleImageUpload = async (imageBase64: string) => {
   if (!imageBase64) return;
 
   // 🔥 NOVA VERIFICAÇÃO: Limites específicos para imagem/OCR (3 para FREE)
-  if (!user?.id) {
+  if (!currentUser?.id) {
     setError('Usuário não autenticado');
     return;
   }
 
-  const imageCheck = await UserPlanManager.checkAndUseImage(user.id);
+  const imageCheck = await UserPlanManager.checkAndUseImage(currentUser.id);
   
   if (!imageCheck.allowed) {
     console.log('❌ [IMAGE LIMIT] Limite de imagem atingido');

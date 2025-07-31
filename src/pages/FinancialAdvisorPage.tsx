@@ -937,15 +937,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
             });
           });
           
-          // Processar cada transação
-          for (const transaction of transactionsToProcess) {
-            try {
-              // Preparar data da transação
-              const transactionDate = transaction.date 
-                ? new Date(transaction.date) 
-                : new Date();
-
-              // Validar transações antes de processar
+          // Validar transações antes de processar
           const validTransactions = transactionsToProcess.filter((tx: any) => {
             const isValid = validateTransactionData(tx);
             if (!isValid) {
@@ -961,7 +953,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
 
           console.log(`✅ [VALIDATION] ${validTransactions.length} transações válidas de ${transactionsToProcess.length} totais`);
 
-          // Processar apenas transações válidas
+          // Processar apenas transações válidas (SEM LOOP DUPLO)
           for (const transaction of validTransactions) {
             try {
               // Sanitizar dados da transação
@@ -990,7 +982,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
                     amount: sanitizedTransaction.amount,
                     category: sanitizedTransaction.category || null,
                     title: sanitizedTransaction.description,
-                    date: new Date().toISOString(), // 🔧 CORREÇÃO: Data/hora atual completa
+                    date: new Date().toISOString(),
                     created_at: new Date().toISOString(),
                     user_id: activeUserId
                   }
@@ -1044,13 +1036,6 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
               successCount++;
             } catch (err) {
               console.error('❌ Erro ao processar transação:', err);
-              errorCount++;
-            }
-          }
-
-              successCount++;
-            } catch (transactionError) {
-              console.error('Erro ao salvar transação OCR:', transactionError);
               errorCount++;
             }
           }          // Atualizar interface com eventos múltiplos para garantir reload

@@ -1025,16 +1025,6 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
               errorCount++;
             }
           }
-              
-              // NOVA ADIÇÃO: Forçar sincronização imediata do Supabase
-              console.log('🔄 Forçando sincronização Supabase...');
-              try {
-                const { forceSupabaseSync } = await import('@/utils/localStorage');
-                await forceSupabaseSync();
-                console.log('✅ Sincronização Supabase forçada com sucesso');
-              } catch (syncError) {
-                console.error('❌ Erro na sincronização forçada:', syncError);
-              }
 
               successCount++;
             } catch (transactionError) {

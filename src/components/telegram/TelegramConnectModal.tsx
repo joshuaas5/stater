@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Copy, Check } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,6 +19,22 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
   const [error, setError] = useState('');
   const { user } = useAuth();
 
+  // Função para logs apenas em desenvolvimento
+  const logDebug = (message: string, data?: any) => {
+    if (import.meta.env.DEV) {
+      console.log(message, data);
+    }
+  };
+
+  // Validar HTTPS obrigatório (exceto localhost)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 
+        window.location.protocol !== 'https:' && 
+        window.location.hostname !== 'localhost') {
+      setError('Esta aplicação deve ser acessada via HTTPS por motivos de segurança.');
+    }
+  }, []);
+
   const generateCode = async () => {
     if (!user) {
       setError('Usuário não autenticado');
@@ -29,7 +45,7 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
     setError('');
     
     try {
-      console.log('🔧 [TELEGRAM] Gerando código para usuário:', user.id);
+      logDebug('🔧 [TELEGRAM] Gerando código para usuário:', user.id);
       
       const response = await fetch('/api/telegram-codes-clean', {
         method: 'POST',
@@ -41,16 +57,28 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
         })
       });
 
-      console.log('🔧 [TELEGRAM] Resposta da API:', response.status, response.statusText);
+      logDebug('🔧 [TELEGRAM] Resposta da API:', { status: response.status, statusText: response.statusText });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ [TELEGRAM] Erro da API:', errorData);
+        let errorData;
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            errorData = await response.json();
+          } catch {
+            errorData = { error: 'Erro no servidor. Tente novamente.' };
+          }
+        } else {
+          errorData = { error: 'Erro no servidor. Tente novamente.' };
+        }
+        
+        logDebug('❌ [TELEGRAM] Erro da API:', errorData);
         throw new Error(errorData.details || errorData.error || `Erro ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('✅ [TELEGRAM] Código gerado com sucesso');
+      logDebug('✅ [TELEGRAM] Código gerado com sucesso');
       setGeneratedCode(data.code);
       
       // Copiar automaticamente para clipboard
@@ -58,7 +86,7 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
       setIsCodeCopied(true);
       
     } catch (err: any) {
-      console.error('❌ [TELEGRAM] Erro completo:', err);
+      logDebug('❌ [TELEGRAM] Erro completo:', err);
       setError(`Erro ao gerar código: ${err.message || 'Tente novamente.'}`);
     } finally {
       setIsGenerating(false);

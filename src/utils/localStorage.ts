@@ -2262,14 +2262,14 @@ let autoSyncInterval: NodeJS.Timeout | null = null;
 export const startAutoSync = () => {
   if (autoSyncInterval) return; // Já está rodando
   
-  console.log('🔄 [AUTO SYNC] Iniciando sincronização automática a cada 60 segundos...');
+  console.log('🔄 [AUTO SYNC] Iniciando sincronização automática a cada 5 minutos...');
   autoSyncInterval = setInterval(() => {
     const user = getCurrentUser();
-    if (user) {
-      // Apenas sincronizar se realmente necessário
+    if (user && !isForceSync) { // Só sincronizar se não estiver já executando
+      console.log('🔄 [AUTO SYNC] Executando sincronização periódica...');
       forceSupabaseSync();
     }
-  }, 60000); // A cada 60 segundos (1 minuto) em vez de 3 segundos
+  }, 300000); // A cada 5 minutos em vez de 1 minuto
 };
 
 export const stopAutoSync = () => {

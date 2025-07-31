@@ -33,6 +33,20 @@ import { AdManager } from '@/utils/adManager';
 const IA_AVATAR = '/stater-logo.png'; // Logo do Stater
 const USER_AVATAR = '/user-avatar.svg'; // Placeholder for user avatar
 
+// Função auxiliar para verificar se uma string é JSON
+const isJsonString = (str: string): boolean => {
+  const trimmed = str.trim();
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+    return false;
+  }
+  try {
+    JSON.parse(trimmed);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 // Limites prudentes sugeridos
 const MAX_GEMINI_TOKENS_MONTHLY = 50000; // 50 mil tokens por usuário/mês
 const MAX_GEMINI_REQUESTS_DAILY = 15;    // 15 requisições por usuário/dia
@@ -1037,16 +1051,25 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
           window.dispatchEvent(new Event('storage')); // Para forçar reload de localStorage
           window.dispatchEvent(new CustomEvent('forceTransactionReload', { detail: { source: 'ai_upload' } }));
           console.log('✅ Eventos de atualização disparados');
-            // Mensagem de resultado
+            // Mensagem de resultado BASEADA NAS TRANSAÇÕES EDITÁVEIS FINAIS
           let resultMessage = '';
-          if (successCount > 0) {
-            // Calcular total das transações salvas
-            const totalAmount = editableTransactions.reduce((sum, tx) => sum + tx.amount, 0);
-            resultMessage += `✅ ${successCount} transações salvas com sucesso!\n`;
+          const actualTransactionsToSave = editableTransactions.filter(tx => tx.amount > 0);
+          const actualSuccessCount = actualTransactionsToSave.length;
+          
+          if (actualSuccessCount > 0) {
+            // Calcular total das transações QUE SERÃO SALVAS (editáveis)
+            const totalAmount = actualTransactionsToSave.reduce((sum, tx) => sum + tx.amount, 0);
+            resultMessage += `✅ ${actualSuccessCount} transação${actualSuccessCount > 1 ? 'ões' : ''} processada${actualSuccessCount > 1 ? 's' : ''} com sucesso!\n`;
             resultMessage += `💰 Total processado: R$ ${totalAmount.toFixed(2)}`;
-          }
-          if (errorCount > 0) {
-            resultMessage += `${successCount > 0 ? '\n' : ''}❌ ${errorCount} transações falharam ao salvar.`;
+            
+            // Listar as transações processadas
+            resultMessage += '\n\n📋 Transações processadas:\n';
+            actualTransactionsToSave.forEach((tx, index) => {
+              const typeIcon = tx.type === 'income' ? '💰' : '💸';
+              resultMessage += `${index + 1}. ${typeIcon} ${tx.description} - R$ ${tx.amount.toFixed(2)} (${tx.category})\n`;
+            });
+          } else {
+            resultMessage += '❌ Nenhuma transação válida foi processada.';
           }
           
           console.log(`📊 Resultado final: ${successCount} sucessos, ${errorCount} erros`);
@@ -2135,16 +2158,30 @@ LEMBRE-SE:
               const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
               setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
             } else {
-              // Resposta normal se não detectou transação - ÚNICA RESPOSTA
-              const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
-              setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+              // Resposta normal se não detectou transação - VERIFICAR SE NÃO É JSON
+              if (!isJsonString(botResponseText)) {
+                const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+                setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+              } else {
+                // Se é JSON, criar resposta amigável
+                const friendlyMessage = "Entendi sua mensagem! Se você quiser registrar uma transação, por favor seja mais específico sobre o valor e a descrição.";
+                const botSystemMessage: ChatMessage = { id: uuidv4(), text: friendlyMessage, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+                setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+              }
             }
           }
         } else {
           console.log('🔍 [TRANSACTION_FILTER] Mensagem não relacionada a transações, respondendo normalmente:', message);
-          // Resposta normal se não é relacionada a transações
-          const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
-          setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+          // Resposta normal se não é relacionada a transações - VERIFICAR SE NÃO É JSON
+          if (!isJsonString(botResponseText)) {
+            const botSystemMessage: ChatMessage = { id: uuidv4(), text: botResponseText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+            setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+          } else {
+            // Se é JSON, criar resposta amigável
+            const friendlyMessage = "Posso ajudar você com suas finanças! Me conte como posso ajudar - consultar saldo, registrar gastos, ou qualquer dúvida financeira.";
+            const botSystemMessage: ChatMessage = { id: uuidv4(), text: friendlyMessage, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
+            setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+          }
         }
       }
       
@@ -2685,16 +2722,18 @@ LEMBRE-SE:
       'gastei', 'paguei', 'comprei', 'vendi', 'recebi por', 'ganhei com',
       'saiu da conta', 'entrou na conta', 'débito de', 'crédito de',
       'adicione', 'adicionar', 'registre', 'registrar', 'anote', 'anotar',
-      'inclua', 'incluir', 'coloque', 'coloca', 'insira', 'inserir'
+      'inclua', 'incluir', 'coloque', 'coloca', 'insira', 'inserir',
+      'perdi', 'perda de', 'prejuízo de', 'saída de'
     ];
     
     // CONTEXTOS ESPECÍFICOS COM VALORES MONETÁRIOS
     const monetaryContexts = [
-      /(?:gastei|paguei|comprei|recebi|ganhei|entrou|saiu)\s+(?:r\$\s*)?(\d+(?:[.,]\d{2})?)/i,
+      /(?:gastei|paguei|comprei|recebi|ganhei|entrou|saiu|perdi)\s+(?:r\$\s*)?(\d+(?:[.,]\d{2})?)/i,
       /(?:r\$\s*)?(\d+(?:[.,]\d{2})?)\s+(?:no|na|para|do|da)\s+(?:mercado|supermercado|farmácia|conta|boleto|salário|trabalho)/i,
       /(?:registr|adicion|inclu|anot)\w*\s+(?:receita|despesa|gasto|transação)/i,
       /(?:adicion|registr|anot|inclu|coloqu|insir)\w*\s+(?:r\$\s*)?(\d+(?:[.,]\d{2})?)/i,
-      /(?:r\$\s*)?(\d+(?:[.,]\d{2})?)\s+(?:reais?)\s+(?:entrada|saída|receita|despesa|gasto)/i
+      /(?:r\$\s*)?(\d+(?:[.,]\d{2})?)\s+(?:reais?)\s+(?:entrada|saída|receita|despesa|gasto)/i,
+      /(?:perdi|perda|prejuízo)\s+(?:r\$\s*)?(\d+(?:[.,]\d{3,})?)\s*(?:reais?|milhões?|mil)?/i
     ];
     
     // Verificar se tem ação específica de transação

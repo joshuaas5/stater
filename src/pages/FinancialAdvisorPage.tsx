@@ -447,18 +447,31 @@ const isAddBillIntent = (msg: string) => {
 
   // Função para processar mensagens de áudio
   const handleAudioMessage = useCallback(async (audioBlob: Blob) => {
-    // Verificar limites antes de processar
-    if (!audioLimits.canUseAudio()) {
-      const limitMessage = audioLimits.getLimitMessage();
+    // 🔥 NOVA VERIFICAÇÃO: Limites específicos para áudio (3 para FREE)
+    if (!user?.id) {
+      setError('Usuário não autenticado');
+      return;
+    }
+
+    const audioCheck = await UserPlanManager.checkAndUseAudio(user.id);
+    
+    if (!audioCheck.allowed) {
+      console.log('❌ [AUDIO LIMIT] Limite de áudio atingido');
       setMessages(prev => [...prev, {
         id: uuidv4(),
-        text: limitMessage || '🚫 Limite de mensagens de áudio atingido para hoje.',
+        text: `🎙️ **Limite de áudio atingido!**\n\nVocê já usou todos os seus áudios de hoje. Para continuar usando áudios:\n\n✨ **Assine o Stater Premium** e tenha:\n• Áudios ilimitados\n• Análise de PDFs\n• Relatórios avançados\n• Sem anúncios\n\n💰 **A partir de R$ 8,90/semana**`,
         sender: 'assistant',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR
       }]);
+      
+      if (audioCheck.shouldShowPaywall) {
+        setShowPaywall(true);
+      }
       return;
     }
+
+    console.log(`✅ [AUDIO OK] Áudio permitido. Restantes: ${audioCheck.remaining === -1 ? 'ilimitado' : audioCheck.remaining}`);
 
     setIsProcessingAudio(true);
     setLoadingState('audio-processing', true);
@@ -2911,8 +2924,36 @@ const handleTabChange = (tabValue: string) => {
 
 // Função para processar imagem OCR
 const handleImageUpload = async (imageBase64: string) => {
-  if (!imageBase64) return;    setLoadingState('ai-thinking', true);
-    setError("");
+  if (!imageBase64) return;
+
+  // 🔥 NOVA VERIFICAÇÃO: Limites específicos para imagem/OCR (3 para FREE)
+  if (!user?.id) {
+    setError('Usuário não autenticado');
+    return;
+  }
+
+  const imageCheck = await UserPlanManager.checkAndUseImage(user.id);
+  
+  if (!imageCheck.allowed) {
+    console.log('❌ [IMAGE LIMIT] Limite de imagem atingido');
+    setMessages(prev => [...prev, {
+      id: uuidv4(),
+      text: `📷 **Limite de imagens atingido!**\n\nVocê já analisou todas as suas imagens de hoje. Para continuar usando OCR de imagens:\n\n✨ **Assine o Stater Premium** e tenha:\n• Análise ilimitada de imagens\n• Leitura de PDFs\n• Áudios ilimitados\n• Relatórios avançados\n\n💰 **A partir de R$ 8,90/semana**`,
+      sender: 'assistant',
+      timestamp: new Date(),
+      avatarUrl: IA_AVATAR
+    }]);
+    
+    if (imageCheck.shouldShowPaywall) {
+      setShowPaywall(true);
+    }
+    return;
+  }
+
+  console.log(`✅ [IMAGE OK] Imagem permitida. Restantes: ${imageCheck.remaining === -1 ? 'ilimitado' : imageCheck.remaining}`);
+
+  setLoadingState('ai-thinking', true);
+  setError("");
 
   try {
     // Obter usuário atual
@@ -2940,6 +2981,31 @@ const handleImageUpload = async (imageBase64: string) => {
       console.log('🖼️ Arquivo de imagem/PDF detectado');
     }    // Adicionar mensagem de upload com feedback visual adequado
     const isPdf = !isTextFile && imageBase64.startsWith('data:application/pdf');
+    
+    // 🔥 VERIFICAÇÃO ESPECÍFICA PARA PDF (LIMITE: 1 para FREE)
+    if (isPdf) {
+      const pdfCheck = await UserPlanManager.checkAndUsePdf(user.id);
+      
+      if (!pdfCheck.allowed) {
+        console.log('❌ [PDF LIMIT] Limite de PDF atingido');
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          text: `📑 **Limite de PDFs atingido!**\n\nVocê já analisou seu PDF de hoje. Para continuar usando análise de PDFs:\n\n✨ **Assine o Stater Premium** e tenha:\n• Leitura ilimitada de PDFs\n• Análise de imagens ilimitada\n• Áudios ilimitados\n• Relatórios avançados\n\n💰 **A partir de R$ 8,90/semana**\n\n💡 **Alternativa gratuita**: Faça uma captura de tela do PDF e envie como imagem!`,
+          sender: 'assistant',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }]);
+        
+        if (pdfCheck.shouldShowPaywall) {
+          setShowPaywall(true);
+        }
+        setLoadingState('ai-thinking', false);
+        return;
+      }
+      
+      console.log(`✅ [PDF OK] PDF permitido. Restantes: ${pdfCheck.remaining === -1 ? 'ilimitado' : pdfCheck.remaining}`);
+    }
+    
     const processingMessageId = uuidv4();
     let processingMessage = "";
     

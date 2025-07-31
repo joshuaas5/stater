@@ -365,6 +365,10 @@ export interface UserUsage {
   transactionsAdded: number;
   billsAdded: number;
   adsWatched: number;
+  // 🔥 NOVOS LIMITES POR TIPO DE MÍDIA
+  audioUsed: number;     // Áudios processados
+  pdfUsed: number;       // PDFs processados  
+  imageUsed: number;     // Imagens/OCR processadas
 }
 
 export interface UserJourney {

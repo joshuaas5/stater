@@ -34,17 +34,17 @@ const BETA_USER_FEATURES: PlanFeatures = {
 export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
   [PlanType.FREE]: {
     // Jornada progressiva de 3 dias
-    dailyMessages: 3,           // Varia conforme jornada (1-5 mensagens + ads)
-    dailyAudioMinutes: 0,       // Áudio: Bloqueado
-    dailyOcrScans: 0,           // OCR/Fotos: Bloqueado
-    dailyPdfPages: 0,           // PDF: Bloqueado
+    dailyMessages: 3,           // 15 mensagens totais via jornada (1-5 mensagens + ads)
+    dailyAudioMinutes: 3,       // 🔥 NOVO: 3 áudios para usuários FREE
+    dailyOcrScans: 3,           // 🔥 NOVO: 3 imagens/OCR para usuários FREE  
+    dailyPdfPages: 1,           // 🔥 NOVO: 1 PDF para usuários FREE
     monthlyExports: 0,          // Exports: Bloqueado
     
     // Funcionalidades bloqueadas
     telegramBot: false,         // Telegram: Bloqueado
     exportReports: false,       // Relatórios: Bloqueados
-    ocrScanning: false,         // OCR: Bloqueado
-    pdfProcessing: false,       // PDF: Bloqueado
+    ocrScanning: true,          // 🔥 MUDANÇA: OCR liberado com limite de 3
+    pdfProcessing: true,        // 🔥 MUDANÇA: PDF liberado com limite de 1
     advancedAnalytics: false,   // Analytics avançado: Bloqueado
     
     // Monetização ativa
@@ -276,7 +276,7 @@ export class UserPlanManager {
   /**
    * Incrementa o uso de uma ação específica
    */
-  static async incrementUsage(userId: string, action: 'messages' | 'transactions' | 'bills'): Promise<void> {
+  static async incrementUsage(userId: string, action: 'messages' | 'transactions' | 'bills' | 'audio' | 'pdf' | 'image'): Promise<void> {
     try {
       const today = new Date().toISOString().split('T')[0];
       const usage = await this.getTodayUsage(userId, today);
@@ -290,6 +290,15 @@ export class UserPlanManager {
           break;
         case 'bills':
           usage.billsAdded++;
+          break;
+        case 'audio':
+          usage.audioUsed++;
+          break;
+        case 'pdf':
+          usage.pdfUsed++;
+          break;
+        case 'image':
+          usage.imageUsed++;
           break;
       }
       
@@ -315,11 +324,21 @@ export class UserPlanManager {
           messagesUsed: 0,
           transactionsAdded: 0,
           billsAdded: 0,
-          adsWatched: 0
+          adsWatched: 0,
+          audioUsed: 0,
+          pdfUsed: 0,
+          imageUsed: 0
         };
       }
       
-      return JSON.parse(usageData);
+      const parsed = JSON.parse(usageData);
+      // Garantir compatibilidade com dados antigos
+      return {
+        ...parsed,
+        audioUsed: parsed.audioUsed || 0,
+        pdfUsed: parsed.pdfUsed || 0,
+        imageUsed: parsed.imageUsed || 0
+      };
       
     } catch (error) {
       console.error('Erro ao obter uso do dia:', error);
@@ -329,7 +348,10 @@ export class UserPlanManager {
         messagesUsed: 0,
         transactionsAdded: 0,
         billsAdded: 0,
-        adsWatched: 0
+        adsWatched: 0,
+        audioUsed: 0,
+        pdfUsed: 0,
+        imageUsed: 0
       };
     }
   }
@@ -703,5 +725,151 @@ export class UserPlanManager {
       todayUsage,
       journey
     };
+  }
+
+  // 🔥 NOVAS FUNÇÕES DE VERIFICAÇÃO E CONTABILIZAÇÃO DE USO POR MÍDIA
+
+  /**
+   * Verifica e contabiliza uso de áudio (LIMITE: 3 para FREE)
+   */
+  static async checkAndUseAudio(userId: string): Promise<{ allowed: boolean; remaining: number; shouldShowPaywall: boolean }> {
+    try {
+      // Verificar se é beta user primeiro - acesso ilimitado
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email && this.isBetaUser(user.email)) {
+          console.log(`🚀 [BETA USER] Áudio ilimitado para usuário: ${user.email}`);
+          await this.incrementUsage(userId, 'audio');
+          return { allowed: true, remaining: -1, shouldShowPaywall: false };
+        }
+      } catch (authError) {
+        console.log('Auth check falhou, continuando com verificação normal do plano');
+      }
+      
+      const userPlan = await this.getUserPlan(userId);
+      const features = PLAN_FEATURES[userPlan.planType];
+      
+      // Se for plano com áudio ilimitado
+      if (features.dailyAudioMinutes === -1) {
+        await this.incrementUsage(userId, 'audio');
+        return { allowed: true, remaining: -1, shouldShowPaywall: false };
+      }
+      
+      const today = new Date().toISOString().split('T')[0];
+      const usage = await this.getTodayUsage(userId, today);
+      
+      // Verifica limite
+      if (usage.audioUsed >= features.dailyAudioMinutes) {
+        console.log(`❌ [AUDIO LIMIT] Usuário ${userId} atingiu limite de áudio: ${usage.audioUsed}/${features.dailyAudioMinutes}`);
+        return { allowed: false, remaining: 0, shouldShowPaywall: true };
+      }
+      
+      // Incrementa uso e permite
+      await this.incrementUsage(userId, 'audio');
+      const remaining = features.dailyAudioMinutes - (usage.audioUsed + 1);
+      
+      console.log(`✅ [AUDIO OK] Áudio permitido para usuário ${userId}. Restantes: ${remaining}`);
+      return { allowed: true, remaining, shouldShowPaywall: false };
+      
+    } catch (error) {
+      console.error('Erro ao verificar uso de áudio:', error);
+      return { allowed: false, remaining: 0, shouldShowPaywall: true };
+    }
+  }
+
+  /**
+   * Verifica e contabiliza uso de PDF (LIMITE: 1 para FREE)
+   */
+  static async checkAndUsePdf(userId: string): Promise<{ allowed: boolean; remaining: number; shouldShowPaywall: boolean }> {
+    try {
+      // Verificar se é beta user primeiro - acesso ilimitado
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email && this.isBetaUser(user.email)) {
+          console.log(`🚀 [BETA USER] PDF ilimitado para usuário: ${user.email}`);
+          await this.incrementUsage(userId, 'pdf');
+          return { allowed: true, remaining: -1, shouldShowPaywall: false };
+        }
+      } catch (authError) {
+        console.log('Auth check falhou, continuando com verificação normal do plano');
+      }
+      
+      const userPlan = await this.getUserPlan(userId);
+      const features = PLAN_FEATURES[userPlan.planType];
+      
+      // Se for plano com PDF ilimitado
+      if (features.dailyPdfPages === -1) {
+        await this.incrementUsage(userId, 'pdf');
+        return { allowed: true, remaining: -1, shouldShowPaywall: false };
+      }
+      
+      const today = new Date().toISOString().split('T')[0];
+      const usage = await this.getTodayUsage(userId, today);
+      
+      // Verifica limite
+      if (usage.pdfUsed >= features.dailyPdfPages) {
+        console.log(`❌ [PDF LIMIT] Usuário ${userId} atingiu limite de PDF: ${usage.pdfUsed}/${features.dailyPdfPages}`);
+        return { allowed: false, remaining: 0, shouldShowPaywall: true };
+      }
+      
+      // Incrementa uso e permite
+      await this.incrementUsage(userId, 'pdf');
+      const remaining = features.dailyPdfPages - (usage.pdfUsed + 1);
+      
+      console.log(`✅ [PDF OK] PDF permitido para usuário ${userId}. Restantes: ${remaining}`);
+      return { allowed: true, remaining, shouldShowPaywall: false };
+      
+    } catch (error) {
+      console.error('Erro ao verificar uso de PDF:', error);
+      return { allowed: false, remaining: 0, shouldShowPaywall: true };
+    }
+  }
+
+  /**
+   * Verifica e contabiliza uso de imagem/OCR (LIMITE: 3 para FREE)
+   */
+  static async checkAndUseImage(userId: string): Promise<{ allowed: boolean; remaining: number; shouldShowPaywall: boolean }> {
+    try {
+      // Verificar se é beta user primeiro - acesso ilimitado
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.email && this.isBetaUser(user.email)) {
+          console.log(`🚀 [BETA USER] Imagem/OCR ilimitado para usuário: ${user.email}`);
+          await this.incrementUsage(userId, 'image');
+          return { allowed: true, remaining: -1, shouldShowPaywall: false };
+        }
+      } catch (authError) {
+        console.log('Auth check falhou, continuando com verificação normal do plano');
+      }
+      
+      const userPlan = await this.getUserPlan(userId);
+      const features = PLAN_FEATURES[userPlan.planType];
+      
+      // Se for plano com imagem ilimitada
+      if (features.dailyOcrScans === -1) {
+        await this.incrementUsage(userId, 'image');
+        return { allowed: true, remaining: -1, shouldShowPaywall: false };
+      }
+      
+      const today = new Date().toISOString().split('T')[0];
+      const usage = await this.getTodayUsage(userId, today);
+      
+      // Verifica limite
+      if (usage.imageUsed >= features.dailyOcrScans) {
+        console.log(`❌ [IMAGE LIMIT] Usuário ${userId} atingiu limite de imagem: ${usage.imageUsed}/${features.dailyOcrScans}`);
+        return { allowed: false, remaining: 0, shouldShowPaywall: true };
+      }
+      
+      // Incrementa uso e permite
+      await this.incrementUsage(userId, 'image');
+      const remaining = features.dailyOcrScans - (usage.imageUsed + 1);
+      
+      console.log(`✅ [IMAGE OK] Imagem permitida para usuário ${userId}. Restantes: ${remaining}`);
+      return { allowed: true, remaining, shouldShowPaywall: false };
+      
+    } catch (error) {
+      console.error('Erro ao verificar uso de imagem:', error);
+      return { allowed: false, remaining: 0, shouldShowPaywall: true };
+    }
   }
 }

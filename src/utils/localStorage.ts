@@ -2267,7 +2267,8 @@ export const startAutoSync = () => {
     const user = getCurrentUser();
     if (user && !isForceSync) { // Só sincronizar se não estiver já executando
       console.log('🔄 [AUTO SYNC] Executando sincronização periódica...');
-      forceSupabaseSync();
+      // REMOVIDO: forceSupabaseSync() para evitar loops infinitos
+      // A sincronização será feita apenas quando necessário pelos componentes
     }
   }, 300000); // A cada 5 minutos em vez de 1 minuto
 };

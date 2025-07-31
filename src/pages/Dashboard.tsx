@@ -253,17 +253,8 @@ const Dashboard: React.FC = () => {
           loadTransactions(selectedMonth, selectedYear);
         }
         
-        // 4. Sincronização background (não bloquear)
-        setTimeout(async () => {
-          if (!mounted) return;
-          
-          try {
-            await forceSupabaseSync();
-            console.log('🔧 [Dashboard] Sincronização background concluída');
-          } catch (error) {
-            console.error('🔧 [Dashboard] Erro sincronização background:', error);
-          }
-        }, 2000);
+        // 4. Sincronização removida para evitar loops - a sincronização é feita automaticamente pelo saveTransaction
+        console.log('🔧 [Dashboard] Inicialização completa - sincronização automática ativa');
         
         // 5. Configurar lembretes (background)
         if (mounted) {
@@ -1432,15 +1423,32 @@ const Dashboard: React.FC = () => {
               </div>
             ))}
             
-            {/* Botão "Ver mais" - OTIMIZADO para paginação */}
-            {hasMoreTransactions && (
-              <div className="px-4 py-3 text-center">
-                <button
-                  onClick={() => setTransactionsPage(prev => prev + 1)}
-                  className="text-blue-400 hover:text-blue-300 font-medium transition-colors bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/20 shadow-lg"
-                >
-                  Ver mais transações
-                </button>
+            {/* Navegação de páginas - CORRIGIDO: Botões para frente e volta */}
+            {(hasMoreTransactions || transactionsPage > 1) && (
+              <div className="px-4 py-3">
+                <div className="flex gap-3 justify-center">
+                  {transactionsPage > 1 && (
+                    <button
+                      onClick={() => setTransactionsPage(prev => prev - 1)}
+                      className="text-blue-400 hover:text-blue-300 font-medium transition-colors bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/20 shadow-lg"
+                    >
+                      ← Página anterior
+                    </button>
+                  )}
+                  {hasMoreTransactions && (
+                    <button
+                      onClick={() => setTransactionsPage(prev => prev + 1)}
+                      className="text-blue-400 hover:text-blue-300 font-medium transition-colors bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/20 shadow-lg"
+                    >
+                      Próxima página →
+                    </button>
+                  )}
+                </div>
+                <div className="text-center mt-2">
+                  <span className="text-white/50 text-sm">
+                    Página {transactionsPage} • {displayTransactions.length} de {transactions.length} transações
+                  </span>
+                </div>
               </div>
             )}
           </div>

@@ -44,6 +44,10 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
     setIsGenerating(true);
     setError('');
     
+    // 🔥 TIMEOUT - Configurar abort controller
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
+    
     try {
       logDebug('🔧 [TELEGRAM] Gerando código para usuário:', user.id);
       
@@ -54,9 +58,11 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
           user_id: user.id,
           userEmail: user.email,
           userName: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário'
-        })
+        }),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
       logDebug('🔧 [TELEGRAM] Resposta da API:', { status: response.status, statusText: response.statusText });
 
       if (!response.ok) {
@@ -86,8 +92,14 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
       setIsCodeCopied(true);
       
     } catch (err: any) {
-      logDebug('❌ [TELEGRAM] Erro completo:', err);
-      setError(`Erro ao gerar código: ${err.message || 'Tente novamente.'}`);
+      clearTimeout(timeoutId);
+      
+      if (err.name === 'AbortError') {
+        setError('Tempo limite esgotado. Tente novamente.');
+      } else {
+        logDebug('❌ [TELEGRAM] Erro completo:', err);
+        setError(`Erro ao gerar código: ${err.message || 'Tente novamente.'}`);
+      }
     } finally {
       setIsGenerating(false);
     }

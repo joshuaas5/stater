@@ -915,9 +915,9 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
       setSavingTransactions(true); // Ativar loading específico para salvamento
       setError("");
       try {        // Processar transações (OCR, texto, IA)
-        if (pendingAction.tipo === 'generic_confirmation' && (pendingAction.dados.ocrTransactions || editableTransactions.length > 0)) {
-          // Usar as transações editáveis se disponíveis, caso contrário usar as originais
-          const transactionsToProcess = editableTransactions.length > 0 ? editableTransactions : (pendingAction.dados.ocrTransactions || []);
+        if (pendingAction.tipo === 'generic_confirmation' && editableTransactions.length > 0) {
+          // 🔥 FIX: Usar APENAS editableTransactions para evitar duplicação
+          const transactionsToProcess = editableTransactions;
           let successCount = 0;
           let errorCount = 0;
           
@@ -2065,7 +2065,7 @@ LEMBRE-SE:
           setPendingAction({
             tipo: 'generic_confirmation',
             dados: {
-              ocrTransactions: aiTransactionList,
+              ocrTransactions: [], // 🔥 FIX: Não duplicar em duas fontes - usar apenas editableTransactions
               documentType: 'ai_text_list',
               establishment: 'Lista processada pela IA (texto livre)'
             }
@@ -2165,7 +2165,7 @@ LEMBRE-SE:
             setPendingAction({
               tipo: 'generic_confirmation',
               dados: {
-                ocrTransactions: detectedTransactionList,
+                ocrTransactions: [], // 🔥 FIX: Não duplicar em duas fontes - usar apenas editableTransactions
                 documentType: 'text_list',
                 establishment: 'Lista de transações'
               }
@@ -3183,7 +3183,7 @@ const handleImageUpload = async (imageBase64: string) => {
     setPendingAction({
       tipo: 'generic_confirmation',
       dados: {
-        ocrTransactions: transactions,
+        ocrTransactions: [], // 🔥 FIX: Não duplicar em duas fontes - usar apenas editableTransactions
         documentType: ocrData.documentType,
         establishment: ocrData.summary.establishment
       }

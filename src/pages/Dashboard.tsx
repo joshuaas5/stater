@@ -652,7 +652,7 @@ const Dashboard: React.FC = () => {
   };
   
   const handleSaveTransaction = () => {
-    // Remove a lgica de dontAdjustBalanceOnSave da criao de nova transao
+    // Remove a lógica de dontAdjustBalanceOnSave da criação de nova transação
     // Ela ser adicionada apenas no bloco de edio mais abaixo.
 
     const user = getCurrentUser();
@@ -684,8 +684,8 @@ const Dashboard: React.FC = () => {
     
     if (!newTransaction.title.trim()) {
       toast({
-        title: "Ttulo obrigatrio",
-        description: "Por favor, informe um ttulo para a transao",
+        title: "Título obrigatório",
+        description: "Por favor, informe um título para a transação",
         variant: "destructive"
       });
       return;
@@ -1366,7 +1366,7 @@ const Dashboard: React.FC = () => {
                     </p>
                     <div className="flex gap-1">
                       <button
-                        aria-label="Editar transao"
+                        aria-label="Editar transação"
                         className="ml-2 text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/20 transition-all duration-300"
                         style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                         onClick={() => {
@@ -1378,11 +1378,11 @@ const Dashboard: React.FC = () => {
                         <Edit size={18} />
                       </button>
                       <button
-                        aria-label="Excluir transao"
+                        aria-label="Excluir transação"
                         className="ml-1 text-white/60 hover:text-red-300 p-1 rounded-lg hover:bg-red-500/20 transition-all duration-300"
                         style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                         onClick={() => {
-                          if (window.confirm(`Tem certeza que deseja excluir a transao "${transaction.title}"?`)) {
+                          if (window.confirm(`Tem certeza que deseja excluir a transação "${transaction.title}"?`)) {
                             const shouldAdjustBalance = !transaction.dontAdjustBalanceOnSave;
                             deleteTransaction(transaction.id);
                             toast({

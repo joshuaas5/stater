@@ -118,8 +118,50 @@ module.exports = async function handler(req: any, res: any) {
     
     logDebug(`✅ [TELEGRAM API] Rate limit OK: ${recentCodes?.length || 0}/${RATE_LIMIT} códigos usados`);
 
-    // Gerar código
-    const code = generateCode();
+    // Gerar código único (verificar se já existe e não foi usado)
+    let code;
+    let attempts = 0;
+    const MAX_ATTEMPTS = 10;
+    
+    do {
+      code = generateCode();
+      attempts++;
+      
+      // Verificar se código já existe e se foi usado
+      const { data: existingCode, error: checkError } = await (supabaseAdmin || supabase)
+        .from('telegram_link_codes')
+        .select('id, used_at')
+        .eq('code', code)
+        .single();
+      
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = não encontrado
+        console.error('❌ [TELEGRAM API] Erro ao verificar código existente:', checkError);
+        return res.status(500).json({ 
+          error: 'Erro ao verificar código', 
+          details: checkError.message
+        });
+      }
+      
+      // Se código não existe, podemos usar
+      if (!existingCode) {
+        break;
+      }
+      
+      // Se código existe mas não foi usado, gerar novo
+      if (existingCode && !existingCode.used_at) {
+        logDebug(`🔧 [TELEGRAM API] Código ${code} já existe, gerando novo...`);
+        continue;
+      }
+      
+    } while (attempts < MAX_ATTEMPTS);
+    
+    if (attempts >= MAX_ATTEMPTS) {
+      return res.status(500).json({ 
+        error: 'Erro ao gerar código único', 
+        details: 'Tente novamente em alguns momentos.'
+      });
+    }
+
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
     
     logDebug('🔧 [TELEGRAM API] Código gerado:', code);

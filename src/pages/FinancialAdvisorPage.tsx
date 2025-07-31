@@ -28,6 +28,7 @@ import { UserJourneyManager } from '@/utils/userJourneyManager';
 import { PaywallModal } from '@/components/ui/PaywallModal';
 import { AdRewardModal } from '@/components/monetization/AdRewardModal';
 import { AdManager } from '@/utils/adManager';
+import { useAILearning } from '@/utils/aiLearningSystem';
 
 
 const IA_AVATAR = '/stater-logo.png'; // Logo do Stater
@@ -146,6 +147,13 @@ export const FinancialAdvisorPage: React.FC = () => {
   // Novos hooks para funcionalidades avançadas de voz
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
   const [audioResponse, setAudioResponse] = useState<string | null>(null);
+  
+  // Hook para sistema de aprendizado da IA
+  const currentUser = getCurrentUser();
+  const aiLearning = useAILearning(currentUser?.id || '');
+  
+  // Estado para rastrear mensagem original para aprendizado
+  const [originalMessageForLearning, setOriginalMessageForLearning] = useState<string>('');
   
   // Estados para dropdown de categorias no modal de múltiplas transações
   const [categoryDropdownStates, setCategoryDropdownStates] = useState<{[key: number]: boolean}>({});
@@ -1109,6 +1117,31 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
           setPendingAction(null);
           setWaitingConfirmation(false);
           setEditableTransactions([]);
+          
+          // 🧠 APRENDIZADO: Registrar sucesso da detecção da IA
+          if (originalMessageForLearning && actualSuccessCount > 0) {
+            console.log('🧠 [AI_LEARNING] Registrando sucesso da detecção:', {
+              message: originalMessageForLearning,
+              transactionsProcessed: actualSuccessCount
+            });
+            
+            // Para cada transação processada, registrar o aprendizado
+            actualTransactionsToSave.forEach(tx => {
+              aiLearning.recordInteraction(
+                originalMessageForLearning,
+                'transaction',
+                true, // Foi correto
+                {
+                  type: tx.type,
+                  amount: tx.amount,
+                  description: tx.description,
+                  category: tx.category
+                }
+              );
+            });
+            
+            setOriginalMessageForLearning(''); // Limpar
+          }
         }
         // Processar transações normais
         else if (pendingAction.tipo === 'income' || pendingAction.tipo === 'expense') {
@@ -1468,6 +1501,8 @@ Transações recentes (últimas 10):
             ? recentTransactions.map(tx => `- ${tx.type === 'income' ? 'Receita' : 'Despesa'}: ${tx.title} (${tx.category || 'Sem categoria'}) R$ ${tx.amount} em ${new Date(tx.date).toLocaleDateString('pt-BR')}`).join('\n')
             : 'Nenhuma transação encontrada.') +
           `
+
+${aiLearning.getPersonalizedPrompt()}
 
 PERGUNTA DO USUÁRIO: ${message}
 
@@ -1855,7 +1890,7 @@ LEMBRE-SE:
             
             const singleTransaction = {
               type: parsed.type === 'income' ? 'income' : 'expense',
-              amount: parseFloat(parsed.amount),
+              amount: Math.abs(parseFloat(parsed.amount)), // Garantir valor positivo
               description: parsed.description,
               category: parsed.category || 'Outros',
               date: parsed.date || new Date().toISOString().split('T')[0]
@@ -1864,10 +1899,21 @@ LEMBRE-SE:
             console.log('Transação única convertida:', singleTransaction);
             
             if (singleTransaction.amount > 0) {
-              // Ativar modal de confirmação para transação única
+              // USAR MODAL DE LISTA EDITÁVEL também para transação única (consistência)
+              console.log('🔄 [MODAL_SINGLE] Ativando modal de lista editável para transação única');
+              
+              // Salvar mensagem original para aprendizado
+              setOriginalMessageForLearning(message);
+              
+              const transactionList = [singleTransaction];
+              setEditableTransactions(transactionList);
               setPendingAction({
-                tipo: singleTransaction.type as 'income' | 'expense',
-                dados: singleTransaction
+                tipo: 'generic_confirmation',
+                dados: {
+                  ocrTransactions: transactionList,
+                  documentType: 'ai_single',
+                  establishment: `Transação processada pela IA`
+                }
               });
               setWaitingConfirmation(true);
               isTransactionJson = true;
@@ -1898,6 +1944,9 @@ LEMBRE-SE:
 
             // SEMPRE USAR MODAL DE LISTA EDITÁVEL para arrays (consistente com PDF/OCR)
             console.log('🔄 [MODAL_LIST] Ativando modal de lista editável para', transactionList.length, 'transações');
+            
+            // Salvar mensagem original para aprendizado
+            setOriginalMessageForLearning(message);
             
             // Preparar ação pendente para confirmação no formato do modal de lista
             setEditableTransactions(transactionList);
@@ -2733,7 +2782,10 @@ LEMBRE-SE:
       /(?:registr|adicion|inclu|anot)\w*\s+(?:receita|despesa|gasto|transação)/i,
       /(?:adicion|registr|anot|inclu|coloqu|insir)\w*\s+(?:r\$\s*)?(\d+(?:[.,]\d{2})?)/i,
       /(?:r\$\s*)?(\d+(?:[.,]\d{2})?)\s+(?:reais?)\s+(?:entrada|saída|receita|despesa|gasto)/i,
-      /(?:perdi|perda|prejuízo)\s+(?:r\$\s*)?(\d+(?:[.,]\d{3,})?)\s*(?:reais?|milhões?|mil)?/i
+      /(?:perdi|perda|prejuízo)\s+(?:r\$\s*)?(\d+(?:[.,]\d{3,})?)\s*(?:reais?|milhões?|mil)?/i,
+      // NOVO: Capturar valores grandes com "milhões"
+      /(?:perdi|perda|prejuízo)\s+(\d+)\s*milhões?\s*(?:de\s*reais?)?/i,
+      /(?:saída|gasto|despesa)\s+(?:de\s+)?(?:r\$\s*)?(\d+)\s*milhões?\s*(?:de\s*reais?)?/i
     ];
     
     // Verificar se tem ação específica de transação

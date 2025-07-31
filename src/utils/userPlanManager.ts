@@ -782,6 +782,8 @@ export class UserPlanManager {
    */
   static async checkAndUsePdf(userId: string): Promise<{ allowed: boolean; remaining: number; shouldShowPaywall: boolean }> {
     try {
+      console.log(`🔍 [DEBUG_PDF] Iniciando checkAndUsePdf para usuário: ${userId}`);
+      
       // Verificar se é beta user primeiro - acesso ilimitado
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -790,21 +792,27 @@ export class UserPlanManager {
           await this.incrementUsage(userId, 'pdf');
           return { allowed: true, remaining: -1, shouldShowPaywall: false };
         }
+        console.log(`👤 [USER_CHECK] Usuário não é beta: ${user?.email || 'sem email'}`);
       } catch (authError) {
         console.log('Auth check falhou, continuando com verificação normal do plano');
       }
       
       const userPlan = await this.getUserPlan(userId);
+      console.log(`📋 [USER_PLAN] Plano do usuário: ${userPlan.planType}`);
+      
       const features = PLAN_FEATURES[userPlan.planType];
+      console.log(`⚙️ [PLAN_FEATURES] Limite PDF para ${userPlan.planType}: ${features.dailyPdfPages}`);
       
       // Se for plano com PDF ilimitado
       if (features.dailyPdfPages === -1) {
         await this.incrementUsage(userId, 'pdf');
+        console.log(`✅ [UNLIMITED] PDF ilimitado para plano ${userPlan.planType}`);
         return { allowed: true, remaining: -1, shouldShowPaywall: false };
       }
       
       const today = new Date().toISOString().split('T')[0];
       const usage = await this.getTodayUsage(userId, today);
+      console.log(`📊 [USAGE_CHECK] Uso atual de PDF: ${usage.pdfUsed}/${features.dailyPdfPages} (data: ${today})`);
       
       // Verifica limite
       if (usage.pdfUsed >= features.dailyPdfPages) {

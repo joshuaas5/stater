@@ -2979,12 +2979,27 @@ const handleImageUpload = async (imageBase64: string) => {
     } catch {
       // Não é JSON, continuar como imagem/PDF
       console.log('🖼️ Arquivo de imagem/PDF detectado');
-    }    // Adicionar mensagem de upload com feedback visual adequado
+    }    
+    
+    // Adicionar mensagem de upload com feedback visual adequado
     const isPdf = !isTextFile && imageBase64.startsWith('data:application/pdf');
     
-    // 🔥 VERIFICAÇÃO ESPECÍFICA PARA PDF (LIMITE: 1 para FREE)
+    // � DEBUG: Log detalhado para entender o que está acontecendo
+    console.log('🔍 [DEBUG_PDF_DETECTION]', {
+      isTextFile,
+      imageBase64Length: imageBase64.length,
+      startsWithPdf: imageBase64.startsWith('data:application/pdf'),
+      startsWithImage: imageBase64.startsWith('data:image/'),
+      first50Chars: imageBase64.substring(0, 50),
+      isPdf,
+      userId: user.id
+    });
+    
+    // �🔥 VERIFICAÇÃO ESPECÍFICA PARA PDF (LIMITE: 1 para FREE)
     if (isPdf) {
+      console.log('📑 [PDF_DETECTED] Iniciando verificação de limite de PDF para usuário:', user.id);
       const pdfCheck = await UserPlanManager.checkAndUsePdf(user.id);
+      console.log('📑 [PDF_CHECK_RESULT]', pdfCheck);
       
       if (!pdfCheck.allowed) {
         console.log('❌ [PDF LIMIT] Limite de PDF atingido');

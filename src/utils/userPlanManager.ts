@@ -149,9 +149,12 @@ export class UserPlanManager {
     const today = new Date();
     const weekStart = this.getMondayOfWeek(today);
     const weekEnd = this.getSundayOfWeek(today);
+    const localKey = `weeklyUsage_${userId}_${weekStart}`;
     
     try {
-      // Primeiro tentar buscar no Supabase
+      // 🔍 [STEP 1] Primeiro tentar buscar no Supabase
+      console.log(`🔍 [WEEKLY_USAGE] Buscando uso semanal para ${userId} (semana: ${weekStart})`);
+      
       const { data, error } = await supabase
         .from('weekly_usage')
         .select('*')
@@ -160,11 +163,13 @@ export class UserPlanManager {
         .maybeSingle();
       
       if (error && error.code !== 'PGRST116') {
-        console.error('Erro ao buscar uso semanal:', error);
+        console.error('❌ [SUPABASE] Erro ao buscar uso semanal:', error);
+        throw error; // Force fallback to localStorage
       }
       
       if (data) {
-        return {
+        console.log(`✅ [SUPABASE] Dados encontrados: PDF=${data.pdf_count}, Imagem=${data.image_count}`);
+        const usage = {
           userId: data.user_id,
           weekStart: data.week_start,
           weekEnd: data.week_end,
@@ -173,20 +178,31 @@ export class UserPlanManager {
           createdAt: new Date(data.created_at),
           updatedAt: new Date(data.updated_at)
         };
+        
+        // Sincronizar com localStorage
+        localStorage.setItem(localKey, JSON.stringify(usage));
+        return usage;
       }
-    } catch (error) {
-      console.warn('Erro ao acessar banco, usando localStorage:', error);
+    } catch (supabaseError) {
+      console.warn('⚠️ [SUPABASE] Erro ao acessar banco, usando localStorage:', supabaseError);
     }
     
-    // Fallback para localStorage
-    const localKey = `weeklyUsage_${userId}_${weekStart}`;
+    // 🔍 [STEP 2] Fallback para localStorage
+    console.log(`💾 [LOCALSTORAGE] Tentando buscar dados locais para ${localKey}`);
     const localData = localStorage.getItem(localKey);
     
     if (localData) {
-      return JSON.parse(localData);
+      try {
+        const parsed = JSON.parse(localData);
+        console.log(`✅ [LOCALSTORAGE] Dados encontrados: PDF=${parsed.pdfCount}, Imagem=${parsed.imageCount}`);
+        return parsed;
+      } catch (parseError) {
+        console.error('❌ [LOCALSTORAGE] Erro ao parsear dados locais:', parseError);
+      }
     }
     
-    // Criar novo registro
+    // 🔍 [STEP 3] Criar novo registro
+    console.log(`🆕 [NEW_RECORD] Criando novo registro semanal para ${userId}`);
     const newUsage: WeeklyUsage = {
       userId,
       weekStart,
@@ -197,12 +213,13 @@ export class UserPlanManager {
       updatedAt: new Date()
     };
     
-    // Salvar no localStorage
+    // Salvar no localStorage primeiro (sempre funciona)
     localStorage.setItem(localKey, JSON.stringify(newUsage));
+    console.log(`💾 [LOCALSTORAGE] Novo registro salvo localmente`);
     
-    // Tentar salvar no Supabase
+    // Tentar salvar no Supabase (não bloquear se falhar)
     try {
-      await supabase
+      const { error: insertError } = await supabase
         .from('weekly_usage')
         .insert({
           user_id: userId,
@@ -211,26 +228,40 @@ export class UserPlanManager {
           image_count: 0,
           pdf_count: 0
         });
-    } catch (error) {
-      console.warn('Erro ao salvar no Supabase, uso apenas localStorage:', error);
+        
+      if (insertError) {
+        console.warn('⚠️ [SUPABASE] Erro ao inserir novo registro:', insertError.message);
+      } else {
+        console.log(`✅ [SUPABASE] Novo registro criado com sucesso`);
+      }
+    } catch (insertFail) {
+      console.warn('⚠️ [SUPABASE] Falha completa ao inserir:', insertFail);
     }
     
     return newUsage;
   }
   
   /**
-   * Atualiza uso semanal
+   * Atualiza uso semanal de forma robusta
    */
-  private static async updateWeeklyUsage(usage: WeeklyUsage): Promise<void> {
+  private static async updateWeeklyUsage(usage: WeeklyUsage): Promise<boolean> {
     usage.updatedAt = new Date();
-    
-    // Salvar no localStorage
     const localKey = `weeklyUsage_${usage.userId}_${usage.weekStart}`;
-    localStorage.setItem(localKey, JSON.stringify(usage));
     
-    // Tentar salvar no Supabase
+    console.log(`🔄 [UPDATE] Atualizando uso semanal: PDF=${usage.pdfCount}, Imagem=${usage.imageCount}`);
+    
+    // ✅ [STEP 1] Salvar no localStorage SEMPRE (nunca falha)
     try {
-      await supabase
+      localStorage.setItem(localKey, JSON.stringify(usage));
+      console.log(`💾 [LOCALSTORAGE] Dados atualizados localmente`);
+    } catch (localError) {
+      console.error('❌ [LOCALSTORAGE] Erro crítico ao salvar localmente:', localError);
+      return false; // Se localStorage falhar, temos problema sério
+    }
+    
+    // ✅ [STEP 2] Tentar sincronizar com Supabase (não bloqueante)
+    try {
+      const { error } = await supabase
         .from('weekly_usage')
         .upsert({
           user_id: usage.userId,
@@ -239,9 +270,21 @@ export class UserPlanManager {
           image_count: usage.imageCount,
           pdf_count: usage.pdfCount,
           updated_at: usage.updatedAt.toISOString()
+        }, {
+          onConflict: 'user_id,week_start'
         });
-    } catch (error) {
-      console.warn('Erro ao atualizar no Supabase:', error);
+      
+      if (error) {
+        console.warn('⚠️ [SUPABASE] Erro ao sincronizar (não crítico):', error.message);
+        return true; // LocalStorage foi salvo, que é o importante
+      }
+      
+      console.log(`✅ [SUPABASE] Dados sincronizados com sucesso`);
+      return true;
+      
+    } catch (supabaseError) {
+      console.warn('⚠️ [SUPABASE] Falha na sincronização (usando localStorage):', supabaseError);
+      return true; // LocalStorage funciona, então não é crítico
     }
   }
   
@@ -922,21 +965,26 @@ export class UserPlanManager {
         return { allowed: true, remaining: -1, shouldShowPaywall: false };
       }
       
-      // Verificar uso semanal
+      // 🔍 Verificar uso semanal ANTES de permitir
       const weeklyUsage = await this.getWeeklyUsage(userId);
       console.log(`📊 [USAGE_CHECK] Uso atual de PDF: ${weeklyUsage.pdfCount}/${features.weeklyPdfScans} (semana: ${weeklyUsage.weekStart})`);
       
-      // Verifica limite
+      // ❌ BLOQUEAR se limite já foi atingido
       if (weeklyUsage.pdfCount >= features.weeklyPdfScans) {
-        console.log(`❌ [PDF LIMIT] Usuário ${userId} atingiu limite de PDF semanal: ${weeklyUsage.pdfCount}/${features.weeklyPdfScans}`);
+        console.log(`❌ [PDF LIMIT] BLOQUEADO: Usuário ${userId} atingiu limite de PDF semanal: ${weeklyUsage.pdfCount}/${features.weeklyPdfScans}`);
         return { allowed: false, remaining: 0, shouldShowPaywall: true };
       }
       
-      // Incrementa uso e permite
+      // ✅ Incrementar uso APENAS se ainda há limite
       weeklyUsage.pdfCount++;
-      await this.updateWeeklyUsage(weeklyUsage);
-      const remaining = features.weeklyPdfScans - weeklyUsage.pdfCount;
+      const updateSuccess = await this.updateWeeklyUsage(weeklyUsage);
       
+      if (!updateSuccess) {
+        console.error(`❌ [PDF ERROR] Falha ao atualizar contador de uso para ${userId}`);
+        return { allowed: false, remaining: 0, shouldShowPaywall: true };
+      }
+      
+      const remaining = features.weeklyPdfScans - weeklyUsage.pdfCount;
       console.log(`✅ [PDF OK] PDF permitido para usuário ${userId}. Restantes: ${remaining}`);
       return { allowed: true, remaining, shouldShowPaywall: false };
       
@@ -974,21 +1022,26 @@ export class UserPlanManager {
         return { allowed: true, remaining: -1, shouldShowPaywall: false };
       }
       
-      // Verificar uso semanal
+      // 🔍 Verificar uso semanal ANTES de permitir
       const weeklyUsage = await this.getWeeklyUsage(userId);
       console.log(`📊 [USAGE_CHECK] Uso atual de imagem: ${weeklyUsage.imageCount}/${features.weeklyImageScans} (semana: ${weeklyUsage.weekStart})`);
       
-      // Verifica limite
+      // ❌ BLOQUEAR se limite já foi atingido
       if (weeklyUsage.imageCount >= features.weeklyImageScans) {
-        console.log(`❌ [IMAGE LIMIT] Usuário ${userId} atingiu limite de imagem semanal: ${weeklyUsage.imageCount}/${features.weeklyImageScans}`);
+        console.log(`❌ [IMAGE LIMIT] BLOQUEADO: Usuário ${userId} atingiu limite de imagem semanal: ${weeklyUsage.imageCount}/${features.weeklyImageScans}`);
         return { allowed: false, remaining: 0, shouldShowPaywall: true };
       }
       
-      // Incrementa uso e permite
+      // ✅ Incrementar uso APENAS se ainda há limite
       weeklyUsage.imageCount++;
-      await this.updateWeeklyUsage(weeklyUsage);
-      const remaining = features.weeklyImageScans - weeklyUsage.imageCount;
+      const updateSuccess = await this.updateWeeklyUsage(weeklyUsage);
       
+      if (!updateSuccess) {
+        console.error(`❌ [IMAGE ERROR] Falha ao atualizar contador de uso para ${userId}`);
+        return { allowed: false, remaining: 0, shouldShowPaywall: true };
+      }
+      
+      const remaining = features.weeklyImageScans - weeklyUsage.imageCount;
       console.log(`✅ [IMAGE OK] Imagem permitida para usuário ${userId}. Restantes: ${remaining}`);
       return { allowed: true, remaining, shouldShowPaywall: false };
       

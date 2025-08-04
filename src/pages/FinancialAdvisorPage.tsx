@@ -2926,32 +2926,6 @@ const handleTabChange = (tabValue: string) => {
 const handleImageUpload = async (imageBase64: string) => {
   if (!imageBase64) return;
 
-  // 🔥 NOVA VERIFICAÇÃO: Limites específicos para imagem/OCR (3 para FREE)
-  if (!currentUser?.id) {
-    setError('Usuário não autenticado');
-    return;
-  }
-
-  const imageCheck = await UserPlanManager.checkAndUseImage(currentUser.id);
-  
-  if (!imageCheck.allowed) {
-    console.log('❌ [IMAGE LIMIT] Limite de imagem atingido');
-    setMessages(prev => [...prev, {
-      id: uuidv4(),
-      text: `📷 **Limite de imagens atingido!**\n\nVocê já analisou todas as suas imagens de hoje. Para continuar usando OCR de imagens:\n\n✨ **Assine o Stater Premium** e tenha:\n• Análise ilimitada de imagens\n• Leitura de PDFs\n• Áudios ilimitados\n• Relatórios avançados\n\n💰 **A partir de R$ 8,90/semana**`,
-      sender: 'assistant',
-      timestamp: new Date(),
-      avatarUrl: IA_AVATAR
-    }]);
-    
-    if (imageCheck.shouldShowPaywall) {
-      setShowPaywall(true);
-    }
-    return;
-  }
-
-  console.log(`✅ [IMAGE OK] Imagem permitida. Restantes: ${imageCheck.remaining === -1 ? 'ilimitado' : imageCheck.remaining}`);
-
   setLoadingState('ai-thinking', true);
   setError("");
 
@@ -2981,21 +2955,10 @@ const handleImageUpload = async (imageBase64: string) => {
       console.log('🖼️ Arquivo de imagem/PDF detectado');
     }    
     
-    // Adicionar mensagem de upload com feedback visual adequado
+    // Detectar tipo de arquivo
     const isPdf = !isTextFile && imageBase64.startsWith('data:application/pdf');
     
-    // � DEBUG: Log detalhado para entender o que está acontecendo
-    console.log('🔍 [DEBUG_PDF_DETECTION]', {
-      isTextFile,
-      imageBase64Length: imageBase64.length,
-      startsWithPdf: imageBase64.startsWith('data:application/pdf'),
-      startsWithImage: imageBase64.startsWith('data:image/'),
-      first50Chars: imageBase64.substring(0, 50),
-      isPdf,
-      userId: user.id
-    });
-    
-    // �🔥 VERIFICAÇÃO ESPECÍFICA PARA PDF (LIMITE: 1 para FREE)
+    // 🔥 VERIFICAÇÃO ESPECÍFICA PARA PDF (LIMITE: 1 para FREE) - PRIMEIRO
     if (isPdf) {
       console.log('📑 [PDF_DETECTED] Iniciando verificação de limite de PDF para usuário:', user.id);
       const pdfCheck = await UserPlanManager.checkAndUsePdf(user.id);
@@ -3019,7 +2982,40 @@ const handleImageUpload = async (imageBase64: string) => {
       }
       
       console.log(`✅ [PDF OK] PDF permitido. Restantes: ${pdfCheck.remaining === -1 ? 'ilimitado' : pdfCheck.remaining}`);
+    } else {
+      // 🔥 VERIFICAÇÃO PARA IMAGENS (LIMITE: 3 para FREE) - SEGUNDO
+      const imageCheck = await UserPlanManager.checkAndUseImage(user.id);
+      
+      if (!imageCheck.allowed) {
+        console.log('❌ [IMAGE LIMIT] Limite de imagem atingido');
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          text: `📷 **Limite de imagens atingido!**\n\nVocê já analisou todas as suas imagens de hoje. Para continuar usando OCR de imagens:\n\n✨ **Assine o Stater Premium** e tenha:\n• Análise ilimitada de imagens\n• Leitura de PDFs\n• Áudios ilimitados\n• Relatórios avançados\n\n💰 **A partir de R$ 8,90/semana**`,
+          sender: 'assistant',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }]);
+        
+        if (imageCheck.shouldShowPaywall) {
+          setShowPaywall(true);
+        }
+        setLoadingState('ai-thinking', false);
+        return;
+      }
+      
+      console.log(`✅ [IMAGE OK] Imagem permitida. Restantes: ${imageCheck.remaining === -1 ? 'ilimitado' : imageCheck.remaining}`);
     }
+    
+    // 🔍 DEBUG: Log detalhado para entender o que está acontecendo
+    console.log('🔍 [DEBUG_DETECTION]', {
+      isTextFile,
+      imageBase64Length: imageBase64.length,
+      startsWithPdf: imageBase64.startsWith('data:application/pdf'),
+      startsWithImage: imageBase64.startsWith('data:image/'),
+      first50Chars: imageBase64.substring(0, 50),
+      isPdf,
+      userId: user.id
+    });
     
     const processingMessageId = uuidv4();
     let processingMessage = "";

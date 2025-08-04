@@ -338,11 +338,11 @@ export interface UserPlan {
 }
 
 export interface PlanFeatures {
-  // Limites de uso diário
+  // Limites de uso diário/semanal
   dailyMessages: number;         // IA Chat (-1 = ilimitado)
   dailyAudioMinutes: number;     // Processamento de áudio em minutos
-  dailyOcrScans: number;         // Scans OCR de fotos/documentos
-  dailyPdfPages: number;         // Páginas de PDF processadas
+  weeklyImageScans: number;      // 🔥 NOVO: Imagens OCR por semana
+  weeklyPdfScans: number;        // 🔥 NOVO: PDFs processados por semana
   monthlyExports: number;        // Exports de relatórios por mês
   
   // Funcionalidades boolean
@@ -365,10 +365,18 @@ export interface UserUsage {
   transactionsAdded: number;
   billsAdded: number;
   adsWatched: number;
-  // 🔥 NOVOS LIMITES POR TIPO DE MÍDIA
+  // 🔥 LIMITES DIÁRIOS (mantidos)
   audioUsed: number;     // Áudios processados
-  pdfUsed: number;       // PDFs processados  
-  imageUsed: number;     // Imagens/OCR processadas
+}
+
+export interface WeeklyUsage {
+  userId: string;
+  weekStart: string; // YYYY-MM-DD (segunda-feira da semana)
+  weekEnd: string;   // YYYY-MM-DD (domingo da semana)
+  imageCount: number;    // 🔥 NOVO: Imagens processadas na semana
+  pdfCount: number;      // 🔥 NOVO: PDFs processados na semana
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface UserJourney {

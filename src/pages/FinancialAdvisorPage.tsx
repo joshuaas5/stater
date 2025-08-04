@@ -2958,7 +2958,7 @@ const handleImageUpload = async (imageBase64: string) => {
     // Detectar tipo de arquivo
     const isPdf = !isTextFile && imageBase64.startsWith('data:application/pdf');
     
-    // 🔥 VERIFICAÇÃO ESPECÍFICA PARA PDF (LIMITE: 1 para FREE) - PRIMEIRO
+    // 🔥 VERIFICAÇÃO ESPECÍFICA PARA PDF (LIMITE SEMANAL: 1 para FREE) - PRIMEIRO
     if (isPdf) {
       console.log('📑 [PDF_DETECTED] Iniciando verificação de limite de PDF para usuário:', user.id);
       const pdfCheck = await UserPlanManager.checkAndUsePdf(user.id);
@@ -2968,7 +2968,7 @@ const handleImageUpload = async (imageBase64: string) => {
         console.log('❌ [PDF LIMIT] Limite de PDF atingido');
         setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: `📑 **Limite de PDFs atingido!**\n\nVocê já analisou seu PDF de hoje. Para continuar usando análise de PDFs:\n\n✨ **Assine o Stater Premium** e tenha:\n• Leitura ilimitada de PDFs\n• Análise de imagens ilimitada\n• Áudios ilimitados\n• Relatórios avançados\n\n💰 **A partir de R$ 8,90/semana**\n\n💡 **Alternativa gratuita**: Faça uma captura de tela do PDF e envie como imagem!`,
+          text: `📑 **Limite semanal de PDFs atingido!**\n\nVocê já processou seu 1 PDF desta semana. Para continuar usando análise de PDFs:\n\n✨ **Assine o Stater Premium** e tenha:\n• Leitura ilimitada de PDFs\n• Análise de imagens ilimitada\n• Áudios ilimitados\n• Relatórios avançados\n\n💰 **A partir de R$ 8,90/semana**\n\n⏰ **Seu limite será renovado na próxima segunda-feira**\n\n💡 **Alternativa gratuita**: Faça uma captura de tela do PDF e envie como imagem!`,
           sender: 'assistant',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
@@ -2983,14 +2983,14 @@ const handleImageUpload = async (imageBase64: string) => {
       
       console.log(`✅ [PDF OK] PDF permitido. Restantes: ${pdfCheck.remaining === -1 ? 'ilimitado' : pdfCheck.remaining}`);
     } else {
-      // 🔥 VERIFICAÇÃO PARA IMAGENS (LIMITE: 3 para FREE) - SEGUNDO
+      // 🔥 VERIFICAÇÃO PARA IMAGENS (LIMITE SEMANAL: 1 para FREE) - SEGUNDO
       const imageCheck = await UserPlanManager.checkAndUseImage(user.id);
       
       if (!imageCheck.allowed) {
         console.log('❌ [IMAGE LIMIT] Limite de imagem atingido');
         setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: `📷 **Limite de imagens atingido!**\n\nVocê já analisou todas as suas imagens de hoje. Para continuar usando OCR de imagens:\n\n✨ **Assine o Stater Premium** e tenha:\n• Análise ilimitada de imagens\n• Leitura de PDFs\n• Áudios ilimitados\n• Relatórios avançados\n\n💰 **A partir de R$ 8,90/semana**`,
+          text: `📷 **Limite semanal de imagens atingido!**\n\nVocê já processou sua 1 imagem desta semana. Para continuar usando OCR de imagens:\n\n✨ **Assine o Stater Premium** e tenha:\n• Análise ilimitada de imagens\n• Leitura de PDFs\n• Áudios ilimitados\n• Relatórios avançados\n\n💰 **A partir de R$ 8,90/semana**\n\n⏰ **Seu limite será renovado na próxima segunda-feira**`,
           sender: 'assistant',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR

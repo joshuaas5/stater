@@ -1,4 +1,4 @@
-import { PlanType, UserPlan, PlanFeatures, UserUsage, UserJourney } from '@/types';
+import { PlanType, UserPlan, PlanFeatures, UserUsage, UserJourney, WeeklyUsage } from '@/types';
 import { supabase } from '@/lib/supabase';
 
 // Lista de usuários beta/especiais com acesso ilimitado
@@ -13,8 +13,8 @@ const BETA_USER_FEATURES: PlanFeatures = {
   // Acesso ilimitado total
   dailyMessages: -1,          // Mensagens ilimitadas
   dailyAudioMinutes: -1,      // Áudio ilimitado
-  dailyOcrScans: -1,          // OCR ilimitado
-  dailyPdfPages: -1,          // PDF ilimitado
+  weeklyImageScans: -1,       // 🔥 NOVO: Imagens ilimitadas
+  weeklyPdfScans: -1,         // 🔥 NOVO: PDFs ilimitados
   monthlyExports: -1,         // Exports ilimitados
   
   // Todas funcionalidades liberadas
@@ -36,15 +36,15 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     // Jornada progressiva de 3 dias
     dailyMessages: 3,           // 15 mensagens totais via jornada (1-5 mensagens + ads)
     dailyAudioMinutes: 3,       // 🔥 NOVO: 3 áudios para usuários FREE
-    dailyOcrScans: 3,           // 🔥 NOVO: 3 imagens/OCR para usuários FREE  
-    dailyPdfPages: 1,           // 🔥 NOVO: 1 PDF para usuários FREE
+    weeklyImageScans: 1,        // 🔥 NOVO: 1 imagem/OCR por semana para usuários FREE  
+    weeklyPdfScans: 1,          // 🔥 NOVO: 1 PDF por semana para usuários FREE
     monthlyExports: 0,          // Exports: Bloqueado
     
     // Funcionalidades bloqueadas
     telegramBot: false,         // Telegram: Bloqueado
     exportReports: false,       // Relatórios: Bloqueados
-    ocrScanning: true,          // 🔥 MUDANÇA: OCR liberado com limite de 3
-    pdfProcessing: true,        // 🔥 MUDANÇA: PDF liberado com limite de 1
+    ocrScanning: true,          // 🔥 MUDANÇA: OCR liberado com limite de 1/semana
+    pdfProcessing: true,        // 🔥 MUDANÇA: PDF liberado com limite de 1/semana
     advancedAnalytics: false,   // Analytics avançado: Bloqueado
     
     // Monetização ativa
@@ -55,15 +55,15 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     // SEMANAL - R$ 8,90 - EXATAMENTE COMO DEFINIDO
     dailyMessages: 10,          // 10 mensagens de texto/dia
     dailyAudioMinutes: 3,       // 3 análises de áudio/dia
-    dailyOcrScans: 3,           // 3 análises de fotos/dia
-    dailyPdfPages: 0,           // 0 leitura de PDFs
+    weeklyImageScans: 20,       // 20 análises de fotos/semana
+    weeklyPdfScans: 10,         // 10 leituras de PDFs/semana
     monthlyExports: 0,          // Sem exports
     
     // Funcionalidades liberadas
     telegramBot: true,          // Bot Telegram integrado (limites compartilhados)
     exportReports: false,       // Relatórios: Ainda bloqueados
     ocrScanning: true,          // OCR: Liberado
-    pdfProcessing: false,       // PDF: Ainda bloqueado
+    pdfProcessing: true,        // PDF: Liberado no semanal
     advancedAnalytics: false,   // Analytics avançado: Ainda bloqueado
     
     // 100% livre de anúncios
@@ -74,15 +74,15 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     // MENSAL - R$ 15,90 - EXATAMENTE COMO DEFINIDO
     dailyMessages: 20,          // 20 mensagens de texto/dia
     dailyAudioMinutes: 10,      // 10 análises de áudio/dia
-    dailyOcrScans: 10,          // 10 análises de fotos/dia
-    dailyPdfPages: 0,           // 0 leitura de PDFs
+    weeklyImageScans: 50,       // 50 análises de fotos/semana
+    weeklyPdfScans: 25,         // 25 leituras de PDFs/semana
     monthlyExports: -1,         // Exports ilimitados (PDF, XLSX, OFX, CSV)
     
     // Funcionalidades do semanal + relatórios
     telegramBot: true,          // Telegram: Liberado
     exportReports: true,        // Exportar relatórios liberado
     ocrScanning: true,          // OCR: Liberado
-    pdfProcessing: false,       // PDF: Ainda bloqueado
+    pdfProcessing: true,        // PDF: Liberado
     advancedAnalytics: true,    // Análises financeiras avançadas
     
     // Premium sem anúncios
@@ -93,8 +93,8 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     // PRO - R$ 29,90 - EXATAMENTE COMO DEFINIDO
     dailyMessages: 30,          // 30 mensagens de texto/dia
     dailyAudioMinutes: 15,      // 15 análises de áudio/dia
-    dailyOcrScans: 15,          // 15 análises de fotos/dia
-    dailyPdfPages: 5,           // 5 leituras de PDFs/dia
+    weeklyImageScans: -1,       // Análises de fotos ilimitadas
+    weeklyPdfScans: -1,         // Leituras de PDFs ilimitadas
     monthlyExports: -1,         // Exports ilimitados
     
     // Todas funcionalidades + PDFs
@@ -115,6 +115,135 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
  * Gerenciador central do sistema de planos e monetização
  */
 export class UserPlanManager {
+  
+  /**
+   * 🔥 UTILITÁRIOS PARA CÁLCULO DE SEMANA
+   */
+  
+  /**
+   * Obtém segunda-feira da semana para uma data
+   */
+  private static getMondayOfWeek(date: Date): string {
+    const monday = new Date(date);
+    const day = monday.getDay();
+    const diff = monday.getDate() - day + (day === 0 ? -6 : 1); // Ajustar para segunda-feira
+    monday.setDate(diff);
+    return monday.toISOString().split('T')[0];
+  }
+  
+  /**
+   * Obtém domingo da semana para uma data
+   */
+  private static getSundayOfWeek(date: Date): string {
+    const sunday = new Date(date);
+    const day = sunday.getDay();
+    const diff = sunday.getDate() - day + 7; // Próximo domingo
+    sunday.setDate(diff);
+    return sunday.toISOString().split('T')[0];
+  }
+  
+  /**
+   * Obtém ou cria registro de uso semanal
+   */
+  private static async getWeeklyUsage(userId: string): Promise<WeeklyUsage> {
+    const today = new Date();
+    const weekStart = this.getMondayOfWeek(today);
+    const weekEnd = this.getSundayOfWeek(today);
+    
+    try {
+      // Primeiro tentar buscar no Supabase
+      const { data, error } = await supabase
+        .from('weekly_usage')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('week_start', weekStart)
+        .maybeSingle();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao buscar uso semanal:', error);
+      }
+      
+      if (data) {
+        return {
+          userId: data.user_id,
+          weekStart: data.week_start,
+          weekEnd: data.week_end,
+          imageCount: data.image_count || 0,
+          pdfCount: data.pdf_count || 0,
+          createdAt: new Date(data.created_at),
+          updatedAt: new Date(data.updated_at)
+        };
+      }
+    } catch (error) {
+      console.warn('Erro ao acessar banco, usando localStorage:', error);
+    }
+    
+    // Fallback para localStorage
+    const localKey = `weeklyUsage_${userId}_${weekStart}`;
+    const localData = localStorage.getItem(localKey);
+    
+    if (localData) {
+      return JSON.parse(localData);
+    }
+    
+    // Criar novo registro
+    const newUsage: WeeklyUsage = {
+      userId,
+      weekStart,
+      weekEnd,
+      imageCount: 0,
+      pdfCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    // Salvar no localStorage
+    localStorage.setItem(localKey, JSON.stringify(newUsage));
+    
+    // Tentar salvar no Supabase
+    try {
+      await supabase
+        .from('weekly_usage')
+        .insert({
+          user_id: userId,
+          week_start: weekStart,
+          week_end: weekEnd,
+          image_count: 0,
+          pdf_count: 0
+        });
+    } catch (error) {
+      console.warn('Erro ao salvar no Supabase, uso apenas localStorage:', error);
+    }
+    
+    return newUsage;
+  }
+  
+  /**
+   * Atualiza uso semanal
+   */
+  private static async updateWeeklyUsage(usage: WeeklyUsage): Promise<void> {
+    usage.updatedAt = new Date();
+    
+    // Salvar no localStorage
+    const localKey = `weeklyUsage_${usage.userId}_${usage.weekStart}`;
+    localStorage.setItem(localKey, JSON.stringify(usage));
+    
+    // Tentar salvar no Supabase
+    try {
+      await supabase
+        .from('weekly_usage')
+        .upsert({
+          user_id: usage.userId,
+          week_start: usage.weekStart,
+          week_end: usage.weekEnd,
+          image_count: usage.imageCount,
+          pdf_count: usage.pdfCount,
+          updated_at: usage.updatedAt.toISOString()
+        });
+    } catch (error) {
+      console.warn('Erro ao atualizar no Supabase:', error);
+    }
+  }
   
   /**
    * Verifica se um usuário é beta tester (acesso ilimitado)
@@ -276,7 +405,7 @@ export class UserPlanManager {
   /**
    * Incrementa o uso de uma ação específica
    */
-  static async incrementUsage(userId: string, action: 'messages' | 'transactions' | 'bills' | 'audio' | 'pdf' | 'image'): Promise<void> {
+  static async incrementUsage(userId: string, action: 'messages' | 'transactions' | 'bills' | 'audio'): Promise<void> {
     try {
       const today = new Date().toISOString().split('T')[0];
       const usage = await this.getTodayUsage(userId, today);
@@ -293,12 +422,6 @@ export class UserPlanManager {
           break;
         case 'audio':
           usage.audioUsed++;
-          break;
-        case 'pdf':
-          usage.pdfUsed++;
-          break;
-        case 'image':
-          usage.imageUsed++;
           break;
       }
       
@@ -325,9 +448,7 @@ export class UserPlanManager {
           transactionsAdded: 0,
           billsAdded: 0,
           adsWatched: 0,
-          audioUsed: 0,
-          pdfUsed: 0,
-          imageUsed: 0
+          audioUsed: 0
         };
       }
       
@@ -335,9 +456,7 @@ export class UserPlanManager {
       // Garantir compatibilidade com dados antigos
       return {
         ...parsed,
-        audioUsed: parsed.audioUsed || 0,
-        pdfUsed: parsed.pdfUsed || 0,
-        imageUsed: parsed.imageUsed || 0
+        audioUsed: parsed.audioUsed || 0
       };
       
     } catch (error) {
@@ -349,9 +468,7 @@ export class UserPlanManager {
         transactionsAdded: 0,
         billsAdded: 0,
         adsWatched: 0,
-        audioUsed: 0,
-        pdfUsed: 0,
-        imageUsed: 0
+        audioUsed: 0
       };
     }
   }
@@ -581,7 +698,7 @@ export class UserPlanManager {
       const userPlan = await this.getUserPlan(userId);
       const features = PLAN_FEATURES[userPlan.planType];
       
-      return features.ocrScanning && features.dailyOcrScans !== 0;
+      return features.ocrScanning && features.weeklyImageScans !== 0;
       
     } catch (error) {
       console.error('Erro ao verificar acesso ao OCR:', error);
@@ -608,7 +725,7 @@ export class UserPlanManager {
       const userPlan = await this.getUserPlan(userId);
       const features = PLAN_FEATURES[userPlan.planType];
       
-      return features.pdfProcessing && features.dailyPdfPages !== 0;
+      return features.pdfProcessing && features.weeklyPdfScans !== 0;
       
     } catch (error) {
       console.error('Erro ao verificar acesso ao PDF:', error);
@@ -778,51 +895,47 @@ export class UserPlanManager {
   }
 
   /**
-   * Verifica e contabiliza uso de PDF (LIMITE: 1 para FREE)
+   * 🔥 NOVA VERIFICAÇÃO SEMANAL: PDF (LIMITE: 1 por semana para FREE)
    */
   static async checkAndUsePdf(userId: string): Promise<{ allowed: boolean; remaining: number; shouldShowPaywall: boolean }> {
     try {
-      console.log(`🔍 [DEBUG_PDF] Iniciando checkAndUsePdf para usuário: ${userId}`);
+      console.log(`🔍 [DEBUG_PDF] Iniciando checkAndUsePdf SEMANAL para usuário: ${userId}`);
       
       // Verificar se é beta user primeiro - acesso ilimitado
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.email && this.isBetaUser(user.email)) {
+        if (user?.email && this.isBetaUser(user.email)) {
           console.log(`🚀 [BETA USER] PDF ilimitado para usuário: ${user.email}`);
-          await this.incrementUsage(userId, 'pdf');
           return { allowed: true, remaining: -1, shouldShowPaywall: false };
         }
-        console.log(`👤 [USER_CHECK] Usuário não é beta: ${user?.email || 'sem email'}`);
       } catch (authError) {
         console.log('Auth check falhou, continuando com verificação normal do plano');
       }
       
       const userPlan = await this.getUserPlan(userId);
-      console.log(`📋 [USER_PLAN] Plano do usuário: ${userPlan.planType}`);
-      
       const features = PLAN_FEATURES[userPlan.planType];
-      console.log(`⚙️ [PLAN_FEATURES] Limite PDF para ${userPlan.planType}: ${features.dailyPdfPages}`);
+      console.log(`⚙️ [PLAN_FEATURES] Limite PDF semanal para ${userPlan.planType}: ${features.weeklyPdfScans}`);
       
       // Se for plano com PDF ilimitado
-      if (features.dailyPdfPages === -1) {
-        await this.incrementUsage(userId, 'pdf');
+      if (features.weeklyPdfScans === -1) {
         console.log(`✅ [UNLIMITED] PDF ilimitado para plano ${userPlan.planType}`);
         return { allowed: true, remaining: -1, shouldShowPaywall: false };
       }
       
-      const today = new Date().toISOString().split('T')[0];
-      const usage = await this.getTodayUsage(userId, today);
-      console.log(`📊 [USAGE_CHECK] Uso atual de PDF: ${usage.pdfUsed}/${features.dailyPdfPages} (data: ${today})`);
+      // Verificar uso semanal
+      const weeklyUsage = await this.getWeeklyUsage(userId);
+      console.log(`📊 [USAGE_CHECK] Uso atual de PDF: ${weeklyUsage.pdfCount}/${features.weeklyPdfScans} (semana: ${weeklyUsage.weekStart})`);
       
       // Verifica limite
-      if (usage.pdfUsed >= features.dailyPdfPages) {
-        console.log(`❌ [PDF LIMIT] Usuário ${userId} atingiu limite de PDF: ${usage.pdfUsed}/${features.dailyPdfPages}`);
+      if (weeklyUsage.pdfCount >= features.weeklyPdfScans) {
+        console.log(`❌ [PDF LIMIT] Usuário ${userId} atingiu limite de PDF semanal: ${weeklyUsage.pdfCount}/${features.weeklyPdfScans}`);
         return { allowed: false, remaining: 0, shouldShowPaywall: true };
       }
       
       // Incrementa uso e permite
-      await this.incrementUsage(userId, 'pdf');
-      const remaining = features.dailyPdfPages - (usage.pdfUsed + 1);
+      weeklyUsage.pdfCount++;
+      await this.updateWeeklyUsage(weeklyUsage);
+      const remaining = features.weeklyPdfScans - weeklyUsage.pdfCount;
       
       console.log(`✅ [PDF OK] PDF permitido para usuário ${userId}. Restantes: ${remaining}`);
       return { allowed: true, remaining, shouldShowPaywall: false };
@@ -834,16 +947,17 @@ export class UserPlanManager {
   }
 
   /**
-   * Verifica e contabiliza uso de imagem/OCR (LIMITE: 3 para FREE)
+   * 🔥 NOVA VERIFICAÇÃO SEMANAL: Imagem/OCR (LIMITE: 1 por semana para FREE)
    */
   static async checkAndUseImage(userId: string): Promise<{ allowed: boolean; remaining: number; shouldShowPaywall: boolean }> {
     try {
+      console.log(`🔍 [DEBUG_IMAGE] Iniciando checkAndUseImage SEMANAL para usuário: ${userId}`);
+      
       // Verificar se é beta user primeiro - acesso ilimitado
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.email && this.isBetaUser(user.email)) {
+        if (user?.email && this.isBetaUser(user.email)) {
           console.log(`🚀 [BETA USER] Imagem/OCR ilimitado para usuário: ${user.email}`);
-          await this.incrementUsage(userId, 'image');
           return { allowed: true, remaining: -1, shouldShowPaywall: false };
         }
       } catch (authError) {
@@ -852,25 +966,28 @@ export class UserPlanManager {
       
       const userPlan = await this.getUserPlan(userId);
       const features = PLAN_FEATURES[userPlan.planType];
+      console.log(`⚙️ [PLAN_FEATURES] Limite imagem semanal para ${userPlan.planType}: ${features.weeklyImageScans}`);
       
       // Se for plano com imagem ilimitada
-      if (features.dailyOcrScans === -1) {
-        await this.incrementUsage(userId, 'image');
+      if (features.weeklyImageScans === -1) {
+        console.log(`✅ [UNLIMITED] Imagem ilimitada para plano ${userPlan.planType}`);
         return { allowed: true, remaining: -1, shouldShowPaywall: false };
       }
       
-      const today = new Date().toISOString().split('T')[0];
-      const usage = await this.getTodayUsage(userId, today);
+      // Verificar uso semanal
+      const weeklyUsage = await this.getWeeklyUsage(userId);
+      console.log(`📊 [USAGE_CHECK] Uso atual de imagem: ${weeklyUsage.imageCount}/${features.weeklyImageScans} (semana: ${weeklyUsage.weekStart})`);
       
       // Verifica limite
-      if (usage.imageUsed >= features.dailyOcrScans) {
-        console.log(`❌ [IMAGE LIMIT] Usuário ${userId} atingiu limite de imagem: ${usage.imageUsed}/${features.dailyOcrScans}`);
+      if (weeklyUsage.imageCount >= features.weeklyImageScans) {
+        console.log(`❌ [IMAGE LIMIT] Usuário ${userId} atingiu limite de imagem semanal: ${weeklyUsage.imageCount}/${features.weeklyImageScans}`);
         return { allowed: false, remaining: 0, shouldShowPaywall: true };
       }
       
       // Incrementa uso e permite
-      await this.incrementUsage(userId, 'image');
-      const remaining = features.dailyOcrScans - (usage.imageUsed + 1);
+      weeklyUsage.imageCount++;
+      await this.updateWeeklyUsage(weeklyUsage);
+      const remaining = features.weeklyImageScans - weeklyUsage.imageCount;
       
       console.log(`✅ [IMAGE OK] Imagem permitida para usuário ${userId}. Restantes: ${remaining}`);
       return { allowed: true, remaining, shouldShowPaywall: false };

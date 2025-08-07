@@ -1440,7 +1440,7 @@ const Dashboard: React.FC = () => {
                       onClick={() => setTransactionsPage(prev => prev + 1)}
                       className="text-blue-400 hover:text-blue-300 font-medium transition-colors bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/20 shadow-lg"
                     >
-                      Próxima página →
+                      →
                     </button>
                   )}
                 </div>

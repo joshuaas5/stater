@@ -407,14 +407,19 @@ async function handleTextMessage(msg) {
 
     const userSession = await getSession(chatId);
     if (userSession) {
+        console.log('User session found for text message:', userSession.userName);
         // Check if user wants to add a transaction
         const transactionMatch = await detectTransactionIntent(text);
+        console.log('Transaction match result:', transactionMatch);
         if (transactionMatch) {
+            console.log('Handling quick transaction');
             await handleQuickTransaction(chatId, transactionMatch, userSession);
         } else {
+            console.log('Processing as chat message');
             await processChatMessage(chatId, text, userSession);
         }
     } else {
+        console.log('No user session found');
         await sendMessage(chatId, `🔒 *Conta não conectada.*\n\nPara usar o chat, preciso que conecte sua conta. Use o comando /conectar para saber como.`, { parse_mode: 'Markdown' });
     }
 }
@@ -425,6 +430,7 @@ async function handleTextMessage(msg) {
 
 async function detectTransactionIntent(message) {
     const text = message.toLowerCase();
+    console.log('Detecting transaction intent for:', text);
     
     // Patterns for adding income/expenses
     const addPatterns = [
@@ -435,29 +441,34 @@ async function detectTransactionIntent(message) {
         /(?:saida|saída|gasto|despesa)\s+(?:de\s+)?r?\$?\s*(\d+(?:[,.]\d{2})?)/i,
         /adicionar?\s+r?\$?\s*(\d+(?:[,.]\d{2})?)\s+(?:saida|saída|gasto|despesa)/i,
         /adicionar?\s+r?\$?\s*(\d+(?:[,.]\d{2})?)/i,
-        /^r?\$?\s*(\d+(?:[,.]\d{2})?)\s+(?:entrada|receita|ganho|saida|saída|gasto|despesa)?/i
+        /^r?\$?\s*(\d+(?:[,.]\d{2})?)\s*$/i // Just a number
     ];
     
     for (const pattern of addPatterns) {
         const match = text.match(pattern);
         if (match) {
+            console.log('Transaction pattern matched:', pattern, match);
             const amount = parseFloat(match[1].replace(',', '.'));
             const isIncome = /entrada|receita|ganho/.test(text);
             const isExpense = /saida|saída|gasto|despesa/.test(text);
             
             // If not explicitly specified, ask user
             if (!isIncome && !isExpense) {
+                console.log('Type not specified, will ask user');
                 return { amount, type: 'unknown' };
             }
             
-            return {
+            const result = {
                 amount,
                 type: isIncome ? 'income' : 'expense',
                 description: extractDescription(message, match[1]) || (isIncome ? 'Entrada via bot' : 'Saída via bot')
             };
+            console.log('Transaction detected:', result);
+            return result;
         }
     }
     
+    console.log('No transaction pattern matched');
     return null;
 }
 
@@ -469,7 +480,10 @@ function extractDescription(message, amountStr) {
 }
 
 async function handleQuickTransaction(chatId, transactionData, userSession) {
+    console.log('handleQuickTransaction called:', { chatId, transactionData, userSession: userSession.userName });
+    
     if (transactionData.type === 'unknown') {
+        console.log('Transaction type unknown, asking user');
         // Ask user to specify type first
         await sendMessage(chatId, `💰 *R$ ${transactionData.amount.toFixed(2)}*\n\nÉ uma entrada ou saída?`, {
             parse_mode: 'Markdown',
@@ -484,19 +498,23 @@ async function handleQuickTransaction(chatId, transactionData, userSession) {
         });
         
         // Store pending transaction
+        const pendingTx = {
+            amount: transactionData.amount,
+            description: transactionData.description || 'Transação via bot',
+            type: 'pending_type'
+        };
+        console.log('Storing pending transaction:', pendingTx);
+        
         await supabase
             .from('telegram_users')
             .update({ 
-                pending_transactions: [{
-                    amount: transactionData.amount,
-                    description: transactionData.description || 'Transação via bot',
-                    type: 'pending_type'
-                }]
+                pending_transactions: [pendingTx]
             })
             .eq('telegram_chat_id', chatId.toString());
         return;
     }
     
+    console.log('Transaction type specified, asking for confirmation');
     // Ask for confirmation before saving
     const typeEmoji = transactionData.type === 'income' ? '📈' : '📉';
     const typeText = transactionData.type === 'income' ? 'Entrada' : 'Saída';
@@ -513,14 +531,17 @@ async function handleQuickTransaction(chatId, transactionData, userSession) {
     });
     
     // Store pending transaction for confirmation
+    const pendingTx = {
+        amount: transactionData.amount,
+        description: transactionData.description,
+        type: transactionData.type
+    };
+    console.log('Storing pending transaction for confirmation:', pendingTx);
+    
     await supabase
         .from('telegram_users')
         .update({ 
-            pending_transactions: [{
-                amount: transactionData.amount,
-                description: transactionData.description,
-                type: transactionData.type
-            }]
+            pending_transactions: [pendingTx]
         })
         .eq('telegram_chat_id', chatId.toString());
 }

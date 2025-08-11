@@ -3,8 +3,8 @@ const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 const path = require('path');
 
-// Adjust .env path for the serverless environment. Assumes .env is in the root.
-require('dotenv').config({ path: path.resolve(process.cwd(), '.env') });
+// CORRECTED: Point to the .env file inside the telegram-bot folder
+require('dotenv').config({ path: path.resolve(process.cwd(), 'telegram-bot', '.env') });
 
 // Instantiate bot without polling.
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
@@ -21,9 +21,9 @@ const supabase = createClient(
     }
 );
 
-// NOTE: In-memory storage is not reliable in a stateless serverless environment.
-// These will only persist for the duration of a single request.
+// In-memory storage for pending transactions within a single request lifecycle.
 const pendingTransactions = new Map();
+// In-memory cache for user sessions within a single request lifecycle.
 const userSessions = new Map();
 
 // =================================================================================
@@ -31,7 +31,6 @@ const userSessions = new Map();
 // =================================================================================
 
 module.exports = async (req, res) => {
-    // Handle UptimeRobot GET requests to keep the bot "warm" and show as "Up".
     if (req.method === 'GET') {
         return res.status(200).json({ status: 'active', message: 'Bot is running and ready for POST updates from Telegram.' });
     }
@@ -41,20 +40,16 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const update = req.body;
-        // Process the update from Telegram.
-        await handleUpdate(update);
+        await handleUpdate(req.body);
         res.status(200).send('Update processed successfully');
     } catch (error) {
-        console.error('Error processing Telegram update:', error);
+        console.error('Error processing Telegram update:', error.message, error.stack);
         res.status(500).send('Error processing update');
     }
 };
 
-
 // =================================================================================
 // Update Router
-// This function replaces the bot.on() event listeners.
 // =================================================================================
 
 async function handleUpdate(update) {
@@ -64,11 +59,9 @@ async function handleUpdate(update) {
         return;
     }
 
-    const chatId = message.chat.id;
     const text = message.text;
     const photo = message.photo;
 
-    // Route based on message content
     if (text) {
         if (text.startsWith('/start')) return await handleStart(message);
         if (text.startsWith('/help')) return await handleHelp(message);
@@ -76,7 +69,6 @@ async function handleUpdate(update) {
         if (text.startsWith('/conectar')) return await handleConectar(message);
         if (text.startsWith('/conta')) return await handleConta(message);
         if (text.startsWith('/sair')) return await handleSair(message);
-        // If not a command, treat as a regular text message (chat, confirmation, link code)
         return await handleTextMessage(message);
     }
 
@@ -85,18 +77,14 @@ async function handleUpdate(update) {
     }
 }
 
-
 // =================================================================================
-// Session Management (Crucial for Serverless)
+// Session Management
 // =================================================================================
 
 async function getSession(chatId) {
-    // Check cache for the current request first
     if (userSessions.has(chatId)) {
         return userSessions.get(chatId);
     }
-
-    // If not in cache, fetch from the database
     try {
         const { data: activeUser, error } = await supabase
             .from('telegram_users')
@@ -105,16 +93,14 @@ async function getSession(chatId) {
             .eq('is_active', true)
             .single();
 
-        if (error || !activeUser) {
-            return null; // User not found or not active
-        }
+        if (error || !activeUser) return null;
 
         const session = {
             userId: activeUser.user_id,
             userEmail: activeUser.user_email,
             userName: activeUser.user_name
         };
-        userSessions.set(chatId, session); // Cache for the duration of this single request
+        userSessions.set(chatId, session);
         return session;
     } catch (e) {
         console.error(`Failed to load session for chat ${chatId}:`, e);
@@ -122,10 +108,8 @@ async function getSession(chatId) {
     }
 }
 
-
 // =================================================================================
-// Refactored Bot Logic (from bot.js)
-// Each function now gets the `msg` object directly.
+// Command Handlers
 // =================================================================================
 
 async function handleStart(msg) {
@@ -149,8 +133,7 @@ async function handleStart(msg) {
 async function handleHelp(msg) {
     const chatId = msg.chat.id;
     const userSession = await getSession(chatId);
-
-    let helpMessage = `🆘 *Stater IA - Ajuda*\n\n... (conteúdo do help) ...`; // Conteúdo do help aqui
+    let helpMessage = `🆘 *Stater IA - Ajuda*\n\n... (conteúdo do help) ...`;
     if (!userSession) {
         helpMessage += `\n\nSTATUS: Conta não conectada`;
     } else {
@@ -178,7 +161,7 @@ async function handleConectar(msg) {
         return;
     }
 
-    const connectMessage = `🔗 *Como conectar sua conta Stater:*\n\n**Método recomendado:**\n1. Acesse: ${process.env.APP_URL}\n2. Faça login na sua conta\n3. Vá em Configurações → Bot Telegram\n4. Clique em "Gerar Código de Vinculação"\n5. Envie o código aqui no chat\n\n⚠️ *Importante:* Você precisa ter uma conta criada no app antes de conectar.`;
+    const connectMessage = `🔗 *Como conectar sua conta Stater:*\n\n**Método recomendado:**\n1. Acesse: ${process.env.APP_URL}\n2. Faça login\n3. Vá em Configurações → Bot Telegram\n4. Clique em "Gerar Código"\n5. Envie o código aqui.`;
     await bot.sendMessage(chatId, connectMessage, { parse_mode: 'Markdown' });
 }
 
@@ -190,8 +173,9 @@ async function handleConta(msg) {
         await bot.sendMessage(chatId, `🚫 *Você não está conectado.*\n\nUse /conectar para saber como vincular sua conta.`, { parse_mode: 'Markdown' });
         return;
     }
-
-    const accountMessage = `👤 *Sua Conta Stater:*\n\n**Nome:** ${userSession.userName}\n**Email:** ${userSession.userEmail}\n**Chat ID:** \`${chatId}\`\n\n*Para mais detalhes, acesse o app.*`;
+    
+    const userContext = await getUserContextForChat(userSession.userId);
+    const accountMessage = `👤 *Sua Conta Stater:*\n\n**Nome:** ${userSession.userName}\n**Email:** ${userSession.userEmail}\n**Chat ID:** \`${chatId}\`\n\n💰 **Dados Financeiros:**\n • Saldo atual: R$ ${userContext.balance.toFixed(2)}\n • Transações: ${userContext.transactionCount}`;
     await bot.sendMessage(chatId, accountMessage, { parse_mode: 'Markdown' });
 }
 
@@ -205,14 +189,18 @@ async function handleSair(msg) {
     }
 
     try {
-        userSessions.delete(chatId); // Remove from local cache
+        userSessions.delete(chatId);
         await supabase.from('telegram_users').update({ is_active: false }).eq('telegram_chat_id', chatId.toString());
-        await bot.sendMessage(chatId, `👋 *Desconectado com sucesso!*\n\nSua conta **${userSession.userName}** foi desvinculada. Para reconectar, use /conectar.`, { parse_mode: 'Markdown' });
+        await bot.sendMessage(chatId, `👋 *Desconectado com sucesso!*\n\nSua conta **${userSession.userName}** foi desvinculada.`, { parse_mode: 'Markdown' });
     } catch (error) {
         console.error('Error during sign out:', error);
         await bot.sendMessage(chatId, `❌ Erro ao desconectar. Tente novamente.`, { parse_mode: 'Markdown' });
     }
 }
+
+// =================================================================================
+// Message Type Handlers
+// =================================================================================
 
 async function handlePhoto(msg) {
     const chatId = msg.chat.id;
@@ -249,17 +237,16 @@ async function handleTextMessage(msg) {
     const chatId = msg.chat.id;
     const text = msg.text;
 
-    // 1. Handle confirmation
-    if (text.toLowerCase() === '✅ sim' || text.toLowerCase() === 'sim') {
+    const lowerText = text.toLowerCase();
+    if (lowerText === '✅ sim' || lowerText === 'sim' || lowerText === 'confirmar') {
         return await confirmTransactions(chatId);
     }
-    if (text.toLowerCase() === '❌ não' || text.toLowerCase() === 'nao' || text.toLowerCase() === 'não') {
+    if (lowerText === '❌ não' || lowerText === 'nao' || lowerText === 'não' || lowerText === 'cancelar') {
         pendingTransactions.delete(chatId);
         await bot.sendMessage(chatId, `OK, transações descartadas.`, { reply_markup: { remove_keyboard: true } });
         return;
     }
 
-    // 2. Handle link code
     if (/^\d{6}$/.test(text.trim())) {
         const linkResult = await linkTelegramWithCode(chatId, text.trim());
         if (linkResult.success) {
@@ -270,7 +257,6 @@ async function handleTextMessage(msg) {
         return;
     }
 
-    // 3. Handle chat
     const userSession = await getSession(chatId);
     if (userSession) {
         await processChatMessage(chatId, text, userSession);
@@ -279,9 +265,8 @@ async function handleTextMessage(msg) {
     }
 }
 
-
 // =================================================================================
-// Helper Functions (Copied and verified from bot.js)
+// Core Logic & Helper Functions
 // =================================================================================
 
 async function processChatMessage(chatId, message, userSession) {
@@ -318,7 +303,8 @@ async function confirmTransactions(chatId) {
     }
 
     pendingTransactions.delete(chatId);
-    await bot.sendMessage(chatId, `✅ *Transações salvas!*\n\n${savedCount} de ${pending.transactions.length} foram salvas com sucesso.`, {
+    const userContext = await getUserContextForChat(userSession.userId);
+    await bot.sendMessage(chatId, `✅ *Transações salvas!*\n\n${savedCount} de ${pending.transactions.length} foram importadas.\n\n💰 Seu novo saldo é: *R$ ${userContext.balance.toFixed(2)}*`, {
         parse_mode: 'Markdown',
         reply_markup: { remove_keyboard: true }
     });
@@ -346,18 +332,13 @@ async function linkTelegramWithCode(chatId, linkCode) {
             is_active: true
         });
 
-        // Manually update session cache for the current request
         userSessions.set(chatId, { userId: data.user_id, userEmail: data.user_email, userName: data.user_name });
-
         return { success: true, userName: data.user_name };
     } catch (e) {
         console.error('Error linking code:', e);
         return { success: false, message: 'Erro interno' };
     }
 }
-
-// All other helper functions (processImageWithGemini, formatTransactionsResponse, etc.)
-// should be copied here without modification as they are self-contained.
 
 async function processImageWithGemini(imageUrl) {
     try {
@@ -392,10 +373,11 @@ async function processImageWithGemini(imageUrl) {
 function formatTransactionsResponse(transactions) {
     let response = `👀 *Transações detectadas!*\n\n`;
     transactions.forEach(t => {
+        const type = t.valor > 0 ? 'Receita' : 'Despesa';
         response += `*${t.descricao}*\n`;
-        response += `R$ ${t.valor.toFixed(2)} | Categoria: ${t.categoria}\n\n`;
+        response += `R$ ${Math.abs(t.valor).toFixed(2)} | ${t.categoria} (${type})\n\n`;
     });
-    response += `🤔 *Confirma que está correto?* (SIM/NÃO)`;
+    response += `🤔 *Confirma a importação?*`;
     return response;
 }
 
@@ -407,7 +389,7 @@ async function saveTransactionToSupabase(userId, transaction) {
             amount: Math.abs(transaction.valor),
             type: transaction.valor > 0 ? 'income' : 'expense',
             category: transaction.categoria.toLowerCase(),
-            date: new Date().toISOString() // Or use date from transaction if available
+            date: new Date().toISOString()
         });
         if (error) throw error;
         return true;
@@ -418,16 +400,63 @@ async function saveTransactionToSupabase(userId, transaction) {
 }
 
 async function getUserContextForChat(userId) {
-    // Dummy context for now. Implement real data fetching as in bot.js
-    return {
-        balance: 1000,
-        transactionCount: 5,
-        recentTransactions: [],
-        activeBills: []
-    };
+    try {
+        const { data: transactions, error: transactionsError } = await supabase
+            .from('transactions')
+            .select('title, amount, type, date')
+            .eq('user_id', userId)
+            .order('date', { ascending: false })
+            .limit(10);
+        if (transactionsError) console.error('Error fetching transactions:', transactionsError);
+
+        const { data: bills, error: billsError } = await supabase
+            .from('bills')
+            .select('title, amount, due_date, is_paid')
+            .eq('user_id', userId)
+            .order('due_date', { ascending: true })
+            .limit(20);
+        if (billsError) console.error('Error fetching bills:', billsError);
+
+        const { data: allTransactions, error: allTransactionsError } = await supabase
+            .from('transactions')
+            .select('amount, type')
+            .eq('user_id', userId);
+        if (allTransactionsError) console.error('Error fetching all transactions for balance:', allTransactionsError);
+
+        const balance = allTransactions?.reduce((sum, t) => {
+            const amount = t.type === 'income' ? Math.abs(t.amount || 0) : -Math.abs(t.amount || 0);
+            return sum + amount;
+        }, 0) || 0;
+
+        const activeBills = bills?.filter(b => !b.is_paid) || [];
+        const totalBillsValue = activeBills.reduce((sum, b) => sum + (b.amount || 0), 0);
+
+        return {
+            balance: balance,
+            transactionCount: allTransactions?.length || 0,
+            recentTransactions: transactions || [],
+            activeBills: activeBills,
+            totalBillsValue: totalBillsValue
+        };
+    } catch (error) {
+        console.error('Error getting user context:', error);
+        return { balance: 0, transactionCount: 0, recentTransactions: [], activeBills: [], totalBillsValue: 0 };
+    }
 }
 
 async function callGeminiForChat(message, userContext, userSession) {
-    // Dummy response for now. Implement real Gemini call as in bot.js
-    return `Olá ${userSession.userName}, recebi sua mensagem: "${message}". Esta é uma resposta de chat.`;
+    try {
+        const prompt = `Você é um assistente financeiro amigável chamado Stater. O usuário ${userSession.userName} está pedindo ajuda. Contexto: Saldo Atual: R$ ${userContext.balance.toFixed(2)}, ${userContext.activeBills.length} contas a pagar. Últimas transações: ${userContext.recentTransactions.map(t => t.title).join(', ')}. Com base nesse contexto, responda à pergunta: "${message}"`;
+
+        const response = await axios.post(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
+            { contents: [{ parts: [{ text: prompt }] }] }
+        );
+
+        const text = response.data.candidates[0].content.parts[0].text;
+        return text.trim();
+    } catch (error) {
+        console.error('Error calling Gemini for chat:', error.response?.data || error.message);
+        return '😥 Desculpe, não consegui processar sua pergunta no momento.';
+    }
 }

@@ -6,10 +6,6 @@ const axios = require('axios');
 
 const { createClient } = require('@supabase/supabase-js');
 
-// Log Supabase connection details
-console.log('Supabase URL:', process.env.SUPABASE_URL ? 'Available' : 'Missing');
-console.log('Supabase Key:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Available' : 'Missing');
-
 const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY,
@@ -23,12 +19,6 @@ const supabase = createClient(
 
 // In-memory cache for user sessions within a single request lifecycle.
 const userSessions = new Map();
-
-// Check if TELEGRAM_BOT_TOKEN is available
-if (!process.env.TELEGRAM_BOT_TOKEN) {
-    console.error('TELEGRAM_BOT_TOKEN is not set!');
-}
-
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
 
 // =================================================================================
@@ -36,15 +26,12 @@ const TELEGRAM_API_URL = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT
 // =================================================================================
 
 async function sendMessage(chatId, text, options = {}) {
-    console.log('sendMessage called:', { chatId, textLength: text.length, options });
-    
     try {
         const response = await axios.post(`${TELEGRAM_API_URL}/sendMessage`, {
             chat_id: chatId,
             text,
             ...options,
         });
-        console.log('Message sent successfully:', response.data);
         return response;
     } catch (error) {
         console.error('Error in sendMessage:', error.response?.data || error.message);
@@ -71,20 +58,10 @@ async function getFileLink(fileId) {
 // =================================================================================
 
 module.exports = async (req, res) => {
-    // Debug logging for environment variables
-    console.log('TELEGRAM_BOT_TOKEN available:', !!process.env.TELEGRAM_BOT_TOKEN);
-    console.log('SUPABASE_URL available:', !!process.env.SUPABASE_URL);
-    console.log('GEMINI_API_KEY available:', !!process.env.GEMINI_API_KEY);
-    
     if (req.method === 'GET') {
         return res.status(200).json({ 
             status: 'active', 
-            message: 'Bot is running and ready for POST updates from Telegram.',
-            env_check: {
-                telegram_token: !!process.env.TELEGRAM_BOT_TOKEN,
-                supabase_url: !!process.env.SUPABASE_URL,
-                gemini_key: !!process.env.GEMINI_API_KEY
-            }
+            message: 'Bot is running and ready for POST updates from Telegram.'
         });
     }
 
@@ -106,22 +83,17 @@ module.exports = async (req, res) => {
 // =================================================================================
 
 async function handleUpdate(update) {
-    console.log('Processing update:', JSON.stringify(update));
-    
     const message = update.message || update.edited_message;
     if (!message) {
         console.log('Received a non-message update, ignoring.');
         return;
     }
 
-    console.log('Message received:', message.text || 'photo message');
-    
     const text = message.text;
     const photo = message.photo;
 
     try {
         if (text) {
-            console.log('Processing text message:', text);
             if (text.startsWith('/start')) return await handleStart(message);
             if (text.startsWith('/help')) return await handleHelp(message);
             if (text.startsWith('/dashboard')) return await handleDashboard(message);
@@ -132,11 +104,8 @@ async function handleUpdate(update) {
         }
 
         if (photo) {
-            console.log('Processing photo message');
             return await handlePhoto(message);
         }
-        
-        console.log('No text or photo found in message');
     } catch (error) {
         console.error('Error in handleUpdate:', error.message, error.stack);
         throw error;
@@ -178,17 +147,12 @@ async function getSession(chatId) {
 // Command Handlers
 // =================================================================================
 
-async function handleStart(msg) {
-    console.log('handleStart called for chat:', msg.chat.id);
-    
+async function handleStart(msg) {    
     const chatId = msg.chat.id;
     const match = msg.text.match(/\/start(.*)/);
     const linkCode = match[1] ? match[1].trim() : null;
 
-    console.log('Link code from start command:', linkCode);
-
     if (linkCode) {
-        console.log('Processing link code:', linkCode);
         const linkResult = await linkTelegramWithCode(chatId, linkCode);
         if (linkResult.success) {
             const welcomeMessage = `🎉 *Conectado com sucesso!*\n\nOi ${linkResult.userName}! 👋\n\n✨ *Agora você pode:*\n📸 Enviar foto do seu extrato\n💬 Fazer perguntas sobre dinheiro\n📊 Ver suas transações\n\n🚀 *Vamos começar?*\nMande uma foto do seu extrato ou pergunte algo!`;
@@ -197,12 +161,10 @@ async function handleStart(msg) {
         }
     }
 
-    console.log('Sending welcome message to chat:', chatId);
-    const welcomeMessage = `👋 *Olá! Sou o Stater IA*\n\n🔒 *Para usar todos os recursos, conecte sua conta:*\n\n**Como conectar:**\n1. Acesse: ${process.env.APP_URL}\n2. Vá em Configurações → Bot Telegram\n3. Gere um código de vinculação\n4. Envie o código aqui no chat\n\n⚠️ *Importante:* Sem conexão, não posso acessar seus dados financeiros ou fazer análises personalizadas.\n\n💡 Use /help para ver mais comandos.`;
+    const welcomeMessage = `👋 *Olá! Sou o Stater IA*\n\n🔒 *Para usar todos os recursos, conecte sua conta:*\n\n**Como conectar:**\n1. Acesse: https://stater.app\n2. Vá em Configurações → Bot Telegram\n3. Gere um código de vinculação\n4. Envie o código aqui no chat\n\n⚠️ *Importante:* Sem conexão, não posso acessar seus dados financeiros ou fazer análises personalizadas.\n\n💡 Use /help para ver mais comandos.`;
     
     try {
         await sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
-        console.log('Welcome message sent successfully');
     } catch (error) {
         console.error('Error sending welcome message:', error.message, error.stack);
         throw error;
@@ -344,6 +306,14 @@ async function handleTextMessage(msg) {
         await sendMessage(chatId, `OK, transações descartadas.`, { reply_markup: { remove_keyboard: true } });
         return;
     }
+    
+    // Handle transaction type selection
+    if (lowerText === '📈 entrada' || lowerText === 'entrada') {
+        return await handlePendingTransactionType(chatId, 'income');
+    }
+    if (lowerText === '📉 saída' || lowerText === 'saida' || lowerText === 'saída') {
+        return await handlePendingTransactionType(chatId, 'expense');
+    }
 
     if (/^\d{6}$/.test(text.trim())) {
         const linkResult = await linkTelegramWithCode(chatId, text.trim());
@@ -357,9 +327,164 @@ async function handleTextMessage(msg) {
 
     const userSession = await getSession(chatId);
     if (userSession) {
-        await processChatMessage(chatId, text, userSession);
+        // Check if user wants to add a transaction
+        const transactionMatch = await detectTransactionIntent(text);
+        if (transactionMatch) {
+            await handleQuickTransaction(chatId, transactionMatch, userSession);
+        } else {
+            await processChatMessage(chatId, text, userSession);
+        }
     } else {
         await sendMessage(chatId, `🔒 *Conta não conectada.*\n\nPara usar o chat, preciso que conecte sua conta. Use o comando /conectar para saber como.`, { parse_mode: 'Markdown' });
+    }
+}
+
+// =================================================================================
+// Quick Transaction Processing
+// =================================================================================
+
+async function detectTransactionIntent(message) {
+    const text = message.toLowerCase();
+    
+    // Patterns for adding income/expenses
+    const addPatterns = [
+        /adicionar?\s+(?:entrada|receita|ganho)\s+(?:de\s+)?r?\$?\s*(\d+(?:[,.]\d{2})?)/i,
+        /(?:entrada|receita|ganho)\s+(?:de\s+)?r?\$?\s*(\d+(?:[,.]\d{2})?)/i,
+        /adicionar?\s+r?\$?\s*(\d+(?:[,.]\d{2})?)\s+(?:entrada|receita|ganho)/i,
+        /adicionar?\s+(?:saida|saída|gasto|despesa)\s+(?:de\s+)?r?\$?\s*(\d+(?:[,.]\d{2})?)/i,
+        /(?:saida|saída|gasto|despesa)\s+(?:de\s+)?r?\$?\s*(\d+(?:[,.]\d{2})?)/i,
+        /adicionar?\s+r?\$?\s*(\d+(?:[,.]\d{2})?)\s+(?:saida|saída|gasto|despesa)/i,
+        /adicionar?\s+r?\$?\s*(\d+(?:[,.]\d{2})?)/i,
+        /^r?\$?\s*(\d+(?:[,.]\d{2})?)\s+(?:entrada|receita|ganho|saida|saída|gasto|despesa)?/i
+    ];
+    
+    for (const pattern of addPatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            const amount = parseFloat(match[1].replace(',', '.'));
+            const isIncome = /entrada|receita|ganho/.test(text);
+            const isExpense = /saida|saída|gasto|despesa/.test(text);
+            
+            // If not explicitly specified, ask user
+            if (!isIncome && !isExpense) {
+                return { amount, type: 'unknown' };
+            }
+            
+            return {
+                amount,
+                type: isIncome ? 'income' : 'expense',
+                description: extractDescription(message, match[1]) || (isIncome ? 'Entrada via bot' : 'Saída via bot')
+            };
+        }
+    }
+    
+    return null;
+}
+
+function extractDescription(message, amountStr) {
+    let desc = message.replace(new RegExp(amountStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '');
+    desc = desc.replace(/adicionar?|entrada|receita|ganho|saida|saída|gasto|despesa|r\$|\$|de/gi, '');
+    desc = desc.trim();
+    return desc.length > 3 ? desc : null;
+}
+
+async function handleQuickTransaction(chatId, transactionData, userSession) {
+    if (transactionData.type === 'unknown') {
+        // Ask user to specify type
+        await sendMessage(chatId, `💰 *R$ ${transactionData.amount.toFixed(2)}*\n\nÉ uma entrada ou saída?`, {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                keyboard: [
+                    [{ text: '📈 Entrada' }, { text: '📉 Saída' }],
+                    [{ text: '❌ Cancelar' }]
+                ],
+                resize_keyboard: true,
+                one_time_keyboard: true
+            }
+        });
+        
+        // Store pending transaction
+        await supabase
+            .from('telegram_users')
+            .update({ 
+                pending_transactions: [{
+                    amount: transactionData.amount,
+                    description: transactionData.description || 'Transação via bot',
+                    type: 'pending_type'
+                }]
+            })
+            .eq('telegram_chat_id', chatId.toString());
+        return;
+    }
+    
+    // Save transaction directly
+    const success = await saveTransactionToSupabase(userSession.userId, {
+        descricao: transactionData.description,
+        valor: transactionData.type === 'income' ? transactionData.amount : -transactionData.amount,
+        categoria: transactionData.type === 'income' ? 'outros' : 'diversos'
+    });
+    
+    if (success) {
+        const userContext = await getUserContextForChat(userSession.userId);
+        const typeEmoji = transactionData.type === 'income' ? '📈' : '📉';
+        const typeText = transactionData.type === 'income' ? 'Entrada' : 'Saída';
+        
+        await sendMessage(chatId, `✅ *${typeText} adicionada!*\n\n${typeEmoji} *${transactionData.description}*\nR$ ${transactionData.amount.toFixed(2)}\n\n💰 Novo saldo: *R$ ${userContext.balance.toFixed(2)}*`, {
+            parse_mode: 'Markdown'
+        });
+    } else {
+        await sendMessage(chatId, '❌ *Erro ao salvar transação.* Tente novamente.', { parse_mode: 'Markdown' });
+    }
+}
+
+async function handlePendingTransactionType(chatId, type) {
+    const userSession = await getSession(chatId);
+    if (!userSession) {
+        await sendMessage(chatId, '🔒 Você precisa estar conectado.', { reply_markup: { remove_keyboard: true } });
+        return;
+    }
+
+    // Get pending transaction
+    const { data: userData } = await supabase
+        .from('telegram_users')
+        .select('pending_transactions')
+        .eq('telegram_chat_id', chatId.toString())
+        .single();
+
+    if (!userData?.pending_transactions?.[0]) {
+        await sendMessage(chatId, '🤔 Nenhuma transação pendente encontrada.', { reply_markup: { remove_keyboard: true } });
+        return;
+    }
+
+    const pendingTx = userData.pending_transactions[0];
+    
+    // Save transaction
+    const success = await saveTransactionToSupabase(userSession.userId, {
+        descricao: pendingTx.description,
+        valor: type === 'income' ? pendingTx.amount : -pendingTx.amount,
+        categoria: type === 'income' ? 'outros' : 'diversos'
+    });
+
+    if (success) {
+        // Clear pending transaction
+        await supabase
+            .from('telegram_users')
+            .update({ pending_transactions: null })
+            .eq('telegram_chat_id', chatId.toString());
+
+        const userContext = await getUserContextForChat(userSession.userId);
+        const typeEmoji = type === 'income' ? '📈' : '📉';
+        const typeText = type === 'income' ? 'Entrada' : 'Saída';
+        
+        await sendMessage(chatId, `✅ *${typeText} adicionada!*\n\n${typeEmoji} *${pendingTx.description}*\nR$ ${pendingTx.amount.toFixed(2)}\n\n💰 Novo saldo: *R$ ${userContext.balance.toFixed(2)}*`, {
+            parse_mode: 'Markdown',
+            reply_markup: { remove_keyboard: true }
+        });
+    } else {
+        await sendMessage(chatId, '❌ *Erro ao salvar transação.* Tente novamente.', { 
+            parse_mode: 'Markdown',
+            reply_markup: { remove_keyboard: true }
+        });
     }
 }
 
@@ -558,7 +683,23 @@ async function getUserContextForChat(userId) {
 
 async function callGeminiForChat(message, userContext, userSession) {
     try {
-        const prompt = `Você é um assistente financeiro amigável chamado Stater. O usuário ${userSession.userName} está pedindo ajuda. Contexto: Saldo Atual: R$ ${userContext.balance.toFixed(2)}, ${userContext.activeBills.length} contas a pagar. Últimas transações: ${userContext.recentTransactions.map(t => t.title).join(', ')}. Com base nesse contexto, responda à pergunta: "${message}"`;
+        const prompt = `Você é o Stater, um assistente financeiro direto e objetivo. 
+
+CONTEXTO:
+- Usuário: ${userSession.userName}
+- Saldo: R$ ${userContext.balance.toFixed(2)}
+- Contas pendentes: ${userContext.activeBills.length}
+
+INSTRUÇÕES:
+- Seja DIRETO e CONCISO (máximo 3 linhas)
+- NÃO dê palestras ou conselhos longos
+- Responda apenas o que foi perguntado
+- Use emojis para deixar amigável
+- Se a pergunta for sobre adicionar transação, apenas confirme se entendeu corretamente
+
+PERGUNTA: "${message}"
+
+Resposta:`;
 
         const response = await axios.post(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTermsAcceptance } from '@/hooks/useTermsAcceptance';
 import { TermsModal } from '@/components/terms/TermsModal';
@@ -11,50 +11,19 @@ export const TermsWrapper: React.FC<TermsWrapperProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { showTermsModal, isChecking, acceptTerms, hasAcceptedTerms } = useTermsAcceptance();
-  
-  // 🔧 NOVA CORREÇÃO: Controle rigoroso para evitar loops de redirecionamento
-  const [hasRedirected, setHasRedirected] = useState(false);
-  const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastPathRef = useRef(location.pathname);
 
   // Páginas públicas que não precisam de verificação de termos
   const publicPages = ['/login', '/reset-password', '/privacy', '/terms', '/test'];
   const isPublicPage = publicPages.includes(location.pathname);
 
-  // 🔧 NOVA CORREÇÃO: Efeito com controle rigoroso de redirecionamento
   useEffect(() => {
-    // Limpar timeout anterior
-    if (redirectTimeoutRef.current) {
-      clearTimeout(redirectTimeoutRef.current);
-    }
-
-    // Resetar flag se mudou de página
-    if (lastPathRef.current !== location.pathname) {
-      setHasRedirected(false);
-      lastPathRef.current = location.pathname;
-    }
-
-    // Só redirecionar se: não é página pública, não está verificando, termos aceitos, não redirecionou ainda, e não está no dashboard
-    if (!isPublicPage && 
-        !isChecking && 
-        hasAcceptedTerms && 
-        !hasRedirected && 
-        location.pathname !== '/dashboard') {
-      
-      console.log('🚀 [TERMS WRAPPER] Termos aceitos - iniciando redirecionamento imediato...');
-      
-      setHasRedirected(true);
-      
-      // Redirecionamento imediato para o dashboard
+    // Se o usuário está logado (termos aceitos) e está na HomePage ('/'),
+    // redireciona para o dashboard. Isso lida com o cenário pós-login.
+    if (location.pathname === '/' && hasAcceptedTerms && !isChecking) {
+      console.log('🚀 [TERMS WRAPPER] Usuário logado na HomePage, redirecionando para o dashboard...');
       navigate('/dashboard', { replace: true });
     }
-
-    return () => {
-      if (redirectTimeoutRef.current) {
-        clearTimeout(redirectTimeoutRef.current);
-      }
-    };
-  }, [hasAcceptedTerms, isChecking, isPublicPage, location.pathname, navigate, hasRedirected]);
+  }, [location.pathname, hasAcceptedTerms, isChecking, navigate]);
 
   const handleAcceptTerms = async () => {
     console.log('✅ [TERMS WRAPPER] Aceitando termos...');
@@ -69,15 +38,21 @@ export const TermsWrapper: React.FC<TermsWrapperProps> = ({ children }) => {
       
       console.log('✅ [TERMS WRAPPER] Termos aceitos com sucesso');
       
-      // Não redirecionar imediatamente - deixar o useEffect cuidar disso
-      // O redirecionamento será feito quando hasAcceptedTerms mudar
-      
     } catch (error) {
       console.error('❌ [TERMS WRAPPER] Erro ao aceitar termos:', error);
     }
   };
 
-  // Para páginas públicas, renderizar sempre
+  // Se for a página inicial para um usuário logado, mostre um loader enquanto redireciona
+  if (location.pathname === '/' && hasAcceptedTerms && !isChecking) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-galileo-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-galileo-accent"></div>
+      </div>
+    );
+  }
+
+  // Para outras páginas públicas, renderizar sempre
   if (isPublicPage) {
     return <>{children}</>;
   }

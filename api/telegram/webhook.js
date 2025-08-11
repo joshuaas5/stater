@@ -367,10 +367,13 @@ async function handleTextMessage(msg) {
     const text = msg.text;
 
     const lowerText = text.toLowerCase();
-    if (lowerText === '✅ sim' || lowerText === 'sim' || lowerText === 'confirmar' || lowerText === '✅ confirmar') {
+    
+    // Handle confirmation responses with more variations
+    if (lowerText === '✅ sim' || lowerText === 'sim' || lowerText === '✅ confirmar' || lowerText === 'confirmar') {
         return await confirmTransactions(chatId);
     }
-    if (lowerText === '❌ não' || lowerText === 'nao' || lowerText === 'não' || lowerText === 'cancelar' || lowerText === '❌ cancelar') {
+    
+    if (lowerText === '❌ não' || lowerText === 'nao' || lowerText === 'não' || lowerText === '❌ cancelar' || lowerText === 'cancelar') {
         // Clear pending transactions from the database
         await supabase
             .from('telegram_users')
@@ -592,11 +595,16 @@ async function processChatMessage(chatId, message, userSession) {
 }
 
 async function confirmTransactions(chatId) {
+    console.log('confirmTransactions called for chat:', chatId);
+    
     const userSession = await getSession(chatId);
     if (!userSession) {
+        console.log('No user session found');
         await sendMessage(chatId, '🔒 Você precisa estar conectado para salvar.', { reply_markup: { remove_keyboard: true } });
         return;
     }
+
+    console.log('User session found:', userSession.userName);
 
     // Retrieve pending transactions from the database
     const { data: userData, error: fetchError } = await supabase
@@ -605,12 +613,17 @@ async function confirmTransactions(chatId) {
         .eq('telegram_chat_id', chatId.toString())
         .single();
 
+    console.log('Database query result:', { userData, fetchError });
+
     if (fetchError || !userData || !userData.pending_transactions) {
+        console.log('No pending transactions found in database');
         await sendMessage(chatId, '🤔 Nenhuma transação pendente para confirmar.', { reply_markup: { remove_keyboard: true } });
         return;
     }
 
     const pending = userData.pending_transactions;
+    console.log('Pending transactions:', pending);
+    
     let savedCount = 0;
     
     // Handle single transaction (from text input) vs multiple transactions (from image)
@@ -619,9 +632,11 @@ async function confirmTransactions(chatId) {
         
         if (tx.type === 'pending_type') {
             // This shouldn't happen, but handle it gracefully
+            console.log('Skipping pending_type transaction');
             continue;
         } else if (tx.type === 'income' || tx.type === 'expense') {
             // Single transaction from text input
+            console.log('Saving single transaction:', tx);
             success = await saveTransactionToSupabase(userSession.userId, {
                 descricao: tx.description,
                 valor: tx.type === 'income' ? tx.amount : -tx.amount,
@@ -629,9 +644,11 @@ async function confirmTransactions(chatId) {
             });
         } else {
             // Multiple transactions from image (original format)
+            console.log('Saving image transaction:', tx);
             success = await saveTransactionToSupabase(userSession.userId, tx);
         }
         
+        console.log('Transaction save result:', success);
         if (success) savedCount++;
     }
 
@@ -640,6 +657,8 @@ async function confirmTransactions(chatId) {
         .from('telegram_users')
         .update({ pending_transactions: null })
         .eq('telegram_chat_id', chatId.toString());
+
+    console.log('Saved count:', savedCount, 'Total:', pending.length);
 
     if (pending.length === 1 && (pending[0].type === 'income' || pending[0].type === 'expense')) {
         // Single transaction confirmation

@@ -91,6 +91,9 @@ async function handleUpdate(update) {
 
     const text = message.text;
     const photo = message.photo;
+    const voice = message.voice;
+    const audio = message.audio;
+    const document = message.document;
 
     try {
         if (text) {
@@ -105,6 +108,14 @@ async function handleUpdate(update) {
 
         if (photo) {
             return await handlePhoto(message);
+        }
+        
+        if (voice || audio) {
+            return await handleAudio(message);
+        }
+        
+        if (document) {
+            return await handleDocument(message);
         }
     } catch (error) {
         console.error('Error in handleUpdate:', error.message, error.stack);
@@ -271,7 +282,7 @@ async function handlePhoto(msg) {
             await sendMessage(chatId, response, {
                 parse_mode: 'Markdown',
                 reply_markup: {
-                    keyboard: [[{ text: '✅ SIM' }, { text: '❌ NÃO' }]],
+                    keyboard: [[{ text: '✅ Confirmar' }, { text: '❌ Cancelar' }]],
                     resize_keyboard: true,
                     one_time_keyboard: true
                 }
@@ -288,22 +299,88 @@ async function handlePhoto(msg) {
     }
 }
 
+async function handleAudio(msg) {
+    const chatId = msg.chat.id;
+    const userSession = await getSession(chatId);
+
+    if (!userSession) {
+        await sendMessage(chatId, '🔒 Para processar áudio, sua conta precisa estar conectada. Use /conectar.');
+        return;
+    }
+
+    const audioFile = msg.voice || msg.audio;
+    const processingMsg = await sendMessage(chatId, '🎤 *Processando áudio...* Aguarde um momento.', { parse_mode: 'Markdown' });
+
+    try {
+        // Get audio file
+        const fileUrl = await getFileLink(audioFile.file_id);
+        
+        // For now, we'll send a message asking the user to type instead
+        // In the future, you could integrate speech-to-text services like Google Speech API
+        await deleteMessage(chatId, processingMsg.data.result.message_id);
+        await sendMessage(chatId, '🎤 *Áudio recebido!*\n\n📝 Por enquanto, digite sua transação usando texto. Em breve adicionaremos suporte completo para áudio!\n\n💡 *Exemplo:* "entrada 100" ou "saída 50"', { parse_mode: 'Markdown' });
+        
+    } catch (error) {
+        if (processingMsg.data.result.message_id) {
+            await deleteMessage(chatId, processingMsg.data.result.message_id);
+        }
+        console.error('Error processing audio:', error);
+        await sendMessage(chatId, '😥 *Erro ao processar áudio.* Por favor, tente digitando sua transação.', { parse_mode: 'Markdown' });
+    }
+}
+
+async function handleDocument(msg) {
+    const chatId = msg.chat.id;
+    const userSession = await getSession(chatId);
+
+    if (!userSession) {
+        await sendMessage(chatId, '🔒 Para analisar documentos, sua conta precisa estar conectada. Use /conectar.');
+        return;
+    }
+
+    const document = msg.document;
+    
+    // Check if it's a PDF
+    if (document.mime_type === 'application/pdf' || document.file_name?.toLowerCase().endsWith('.pdf')) {
+        const processingMsg = await sendMessage(chatId, '📄 *Analisando PDF...* Aguarde um momento.', { parse_mode: 'Markdown' });
+
+        try {
+            // For now, we'll ask users to convert PDF to image
+            // In the future, you could integrate PDF processing services
+            await deleteMessage(chatId, processingMsg.data.result.message_id);
+            await sendMessage(chatId, '📄 *PDF recebido!*\n\n📸 Por enquanto, tire uma foto ou screenshot do extrato e envie como imagem. Em breve adicionaremos suporte completo para PDFs!\n\n💡 *Dica:* Fotos de extratos funcionam muito bem!', { parse_mode: 'Markdown' });
+            
+        } catch (error) {
+            if (processingMsg.data.result.message_id) {
+                await deleteMessage(chatId, processingMsg.data.result.message_id);
+            }
+            console.error('Error processing document:', error);
+            await sendMessage(chatId, '😥 *Erro ao processar documento.* Tente enviar uma foto do extrato.', { parse_mode: 'Markdown' });
+        }
+    } else {
+        await sendMessage(chatId, '📎 *Documento recebido!*\n\n📄 Atualmente suporto apenas PDFs de extratos e fotos. Tente enviar uma foto do seu extrato bancário.', { parse_mode: 'Markdown' });
+    }
+}
+
 async function handleTextMessage(msg) {
     const chatId = msg.chat.id;
     const text = msg.text;
 
     const lowerText = text.toLowerCase();
-    if (lowerText === '✅ sim' || lowerText === 'sim' || lowerText === 'confirmar') {
+    if (lowerText === '✅ sim' || lowerText === 'sim' || lowerText === 'confirmar' || lowerText === '✅ confirmar') {
         return await confirmTransactions(chatId);
     }
-    if (lowerText === '❌ não' || lowerText === 'nao' || lowerText === 'não' || lowerText === 'cancelar') {
+    if (lowerText === '❌ não' || lowerText === 'nao' || lowerText === 'não' || lowerText === 'cancelar' || lowerText === '❌ cancelar') {
         // Clear pending transactions from the database
         await supabase
             .from('telegram_users')
             .update({ pending_transactions: null })
             .eq('telegram_chat_id', chatId.toString());
             
-        await sendMessage(chatId, `OK, transações descartadas.`, { reply_markup: { remove_keyboard: true } });
+        await sendMessage(chatId, `❌ *Cancelado!* Transação não foi adicionada.`, { 
+            parse_mode: 'Markdown',
+            reply_markup: { remove_keyboard: true } 
+        });
         return;
     }
     
@@ -390,7 +467,7 @@ function extractDescription(message, amountStr) {
 
 async function handleQuickTransaction(chatId, transactionData, userSession) {
     if (transactionData.type === 'unknown') {
-        // Ask user to specify type
+        // Ask user to specify type first
         await sendMessage(chatId, `💰 *R$ ${transactionData.amount.toFixed(2)}*\n\nÉ uma entrada ou saída?`, {
             parse_mode: 'Markdown',
             reply_markup: {
@@ -417,24 +494,32 @@ async function handleQuickTransaction(chatId, transactionData, userSession) {
         return;
     }
     
-    // Save transaction directly
-    const success = await saveTransactionToSupabase(userSession.userId, {
-        descricao: transactionData.description,
-        valor: transactionData.type === 'income' ? transactionData.amount : -transactionData.amount,
-        categoria: transactionData.type === 'income' ? 'outros' : 'diversos'
+    // Ask for confirmation before saving
+    const typeEmoji = transactionData.type === 'income' ? '📈' : '📉';
+    const typeText = transactionData.type === 'income' ? 'Entrada' : 'Saída';
+    
+    await sendMessage(chatId, `🤔 *Confirmar ${typeText}?*\n\n${typeEmoji} *${transactionData.description}*\nR$ ${transactionData.amount.toFixed(2)}\n\n*Deseja adicionar esta transação?*`, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+            keyboard: [
+                [{ text: '✅ Confirmar' }, { text: '❌ Cancelar' }]
+            ],
+            resize_keyboard: true,
+            one_time_keyboard: true
+        }
     });
     
-    if (success) {
-        const userContext = await getUserContextForChat(userSession.userId);
-        const typeEmoji = transactionData.type === 'income' ? '📈' : '📉';
-        const typeText = transactionData.type === 'income' ? 'Entrada' : 'Saída';
-        
-        await sendMessage(chatId, `✅ *${typeText} adicionada!*\n\n${typeEmoji} *${transactionData.description}*\nR$ ${transactionData.amount.toFixed(2)}\n\n💰 Novo saldo: *R$ ${userContext.balance.toFixed(2)}*`, {
-            parse_mode: 'Markdown'
-        });
-    } else {
-        await sendMessage(chatId, '❌ *Erro ao salvar transação.* Tente novamente.', { parse_mode: 'Markdown' });
-    }
+    // Store pending transaction for confirmation
+    await supabase
+        .from('telegram_users')
+        .update({ 
+            pending_transactions: [{
+                amount: transactionData.amount,
+                description: transactionData.description,
+                type: transactionData.type
+            }]
+        })
+        .eq('telegram_chat_id', chatId.toString());
 }
 
 async function handlePendingTransactionType(chatId, type) {
@@ -458,34 +543,32 @@ async function handlePendingTransactionType(chatId, type) {
 
     const pendingTx = userData.pending_transactions[0];
     
-    // Save transaction
-    const success = await saveTransactionToSupabase(userSession.userId, {
-        descricao: pendingTx.description,
-        valor: type === 'income' ? pendingTx.amount : -pendingTx.amount,
-        categoria: type === 'income' ? 'outros' : 'diversos'
+    // Update pending transaction with the type and ask for confirmation
+    const typeEmoji = type === 'income' ? '📈' : '📉';
+    const typeText = type === 'income' ? 'Entrada' : 'Saída';
+    
+    await sendMessage(chatId, `🤔 *Confirmar ${typeText}?*\n\n${typeEmoji} *${pendingTx.description}*\nR$ ${pendingTx.amount.toFixed(2)}\n\n*Deseja adicionar esta transação?*`, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+            keyboard: [
+                [{ text: '✅ Confirmar' }, { text: '❌ Cancelar' }]
+            ],
+            resize_keyboard: true,
+            one_time_keyboard: true
+        }
     });
-
-    if (success) {
-        // Clear pending transaction
-        await supabase
-            .from('telegram_users')
-            .update({ pending_transactions: null })
-            .eq('telegram_chat_id', chatId.toString());
-
-        const userContext = await getUserContextForChat(userSession.userId);
-        const typeEmoji = type === 'income' ? '📈' : '📉';
-        const typeText = type === 'income' ? 'Entrada' : 'Saída';
-        
-        await sendMessage(chatId, `✅ *${typeText} adicionada!*\n\n${typeEmoji} *${pendingTx.description}*\nR$ ${pendingTx.amount.toFixed(2)}\n\n💰 Novo saldo: *R$ ${userContext.balance.toFixed(2)}*`, {
-            parse_mode: 'Markdown',
-            reply_markup: { remove_keyboard: true }
-        });
-    } else {
-        await sendMessage(chatId, '❌ *Erro ao salvar transação.* Tente novamente.', { 
-            parse_mode: 'Markdown',
-            reply_markup: { remove_keyboard: true }
-        });
-    }
+    
+    // Update pending transaction with the specified type
+    await supabase
+        .from('telegram_users')
+        .update({ 
+            pending_transactions: [{
+                amount: pendingTx.amount,
+                description: pendingTx.description,
+                type: type
+            }]
+        })
+        .eq('telegram_chat_id', chatId.toString());
 }
 
 // =================================================================================
@@ -511,7 +594,7 @@ async function processChatMessage(chatId, message, userSession) {
 async function confirmTransactions(chatId) {
     const userSession = await getSession(chatId);
     if (!userSession) {
-        await sendMessage(chatId, '🔒 Você precisa estar conectado para salvar. Use /conectar.', { reply_markup: { remove_keyboard: true } });
+        await sendMessage(chatId, '🔒 Você precisa estar conectado para salvar.', { reply_markup: { remove_keyboard: true } });
         return;
     }
 
@@ -529,8 +612,26 @@ async function confirmTransactions(chatId) {
 
     const pending = userData.pending_transactions;
     let savedCount = 0;
+    
+    // Handle single transaction (from text input) vs multiple transactions (from image)
     for (const tx of pending) {
-        const success = await saveTransactionToSupabase(userSession.userId, tx);
+        let success = false;
+        
+        if (tx.type === 'pending_type') {
+            // This shouldn't happen, but handle it gracefully
+            continue;
+        } else if (tx.type === 'income' || tx.type === 'expense') {
+            // Single transaction from text input
+            success = await saveTransactionToSupabase(userSession.userId, {
+                descricao: tx.description,
+                valor: tx.type === 'income' ? tx.amount : -tx.amount,
+                categoria: tx.type === 'income' ? 'outros' : 'diversos'
+            });
+        } else {
+            // Multiple transactions from image (original format)
+            success = await saveTransactionToSupabase(userSession.userId, tx);
+        }
+        
         if (success) savedCount++;
     }
 
@@ -540,11 +641,25 @@ async function confirmTransactions(chatId) {
         .update({ pending_transactions: null })
         .eq('telegram_chat_id', chatId.toString());
 
-    const userContext = await getUserContextForChat(userSession.userId);
-    await sendMessage(chatId, `✅ *Transações salvas!*\n\n${savedCount} de ${pending.length} foram importadas.\n\n💰 Seu novo saldo é: *R$ ${userContext.balance.toFixed(2)}*`, {
-        parse_mode: 'Markdown',
-        reply_markup: { remove_keyboard: true }
-    });
+    if (pending.length === 1 && (pending[0].type === 'income' || pending[0].type === 'expense')) {
+        // Single transaction confirmation
+        const tx = pending[0];
+        const userContext = await getUserContextForChat(userSession.userId);
+        const typeEmoji = tx.type === 'income' ? '📈' : '📉';
+        const typeText = tx.type === 'income' ? 'Entrada' : 'Saída';
+        
+        await sendMessage(chatId, `✅ *${typeText} adicionada!*\n\n${typeEmoji} *${tx.description}*\nR$ ${tx.amount.toFixed(2)}\n\n💰 Novo saldo: *R$ ${userContext.balance.toFixed(2)}*`, {
+            parse_mode: 'Markdown',
+            reply_markup: { remove_keyboard: true }
+        });
+    } else {
+        // Multiple transactions confirmation (from image)
+        const userContext = await getUserContextForChat(userSession.userId);
+        await sendMessage(chatId, `✅ *Transações salvas!*\n\n${savedCount} de ${pending.length} foram importadas.\n\n💰 Seu novo saldo é: *R$ ${userContext.balance.toFixed(2)}*`, {
+            parse_mode: 'Markdown',
+            reply_markup: { remove_keyboard: true }
+        });
+    }
 }
 
 async function linkTelegramWithCode(chatId, linkCode) {

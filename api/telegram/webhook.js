@@ -1,9 +1,8 @@
 
 const axios = require('axios');
-const path = require('path');
 
-// CORRECTED: Point to the .env file inside the telegram-bot folder
-require('dotenv').config({ path: path.resolve(process.cwd(), 'telegram-bot', '.env') });
+// Use environment variables directly from Vercel
+// No need to load .env in production
 
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(
@@ -52,8 +51,21 @@ async function getFileLink(fileId) {
 // =================================================================================
 
 module.exports = async (req, res) => {
+    // Debug logging for environment variables
+    console.log('TELEGRAM_BOT_TOKEN available:', !!process.env.TELEGRAM_BOT_TOKEN);
+    console.log('SUPABASE_URL available:', !!process.env.SUPABASE_URL);
+    console.log('GEMINI_API_KEY available:', !!process.env.GEMINI_API_KEY);
+    
     if (req.method === 'GET') {
-        return res.status(200).json({ status: 'active', message: 'Bot is running and ready for POST updates from Telegram.' });
+        return res.status(200).json({ 
+            status: 'active', 
+            message: 'Bot is running and ready for POST updates from Telegram.',
+            env_check: {
+                telegram_token: !!process.env.TELEGRAM_BOT_TOKEN,
+                supabase_url: !!process.env.SUPABASE_URL,
+                gemini_key: !!process.env.GEMINI_API_KEY
+            }
+        });
     }
 
     if (req.method !== 'POST') {

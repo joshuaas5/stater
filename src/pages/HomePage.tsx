@@ -318,6 +318,31 @@ const HomePage: React.FC = () => {
             </div>
           </div>
 
+          {/* Seção de Privacidade */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl p-8 mb-20 text-center">
+            <div className="flex justify-center mb-6">
+              <div className="bg-green-500/20 backdrop-blur-sm rounded-full w-20 h-20 flex items-center justify-center border border-green-400/30">
+                <Shield className="h-10 w-10 text-green-300" />
+              </div>
+            </div>
+            <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Sua Privacidade é Nossa Prioridade
+            </h3>
+            <p className="text-blue-100 text-lg mb-6 max-w-3xl mx-auto leading-relaxed">
+              No Stater, a segurança dos seus dados é fundamental. Utilizamos criptografia de ponta para proteger suas informações financeiras. Seus dados são seus e nunca serão compartilhados ou vendidos.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 text-green-300">
+              <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-lock"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>Criptografia AES-256</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-database-zap"><path d="M4 6c0-1.66 4-3 8-3s8 1.34 8 3"/><path d="M4 6v6c0 1.66 4 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 4 3 8 3s8-1.34 8-3v-6"/><path d="m19 15-3 6h5l-3 6"/></svg>
+                <span>Controle Total dos Dados</span>
+              </div>
+            </div>
+          </div>
+
           {/* Call to Action Final */}
           <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-12 text-center">
             <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">

@@ -5,6 +5,11 @@ const axios = require('axios');
 // No need to load .env in production
 
 const { createClient } = require('@supabase/supabase-js');
+
+// Log Supabase connection details
+console.log('Supabase URL:', process.env.SUPABASE_URL ? 'Available' : 'Missing');
+console.log('Supabase Key:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Available' : 'Missing');
+
 const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY,
@@ -18,6 +23,12 @@ const supabase = createClient(
 
 // In-memory cache for user sessions within a single request lifecycle.
 const userSessions = new Map();
+
+// Check if TELEGRAM_BOT_TOKEN is available
+if (!process.env.TELEGRAM_BOT_TOKEN) {
+    console.error('TELEGRAM_BOT_TOKEN is not set!');
+}
+
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
 
 // =================================================================================

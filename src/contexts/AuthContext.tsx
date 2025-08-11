@@ -47,6 +47,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isProcessingAuth, setIsProcessingAuth] = useState(false);
   const { toast } = useToast();
 
+  // 🔧 CORREÇÃO: Limpar o 'manual_logout' no início para evitar loops
+  useEffect(() => {
+    if (localStorage.getItem('manual_logout')) {
+      console.log('🔧 [AUTH] Limpando flag de logout manual antiga.');
+      localStorage.removeItem('manual_logout');
+    }
+  }, []);
+
   // 🔧 CORREÇÃO: Função para processar mudanças de auth sem loops
   const processAuthChange = useCallback((session: Session | null) => {
     if (isProcessingAuth) {

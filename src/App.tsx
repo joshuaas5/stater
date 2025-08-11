@@ -15,6 +15,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import TermsWrapper from "@/components/terms/TermsWrapper";
 import { useRoutePreloading } from "@/hooks/useRoutePreloading";
 import PersistentLayout from '@/components/layout/PersistentLayout';
+import HomePage from '@/pages/HomePage';
 import Dashboard from '@/pages/Dashboard';
 import FinancialAdvisorPage from '@/pages/FinancialAdvisorPage';
 import FinancialAnalysisPage from '@/pages/FinancialAnalysisPage';
@@ -80,6 +81,7 @@ const App = () => (
                       <NotificationToastManager />
                       <Routes>
                         {/* Rotas sem o layout persistente */}
+                        <Route path="/" element={<HomePage />} />
                         <Route path="/login" element={<LoginPage />} />
                         {/* <Route path="/signup" element={<SignupPage />} /> */}
                         {/* <Route path="/onboarding" element={<Onboarding />} /> */}
@@ -89,7 +91,6 @@ const App = () => (
 
                         {/* Rotas com o layout persistente */}
                         <Route element={<PersistentLayout />}>
-                          <Route path="/" element={<Dashboard />} />
                           <Route path="/dashboard" element={<Dashboard />} />
                           <Route path="/financial-advisor" element={<FinancialAdvisorPage />} />
                           <Route path="/analise-financeira" element={<FinancialAnalysisPage />} />

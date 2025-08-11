@@ -17,6 +17,7 @@ import { useRoutePreloading } from "@/hooks/useRoutePreloading";
 import PersistentLayout from '@/components/layout/PersistentLayout';
 import Dashboard from '@/pages/Dashboard';
 import FinancialAdvisorPage from '@/pages/FinancialAdvisorPage';
+import FinancialAnalysisPage from '@/pages/FinancialAnalysisPage';
 import Transactions from '@/pages/Transactions';
 import BillsPage from '@/pages/BillsPage';
 import AddBillPage from '@/pages/AddBillPage';
@@ -91,7 +92,7 @@ const App = () => (
                           <Route path="/" element={<Dashboard />} />
                           <Route path="/dashboard" element={<Dashboard />} />
                           <Route path="/financial-advisor" element={<FinancialAdvisorPage />} />
-                          <Route path="/analise-financeira" element={<FinancialAdvisorPage />} />
+                          <Route path="/analise-financeira" element={<FinancialAnalysisPage />} />
                           <Route path="/transactions" element={<Transactions />} />
                           <Route path="/bills" element={<BillsPage />} />
                           <Route path="/add-bill" element={<AddBillPage />} />

@@ -41,15 +41,12 @@ export const TermsWrapper: React.FC<TermsWrapperProps> = ({ children }) => {
         !hasRedirected && 
         location.pathname !== '/dashboard') {
       
-      console.log('🚀 [TERMS WRAPPER] Termos aceitos - iniciando redirecionamento controlado...');
+      console.log('🚀 [TERMS WRAPPER] Termos aceitos - iniciando redirecionamento imediato...');
       
       setHasRedirected(true);
       
-      // Redirecionamento com delay para evitar conflitos
-      redirectTimeoutRef.current = setTimeout(() => {
-        console.log('🚀 [TERMS WRAPPER] Executando redirecionamento para dashboard');
-        navigate('/dashboard', { replace: true });
-      }, 300);
+      // Redirecionamento imediato para o dashboard
+      navigate('/dashboard', { replace: true });
     }
 
     return () => {

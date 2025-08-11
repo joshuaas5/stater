@@ -17,7 +17,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // 🔧 CORREÇÃO: Função para limpar URL após processamento de tokens OAuth
-const cleanUrlAfterAuth = (delay = 500) => {
+const cleanUrlAfterAuth = () => {
   if (window.location.hash) {
     const fragment = window.location.hash;
     if (fragment.includes('access_token=') || 
@@ -25,17 +25,15 @@ const cleanUrlAfterAuth = (delay = 500) => {
         fragment.includes('error=') ||
         fragment.includes('type=')) {
       
-      console.log('🔧 [AUTH] OAuth processado - limpando tokens da URL');
+      console.log('🔧 [AUTH] OAuth processado - limpando tokens da URL imediatamente.');
       
-      setTimeout(() => {
-        try {
-          const cleanUrl = window.location.href.split('#')[0];
-          window.history.replaceState({}, document.title, cleanUrl);
-          console.log('🔧 [AUTH] URL limpa:', window.location.href);
-        } catch (error) {
-          console.error('🔧 [AUTH] Erro ao limpar URL:', error);
-        }
-      }, delay);
+      try {
+        const cleanUrl = window.location.href.split('#')[0];
+        window.history.replaceState({}, document.title, cleanUrl);
+        console.log('🔧 [AUTH] URL limpa:', window.location.href);
+      } catch (error) {
+        console.error('🔧 [AUTH] Erro ao limpar URL:', error);
+      }
     }
   }
 };
@@ -79,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         
         // Limpar fragments OAuth da URL
-        cleanUrlAfterAuth(800);
+        cleanUrlAfterAuth();
       } else {
         console.log('🔧 [AUTH] Usuário deslogado - limpando dados locais');
         clearUserData();

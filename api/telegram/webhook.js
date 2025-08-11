@@ -25,11 +25,20 @@ const TELEGRAM_API_URL = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT
 // =================================================================================
 
 async function sendMessage(chatId, text, options = {}) {
-    return axios.post(`${TELEGRAM_API_URL}/sendMessage`, {
-        chat_id: chatId,
-        text,
-        ...options,
-    });
+    console.log('sendMessage called:', { chatId, textLength: text.length, options });
+    
+    try {
+        const response = await axios.post(`${TELEGRAM_API_URL}/sendMessage`, {
+            chat_id: chatId,
+            text,
+            ...options,
+        });
+        console.log('Message sent successfully:', response.data);
+        return response;
+    } catch (error) {
+        console.error('Error in sendMessage:', error.response?.data || error.message);
+        throw error;
+    }
 }
 
 async function deleteMessage(chatId, messageId) {
@@ -86,27 +95,40 @@ module.exports = async (req, res) => {
 // =================================================================================
 
 async function handleUpdate(update) {
+    console.log('Processing update:', JSON.stringify(update));
+    
     const message = update.message || update.edited_message;
     if (!message) {
         console.log('Received a non-message update, ignoring.');
         return;
     }
 
+    console.log('Message received:', message.text || 'photo message');
+    
     const text = message.text;
     const photo = message.photo;
 
-    if (text) {
-        if (text.startsWith('/start')) return await handleStart(message);
-        if (text.startsWith('/help')) return await handleHelp(message);
-        if (text.startsWith('/dashboard')) return await handleDashboard(message);
-        if (text.startsWith('/conectar')) return await handleConectar(message);
-        if (text.startsWith('/conta')) return await handleConta(message);
-        if (text.startsWith('/sair')) return await handleSair(message);
-        return await handleTextMessage(message);
-    }
+    try {
+        if (text) {
+            console.log('Processing text message:', text);
+            if (text.startsWith('/start')) return await handleStart(message);
+            if (text.startsWith('/help')) return await handleHelp(message);
+            if (text.startsWith('/dashboard')) return await handleDashboard(message);
+            if (text.startsWith('/conectar')) return await handleConectar(message);
+            if (text.startsWith('/conta')) return await handleConta(message);
+            if (text.startsWith('/sair')) return await handleSair(message);
+            return await handleTextMessage(message);
+        }
 
-    if (photo) {
-        return await handlePhoto(message);
+        if (photo) {
+            console.log('Processing photo message');
+            return await handlePhoto(message);
+        }
+        
+        console.log('No text or photo found in message');
+    } catch (error) {
+        console.error('Error in handleUpdate:', error.message, error.stack);
+        throw error;
     }
 }
 
@@ -146,11 +168,16 @@ async function getSession(chatId) {
 // =================================================================================
 
 async function handleStart(msg) {
+    console.log('handleStart called for chat:', msg.chat.id);
+    
     const chatId = msg.chat.id;
     const match = msg.text.match(/\/start(.*)/);
     const linkCode = match[1] ? match[1].trim() : null;
 
+    console.log('Link code from start command:', linkCode);
+
     if (linkCode) {
+        console.log('Processing link code:', linkCode);
         const linkResult = await linkTelegramWithCode(chatId, linkCode);
         if (linkResult.success) {
             const welcomeMessage = `🎉 *Conectado com sucesso!*\n\nOi ${linkResult.userName}! 👋\n\n✨ *Agora você pode:*\n📸 Enviar foto do seu extrato\n💬 Fazer perguntas sobre dinheiro\n📊 Ver suas transações\n\n🚀 *Vamos começar?*\nMande uma foto do seu extrato ou pergunte algo!`;
@@ -159,8 +186,16 @@ async function handleStart(msg) {
         }
     }
 
+    console.log('Sending welcome message to chat:', chatId);
     const welcomeMessage = `👋 *Olá! Sou o Stater IA*\n\n🔒 *Para usar todos os recursos, conecte sua conta:*\n\n**Como conectar:**\n1. Acesse: ${process.env.APP_URL}\n2. Vá em Configurações → Bot Telegram\n3. Gere um código de vinculação\n4. Envie o código aqui no chat\n\n⚠️ *Importante:* Sem conexão, não posso acessar seus dados financeiros ou fazer análises personalizadas.\n\n💡 Use /help para ver mais comandos.`;
-    await sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
+    
+    try {
+        await sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
+        console.log('Welcome message sent successfully');
+    } catch (error) {
+        console.error('Error sending welcome message:', error.message, error.stack);
+        throw error;
+    }
 }
 
 async function handleHelp(msg) {

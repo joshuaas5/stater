@@ -365,15 +365,19 @@ async function handleDocument(msg) {
 async function handleTextMessage(msg) {
     const chatId = msg.chat.id;
     const text = msg.text;
+    
+    console.log('handleTextMessage called with:', text);
 
     const lowerText = text.toLowerCase();
     
     // Handle confirmation responses with more variations
     if (lowerText === '✅ sim' || lowerText === 'sim' || lowerText === '✅ confirmar' || lowerText === 'confirmar') {
+        console.log('Confirmation detected, calling confirmTransactions');
         return await confirmTransactions(chatId);
     }
     
     if (lowerText === '❌ não' || lowerText === 'nao' || lowerText === 'não' || lowerText === '❌ cancelar' || lowerText === 'cancelar') {
+        console.log('Cancellation detected');
         // Clear pending transactions from the database
         await supabase
             .from('telegram_users')
@@ -389,13 +393,16 @@ async function handleTextMessage(msg) {
     
     // Handle transaction type selection
     if (lowerText === '📈 entrada' || lowerText === 'entrada') {
+        console.log('Income type selected');
         return await handlePendingTransactionType(chatId, 'income');
     }
     if (lowerText === '📉 saída' || lowerText === 'saida' || lowerText === 'saída') {
+        console.log('Expense type selected');
         return await handlePendingTransactionType(chatId, 'expense');
     }
 
     if (/^\d{6}$/.test(text.trim())) {
+        console.log('6-digit code detected');
         const linkResult = await linkTelegramWithCode(chatId, text.trim());
         if (linkResult.success) {
             await sendMessage(chatId, `🎉 *Conectado com sucesso!*\n\nOi ${linkResult.userName}! 👋`, { parse_mode: 'Markdown' });

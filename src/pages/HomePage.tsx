@@ -329,16 +329,16 @@ const HomePage: React.FC = () => {
               Sua Privacidade é Nossa Prioridade
             </h3>
             <p className="text-blue-100 text-lg mb-6 max-w-3xl mx-auto leading-relaxed">
-              No Stater, a segurança dos seus dados é fundamental. Utilizamos criptografia de ponta para proteger suas informações financeiras. Seus dados são seus e nunca serão compartilhados ou vendidos.
+              No Stater, a segurança dos seus dados é fundamental. Seus dados são seus! Nunca iremos pedir para conectar sua conta bancária, pois priorizamos sua segurança.
             </p>
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 text-green-300">
               <div className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-lock"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <span>Criptografia AES-256</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-database-zap"><path d="M4 6c0-1.66 4-3 8-3s8 1.34 8 3"/><path d="M4 6v6c0 1.66 4 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 4 3 8 3s8-1.34 8-3v-6"/><path d="m19 15-3 6h5l-3 6"/></svg>
+                <span>Seus Dados, Suas Regras</span>
               </div>
               <div className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-database-zap"><path d="M4 6c0-1.66 4-3 8-3s8 1.34 8 3"/><path d="M4 6v6c0 1.66 4 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 4 3 8 3s8-1.34 8-3v-6"/><path d="m19 15-3 6h5l-3 6"/></svg>
-                <span>Controle Total dos Dados</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-credit-card-off"><path d="M2 2l20 20"/><path d="M7 7h.01"/><path d="M7 11h5"/><path d="M21 16.5c0-1-1-2-2-2s-2 .5-2 1.5c0 .42.14.8.39 1.11"/><path d="M3 10h13"/><path d="M21 8c-1.5 0-2.7.6-3.5 1.5"/><path d="M16 3h-8a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11c.4 0 .8-.1 1.1-.2"/></svg>
+                <span>Sem Conexão Bancária</span>
               </div>
             </div>
           </div>

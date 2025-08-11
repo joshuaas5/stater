@@ -2,7 +2,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
-import NavBar from '@/components/navigation/NavBar';
 import { isLoggedIn } from '@/utils/localStorage';
 import { Bell, Check, Trash2, CheckCheck } from 'lucide-react';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -113,7 +112,6 @@ const NotificationsPage: React.FC = () => {
         )}
       </div>
       
-      <NavBar />
     </div>
   );
 };

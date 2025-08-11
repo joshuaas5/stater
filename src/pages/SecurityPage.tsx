@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
-import NavBar from '@/components/navigation/NavBar';
 import { isLoggedIn, getCurrentUser, saveUser } from '@/utils/localStorage';
 import { 
   KeyRound, Lock, Fingerprint, LogOut, 
@@ -326,7 +325,6 @@ const SecurityPage: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
       
-      <NavBar />
     </div>
   );
 };

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
-import NavBar from '@/components/navigation/NavBar';
 import { AdBanner } from '@/components/monetization/AdBanner';
 import TransactionItem from '@/components/transactions/TransactionItem';
 import { Transaction, INCOME_CATEGORIES, EXPENSE_CATEGORIES, PlanType } from '@/types';
@@ -809,7 +808,7 @@ const Transactions: React.FC = () => {
       {/* Banner de Publicidade - TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES */}
       {false && <AdBanner position="bottom" />}
       
-      <NavBar />
+      {/* O NavBar foi movido para o PersistentLayout.tsx */}
     </div>
   );
 };

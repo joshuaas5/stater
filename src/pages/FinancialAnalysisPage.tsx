@@ -3,7 +3,6 @@ import React, { Suspense, lazy, Component, ErrorInfo, ReactNode } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from '@/components/ui/card';
 import { Brain, Target, BookOpen, Loader2, TrendingUp, AlertCircle } from 'lucide-react';
-import NavBar from '@/components/navigation/NavBar';
 
 // Lazy load dos componentes pesados
 const ModernCharts = lazy(() => import('@/components/dashboard/ModernCharts'));
@@ -175,7 +174,7 @@ const FinancialAnalysisPage: React.FC = () => {
         </Tabs>
       </div>
       
-      <NavBar />
+      {/* O NavBar foi movido para o PersistentLayout.tsx */}
     </div>
   );
 };

@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import NavBar from '@/components/navigation/NavBar';
 import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
 import { TransactionList } from '@/components/ocr/TransactionList';

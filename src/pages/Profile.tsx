@@ -3,7 +3,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/header/PageHeader';
-import NavBar from '@/components/navigation/NavBar';
 import { useToast } from '@/hooks/use-toast';
 import { LogOut, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -88,7 +87,6 @@ const Profile: React.FC = () => {
         </Button>
       </div>
       
-      <NavBar />
     </div>
   );
 };

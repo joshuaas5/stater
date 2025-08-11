@@ -1,4 +1,18 @@
 
+/* ===== ANTI-FLASH BRANCO ESTRATÉGICO ===== */
+html, body, #root {
+  /* Define a cor de fundo base do app. 
+     Isso garante que, mesmo antes do React carregar, a tela não seja branca. */
+  background-color: #31518b !important;
+  
+  /* Garante que o container principal ocupe toda a altura */
+  min-height: 100vh;
+  
+  /* Remove margens padrão que podem causar bordas brancas */
+  margin: 0;
+  padding: 0;
+}
+
 /* Import scroll optimizations */
 @import './styles/scroll-optimizations.css';
 /* Import critical performance styles */

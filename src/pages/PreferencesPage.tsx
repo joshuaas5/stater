@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
-import NavBar from '@/components/navigation/NavBar';
 import { isLoggedIn, getUserPreferences, saveUserPreferences, saveSupabaseUserPreferences } from '@/utils/localStorage';
 import { clearAllNotifications } from '@/utils/clearAllNotifications';
 import { 
@@ -391,7 +390,7 @@ const PreferencesPage: React.FC = () => {
           Sair da conta
         </Button>
       </div>
-      <NavBar />
+      
     </div>
   );
 };

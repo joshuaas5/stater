@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
-import NavBar from '@/components/navigation/NavBar';
 import { isLoggedIn, getTransactions } from '@/utils/localStorage';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, Transaction } from '@/types';
 import { formatCurrency } from '@/utils/dataProcessing';
@@ -510,10 +509,8 @@ const ChartsPage: React.FC = () => {
           </div>
         </div>
       </main>
-
-      <NavBar />
+      
+      {/* O NavBar foi movido para o PersistentLayout.tsx */}
     </div>
   );
-};
-
-export default ChartsPage;
+};export default ChartsPage;

@@ -4,10 +4,7 @@ import './Dashboard.module.css';
 import './Dashboard.premium.css';
 import '../styles/scroll-optimizations.css';
 import { useNavigate, Link } from 'react-router-dom';
-import PageHeader from '@/components/header/PageHeader';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
-import NavBar from '@/components/navigation/NavBar';
 import BalanceCard from '@/components/dashboard/BalanceCard';
 import BillsDueWidget from '@/components/bills/BillsDueWidget';
 import NotificationIcon from '@/components/notifications/NotificationIcon';
@@ -1463,8 +1460,7 @@ const Dashboard: React.FC = () => {
         );
       })()}
       
-      {/* NavBar Original */}
-      <NavBar />
+      {/* O NavBar foi movido para o PersistentLayout.tsx */}
       
       <TelegramConnectModal
         isOpen={showTelegramModal}

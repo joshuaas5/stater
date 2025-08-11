@@ -4,7 +4,6 @@ import { CalendarIcon, Download, FileText, ChevronLeft, FileType2, FileOutput } 
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import PageHeader from '@/components/header/PageHeader';
-import NavBar from '@/components/navigation/NavBar';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -366,7 +365,6 @@ const ExportReportPage: React.FC = () => {
         </div>
       </div>
       
-      <NavBar />
     </div>
   );
 };

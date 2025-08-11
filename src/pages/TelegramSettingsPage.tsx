@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
-import NavBar from '@/components/navigation/NavBar';
 import { getCurrentUser } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -269,7 +268,6 @@ const TelegramSettingsPage: React.FC = () => {
 
         </div>
       </div>
-      <NavBar />
       
       {/* Modal unificado de conexão Telegram */}
       <TelegramConnectModal

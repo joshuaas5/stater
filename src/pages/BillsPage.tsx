@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import PageHeader from '@/components/header/PageHeader';
-import NavBar from '@/components/navigation/NavBar';
 import { AdBanner } from '@/components/monetization/AdBanner';
 import { Bill, CardItem, EXPENSE_CATEGORIES, PlanType } from '@/types';
 import { getBills, isLoggedIn, markBillAsPaid, saveBill, updateBill, deleteBill } from '@/utils/localStorage';
@@ -656,8 +654,6 @@ const BillsPage: React.FC = () => {
         )}
       </div>
       
-      <NavBar />
-      
       {/* Modal de Edição de Conta */}
       {showEditBillModal && editBill && (
         <Dialog open={showEditBillModal} onOpenChange={setShowEditBillModal}>
@@ -942,7 +938,8 @@ const BillsPage: React.FC = () => {
 
       {/* Banner de Publicidade - TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES */}
       {false && <AdBanner position="bottom" />}
-
+      
+      {/* O NavBar foi movido para o PersistentLayout.tsx */}
     </div>
   );
 };

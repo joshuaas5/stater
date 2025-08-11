@@ -15,7 +15,6 @@ import { getCurrentUser, saveBill } from '@/utils/localStorage';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Calendar, CreditCard, Plus, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import NavBar from '@/components/navigation/NavBar';
 import { UserPlanManager } from '@/utils/userPlanManager';
 
 const formSchema = z.object({
@@ -523,7 +522,7 @@ const AddBillPage: React.FC = () => {
       {/* Banner de Publicidade */}
       <AdBanner position="bottom" />
       
-      <NavBar />
+      {/* O NavBar foi movido para o PersistentLayout.tsx */}
     </div>
   );
 };

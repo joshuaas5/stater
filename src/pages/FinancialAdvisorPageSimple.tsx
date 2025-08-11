@@ -1,7 +1,6 @@
 // Versão temporária do FinancialAdvisorPage sem código problemático
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import NavBar from '@/components/navigation/NavBar';
 import ChatInput from '@/components/chat/ChatInputSimple';
 import { isLoggedIn, saveTransaction as saveTransactionUtil, getCurrentUser } from '@/utils/localStorage';
 import { ChatMessage, Transaction } from '@/types';
@@ -183,7 +182,6 @@ export const FinancialAdvisorPage: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="financial-advisor-page">
-        <NavBar />
         
         <div className="container mx-auto p-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

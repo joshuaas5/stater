@@ -1,13 +1,9 @@
 
-const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 const path = require('path');
 
 // CORRECTED: Point to the .env file inside the telegram-bot folder
 require('dotenv').config({ path: path.resolve(process.cwd(), 'telegram-bot', '.env') });
-
-// Instantiate bot without polling.
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(
@@ -21,12 +17,35 @@ const supabase = createClient(
     }
 );
 
-// In-memory storage for pending transactions within a single request lifecycle.
-// DEPRECATED: This is unreliable in a serverless environment. State will be stored in Supabase.
-// const pendingTransactions = new Map();
-
 // In-memory cache for user sessions within a single request lifecycle.
 const userSessions = new Map();
+const TELEGRAM_API_URL = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
+
+// =================================================================================
+// API Helper Functions (Replaces node-telegram-bot-api)
+// =================================================================================
+
+async function sendMessage(chatId, text, options = {}) {
+    return axios.post(`${TELEGRAM_API_URL}/sendMessage`, {
+        chat_id: chatId,
+        text,
+        ...options,
+    });
+}
+
+async function deleteMessage(chatId, messageId) {
+    return axios.post(`${TELEGRAM_API_URL}/deleteMessage`, {
+        chat_id: chatId,
+        message_id: messageId,
+    });
+}
+
+async function getFileLink(fileId) {
+    const response = await axios.post(`${TELEGRAM_API_URL}/getFile`, { file_id: fileId });
+    const filePath = response.data.result.file_path;
+    return `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${filePath}`;
+}
+
 
 // =================================================================================
 // Vercel Serverless Function Handler
@@ -123,13 +142,13 @@ async function handleStart(msg) {
         const linkResult = await linkTelegramWithCode(chatId, linkCode);
         if (linkResult.success) {
             const welcomeMessage = `🎉 *Conectado com sucesso!*\n\nOi ${linkResult.userName}! 👋\n\n✨ *Agora você pode:*\n📸 Enviar foto do seu extrato\n💬 Fazer perguntas sobre dinheiro\n📊 Ver suas transações\n\n🚀 *Vamos começar?*\nMande uma foto do seu extrato ou pergunte algo!`;
-            await bot.sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
+            await sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
             return;
         }
     }
 
     const welcomeMessage = `👋 *Olá! Sou o Stater IA*\n\n🔒 *Para usar todos os recursos, conecte sua conta:*\n\n**Como conectar:**\n1. Acesse: ${process.env.APP_URL}\n2. Vá em Configurações → Bot Telegram\n3. Gere um código de vinculação\n4. Envie o código aqui no chat\n\n⚠️ *Importante:* Sem conexão, não posso acessar seus dados financeiros ou fazer análises personalizadas.\n\n💡 Use /help para ver mais comandos.`;
-    await bot.sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
+    await sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
 }
 
 async function handleHelp(msg) {
@@ -141,12 +160,12 @@ async function handleHelp(msg) {
     } else {
         helpMessage += `\n\nSTATUS: Conectado como ${userSession.userName}`;
     }
-    await bot.sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
+    await sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
 }
 
 async function handleDashboard(msg) {
     const dashboardMessage = `📊 *Abrir seu app Stater:*\n\n🔗 ${process.env.APP_URL}\n\n💰 Veja suas transações e gráficos!`;
-    await bot.sendMessage(msg.chat.id, dashboardMessage, {
+    await sendMessage(msg.chat.id, dashboardMessage, {
         parse_mode: 'Markdown',
         reply_markup: {
             inline_keyboard: [[{ text: '📱 Abrir Stater App', url: process.env.APP_URL }]]
@@ -159,12 +178,12 @@ async function handleConectar(msg) {
     const userSession = await getSession(chatId);
 
     if (userSession) {
-        await bot.sendMessage(chatId, `✅ *Você já está conectado!*\n\n👤 *Conta:* ${userSession.userName}\n📧 *Email:* ${userSession.userEmail}\n\nUse /conta para ver detalhes ou /sair para desconectar.`, { parse_mode: 'Markdown' });
+        await sendMessage(chatId, `✅ *Você já está conectado!*\n\n👤 *Conta:* ${userSession.userName}\n📧 *Email:* ${userSession.userEmail}\n\nUse /conta para ver detalhes ou /sair para desconectar.`, { parse_mode: 'Markdown' });
         return;
     }
 
     const connectMessage = `🔗 *Como conectar sua conta Stater:*\n\n**Método recomendado:**\n1. Acesse: ${process.env.APP_URL}\n2. Faça login\n3. Vá em Configurações → Bot Telegram\n4. Clique em "Gerar Código"\n5. Envie o código aqui.`;
-    await bot.sendMessage(chatId, connectMessage, { parse_mode: 'Markdown' });
+    await sendMessage(chatId, connectMessage, { parse_mode: 'Markdown' });
 }
 
 async function handleConta(msg) {
@@ -172,13 +191,13 @@ async function handleConta(msg) {
     const userSession = await getSession(chatId);
 
     if (!userSession) {
-        await bot.sendMessage(chatId, `🚫 *Você não está conectado.*\n\nUse /conectar para saber como vincular sua conta.`, { parse_mode: 'Markdown' });
+        await sendMessage(chatId, `🚫 *Você não está conectado.*\n\nUse /conectar para saber como vincular sua conta.`, { parse_mode: 'Markdown' });
         return;
     }
     
     const userContext = await getUserContextForChat(userSession.userId);
     const accountMessage = `👤 *Sua Conta Stater:*\n\n**Nome:** ${userSession.userName}\n**Email:** ${userSession.userEmail}\n**Chat ID:** \`${chatId}\`\n\n💰 **Dados Financeiros:**\n • Saldo atual: R$ ${userContext.balance.toFixed(2)}\n • Transações: ${userContext.transactionCount}`;
-    await bot.sendMessage(chatId, accountMessage, { parse_mode: 'Markdown' });
+    await sendMessage(chatId, accountMessage, { parse_mode: 'Markdown' });
 }
 
 async function handleSair(msg) {
@@ -186,17 +205,17 @@ async function handleSair(msg) {
     const userSession = await getSession(chatId);
 
     if (!userSession) {
-        await bot.sendMessage(chatId, `🤔 *Você não está conectado.*`, { parse_mode: 'Markdown' });
+        await sendMessage(chatId, `🤔 *Você não está conectado.*`, { parse_mode: 'Markdown' });
         return;
     }
 
     try {
         userSessions.delete(chatId);
         await supabase.from('telegram_users').update({ is_active: false }).eq('telegram_chat_id', chatId.toString());
-        await bot.sendMessage(chatId, `👋 *Desconectado com sucesso!*\n\nSua conta **${userSession.userName}** foi desvinculada.`, { parse_mode: 'Markdown' });
+        await sendMessage(chatId, `👋 *Desconectado com sucesso!*\n\nSua conta **${userSession.userName}** foi desvinculada.`, { parse_mode: 'Markdown' });
     } catch (error) {
         console.error('Error during sign out:', error);
-        await bot.sendMessage(chatId, `❌ Erro ao desconectar. Tente novamente.`, { parse_mode: 'Markdown' });
+        await sendMessage(chatId, `❌ Erro ao desconectar. Tente novamente.`, { parse_mode: 'Markdown' });
     }
 }
 
@@ -209,17 +228,17 @@ async function handlePhoto(msg) {
     const userSession = await getSession(chatId);
 
     if (!userSession) {
-        await bot.sendMessage(chatId, '🔒 Para analisar uma imagem, sua conta precisa estar conectada. Use /conectar.');
+        await sendMessage(chatId, '🔒 Para analisar uma imagem, sua conta precisa estar conectada. Use /conectar.');
         return;
     }
 
     const photo = msg.photo[msg.photo.length - 1];
-    const processingMsg = await bot.sendMessage(chatId, '🧠 *Analisando extrato...* Aguarde um momento.', { parse_mode: 'Markdown' });
+    const processingMsg = await sendMessage(chatId, '🧠 *Analisando extrato...* Aguarde um momento.', { parse_mode: 'Markdown' });
 
     try {
-        const fileUrl = await bot.getFileLink(photo.file_id);
+        const fileUrl = await getFileLink(photo.file_id);
         const result = await processImageWithGemini(fileUrl);
-        await bot.deleteMessage(chatId, processingMsg.message_id);
+        await deleteMessage(chatId, processingMsg.data.result.message_id);
 
         if (result.transactions && result.transactions.length > 0) {
             // Save pending transactions to the database instead of in-memory
@@ -229,7 +248,7 @@ async function handlePhoto(msg) {
                 .eq('telegram_chat_id', chatId.toString());
 
             const response = formatTransactionsResponse(result.transactions);
-            await bot.sendMessage(chatId, response, {
+            await sendMessage(chatId, response, {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     keyboard: [[{ text: '✅ SIM' }, { text: '❌ NÃO' }]],
@@ -238,12 +257,14 @@ async function handlePhoto(msg) {
                 }
             });
         } else {
-            await bot.sendMessage(chatId, '😥 *Não consegui encontrar transações neste extrato.*\nTente uma foto mais nítida.', { parse_mode: 'Markdown' });
+            await sendMessage(chatId, '😥 *Não consegui encontrar transações neste extrato.*\nTente uma foto mais nítida.', { parse_mode: 'Markdown' });
         }
     } catch (error) {
-        await bot.deleteMessage(chatId, processingMsg.message_id);
+        if (processingMsg.data.result.message_id) {
+            await deleteMessage(chatId, processingMsg.data.result.message_id);
+        }
         console.error('Error processing image:', error);
-        await bot.sendMessage(chatId, '😥 *Erro ao processar imagem.* Tente novamente.', { parse_mode: 'Markdown' });
+        await sendMessage(chatId, '😥 *Erro ao processar imagem.* Tente novamente.', { parse_mode: 'Markdown' });
     }
 }
 
@@ -262,16 +283,16 @@ async function handleTextMessage(msg) {
             .update({ pending_transactions: null })
             .eq('telegram_chat_id', chatId.toString());
             
-        await bot.sendMessage(chatId, `OK, transações descartadas.`, { reply_markup: { remove_keyboard: true } });
+        await sendMessage(chatId, `OK, transações descartadas.`, { reply_markup: { remove_keyboard: true } });
         return;
     }
 
     if (/^\d{6}$/.test(text.trim())) {
         const linkResult = await linkTelegramWithCode(chatId, text.trim());
         if (linkResult.success) {
-            await bot.sendMessage(chatId, `🎉 *Conectado com sucesso!*\n\nOi ${linkResult.userName}! 👋`, { parse_mode: 'Markdown' });
+            await sendMessage(chatId, `🎉 *Conectado com sucesso!*\n\nOi ${linkResult.userName}! 👋`, { parse_mode: 'Markdown' });
         } else {
-            await bot.sendMessage(chatId, `❌ *Código inválido ou expirado.*\n\nGere um novo código no app.`, { parse_mode: 'Markdown' });
+            await sendMessage(chatId, `❌ *Código inválido ou expirado.*\n\nGere um novo código no app.`, { parse_mode: 'Markdown' });
         }
         return;
     }
@@ -280,7 +301,7 @@ async function handleTextMessage(msg) {
     if (userSession) {
         await processChatMessage(chatId, text, userSession);
     } else {
-        await bot.sendMessage(chatId, `🔒 *Conta não conectada.*\n\nPara usar o chat, preciso que conecte sua conta. Use o comando /conectar para saber como.`, { parse_mode: 'Markdown' });
+        await sendMessage(chatId, `🔒 *Conta não conectada.*\n\nPara usar o chat, preciso que conecte sua conta. Use o comando /conectar para saber como.`, { parse_mode: 'Markdown' });
     }
 }
 
@@ -289,23 +310,25 @@ async function handleTextMessage(msg) {
 // =================================================================================
 
 async function processChatMessage(chatId, message, userSession) {
-    const processingMsg = await bot.sendMessage(chatId, '🤔 *Pensando...*', { parse_mode: 'Markdown' });
+    const processingMsg = await sendMessage(chatId, '🤔 *Pensando...*', { parse_mode: 'Markdown' });
     try {
         const userContext = await getUserContextForChat(userSession.userId);
         const response = await callGeminiForChat(message, userContext, userSession);
-        await bot.deleteMessage(chatId, processingMsg.message_id);
-        await bot.sendMessage(chatId, response, { parse_mode: 'Markdown', disable_web_page_preview: true });
+        await deleteMessage(chatId, processingMsg.data.result.message_id);
+        await sendMessage(chatId, response, { parse_mode: 'Markdown', disable_web_page_preview: true });
     } catch (error) {
-        await bot.deleteMessage(chatId, processingMsg.message_id);
+        if (processingMsg.data.result.message_id) {
+            await deleteMessage(chatId, processingMsg.data.result.message_id);
+        }
         console.error('Error in chat processing:', error);
-        await bot.sendMessage(chatId, '😥 Desculpe, ocorreu um erro. Tente novamente.', { parse_mode: 'Markdown' });
+        await sendMessage(chatId, '😥 Desculpe, ocorreu um erro. Tente novamente.', { parse_mode: 'Markdown' });
     }
 }
 
 async function confirmTransactions(chatId) {
     const userSession = await getSession(chatId);
     if (!userSession) {
-        await bot.sendMessage(chatId, '🔒 Você precisa estar conectado para salvar. Use /conectar.', { reply_markup: { remove_keyboard: true } });
+        await sendMessage(chatId, '🔒 Você precisa estar conectado para salvar. Use /conectar.', { reply_markup: { remove_keyboard: true } });
         return;
     }
 
@@ -317,7 +340,7 @@ async function confirmTransactions(chatId) {
         .single();
 
     if (fetchError || !userData || !userData.pending_transactions) {
-        await bot.sendMessage(chatId, '🤔 Nenhuma transação pendente para confirmar.', { reply_markup: { remove_keyboard: true } });
+        await sendMessage(chatId, '🤔 Nenhuma transação pendente para confirmar.', { reply_markup: { remove_keyboard: true } });
         return;
     }
 
@@ -335,7 +358,7 @@ async function confirmTransactions(chatId) {
         .eq('telegram_chat_id', chatId.toString());
 
     const userContext = await getUserContextForChat(userSession.userId);
-    await bot.sendMessage(chatId, `✅ *Transações salvas!*\n\n${savedCount} de ${pending.length} foram importadas.\n\n💰 Seu novo saldo é: *R$ ${userContext.balance.toFixed(2)}*`, {
+    await sendMessage(chatId, `✅ *Transações salvas!*\n\n${savedCount} de ${pending.length} foram importadas.\n\n💰 Seu novo saldo é: *R$ ${userContext.balance.toFixed(2)}*`, {
         parse_mode: 'Markdown',
         reply_markup: { remove_keyboard: true }
     });

@@ -88,8 +88,14 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
       setGeneratedCode(data.code);
       
       // Copiar automaticamente para clipboard
-      await navigator.clipboard.writeText(data.code);
-      setIsCodeCopied(true);
+      if (document.hasFocus()) {
+        await navigator.clipboard.writeText(data.code);
+        setIsCodeCopied(true);
+      } else {
+        // Se o documento não estiver focado, não tente copiar,
+        // apenas mostre o código para o usuário copiar manualmente.
+        console.warn('[TELEGRAM] Document not focused, skipping automatic copy to clipboard.');
+      }
       
     } catch (err: any) {
       clearTimeout(timeoutId);

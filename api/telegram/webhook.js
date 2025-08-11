@@ -22,7 +22,9 @@ const supabase = createClient(
 );
 
 // In-memory storage for pending transactions within a single request lifecycle.
-const pendingTransactions = new Map();
+// DEPRECATED: This is unreliable in a serverless environment. State will be stored in Supabase.
+// const pendingTransactions = new Map();
+
 // In-memory cache for user sessions within a single request lifecycle.
 const userSessions = new Map();
 
@@ -204,6 +206,13 @@ async function handleSair(msg) {
 
 async function handlePhoto(msg) {
     const chatId = msg.chat.id;
+    const userSession = await getSession(chatId);
+
+    if (!userSession) {
+        await bot.sendMessage(chatId, '🔒 Para analisar uma imagem, sua conta precisa estar conectada. Use /conectar.');
+        return;
+    }
+
     const photo = msg.photo[msg.photo.length - 1];
     const processingMsg = await bot.sendMessage(chatId, '🧠 *Analisando extrato...* Aguarde um momento.', { parse_mode: 'Markdown' });
 
@@ -213,7 +222,12 @@ async function handlePhoto(msg) {
         await bot.deleteMessage(chatId, processingMsg.message_id);
 
         if (result.transactions && result.transactions.length > 0) {
-            pendingTransactions.set(chatId, { transactions: result.transactions });
+            // Save pending transactions to the database instead of in-memory
+            await supabase
+                .from('telegram_users')
+                .update({ pending_transactions: result.transactions })
+                .eq('telegram_chat_id', chatId.toString());
+
             const response = formatTransactionsResponse(result.transactions);
             await bot.sendMessage(chatId, response, {
                 parse_mode: 'Markdown',
@@ -242,7 +256,12 @@ async function handleTextMessage(msg) {
         return await confirmTransactions(chatId);
     }
     if (lowerText === '❌ não' || lowerText === 'nao' || lowerText === 'não' || lowerText === 'cancelar') {
-        pendingTransactions.delete(chatId);
+        // Clear pending transactions from the database
+        await supabase
+            .from('telegram_users')
+            .update({ pending_transactions: null })
+            .eq('telegram_chat_id', chatId.toString());
+            
         await bot.sendMessage(chatId, `OK, transações descartadas.`, { reply_markup: { remove_keyboard: true } });
         return;
     }
@@ -284,27 +303,39 @@ async function processChatMessage(chatId, message, userSession) {
 }
 
 async function confirmTransactions(chatId) {
-    const pending = pendingTransactions.get(chatId);
     const userSession = await getSession(chatId);
-
-    if (!pending) {
-        await bot.sendMessage(chatId, '🤔 Nenhuma transação pendente.', { reply_markup: { remove_keyboard: true } });
-        return;
-    }
     if (!userSession) {
         await bot.sendMessage(chatId, '🔒 Você precisa estar conectado para salvar. Use /conectar.', { reply_markup: { remove_keyboard: true } });
         return;
     }
 
+    // Retrieve pending transactions from the database
+    const { data: userData, error: fetchError } = await supabase
+        .from('telegram_users')
+        .select('pending_transactions')
+        .eq('telegram_chat_id', chatId.toString())
+        .single();
+
+    if (fetchError || !userData || !userData.pending_transactions) {
+        await bot.sendMessage(chatId, '🤔 Nenhuma transação pendente para confirmar.', { reply_markup: { remove_keyboard: true } });
+        return;
+    }
+
+    const pending = userData.pending_transactions;
     let savedCount = 0;
-    for (const tx of pending.transactions) {
+    for (const tx of pending) {
         const success = await saveTransactionToSupabase(userSession.userId, tx);
         if (success) savedCount++;
     }
 
-    pendingTransactions.delete(chatId);
+    // Clear pending transactions from the database
+    await supabase
+        .from('telegram_users')
+        .update({ pending_transactions: null })
+        .eq('telegram_chat_id', chatId.toString());
+
     const userContext = await getUserContextForChat(userSession.userId);
-    await bot.sendMessage(chatId, `✅ *Transações salvas!*\n\n${savedCount} de ${pending.transactions.length} foram importadas.\n\n💰 Seu novo saldo é: *R$ ${userContext.balance.toFixed(2)}*`, {
+    await bot.sendMessage(chatId, `✅ *Transações salvas!*\n\n${savedCount} de ${pending.length} foram importadas.\n\n💰 Seu novo saldo é: *R$ ${userContext.balance.toFixed(2)}*`, {
         parse_mode: 'Markdown',
         reply_markup: { remove_keyboard: true }
     });

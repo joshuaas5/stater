@@ -483,7 +483,7 @@ const BillsPage: React.FC = () => {
               <Button 
                 onClick={() => navigate('/recurring-transactions')} 
                 variant="outline"
-                className="flex-1 sm:flex-none bg-blue-600/20 hover:bg-blue-600/30 text-white font-semibold border-blue-400/50 hover:border-blue-400/70 backdrop-blur-sm transition-all duration-200 text-xs sm:text-sm"
+                className="flex-1 sm:flex-none bg-blue-600/20 hover:bg-blue-600/30 text-white font-semibold border-blue-400/50 hover:border-blue-400/70 backdrop-blur-sm transition-all duration-500 ease-in-out transform hover:scale-105 text-xs sm:text-sm"
                 style={{ color: '#ffffff !important' }}
               >
                 <Calendar size={16} className="mr-1 sm:mr-2 text-white" /> Recorrentes

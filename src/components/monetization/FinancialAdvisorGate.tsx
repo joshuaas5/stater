@@ -194,10 +194,6 @@ const FinancialAdvisorGate: React.FC<FinancialAdvisorGateProps> = ({
               </>
             )}
           </Button>
-
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Após assistir ao anúncio, você terá acesso por 1 hora
-          </p>
         </CardContent>
       </Card>
     </div>

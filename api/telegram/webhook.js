@@ -1,4 +1,3 @@
-
 const axios = require('axios');
 
 // Use environment variables directly from Vercel
@@ -59,9 +58,12 @@ async function getFileLink(fileId) {
 
 module.exports = async (req, res) => {
     if (req.method === 'GET') {
-        return res.status(200).json({ 
-            status: 'active', 
-            message: 'Bot is running and ready for POST updates from Telegram.'
+        return res.status(200).json({
+            status: 'active',
+            message: 'Bot is running and ready for POST updates from Telegram.',
+            supabaseUrl: process.env.SUPABASE_URL ? 'set' : 'missing',
+            serviceRole: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'set' : 'missing',
+            anonKeyFallback: !!(!process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.SUPABASE_ANON_KEY),
         });
     }
 

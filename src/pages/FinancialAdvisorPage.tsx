@@ -799,7 +799,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
           // Usuário FREE atingiu o limite de 3 mensagens
           setMessages(prev => [...prev, {
             id: uuidv4(),
-            text: `� **Limite de mensagens atingido!**\n\nVocê já usou suas 3 mensagens gratuitas. Para continuar conversando com o Stater IA:\n\n✨ **Assine o Stater Premium** e tenha:\n• 🤖 Mensagens ilimitadas no IA\n• 📊 Análise de PDFs e imagens\n• 🎙️ Áudios ilimitados\n• 🚫 Sem anúncios\n\n💰 **A partir de R$ 8,90/semana**\n\n🎁 **Ou inicie seu teste grátis** de 3 dias!\n\n⬆️ Faça upgrade para continuar!`,
+            text: `🚫 **Limite de mensagens atingido!**\n\nVocê já usou suas 3 mensagens gratuitas. Para continuar conversando com o Stater IA:\n\n✨ **Assine o Stater Premium** e tenha:\n• 🤖 Nunca mais se preocupe com limites de mensagens\n• 📊 Análise de PDFs e imagens sem restrições\n• 🎙️ Áudios sem limites\n• 🔗 Conexão com Telegram liberada\n• 🚫 Sem anúncios\n\n💰 **A partir de R$ 8,90/semana**\n\n🎁 **Ou inicie seu teste grátis** de 3 dias!\n\n⬆️ Faça upgrade para continuar!`,
             sender: 'assistant',
             timestamp: new Date(),
             avatarUrl: IA_AVATAR
@@ -1065,7 +1065,9 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
             resultMessage += '\n\n📋 Transações processadas:\n';
             actualTransactionsToSave.forEach((tx, index) => {
               const typeIcon = tx.type === 'income' ? '💰' : '💸';
-              resultMessage += `${index + 1}. ${typeIcon} ${tx.description} - R$ ${tx.amount.toFixed(2)} (${tx.category})\n`;
+              // Capitalizar primeira letra da descrição
+              const capitalizedDescription = tx.description.charAt(0).toUpperCase() + tx.description.slice(1);
+              resultMessage += `${index + 1}. ${typeIcon} ${capitalizedDescription} - R$ ${tx.amount.toFixed(2)} (${tx.category})\n`;
             });
           } else {
             resultMessage += '❌ Nenhuma transação válida foi processada.';

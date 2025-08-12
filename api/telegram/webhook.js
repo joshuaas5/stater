@@ -855,18 +855,33 @@ async function confirmTransactions(chatId) {
 
 async function linkTelegramWithCode(chatId, linkCode) {
     try {
+        console.log(`[LINK] Tentando vincular código: ${linkCode}`);
         const { data, error } = await supabase
             .from('telegram_link_codes')
             .select('user_id, user_email, user_name, expires_at')
             .eq('code', linkCode)
             .single();
 
-        if (error || !data || new Date() > new Date(data.expires_at)) {
-            return { success: false, message: 'Código inválido ou expirado' };
+        if (error) {
+            console.error('[LINK] Erro ao buscar código:', error);
+            return { success: false, message: 'Erro no banco ao buscar código' };
+        }
+
+        if (!data) {
+            console.log('[LINK] Código não encontrado.');
+            return { success: false, message: 'Código inválido' };
+        }
+
+        const now = new Date();
+        const exp = new Date(data.expires_at);
+        console.log(`[LINK] Código encontrado. Agora: ${now.toISOString()} Expira: ${exp.toISOString()}`);
+        if (now > exp) {
+            console.log('[LINK] Código expirado.');
+            return { success: false, message: 'Código expirado' };
         }
 
         // Mark code as used
-        await supabase.from('telegram_link_codes').update({ used_at: new Date().toISOString() }).eq('code', linkCode);
+    await supabase.from('telegram_link_codes').update({ used_at: new Date().toISOString() }).eq('code', linkCode);
         
         // Create/update telegram user record
         console.log(`Creating telegram_users record for chat ${chatId}, user ${data.user_id}`);

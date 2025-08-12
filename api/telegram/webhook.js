@@ -457,7 +457,9 @@ async function detectTransactionIntent(message) {
     const expenseKeywords = [
         'gastei', 'comprei', 'paguei', 'saída', 'saida', 'despesa', 'gasto',
         'conta', 'fatura', 'compra', 'mercado', 'supermercado', 'combustível',
-        'combustivel', 'gasolina', 'remédio', 'remedio', 'médico', 'medico'
+        'combustivel', 'gasolina', 'remédio', 'remedio', 'médico', 'medico',
+        'perdi', 'perda', 'prejuízo', 'prejuizo', 'desconto', 'multa',
+        'taxa', 'débito', 'debito', 'saque', 'transferi', 'enviei'
     ];
     
     // Categorias automáticas baseadas em palavras-chave
@@ -502,10 +504,10 @@ async function detectTransactionIntent(message) {
     } else {
         // Se não conseguir determinar ou se houver conflito, padrão baseado em contexto comum
         // "adicione", "recebi", "ganhei" = entrada
-        // "gastei", "comprei", "paguei" = saída
+        // "gastei", "comprei", "paguei", "perdi" = saída
         if (text.includes('recebi') || text.includes('ganhei') || text.includes('presente')) {
             type = 'income';
-        } else if (text.includes('gastei') || text.includes('comprei') || text.includes('paguei')) {
+        } else if (text.includes('gastei') || text.includes('comprei') || text.includes('paguei') || text.includes('perdi')) {
             type = 'expense';
         } else {
             type = 'unknown'; // Só pergunta se realmente não conseguir determinar
@@ -536,7 +538,7 @@ function extractSmartDescription(originalText, amountStr) {
     let desc = originalText;
     
     // Remove palavras de comando
-    desc = desc.replace(/^(?:adicione|adicionar|adiciona|entrada|saida|saída|gastei|recebi|ganhei|comprei|paguei)\s*/i, '');
+    desc = desc.replace(/^(?:adicione|adicionar|adiciona|entrada|saida|saída|gastei|recebi|ganhei|comprei|paguei|perdi)\s*/i, '');
     
     // Remove valores monetários
     desc = desc.replace(/\d+(?:[,.]\d{1,2})?\s*(?:reais?|r\$|real)?/gi, '');

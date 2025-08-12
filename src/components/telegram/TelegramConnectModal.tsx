@@ -111,6 +111,13 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
       logDebug('🔧 [TELEGRAM] Gerando código para usuário:', user.id);
       logDebug('🔧 [TELEGRAM] Dados completos do usuário:', user);
       
+      // Obter token de autenticação
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Token de autenticação não encontrado');
+        return;
+      }
+      
       const requestBody = {
         user_id: user.id,
         userEmail: user.email,
@@ -121,7 +128,10 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
       
       const response = await fetch('/api/telegram-codes-clean', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         body: JSON.stringify(requestBody),
         signal: controller.signal
       });

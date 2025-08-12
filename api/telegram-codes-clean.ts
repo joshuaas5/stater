@@ -24,10 +24,11 @@ function generateCode() {
 module.exports = async function handler(req: any, res: any) {
   logDebug('🔧 [TELEGRAM API] Iniciando handler...');
   
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // CORS - mais restritivo para produção
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   if (req.method === 'OPTIONS') {
     logDebug('🔧 [TELEGRAM API] Respondendo OPTIONS');
@@ -35,7 +36,7 @@ module.exports = async function handler(req: any, res: any) {
   }
 
   logDebug('🔧 [TELEGRAM API] Método:', req.method);
-  logDebug('🔧 [TELEGRAM API] Body:', req.body);
+  logDebug('🔧 [TELEGRAM API] Headers Authorization:', req.headers.authorization ? 'PRESENTE' : 'AUSENTE');
 
   try {
     // Teste básico de funcionamento da API
@@ -56,7 +57,53 @@ module.exports = async function handler(req: any, res: any) {
 
     // POST - Gerar código
     logDebug('🔧 [TELEGRAM API] Processando POST...');
+    
+    // Verificar autenticação
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Token de autenticação necessário' 
+      });
+    }
+
+    const token = authHeader.split(' ')[1];
+    
+    // Criar cliente autenticado com o token do usuário
+    const authenticatedSupabase = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    });
+
+    // Verificar se o usuário está autenticado
+    const { data: userData, error: userError } = await authenticatedSupabase.auth.getUser(token);
+    
+    if (userError || !userData.user) {
+      logDebug('❌ [TELEGRAM API] Usuário não autenticado:', userError?.message);
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Token inválido ou expirado' 
+      });
+    }
+
+    logDebug('✅ [TELEGRAM API] Usuário autenticado:', userData.user.id);
+    
     const { user_id, userEmail, userName } = req.body || {};
+    
+    // Verificar se o user_id corresponde ao usuário autenticado
+    if (user_id !== userData.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Não autorizado a gerar código para outro usuário'
+      });
+    }
     
     logDebug('🔧 [TELEGRAM API] Dados recebidos:', { user_id, userEmail, userName });
     

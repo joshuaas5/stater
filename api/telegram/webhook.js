@@ -855,41 +855,37 @@ async function confirmTransactions(chatId) {
 
 async function linkTelegramWithCode(chatId, linkCode) {
     try {
-        console.log(`[LINK] Tentando vincular código: ${linkCode}`);
+        console.log(`[LINK] Tentando vincular código via RPC: ${linkCode}`);
         const { data, error } = await supabase
-            .from('telegram_link_codes')
-            .select('user_id, user_email, user_name, expires_at')
-            .eq('code', linkCode)
-            .single();
+            .rpc('link_telegram_code', { in_code: linkCode });
 
         if (error) {
-            console.error('[LINK] Erro ao buscar código:', error);
-            return { success: false, message: 'Erro no banco ao buscar código' };
+            console.error('[LINK] RPC falhou:', error);
+            const msg = (error.message || '').toUpperCase();
+            if (msg.includes('EXPIRED')) return { success: false, message: 'Código expirado' };
+            if (msg.includes('INVALID') || msg.includes('USED')) return { success: false, message: 'Código inválido' };
+            return { success: false, message: 'Erro ao validar código' };
         }
 
-        if (!data) {
-            console.log('[LINK] Código não encontrado.');
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            console.log('[LINK] RPC retornou vazio.');
             return { success: false, message: 'Código inválido' };
         }
 
-        const now = new Date();
-        const exp = new Date(data.expires_at);
-        console.log(`[LINK] Código encontrado. Agora: ${now.toISOString()} Expira: ${exp.toISOString()}`);
-        if (now > exp) {
-            console.log('[LINK] Código expirado.');
-            return { success: false, message: 'Código expirado' };
-        }
-
-        // Mark code as used
-    await supabase.from('telegram_link_codes').update({ used_at: new Date().toISOString() }).eq('code', linkCode);
+        const userRow = data[0];
+        const mapped = {
+            user_id: userRow.user_id,
+            user_email: userRow.user_email,
+            user_name: userRow.user_name,
+        };
         
         // Create/update telegram user record
-        console.log(`Creating telegram_users record for chat ${chatId}, user ${data.user_id}`);
+        console.log(`Creating telegram_users record for chat ${chatId}, user ${mapped.user_id}`);
         const { error: upsertError } = await supabase.from('telegram_users').upsert({
             telegram_chat_id: chatId.toString(),
-            user_id: data.user_id,
-            user_email: data.user_email,
-            user_name: data.user_name,
+            user_id: mapped.user_id,
+            user_email: mapped.user_email,
+            user_name: mapped.user_name,
             linked_at: new Date().toISOString(),
             is_active: true
         });
@@ -902,8 +898,8 @@ async function linkTelegramWithCode(chatId, linkCode) {
         console.log(`Successfully created telegram_users record for chat ${chatId}`);
 
         // Cache para esta execução
-        userSessions.set(chatId, { userId: data.user_id, userEmail: data.user_email, userName: data.user_name });
-        return { success: true, userName: data.user_name };
+    userSessions.set(chatId, { userId: mapped.user_id, userEmail: mapped.user_email, userName: mapped.user_name });
+    return { success: true, userName: mapped.user_name };
     } catch (e) {
         console.error('Error linking code:', e);
         return { success: false, message: 'Erro interno' };

@@ -373,12 +373,12 @@ async function handleTextMessage(msg) {
     // Handle confirmation responses - be very explicit about what we accept
     console.log('Checking if text is confirmation. lowerText:', `"${lowerText}"`);
     
-    if (lowerText === 'sim' || lowerText === 'confirmar' || lowerText === '✅ sim' || lowerText === '✅ confirmar') {
+    if (lowerText === 'sim' || lowerText === 'confirmar' || lowerText === '✅ sim' || lowerText === '✅ confirmar' || lowerText === '✅ confirmar' || lowerText === 'confirmar') {
         console.log('✅ CONFIRMATION DETECTED! Calling confirmTransactions');
         return await confirmTransactions(chatId);
     }
     
-    if (lowerText === 'não' || lowerText === 'nao' || lowerText === 'cancelar' || lowerText === '❌ não' || lowerText === '❌ cancelar') {
+    if (lowerText === 'não' || lowerText === 'nao' || lowerText === 'cancelar' || lowerText === '❌ não' || lowerText === '❌ cancelar' || lowerText === '❌ cancelar') {
         console.log('❌ CANCELLATION DETECTED!');
         // Clear pending transactions from the database
         await supabase
@@ -445,6 +445,7 @@ async function detectTransactionIntent(message) {
     let amount = null;
     let type = null;
     let description = 'Transação via bot';
+    let category = 'Não categorizado';
     
     // Pattern 1: "entrada 50" or "saída 50"
     if (text.match(/^entrada\s+(\d+(?:[,.]\d{1,2})?)$/)) {
@@ -452,6 +453,7 @@ async function detectTransactionIntent(message) {
         amount = parseFloat(match[1].replace(',', '.'));
         type = 'income';
         description = 'Entrada via bot';
+        category = 'Outros';
     }
     // Pattern 2: "saida 50" or "saída 50"
     else if (text.match(/^(?:saida|saída)\s+(\d+(?:[,.]\d{1,2})?)$/)) {
@@ -459,6 +461,7 @@ async function detectTransactionIntent(message) {
         amount = parseFloat(match[1].replace(',', '.'));
         type = 'expense';
         description = 'Saída via bot';
+        category = 'Diversos';
     }
     // Pattern 3: "adicione 50" (ask for type)
     else if (text.match(/^(?:adicione|adicionar)\s+(\d+(?:[,.]\d{1,2})?)$/)) {
@@ -466,6 +469,7 @@ async function detectTransactionIntent(message) {
         amount = parseFloat(match[1].replace(',', '.'));
         type = 'unknown';
         description = 'Transação via bot';
+        category = 'Não categorizado';
     }
     // Pattern 4: Just a number "50"
     else if (text.match(/^(\d+(?:[,.]\d{1,2})?)$/)) {
@@ -473,6 +477,7 @@ async function detectTransactionIntent(message) {
         amount = parseFloat(match[1].replace(',', '.'));
         type = 'unknown';
         description = 'Transação via bot';
+        category = 'Não categorizado';
     }
     // Pattern 5: "50 entrada" or "50 saída"
     else if (text.match(/^(\d+(?:[,.]\d{1,2})?)\s+entrada$/)) {
@@ -480,16 +485,18 @@ async function detectTransactionIntent(message) {
         amount = parseFloat(match[1].replace(',', '.'));
         type = 'income';
         description = 'Entrada via bot';
+        category = 'Outros';
     }
     else if (text.match(/^(\d+(?:[,.]\d{1,2})?)\s+(?:saida|saída)$/)) {
         const match = text.match(/^(\d+(?:[,.]\d{1,2})?)\s+(?:saida|saída)$/);
         amount = parseFloat(match[1].replace(',', '.'));
         type = 'expense';
         description = 'Saída via bot';
+        category = 'Diversos';
     }
     
     if (amount !== null) {
-        const result = { amount, type, description };
+        const result = { amount, type, description, category };
         console.log('Transaction detected:', result);
         return result;
     }
@@ -527,7 +534,8 @@ async function handleQuickTransaction(chatId, transactionData, userSession) {
         const pendingTx = {
             amount: transactionData.amount,
             description: transactionData.description || 'Transação via bot',
-            type: 'pending_type'
+            type: 'pending_type',
+            category: 'Não categorizado'
         };
         console.log('Storing pending transaction:', pendingTx);
         
@@ -540,16 +548,27 @@ async function handleQuickTransaction(chatId, transactionData, userSession) {
         return;
     }
     
-    console.log('Transaction type specified, asking for confirmation');
-    // Ask for confirmation before saving
+    console.log('Transaction type specified, showing detailed confirmation modal');
+    
+    // ALWAYS show detailed confirmation modal
     const typeEmoji = transactionData.type === 'income' ? '📈' : '📉';
     const typeText = transactionData.type === 'income' ? 'Entrada' : 'Saída';
+    const category = transactionData.category || 'Não categorizado';
     
-    await sendMessage(chatId, `🤔 *Confirmar ${typeText}?*\n\n${typeEmoji} *${transactionData.description}*\nR$ ${transactionData.amount.toFixed(2)}\n\n*Deseja adicionar esta transação?*`, {
+    const confirmationMessage = `🤔 *CONFIRMAR TRANSAÇÃO?*
+
+${typeEmoji} **Tipo:** ${typeText}
+💰 **Valor:** R$ ${transactionData.amount.toFixed(2)}
+📝 **Descrição:** ${transactionData.description}
+🏷️ **Categoria:** ${category}
+
+*Deseja adicionar esta transação?*`;
+
+    await sendMessage(chatId, confirmationMessage, {
         parse_mode: 'Markdown',
         reply_markup: {
             keyboard: [
-                [{ text: '✅ Confirmar' }, { text: '❌ Cancelar' }]
+                [{ text: '✅ CONFIRMAR' }, { text: '❌ CANCELAR' }]
             ],
             resize_keyboard: true,
             one_time_keyboard: true
@@ -560,7 +579,8 @@ async function handleQuickTransaction(chatId, transactionData, userSession) {
     const pendingTx = {
         amount: transactionData.amount,
         description: transactionData.description,
-        type: transactionData.type
+        type: transactionData.type,
+        category: category
     };
     console.log('Storing pending transaction for confirmation:', pendingTx);
     
@@ -593,29 +613,40 @@ async function handlePendingTransactionType(chatId, type) {
 
     const pendingTx = userData.pending_transactions[0];
     
-    // Update pending transaction with the type and ask for confirmation
+    // Show detailed confirmation modal
     const typeEmoji = type === 'income' ? '📈' : '📉';
     const typeText = type === 'income' ? 'Entrada' : 'Saída';
+    const category = 'Não categorizado';
     
-    await sendMessage(chatId, `🤔 *Confirmar ${typeText}?*\n\n${typeEmoji} *${pendingTx.description}*\nR$ ${pendingTx.amount.toFixed(2)}\n\n*Deseja adicionar esta transação?*`, {
+    const confirmationMessage = `🤔 *CONFIRMAR TRANSAÇÃO?*
+
+${typeEmoji} **Tipo:** ${typeText}
+💰 **Valor:** R$ ${pendingTx.amount.toFixed(2)}
+📝 **Descrição:** ${pendingTx.description}
+🏷️ **Categoria:** ${category}
+
+*Deseja adicionar esta transação?*`;
+
+    await sendMessage(chatId, confirmationMessage, {
         parse_mode: 'Markdown',
         reply_markup: {
             keyboard: [
-                [{ text: '✅ Confirmar' }, { text: '❌ Cancelar' }]
+                [{ text: '✅ CONFIRMAR' }, { text: '❌ CANCELAR' }]
             ],
             resize_keyboard: true,
             one_time_keyboard: true
         }
     });
     
-    // Update pending transaction with the specified type
+    // Update pending transaction with the specified type and category
     await supabase
         .from('telegram_users')
         .update({ 
             pending_transactions: [{
                 amount: pendingTx.amount,
                 description: pendingTx.description,
-                type: type
+                type: type,
+                category: category
             }]
         })
         .eq('telegram_chat_id', chatId.toString());
@@ -687,7 +718,7 @@ async function confirmTransactions(chatId) {
             success = await saveTransactionToSupabase(userSession.userId, {
                 descricao: tx.description,
                 valor: tx.type === 'income' ? tx.amount : -tx.amount,
-                categoria: tx.type === 'income' ? 'outros' : 'diversos'
+                categoria: tx.category || (tx.type === 'income' ? 'outros' : 'diversos')
             });
         } else {
             // Multiple transactions from image (original format)

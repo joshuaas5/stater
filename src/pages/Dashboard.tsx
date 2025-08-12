@@ -111,12 +111,16 @@ const Dashboard: React.FC = () => {
 
   // Funes do Telegram
   const checkTelegramStatus = async (force = false) => {
-    // Evitar recarregamento visual desnecessrio, exceto se forado
+    // Evitar recarregamento visual desnecessrio
     if (telegramStatusChecked && !force) return;
     
     if (!user?.id) return;
     
-    setIsCheckingTelegram(true);
+    // Só mostrar loading se não houver informações em cache
+    const hasCache = localStorage.getItem(`telegram_status_${user.id}`);
+    if (!hasCache) {
+      setIsCheckingTelegram(true);
+    }
     
     try {
       console.log('🔍 [TELEGRAM] Verificando status para user:', user.id);
@@ -128,12 +132,14 @@ const Dashboard: React.FC = () => {
         .eq('is_active', true);
       
       if (error) {
-        console.error(' [TELEGRAM] Erro na consulta:', error);
-        setIsTelegramLinked(false);
-        setTelegramInfo(null);
-        // Salvar no localStorage
-        localStorage.setItem(`telegram_status_${user.id}`, 'false');
-        localStorage.setItem(`telegram_info_${user.id}`, 'null');
+        console.error('❌ [TELEGRAM] Erro na consulta:', error);
+        // Não limpar cache em caso de erro de rede
+        if (!hasCache) {
+          setIsTelegramLinked(false);
+          setTelegramInfo(null);
+          localStorage.setItem(`telegram_status_${user.id}`, 'false');
+          localStorage.setItem(`telegram_info_${user.id}`, 'null');
+        }
         setTelegramStatusChecked(true);
         return;
       }
@@ -149,19 +155,6 @@ const Dashboard: React.FC = () => {
         localStorage.setItem(`telegram_info_${user.id}`, JSON.stringify(data[0]));
       } else {
         console.log('❌ [TELEGRAM] Não conectado - nenhum registro ativo encontrado');
-        // Vamos verificar se há registros inativos
-        const { data: inactiveData } = await supabase
-          .from('telegram_users')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('is_active', false);
-        
-        if (inactiveData && inactiveData.length > 0) {
-          console.log('⚠️ [TELEGRAM] Encontrados registros inativos:', inactiveData);
-        } else {
-          console.log('🔍 [TELEGRAM] Nenhum registro encontrado (ativo ou inativo)');
-        }
-        
         setIsTelegramLinked(false);
         setTelegramInfo(null);
         // Salvar no localStorage
@@ -171,11 +164,13 @@ const Dashboard: React.FC = () => {
       setTelegramStatusChecked(true);
     } catch (error) {
       console.error('💥 [TELEGRAM] Erro inesperado ao verificar status:', error);
-      setIsTelegramLinked(false);
-      setTelegramInfo(null);
-      // Salvar no localStorage
-      localStorage.setItem(`telegram_status_${user.id}`, 'false');
-      localStorage.setItem(`telegram_info_${user.id}`, 'null');
+      // Em caso de erro, manter estado atual se houver cache
+      if (!hasCache) {
+        setIsTelegramLinked(false);
+        setTelegramInfo(null);
+        localStorage.setItem(`telegram_status_${user.id}`, 'false');
+        localStorage.setItem(`telegram_info_${user.id}`, 'null');
+      }
       setTelegramStatusChecked(true);
     } finally {
       setIsCheckingTelegram(false);
@@ -207,29 +202,35 @@ const Dashboard: React.FC = () => {
   // Verificar status do Telegram no carregamento
   useEffect(() => {
     if (user?.id && !telegramStatusChecked) {
-      // S verificar no servidor se no tiver cache
+      // Primeiro, tentar usar cache se existir
       const cachedStatus = localStorage.getItem(`telegram_status_${user.id}`);
-      if (!cachedStatus) {
-        checkTelegramStatus();
-      } else {
-        // Sempre verificar no servidor após 5 segundos para garantir sincronia
-        setTimeout(() => {
-          checkTelegramStatus(true);
-        }, 5000);
+      const cachedInfo = localStorage.getItem(`telegram_info_${user.id}`);
+      
+      if (cachedStatus && cachedInfo) {
+        console.log('🔄 [TELEGRAM] Usando cache:', { cachedStatus, cachedInfo });
+        setIsTelegramLinked(cachedStatus === 'true');
+        setTelegramInfo(cachedInfo === 'null' ? null : JSON.parse(cachedInfo));
+        setTelegramStatusChecked(true);
       }
+      
+      // Verificar no servidor apenas se não houver cache ou após 10 segundos
+      const delay = cachedStatus ? 10000 : 2000;
+      setTimeout(() => {
+        checkTelegramStatus(true);
+      }, delay);
     }
   }, [user?.id, telegramStatusChecked]);
 
-  // Verificação periódica a cada 30 segundos para manter sincronizado
+  // Verificação periódica MENOS agressiva - apenas a cada 2 minutos
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && isTelegramLinked) {
       const interval = setInterval(() => {
         checkTelegramStatus(true);
-      }, 30000);
+      }, 120000); // 2 minutos em vez de 30 segundos
       
       return () => clearInterval(interval);
     }
-  }, [user?.id]);
+  }, [user?.id, isTelegramLinked]);
   
   // Novo filtro por nome
   const [newTransaction, setNewTransaction] = useState({
@@ -1510,10 +1511,16 @@ const Dashboard: React.FC = () => {
         onClose={() => setShowTelegramModal(false)}
         onConnect={(code) => {
           setShowTelegramModal(false);
-          // Forar atualizao do status aps conectar
+          // Limpar cache para forçar verificação real
+          if (user?.id) {
+            localStorage.removeItem(`telegram_status_${user.id}`);
+            localStorage.removeItem(`telegram_info_${user.id}`);
+          }
+          // Forçar atualização do status após conectar
           setTimeout(() => {
-            refreshTelegramStatus();
-          }, 2000);
+            setTelegramStatusChecked(false);
+            checkTelegramStatus(true);
+          }, 3000);
         }}
       />
       

@@ -11,18 +11,30 @@ CREATE TABLE IF NOT EXISTS telegram_sessions (
 CREATE INDEX IF NOT EXISTS idx_telegram_sessions_chat_id ON telegram_sessions(chat_id);
 
 -- Trigger para auto-update do updated_at
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+-- Criar função apenas se não existir
+DO $$
 BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
+    IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'update_updated_at_column') THEN
+        CREATE FUNCTION update_updated_at_column()
+        RETURNS TRIGGER AS $func$
+        BEGIN
+            NEW.updated_at = NOW();
+            RETURN NEW;
+        END;
+        $func$ language 'plpgsql';
+    END IF;
+END $$;
 
-CREATE TRIGGER update_telegram_sessions_updated_at 
-    BEFORE UPDATE ON telegram_sessions 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
+-- Criar trigger apenas se não existir
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_telegram_sessions_updated_at') THEN
+        CREATE TRIGGER update_telegram_sessions_updated_at 
+            BEFORE UPDATE ON telegram_sessions 
+            FOR EACH ROW 
+            EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
 -- Comentários para documentação
 COMMENT ON TABLE telegram_sessions IS 'Sessões do bot Telegram com transações pendentes de confirmação';

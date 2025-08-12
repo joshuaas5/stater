@@ -10,10 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { AdBanner } from '@/components/monetization/AdBanner';
 import { Checkbox } from "@/components/ui/checkbox";
-import { Bill, CardItem, EXPENSE_CATEGORIES } from '@/types';
+import { Bill, CardItem, EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/types';
 import { getCurrentUser, saveBill } from '@/utils/localStorage';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Calendar, CreditCard, Plus, X } from 'lucide-react';
+import { ArrowLeft, Calendar, CreditCard, Plus, X, Tag, ChevronDown, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserPlanManager } from '@/utils/userPlanManager';
 
@@ -36,6 +36,34 @@ const AddBillPage: React.FC = () => {
   const [cardItemDescription, setCardItemDescription] = useState('');
   const [cardItemAmount, setCardItemAmount] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
+  
+  // States para o sistema de dropdown de categorias (igual ao TransactionModal)
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [categorySearchTerm, setCategorySearchTerm] = useState('');
+  
+  // Filtrar categorias com base na busca
+  const filteredCategories = EXPENSE_CATEGORIES.filter(category =>
+    category.toLowerCase().includes(categorySearchTerm.toLowerCase())
+  );
+  
+  // Fechar dropdown ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.category-dropdown')) {
+        setIsCategoryDropdownOpen(false);
+        setCategorySearchTerm('');
+      }
+    };
+
+    if (isCategoryDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isCategoryDropdownOpen]);
   
   // Inicializar usuário do Supabase
   useEffect(() => {
@@ -359,27 +387,84 @@ const AddBillPage: React.FC = () => {
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white font-medium">Categoria</FormLabel>
+                  <FormLabel className="text-sm font-semibold text-white flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-white/80" />
+                    Categoria
+                  </FormLabel>
                   <FormControl>
-                    <Select 
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white focus:border-white/40">
-                        <SelectValue placeholder="Selecione uma categoria" className="text-white" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#31518b] border-white/20">
-                        {EXPENSE_CATEGORIES.map((category) => (
-                          <SelectItem 
-                            key={category} 
-                            value={category.toLowerCase()}
-                            className="text-white hover:bg-white/10 focus:bg-white/10"
-                          >
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="relative category-dropdown">
+                      <button
+                        type="button"
+                        onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                        className={`w-full px-4 py-3.5 border-2 rounded-xl transition-all duration-200 outline-none font-medium text-white flex items-center justify-between border-white/20 focus:border-white/40 focus:shadow-lg focus:shadow-white/10`}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          backdropFilter: 'blur(10px)'
+                        }}
+                      >
+                        <span className={field.value ? 'text-white' : 'text-white/50'}>
+                          {field.value ? EXPENSE_CATEGORIES.find(cat => cat.toLowerCase() === field.value) || field.value : 'Selecione uma categoria'}
+                        </span>
+                        <ChevronDown className={`h-4 w-4 transition-transform text-white/70 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {isCategoryDropdownOpen && (
+                        <div 
+                          className="absolute top-full left-0 right-0 mt-1 border rounded-xl shadow-lg z-50 max-h-60 overflow-hidden"
+                          style={{
+                            background: 'rgba(49, 81, 139, 0.95)',
+                            backdropFilter: 'blur(20px)',
+                            borderColor: 'rgba(255, 255, 255, 0.2)'
+                          }}
+                        >
+                          {/* Campo de busca */}
+                          <div className="p-3 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+                            <div className="relative">
+                              <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" />
+                              <input
+                                type="text"
+                                placeholder="Buscar categoria..."
+                                value={categorySearchTerm}
+                                onChange={(e) => setCategorySearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 text-sm border rounded-lg focus:border-white/40 outline-none text-white placeholder-white/50"
+                                style={{
+                                  background: 'rgba(255, 255, 255, 0.1)',
+                                  backdropFilter: 'blur(10px)',
+                                  borderColor: 'rgba(255, 255, 255, 0.2)'
+                                }}
+                                autoFocus={isCategoryDropdownOpen}
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Lista de categorias */}
+                          <div className="max-h-40 overflow-y-auto">
+                            {filteredCategories.length > 0 ? (
+                              filteredCategories.map((category) => (
+                                <button
+                                  key={category}
+                                  type="button"
+                                  className={`w-full px-4 py-2.5 text-left text-sm hover:bg-white/10 transition-colors ${
+                                    field.value === category.toLowerCase() ? 'bg-white/20 text-white font-medium' : 'text-white/90'
+                                  }`}
+                                  onClick={() => {
+                                    field.onChange(category.toLowerCase());
+                                    setIsCategoryDropdownOpen(false);
+                                    setCategorySearchTerm('');
+                                  }}
+                                >
+                                  {category}
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-4 py-3 text-sm text-white/60 text-center">
+                                Nenhuma categoria encontrada
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

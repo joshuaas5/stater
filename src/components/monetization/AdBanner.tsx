@@ -149,11 +149,11 @@ export const AdBanner: React.FC<AdBannerProps> = ({
   const Icon = currentAd.icon;
   const positionClasses = position === 'top' 
     ? 'top-0 border-b' 
-    : 'bottom-0 border-t';
+    : 'bottom-16 border-t'; // Mudou para bottom-16 para ficar acima da navbar
 
   return (
     <div className={`
-      fixed left-0 right-0 z-[60] bg-white/95 backdrop-blur-sm 
+      fixed left-0 right-0 z-[2147483646] bg-white/95 backdrop-blur-sm 
       ${positionClasses} ${className}
     `}>
       <Card className="mx-2 my-2 overflow-hidden border-0 shadow-lg">

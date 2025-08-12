@@ -119,7 +119,7 @@ const ExportReportPage: React.FC = () => {
       
       // Preparar dados para o relatório
       const reportData = {
-        userName: currentUser?.name || currentUser?.email || 'Usuário',
+        userName: currentUser?.email || 'Usuário',
         startDate: filterStartDate,
         endDate: filterEndDate,
         incomeTotal,

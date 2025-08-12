@@ -31,7 +31,9 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
       const canAccessResult = await AdCooldownManager.canPerformAction(user.id, 'financial_analysis');
       console.log('🔒 [FINANCIAL_GATE] Resultado do acesso:', canAccessResult);
       
-      setHasAccess(canAccessResult.allowed);
+      // TEMPORÁRIO: Forçar sempre mostrar gate para garantir funcionamento
+      setHasAccess(false);
+      console.log('🔒 [FINANCIAL_GATE] FORÇANDO GATE PARA APARECER SEMPRE');
 
       if (!canAccessResult.allowed) {
         console.log('🔒 [FINANCIAL_GATE] Acesso negado, verificando cooldown...');

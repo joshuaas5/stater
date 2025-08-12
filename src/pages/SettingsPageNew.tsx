@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import TestIntegrationButton from '@/components/TestIntegrationButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserPreferences, saveUserPreferences, UserPreferences } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
@@ -135,16 +134,6 @@ const SettingsPage: React.FC = () => {  const { user } = useAuth();
                 }`}
               >
                 Preferências
-              </button>
-              <button
-                onClick={() => setActiveTab('sync')}
-                className={`flex-1 py-3 px-4 rounded-xl font-medium text-sm transition-all duration-300 ${
-                  activeTab === 'sync'
-                    ? 'bg-white/20 backdrop-blur-sm text-white shadow-lg'
-                    : 'text-white/70 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                Sincronização
               </button>
             </nav>
           </div>
@@ -344,29 +333,6 @@ const SettingsPage: React.FC = () => {  const { user } = useAuth();
                       />
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'sync' && (
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
-              <div className="mb-6">
-                <h2 
-                  className="text-xl font-semibold text-white mb-2"
-                  style={{
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
-                    letterSpacing: '0.025em'
-                  }}
-                >
-                  Sincronização
-                </h2>
-                <p className="text-white/70">Gerencie a sincronização dos seus dados.</p>
-              </div>
-              <div className="space-y-4">
-                <div className="py-12 px-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 text-center">
-                  <p className="text-white/70">Funcionalidades de sincronização em desenvolvimento.</p>
                 </div>
               </div>
             </div>

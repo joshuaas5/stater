@@ -3,7 +3,7 @@ import { UserPlanManager } from './userPlanManager';
 
 interface AdCooldownData {
   userId: string;
-  action: 'bills' | 'transactions';
+  action: 'bills' | 'transactions' | 'financial_analysis';
   lastAdTime: Date;
   adsWatchedToday: number;
   cooldownActive: boolean;
@@ -20,6 +20,11 @@ interface AdCooldownConfig {
     cooldownMinutes: number;
     maxAdsPerDay: number;
     rewardActions: number;
+  };
+  financial_analysis: {
+    cooldownMinutes: number;
+    maxAdsPerDay: number;
+    rewardActions: number; // 1 hora de acesso = 60 minutos
   };
 }
 
@@ -40,6 +45,11 @@ export class AdCooldownManager {
       cooldownMinutes: 20,        // 20 min entre ads para transactions
       maxAdsPerDay: 8,           // Max 8 ads por dia para transactions
       rewardActions: 5           // Cada ad libera 5 transactions
+    },
+    financial_analysis: {
+      cooldownMinutes: 60,        // 60 min (1 hora) de acesso
+      maxAdsPerDay: 10,          // Max 10 ads por dia para análise financeira
+      rewardActions: 60          // 1 hora de acesso = 60 minutos
     }
   };
 
@@ -48,7 +58,7 @@ export class AdCooldownManager {
    */
   static async canPerformAction(
     userId: string, 
-    action: 'bills' | 'transactions'
+    action: 'bills' | 'transactions' | 'financial_analysis'
   ): Promise<{
     allowed: boolean;
     reason: 'free_actions' | 'premium_plan' | 'need_ad' | 'cooldown_active' | 'developer_account';
@@ -126,7 +136,7 @@ export class AdCooldownManager {
    */
   static async watchAdForActions(
     userId: string,
-    action: 'bills' | 'transactions'
+    action: 'bills' | 'transactions' | 'financial_analysis'
   ): Promise<{
     success: boolean;
     actionsGranted: number;
@@ -186,7 +196,7 @@ export class AdCooldownManager {
    */
   static async consumeAction(
     userId: string,
-    action: 'bills' | 'transactions'
+    action: 'bills' | 'transactions' | 'financial_analysis'
   ): Promise<{ success: boolean; remaining: number }> {
     try {
       const key = `freeActions_${userId}_${action}_${this.getTodayString()}`;
@@ -212,7 +222,7 @@ export class AdCooldownManager {
    */
   private static async getCooldownData(
     userId: string, 
-    action: 'bills' | 'transactions'
+    action: 'bills' | 'transactions' | 'financial_analysis'
   ): Promise<AdCooldownData> {
     try {
       const key = `adCooldown_${userId}_${action}_${this.getTodayString()}`;
@@ -264,7 +274,7 @@ export class AdCooldownManager {
    */
   private static async grantActions(
     userId: string,
-    action: 'bills' | 'transactions',
+    action: 'bills' | 'transactions' | 'financial_analysis',
     amount: number
   ): Promise<void> {
     try {
@@ -297,7 +307,7 @@ export class AdCooldownManager {
    */
   private static async getFreeActionsRemaining(
     userId: string,
-    action: 'bills' | 'transactions'
+    action: 'bills' | 'transactions' | 'financial_analysis'
   ): Promise<number> {
     try {
       const key = `freeActions_${userId}_${action}_${this.getTodayString()}`;
@@ -324,15 +334,23 @@ export class AdCooldownManager {
       cooldownActive: boolean;
       minutesUntilNextAd?: number;
     };
+    financial_analysis: {
+      freeActionsRemaining: number;
+      adsWatchedToday: number;
+      cooldownActive: boolean;
+      minutesUntilNextAd?: number;
+    };
   }> {
-    const [billsData, transactionsData] = await Promise.all([
+    const [billsData, transactionsData, financialAnalysisData] = await Promise.all([
       this.getCooldownData(userId, 'bills'),
-      this.getCooldownData(userId, 'transactions')
+      this.getCooldownData(userId, 'transactions'),
+      this.getCooldownData(userId, 'financial_analysis')
     ]);
 
-    const [billsRemaining, transactionsRemaining] = await Promise.all([
+    const [billsRemaining, transactionsRemaining, financialAnalysisRemaining] = await Promise.all([
       this.getFreeActionsRemaining(userId, 'bills'),
-      this.getFreeActionsRemaining(userId, 'transactions')
+      this.getFreeActionsRemaining(userId, 'transactions'),
+      this.getFreeActionsRemaining(userId, 'financial_analysis')
     ]);
 
     const now = new Date();
@@ -355,6 +373,15 @@ export class AdCooldownManager {
         minutesUntilNextAd: transactionsData.nextAdAvailableAt && now < transactionsData.nextAdAvailableAt
           ? Math.ceil((transactionsData.nextAdAvailableAt.getTime() - now.getTime()) / (1000 * 60))
           : undefined
+      },
+      financial_analysis: {
+        freeActionsRemaining: financialAnalysisRemaining,
+        adsWatchedToday: financialAnalysisData.adsWatchedToday,
+        cooldownActive: financialAnalysisData.cooldownActive && 
+          financialAnalysisData.nextAdAvailableAt ? now < financialAnalysisData.nextAdAvailableAt : false,
+        minutesUntilNextAd: financialAnalysisData.nextAdAvailableAt && now < financialAnalysisData.nextAdAvailableAt
+          ? Math.ceil((financialAnalysisData.nextAdAvailableAt.getTime() - now.getTime()) / (1000 * 60))
+          : undefined
       }
     };
   }
@@ -372,8 +399,10 @@ export class AdCooldownManager {
       const keysToRemove = [
         `adCooldown_${userId}_bills_${yesterdayString}`,
         `adCooldown_${userId}_transactions_${yesterdayString}`,
+        `adCooldown_${userId}_financial_analysis_${yesterdayString}`,
         `freeActions_${userId}_bills_${yesterdayString}`,
-        `freeActions_${userId}_transactions_${yesterdayString}`
+        `freeActions_${userId}_transactions_${yesterdayString}`,
+        `freeActions_${userId}_financial_analysis_${yesterdayString}`
       ];
 
       keysToRemove.forEach(key => localStorage.removeItem(key));

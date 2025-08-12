@@ -544,7 +544,7 @@ export class AdManager {
    */
   static async showContextualAd(
     userId: string, 
-    action: 'bills' | 'transactions'
+    action: 'bills' | 'transactions' | 'financial_analysis'
   ): Promise<ContextualAdResult> {
     try {
       console.log(`🎯 Exibindo anúncio contextual para ${action} - usuário: ${userId}`);
@@ -568,7 +568,8 @@ export class AdManager {
       
       const rewardConfig = {
         bills: { actions: 3, cooldown: 30 },
-        transactions: { actions: 5, cooldown: 20 }
+        transactions: { actions: 5, cooldown: 20 },
+        financial_analysis: { actions: 60, cooldown: 60 }
       };
       
       const reward = rewardConfig[action];

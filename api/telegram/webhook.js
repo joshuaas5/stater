@@ -855,33 +855,74 @@ async function confirmTransactions(chatId) {
 
 async function linkTelegramWithCode(chatId, linkCode) {
     try {
-        console.log(`[LINK] Tentando vincular código: ${linkCode}`);
+        console.log(`[LINK] === DEBUG DETALHADO ===`);
+        console.log(`[LINK] ChatID: ${chatId}`);
+        console.log(`[LINK] Código: ${linkCode}`);
+        console.log(`[LINK] Supabase URL: ${process.env.SUPABASE_URL}`);
+        console.log(`[LINK] Service Role disponível: ${!!process.env.SUPABASE_SERVICE_ROLE_KEY}`);
+        
         const { data, error } = await supabase
             .from('telegram_link_codes')
-            .select('user_id, user_email, user_name, expires_at')
+            .select('user_id, user_email, user_name, expires_at, used_at, created_at')
             .eq('code', linkCode)
             .single();
 
+        console.log(`[LINK] Query executada. Error:`, error);
+        console.log(`[LINK] Data retornada:`, data);
+
         if (error) {
-            console.error('[LINK] Erro ao buscar código:', error);
-            return { success: false, message: 'Erro no banco ao buscar código' };
+            console.error('[LINK] Erro detalhado:', {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint
+            });
+            return { success: false, message: `Erro no banco: ${error.message}` };
         }
 
         if (!data) {
-            console.log('[LINK] Código não encontrado.');
-            return { success: false, message: 'Código inválido' };
+            console.log('[LINK] Nenhum código encontrado na base.');
+            // Vamos verificar se existe algum código na tabela
+            const { data: allCodes, error: countError } = await supabase
+                .from('telegram_link_codes')
+                .select('code, user_id, expires_at, used_at')
+                .limit(5);
+            console.log('[LINK] Códigos existentes na tabela:', allCodes);
+            return { success: false, message: 'Código não encontrado' };
         }
 
         const now = new Date();
         const exp = new Date(data.expires_at);
-        console.log(`[LINK] Código encontrado. Agora: ${now.toISOString()} Expira: ${exp.toISOString()}`);
+        console.log(`[LINK] Verificação de expiração:`);
+        console.log(`[LINK] - Agora: ${now.toISOString()}`);
+        console.log(`[LINK] - Expira: ${exp.toISOString()}`);
+        console.log(`[LINK] - Usado em: ${data.used_at}`);
+        console.log(`[LINK] - Criado em: ${data.created_at}`);
+        
+        if (data.used_at) {
+            console.log('[LINK] Código já foi usado anteriormente.');
+            return { success: false, message: 'Código já foi usado' };
+        }
+        
         if (now > exp) {
             console.log('[LINK] Código expirado.');
             return { success: false, message: 'Código expirado' };
         }
 
+        console.log('[LINK] Código válido! Marcando como usado...');
+        
         // Mark code as used
-        await supabase.from('telegram_link_codes').update({ used_at: new Date().toISOString() }).eq('code', linkCode);
+        const { error: updateError } = await supabase
+            .from('telegram_link_codes')
+            .update({ used_at: new Date().toISOString() })
+            .eq('code', linkCode);
+            
+        if (updateError) {
+            console.error('[LINK] Erro ao marcar código como usado:', updateError);
+            return { success: false, message: 'Erro ao processar código' };
+        }
+        
+        console.log('[LINK] Código marcado como usado com sucesso.');
         
         // Create/update telegram user record
         console.log(`Creating telegram_users record for chat ${chatId}, user ${mapped.user_id}`);

@@ -296,6 +296,24 @@ export class UserPlanManager {
   }
 
   /**
+   * Verifica se o usuário atual é beta (utilitário)
+   */
+  private static async checkIfCurrentUserIsBeta(): Promise<{ isBeta: boolean; email?: string }> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        return {
+          isBeta: this.isBetaUser(user.email),
+          email: user.email
+        };
+      }
+      return { isBeta: false };
+    } catch {
+      return { isBeta: false };
+    }
+  }
+
+  /**
    * Obtém as features corretas baseado no plano e status beta
    */
   static getUserFeatures(planType: PlanType, userEmail?: string): PlanFeatures {
@@ -314,11 +332,133 @@ export class UserPlanManager {
    */
   static async getUserPlan(userId: string): Promise<UserPlan> {
     try {
+      console.log('🔍 [USER_PLAN] Buscando plano para usuário:', userId);
+      
+      // 1. Primeiro tentar buscar no Supabase
+      const { data: planData, error } = await supabase
+        .from('user_plans')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') { // PGRST116 = not found
+        console.warn('⚠️ [USER_PLAN] Erro ao buscar no Supabase:', error);
+        // Fallback para localStorage se Supabase falhar
+        return this.getUserPlanFromLocalStorage(userId);
+      }
+      
+      if (planData) {
+        // Converter dados do Supabase para formato UserPlan
+        const plan: UserPlan = {
+          userId: planData.user_id,
+          planType: planData.plan_type as PlanType,
+          isActive: planData.is_active,
+          startDate: new Date(planData.start_date),
+          expiresAt: planData.expires_at ? new Date(planData.expires_at) : undefined,
+          trialEndsAt: planData.trial_ends_at ? new Date(planData.trial_ends_at) : undefined,
+          isOnTrial: planData.is_on_trial,
+          paymentStatus: planData.payment_status as any,
+          purchaseToken: planData.purchase_token,
+          productId: planData.product_id
+        };
+        
+        // Verificar se o plano expirou
+        if (plan.expiresAt && new Date() > plan.expiresAt) {
+          console.log('⏰ [USER_PLAN] Plano expirado, convertendo para FREE');
+          plan.planType = PlanType.FREE;
+          plan.isActive = false;
+          plan.paymentStatus = 'cancelled';
+          await this.saveUserPlan(plan);
+        }
+        
+        console.log('✅ [USER_PLAN] Plano encontrado no Supabase:', plan.planType);
+        return plan;
+      }
+      
+      // 2. Se não existe no Supabase, tentar migrar do localStorage
+      const localStoragePlan = this.getUserPlanFromLocalStorage(userId);
+      if (localStoragePlan.planType !== PlanType.FREE || this.hasLocalStorageData(userId)) {
+        console.log('🔄 [USER_PLAN] Migrando localStorage → Supabase');
+        await this.saveUserPlan(localStoragePlan);
+        return localStoragePlan;
+      }
+      
+      // 3. Criar plano FREE padrão
+      const defaultPlan: UserPlan = {
+        userId,
+        planType: PlanType.FREE,
+        isActive: true,
+        startDate: new Date(),
+        isOnTrial: false,
+        paymentStatus: 'cancelled'
+      };
+      
+      await this.saveUserPlan(defaultPlan);
+      console.log('✅ [USER_PLAN] Plano FREE padrão criado');
+      return defaultPlan;
+      
+    } catch (error) {
+      console.error('❌ [USER_PLAN] Erro ao obter plano:', error);
+      
+      // Fallback para localStorage em caso de erro
+      return this.getUserPlanFromLocalStorage(userId);
+    }
+  }
+  
+  /**
+   * Salva o plano do usuário
+   */
+  static async saveUserPlan(plan: UserPlan): Promise<void> {
+    try {
+      console.log('💾 [USER_PLAN] Salvando plano no Supabase:', plan.planType);
+      
+      // Salvar no Supabase
+      const { error } = await supabase
+        .from('user_plans')
+        .upsert({
+          user_id: plan.userId,
+          plan_type: plan.planType,
+          is_active: plan.isActive,
+          start_date: plan.startDate.toISOString(),
+          expires_at: plan.expiresAt?.toISOString(),
+          trial_ends_at: plan.trialEndsAt?.toISOString(),
+          is_on_trial: plan.isOnTrial,
+          payment_status: plan.paymentStatus,
+          purchase_token: plan.purchaseToken,
+          product_id: plan.productId,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+      
+      if (error) {
+        console.error('❌ [USER_PLAN] Erro no Supabase:', error);
+        // Fallback para localStorage se Supabase falhar
+        this.saveUserPlanToLocalStorage(plan);
+        return;
+      }
+      
+      console.log('✅ [USER_PLAN] Plano salvo no Supabase com sucesso');
+      
+      // Também salvar no localStorage como backup
+      this.saveUserPlanToLocalStorage(plan);
+      
+    } catch (error) {
+      console.error('❌ [USER_PLAN] Erro ao salvar plano:', error);
+      // Fallback para localStorage em caso de erro
+      this.saveUserPlanToLocalStorage(plan);
+    }
+  }
+
+  /**
+   * Fallback: obter plano do localStorage
+   */
+  private static getUserPlanFromLocalStorage(userId: string): UserPlan {
+    try {
       const planData = localStorage.getItem(`userPlan_${userId}`);
       
       if (!planData) {
-        // Se não existe plano, criar plano FREE padrão
-        const defaultPlan: UserPlan = {
+        return {
           userId,
           planType: PlanType.FREE,
           isActive: true,
@@ -326,9 +466,6 @@ export class UserPlanManager {
           isOnTrial: false,
           paymentStatus: 'cancelled'
         };
-        
-        await this.saveUserPlan(defaultPlan);
-        return defaultPlan;
       }
       
       const plan: UserPlan = JSON.parse(planData);
@@ -338,15 +475,12 @@ export class UserPlanManager {
         plan.planType = PlanType.FREE;
         plan.isActive = false;
         plan.paymentStatus = 'cancelled';
-        await this.saveUserPlan(plan);
       }
       
       return plan;
       
     } catch (error) {
-      console.error('Erro ao obter plano do usuário:', error);
-      
-      // Fallback para plano FREE em caso de erro
+      console.error('❌ [USER_PLAN] Erro no localStorage:', error);
       return {
         userId,
         planType: PlanType.FREE,
@@ -357,16 +491,28 @@ export class UserPlanManager {
       };
     }
   }
-  
+
   /**
-   * Salva o plano do usuário
+   * Fallback: salvar plano no localStorage
    */
-  static async saveUserPlan(plan: UserPlan): Promise<void> {
+  private static saveUserPlanToLocalStorage(plan: UserPlan): void {
     try {
       localStorage.setItem(`userPlan_${plan.userId}`, JSON.stringify(plan));
-      console.log(`💳 Plano ${plan.planType} salvo para usuário ${plan.userId}`);
+      console.log('💾 [USER_PLAN] Salvo no localStorage como backup');
     } catch (error) {
-      console.error('Erro ao salvar plano do usuário:', error);
+      console.error('❌ [USER_PLAN] Erro ao salvar no localStorage:', error);
+    }
+  }
+
+  /**
+   * Verifica se há dados no localStorage
+   */
+  private static hasLocalStorageData(userId: string): boolean {
+    try {
+      const planData = localStorage.getItem(`userPlan_${userId}`);
+      return !!planData;
+    } catch {
+      return false;
     }
   }
   
@@ -405,14 +551,10 @@ export class UserPlanManager {
     return true;
     try {
       // Verificar se é beta user primeiro - acesso ilimitado
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.email && this.isBetaUser(user.email)) {
-          console.log(`🚀 [BETA USER] Limite diário ilimitado para "${action}" - usuário: ${user.email}`);
-          return true;
-        }
-      } catch (authError) {
-        console.log('Auth check falhou, continuando com verificação normal do plano');
+      const betaCheck = await this.checkIfCurrentUserIsBeta();
+      if (betaCheck.isBeta) {
+        console.log(`🚀 [BETA USER] Limite diário ilimitado para "${action}" - usuário: ${betaCheck.email}`);
+        return true;
       }
       
       const userPlan = await this.getUserPlan(userId);

@@ -10,8 +10,17 @@ const logDebug = (message: string, data?: any) => {
   }
 };
 
-// Usar configuração original que funcionava
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Usar service role para contornar RLS (igual ao webhook)
+const supabase = createClient(
+  supabaseUrl, 
+  process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseKey,
+  {
+    auth: { 
+      autoRefreshToken: false, 
+      persistSession: false 
+    }
+  }
+);
 
 function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -169,8 +178,8 @@ module.exports = async function handler(req: any, res: any) {
     // Tentar inserir na tabela
     logDebug('🔧 [TELEGRAM API] Inserindo na tabela...');
     
-    // Usar configuração original que funcionava
-    logDebug('🔧 [TELEGRAM API] Usando cliente ANON');
+    // Usar service role para contornar RLS
+    logDebug('🔧 [TELEGRAM API] Usando SERVICE_ROLE para contornar RLS');
     
     const { error: insertError } = await supabase
       .from('telegram_link_codes')

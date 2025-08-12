@@ -1072,14 +1072,23 @@ const Dashboard: React.FC = () => {
                       
                       console.log('🧪 [DEBUG] Registros ATIVOS:', { activeRecords, activeError });
                       
-                      // Teste 3: Últimos 10 registros da tabela (qualquer usuário)
+                      // Teste 3: Últimos 10 registros da tabela (sem created_at)
                       const { data: recentRecords, error: recentError } = await supabase
                         .from('telegram_users')
                         .select('*')
-                        .order('created_at', { ascending: false })
                         .limit(10);
                       
                       console.log('🧪 [DEBUG] Últimos 10 registros da tabela:', { recentRecords, recentError });
+                      
+                      // Teste 4: Estrutura da tabela (primeiro registro)
+                      const { data: sampleRecord, error: sampleError } = await supabase
+                        .from('telegram_users')
+                        .select('*')
+                        .limit(1);
+                      
+                      if (sampleRecord && sampleRecord.length > 0) {
+                        console.log('🧪 [DEBUG] Estrutura da tabela (campos):', Object.keys(sampleRecord[0]));
+                      }
                       
                       toast({
                         title: "🧪 Debug Completo",
@@ -1087,6 +1096,11 @@ const Dashboard: React.FC = () => {
                       });
                     } catch (err) {
                       console.error('🧪 [DEBUG] Erro:', err);
+                      toast({
+                        title: "❌ Erro no Debug",
+                        description: String(err),
+                        variant: "destructive"
+                      });
                     }
                   }}
                   className="px-2 py-1 rounded-lg text-white text-xs hover:bg-white/20 transition-all duration-300"

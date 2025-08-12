@@ -438,78 +438,125 @@ async function handleTextMessage(msg) {
 // =================================================================================
 
 async function detectTransactionIntent(message) {
+    const originalText = message.trim();
     const text = message.toLowerCase().trim();
-    console.log('Detecting transaction intent for:', text);
+    console.log('Detecting transaction intent for:', originalText);
     
-    // Simple patterns that should definitely work
     let amount = null;
     let type = null;
-    let description = 'Transação via bot';
+    let description = null;
     let category = 'Não categorizado';
     
-    // Pattern 1: "entrada 50" or "saída 50"
-    if (text.match(/^entrada\s+(\d+(?:[,.]\d{1,2})?)(?:\s+.*)?$/)) {
-        const match = text.match(/^entrada\s+(\d+(?:[,.]\d{1,2})?)(?:\s+.*)?$/);
-        amount = parseFloat(match[1].replace(',', '.'));
-        type = 'income';
-        description = 'Entrada via bot';
-        category = 'Outros';
-    }
-    // Pattern 2: "saida 50" or "saída 50"
-    else if (text.match(/^(?:saida|saída)\s+(\d+(?:[,.]\d{1,2})?)(?:\s+.*)?$/)) {
-        const match = text.match(/^(?:saida|saída)\s+(\d+(?:[,.]\d{1,2})?)(?:\s+.*)?$/);
-        amount = parseFloat(match[1].replace(',', '.'));
-        type = 'expense';
-        description = 'Saída via bot';
-        category = 'Diversos';
-    }
-    // Pattern 3: "adicione 50" or "adicione 50 reais" (ask for type)
-    else if (text.match(/^(?:adicione|adicionar|adiciona)\s+(\d+(?:[,.]\d{1,2})?)(?:\s+.*)?$/)) {
-        const match = text.match(/^(?:adicione|adicionar|adiciona)\s+(\d+(?:[,.]\d{1,2})?)(?:\s+.*)?$/);
-        amount = parseFloat(match[1].replace(',', '.'));
-        type = 'unknown';
-        description = 'Transação via bot';
-        category = 'Não categorizado';
-    }
-    // Pattern 4: Just a number "50" or "50 reais"
-    else if (text.match(/^(\d+(?:[,.]\d{1,2})?)(?:\s+reais?)?$/)) {
-        const match = text.match(/^(\d+(?:[,.]\d{1,2})?)(?:\s+reais?)?$/);
-        amount = parseFloat(match[1].replace(',', '.'));
-        type = 'unknown';
-        description = 'Transação via bot';
-        category = 'Não categorizado';
-    }
-    // Pattern 5: "50 entrada" or "50 saída"
-    else if (text.match(/^(\d+(?:[,.]\d{1,2})?)\s+entrada$/)) {
-        const match = text.match(/^(\d+(?:[,.]\d{1,2})?)\s+entrada$/);
-        amount = parseFloat(match[1].replace(',', '.'));
-        type = 'income';
-        description = 'Entrada via bot';
-        category = 'Outros';
-    }
-    else if (text.match(/^(\d+(?:[,.]\d{1,2})?)\s+(?:saida|saída)$/)) {
-        const match = text.match(/^(\d+(?:[,.]\d{1,2})?)\s+(?:saida|saída)$/);
-        amount = parseFloat(match[1].replace(',', '.'));
-        type = 'expense';
-        description = 'Saída via bot';
-        category = 'Diversos';
+    // Palavras-chave para identificar tipos de transação
+    const incomeKeywords = [
+        'ganhei', 'recebi', 'entrada', 'recebimento', 'salário', 'salario', 
+        'pagamento', 'venda', 'presente', 'prêmio', 'premio', 'lucro',
+        'comissão', 'comissao', 'bonus', 'bônus', 'rendimento', 'juros'
+    ];
+    
+    const expenseKeywords = [
+        'gastei', 'comprei', 'paguei', 'saída', 'saida', 'despesa', 'gasto',
+        'conta', 'fatura', 'compra', 'mercado', 'supermercado', 'combustível',
+        'combustivel', 'gasolina', 'remédio', 'remedio', 'médico', 'medico'
+    ];
+    
+    // Categorias automáticas baseadas em palavras-chave
+    const categoryKeywords = {
+        'Alimentação': ['comida', 'almoço', 'almoco', 'jantar', 'lanche', 'restaurante', 'mercado', 'supermercado', 'padaria'],
+        'Transporte': ['gasolina', 'combustível', 'combustivel', 'uber', 'taxi', 'ônibus', 'onibus', 'metro', 'passagem'],
+        'Saúde': ['médico', 'medico', 'remédio', 'remedio', 'farmácia', 'farmacia', 'consulta', 'exame'],
+        'Lazer': ['cinema', 'teatro', 'show', 'jogo', 'diversão', 'diversao', 'festa', 'balada'],
+        'Casa': ['aluguel', 'água', 'agua', 'luz', 'internet', 'telefone', 'condomínio', 'condominio'],
+        'Trabalho': ['salário', 'salario', 'pagamento', 'comissão', 'comissao', 'freelance'],
+        'Família': ['vó', 'vo', 'avó', 'avo', 'mãe', 'mae', 'pai', 'filho', 'filha', 'família', 'familia']
+    };
+    
+    // Extrair valor monetário do texto
+    const amountPatterns = [
+        /(\d+(?:[,.]\d{1,2})?)\s*(?:reais?|r\$|real)/i,
+        /(?:r\$|rs)\s*(\d+(?:[,.]\d{1,2})?)/i,
+        /(\d+(?:[,.]\d{1,2})?)/
+    ];
+    
+    for (const pattern of amountPatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            amount = parseFloat(match[1].replace(',', '.'));
+            break;
+        }
     }
     
-    if (amount !== null) {
-        const result = { amount, type, description, category };
-        console.log('Transaction detected:', result);
-        return result;
+    if (amount === null) {
+        console.log('No amount found in text');
+        return null;
     }
     
-    console.log('No transaction pattern matched');
-    return null;
+    // Determinar tipo baseado em palavras-chave
+    let hasIncomeKeyword = incomeKeywords.some(keyword => text.includes(keyword));
+    let hasExpenseKeyword = expenseKeywords.some(keyword => text.includes(keyword));
+    
+    if (hasIncomeKeyword && !hasExpenseKeyword) {
+        type = 'income';
+    } else if (hasExpenseKeyword && !hasIncomeKeyword) {
+        type = 'expense';
+    } else {
+        // Se não conseguir determinar ou se houver conflito, padrão baseado em contexto comum
+        // "adicione", "recebi", "ganhei" = entrada
+        // "gastei", "comprei", "paguei" = saída
+        if (text.includes('recebi') || text.includes('ganhei') || text.includes('presente')) {
+            type = 'income';
+        } else if (text.includes('gastei') || text.includes('comprei') || text.includes('paguei')) {
+            type = 'expense';
+        } else {
+            type = 'unknown'; // Só pergunta se realmente não conseguir determinar
+        }
+    }
+    
+    // Extrair descrição inteligente do texto
+    description = extractSmartDescription(originalText, amount.toString());
+    if (!description) {
+        description = type === 'income' ? 'Entrada via bot' : 'Saída via bot';
+    }
+    
+    // Determinar categoria baseada em palavras-chave
+    for (const [cat, keywords] of Object.entries(categoryKeywords)) {
+        if (keywords.some(keyword => text.includes(keyword))) {
+            category = cat;
+            break;
+        }
+    }
+    
+    const result = { amount, type, description, category };
+    console.log('Smart transaction detected:', result);
+    return result;
 }
 
-function extractDescription(message, amountStr) {
-    let desc = message.replace(new RegExp(amountStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '');
-    desc = desc.replace(/adicionar?|entrada|receita|ganho|saida|saída|gasto|despesa|r\$|\$|de/gi, '');
-    desc = desc.trim();
-    return desc.length > 3 ? desc : null;
+function extractSmartDescription(originalText, amountStr) {
+    // Remove palavras comuns e o valor para extrair a descrição
+    let desc = originalText;
+    
+    // Remove palavras de comando
+    desc = desc.replace(/^(?:adicione|adicionar|adiciona|entrada|saida|saída|gastei|recebi|ganhei|comprei|paguei)\s*/i, '');
+    
+    // Remove valores monetários
+    desc = desc.replace(/\d+(?:[,.]\d{1,2})?\s*(?:reais?|r\$|real)?/gi, '');
+    desc = desc.replace(/(?:r\$|rs)\s*\d+(?:[,.]\d{1,2})?/gi, '');
+    
+    // Remove palavras conectoras desnecessárias
+    desc = desc.replace(/\b(?:que|de|da|do|na|no|em|com|para|por|reais?)\b/gi, ' ');
+    
+    // Limpa espaços extras
+    desc = desc.replace(/\s+/g, ' ').trim();
+    
+    // Se a descrição ficou muito curta ou vazia, retorna null
+    if (desc.length < 3) {
+        return null;
+    }
+    
+    // Capitaliza primeira letra
+    desc = desc.charAt(0).toUpperCase() + desc.slice(1);
+    
+    return desc;
 }
 
 async function handleQuickTransaction(chatId, transactionData, userSession) {

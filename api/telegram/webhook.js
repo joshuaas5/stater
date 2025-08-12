@@ -1,4 +1,4 @@
-const axios = require('axios');
+﻿const axios = require('axios');
 
 // Use environment variables directly from Vercel
 // No need to load .env in production
@@ -1458,7 +1458,7 @@ function formatTransactionsResponse(result) {
         if (result.summary.period) {
             response += `📅 ${result.summary.period}\n`;
         }
-        response += `� Total: R$ ${(result.summary.totalAmount || 0).toFixed(2)}\n\n`;
+        response += ` Total: R$ ${(result.summary.totalAmount || 0).toFixed(2)}\n\n`;
     }
     
     // Mostrar transações

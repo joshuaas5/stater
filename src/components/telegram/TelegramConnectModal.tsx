@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { X, Copy, Check } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -224,9 +224,9 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
               <p className="text-xs text-blue-800 mb-2 font-medium">✨ O que você pode fazer:</p>
               <ul className="text-xs text-blue-700 space-y-1">
-                <li>� Ver saldo e transações</li>
-                <li>� Enviar foto do extrato</li>
-                <li>� Fazer perguntas sobre dinheiro</li>
+                <li>📊 Ver saldo e transações</li>
+                <li>📸 Enviar foto do extrato</li>
+                <li>🤖 Fazer perguntas sobre dinheiro</li>
                 <li>💰 Registrar transações por voz</li>
               </ul>
             </div>

@@ -738,11 +738,139 @@ async function detectTransactionIntent(message) {
         category = 'Alimentação';
     } else if (text.includes('vale') || text.includes('salário') || text.includes('salario')) {
         category = 'Trabalho';
+    } else {
+        // Enhanced intelligent categorization
+        category = detectSmartCategory(originalText, type);
     }
     
     const result = { amount, type, description, category };
     console.log('Transaction detected:', result);
     return result;
+}
+
+// Enhanced intelligent categorization using the same categories as the app
+function detectSmartCategory(text, type) {
+    const textLower = text.toLowerCase();
+    
+    // Categorias de Receita (Income Categories)
+    const incomeCategories = {
+        'Salário': ['salario', 'salário', 'salario 13', '13º', 'pagar', 'ordenado', 'vencimento', 'pagamento do trabalho'],
+        'Freelance': ['freelance', 'freela', 'projeto', 'serviço independente', 'trabalho autônomo', 'consultoria'],
+        'Prestação de Serviços': ['serviço', 'prestação', 'atendimento', 'manutenção'],
+        'Venda de Produtos': ['venda', 'vendeu', 'vendido', 'produto', 'mercadoria'],
+        'Investimentos': ['investimento', 'renda', 'rendimento', 'aplicação', 'dividendo', 'juros'],
+        'Renda de Aluguel': ['aluguel recebido', 'renda aluguel', 'locação', 'inquilino'],
+        'Restituição de IR': ['restituição', 'imposto renda', 'ir', 'restituição ir'],
+        'FGTS': ['fgts', 'fundo garantia', 'saque fgts'],
+        'Auxílios Governamentais': ['auxilio', 'auxílio', 'bolsa familia', 'auxilio brasil', 'seguro desemprego'],
+        'Cashback': ['cashback', 'cash back', 'dinheiro de volta', 'estorno'],
+        'Reembolsos': ['reembolso', 'devolução', 'estorno'],
+        'Prêmios e Sorteios': ['premio', 'prêmio', 'sorteio', 'loteria', 'rifa'],
+        'Vendas Ocasionais': ['venda', 'vendeu'],
+        'Outras Receitas': ['entrada', 'receita', 'ganho', 'recebimento']
+    };
+
+    // Categorias de Despesa (Expense Categories)
+    const expenseCategories = {
+        // Habitação
+        'Aluguel': ['aluguel', 'aluguer', 'locação', 'rent'],
+        'Condomínio': ['condominio', 'condomínio', 'cond', 'taxa condominial'],
+        'Luz': ['luz', 'energia', 'eletrica', 'elétrica', 'conta luz', 'energia elétrica'],
+        'Água': ['agua', 'água', 'saneamento', 'conta agua', 'conta água'],
+        'Gás': ['gas', 'gás', 'conta gas', 'botijão', 'gás de cozinha'],
+        'Internet': ['internet', 'wifi', 'banda larga', 'fibra', 'net'],
+        'TV por Assinatura': ['tv', 'televisão', 'sky', 'claro tv', 'oi tv', 'vivo tv'],
+        'Telefone Fixo': ['telefone', 'fixo', 'linha telefonica'],
+        
+        // Transporte
+        'Combustível': ['combustivel', 'combustível', 'gasolina', 'alcool', 'álcool', 'diesel', 'posto', 'gas natural'],
+        'Transporte Público': ['transporte', 'onibus', 'ônibus', 'metro', 'metrô', 'trem', 'bilhete único'],
+        'Uber/99/Táxi': ['uber', '99', 'taxi', 'táxi', 'corrida', 'app transporte'],
+        'Estacionamento': ['estacionamento', 'parking', 'zona azul', 'vaga'],
+        'Pedágio': ['pedagio', 'pedágio', 'via dutra'],
+        'Seguro do Veículo': ['seguro', 'seguro auto', 'seguro carro'],
+        'IPVA': ['ipva', 'imposto veiculo'],
+        'Manutenção do Veículo': ['manutenção', 'manutencao', 'oficina', 'mecânico', 'peças'],
+        
+        // Alimentação
+        'Supermercado': ['supermercado', 'mercado', 'compras', 'extra', 'carrefour', 'pão de açúcar'],
+        'Restaurantes': ['restaurante', 'jantar', 'almoço', 'almoçar', 'jantar', 'comida'],
+        'Lanchonetes': ['lanche', 'lanchonete', 'sanduiche', 'hamburguer'],
+        'Fast Food': ['fast food', 'mcdonalds', 'burger king', 'kfc', 'subway'],
+        'Delivery': ['delivery', 'ifood', 'uber eats', 'rappi', 'entrega'],
+        'Padaria': ['padaria', 'pão', 'café manhã'],
+        'Açougue/Peixaria': ['açougue', 'carne', 'peixe', 'frango'],
+        'Feira': ['feira', 'verdura', 'legume', 'fruta'],
+        'Bebidas': ['bebida', 'refrigerante', 'cerveja', 'vinho', 'agua', 'água'],
+        
+        // Saúde
+        'Plano de Saúde': ['plano saude', 'plano saúde', 'unimed', 'amil', 'sulamerica'],
+        'Consultas Médicas': ['consulta', 'medico', 'médico', 'clinica', 'clínica'],
+        'Medicamentos': ['medicamento', 'remedio', 'remédio', 'farmacia', 'farmácia'],
+        'Dentista': ['dentista', 'odonto', 'dental'],
+        'Academia': ['academia', 'ginastica', 'ginástica', 'musculação', 'personal'],
+        'Exames': ['exame', 'laboratorio', 'laboratório', 'raio x'],
+        
+        // Educação
+        'Mensalidade Escolar': ['escola', 'mensalidade', 'colegio', 'colégio'],
+        'Faculdade': ['faculdade', 'universidade', 'curso superior'],
+        'Cursos Online': ['curso', 'curso online', 'udemy', 'coursera'],
+        'Livros': ['livro', 'livros', 'material escolar'],
+        
+        // Entretenimento
+        'Cinema': ['cinema', 'filme', 'ingresso'],
+        'Streaming (Netflix, etc)': ['netflix', 'amazon prime', 'disney', 'spotify', 'youtube premium', 'streaming'],
+        'Viagens': ['viagem', 'trip', 'turismo', 'passagem'],
+        'Shows': ['show', 'concert', 'ingresso'],
+        'Jogos': ['jogo', 'game', 'playstation', 'xbox', 'steam'],
+        
+        // Cuidados Pessoais
+        'Cabeleireiro': ['cabelo', 'cabeleireiro', 'salão', 'corte'],
+        'Roupas': ['roupa', 'vestuario', 'vestuário', 'camisa', 'calça', 'vestido'],
+        'Calçados': ['sapato', 'tenis', 'tênis', 'sandalia', 'sandália'],
+        'Cosméticos': ['cosmetico', 'cosmético', 'maquiagem', 'perfume'],
+        
+        // Tecnologia
+        'Celular (Conta)': ['celular', 'tim', 'vivo', 'claro', 'oi', 'conta celular'],
+        'Aplicativos': ['app', 'aplicativo', 'assinatura'],
+        'Equipamentos Eletrônicos': ['eletrônico', 'computador', 'notebook', 'tablet'],
+        
+        // Financeiro
+        'Cartão de Crédito': ['cartão', 'cartao', 'credito', 'crédito', 'fatura'],
+        'Pagamentos de Dívidas': ['divida', 'dívida', 'parcela', 'emprestimo', 'empréstimo'],
+        'Tarifa Bancária': ['tarifa', 'banco', 'taxa bancaria', 'conta corrente'],
+        'Juros e Multas': ['juros', 'multa', 'atraso'],
+        
+        // Família e Pets
+        'Pet Shop': ['pet', 'cachorro', 'gato', 'animal', 'veterinario', 'veterinário'],
+        'Presentes': ['presente', 'gift', 'aniversario', 'aniversário'],
+        
+        // Outros patterns comuns
+        'Despesas Diversas': ['gasto', 'despesa', 'compra', 'pagamento']
+    };
+
+    // Função para verificar se alguma palavra-chave está presente no texto
+    const findMatchingCategory = (categories) => {
+        for (const [category, keywords] of Object.entries(categories)) {
+            for (const keyword of keywords) {
+                if (textLower.includes(keyword)) {
+                    return category;
+                }
+            }
+        }
+        return null;
+    };
+
+    // Verificar categoria baseada no tipo
+    if (type === 'income') {
+        const matchedCategory = findMatchingCategory(incomeCategories);
+        return matchedCategory || 'Outras Receitas';
+    } else if (type === 'expense') {
+        const matchedCategory = findMatchingCategory(expenseCategories);
+        return matchedCategory || 'Despesas Diversas';
+    }
+
+    return 'Não Categorizado';
 }
 
 function extractSmartDescription(originalText, amountStr) {

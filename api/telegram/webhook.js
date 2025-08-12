@@ -417,6 +417,13 @@ async function handleTextMessage(msg) {
     const userSession = await getSession(chatId);
     if (userSession) {
         console.log('User session found for text message:', userSession.userName);
+        
+        // Handle direct commands first (no AI needed)
+        if (lowerText.includes('saldo') || lowerText === 'saldo' || lowerText.includes('quanto tenho')) {
+            console.log('Direct balance request detected');
+            return await handleDirectBalanceRequest(chatId, userSession);
+        }
+        
         // Check if user wants to add a transaction
         const transactionMatch = await detectTransactionIntent(text);
         console.log('Transaction match result:', transactionMatch);
@@ -430,6 +437,63 @@ async function handleTextMessage(msg) {
     } else {
         console.log('No user session found');
         await sendMessage(chatId, `🔒 *Conta não conectada.*\n\nPara usar o chat, preciso que conecte sua conta. Use o comando /conectar para saber como.`, { parse_mode: 'Markdown' });
+    }
+}
+
+// =================================================================================
+// Direct Command Handlers (No AI needed)
+// =================================================================================
+
+async function handleDirectBalanceRequest(chatId, userSession) {
+    try {
+        // Ultra-fast balance calculation using PostgreSQL aggregation
+        const { data: balanceData, error: balanceError } = await supabase
+            .rpc('calculate_user_balance', { user_id_param: userSession.userId });
+
+        if (balanceError) {
+            console.log('RPC not available, fallback to manual calculation');
+            // Fallback to manual calculation
+            const { data: transactions, error: fallbackError } = await supabase
+                .from('transactions')
+                .select('amount, type')
+                .eq('user_id', userSession.userId);
+
+            if (fallbackError) {
+                console.error('Error fetching balance:', fallbackError);
+                await sendMessage(chatId, '😥 Erro ao buscar saldo. Tente novamente.', { parse_mode: 'Markdown' });
+                return;
+            }
+
+            const balance = transactions?.reduce((sum, t) => {
+                const amount = t.type === 'income' ? Math.abs(t.amount || 0) : -Math.abs(t.amount || 0);
+                return sum + amount;
+            }, 0) || 0;
+
+            const transactionCount = transactions?.length || 0;
+
+            await sendMessage(chatId, `💰 *Seu Saldo Atual*\n\nR$ ${balance.toFixed(2)}\n\n📊 Total de transações: ${transactionCount}`, { 
+                parse_mode: 'Markdown' 
+            });
+            return;
+        }
+
+        // Use RPC result if available
+        const balance = balanceData || 0;
+        
+        // Get transaction count separately (quick count)
+        const { count, error: countError } = await supabase
+            .from('transactions')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userSession.userId);
+
+        const transactionCount = count || 0;
+
+        await sendMessage(chatId, `💰 *Seu Saldo Atual*\n\nR$ ${balance.toFixed(2)}\n\n📊 Total de transações: ${transactionCount}`, { 
+            parse_mode: 'Markdown' 
+        });
+    } catch (error) {
+        console.error('Error in handleDirectBalanceRequest:', error);
+        await sendMessage(chatId, '😥 Erro ao buscar saldo. Tente novamente.', { parse_mode: 'Markdown' });
     }
 }
 
@@ -894,41 +958,43 @@ async function saveTransactionToSupabase(userId, transaction) {
 
 async function getUserContextForChat(userId) {
     try {
+        // Optimized: Single query for recent transactions
         const { data: transactions, error: transactionsError } = await supabase
             .from('transactions')
             .select('title, amount, type, date')
             .eq('user_id', userId)
             .order('date', { ascending: false })
-            .limit(10);
+            .limit(5); // Reduced from 10 to 5 for faster response
         if (transactionsError) console.error('Error fetching transactions:', transactionsError);
 
-        const { data: bills, error: billsError } = await supabase
+        // Optimized: Only get unpaid bills
+        const { data: activeBills, error: billsError } = await supabase
             .from('bills')
-            .select('title, amount, due_date, is_paid')
+            .select('title, amount')
             .eq('user_id', userId)
-            .order('due_date', { ascending: true })
-            .limit(20);
+            .eq('is_paid', false)
+            .limit(3); // Reduced from 20 to 3 for faster response
         if (billsError) console.error('Error fetching bills:', billsError);
 
-        const { data: allTransactions, error: allTransactionsError } = await supabase
+        // Quick balance calculation using PostgreSQL SUM
+        const { data: balanceResult, error: balanceError } = await supabase
             .from('transactions')
             .select('amount, type')
             .eq('user_id', userId);
-        if (allTransactionsError) console.error('Error fetching all transactions for balance:', allTransactionsError);
+        if (balanceError) console.error('Error fetching balance:', balanceError);
 
-        const balance = allTransactions?.reduce((sum, t) => {
+        const balance = balanceResult?.reduce((sum, t) => {
             const amount = t.type === 'income' ? Math.abs(t.amount || 0) : -Math.abs(t.amount || 0);
             return sum + amount;
         }, 0) || 0;
 
-        const activeBills = bills?.filter(b => !b.is_paid) || [];
-        const totalBillsValue = activeBills.reduce((sum, b) => sum + (b.amount || 0), 0);
+        const totalBillsValue = activeBills?.reduce((sum, b) => sum + (b.amount || 0), 0) || 0;
 
         return {
             balance: balance,
-            transactionCount: allTransactions?.length || 0,
+            transactionCount: balanceResult?.length || 0,
             recentTransactions: transactions || [],
-            activeBills: activeBills,
+            activeBills: activeBills || [],
             totalBillsValue: totalBillsValue
         };
     } catch (error) {

@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from '@/components/ui/card';
 import { Brain, Target, BookOpen, Loader2, TrendingUp, AlertCircle } from 'lucide-react';
 import FinancialAnalysisGate from '@/components/monetization/FinancialAnalysisGate';
+import { AdBanner } from '@/components/monetization/AdBanner';
 
 // Lazy load dos componentes pesados
 const ModernCharts = lazy(() => import('@/components/dashboard/ModernCharts'));
@@ -175,6 +176,9 @@ const FinancialAnalysisPage: React.FC = () => {
             </TabsContent>
           </Tabs>
         </div>
+        
+        {/* Ad Banner */}
+        <AdBanner position="bottom" />
         
         {/* O NavBar foi movido para o PersistentLayout.tsx */}
       </div>

@@ -12,7 +12,7 @@ interface FinancialAnalysisGateProps {
 
 const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children }) => {
   const { user } = useAuth();
-  const [hasAccess, setHasAccess] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false); // Começar sempre sem acesso
   const [isLoading, setIsLoading] = useState(true);
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [adError, setAdError] = useState<string | null>(null);
@@ -21,25 +21,37 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
   // Verificar acesso do usuário
   const checkAccess = async () => {
     if (!user?.id) {
+      console.log('🔒 [FINANCIAL_GATE] Usuário não autenticado');
       setIsLoading(false);
       return;
     }
 
     try {
+      console.log('🔒 [FINANCIAL_GATE] Verificando acesso para usuário:', user.id);
       const canAccessResult = await AdCooldownManager.canPerformAction(user.id, 'financial_analysis');
-      setHasAccess(canAccessResult.allowed);
+      console.log('🔒 [FINANCIAL_GATE] Resultado do acesso:', canAccessResult);
+      
+      // TEMPORÁRIO: Para debug, sempre negar acesso inicialmente
+      // setHasAccess(canAccessResult.allowed);
+      setHasAccess(false); // Forçar mostrar gate para teste
+      console.log('🔒 [FINANCIAL_GATE] MODO DEBUG: Forçando mostrar gate de acesso');
 
-      if (!canAccessResult.allowed) {
+      if (!canAccessResult.allowed || true) { // Sempre entrar para debug
+        console.log('🔒 [FINANCIAL_GATE] Acesso negado, verificando cooldown...');
         // Verificar se há cooldown ativo
         const stats = await AdCooldownManager.getCooldownStats(user.id);
+        console.log('🔒 [FINANCIAL_GATE] Stats de cooldown:', stats);
         const financialStats = stats.financial_analysis;
         
         if (financialStats.cooldownActive && financialStats.minutesUntilNextAd) {
           setTimeUntilNextAd(financialStats.minutesUntilNextAd);
+          console.log('🔒 [FINANCIAL_GATE] Cooldown ativo, próximo anúncio em:', financialStats.minutesUntilNextAd, 'minutos');
         }
+      } else {
+        console.log('🔒 [FINANCIAL_GATE] Acesso permitido! Usuário pode ver o conteúdo');
       }
     } catch (error) {
-      console.error('Erro ao verificar acesso:', error);
+      console.error('🔒 [FINANCIAL_GATE] Erro ao verificar acesso:', error);
     } finally {
       setIsLoading(false);
     }

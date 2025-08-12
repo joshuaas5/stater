@@ -1545,6 +1545,9 @@ const Dashboard: React.FC = () => {
         }}
       />
       
+      {/* Ad Banner */}
+      <AdBanner position="bottom" />
+      
       </div>
     </div>
   );

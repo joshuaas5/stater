@@ -28,6 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { AdBanner } from '@/components/monetization/AdBanner';
 
 const ChartsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -509,6 +510,9 @@ const ChartsPage: React.FC = () => {
           </div>
         </div>
       </main>
+      
+      {/* Ad Banner */}
+      <AdBanner position="bottom" />
       
       {/* O NavBar foi movido para o PersistentLayout.tsx */}
     </div>

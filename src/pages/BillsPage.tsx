@@ -937,7 +937,7 @@ const BillsPage: React.FC = () => {
       )}
 
       {/* Banner de Publicidade - TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES */}
-      {false && <AdBanner position="bottom" />}
+      <AdBanner position="bottom" />
       
       {/* O NavBar foi movido para o PersistentLayout.tsx */}
     </div>

@@ -27,6 +27,7 @@ import { UserJourneyManager } from '@/utils/userJourneyManager';
 import { PaywallModal } from '@/components/ui/PaywallModal';
 import { AdRewardModal } from '@/components/monetization/AdRewardModal';
 import { AdManager } from '@/utils/adManager';
+import { AdBanner } from '@/components/monetization/AdBanner';
 import { useAILearning } from '@/utils/aiLearningSystem';
 
 
@@ -4687,6 +4688,9 @@ return (
       messagesWillGrant={currentDay <= 3 ? [3, 4, 5][currentDay - 1] : 0}
       isLoading={isWatchingAd}
     />
+
+    {/* Ad Banner */}
+    <AdBanner position="bottom" />
   </>
 );
 

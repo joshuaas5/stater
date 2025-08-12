@@ -141,4 +141,75 @@ BEGIN
     END IF;
 END $$;
 
-SELECT 'Todas as tabelas criadas com sucesso! Erro 404 resolvido e cooldown de 1h implementado!' as status;
+-- 4. CORREÇÃO DOS WARNINGS DE RLS DO SUPABASE (SEGURANÇA)
+-- Ativar RLS nas tabelas que estão causando warnings de segurança
+
+-- Ativar RLS na tabela telegram_link_codes_backup (se existir)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'telegram_link_codes_backup' AND schemaname = 'public') THEN
+        ALTER TABLE public.telegram_link_codes_backup ENABLE ROW LEVEL SECURITY;
+        
+        -- Drop existing policies if they exist
+        DROP POLICY IF EXISTS "Users can view telegram link codes backup" ON public.telegram_link_codes_backup;
+        DROP POLICY IF EXISTS "Users can manage telegram link codes backup" ON public.telegram_link_codes_backup;
+        
+        -- Política para visualizar registros (apenas usuários autenticados)
+        CREATE POLICY "Users can view telegram link codes backup" 
+        ON public.telegram_link_codes_backup 
+        FOR SELECT 
+        USING (auth.uid() IS NOT NULL);
+        
+        -- Política para inserir/atualizar/deletar (apenas usuários autenticados)
+        CREATE POLICY "Users can manage telegram link codes backup" 
+        ON public.telegram_link_codes_backup 
+        FOR ALL 
+        USING (auth.uid() IS NOT NULL);
+    END IF;
+END $$;
+
+-- Ativar RLS na tabela telegram_sessions (se existir)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'telegram_sessions' AND schemaname = 'public') THEN
+        ALTER TABLE public.telegram_sessions ENABLE ROW LEVEL SECURITY;
+        
+        -- Drop existing policies if they exist
+        DROP POLICY IF EXISTS "Users can view their own telegram sessions" ON public.telegram_sessions;
+        DROP POLICY IF EXISTS "Users can manage their own telegram sessions" ON public.telegram_sessions;
+        DROP POLICY IF EXISTS "Users can view telegram sessions" ON public.telegram_sessions;
+        DROP POLICY IF EXISTS "Users can manage telegram sessions" ON public.telegram_sessions;
+        
+        -- Verificar se existe coluna user_id
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'telegram_sessions' 
+            AND column_name = 'user_id'
+            AND table_schema = 'public'
+        ) THEN
+            -- Política para ver apenas suas próprias sessões
+            CREATE POLICY "Users can view their own telegram sessions" 
+            ON public.telegram_sessions 
+            FOR SELECT 
+            USING (auth.uid() = user_id);
+            
+            CREATE POLICY "Users can manage their own telegram sessions" 
+            ON public.telegram_sessions 
+            FOR ALL 
+            USING (auth.uid() = user_id);
+        ELSE
+            -- Se não existe user_id, permitir acesso apenas para usuários autenticados
+            CREATE POLICY "Users can view telegram sessions" 
+            ON public.telegram_sessions 
+            FOR SELECT 
+            USING (auth.uid() IS NOT NULL);
+            
+            CREATE POLICY "Users can manage telegram sessions" 
+            ON public.telegram_sessions 
+            FOR ALL 
+            USING (auth.uid() IS NOT NULL);
+        END IF;
+    END IF;
+END $$;
+
+SELECT 'Todas as tabelas criadas com sucesso! Erro 404 resolvido, cooldown de 7 dias implementado e warnings de RLS corrigidos!' as status;

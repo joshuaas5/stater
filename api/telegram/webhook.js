@@ -925,12 +925,12 @@ async function linkTelegramWithCode(chatId, linkCode) {
         console.log('[LINK] Código marcado como usado com sucesso.');
         
         // Create/update telegram user record
-        console.log(`Creating telegram_users record for chat ${chatId}, user ${mapped.user_id}`);
+        console.log(`Creating telegram_users record for chat ${chatId}, user ${data.user_id}`);
         const { error: upsertError } = await supabase.from('telegram_users').upsert({
             telegram_chat_id: chatId.toString(),
-            user_id: mapped.user_id,
-            user_email: mapped.user_email,
-            user_name: mapped.user_name,
+            user_id: data.user_id,
+            user_email: data.user_email,
+            user_name: data.user_name,
             linked_at: new Date().toISOString(),
             is_active: true
         });

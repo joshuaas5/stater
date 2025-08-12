@@ -109,124 +109,96 @@ const Dashboard: React.FC = () => {
   });
   const [isCheckingTelegram, setIsCheckingTelegram] = useState(false); // Loading mais sutil
 
-  // Funes do Telegram
+  // Função SIMPLIFICADA para verificar status do Telegram
   const checkTelegramStatus = async (force = false) => {
-    // Evitar recarregamento visual desnecessrio
-    if (telegramStatusChecked && !force) return;
-    
     if (!user?.id) return;
     
-    // Só mostrar loading se não houver informações em cache
-    const hasCache = localStorage.getItem(`telegram_status_${user.id}`);
-    if (!hasCache) {
-      setIsCheckingTelegram(true);
-    }
+    console.log('🔍 [TELEGRAM] Verificando status - force:', force, 'user:', user.id);
     
     try {
-      console.log('🔍 [TELEGRAM] Verificando status para user:', user.id);
-      
       const { data, error } = await supabase
         .from('telegram_users')
         .select('*')
         .eq('user_id', user.id)
         .eq('is_active', true);
       
+      console.log('📊 [TELEGRAM] Resultado da consulta:', { data, error, length: data?.length });
+      
       if (error) {
         console.error('❌ [TELEGRAM] Erro na consulta:', error);
-        // Não limpar cache em caso de erro de rede
-        if (!hasCache) {
-          setIsTelegramLinked(false);
-          setTelegramInfo(null);
-          localStorage.setItem(`telegram_status_${user.id}`, 'false');
-          localStorage.setItem(`telegram_info_${user.id}`, 'null');
-        }
-        setTelegramStatusChecked(true);
         return;
       }
       
-      console.log('📊 [TELEGRAM] Dados retornados:', data);
+      const isConnected = data && data.length > 0;
+      console.log('🔗 [TELEGRAM] Status de conexão:', isConnected);
       
-      if (data && data.length > 0) {
-        console.log('✅ [TELEGRAM] Conectado:', data[0]);
-        setIsTelegramLinked(true);
-        setTelegramInfo(data[0]);
-        // Salvar no localStorage
-        localStorage.setItem(`telegram_status_${user.id}`, 'true');
-        localStorage.setItem(`telegram_info_${user.id}`, JSON.stringify(data[0]));
-      } else {
-        console.log('❌ [TELEGRAM] Não conectado - nenhum registro ativo encontrado');
-        setIsTelegramLinked(false);
-        setTelegramInfo(null);
-        // Salvar no localStorage
-        localStorage.setItem(`telegram_status_${user.id}`, 'false');
-        localStorage.setItem(`telegram_info_${user.id}`, 'null');
-      }
+      // SEMPRE atualizar o estado, independente do cache
+      setIsTelegramLinked(isConnected);
+      setTelegramInfo(isConnected ? data[0] : null);
       setTelegramStatusChecked(true);
+      
+      // Atualizar cache
+      if (user?.id) {
+        localStorage.setItem(`telegram_status_${user.id}`, isConnected.toString());
+        localStorage.setItem(`telegram_info_${user.id}`, isConnected ? JSON.stringify(data[0]) : 'null');
+      }
+      
+      console.log('✅ [TELEGRAM] Estado atualizado:', { isConnected, info: isConnected ? data[0] : null });
+      
     } catch (error) {
-      console.error('💥 [TELEGRAM] Erro inesperado ao verificar status:', error);
-      // Em caso de erro, manter estado atual se houver cache
-      if (!hasCache) {
-        setIsTelegramLinked(false);
-        setTelegramInfo(null);
-        localStorage.setItem(`telegram_status_${user.id}`, 'false');
-        localStorage.setItem(`telegram_info_${user.id}`, 'null');
-      }
-      setTelegramStatusChecked(true);
-    } finally {
-      setIsCheckingTelegram(false);
+      console.error('💥 [TELEGRAM] Erro inesperado:', error);
     }
   };
 
   const resetTelegramStatus = () => {
+    console.log('🔄 [TELEGRAM] Resetando status');
     setTelegramStatusChecked(false);
     setIsTelegramLinked(false);
     setTelegramInfo(null);
-    // Limpar localStorage
     if (user?.id) {
       localStorage.removeItem(`telegram_status_${user.id}`);
       localStorage.removeItem(`telegram_info_${user.id}`);
     }
-  };  const generateTelegramCode = () => {
+  };
+
+  const generateTelegramCode = () => {
     if (!user?.id) return;
     setShowTelegramModal(true);
   };
 
-  // Funo para forar atualizao do status do Telegram
+  // Função SIMPLIFICADA para forçar atualização
   const refreshTelegramStatus = () => {
-    resetTelegramStatus();
-    setTimeout(() => {
-      checkTelegramStatus(true);
-    }, 1000);
-  };
-
-  // Verificar status do Telegram no carregamento
-  useEffect(() => {
-    if (user?.id && !telegramStatusChecked) {
-      // Primeiro, tentar usar cache se existir
-      const cachedStatus = localStorage.getItem(`telegram_status_${user.id}`);
-      const cachedInfo = localStorage.getItem(`telegram_info_${user.id}`);
-      
-      if (cachedStatus && cachedInfo) {
-        console.log('🔄 [TELEGRAM] Usando cache:', { cachedStatus, cachedInfo });
-        setIsTelegramLinked(cachedStatus === 'true');
-        setTelegramInfo(cachedInfo === 'null' ? null : JSON.parse(cachedInfo));
-        setTelegramStatusChecked(true);
-      }
-      
-      // Verificar no servidor apenas se não houver cache ou após 10 segundos
-      const delay = cachedStatus ? 10000 : 2000;
+    console.log('🔄 [TELEGRAM] Refresh manual solicitado');
+    if (user?.id) {
+      // Limpar cache
+      localStorage.removeItem(`telegram_status_${user.id}`);
+      localStorage.removeItem(`telegram_info_${user.id}`);
+      // Resetar estado
+      setTelegramStatusChecked(false);
+      setIsTelegramLinked(false);
+      setTelegramInfo(null);
+      // Verificar imediatamente
       setTimeout(() => {
         checkTelegramStatus(true);
-      }, delay);
+      }, 100);
     }
-  }, [user?.id, telegramStatusChecked]);
+  };
 
-  // Verificação periódica MENOS agressiva - apenas a cada 2 minutos
+  // Verificar status do Telegram no carregamento - SIMPLIFICADO
+  useEffect(() => {
+    if (user?.id) {
+      console.log('� [TELEGRAM] Iniciando verificação para user:', user.id);
+      checkTelegramStatus(true);
+    }
+  }, [user?.id]);
+
+  // Verificação periódica a cada 30 segundos se conectado
   useEffect(() => {
     if (user?.id && isTelegramLinked) {
       const interval = setInterval(() => {
+        console.log('⏰ [TELEGRAM] Verificação periódica');
         checkTelegramStatus(true);
-      }, 120000); // 2 minutos em vez de 30 segundos
+      }, 30000); // 30 segundos para detectar mudanças rapidamente
       
       return () => clearInterval(interval);
     }
@@ -1530,63 +1502,46 @@ const Dashboard: React.FC = () => {
         isOpen={showTelegramModal}
         onClose={() => setShowTelegramModal(false)}
         onConnect={(code) => {
+          console.log('🎉 [TELEGRAM] onConnect chamado com código:', code);
           setShowTelegramModal(false);
-          // SOLUÇÃO ROBUSTA: Limpar cache e forçar verificação múltipla
+          
+          // FORÇAR atualização IMEDIATA
           if (user?.id) {
             localStorage.removeItem(`telegram_status_${user.id}`);
             localStorage.removeItem(`telegram_info_${user.id}`);
           }
           
-          // Reset completo do estado
+          // Reset e verificação imediata
           setTelegramStatusChecked(false);
           setIsTelegramLinked(false);
           setTelegramInfo(null);
           
-          // Verificação múltipla para garantir atualização
-          const verifyConnection = async (attempt = 1, maxAttempts = 8) => {
-            console.log(`🔄 [TELEGRAM] Tentativa ${attempt}/${maxAttempts} de verificação após conexão`);
+          // Verificação múltipla até encontrar
+          let attempts = 0;
+          const maxAttempts = 10;
+          
+          const verifyLoop = () => {
+            attempts++;
+            console.log(`🔄 [TELEGRAM] Tentativa ${attempts}/${maxAttempts}`);
             
-            try {
-              const { data, error } = await supabase
-                .from('telegram_users')
-                .select('*')
-                .eq('user_id', user?.id)
-                .eq('is_active', true);
-              
-              if (data && data.length > 0) {
-                console.log('✅ [TELEGRAM] CONEXÃO CONFIRMADA!', data[0]);
-                setIsTelegramLinked(true);
-                setTelegramInfo(data[0]);
-                setTelegramStatusChecked(true);
-                if (user?.id) {
-                  localStorage.setItem(`telegram_status_${user.id}`, 'true');
-                  localStorage.setItem(`telegram_info_${user.id}`, JSON.stringify(data[0]));
+            checkTelegramStatus(true).then(() => {
+              // Se ainda não conectou e tem tentativas restantes, tenta novamente
+              setTimeout(() => {
+                if (attempts < maxAttempts && !isTelegramLinked) {
+                  verifyLoop();
+                } else if (isTelegramLinked) {
+                  console.log('✅ [TELEGRAM] Conexão confirmada!');
+                  toast({
+                    title: "🎉 Conectado!",
+                    description: "Telegram conectado com sucesso!",
+                  });
                 }
-                
-                toast({
-                  title: "🎉 Conectado!",
-                  description: "Telegram conectado com sucesso!",
-                });
-                return;
-              }
-              
-              // Se não encontrou, tentar novamente
-              if (attempt < maxAttempts) {
-                setTimeout(() => verifyConnection(attempt + 1, maxAttempts), 2000);
-              } else {
-                console.log('❌ [TELEGRAM] Falha em confirmar conexão após múltiplas tentativas');
-                checkTelegramStatus(true); // Fallback para verificação normal
-              }
-            } catch (error) {
-              console.error(`❌ [TELEGRAM] Erro na tentativa ${attempt}:`, error);
-              if (attempt < maxAttempts) {
-                setTimeout(() => verifyConnection(attempt + 1, maxAttempts), 2000);
-              }
-            }
+              }, 2000);
+            });
           };
           
           // Iniciar verificação após 1 segundo
-          setTimeout(() => verifyConnection(), 1000);
+          setTimeout(verifyLoop, 1000);
         }}
       />
       

@@ -276,17 +276,23 @@ async function handlePhoto(msg) {
 
     try {
         const fileUrl = await getFileLink(photo.file_id);
+        console.log('URL da imagem obtida:', fileUrl);
+        
         const result = await processImageWithGemini(fileUrl);
+        console.log('Resultado do processamento:', result);
+        
         await deleteMessage(chatId, processingMsg.data.result.message_id);
 
         if (result.transactions && result.transactions.length > 0) {
-            // Save pending transactions to the database instead of in-memory
+            console.log('Transações encontradas:', result.transactions.length);
+            
+            // Salvar transações pendentes no banco
             await supabase
                 .from('telegram_users')
                 .update({ pending_transactions: result.transactions })
                 .eq('telegram_chat_id', chatId.toString());
 
-            const response = formatTransactionsResponse(result.transactions);
+            const response = formatTransactionsResponse(result);
             await sendMessage(chatId, response, {
                 parse_mode: 'Markdown',
                 reply_markup: {
@@ -296,14 +302,31 @@ async function handlePhoto(msg) {
                 }
             });
         } else {
-            await sendMessage(chatId, '😥 *Não consegui encontrar transações neste extrato.*\nTente uma foto mais nítida.', { parse_mode: 'Markdown' });
+            console.log('Nenhuma transação encontrada na imagem');
+            await sendMessage(chatId, 
+                '� *Não consegui encontrar transações nesta imagem.*\n\n' +
+                '💡 **Dicas para melhorar a análise:**\n' +
+                '📸 Tire a foto com boa iluminação\n' +
+                '📱 Certifique-se que o texto está legível\n' +
+                '🔍 Foque na área das transações/movimentações\n' +
+                '📄 Para faturas em PDF, envie como documento\n\n' +
+                '🔄 Tente novamente com uma foto melhor!', 
+                { parse_mode: 'Markdown' }
+            );
         }
     } catch (error) {
         if (processingMsg.data.result.message_id) {
             await deleteMessage(chatId, processingMsg.data.result.message_id);
         }
-        console.error('Error processing image:', error);
-        await sendMessage(chatId, '😥 *Erro ao processar imagem.* Tente novamente.', { parse_mode: 'Markdown' });
+        console.error('Erro completo ao processar imagem:', error);
+        await sendMessage(chatId, 
+            '😥 *Erro ao processar imagem.*\n\n' +
+            '💡 **Tente:**\n' +
+            '📸 Tirar uma nova foto mais nítida\n' +
+            '📝 Ou digite manualmente: "50 supermercado é saída"\n' +
+            '📄 Para PDFs, envie como documento', 
+            { parse_mode: 'Markdown' }
+        );
     }
 }
 
@@ -1300,41 +1323,163 @@ async function linkTelegramWithCode(chatId, linkCode) {
 
 async function processImageWithGemini(imageUrl) {
     try {
+        console.log('Processando imagem com Gemini melhorado:', imageUrl);
+        
         const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
         const imageBase64 = Buffer.from(imageResponse.data).toString('base64');
-        const prompt = `Analise este extrato bancário e extraia as transações em formato JSON: [{"data": "DD/MM/YYYY", "descricao": "...", "valor": numero, "categoria": "..."}]. Retorne APENAS o array JSON.`;
         
+        // Prompt ultra especializado para extratos brasileiros
+        const prompt = `
+VOCÊ É UM ESPECIALISTA OCR EM DOCUMENTOS FINANCEIROS BRASILEIROS COM FOCO ABSOLUTO EM EXTRAIR TRANSAÇÕES.
+
+🎯 OBJETIVO: ENCONTRAR **TODAS** AS TRANSAÇÕES na imagem de extrato/fatura.
+
+🔍 ESTRATÉGIAS DE ANÁLISE:
+1. 📖 EXAMINE toda a imagem cuidadosamente  
+2. 🔎 PROCURE por qualquer padrão de transação financeira
+3. 💰 IDENTIFIQUE valores em R$ (Reais) 
+4. 📅 ASSOCIE datas às transações
+5. 🏪 CAPTURE estabelecimentos ou descrições
+
+PROCURE ESPECIFICAMENTE POR:
+- LISTA DE TRANSAÇÕES com datas e valores
+- COMPRAS com nomes de estabelecimentos  
+- TRANSFERÊNCIAS (PIX, TED, DOC)
+- DEPÓSITOS e SAQUES
+- DÉBITOS e CRÉDITOS
+- MOVIMENTAÇÕES de qualquer tipo
+- FATURAS de cartão de crédito
+
+🏛️ PADRÕES COMUNS:
+
+💜 NUBANK: "DD/MM ESTABELECIMENTO R$ VALOR"
+🟢 BRADESCO: "Data | Histórico | Valor | Saldo"  
+🔶 ITAÚ: "DD/MM DESCRIÇÃO VALOR"
+🔵 CAIXA: "Data | Histórico | Doc | Valor"
+🟡 BB: "Data | Histórico | Documento | Valor"
+
+📱 APPS BANCÁRIOS:
+- Interfaces modernas com listas de transações
+- Valores podem estar em formato: R$ 1.234,56 ou 1234,56
+- Procure por seções "Extrato", "Movimentação", "Histórico"
+
+⚠️ REGRAS CRÍTICAS:
+- NÃO IGNORE transações pequenas (R$ 5,00 é válido)
+- EXTRAIA TUDO mesmo que pareça irrelevante  
+- USE CONTEXTO para determinar entrada/saída
+- SEMPRE tente extrair ao menos UMA transação
+
+FORMATO JSON OBRIGATÓRIO:
+{
+  "documentType": "extrato_app" ou "fatura_cartao",
+  "confidence": 0.95,
+  "summary": {
+    "totalAmount": [soma total],
+    "totalIncome": [soma entradas], 
+    "totalExpense": [soma saídas],
+    "establishment": "Banco identificado",
+    "period": "Período do extrato"
+  },
+  "transactions": [
+    {
+      "description": "Nome estabelecimento ou descrição",
+      "amount": 127.89,
+      "type": "expense",
+      "category": "Supermercado", 
+      "date": "2024-12-15",
+      "confidence": 0.95
+    }
+  ]
+}
+
+CATEGORIAS (use exatamente):
+RECEITAS: "Salário", "PIX Recebido", "Transferência Recebida", "Outras Receitas"
+DESPESAS: "Supermercado", "Combustível", "Restaurantes", "Farmácia", "Uber/99/Táxi", "Internet", "Luz", "Cartão de Crédito", "Não Categorizado"
+
+🚨 RETORNE APENAS JSON VÁLIDO, sem texto adicional.
+💡 Esta é uma imagem real de extrato brasileiro. SEMPRE há transações para extrair!`;
+        
+        console.log('Enviando requisição para Gemini...');
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${process.env.GEMINI_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
                 contents: [{
                     parts: [
                         { text: prompt },
                         { inline_data: { mime_type: "image/jpeg", data: imageBase64 } }
                     ]
-                }]
+                }],
+                generationConfig: {
+                    temperature: 0.1,
+                    topK: 10,
+                    topP: 0.8,
+                    maxOutputTokens: 4096,
+                }
+            },
+            {
+                timeout: 45000 // 45 segundos de timeout
             }
         );
 
         const text = response.data.candidates[0].content.parts[0].text;
-        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        console.log('Resposta do Gemini:', text);
+        
+        // Extrair JSON da resposta
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
-            return { transactions: JSON.parse(jsonMatch[0]) };
+            try {
+                const parsedResult = JSON.parse(jsonMatch[0]);
+                console.log('Transações extraídas:', parsedResult.transactions?.length || 0);
+                return parsedResult;
+            } catch (parseError) {
+                console.error('Erro ao parsear JSON:', parseError);
+                return { transactions: [] };
+            }
         }
+        
+        console.log('Nenhum JSON válido encontrado na resposta');
         return { transactions: [] };
+        
     } catch (error) {
-        console.error('Gemini Error:', error.response?.data || error.message);
+        console.error('Erro completo no processamento:', error.response?.data || error.message);
         return { transactions: [] };
     }
 }
 
-function formatTransactionsResponse(transactions) {
+function formatTransactionsResponse(result) {
     let response = `👀 *Transações detectadas!*\n\n`;
-    transactions.forEach(t => {
-        const type = t.valor > 0 ? 'Receita' : 'Despesa';
-        response += `*${t.descricao}*\n`;
-        response += `R$ ${Math.abs(t.valor).toFixed(2)} | ${t.categoria} (${type})\n\n`;
-    });
+    
+    // Mostrar resumo se disponível
+    if (result.summary) {
+        response += `📊 *Resumo:*\n`;
+        if (result.summary.establishment) {
+            response += `🏦 ${result.summary.establishment}\n`;
+        }
+        if (result.summary.period) {
+            response += `📅 ${result.summary.period}\n`;
+        }
+        response += `� Total: R$ ${(result.summary.totalAmount || 0).toFixed(2)}\n\n`;
+    }
+    
+    // Mostrar transações
+    if (result.transactions && result.transactions.length > 0) {
+        response += `📋 *${result.transactions.length} transação(ões):*\n\n`;
+        
+        result.transactions.forEach((t, index) => {
+            const type = t.type === 'income' ? '📈 Entrada' : '📉 Saída';
+            const amount = Math.abs(t.amount || 0);
+            const description = t.description || 'Transação';
+            const category = t.category || 'Não Categorizado';
+            const date = t.date || 'Data não identificada';
+            
+            response += `*${index + 1}.* ${description}\n`;
+            response += `${type} - R$ ${amount.toFixed(2)}\n`;
+            response += `📂 ${category} | 📅 ${date}\n\n`;
+        });
+    } else {
+        response += `❌ Nenhuma transação encontrada\n\n`;
+    }
+    
     response += `🤔 *Confirma a importação?*`;
     return response;
 }

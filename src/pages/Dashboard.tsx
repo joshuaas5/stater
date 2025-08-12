@@ -1048,7 +1048,27 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={refreshTelegramStatus}
+                  onClick={() => {
+                    console.log('🔄 [TELEGRAM] Forçando verificação manual...');
+                    // Reset completo e verificação agressiva
+                    if (user?.id) {
+                      localStorage.removeItem(`telegram_status_${user.id}`);
+                      localStorage.removeItem(`telegram_info_${user.id}`);
+                    }
+                    setTelegramStatusChecked(false);
+                    setIsTelegramLinked(false);
+                    setTelegramInfo(null);
+                    
+                    // Verificação imediata
+                    setTimeout(() => {
+                      checkTelegramStatus(true);
+                    }, 500);
+                    
+                    toast({
+                      title: "🔄 Verificando...",
+                      description: "Atualizando status do Telegram",
+                    });
+                  }}
                   className="px-2 py-1 rounded-lg text-white text-xs hover:bg-white/20 transition-all duration-300"
                   style={{
                     background: 'rgba(255,255,255,0.1)',
@@ -1511,16 +1531,62 @@ const Dashboard: React.FC = () => {
         onClose={() => setShowTelegramModal(false)}
         onConnect={(code) => {
           setShowTelegramModal(false);
-          // Limpar cache para forçar verificação real
+          // SOLUÇÃO ROBUSTA: Limpar cache e forçar verificação múltipla
           if (user?.id) {
             localStorage.removeItem(`telegram_status_${user.id}`);
             localStorage.removeItem(`telegram_info_${user.id}`);
           }
-          // Forçar atualização do status após conectar
-          setTimeout(() => {
-            setTelegramStatusChecked(false);
-            checkTelegramStatus(true);
-          }, 3000);
+          
+          // Reset completo do estado
+          setTelegramStatusChecked(false);
+          setIsTelegramLinked(false);
+          setTelegramInfo(null);
+          
+          // Verificação múltipla para garantir atualização
+          const verifyConnection = async (attempt = 1, maxAttempts = 8) => {
+            console.log(`🔄 [TELEGRAM] Tentativa ${attempt}/${maxAttempts} de verificação após conexão`);
+            
+            try {
+              const { data, error } = await supabase
+                .from('telegram_users')
+                .select('*')
+                .eq('user_id', user?.id)
+                .eq('is_active', true);
+              
+              if (data && data.length > 0) {
+                console.log('✅ [TELEGRAM] CONEXÃO CONFIRMADA!', data[0]);
+                setIsTelegramLinked(true);
+                setTelegramInfo(data[0]);
+                setTelegramStatusChecked(true);
+                if (user?.id) {
+                  localStorage.setItem(`telegram_status_${user.id}`, 'true');
+                  localStorage.setItem(`telegram_info_${user.id}`, JSON.stringify(data[0]));
+                }
+                
+                toast({
+                  title: "🎉 Conectado!",
+                  description: "Telegram conectado com sucesso!",
+                });
+                return;
+              }
+              
+              // Se não encontrou, tentar novamente
+              if (attempt < maxAttempts) {
+                setTimeout(() => verifyConnection(attempt + 1, maxAttempts), 2000);
+              } else {
+                console.log('❌ [TELEGRAM] Falha em confirmar conexão após múltiplas tentativas');
+                checkTelegramStatus(true); // Fallback para verificação normal
+              }
+            } catch (error) {
+              console.error(`❌ [TELEGRAM] Erro na tentativa ${attempt}:`, error);
+              if (attempt < maxAttempts) {
+                setTimeout(() => verifyConnection(attempt + 1, maxAttempts), 2000);
+              }
+            }
+          };
+          
+          // Iniciar verificação após 1 segundo
+          setTimeout(() => verifyConnection(), 1000);
         }}
       />
       

@@ -31,12 +31,9 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
       const canAccessResult = await AdCooldownManager.canPerformAction(user.id, 'financial_analysis');
       console.log('🔒 [FINANCIAL_GATE] Resultado do acesso:', canAccessResult);
       
-      // TEMPORÁRIO: Para debug, sempre negar acesso inicialmente
-      // setHasAccess(canAccessResult.allowed);
-      setHasAccess(false); // Forçar mostrar gate para teste
-      console.log('🔒 [FINANCIAL_GATE] MODO DEBUG: Forçando mostrar gate de acesso');
+      setHasAccess(canAccessResult.allowed);
 
-      if (!canAccessResult.allowed || true) { // Sempre entrar para debug
+      if (!canAccessResult.allowed) {
         console.log('🔒 [FINANCIAL_GATE] Acesso negado, verificando cooldown...');
         // Verificar se há cooldown ativo
         const stats = await AdCooldownManager.getCooldownStats(user.id);
@@ -179,8 +176,7 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
                 Conteúdo Premium
               </h2>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                Para acessar a análise financeira completa, assista a um anúncio recompensado. 
-                Você terá acesso por <strong>1 hora</strong> completa!
+                Para acessar a análise financeira completa, assista a um anúncio recompensado.
               </p>
             </div>
 
@@ -217,7 +213,7 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
                 ) : (
                   <div className="flex items-center gap-2">
                     <Play className="h-5 w-5" />
-                    <span>Assistir Anúncio (1h de acesso)</span>
+                    <span>Assistir Anúncio para Acessar</span>
                   </div>
                 )}
               </Button>
@@ -227,15 +223,15 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
             <div className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
               <div className="flex items-center gap-2 justify-center">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Acesso por 1 hora completa</span>
-              </div>
-              <div className="flex items-center gap-2 justify-center">
-                <CheckCircle className="h-4 w-4 text-green-500" />
                 <span>Análises personalizadas e insights</span>
               </div>
               <div className="flex items-center gap-2 justify-center">
                 <CheckCircle className="h-4 w-4 text-green-500" />
                 <span>Gráficos interativos avançados</span>
+              </div>
+              <div className="flex items-center gap-2 justify-center">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Recomendações inteligentes</span>
               </div>
             </div>
           </CardContent>

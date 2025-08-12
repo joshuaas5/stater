@@ -131,6 +131,7 @@ async function getSession(chatId) {
     // Sempre consultar o banco para garantir dados atualizados
     // (funções serverless são stateless - cache em memória não persiste)
     try {
+        console.log(`Checking session for chat ${chatId}`);
         const { data: activeUser, error } = await supabase
             .from('telegram_users')
             .select('user_id, user_email, user_name')
@@ -139,9 +140,11 @@ async function getSession(chatId) {
             .single();
 
         if (error || !activeUser) {
+            console.log(`No active session found for chat ${chatId}:`, error?.message || 'No data');
             return null;
         }
 
+        console.log(`Session found for chat ${chatId}: ${activeUser.user_name}`);
         const session = {
             userId: activeUser.user_id,
             userEmail: activeUser.user_email,
@@ -864,7 +867,8 @@ async function linkTelegramWithCode(chatId, linkCode) {
         await supabase.from('telegram_link_codes').update({ used_at: new Date().toISOString() }).eq('code', linkCode);
         
         // Create/update telegram user record
-        await supabase.from('telegram_users').upsert({
+        console.log(`Creating telegram_users record for chat ${chatId}, user ${data.user_id}`);
+        const { error: upsertError } = await supabase.from('telegram_users').upsert({
             telegram_chat_id: chatId.toString(),
             user_id: data.user_id,
             user_email: data.user_email,
@@ -872,6 +876,13 @@ async function linkTelegramWithCode(chatId, linkCode) {
             linked_at: new Date().toISOString(),
             is_active: true
         });
+
+        if (upsertError) {
+            console.error('Error creating telegram_users record:', upsertError);
+            return { success: false, message: 'Erro ao salvar conexão' };
+        }
+
+        console.log(`Successfully created telegram_users record for chat ${chatId}`);
 
         // Cache para esta execução
         userSessions.set(chatId, { userId: data.user_id, userEmail: data.user_email, userName: data.user_name });

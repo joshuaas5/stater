@@ -174,4 +174,35 @@ export class MessageLimitManager {
       throw error;
     }
   }
+
+  /**
+   * Decrementa o contador de mensagens (adiciona 1 mensagem disponível)
+   */
+  static async decrementMessageCount(userId: string): Promise<void> {
+    try {
+      const currentCount = await this.getMessageCount(userId);
+      if (currentCount > 0) {
+        const { error } = await supabase
+          .from('user_message_count')
+          .upsert({
+            user_id: userId,
+            message_count: currentCount - 1,
+            updated_at: new Date().toISOString()
+          });
+        
+        if (error) throw error;
+        console.log(`➖ [MESSAGE_LIMIT] Contador decrementado para ${currentCount - 1} - usuário: ${userId}`);
+      }
+    } catch (error) {
+      console.error('❌ [MESSAGE_LIMIT] Erro ao decrementar contador:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtém o contador atual de mensagens (método público)
+   */
+  static async getCurrentMessageCount(userId: string): Promise<number> {
+    return this.getMessageCount(userId);
+  }
 }

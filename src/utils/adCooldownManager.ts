@@ -1,5 +1,6 @@
 import { AdManager, isDeveloperAccount } from './adManager';
 import { UserPlanManager } from './userPlanManager';
+import { MessageLimitManager } from './messageLimit';
 
 interface AdCooldownData {
   userId: string;
@@ -171,12 +172,22 @@ export class AdCooldownManager {
       // Conceder ações e iniciar cooldown
       await this.grantActions(userId, action, config.rewardActions);
       
-      const actionText = action === 'bills' ? 'contas' : 'transações';
+      let actionText: string;
+      let message: string;
+      
+      if (action === 'financial_analysis') {
+        actionText = 'mensagem';
+        const days = Math.ceil(config.cooldownMinutes / 1440); // Converter minutos para dias
+        message = `🎉 Acesso concedido! Próximo anúncio em ${days} dias.`;
+      } else {
+        actionText = action === 'bills' ? 'contas' : 'transações';
+        message = `🎉 Você ganhou ${config.rewardActions} ${actionText}! Próximo anúncio em ${config.cooldownMinutes} min.`;
+      }
       
       return {
         success: true,
         actionsGranted: config.rewardActions,
-        message: `🎉 Você ganhou ${config.rewardActions} ${actionText}! Próximo anúncio em ${config.cooldownMinutes} min.`,
+        message,
         cooldownMinutes: config.cooldownMinutes
       };
 
@@ -281,12 +292,24 @@ export class AdCooldownManager {
       const config = this.CONFIG[action];
       const now = new Date();
       
-      // Atualizar ações gratuitas
-      const actionsKey = `freeActions_${userId}_${action}_${this.getTodayString()}`;
-      const currentActions = parseInt(localStorage.getItem(actionsKey) || '0');
-      localStorage.setItem(actionsKey, (currentActions + amount).toString());
+      // Para financial_analysis, adicionar 1 mensagem extra ao contador (não resetar)
+      if (action === 'financial_analysis') {
+        // Buscar contador atual
+        const currentCount = await MessageLimitManager.getCurrentMessageCount(userId);
+        // Adicionar 1 mensagem extra (diminuir o contador em 1)
+        if (currentCount > 0) {
+          await MessageLimitManager.decrementMessageCount(userId);
+        }
+        console.log(`🎁 Uma mensagem adicional concedida para usuário ${userId}`);
+      } else {
+        // Para bills e transactions, usar o sistema de ações gratuitas
+        const actionsKey = `freeActions_${userId}_${action}_${this.getTodayString()}`;
+        const currentActions = parseInt(localStorage.getItem(actionsKey) || '0');
+        localStorage.setItem(actionsKey, (currentActions + amount).toString());
+        console.log(`🎁 Concedidas ${amount} ações de ${action} para usuário ${userId}`);
+      }
       
-      // Atualizar cooldown
+      // Atualizar cooldown para todos os tipos
       const cooldownData = await this.getCooldownData(userId, action);
       cooldownData.lastAdTime = now;
       cooldownData.adsWatchedToday++;
@@ -294,8 +317,6 @@ export class AdCooldownManager {
       cooldownData.nextAdAvailableAt = new Date(now.getTime() + (config.cooldownMinutes * 60 * 1000));
       
       await this.saveCooldownData(cooldownData);
-      
-      console.log(`🎁 Concedidas ${amount} ações de ${action} para usuário ${userId}`);
       
     } catch (error) {
       console.error('Erro ao conceder ações:', error);

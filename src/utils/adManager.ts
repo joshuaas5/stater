@@ -1,5 +1,6 @@
 import { UserPlanManager } from './userPlanManager';
 import { UserJourneyManager } from './userJourneyManager';
+import { RewardCooldownManager } from './rewardCooldownManager';
 import { PlanType } from '@/types';
 import { getCurrentUser } from '@/utils/localStorage';
 
@@ -549,6 +550,21 @@ export class AdManager {
     try {
       console.log(`🎯 Exibindo anúncio contextual para ${action} - usuário: ${userId}`);
       
+      // Verificar cooldown antes de mostrar o ad
+      const cooldownStatus = await RewardCooldownManager.checkCooldownStatus(userId, action);
+      
+      if (cooldownStatus.isInCooldown) {
+        const timeRemaining = RewardCooldownManager.formatRemainingTime(cooldownStatus.remainingMinutes || 0);
+        console.log(`⏰ [COOLDOWN] Usuário em cooldown para ${action}. Tempo restante: ${timeRemaining}`);
+        
+        return {
+          watched: false,
+          actionsGranted: 0,
+          error: `Aguarde ${timeRemaining} para assistir outro anúncio`,
+          cooldownMinutes: cooldownStatus.remainingMinutes
+        };
+      }
+      
       // Simular carregamento do anúncio
       await new Promise(resolve => setTimeout(resolve, 2000));
       
@@ -569,10 +585,16 @@ export class AdManager {
       const rewardConfig = {
         bills: { actions: 3, cooldown: 30 },
         transactions: { actions: 5, cooldown: 20 },
-        financial_analysis: { actions: 60, cooldown: 60 }
+        financial_analysis: { actions: 1, cooldown: 10080 } // 1 mensagem adicional por semana (7 dias)
       };
       
       const reward = rewardConfig[action];
+      
+      // Registrar o cooldown após assistir o ad
+      const cooldownSet = await RewardCooldownManager.setRewardCooldown(userId, action);
+      if (!cooldownSet) {
+        console.warn(`⚠️ [COOLDOWN] Falha ao registrar cooldown para ${action}`);
+      }
       
       console.log(`✅ Anúncio contextual assistido! ${reward.actions} ${action} liberadas`);
       

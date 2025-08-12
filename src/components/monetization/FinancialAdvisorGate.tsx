@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Lock, AlertCircle, Play } from 'lucide-react';
+import { Lock, AlertCircle, Play, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AdCooldownManager } from '@/utils/adCooldownManager';
+import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
+import { AdManager } from '@/utils/adManager';
 
 interface FinancialAdvisorGateProps {
   children: React.ReactNode;
@@ -19,7 +21,7 @@ const FinancialAdvisorGate: React.FC<FinancialAdvisorGateProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [adError, setAdError] = useState<string | null>(null);
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [cooldownInfo, setCooldownInfo] = useState<any>(null);
   const [isDebugMode] = useState(true); // Debug mode ativo
   
   const { user } = useAuth();
@@ -35,6 +37,14 @@ const FinancialAdvisorGate: React.FC<FinancialAdvisorGateProps> = ({
         return;
       }
 
+      // Verificar cooldown do reward ad
+      const cooldownStatus = await RewardCooldownManager.checkCooldownStatus(
+        user.id, 
+        'financial_analysis'
+      );
+      
+      setCooldownInfo(cooldownStatus);
+      
       // Verificar se pode acessar a análise financeira
       const accessResult = await AdCooldownManager.canPerformAction(
         user.id, 
@@ -49,11 +59,6 @@ const FinancialAdvisorGate: React.FC<FinancialAdvisorGateProps> = ({
         setHasAccess(false);
       } else {
         setHasAccess(accessResult.allowed);
-      }
-      
-      // Se houver cooldown, definir tempo restante
-      if (accessResult.minutesUntilNextAd) {
-        setTimeRemaining(accessResult.minutesUntilNextAd * 60); // converter para segundos
       }
       
     } catch (error) {
@@ -73,22 +78,39 @@ const FinancialAdvisorGate: React.FC<FinancialAdvisorGateProps> = ({
       
       console.log('[FinancialAdvisorGate] Iniciando reward ad...');
       
-      // Simular assistir ao anúncio (em produção, integrar com AdMob/AdSense)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Verificar se não está em cooldown
+      if (cooldownInfo?.isInCooldown) {
+        const timeRemaining = RewardCooldownManager.formatRemainingTime(
+          cooldownInfo.remainingMinutes || 0
+        );
+        setAdError(`Aguarde ${timeRemaining} para assistir outro anúncio`);
+        setIsWatchingAd(false);
+        return;
+      }
       
-      // Usar o método correto do AdCooldownManager
-      const result = await AdCooldownManager.watchAdForActions(
-        user.id,
-        'financial_analysis'
-      );
+      // Usar o AdManager para mostrar o anúncio contextual
+      const result = await AdManager.showContextualAd(user.id, 'financial_analysis');
       
+      console.log('🎁 Acesso liberado para financial_analysis - usuário:', user.id);
       console.log('[FinancialAdvisorGate] Resultado do reward ad:', result);
       
-      if (result.success) {
-        setHasAccess(true);
-        onAccessGranted?.();
+      if (result.watched) {
+        // Usar o método correto do AdCooldownManager
+        const adCooldownResult = await AdCooldownManager.watchAdForActions(
+          user.id,
+          'financial_analysis'
+        );
+        
+        if (adCooldownResult.success) {
+          setHasAccess(true);
+          onAccessGranted?.();
+          // Atualizar o status do cooldown
+          await checkAccess();
+        } else {
+          setAdError('Erro ao processar acesso. Tente novamente.');
+        }
       } else {
-        setAdError('Erro ao processar anúncio. Tente novamente.');
+        setAdError(result.error || 'Erro ao carregar anúncio. Tente novamente.');
       }
       
     } catch (error) {
@@ -104,21 +126,14 @@ const FinancialAdvisorGate: React.FC<FinancialAdvisorGateProps> = ({
   }, [user]);
 
   useEffect(() => {
-    if (timeRemaining > 0) {
+    if (cooldownInfo?.isInCooldown && cooldownInfo.remainingMinutes > 0) {
       const timer = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            checkAccess(); // Reverificar acesso
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+        checkAccess(); // Reverificar acesso a cada minuto
+      }, 60000); // 1 minuto
 
       return () => clearInterval(timer);
     }
-  }, [timeRemaining]);
+  }, [cooldownInfo]);
 
   if (isLoading) {
     return (
@@ -137,12 +152,6 @@ const FinancialAdvisorGate: React.FC<FinancialAdvisorGateProps> = ({
     return <>{children}</>;
   }
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-blue-900 p-4">
       <Card className="max-w-lg w-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-white/30 dark:border-gray-700/30 shadow-xl">
@@ -156,7 +165,7 @@ const FinancialAdvisorGate: React.FC<FinancialAdvisorGateProps> = ({
               Conteúdo Desbloqueável
             </h2>
             <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-              Assista um anúncio para continuar
+              Assista um anúncio para continuar usando o Stater IA
             </p>
           </div>
 
@@ -169,17 +178,23 @@ const FinancialAdvisorGate: React.FC<FinancialAdvisorGateProps> = ({
           )}
 
           {/* Mostrar tempo restante se ainda estiver no cooldown */}
-          {timeRemaining > 0 && (
+          {cooldownInfo?.isInCooldown && (
             <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                <p className="font-medium text-amber-700 dark:text-amber-300">Cooldown Ativo</p>
+              </div>
               <p className="text-amber-700 dark:text-amber-300 text-sm">
-                Acesso será liberado em: <span className="font-mono font-bold">{formatTime(timeRemaining)}</span>
+                Próximo anúncio disponível em: <span className="font-mono font-bold">
+                  {RewardCooldownManager.formatRemainingTime(cooldownInfo.remainingMinutes)}
+                </span>
               </p>
             </div>
           )}
 
           <Button
             onClick={watchRewardedAd}
-            disabled={isWatchingAd || timeRemaining > 0}
+            disabled={isWatchingAd || cooldownInfo?.isInCooldown}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             {isWatchingAd ? (

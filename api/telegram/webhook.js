@@ -128,11 +128,8 @@ async function handleUpdate(update) {
 // =================================================================================
 
 async function getSession(chatId) {
-    // Verificar cache primeiro para otimizar
-    if (userSessions.has(chatId)) {
-        return userSessions.get(chatId);
-    }
-    
+    // Sempre consultar o banco para garantir dados atualizados
+    // (funções serverless são stateless - cache em memória não persiste)
     try {
         const { data: activeUser, error } = await supabase
             .from('telegram_users')
@@ -151,7 +148,7 @@ async function getSession(chatId) {
             userName: activeUser.user_name
         };
         
-        // Cache para esta execução da função
+        // Cache apenas para esta execução da função
         userSessions.set(chatId, session);
         return session;
     } catch (e) {

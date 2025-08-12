@@ -17,6 +17,7 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCodeCopied, setIsCodeCopied] = useState(false);
   const [error, setError] = useState('');
+  const [isPolling, setIsPolling] = useState(false);
   const { user } = useAuth();
 
   // Função para logs apenas em desenvolvimento
@@ -34,6 +35,64 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
       setError('Esta aplicação deve ser acessada via HTTPS por motivos de segurança.');
     }
   }, []);
+
+  // Sistema de polling para detectar conexão automática
+  useEffect(() => {
+    let pollingInterval: NodeJS.Timeout;
+    
+    if (isOpen && generatedCode && user?.id && !isPolling) {
+      setIsPolling(true);
+      logDebug('🔄 [TELEGRAM] Iniciando polling para detectar conexão...');
+      
+      const checkConnection = async () => {
+        try {
+          const { supabase } = await import('@/lib/supabase');
+          const { data, error } = await supabase
+            .from('telegram_users')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('is_active', true);
+          
+          if (data && data.length > 0) {
+            logDebug('✅ [TELEGRAM] Conexão detectada automaticamente!', data[0]);
+            clearInterval(pollingInterval);
+            setIsPolling(false);
+            onConnect(generatedCode);
+            return;
+          }
+        } catch (error) {
+          logDebug('❌ [TELEGRAM] Erro no polling:', error);
+        }
+      };
+      
+      // Verificar a cada 3 segundos por até 10 minutos
+      pollingInterval = setInterval(checkConnection, 3000);
+      
+      // Cleanup após 10 minutos
+      setTimeout(() => {
+        clearInterval(pollingInterval);
+        setIsPolling(false);
+        logDebug('⏰ [TELEGRAM] Polling finalizado por timeout');
+      }, 600000); // 10 minutos
+    }
+    
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+        setIsPolling(false);
+      }
+    };
+  }, [isOpen, generatedCode, user?.id, onConnect]);
+
+  // Limpar polling quando modal fecha
+  useEffect(() => {
+    if (!isOpen) {
+      setIsPolling(false);
+      setGeneratedCode('');
+      setIsCodeCopied(false);
+      setError('');
+    }
+  }, [isOpen]);
 
   const generateCode = async () => {
     if (!user) {
@@ -211,6 +270,13 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
                     </>
                   )}
                 </button>
+                
+                {isPolling && (
+                  <div className="mt-3 flex items-center justify-center gap-2 text-sm text-green-600">
+                    <div className="animate-spin rounded-full h-3 w-3 border-2 border-green-600 border-t-transparent"></div>
+                    Aguardando conexão...
+                  </div>
+                )}
               </div>
             </div>
             

@@ -373,7 +373,7 @@ async function handleTextMessage(msg) {
     // Handle confirmation responses - be very explicit about what we accept
     console.log('Checking if text is confirmation. lowerText:', `"${lowerText}"`);
     
-    if (lowerText === 'sim' || lowerText === 'confirmar' || lowerText === '✅ sim' || lowerText === '✅ confirmar' || lowerText === '✅ confirmar' || lowerText === 'confirmar') {
+    if (lowerText === 'sim' || lowerText === 'confirmar' || lowerText === '✅ sim' || lowerText === '✅ confirmar' || lowerText === 'confirmar' || lowerText === '✅ confirmar') {
         console.log('✅ CONFIRMATION DETECTED! Calling confirmTransactions');
         return await confirmTransactions(chatId);
     }
@@ -448,32 +448,32 @@ async function detectTransactionIntent(message) {
     let category = 'Não categorizado';
     
     // Pattern 1: "entrada 50" or "saída 50"
-    if (text.match(/^entrada\s+(\d+(?:[,.]\d{1,2})?)$/)) {
-        const match = text.match(/^entrada\s+(\d+(?:[,.]\d{1,2})?)$/);
+    if (text.match(/^entrada\s+(\d+(?:[,.]\d{1,2})?)(?:\s+.*)?$/)) {
+        const match = text.match(/^entrada\s+(\d+(?:[,.]\d{1,2})?)(?:\s+.*)?$/);
         amount = parseFloat(match[1].replace(',', '.'));
         type = 'income';
         description = 'Entrada via bot';
         category = 'Outros';
     }
     // Pattern 2: "saida 50" or "saída 50"
-    else if (text.match(/^(?:saida|saída)\s+(\d+(?:[,.]\d{1,2})?)$/)) {
-        const match = text.match(/^(?:saida|saída)\s+(\d+(?:[,.]\d{1,2})?)$/);
+    else if (text.match(/^(?:saida|saída)\s+(\d+(?:[,.]\d{1,2})?)(?:\s+.*)?$/)) {
+        const match = text.match(/^(?:saida|saída)\s+(\d+(?:[,.]\d{1,2})?)(?:\s+.*)?$/);
         amount = parseFloat(match[1].replace(',', '.'));
         type = 'expense';
         description = 'Saída via bot';
         category = 'Diversos';
     }
-    // Pattern 3: "adicione 50" (ask for type)
-    else if (text.match(/^(?:adicione|adicionar)\s+(\d+(?:[,.]\d{1,2})?)$/)) {
-        const match = text.match(/^(?:adicione|adicionar)\s+(\d+(?:[,.]\d{1,2})?)$/);
+    // Pattern 3: "adicione 50" or "adicione 50 reais" (ask for type)
+    else if (text.match(/^(?:adicione|adicionar|adiciona)\s+(\d+(?:[,.]\d{1,2})?)(?:\s+.*)?$/)) {
+        const match = text.match(/^(?:adicione|adicionar|adiciona)\s+(\d+(?:[,.]\d{1,2})?)(?:\s+.*)?$/);
         amount = parseFloat(match[1].replace(',', '.'));
         type = 'unknown';
         description = 'Transação via bot';
         category = 'Não categorizado';
     }
-    // Pattern 4: Just a number "50"
-    else if (text.match(/^(\d+(?:[,.]\d{1,2})?)$/)) {
-        const match = text.match(/^(\d+(?:[,.]\d{1,2})?)$/);
+    // Pattern 4: Just a number "50" or "50 reais"
+    else if (text.match(/^(\d+(?:[,.]\d{1,2})?)(?:\s+reais?)?$/)) {
+        const match = text.match(/^(\d+(?:[,.]\d{1,2})?)(?:\s+reais?)?$/);
         amount = parseFloat(match[1].replace(',', '.'));
         type = 'unknown';
         description = 'Transação via bot';

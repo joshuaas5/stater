@@ -11,8 +11,15 @@ const logDebug = (message: string, data?: any) => {
   }
 };
 
-const supabase = createClient(supabaseUrl, supabaseKey);
-const supabaseAdmin = supabaseServiceKey ? createClient(supabaseUrl, supabaseServiceKey) : null;
+// SEMPRE usar service role para contornar RLS
+const supabase = supabaseServiceKey ? 
+  createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  }) : 
+  createClient(supabaseUrl, supabaseKey);
+
+// Para compatibilidade
+const supabaseAdmin = supabase;
 
 function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -90,7 +97,7 @@ module.exports = async function handler(req: any, res: any) {
     logDebug('🔧 [TELEGRAM API] Verificando rate limiting...');
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     
-    const { data: recentCodes, error: rateLimitError } = await (supabaseAdmin || supabase)
+    const { data: recentCodes, error: rateLimitError } = await supabase
       .from('telegram_link_codes')
       .select('id, created_at')
       .eq('user_id', user_id)
@@ -128,7 +135,7 @@ module.exports = async function handler(req: any, res: any) {
       attempts++;
       
       // Verificar se código já existe e se foi usado
-      const { data: existingCode, error: checkError } = await (supabaseAdmin || supabase)
+      const { data: existingCode, error: checkError } = await supabase
         .from('telegram_link_codes')
         .select('id, used_at')
         .eq('code', code)
@@ -170,11 +177,10 @@ module.exports = async function handler(req: any, res: any) {
     // Tentar inserir na tabela
     logDebug('🔧 [TELEGRAM API] Inserindo na tabela...');
     
-    // Usar supabaseAdmin se disponível (contorna RLS), senão usar supabase normal
-    const clientToUse = supabaseAdmin || supabase;
-    logDebug('🔧 [TELEGRAM API] Usando cliente:', supabaseAdmin ? 'ADMIN (service_role)' : 'NORMAL (anon)');
+    // Sempre usar supabase (que agora é service role se disponível)
+    logDebug('🔧 [TELEGRAM API] Usando cliente:', supabaseServiceKey ? 'SERVICE_ROLE' : 'ANON');
     
-    const { error: insertError } = await clientToUse
+    const { error: insertError } = await supabase
       .from('telegram_link_codes')
       .insert([{
         code,

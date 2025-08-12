@@ -109,15 +109,20 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
     
     try {
       logDebug('🔧 [TELEGRAM] Gerando código para usuário:', user.id);
+      logDebug('🔧 [TELEGRAM] Dados completos do usuário:', user);
+      
+      const requestBody = {
+        user_id: user.id,
+        userEmail: user.email,
+        userName: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário'
+      };
+      
+      logDebug('🔧 [TELEGRAM] Body da requisição:', requestBody);
       
       const response = await fetch('/api/telegram-codes-clean', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id,
-          userEmail: user.email,
-          userName: user.user_metadata?.username || user.email?.split('@')[0] || 'Usuário'
-        }),
+        body: JSON.stringify(requestBody),
         signal: controller.signal
       });
 

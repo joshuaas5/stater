@@ -32,6 +32,14 @@ export class RewardCooldownManager {
     telegram_bot: {
       durationMinutes: 60,
       rewardAmount: 10
+    },
+    report_downloads: {
+      durationMinutes: 60,    // 1 hora de cooldown
+      rewardAmount: 3         // 3 downloads adicionais
+    },
+    recurring_transactions: {
+      durationMinutes: 60,    // 1 hora de cooldown  
+      rewardAmount: 2         // 2 transações recorrentes adicionais
     }
   };
 

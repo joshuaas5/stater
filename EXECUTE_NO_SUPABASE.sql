@@ -141,7 +141,57 @@ BEGIN
     END IF;
 END $$;
 
--- 4. CORREÇÃO DOS WARNINGS DE RLS DO SUPABASE (SEGURANÇA)
+-- 4. Tabela user_download_count (LIMITE DE DOWNLOADS DE RELATÓRIOS)
+CREATE TABLE IF NOT EXISTS user_download_count (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    download_count INTEGER DEFAULT 0 NOT NULL,
+    month_year VARCHAR(7) NOT NULL, -- formato YYYY-MM
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, month_year)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_download_count_user_id ON user_download_count(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_download_count_month ON user_download_count(month_year);
+
+ALTER TABLE user_download_count ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view their own download counts" ON user_download_count;
+DROP POLICY IF EXISTS "Users can manage their own download counts" ON user_download_count;
+
+CREATE POLICY "Users can view their own download counts" ON user_download_count
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can manage their own download counts" ON user_download_count
+    FOR ALL USING (auth.uid() = user_id);
+
+-- 5. Tabela user_recurring_count (LIMITE DE TRANSAÇÕES RECORRENTES)
+CREATE TABLE IF NOT EXISTS user_recurring_count (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    recurring_count INTEGER DEFAULT 0 NOT NULL,
+    month_year VARCHAR(7) NOT NULL, -- formato YYYY-MM
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, month_year)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_recurring_count_user_id ON user_recurring_count(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_recurring_count_month ON user_recurring_count(month_year);
+
+ALTER TABLE user_recurring_count ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view their own recurring counts" ON user_recurring_count;
+DROP POLICY IF EXISTS "Users can manage their own recurring counts" ON user_recurring_count;
+
+CREATE POLICY "Users can view their own recurring counts" ON user_recurring_count
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can manage their own recurring counts" ON user_recurring_count
+    FOR ALL USING (auth.uid() = user_id);
+
+-- 6. CORREÇÃO DOS WARNINGS DE RLS DO SUPABASE (SEGURANÇA)
 -- Ativar RLS nas tabelas que estão causando warnings de segurança
 
 -- Ativar RLS na tabela telegram_link_codes_backup (se existir)
@@ -212,4 +262,4 @@ BEGIN
     END IF;
 END $$;
 
-SELECT 'Todas as tabelas criadas com sucesso! Erro 404 resolvido, cooldown de 7 dias implementado e warnings de RLS corrigidos!' as status;
+SELECT 'Todas as tabelas criadas com sucesso! Erro 404 resolvido, cooldown de 7 dias implementado, limites de download e transações recorrentes adicionados, e warnings de RLS corrigidos!' as status;

@@ -799,7 +799,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
           // Usuário FREE atingiu o limite de 3 mensagens
           setMessages(prev => [...prev, {
             id: uuidv4(),
-            text: `🚫 **Limite de mensagens atingido!**\n\nVocê já usou suas 3 mensagens gratuitas. Para continuar conversando com o Stater IA:\n\n✨ **Assine o Stater Premium** e tenha:\n• 🤖 Nunca mais se preocupe com limites de mensagens\n• 📊 Análise de PDFs e imagens sem restrições\n• 🎙️ Áudios sem limites\n• 🔗 Conexão com Telegram liberada\n• 🚫 Sem anúncios\n\n💰 **A partir de R$ 8,90/semana**\n\n🎁 **Ou inicie seu teste grátis** de 3 dias!\n\n⬆️ Faça upgrade para continuar!`,
+            text: `🚫 **Limite de mensagens atingido!**\n\nVocê já usou suas 3 mensagens gratuitas. Para continuar conversando com o Stater IA:\n\n✨ **Assine o Stater Premium** e tenha:\n• 🤖 Nunca mais se preocupe com limites de mensagens\n• 📊 Nunca mais se preocupe com limites de análise de PDFs e imagens\n• 🎙️ Nunca mais se preocupe com limites de áudios\n• 📄 Nunca mais se preocupe com limites de downloads de relatórios\n• 🔄 Nunca mais se preocupe com limites de transações recorrentes\n• 🔗 Conexão com Telegram liberada\n• 🚫 Sem anúncios\n\n💰 **A partir de R$ 8,90/semana**\n\n🎁 **Ou inicie seu teste grátis** de 3 dias!\n\n⬆️ Faça upgrade para continuar!`,
             sender: 'assistant',
             timestamp: new Date(),
             avatarUrl: IA_AVATAR

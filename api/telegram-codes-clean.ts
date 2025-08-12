@@ -3,24 +3,19 @@ const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://tmucbwlhkffrhtexmjze.supabase.co';
 const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtdWNid2xoa2Zmcmh0ZXhtanplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMzAzMDgsImV4cCI6MjA2MTcwNjMwOH0.rNx8GkxpEeGjtOwYC_LiL4HlAiwZKVMPTRrCqt7UHVo';
 
-// Função para logs apenas em desenvolvimento
+// Função para logs
 const logDebug = (message: string, data?: any) => {
-  if (process.env.NODE_ENV === 'development') {
-    console.log(message, data);
-  }
+  console.log(message, data);
 };
 
-// Usar mesma configuração do webhook
-const supabase = createClient(
-  supabaseUrl, 
-  process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseKey,
-  {
-    auth: { 
-      autoRefreshToken: false, 
-      persistSession: false 
-    }
-  }
-);
+// Primeiro tentar com service role, depois com anon key
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+const supabase = supabaseServiceKey ? 
+  createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  }) : 
+  createClient(supabaseUrl, supabaseKey);
 
 function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -174,12 +169,11 @@ module.exports = async function handler(req: any, res: any) {
     
     logDebug('🔧 [TELEGRAM API] Código gerado:', code);
     logDebug('🔧 [TELEGRAM API] Expira em:', expiresAt.toISOString());
+    logDebug('🔧 [TELEGRAM API] User ID:', user_id);
+    logDebug('🔧 [TELEGRAM API] Service role available:', !!supabaseServiceKey);
 
     // Tentar inserir na tabela
     logDebug('🔧 [TELEGRAM API] Inserindo na tabela...');
-    
-    // Usar service role para contornar RLS
-    logDebug('🔧 [TELEGRAM API] Usando SERVICE_ROLE para contornar RLS');
     
     const { error: insertError } = await supabase
       .from('telegram_link_codes')

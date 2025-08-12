@@ -1020,7 +1020,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     console.log('🔄 [TELEGRAM] Forçando verificação manual...');
                     // Reset completo e verificação agressiva
                     if (user?.id) {
@@ -1048,6 +1048,35 @@ const Dashboard: React.FC = () => {
                   }}
                 >
                   ↻
+                </button>
+                
+                {/* DEBUG: Botão temporário para teste direto */}
+                <button
+                  onClick={async () => {
+                    console.log('🧪 [DEBUG] Teste direto da API Supabase');
+                    try {
+                      const { data, error } = await supabase
+                        .from('telegram_users')
+                        .select('*')
+                        .eq('user_id', user?.id);
+                      
+                      console.log('🧪 [DEBUG] Resultado completo:', { data, error, userId: user?.id });
+                      
+                      toast({
+                        title: "🧪 Debug",
+                        description: `Encontrados: ${data?.length || 0} registros`,
+                      });
+                    } catch (err) {
+                      console.error('🧪 [DEBUG] Erro:', err);
+                    }
+                  }}
+                  className="px-2 py-1 rounded-lg text-white text-xs hover:bg-white/20 transition-all duration-300"
+                  style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  🧪
                 </button>
                 <button
                   onClick={generateTelegramCode}

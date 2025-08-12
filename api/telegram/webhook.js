@@ -632,14 +632,20 @@ async function detectTransactionIntent(message) {
         // "entrada 50", "saida 100", etc
         { regex: /^entrada\s+(\d+(?:[,.]\d{1,2})?)/, type: 'income' },
         { regex: /^(?:saida|saída)\s+(\d+(?:[,.]\d{1,2})?)/, type: 'expense' },
-        // "50 entrada", "100 é entrada" 
-        { regex: /^(\d+(?:[,.]\d{1,2})?)\s+(?:é\s+)?entrada/, type: 'income' },
-        { regex: /^(\d+(?:[,.]\d{1,2})?)\s+(?:é\s+)?(?:saida|saída)/, type: 'expense' },
-        // "50", "100 reais"
+        // "50 entrada", "100 é entrada", "70 é saída" 
+        { regex: /^(\d+(?:[,.]\d{1,2})?)\s+(?:é\s+(?:uma?\s+)?)?entrada/i, type: 'income' },
+        { regex: /^(\d+(?:[,.]\d{1,2})?)\s+(?:é\s+(?:uma?\s+)?)?(?:saida|saída)/i, type: 'expense' },
+        // "50 reais entrada", "100 reais é saída"
+        { regex: /^(\d+(?:[,.]\d{1,2})?)\s+reais?\s+(?:é\s+(?:uma?\s+)?)?entrada/i, type: 'income' },
+        { regex: /^(\d+(?:[,.]\d{1,2})?)\s+reais?\s+(?:é\s+(?:uma?\s+)?)?(?:saida|saída)/i, type: 'expense' },
+        // "50", "100 reais" (sem tipo especificado)
         { regex: /^(\d+(?:[,.]\d{1,2})?)\s*(?:reais?)?$/, type: 'unknown' },
         // "adicione 50", "remova 50"
         { regex: /^(?:adicione|adicionar)\s+(\d+(?:[,.]\d{1,2})?)/, type: 'income' },
-        { regex: /^(?:remova|remover|retire|retirar)\s+(\d+(?:[,.]\d{1,2})?)/, type: 'expense' }
+        { regex: /^(?:remova|remover|retire|retirar)\s+(\d+(?:[,.]\d{1,2})?)/, type: 'expense' },
+        // Padrões com descrição + tipo
+        { regex: /(\d+(?:[,.]\d{1,2})?)\s+.*?(?:é\s+(?:uma?\s+)?entrada|entrada)/i, type: 'income' },
+        { regex: /(\d+(?:[,.]\d{1,2})?)\s+.*?(?:é\s+(?:uma?\s+)?(?:saida|saída)|(?:saida|saída))/i, type: 'expense' }
     ];
     
     // Padrões para respostas de confirmação (quando já perguntou o tipo)
@@ -698,9 +704,9 @@ async function detectTransactionIntent(message) {
     
     // Determine type if not already set
     if (type === null || type === 'unknown') {
-        // Enhanced keyword detection
-        const incomeKeywords = ['recebi', 'ganhei', 'vale', 'salário', 'salario', 'bônus', 'bonus', 'renda', 'vendeu', 'vendi'];
-        const expenseKeywords = ['gastei', 'comprei', 'paguei', 'perdi', 'remova', 'remover', 'despesa', 'gasto', 'conta'];
+        // Enhanced keyword detection including "é entrada/saída"
+        const incomeKeywords = ['recebi', 'ganhei', 'vale', 'salário', 'salario', 'bônus', 'bonus', 'renda', 'vendeu', 'vendi', 'é entrada', 'entrada'];
+        const expenseKeywords = ['gastei', 'comprei', 'paguei', 'perdi', 'remova', 'remover', 'despesa', 'gasto', 'conta', 'é saída', 'é saida', 'saída', 'saida'];
         
         const hasIncomeKeyword = incomeKeywords.some(keyword => text.includes(keyword));
         const hasExpenseKeyword = expenseKeywords.some(keyword => text.includes(keyword));
@@ -710,7 +716,14 @@ async function detectTransactionIntent(message) {
         } else if (hasExpenseKeyword && !hasIncomeKeyword) {
             type = 'expense';
         } else {
-            type = 'unknown';
+            // Se ainda não conseguiu determinar, verificar padrões mais específicos
+            if (/(?:é\s+(?:uma?\s+)?entrada|entrada)/i.test(text)) {
+                type = 'income';
+            } else if (/(?:é\s+(?:uma?\s+)?(?:saida|saída)|(?:saida|saída))/i.test(text)) {
+                type = 'expense';
+            } else {
+                type = 'unknown';
+            }
         }
     }
     
@@ -736,8 +749,12 @@ function extractSmartDescription(originalText, amountStr) {
     // Remove palavras comuns e o valor para extrair a descrição
     let desc = originalText;
     
-    // Remove palavras de comando
+    // Remove palavras de comando e tipos
     desc = desc.replace(/^(?:adicione|adicionar|adiciona|entrada|saida|saída|gastei|recebi|ganhei|comprei|paguei|perdi|remova|remover|retire|retirar)\s*/i, '');
+    
+    // Remove "é entrada", "é saída", etc.
+    desc = desc.replace(/\s*(?:é\s+(?:uma?\s+)?(?:entrada|saida|saída))\s*/gi, ' ');
+    desc = desc.replace(/\s*(?:entrada|saida|saída)\s*/gi, ' ');
     
     // Remove valores monetários
     desc = desc.replace(/\d+(?:[,.]\d{1,2})?\s*(?:reais?|r\$|real)?/gi, '');

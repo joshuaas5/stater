@@ -933,6 +933,8 @@ async function linkTelegramWithCode(chatId, linkCode) {
             user_name: data.user_name,
             linked_at: new Date().toISOString(),
             is_active: true
+        }, {
+            onConflict: 'telegram_chat_id'
         });
 
         if (upsertError) {

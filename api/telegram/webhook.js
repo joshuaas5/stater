@@ -368,16 +368,18 @@ async function handleTextMessage(msg) {
     
     console.log('handleTextMessage called with:', text);
 
-    const lowerText = text.toLowerCase();
+    const lowerText = text.toLowerCase().trim();
     
-    // Handle confirmation responses with more variations
-    if (lowerText === '✅ sim' || lowerText === 'sim' || lowerText === '✅ confirmar' || lowerText === 'confirmar') {
-        console.log('Confirmation detected, calling confirmTransactions');
+    // Handle confirmation responses - be very explicit about what we accept
+    console.log('Checking if text is confirmation. lowerText:', `"${lowerText}"`);
+    
+    if (lowerText === 'sim' || lowerText === 'confirmar' || lowerText === '✅ sim' || lowerText === '✅ confirmar') {
+        console.log('✅ CONFIRMATION DETECTED! Calling confirmTransactions');
         return await confirmTransactions(chatId);
     }
     
-    if (lowerText === '❌ não' || lowerText === 'nao' || lowerText === 'não' || lowerText === '❌ cancelar' || lowerText === 'cancelar') {
-        console.log('Cancellation detected');
+    if (lowerText === 'não' || lowerText === 'nao' || lowerText === 'cancelar' || lowerText === '❌ não' || lowerText === '❌ cancelar') {
+        console.log('❌ CANCELLATION DETECTED!');
         // Clear pending transactions from the database
         await supabase
             .from('telegram_users')
@@ -436,43 +438,60 @@ async function handleTextMessage(msg) {
 // =================================================================================
 
 async function detectTransactionIntent(message) {
-    const text = message.toLowerCase();
+    const text = message.toLowerCase().trim();
     console.log('Detecting transaction intent for:', text);
     
-    // Patterns for adding income/expenses
-    const addPatterns = [
-        /adicionar?\s+(?:entrada|receita|ganho)\s+(?:de\s+)?r?\$?\s*(\d+(?:[,.]\d{2})?)/i,
-        /(?:entrada|receita|ganho)\s+(?:de\s+)?r?\$?\s*(\d+(?:[,.]\d{2})?)/i,
-        /adicionar?\s+r?\$?\s*(\d+(?:[,.]\d{2})?)\s+(?:entrada|receita|ganho)/i,
-        /adicionar?\s+(?:saida|saída|gasto|despesa)\s+(?:de\s+)?r?\$?\s*(\d+(?:[,.]\d{2})?)/i,
-        /(?:saida|saída|gasto|despesa)\s+(?:de\s+)?r?\$?\s*(\d+(?:[,.]\d{2})?)/i,
-        /adicionar?\s+r?\$?\s*(\d+(?:[,.]\d{2})?)\s+(?:saida|saída|gasto|despesa)/i,
-        /adicionar?\s+r?\$?\s*(\d+(?:[,.]\d{2})?)/i,
-        /^r?\$?\s*(\d+(?:[,.]\d{2})?)\s*$/i // Just a number
-    ];
+    // Simple patterns that should definitely work
+    let amount = null;
+    let type = null;
+    let description = 'Transação via bot';
     
-    for (const pattern of addPatterns) {
-        const match = text.match(pattern);
-        if (match) {
-            console.log('Transaction pattern matched:', pattern, match);
-            const amount = parseFloat(match[1].replace(',', '.'));
-            const isIncome = /entrada|receita|ganho/.test(text);
-            const isExpense = /saida|saída|gasto|despesa/.test(text);
-            
-            // If not explicitly specified, ask user
-            if (!isIncome && !isExpense) {
-                console.log('Type not specified, will ask user');
-                return { amount, type: 'unknown' };
-            }
-            
-            const result = {
-                amount,
-                type: isIncome ? 'income' : 'expense',
-                description: extractDescription(message, match[1]) || (isIncome ? 'Entrada via bot' : 'Saída via bot')
-            };
-            console.log('Transaction detected:', result);
-            return result;
-        }
+    // Pattern 1: "entrada 50" or "saída 50"
+    if (text.match(/^entrada\s+(\d+(?:[,.]\d{1,2})?)$/)) {
+        const match = text.match(/^entrada\s+(\d+(?:[,.]\d{1,2})?)$/);
+        amount = parseFloat(match[1].replace(',', '.'));
+        type = 'income';
+        description = 'Entrada via bot';
+    }
+    // Pattern 2: "saida 50" or "saída 50"
+    else if (text.match(/^(?:saida|saída)\s+(\d+(?:[,.]\d{1,2})?)$/)) {
+        const match = text.match(/^(?:saida|saída)\s+(\d+(?:[,.]\d{1,2})?)$/);
+        amount = parseFloat(match[1].replace(',', '.'));
+        type = 'expense';
+        description = 'Saída via bot';
+    }
+    // Pattern 3: "adicione 50" (ask for type)
+    else if (text.match(/^(?:adicione|adicionar)\s+(\d+(?:[,.]\d{1,2})?)$/)) {
+        const match = text.match(/^(?:adicione|adicionar)\s+(\d+(?:[,.]\d{1,2})?)$/);
+        amount = parseFloat(match[1].replace(',', '.'));
+        type = 'unknown';
+        description = 'Transação via bot';
+    }
+    // Pattern 4: Just a number "50"
+    else if (text.match(/^(\d+(?:[,.]\d{1,2})?)$/)) {
+        const match = text.match(/^(\d+(?:[,.]\d{1,2})?)$/);
+        amount = parseFloat(match[1].replace(',', '.'));
+        type = 'unknown';
+        description = 'Transação via bot';
+    }
+    // Pattern 5: "50 entrada" or "50 saída"
+    else if (text.match(/^(\d+(?:[,.]\d{1,2})?)\s+entrada$/)) {
+        const match = text.match(/^(\d+(?:[,.]\d{1,2})?)\s+entrada$/);
+        amount = parseFloat(match[1].replace(',', '.'));
+        type = 'income';
+        description = 'Entrada via bot';
+    }
+    else if (text.match(/^(\d+(?:[,.]\d{1,2})?)\s+(?:saida|saída)$/)) {
+        const match = text.match(/^(\d+(?:[,.]\d{1,2})?)\s+(?:saida|saída)$/);
+        amount = parseFloat(match[1].replace(',', '.'));
+        type = 'expense';
+        description = 'Saída via bot';
+    }
+    
+    if (amount !== null) {
+        const result = { amount, type, description };
+        console.log('Transaction detected:', result);
+        return result;
     }
     
     console.log('No transaction pattern matched');

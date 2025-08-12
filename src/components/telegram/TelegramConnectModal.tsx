@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Copy, Check } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 interface TelegramConnectModalProps {
   isOpen: boolean;
@@ -200,94 +201,91 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Conectar ao Telegram</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <X size={24} />
-          </button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg w-full max-w-sm max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 rounded-t-lg">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold">Conectar ao Telegram</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 p-1"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
-        <div className="mb-4">
-          <p className="text-sm text-gray-600 mb-3">
-            🚀 <strong>Conecte-se ao Stater IA via Telegram!</strong>
-          </p>
-          
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-            <h4 className="font-semibold text-blue-900 mb-2">✨ O que você pode fazer:</h4>
-            <ul className="text-xs text-blue-800 space-y-1">
-              <li>📷 <strong>Enviar fotos</strong> de extratos, notas fiscais e PDFs</li>
-              <li>💰 <strong>Registrar transações</strong> por voz ou texto</li>
-              <li>📊 <strong>Consultar saldo</strong> e situação financeira</li>
-              <li>🧾 <strong>Verificar contas</strong> a pagar e vencimentos</li>
-              <li>💡 <strong>Pedir dicas</strong> e conselhos financeiros</li>
-              <li>🔍 <strong>Fazer qualquer pergunta</strong> sobre suas finanças</li>
-            </ul>
-            <p className="text-xs text-blue-700 mt-2 font-medium">
-              Stater - Inteligência para prosperar 🎯
+        <div className="px-4 py-3 space-y-4">
+          <div className="text-center">
+            <p className="text-sm text-gray-600 mb-2">
+              🚀 <strong>Conecte-se ao Stater IA!</strong>
             </p>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+              <p className="text-xs text-blue-800 mb-2 font-medium">✨ O que você pode fazer:</p>
+              <ul className="text-xs text-blue-700 space-y-1">
+                <li>� Ver saldo e transações</li>
+                <li>� Enviar foto do extrato</li>
+                <li>� Fazer perguntas sobre dinheiro</li>
+                <li>💰 Registrar transações por voz</li>
+              </ul>
+            </div>
           </div>
           
-          <p className="text-sm text-gray-700 mb-3 font-medium">
-            📱 Como conectar:
-          </p>
-          <ol className="text-sm text-gray-700 space-y-2 mb-4">
-            <li>1. Clique em <strong>"Gerar Código"</strong> abaixo</li>
-            <li>2. O código será copiado automaticamente</li>
-            <li>3. Clique em <strong>"Abrir Bot"</strong> para ir ao Telegram</li>
-            <li>4. <strong>Cole o código</strong> no chat com o bot</li>
-            <li>5. Pronto! Sua conta estará conectada ✅</li>
-          </ol>
-        </div>
+          <div>
+            <p className="text-sm text-gray-700 mb-2 font-medium">📱 Como conectar:</p>
+            <ol className="text-xs text-gray-600 space-y-1 mb-3">
+              <li>1. Clique em "Gerar Código"</li>
+              <li>2. Vá ao bot do Telegram</li>
+              <li>3. Cole o código no chat</li>
+              <li>4. Pronto! ✅</li>
+            </ol>
+          </div>
 
         {!generatedCode ? (
           <div className="space-y-3">
             <button
               onClick={generateCode}
               disabled={isGenerating}
-              className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium"
+              className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium text-sm"
             >
               {isGenerating ? (
                 <div className="flex items-center justify-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  Gerando código...
+                  Gerando...
                 </div>
               ) : (
-                '🔑 Gerar Código de 6 Dígitos'
+                '🔑 Gerar Código'
               )}
             </button>
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <div className="text-center">
-                <p className="text-sm text-blue-600 font-medium mb-2">Seu código:</p>
-                <div className="text-2xl font-mono font-bold text-blue-800 tracking-widest mb-3">
+                <p className="text-xs text-blue-600 font-medium mb-2">Seu código:</p>
+                <div className="text-xl font-mono font-bold text-blue-800 tracking-widest mb-2">
                   {generatedCode}
                 </div>
                 <button
                   onClick={copyCode}
-                  className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+                  className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
                 >
                   {isCodeCopied ? (
                     <>
-                      <Check size={16} />
+                      <Check size={14} />
                       Copiado!
                     </>
                   ) : (
                     <>
-                      <Copy size={16} />
-                      Copiar código
+                      <Copy size={14} />
+                      Copiar
                     </>
                   )}
                 </button>
                 
                 {isPolling && (
-                  <div className="mt-3 flex items-center justify-center gap-2 text-sm text-green-600">
+                  <div className="mt-2 flex items-center justify-center gap-2 text-xs text-green-600">
                     <div className="animate-spin rounded-full h-3 w-3 border-2 border-green-600 border-t-transparent"></div>
                     Aguardando conexão...
                   </div>
@@ -297,14 +295,14 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
             
             <button
               onClick={openTelegramBot}
-              className="w-full px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium"
+              className="w-full px-4 py-2.5 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium text-sm"
             >
               📱 Abrir Bot do Telegram
             </button>
             
             <button
               onClick={onClose}
-              className="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+              className="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
             >
               Fechar
             </button>
@@ -333,7 +331,7 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
             </ul>
           </div>
           
-          <p className="text-gray-500">
+          <p className="text-xs text-gray-500 text-center">
             ⏰ O código expira em 15 minutos
           </p>
         </div>

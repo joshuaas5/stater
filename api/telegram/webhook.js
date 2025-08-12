@@ -128,6 +128,11 @@ async function handleUpdate(update) {
 // =================================================================================
 
 async function getSession(chatId) {
+    // Verificar cache primeiro para otimizar
+    if (userSessions.has(chatId)) {
+        return userSessions.get(chatId);
+    }
+    
     try {
         const { data: activeUser, error } = await supabase
             .from('telegram_users')
@@ -137,7 +142,6 @@ async function getSession(chatId) {
             .single();
 
         if (error || !activeUser) {
-            console.log(`No active session found for chat ${chatId}:`, error?.message);
             return null;
         }
 
@@ -147,9 +151,8 @@ async function getSession(chatId) {
             userName: activeUser.user_name
         };
         
-        // Cache apenas para esta execução da função
+        // Cache para esta execução da função
         userSessions.set(chatId, session);
-        console.log(`Session loaded for chat ${chatId}:`, session.userName);
         return session;
     } catch (e) {
         console.error(`Failed to load session for chat ${chatId}:`, e);
@@ -410,8 +413,6 @@ async function handleTextMessage(msg) {
         console.log('6-digit code detected');
         const linkResult = await linkTelegramWithCode(chatId, text.trim());
         if (linkResult.success) {
-            // Pequeno delay para garantir sincronização do banco
-            await new Promise(resolve => setTimeout(resolve, 500));
             await sendMessage(chatId, `🎉 *Conectado com sucesso!*\n\nOi ${linkResult.userName}! 👋\n\n✨ *Agora você pode:*\n📸 Enviar foto do seu extrato\n💬 Fazer perguntas sobre dinheiro\n📊 Ver suas transações\n\n🚀 *Vamos começar?*\nMande "saldo" para ver seu saldo atual!`, { parse_mode: 'Markdown' });
         } else {
             await sendMessage(chatId, `❌ *Código inválido ou expirado.*\n\nGere um novo código no app.`, { parse_mode: 'Markdown' });
@@ -852,31 +853,21 @@ async function confirmTransactions(chatId) {
 
 async function linkTelegramWithCode(chatId, linkCode) {
     try {
-        console.log(`Attempting to link chat ${chatId} with code ${linkCode}`);
-        
         const { data, error } = await supabase
             .from('telegram_link_codes')
             .select('user_id, user_email, user_name, expires_at')
             .eq('code', linkCode)
             .single();
 
-        if (error || !data) {
-            console.log(`Code verification failed for ${linkCode}:`, error?.message);
+        if (error || !data || new Date() > new Date(data.expires_at)) {
             return { success: false, message: 'Código inválido ou expirado' };
         }
-        
-        if (new Date() > new Date(data.expires_at)) {
-            console.log(`Code ${linkCode} expired at ${data.expires_at}`);
-            return { success: false, message: 'Código inválido ou expirado' };
-        }
-
-        console.log(`Code ${linkCode} valid for user ${data.user_name}`);
 
         // Mark code as used
         await supabase.from('telegram_link_codes').update({ used_at: new Date().toISOString() }).eq('code', linkCode);
         
         // Create/update telegram user record
-        const { error: upsertError } = await supabase.from('telegram_users').upsert({
+        await supabase.from('telegram_users').upsert({
             telegram_chat_id: chatId.toString(),
             user_id: data.user_id,
             user_email: data.user_email,
@@ -885,13 +876,6 @@ async function linkTelegramWithCode(chatId, linkCode) {
             is_active: true
         });
 
-        if (upsertError) {
-            console.error('Error creating telegram_user record:', upsertError);
-            return { success: false, message: 'Erro ao salvar vinculação' };
-        }
-
-        console.log(`Successfully linked chat ${chatId} to user ${data.user_name}`);
-        
         // Cache para esta execução
         userSessions.set(chatId, { userId: data.user_id, userEmail: data.user_email, userName: data.user_name });
         return { success: true, userName: data.user_name };

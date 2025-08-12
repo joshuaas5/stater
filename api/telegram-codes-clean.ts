@@ -2,7 +2,6 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://tmucbwlhkffrhtexmjze.supabase.co';
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtdWNid2xoa2Zmcmh0ZXhtanplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMzAzMDgsImV4cCI6MjA2MTcwNjMwOH0.rNx8GkxpEeGjtOwYC_LiL4HlAiwZKVMPTRrCqt7UHVo';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Função para logs apenas em desenvolvimento
 const logDebug = (message: string, data?: any) => {
@@ -11,15 +10,8 @@ const logDebug = (message: string, data?: any) => {
   }
 };
 
-// SEMPRE usar service role para contornar RLS
-const supabase = supabaseServiceKey ? 
-  createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { autoRefreshToken: false, persistSession: false }
-  }) : 
-  createClient(supabaseUrl, supabaseKey);
-
-// Para compatibilidade
-const supabaseAdmin = supabase;
+// Usar configuração original que funcionava
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -177,8 +169,8 @@ module.exports = async function handler(req: any, res: any) {
     // Tentar inserir na tabela
     logDebug('🔧 [TELEGRAM API] Inserindo na tabela...');
     
-    // Sempre usar supabase (que agora é service role se disponível)
-    logDebug('🔧 [TELEGRAM API] Usando cliente:', supabaseServiceKey ? 'SERVICE_ROLE' : 'ANON');
+    // Usar configuração original que funcionava
+    logDebug('🔧 [TELEGRAM API] Usando cliente ANON');
     
     const { error: insertError } = await supabase
       .from('telegram_link_codes')

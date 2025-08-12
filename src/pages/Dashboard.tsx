@@ -211,9 +211,25 @@ const Dashboard: React.FC = () => {
       const cachedStatus = localStorage.getItem(`telegram_status_${user.id}`);
       if (!cachedStatus) {
         checkTelegramStatus();
+      } else {
+        // Sempre verificar no servidor após 5 segundos para garantir sincronia
+        setTimeout(() => {
+          checkTelegramStatus(true);
+        }, 5000);
       }
     }
   }, [user?.id, telegramStatusChecked]);
+
+  // Verificação periódica a cada 30 segundos para manter sincronizado
+  useEffect(() => {
+    if (user?.id) {
+      const interval = setInterval(() => {
+        checkTelegramStatus(true);
+      }, 30000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [user?.id]);
   
   // Novo filtro por nome
   const [newTransaction, setNewTransaction] = useState({

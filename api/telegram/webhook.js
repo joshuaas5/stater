@@ -213,7 +213,7 @@ async function handleConectar(msg) {
         return;
     }
 
-    const connectMessage = `🔗 *Como conectar sua conta Stater:*\n\n**Método recomendado:**\n1. Acesse: ${process.env.APP_URL}\n2. Faça login\n3. Vá em Configurações → Bot Telegram\n4. Clique em "Gerar Código"\n5. Envie o código aqui.`;
+    const connectMessage = `🔗 *Como conectar sua conta Stater:*\n\n**Método recomendado:**\n1. Acesse o Stater App\n2. Faça login\n3. Vá em Configurações → Bot Telegram\n4. Clique em "Gerar Código"\n5. Envie o código aqui.`;
     await sendMessage(chatId, connectMessage, { parse_mode: 'Markdown' });
 }
 
@@ -465,7 +465,8 @@ async function detectTransactionIntent(message) {
         'perdi', 'perda', 'prejuízo', 'prejuizo', 'desconto', 'multa',
         'taxa', 'débito', 'debito', 'saque', 'transferi', 'enviei',
         'dívida', 'divida', 'empréstimo', 'emprestimo', 'financiamento',
-        'cartão', 'cartao', 'boleto', 'parcela', 'prestação', 'prestacao'
+        'cartão', 'cartao', 'boleto', 'parcela', 'prestação', 'prestacao',
+        'remova', 'remover', 'retire', 'retirar', 'tirει', 'subtraia'
     ];
     
     // Contextos específicos que indicam entrada vs saída
@@ -584,7 +585,7 @@ function extractSmartDescription(originalText, amountStr) {
     let desc = originalText;
     
     // Remove palavras de comando
-    desc = desc.replace(/^(?:adicione|adicionar|adiciona|entrada|saida|saída|gastei|recebi|ganhei|comprei|paguei|perdi)\s*/i, '');
+    desc = desc.replace(/^(?:adicione|adicionar|adiciona|entrada|saida|saída|gastei|recebi|ganhei|comprei|paguei|perdi|remova|remover|retire|retirar)\s*/i, '');
     
     // Remove valores monetários
     desc = desc.replace(/\d+(?:[,.]\d{1,2})?\s*(?:reais?|r\$|real)?/gi, '');
@@ -770,10 +771,16 @@ async function processChatMessage(chatId, message, userSession) {
 async function confirmTransactions(chatId) {
     console.log('confirmTransactions called for chat:', chatId);
     
+    // Resposta imediata para o usuário
+    await sendMessage(chatId, '💾 *Salvando...*', { 
+        parse_mode: 'Markdown',
+        reply_markup: { remove_keyboard: true } 
+    });
+    
     const userSession = await getSession(chatId);
     if (!userSession) {
         console.log('No user session found');
-        await sendMessage(chatId, '🔒 Você precisa estar conectado para salvar.', { reply_markup: { remove_keyboard: true } });
+        await sendMessage(chatId, '🔒 Você precisa estar conectado para salvar.');
         return;
     }
 
@@ -790,7 +797,7 @@ async function confirmTransactions(chatId) {
 
     if (fetchError || !userData || !userData.pending_transactions) {
         console.log('No pending transactions found in database');
-        await sendMessage(chatId, '🤔 Nenhuma transação pendente para confirmar.', { reply_markup: { remove_keyboard: true } });
+        await sendMessage(chatId, '🤔 Nenhuma transação pendente para confirmar.');
         return;
     }
 

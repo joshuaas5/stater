@@ -1055,16 +1055,35 @@ const Dashboard: React.FC = () => {
                   onClick={async () => {
                     console.log('🧪 [DEBUG] Teste direto da API Supabase');
                     try {
-                      const { data, error } = await supabase
+                      // Teste 1: Todos os registros do usuário (ativos e inativos)
+                      const { data: allRecords, error: allError } = await supabase
                         .from('telegram_users')
                         .select('*')
                         .eq('user_id', user?.id);
                       
-                      console.log('🧪 [DEBUG] Resultado completo:', { data, error, userId: user?.id });
+                      console.log('🧪 [DEBUG] TODOS os registros do usuário:', { allRecords, allError });
+                      
+                      // Teste 2: Só registros ativos
+                      const { data: activeRecords, error: activeError } = await supabase
+                        .from('telegram_users')
+                        .select('*')
+                        .eq('user_id', user?.id)
+                        .eq('is_active', true);
+                      
+                      console.log('🧪 [DEBUG] Registros ATIVOS:', { activeRecords, activeError });
+                      
+                      // Teste 3: Últimos 10 registros da tabela (qualquer usuário)
+                      const { data: recentRecords, error: recentError } = await supabase
+                        .from('telegram_users')
+                        .select('*')
+                        .order('created_at', { ascending: false })
+                        .limit(10);
+                      
+                      console.log('🧪 [DEBUG] Últimos 10 registros da tabela:', { recentRecords, recentError });
                       
                       toast({
-                        title: "🧪 Debug",
-                        description: `Encontrados: ${data?.length || 0} registros`,
+                        title: "🧪 Debug Completo",
+                        description: `Todos: ${allRecords?.length || 0} | Ativos: ${activeRecords?.length || 0} | Recentes: ${recentRecords?.length || 0}`,
                       });
                     } catch (err) {
                       console.error('🧪 [DEBUG] Erro:', err);

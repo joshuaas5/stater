@@ -153,7 +153,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({
 
   return (
     <div className={`
-      fixed left-0 right-0 z-40 bg-white/95 backdrop-blur-sm 
+      fixed left-0 right-0 z-[60] bg-white/95 backdrop-blur-sm 
       ${positionClasses} ${className}
     `}>
       <Card className="mx-2 my-2 overflow-hidden border-0 shadow-lg">

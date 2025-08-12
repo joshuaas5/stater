@@ -213,8 +213,20 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg relative mx-2 flex flex-col max-h-[90vh]" style={{ width: '95vw', maxWidth: 400 }}>
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      onClick={(e) => {
+        // Só fecha se clicar no backdrop, não no modal
+        if (e.target === e.currentTarget) {
+          handleClose();
+        }
+      }}
+    >
+      <div 
+        className="bg-white dark:bg-gray-900 rounded-lg shadow-lg relative mx-2 flex flex-col max-h-[90vh] overflow-hidden" 
+        style={{ width: '95vw', maxWidth: 400 }}
+        onClick={(e) => e.stopPropagation()} // Previne o fechamento ao clicar no modal
+      >
         {/* Header Section (Not scrollable) */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <h2 className="text-xl font-semibold text-white">Adicionar Nova Conta</h2>
@@ -224,8 +236,9 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
         </div>
 
         {/* Scrollable Form Section */}
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} id="billForm" className="flex-grow overflow-y-auto p-4 space-y-4">
+        <div className="flex-grow overflow-y-auto">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} id="billForm" className="p-4 space-y-4">
             {/* Title Field */}
             <FormField control={form.control} name="title" render={({ field }) => (
               <FormItem>
@@ -461,7 +474,8 @@ const AddBillModal: React.FC<AddBillModalProps> = ({ isOpen, onClose, onSuccess 
               </FormItem>
             )} />
           </form>
-        </Form>
+          </Form>
+        </div>
 
         {/* Footer/Button Section (Not scrollable) */}
         <div className="flex justify-end p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">

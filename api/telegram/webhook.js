@@ -451,7 +451,11 @@ async function detectTransactionIntent(message) {
     const incomeKeywords = [
         'ganhei', 'recebi', 'entrada', 'recebimento', 'salário', 'salario', 
         'pagamento', 'venda', 'presente', 'prêmio', 'premio', 'lucro',
-        'comissão', 'comissao', 'bonus', 'bônus', 'rendimento', 'juros'
+        'comissão', 'comissao', 'bonus', 'bônus', 'rendimento', 'juros',
+        'vale', 'benefício', 'beneficio', 'auxílio', 'auxilio', 'ajuda',
+        'devolução', 'devolucao', 'reembolso', 'cashback', 'desconto',
+        'promoção', 'promocao', 'economia', 'sobrou', 'achei', 'encontrei',
+        'freelance', 'extra', 'adicional', 'gorjeta', 'troco', 'pix recebido'
     ];
     
     const expenseKeywords = [
@@ -459,18 +463,35 @@ async function detectTransactionIntent(message) {
         'conta', 'fatura', 'compra', 'mercado', 'supermercado', 'combustível',
         'combustivel', 'gasolina', 'remédio', 'remedio', 'médico', 'medico',
         'perdi', 'perda', 'prejuízo', 'prejuizo', 'desconto', 'multa',
-        'taxa', 'débito', 'debito', 'saque', 'transferi', 'enviei'
+        'taxa', 'débito', 'debito', 'saque', 'transferi', 'enviei',
+        'dívida', 'divida', 'empréstimo', 'emprestimo', 'financiamento',
+        'cartão', 'cartao', 'boleto', 'parcela', 'prestação', 'prestacao'
+    ];
+    
+    // Contextos específicos que indicam entrada vs saída
+    const incomeContexts = [
+        'vale alimentação', 'vale refeição', 'vale transporte', 'vale combustível',
+        'do trabalho', 'da empresa', 'do chefe', 'do cliente', 'da venda',
+        'que ganhei', 'que recebi', 'me deram', 'me pagaram', 'depositaram',
+        'salário', 'décimo', 'férias', 'rescisão', 'participação nos lucros'
+    ];
+    
+    const expenseContexts = [
+        'no mercado', 'no supermercado', 'na farmácia', 'no posto', 'no médico',
+        'de aluguel', 'de conta', 'de luz', 'de água', 'de internet', 'de telefone',
+        'que gastei', 'que perdi', 'que paguei', 'no cartão', 'débito', 'boleto'
     ];
     
     // Categorias automáticas baseadas em palavras-chave
     const categoryKeywords = {
-        'Alimentação': ['comida', 'almoço', 'almoco', 'jantar', 'lanche', 'restaurante', 'mercado', 'supermercado', 'padaria'],
-        'Transporte': ['gasolina', 'combustível', 'combustivel', 'uber', 'taxi', 'ônibus', 'onibus', 'metro', 'passagem'],
+        'Alimentação': ['comida', 'almoço', 'almoco', 'jantar', 'lanche', 'restaurante', 'mercado', 'supermercado', 'padaria', 'vale alimentação', 'vale refeição'],
+        'Transporte': ['gasolina', 'combustível', 'combustivel', 'uber', 'taxi', 'ônibus', 'onibus', 'metro', 'passagem', 'vale transporte'],
         'Saúde': ['médico', 'medico', 'remédio', 'remedio', 'farmácia', 'farmacia', 'consulta', 'exame'],
         'Lazer': ['cinema', 'teatro', 'show', 'jogo', 'diversão', 'diversao', 'festa', 'balada'],
         'Casa': ['aluguel', 'água', 'agua', 'luz', 'internet', 'telefone', 'condomínio', 'condominio'],
         'Trabalho': ['salário', 'salario', 'pagamento', 'comissão', 'comissao', 'freelance'],
-        'Família': ['vó', 'vo', 'avó', 'avo', 'mãe', 'mae', 'pai', 'filho', 'filha', 'família', 'familia']
+        'Família': ['vó', 'vo', 'avó', 'avo', 'mãe', 'mae', 'pai', 'filho', 'filha', 'família', 'familia'],
+        'Benefícios': ['vale', 'benefício', 'beneficio', 'auxílio', 'auxilio', 'ajuda', 'décimo', 'férias']
     };
     
     // Extrair valor monetário do texto
@@ -493,24 +514,49 @@ async function detectTransactionIntent(message) {
         return null;
     }
     
-    // Determinar tipo baseado em palavras-chave
+    // Determinar tipo baseado em palavras-chave e contextos
     let hasIncomeKeyword = incomeKeywords.some(keyword => text.includes(keyword));
     let hasExpenseKeyword = expenseKeywords.some(keyword => text.includes(keyword));
+    let hasIncomeContext = incomeContexts.some(context => text.includes(context));
+    let hasExpenseContext = expenseContexts.some(context => text.includes(context));
     
-    if (hasIncomeKeyword && !hasExpenseKeyword) {
+    console.log('Detection analysis:', {
+        hasIncomeKeyword, hasExpenseKeyword, 
+        hasIncomeContext, hasExpenseContext,
+        text: text
+    });
+    
+    // Priorizar contextos específicos sobre palavras genéricas
+    if (hasIncomeContext || (hasIncomeKeyword && !hasExpenseKeyword && !hasExpenseContext)) {
         type = 'income';
-    } else if (hasExpenseKeyword && !hasIncomeKeyword) {
+        console.log('Detected as INCOME based on context/keywords');
+    } else if (hasExpenseContext || (hasExpenseKeyword && !hasIncomeKeyword && !hasIncomeContext)) {
         type = 'expense';
+        console.log('Detected as EXPENSE based on context/keywords');
     } else {
-        // Se não conseguir determinar ou se houver conflito, padrão baseado em contexto comum
-        // "adicione", "recebi", "ganhei" = entrada
-        // "gastei", "comprei", "paguei", "perdi" = saída
-        if (text.includes('recebi') || text.includes('ganhei') || text.includes('presente')) {
+        // Análise mais detalhada para casos ambíguos
+        console.log('Ambiguous case, analyzing patterns...');
+        
+        // Padrões específicos que indicam entrada
+        if (text.match(/(?:vale|benefício|beneficio|auxílio|auxilio|salário|salario)/)) {
             type = 'income';
+            console.log('Detected as INCOME based on benefit patterns');
+        }
+        // Padrões específicos que indicam saída  
+        else if (text.match(/(?:compra|gasto|pagar|conta|boleto|cartão|cartao)/)) {
+            type = 'expense';
+            console.log('Detected as EXPENSE based on payment patterns');
+        }
+        // Fallback para palavras simples
+        else if (text.includes('recebi') || text.includes('ganhei') || text.includes('presente')) {
+            type = 'income';
+            console.log('Detected as INCOME based on simple keywords');
         } else if (text.includes('gastei') || text.includes('comprei') || text.includes('paguei') || text.includes('perdi')) {
             type = 'expense';
+            console.log('Detected as EXPENSE based on simple keywords');
         } else {
-            type = 'unknown'; // Só pergunta se realmente não conseguir determinar
+            type = 'unknown';
+            console.log('Could not determine type automatically');
         }
     }
     

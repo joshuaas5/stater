@@ -119,6 +119,8 @@ const Dashboard: React.FC = () => {
     setIsCheckingTelegram(true);
     
     try {
+      console.log('🔍 [TELEGRAM] Verificando status para user:', user.id);
+      
       const { data, error } = await supabase
         .from('telegram_users')
         .select('*')
@@ -126,7 +128,7 @@ const Dashboard: React.FC = () => {
         .eq('is_active', true);
       
       if (error) {
-        console.log(' [TELEGRAM] Erro na consulta:', error.message);
+        console.error(' [TELEGRAM] Erro na consulta:', error);
         setIsTelegramLinked(false);
         setTelegramInfo(null);
         // Salvar no localStorage
@@ -136,15 +138,30 @@ const Dashboard: React.FC = () => {
         return;
       }
       
+      console.log('📊 [TELEGRAM] Dados retornados:', data);
+      
       if (data && data.length > 0) {
-        console.log(' [TELEGRAM] Conectado:', data[0]);
+        console.log('✅ [TELEGRAM] Conectado:', data[0]);
         setIsTelegramLinked(true);
         setTelegramInfo(data[0]);
         // Salvar no localStorage
         localStorage.setItem(`telegram_status_${user.id}`, 'true');
         localStorage.setItem(`telegram_info_${user.id}`, JSON.stringify(data[0]));
       } else {
-        console.log(' [TELEGRAM] No conectado - nenhum registro encontrado');
+        console.log('❌ [TELEGRAM] Não conectado - nenhum registro ativo encontrado');
+        // Vamos verificar se há registros inativos
+        const { data: inactiveData } = await supabase
+          .from('telegram_users')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_active', false);
+        
+        if (inactiveData && inactiveData.length > 0) {
+          console.log('⚠️ [TELEGRAM] Encontrados registros inativos:', inactiveData);
+        } else {
+          console.log('🔍 [TELEGRAM] Nenhum registro encontrado (ativo ou inativo)');
+        }
+        
         setIsTelegramLinked(false);
         setTelegramInfo(null);
         // Salvar no localStorage
@@ -153,7 +170,7 @@ const Dashboard: React.FC = () => {
       }
       setTelegramStatusChecked(true);
     } catch (error) {
-      console.error(' [TELEGRAM] Erro ao verificar status:', error);
+      console.error('💥 [TELEGRAM] Erro inesperado ao verificar status:', error);
       setIsTelegramLinked(false);
       setTelegramInfo(null);
       // Salvar no localStorage
@@ -1086,10 +1103,19 @@ const Dashboard: React.FC = () => {
                       try {
                         const { error } = await supabase
                           .from('telegram_users')
-                          .delete()
+                          .update({ is_active: false })
                           .eq('user_id', user?.id);
                         
-                        if (error) throw error;
+                        if (error) {
+                          console.error('Erro ao desativar telegram:', error);
+                          // Se der erro ao desativar, tenta deletar
+                          const { error: deleteError } = await supabase
+                            .from('telegram_users')
+                            .delete()
+                            .eq('user_id', user?.id);
+                          
+                          if (deleteError) throw deleteError;
+                        }
                         
                         resetTelegramStatus();
                         
@@ -1098,6 +1124,7 @@ const Dashboard: React.FC = () => {
                           description: "Telegram desconectado com sucesso!",
                         });
                       } catch (error: any) {
+                        console.error('Erro completo ao desconectar:', error);
                         toast({
                           title: "❌ Erro",
                           description: "Erro ao desconectar: " + error.message,

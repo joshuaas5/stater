@@ -335,6 +335,7 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
             ⏰ O código expira em 15 minutos
           </p>
         </div>
+        </div>
       </div>
     </div>
   );

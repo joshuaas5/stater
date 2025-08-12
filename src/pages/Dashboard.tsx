@@ -1049,68 +1049,6 @@ const Dashboard: React.FC = () => {
                 >
                   ↻
                 </button>
-                
-                {/* DEBUG: Botão temporário para teste direto */}
-                <button
-                  onClick={async () => {
-                    console.log('🧪 [DEBUG] Teste direto da API Supabase');
-                    try {
-                      // Teste 1: Todos os registros do usuário (ativos e inativos)
-                      const { data: allRecords, error: allError } = await supabase
-                        .from('telegram_users')
-                        .select('*')
-                        .eq('user_id', user?.id);
-                      
-                      console.log('🧪 [DEBUG] TODOS os registros do usuário:', { allRecords, allError });
-                      
-                      // Teste 2: Só registros ativos
-                      const { data: activeRecords, error: activeError } = await supabase
-                        .from('telegram_users')
-                        .select('*')
-                        .eq('user_id', user?.id)
-                        .eq('is_active', true);
-                      
-                      console.log('🧪 [DEBUG] Registros ATIVOS:', { activeRecords, activeError });
-                      
-                      // Teste 3: Últimos 10 registros da tabela (sem created_at)
-                      const { data: recentRecords, error: recentError } = await supabase
-                        .from('telegram_users')
-                        .select('*')
-                        .limit(10);
-                      
-                      console.log('🧪 [DEBUG] Últimos 10 registros da tabela:', { recentRecords, recentError });
-                      
-                      // Teste 4: Estrutura da tabela (primeiro registro)
-                      const { data: sampleRecord, error: sampleError } = await supabase
-                        .from('telegram_users')
-                        .select('*')
-                        .limit(1);
-                      
-                      if (sampleRecord && sampleRecord.length > 0) {
-                        console.log('🧪 [DEBUG] Estrutura da tabela (campos):', Object.keys(sampleRecord[0]));
-                      }
-                      
-                      toast({
-                        title: "🧪 Debug Completo",
-                        description: `Todos: ${allRecords?.length || 0} | Ativos: ${activeRecords?.length || 0} | Recentes: ${recentRecords?.length || 0}`,
-                      });
-                    } catch (err) {
-                      console.error('🧪 [DEBUG] Erro:', err);
-                      toast({
-                        title: "❌ Erro no Debug",
-                        description: String(err),
-                        variant: "destructive"
-                      });
-                    }
-                  }}
-                  className="px-2 py-1 rounded-lg text-white text-xs hover:bg-white/20 transition-all duration-300"
-                  style={{
-                    background: 'rgba(255,255,255,0.1)',
-                    backdropFilter: 'blur(10px)'
-                  }}
-                >
-                  🧪
-                </button>
                 <button
                   onClick={generateTelegramCode}
                   disabled={isGeneratingCode}

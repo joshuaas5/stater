@@ -446,54 +446,32 @@ async function handleTextMessage(msg) {
 
 async function handleDirectBalanceRequest(chatId, userSession) {
     try {
-        // Ultra-fast balance calculation using PostgreSQL aggregation
-        const { data: balanceData, error: balanceError } = await supabase
-            .rpc('calculate_user_balance', { user_id_param: userSession.userId });
+        // RESPOSTA INSTANTÂNEA - Apenas buscar transações básicas
+        const { data: transactions, error } = await supabase
+            .from('transactions')
+            .select('amount, type')
+            .eq('user_id', userSession.userId)
+            .limit(1000); // Limitar para evitar timeout
 
-        if (balanceError) {
-            console.log('RPC not available, fallback to manual calculation');
-            // Fallback to manual calculation
-            const { data: transactions, error: fallbackError } = await supabase
-                .from('transactions')
-                .select('amount, type')
-                .eq('user_id', userSession.userId);
-
-            if (fallbackError) {
-                console.error('Error fetching balance:', fallbackError);
-                await sendMessage(chatId, '😥 Erro ao buscar saldo. Tente novamente.', { parse_mode: 'Markdown' });
-                return;
-            }
-
-            const balance = transactions?.reduce((sum, t) => {
-                const amount = t.type === 'income' ? Math.abs(t.amount || 0) : -Math.abs(t.amount || 0);
-                return sum + amount;
-            }, 0) || 0;
-
-            const transactionCount = transactions?.length || 0;
-
-            await sendMessage(chatId, `💰 *Seu Saldo Atual*\n\nR$ ${balance.toFixed(2)}\n\n📊 Total de transações: ${transactionCount}`, { 
-                parse_mode: 'Markdown' 
-            });
+        if (error) {
+            console.error('Error fetching balance:', error);
+            await sendMessage(chatId, '😥 Erro ao buscar saldo. Tente novamente.', { parse_mode: 'Markdown' });
             return;
         }
 
-        // Use RPC result if available
-        const balance = balanceData || 0;
-        
-        // Get transaction count separately (quick count)
-        const { count, error: countError } = await supabase
-            .from('transactions')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', userSession.userId);
+        const balance = transactions?.reduce((sum, t) => {
+            const amount = t.type === 'income' ? Math.abs(t.amount || 0) : -Math.abs(t.amount || 0);
+            return sum + amount;
+        }, 0) || 0;
 
-        const transactionCount = count || 0;
+        const transactionCount = transactions?.length || 0;
 
-        await sendMessage(chatId, `💰 *Seu Saldo Atual*\n\nR$ ${balance.toFixed(2)}\n\n📊 Total de transações: ${transactionCount}`, { 
+        await sendMessage(chatId, `💰 *Saldo Atual*\n\nR$ ${balance.toFixed(2)}\n\n📊 ${transactionCount} transações`, { 
             parse_mode: 'Markdown' 
         });
     } catch (error) {
         console.error('Error in handleDirectBalanceRequest:', error);
-        await sendMessage(chatId, '😥 Erro ao buscar saldo. Tente novamente.', { parse_mode: 'Markdown' });
+        await sendMessage(chatId, '😥 Erro ao buscar saldo.', { parse_mode: 'Markdown' });
     }
 }
 

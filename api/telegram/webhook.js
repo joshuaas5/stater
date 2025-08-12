@@ -81,6 +81,54 @@ module.exports = async (req, res) => {
 };
 
 // =================================================================================
+// Premium Status Verification
+// =================================================================================
+
+async function checkUserPremiumStatus(userId) {
+    try {
+        console.log('🔍 [PREMIUM_CHECK] Verificando status premium para usuário:', userId);
+        
+        // Buscar plano do usuário
+        const { data: userPlan, error } = await supabase
+            .from('user_plans')
+            .select('plan_type, is_active, expires_at')
+            .eq('user_id', userId)
+            .single();
+        
+        if (error) {
+            console.log('❌ [PREMIUM_CHECK] Erro ao buscar plano do usuário:', error.message);
+            return false;
+        }
+        
+        if (!userPlan) {
+            console.log('📋 [PREMIUM_CHECK] Nenhum plano encontrado - usuário FREE');
+            return false;
+        }
+        
+        // Verificar se o plano é ativo e não é FREE
+        const isPremium = userPlan.is_active && userPlan.plan_type !== 'free';
+        
+        // Verificar se não expirou (se tiver data de expiração)
+        if (isPremium && userPlan.expires_at) {
+            const now = new Date();
+            const expiresAt = new Date(userPlan.expires_at);
+            
+            if (now > expiresAt) {
+                console.log('⏰ [PREMIUM_CHECK] Plano expirado:', userPlan.expires_at);
+                return false;
+            }
+        }
+        
+        console.log(`${isPremium ? '✅' : '❌'} [PREMIUM_CHECK] Status: ${userPlan.plan_type} - Ativo: ${userPlan.is_active}`);
+        return isPremium;
+        
+    } catch (error) {
+        console.error('❌ [PREMIUM_CHECK] Erro na verificação premium:', error);
+        return false; // Em caso de erro, negar acesso por segurança
+    }
+}
+
+// =================================================================================
 // Update Router
 // =================================================================================
 
@@ -448,6 +496,16 @@ async function handleTextMessage(msg) {
     const userSession = await getSession(chatId);
     if (userSession) {
         console.log('User session found for text message:', userSession.userName);
+        
+        // 🔒 VERIFICAÇÃO DE PLANO PREMIUM - TELEGRAM BOT APENAS PARA PREMIUM
+        const isPremiumUser = await checkUserPremiumStatus(userSession.userId);
+        if (!isPremiumUser) {
+            console.log('❌ [TELEGRAM_BOT] Usuário não premium tentando usar bot:', userSession.userName);
+            await sendMessage(chatId, `🔒 *Acesso Premium Necessário*\n\n❌ O bot do Telegram está disponível apenas para usuários premium.\n\n✨ *Assine o Stater Premium* e tenha:\n• 🤖 Acesso completo ao bot\n• 📱 Stater IA ilimitado\n• 📊 Relatórios avançados\n• 🚫 Sem anúncios\n\n💰 *A partir de R$ 8,90/semana*\n\n⬆️ Faça upgrade no app para continuar!`, { 
+                parse_mode: 'Markdown' 
+            });
+            return;
+        }
         
         // Handle direct commands first (no AI needed)
         if (lowerText.includes('saldo') || lowerText === 'saldo' || lowerText.includes('quanto tenho')) {

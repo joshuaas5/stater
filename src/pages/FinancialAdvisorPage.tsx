@@ -29,6 +29,7 @@ import { AdRewardModal } from '@/components/monetization/AdRewardModal';
 import { AdManager } from '@/utils/adManager';
 import { useAILearning } from '@/utils/aiLearningSystem';
 import FinancialAdvisorGate from '@/components/monetization/FinancialAdvisorGate';
+import { MessageLimitManager } from '@/utils/messageLimit';
 
 
 const IA_AVATAR = '/stater-logo.png'; // Logo do Stater
@@ -447,31 +448,32 @@ const isAddBillIntent = (msg: string) => {
 
   // Função para processar mensagens de áudio
   const handleAudioMessage = useCallback(async (audioBlob: Blob) => {
-    // 🔥 NOVA VERIFICAÇÃO: Limites específicos para áudio (3 para FREE)
-    if (!user?.id) {
+    // � VERIFICAÇÃO: Áudio apenas para usuários premium
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user?.id) {
       setError('Usuário não autenticado');
       return;
     }
 
-    const audioCheck = await UserPlanManager.checkAndUseAudio(user.id);
+    // Verificar se o usuário tem plano premium
+    const userPlan = await UserPlanManager.getUserPlan(user.id);
+    const isPremium = userPlan.planType !== 'free';
     
-    if (!audioCheck.allowed) {
-      console.log('❌ [AUDIO LIMIT] Limite de áudio atingido');
+    if (!isPremium) {
+      console.log('❌ [AUDIO_PREMIUM] Usuário FREE tentando usar áudio');
       setMessages(prev => [...prev, {
         id: uuidv4(),
-        text: `🎙️ **Limite de áudio atingido!**\n\nVocê já usou todos os seus áudios de hoje. Para continuar usando áudios:\n\n✨ **Assine o Stater Premium** e tenha:\n• Áudios ilimitados\n• Análise de PDFs\n• Relatórios avançados\n• Sem anúncios\n\n💰 **A partir de R$ 8,90/semana**`,
+        text: `🎙️ **Recurso Premium Necessário**\n\n❌ Áudios estão disponíveis apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• 🎙️ Áudios ilimitados\n• 📊 Análise de PDFs e imagens\n• 📈 Relatórios avançados\n• 🚫 Sem anúncios\n\n💰 **A partir de R$ 8,90/semana**\n\n🎁 **Ou inicie seu teste grátis** de 3 dias!\n\n⬆️ Faça upgrade para continuar!`,
         sender: 'assistant',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR
       }]);
       
-      if (audioCheck.shouldShowPaywall) {
-        setShowPaywall(true);
-      }
+      setShowPaywall(true);
       return;
     }
 
-    console.log(`✅ [AUDIO OK] Áudio permitido. Restantes: ${audioCheck.remaining === -1 ? 'ilimitado' : audioCheck.remaining}`);
+    console.log('✅ [AUDIO_PREMIUM] Usuário premium - áudio permitido');
 
     setIsProcessingAudio(true);
     setLoadingState('audio-processing', true);
@@ -777,7 +779,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
   const safeMessage = validatedMessage;
 
   // ========================================
-  // VERIFICAÇÃO DE MENSAGENS: BETA USER + JORNADA PROGRESSIVA
+  // VERIFICAÇÃO DE MENSAGENS: NOVO SISTEMA DE 3 MENSAGENS
   // ========================================
   if (!skipAddingUserMessage) { // Só verifica limite para mensagens do usuário, não respostas do sistema
     try {
@@ -787,49 +789,40 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         return;
       }
 
-      // 1️⃣ PRIORIDADE: Verificar se é Beta User (acesso ilimitado)
-      const betaUserCheck = await UserPlanManager.checkAndUseMessage(user.id);
+      // 🔒 NOVA VERIFICAÇÃO: Sistema de 3 mensagens para FREE
+      const messageLimit = await MessageLimitManager.canSendMessage(user.id);
       
-      if (betaUserCheck.allowed) {
-        // Beta user ou plano PRO - pode enviar mensagem
-        console.log(`✅ [BETA/PRO USER] Mensagem permitida - Restantes: ${betaUserCheck.remaining === -1 ? 'Ilimitado' : betaUserCheck.remaining}`);
-      } else {
-        // 2️⃣ FALLBACK: Verificar jornada progressiva para usuários FREE
-        console.log(`📊 [FREE USER] Verificando jornada progressiva para usuário FREE`);
+      if (!messageLimit.allowed) {
+        console.log('🚫 [MESSAGE_LIMIT] Mensagem bloqueada:', messageLimit.reason);
         
-        const canSend = await UserJourneyManager.canSendMessage(user.id);
-        
-        if (!canSend.allowed) {
-          console.log('🚫 Mensagem bloqueada. Motivo:', canSend.reason);
+        if (messageLimit.reason === 'limit_reached') {
+          // Usuário FREE atingiu o limite de 3 mensagens
+          setMessages(prev => [...prev, {
+            id: uuidv4(),
+            text: `� **Limite de mensagens atingido!**\n\nVocê já usou suas 3 mensagens gratuitas. Para continuar conversando com o Stater IA:\n\n✨ **Assine o Stater Premium** e tenha:\n• 🤖 Mensagens ilimitadas no IA\n• 📊 Análise de PDFs e imagens\n• 🎙️ Áudios ilimitados\n• 🚫 Sem anúncios\n\n💰 **A partir de R$ 8,90/semana**\n\n🎁 **Ou inicie seu teste grátis** de 3 dias!\n\n⬆️ Faça upgrade para continuar!`,
+            sender: 'assistant',
+            timestamp: new Date(),
+            avatarUrl: IA_AVATAR
+          }]);
           
-          if (canSend.reason === 'need_ad') {
-            // Precisa assistir ad para continuar
-            setCurrentDay(canSend.currentDay);
-            setAdsWatched(canSend.adsWatched);
-            setAdsRequired(canSend.adsRequired);
-            setShowAdReward(true);
-            
-            console.log(`🎬 Showing ad modal - Dia ${canSend.currentDay}, Ads: ${canSend.adsWatched}/${canSend.adsRequired}`);
-            return;
-            
-          } else if (canSend.reason === 'paywall_required') {
-            // Precisa fazer upgrade (dia 4+ ou limite esgotado)
-            setShowPaywall(true);
-            
-            console.log(`💰 Showing paywall - Dia ${canSend.currentDay}, limite esgotado`);
-            return;
-          } else if (canSend.reason === 'developer_account') {
-            // Conta de desenvolvedor - deve prosseguir
-            console.log(`🚀 Conta de desenvolvedor detectada - prosseguindo com mensagem`);
-          }
+          setShowPaywall(true);
+          return;
+        } else if (messageLimit.reason === 'error') {
+          setError("Erro interno. Tente novamente em alguns segundos.");
+          return;
+        }
+      } else {
+        // Incrementar contador de mensagens para usuários FREE
+        if (messageLimit.messagesRemaining !== -1) { // -1 = ilimitado (premium)
+          await MessageLimitManager.incrementMessageCount(user.id);
+          console.log(`✅ [MESSAGE_LIMIT] Mensagem permitida - Restantes: ${messageLimit.messagesRemaining - 1}`);
         } else {
-          // Pode enviar mensagem via jornada
-          console.log(`✅ [FREE USER] Mensagem permitida via jornada - Restantes: ${canSend.messagesAvailable - canSend.messagesUsed - 1}`);
+          console.log('✅ [MESSAGE_LIMIT] Usuário premium - mensagens ilimitadas');
         }
       }
       
     } catch (error) {
-      console.error('Erro ao verificar jornada do usuário:', error);
+      console.error('Erro ao verificar limite de mensagens:', error);
       setError("Erro interno. Tente novamente.");
       return;
     }

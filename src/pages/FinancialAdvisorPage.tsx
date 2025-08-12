@@ -28,6 +28,7 @@ import { PaywallModal } from '@/components/ui/PaywallModal';
 import { AdRewardModal } from '@/components/monetization/AdRewardModal';
 import { AdManager } from '@/utils/adManager';
 import { useAILearning } from '@/utils/aiLearningSystem';
+import FinancialAdvisorGate from '@/components/monetization/FinancialAdvisorGate';
 
 
 const IA_AVATAR = '/stater-logo.png'; // Logo do Stater
@@ -3398,9 +3399,10 @@ const getFilteredCategories = (index: number) => {
 };
 
 return (
-  <>
-    {/* Animações CSS para o modal */}
-    <style>{`
+  <FinancialAdvisorGate>
+    <>
+      {/* Animações CSS para o modal */}
+      <style>{`
       @keyframes modalBounceIn {
         0% {
           opacity: 0;
@@ -4688,6 +4690,7 @@ return (
       isLoading={isWatchingAd}
     />
   </>
+  </FinancialAdvisorGate>
 );
 
 // Helper functions

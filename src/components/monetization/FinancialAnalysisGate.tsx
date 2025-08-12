@@ -175,7 +175,7 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
 
             <div className="space-y-3">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Conteúdo Premium
+                Conteúdo Desbloqueável
               </h2>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                 Para acessar a análise financeira completa, assista a um anúncio recompensado.

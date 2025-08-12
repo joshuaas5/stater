@@ -5,7 +5,7 @@ import { isLoggedIn, getUserPreferences, saveUserPreferences, saveSupabaseUserPr
 import { clearAllNotifications } from '@/utils/clearAllNotifications';
 import { 
   Sun, Moon, Bell, Languages, DollarSign, 
-  Calendar, Paintbrush, Save, UserCircle2, Star, Trash2, FileText, MessageCircle
+  Calendar, Paintbrush, Save, UserCircle2, Trash2, MessageCircle
 } from 'lucide-react';
 import { CURRENCIES, suggestCurrencyByCountry } from '@/utils/currencies';
 import { getCurrentUser } from '@/utils/localStorage';
@@ -272,21 +272,6 @@ const PreferencesPage: React.FC = () => {
             }}
           >
             <Save size={16} className="mr-2" /> {t('savePreferences')}
-          </Button>
-        </div>
-      </div>
-      
-      <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
-        <h2 className="text-base font-semibold text-white mb-3 flex items-center">
-          <Star size={18} className="mr-2" /> Recursos adicionais
-        </h2>
-        <div className="space-y-3">          
-          <Button 
-            variant="outline"
-            className="w-full border border-galileo-accent bg-white/5 backdrop-blur-[8px] text-galileo-accent hover:bg-galileo-accent/10 hover:backdrop-blur-[12px] transition-all duration-300"
-            onClick={() => navigate('/export-report')}
-          >
-            <FileText size={16} className="mr-2" /> Exportar relatório financeiro
           </Button>
         </div>
       </div>

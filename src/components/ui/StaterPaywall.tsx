@@ -5,7 +5,7 @@ import React from "react";
  * Fundo azul mais escuro, preços atualizados, design mais chamativo
  */
 const css = `
-.rotator { position: relative; height: 2.2em; overflow: hidden; }
+.rotator { position: relative; height: 2.8em; overflow: hidden; }
 .rotator > span { position: absolute; inset: 0; opacity: 0; transform: translateY(12px); animation: swap 12s infinite; }
 .rotator > span:nth-child(1){ animation-delay: 0s; }
 .rotator > span:nth-child(2){ animation-delay: 4s; }
@@ -57,8 +57,7 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
         .shadow-glow { box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); }
       `}</style>
 
-      {/* Mobile First Container - 100% Responsivo */}
-      <div className="w-full max-w-sm mx-auto bg-gradient-blue rounded-2xl shadow-glow overflow-hidden relative flex flex-col max-h-[90vh] min-h-[85vh] sm:min-h-0 sm:max-h-[85vh]">
+      <div className="w-full max-w-sm mx-auto bg-gradient-blue rounded-3xl shadow-glow overflow-hidden relative">
         {/* Botão de fechar - Mobile otimizado */}
         {onClose && (
           <button
@@ -70,11 +69,11 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
           </button>
         )}
 
-        {/* Header Responsivo e Compacto */}
-        <div className="p-4 text-center flex-shrink-0">
+        {/* Header */}
+        <div className="p-4 sm:p-6 text-center">
           <Badge>🎁 TESTE GRÁTIS - 3 DIAS</Badge>
           
-          <h1 className="mt-3 text-xl sm:text-2xl font-extrabold text-white leading-tight" aria-live="polite">
+          <h1 className="mt-4 text-xl sm:text-2xl font-extrabold text-white" aria-live="polite">
             <div className="rotator">
               <span>Seus insights financeiros estão bloqueados... 🔒</span>
               <span>Automação financeira a 1 clique de distância... 🤖</span>
@@ -82,94 +81,100 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
             </div>
           </h1>
 
-          <p className="mt-3 text-blue-100 text-sm leading-relaxed px-2">
+          <p className="mt-4 text-sm sm:text-base text-blue-100 leading-relaxed">
             💬 <strong>Envie áudios, fotos, PDFs ou notas</strong> diretamente para a IA.
             <br />
-            Ela organiza tudo automaticamente.
+            Ela organiza tudo automaticamente: despesas, assinaturas, metas e muito mais.
           </p>
         </div>
 
-        {/* Botões de Ação Mobile Otimizados */}
-        <div className="px-4 pb-3 space-y-3 flex-shrink-0">
+        {/* Botões de Ação */}
+        <div className="px-4 sm:px-6 pb-4 space-y-3">
           <button 
             onClick={() => handleSubscribe('trial')}
-            className="w-full bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold py-4 px-4 rounded-xl text-base shadow-xl pulse transition-all duration-200 min-h-[48px]"
+            className="w-full bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-2xl text-base sm:text-lg shadow-xl pulse transition-all duration-200"
           >
-            🎁 TESTE GRÁTIS - 3 DIAS
+            🎁 INICIAR TESTE GRÁTIS - 3 DIAS
           </button>
           
           <div className="grid grid-cols-2 gap-3">
             <button 
               onClick={() => handleSubscribe('monthly')}
-              className="bg-green-500 hover:bg-green-400 text-white font-semibold py-3 px-3 rounded-lg shadow-lg text-sm transition-all duration-200 min-h-[48px]"
+              className="bg-green-500 hover:bg-green-400 text-white font-semibold py-2 sm:py-3 px-2 sm:px-4 rounded-xl shadow-lg text-sm transition-all duration-200"
             >
               💎 MENSAL<br/>
-              <span className="text-base font-bold">R$ 19,90</span>
+              <span className="text-base sm:text-lg font-bold">R$ 19,90</span>
             </button>
             <button 
               onClick={() => handleSubscribe('weekly')}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-3 rounded-lg shadow-lg text-sm transition-all duration-200 min-h-[48px]"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 sm:py-3 px-2 sm:px-4 rounded-xl shadow-lg text-sm transition-all duration-200"
             >
               📅 SEMANAL<br/>
-              <span className="text-base font-bold">R$ 8,90</span>
+              <span className="text-base sm:text-lg font-bold">R$ 8,90</span>
             </button>
           </div>
         </div>
 
-        {/* Garantias Mobile Otimizadas */}
-        <div className="px-4 pb-3 flex-shrink-0">
-          <div className="bg-blue-800/50 rounded-xl p-3 text-center">
-            <div className="text-sm text-blue-200 leading-relaxed">
-              ✅ Acesso completo • ✅ Cancele quando quiser • ✅ Sem compromisso
+        {/* Garantias */}
+        <div className="px-4 sm:px-6 pb-4">
+          <div className="bg-blue-800/50 rounded-2xl p-4 text-center">
+            <div className="text-sm text-blue-200">
+              ✅ Acesso completo por 3 dias • ✅ Cancele quando quiser • ✅ Sem compromisso
             </div>
           </div>
         </div>
 
-        {/* Benefícios Mobile Otimizados */}
-        <div className="px-4 pb-3 flex-1 overflow-y-auto">
-          <div className="bg-white/10 rounded-xl p-4">
-            <div className="text-base font-bold text-white mb-3 text-center">✨ Benefícios Premium</div>
-            <ul className="space-y-2.5 text-blue-100 text-sm leading-relaxed">
-              <li className="flex items-start gap-3">
-                <span className="text-base flex-shrink-0">🎙️</span>
-                <span>Envie áudios — IA transcreve automaticamente</span>
+        {/* Benefícios */}
+        <div className="px-4 sm:px-6 pb-4">
+          <div className="bg-white/10 rounded-2xl p-4 sm:p-5">
+            <div className="text-base sm:text-lg font-bold text-white mb-4 text-center">✨ Benefícios Premium</div>
+            <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base text-blue-100">
+              <li className="flex items-start gap-2 sm:gap-3">
+                <span className="text-lg sm:text-xl flex-shrink-0">🎙️</span>
+                <span>Envie áudios — IA transcreve e registra automaticamente</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-base flex-shrink-0">📄</span>
-                <span>Envie PDFs, fotos — tudo é processado</span>
+              <li className="flex items-start gap-2 sm:gap-3">
+                <span className="text-lg sm:text-xl flex-shrink-0">📄</span>
+                <span>Envie PDFs, fotos e notas — tudo é processado e categorizado</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-base flex-shrink-0">🚀</span>
-                <span>Não se preocupe com limites</span>
+              <li className="flex items-start gap-2 sm:gap-3">
+                <span className="text-lg sm:text-xl flex-shrink-0">🚀</span>
+                <span>Não se preocupe mais com limites de mensagens, áudios, arquivos, relatórios ou transações</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-base flex-shrink-0">📱</span>
-                <span>Controle total pelo Telegram</span>
+              <li className="flex items-start gap-2 sm:gap-3">
+                <span className="text-lg sm:text-xl flex-shrink-0">📱</span>
+                <span>Controle total pelo Telegram ou app</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-base flex-shrink-0">📊</span>
-                <span>Relatórios detalhados</span>
+              <li className="flex items-start gap-2 sm:gap-3">
+                <span className="text-lg sm:text-xl flex-shrink-0">📊</span>
+                <span>Relatórios detalhados com insights inteligentes</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-base flex-shrink-0">🚫</span>
-                <span>Livre de anúncios</span>
+              <li className="flex items-start gap-2 sm:gap-3">
+                <span className="text-lg sm:text-xl flex-shrink-0">🔒</span>
+                <span>Segurança total dos seus dados</span>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Footer Mobile Otimizado */}
-        <div className="px-4 pb-4 flex-shrink-0">
-          <div className="text-center text-blue-200 text-sm font-medium">
-            🛡️ "Não gostou? Cancele quando quiser."
+        {/* Pricing Info */}
+        <div className="px-4 sm:px-6 pb-4">
+          <div className="bg-green-500 rounded-2xl p-4 text-center">
+            <div className="text-white font-bold">💎 MELHOR OFERTA: MENSAL</div>
+            <div className="text-green-100 text-sm mt-1">
+              Economize com o plano mensal por apenas R$ 19,90
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-4 sm:px-6 pb-6">
+          <div className="text-center text-blue-200 text-sm">
+            🛡️ "Não gostou? Cancele quando quiser. Simples assim."
           </div>
           
-          <div className="mt-2 text-center text-sm text-blue-300 leading-relaxed">
-            Pagamentos seguros • Cancelamento fácil
-            <br />
-            <span className="text-xs opacity-75">
-              Transações via Google Play
-            </span>
+          <div className="mt-4 text-center text-xs text-blue-300">
+            Pagamentos seguros • Cancelamento fácil • Suporte via app
           </div>
         </div>
       </div>

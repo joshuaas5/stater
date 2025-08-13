@@ -118,9 +118,6 @@ const Dashboard: React.FC = () => {
     }
     return false;
   });
-
-  // Estado para verificar se o usuário é premium
-  const [isUserPremium, setIsUserPremium] = useState(false);
   const [isCheckingTelegram, setIsCheckingTelegram] = useState(false); // Loading mais sutil
 
   // Função SIMPLIFICADA para verificar status do Telegram
@@ -217,25 +214,6 @@ const Dashboard: React.FC = () => {
       return () => clearInterval(interval);
     }
   }, [user?.id, isTelegramLinked]);
-
-  // Verificar se o usuário é premium
-  useEffect(() => {
-    const checkPremiumStatus = async () => {
-      if (user?.id) {
-        try {
-          const userPlan = await UserPlanManager.getUserPlan(user.id);
-          const isPremium = userPlan.planType !== PlanType.FREE;
-          setIsUserPremium(isPremium);
-          console.log('🔍 [PREMIUM] Status verificado:', isPremium ? 'Premium' : 'Free');
-        } catch (error) {
-          console.error('❌ [PREMIUM] Erro ao verificar status:', error);
-          setIsUserPremium(false);
-        }
-      }
-    };
-
-    checkPremiumStatus();
-  }, [user?.id]);
   
   // Novo filtro por nome
   const [newTransaction, setNewTransaction] = useState({
@@ -827,22 +805,48 @@ const Dashboard: React.FC = () => {
     
     const emailPrefix = email.split('@')[0];
     
-    // Transformar em nome amigável
+    // Transformar em nome amigável com inteligência melhorada
     let friendlyName = emailPrefix
       // Remover números no final (ex: drjoshua55 -> drjoshua)
       .replace(/\d+$/, '')
       // Separar palavras por pontos, underscores ou hífens
       .replace(/[._-]/g, ' ')
+      // Detectar padrões comuns como "familiassantos" -> "familias santos"
+      .replace(/([a-z])([A-Z])/g, '$1 $2') // camelCase
+      .replace(/(familia)(s?)([a-z])/gi, 'Família $2$3') // "familiassantos" -> "Família santos"
+      .replace(/(santos?)([a-z])/gi, 'Santos $2') // "santosjoao" -> "Santos joao"
+      .replace(/(silva?)([a-z])/gi, 'Silva $2')
+      .replace(/(pereira?)([a-z])/gi, 'Pereira $2')
+      .replace(/(oliveira?)([a-z])/gi, 'Oliveira $2')
+      .replace(/(costa?)([a-z])/gi, 'Costa $2')
+      .replace(/(souza?)([a-z])/gi, 'Souza $2')
+      .replace(/(rodrigues?)([a-z])/gi, 'Rodrigues $2')
+      .replace(/(ferreira?)([a-z])/gi, 'Ferreira $2')
+      .replace(/(alves?)([a-z])/gi, 'Alves $2')
+      .replace(/(lima?)([a-z])/gi, 'Lima $2')
+      .replace(/(gomes?)([a-z])/gi, 'Gomes $2')
       // Capitalizar primeira letra de cada palavra
       .split(' ')
-      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
+      .map((word: string) => {
+        if (word.length === 0) return word;
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(' ')
+      // Limpar espaços extras
+      .replace(/\s+/g, ' ')
+      .trim();
     
     // Tratar casos especiais como "Dr", "Dra" etc
     friendlyName = friendlyName
       .replace(/^Dr\s/i, 'Dr. ')
       .replace(/^Dra\s/i, 'Dra. ')
       .replace(/^Prof\s/i, 'Prof. ');
+    
+    // Se ficou muito longo (mais de 20 caracteres), pegar apenas as duas primeiras palavras
+    if (friendlyName.length > 20) {
+      const words = friendlyName.split(' ');
+      friendlyName = words.slice(0, 2).join(' ');
+    }
     
     return friendlyName || "Usuário";
   };
@@ -890,13 +894,10 @@ const Dashboard: React.FC = () => {
           <div className="flex items-start justify-between mb-5">
             <div className="flex items-center space-x-3">
               <h2 
-                className={`text-white text-xl font-semibold ${isUserPremium ? 'premium-glow' : ''}`}
+                className="text-white text-xl font-semibold"
                 style={{
-                  textShadow: isUserPremium 
-                    ? '0 2px 10px rgba(0,0,0,0.3), 0 0 20px rgba(255, 215, 0, 0.4), 0 0 30px rgba(255, 215, 0, 0.2)' 
-                    : '0 2px 10px rgba(0,0,0,0.3)',
-                  fontWeight: 600,
-                  animation: isUserPremium ? 'subtle-glow 3s ease-in-out infinite alternate' : 'none'
+                  textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                  fontWeight: 600
                 }}
               >
                 Olá, {userName}!
@@ -904,25 +905,20 @@ const Dashboard: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-3">
-              {/* Botão Stater Premium - só mostra se não for premium */}
-              {!isUserPremium && (
-                <button
-                  onClick={() => {
-                    console.log('🎯 [PREMIUM] Usuário clicou em Premium');
-                    console.log('🎯 [PREMIUM] Estado atual - isUserPremium:', isUserPremium);
-                    console.log('🎯 [PREMIUM] Estado atual - showPaywallModal:', showPaywallModal);
-                    setShowPaywallModal(true);
-                    console.log('🎯 [PREMIUM] setShowPaywallModal(true) executado');
-                  }}
-                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-4 py-2 rounded-full font-bold text-sm hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2 pulse"
-                  style={{
-                    boxShadow: '0 4px 15px rgba(251, 191, 36, 0.4)'
-                  }}
-                >
-                  <Star className="h-4 w-4" />
-                  Premium
-                </button>
-              )}
+              {/* Botão Stater Premium */}
+              <button
+                onClick={() => {
+                  console.log('🎯 [PREMIUM] Usuário clicou em Premium');
+                  setShowPaywallModal(true);
+                }}
+                className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-4 py-2 rounded-full font-bold text-sm hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2 pulse"
+                style={{
+                  boxShadow: '0 4px 15px rgba(251, 191, 36, 0.4)'
+                }}
+              >
+                <Star className="h-4 w-4" />
+                Premium
+              </button>
               
               {/* Notification Icon */}
               <NotificationIcon />
@@ -1305,8 +1301,6 @@ const Dashboard: React.FC = () => {
             
             // 🎯 NOVA ESTRATÉGIA: Verificar contador de transações para reward ad
             try {
-              console.log('🎯 [TRANSACTION_REWARD] Iniciando verificação de anúncio após salvar transação');
-              
               // Verificar se o usuário é premium
               const userPlan = await UserPlanManager.getUserPlan(user.id);
               const isPremium = userPlan.planType !== PlanType.FREE;
@@ -1314,21 +1308,16 @@ const Dashboard: React.FC = () => {
               console.log(`📊 [TRANSACTION_REWARD] Plano do usuário: ${userPlan.planType}, isPremium: ${isPremium}`);
               
               if (!isPremium) {
-                console.log('💰 [TRANSACTION_REWARD] Usuário FREE - verificando contador');
-                
                 // Incrementar contador e verificar se deve mostrar reward ad
                 const counterResult = await TransactionCounter.incrementAndCheck(user.id);
                 
-                console.log(`📊 [TRANSACTION_COUNTER] Resultado completo:`, counterResult);
                 console.log(`📊 [TRANSACTION_COUNTER] Contador atual: ${counterResult.currentCount}, deve mostrar ad: ${counterResult.shouldShowRewardAd}`);
                 
                 if (counterResult.shouldShowRewardAd) {
-                  console.log('🎬 [TRANSACTION_REWARD] ✅ DEVE MOSTRAR REWARD AD APÓS 5 TRANSAÇÕES!');
+                  console.log('🎬 [TRANSACTION_REWARD] Mostrando reward ad após 5 transações');
                   
                   // Mostrar reward ad específico para transações
                   const adResult = await AdManager.showRewardedAd('transactions');
-                  
-                  console.log('📺 [TRANSACTION_REWARD] Resultado do anúncio:', adResult);
                   
                   if (adResult.success) {
                     console.log('✅ [TRANSACTION_REWARD] Reward ad assistido com sucesso');
@@ -1340,10 +1329,8 @@ const Dashboard: React.FC = () => {
                     console.log('❌ [TRANSACTION_REWARD] Reward ad não assistido');
                   }
                 } else {
-                  console.log(`📊 [TRANSACTION_COUNTER] ⏭️ ${counterResult.nextRewardAt} transações restantes para próximo reward ad`);
+                  console.log(`📊 [TRANSACTION_COUNTER] ${counterResult.nextRewardAt} transações restantes para próximo reward ad`);
                 }
-              } else {
-                console.log('👑 [TRANSACTION_REWARD] Usuário premium - sem anúncios');
               }
             } catch (error) {
               console.error('❌ [TRANSACTION_REWARD] Erro ao processar contador:', error);

@@ -44,7 +44,11 @@ export function isDeveloperAccount(userId?: string): boolean {
     if (!user) return false;
     
     const email = user.email?.toLowerCase();
-    return DEVELOPER_ACCOUNTS.includes(email || '');
+    const isDev = DEVELOPER_ACCOUNTS.includes(email || '');
+    
+    console.log(`🔧 [DEV_CHECK] Email: ${email}, isDev: ${isDev}`);
+    
+    return isDev;
   } catch {
     return false;
   }
@@ -120,10 +124,10 @@ export class AdManager {
       const today = new Date().toISOString().split('T')[0];
       const usage = await UserPlanManager.getTodayUsage(userId, today);
       
-      // A cada 3ª transação
-      const isThirdTransaction = (usage.transactionsAdded + 1) % 3 === 0;
+      // A cada 5ª transação (conforme solicitado)
+      const isFifthTransaction = (usage.transactionsAdded + 1) % 5 === 0;
       
-      if (isThirdTransaction) {
+      if (isFifthTransaction) {
         // Verificar cooldown
         return await this.checkCooldown(userId, 'transactions', 3); // 3 minutos
       }

@@ -1275,6 +1275,8 @@ const Dashboard: React.FC = () => {
             
             // 🎯 NOVA ESTRATÉGIA: Verificar contador de transações para reward ad
             try {
+              console.log('🎯 [TRANSACTION_REWARD] Iniciando verificação de anúncio após salvar transação');
+              
               // Verificar se o usuário é premium
               const userPlan = await UserPlanManager.getUserPlan(user.id);
               const isPremium = userPlan.planType !== PlanType.FREE;
@@ -1282,16 +1284,21 @@ const Dashboard: React.FC = () => {
               console.log(`📊 [TRANSACTION_REWARD] Plano do usuário: ${userPlan.planType}, isPremium: ${isPremium}`);
               
               if (!isPremium) {
+                console.log('💰 [TRANSACTION_REWARD] Usuário FREE - verificando contador');
+                
                 // Incrementar contador e verificar se deve mostrar reward ad
                 const counterResult = await TransactionCounter.incrementAndCheck(user.id);
                 
+                console.log(`📊 [TRANSACTION_COUNTER] Resultado completo:`, counterResult);
                 console.log(`📊 [TRANSACTION_COUNTER] Contador atual: ${counterResult.currentCount}, deve mostrar ad: ${counterResult.shouldShowRewardAd}`);
                 
                 if (counterResult.shouldShowRewardAd) {
-                  console.log('🎬 [TRANSACTION_REWARD] Mostrando reward ad após 5 transações');
+                  console.log('🎬 [TRANSACTION_REWARD] ✅ DEVE MOSTRAR REWARD AD APÓS 5 TRANSAÇÕES!');
                   
                   // Mostrar reward ad específico para transações
                   const adResult = await AdManager.showRewardedAd('transactions');
+                  
+                  console.log('📺 [TRANSACTION_REWARD] Resultado do anúncio:', adResult);
                   
                   if (adResult.success) {
                     console.log('✅ [TRANSACTION_REWARD] Reward ad assistido com sucesso');
@@ -1303,8 +1310,10 @@ const Dashboard: React.FC = () => {
                     console.log('❌ [TRANSACTION_REWARD] Reward ad não assistido');
                   }
                 } else {
-                  console.log(`📊 [TRANSACTION_COUNTER] ${counterResult.nextRewardAt} transações restantes para próximo reward ad`);
+                  console.log(`📊 [TRANSACTION_COUNTER] ⏭️ ${counterResult.nextRewardAt} transações restantes para próximo reward ad`);
                 }
+              } else {
+                console.log('👑 [TRANSACTION_REWARD] Usuário premium - sem anúncios');
               }
             } catch (error) {
               console.error('❌ [TRANSACTION_REWARD] Erro ao processar contador:', error);

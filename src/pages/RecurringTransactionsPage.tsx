@@ -8,6 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { RecurringTransactionLimitManager } from '@/utils/recurringTransactionLimit';
+import { AdManager } from '@/utils/adManager';
+import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -22,6 +26,7 @@ import {
 const RecurringTransactionsPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [recurringTransactions, setRecurringTransactions] = useState<Transaction[]>([]);
   const [recurringBills, setRecurringBills] = useState<Bill[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -29,6 +34,11 @@ const RecurringTransactionsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [newTransactionType, setNewTransactionType] = useState<'income' | 'expense'>('expense');
+  
+  // 🚫 ESTADOS PARA LIMITE DE TRANSAÇÕES RECORRENTES
+  const [showRecurringLimit, setShowRecurringLimit] = useState(false);
+  const [isWatchingAd, setIsWatchingAd] = useState(false);
+  const [cooldownInfo, setCooldownInfo] = useState<any>(null);
 
   // Carregar dados
   const loadData = () => {
@@ -86,7 +96,36 @@ const RecurringTransactionsPage: React.FC = () => {
   };
 
   // Criar nova transação
-  const handleCreateNew = (type: 'income' | 'expense') => {
+  const handleCreateNew = async (type: 'income' | 'expense') => {
+    if (!user) {
+      toast({
+        title: 'Erro de autenticação',
+        description: 'Faça login para criar transações recorrentes',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // 🚫 VERIFICAR LIMITE DE TRANSAÇÕES RECORRENTES
+    const recurringLimit = await RecurringTransactionLimitManager.canCreateRecurring(user.id);
+    
+    if (!recurringLimit.allowed) {
+      if (recurringLimit.reason === 'limit_reached') {
+        // Verificar cooldown do anúncio
+        const cooldown = await RewardCooldownManager.checkCooldownStatus(user.id, 'recurring_transactions');
+        setCooldownInfo(cooldown);
+        setShowRecurringLimit(true);
+        return;
+      } else if (recurringLimit.reason === 'error') {
+        toast({
+          title: 'Erro',
+          description: 'Erro ao verificar limite de transações recorrentes',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     setEditingTransaction(null);
     setNewTransactionType(type);
     setIsCreatingNew(true);
@@ -110,6 +149,11 @@ const RecurringTransactionsPage: React.FC = () => {
         } as Transaction;
         
         saveTransaction(newTransaction);
+        
+        // 📊 INCREMENTAR CONTADOR DE TRANSAÇÕES RECORRENTES
+        if (user && transactionData.isRecurring) {
+          await RecurringTransactionLimitManager.incrementRecurringCount(user.id);
+        }
         
         toast({
           title: "Transação criada!",
@@ -184,6 +228,61 @@ const RecurringTransactionsPage: React.FC = () => {
         description: "Não foi possível excluir a transação recorrente.",
         variant: "destructive"
       });
+    }
+  };
+
+  // 🎥 FUNÇÃO PARA ASSISTIR REWARD AD
+  const handleWatchAd = async () => {
+    if (!user) return;
+    
+    // Verificar cooldown antes de permitir assistir
+    const cooldownStatus = await RewardCooldownManager.checkCooldownStatus(user.id, 'recurring_transactions');
+    if (cooldownStatus.isInCooldown) {
+      const remainingTime = cooldownStatus.remainingMinutes || 0;
+      toast({
+        title: 'Anúncio em cooldown',
+        description: `Aguarde ${remainingTime} minutos para assistir outro anúncio`,
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setIsWatchingAd(true);
+    
+    try {
+      // Mostrar reward ad
+      const watchResult = await AdManager.showRewardedAd('recurring_transactions');
+      
+      if (watchResult.success) {
+        // Registrar cooldown
+        await RewardCooldownManager.recordReward(user.id, 'recurring_transactions');
+        
+        // Adicionar transações recorrentes extras
+        await RecurringTransactionLimitManager.addExtraRecurring(user.id, 2);
+        
+        setShowRecurringLimit(false);
+        
+        toast({
+          title: 'Limite expandido!',
+          description: 'Você ganhou 2 transações recorrentes extras por assistir ao anúncio',
+          variant: 'default',
+        });
+      } else {
+        toast({
+          title: 'Erro no anúncio',
+          description: 'Não foi possível completar o anúncio. Tente novamente.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao assistir reward ad:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro interno ao processar anúncio',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsWatchingAd(false);
     }
   };
 
@@ -503,6 +602,46 @@ const RecurringTransactionsPage: React.FC = () => {
             : EXPENSE_CATEGORIES
         }
       />
+
+      {/* 🚫 MODAL LIMITE DE TRANSAÇÕES RECORRENTES */}
+      {showRecurringLimit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              Limite de transações recorrentes atingido
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Você já utilizou todas as suas transações recorrentes gratuitas este mês. 
+              Assista a um anúncio para ganhar 2 transações recorrentes extras!
+            </p>
+            
+            {cooldownInfo && cooldownInfo.isInCooldown && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-blue-800">
+                  ⏱️ Próximo anúncio disponível em: {cooldownInfo.remainingMinutes || 0} minutos
+                </p>
+              </div>
+            )}
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowRecurringLimit(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              
+              <button
+                onClick={handleWatchAd}
+                disabled={isWatchingAd || (cooldownInfo && cooldownInfo.isInCooldown)}
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isWatchingAd ? '📺 Assistindo...' : '🎬 Assistir Anúncio'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

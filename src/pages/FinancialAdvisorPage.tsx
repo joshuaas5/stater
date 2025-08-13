@@ -27,6 +27,7 @@ import { UserJourneyManager } from '@/utils/userJourneyManager';
 import { PaywallModal } from '@/components/ui/PaywallModal';
 import { AdRewardModal } from '@/components/monetization/AdRewardModal';
 import { AdManager } from '@/utils/adManager';
+import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
 import { useAILearning } from '@/utils/aiLearningSystem';
 import FinancialAdvisorGate from '@/components/monetization/FinancialAdvisorGate';
 import { MessageLimitManager } from '@/utils/messageLimit';
@@ -460,10 +461,10 @@ const isAddBillIntent = (msg: string) => {
     const isPremium = userPlan.planType !== 'free';
     
     if (!isPremium) {
-      console.log('❌ [AUDIO_PREMIUM] Usuário FREE tentando usar áudio');
+      console.log('❌ [AUDIO_PREMIUM_REQUIRED] Áudio requer premium - mostrando paywall imediato');
       setMessages(prev => [...prev, {
         id: uuidv4(),
-        text: `🎙️ **Recurso Premium Necessário**\n\n❌ Áudios estão disponíveis apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• 🎙️ Áudios ilimitados\n• 📊 Análise de PDFs e imagens\n• 📈 Relatórios avançados\n• 🚫 Sem anúncios\n\n💰 **A partir de R$ 8,90/semana**\n\n🎁 **Ou inicie seu teste grátis** de 3 dias!\n\n⬆️ Faça upgrade para continuar!`,
+        text: `🎙️ **Recurso Premium Necessário**\n\n❌ Áudios estão disponíveis apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• 🎙️ Áudios ilimitados\n• 📊 Análise de PDFs e imagens\n• 📈 Relatórios avançados\n• 🚫 Sem anúncios\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
         sender: 'assistant',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR
@@ -539,50 +540,11 @@ const isAddBillIntent = (msg: string) => {
         success: true
       });
 
-      // CORREÇÃO: Verificar se o áudio contém dados de transação estruturados
+      // CORREÇÃO: Verificar se o áudio contém uma transação estruturada
       console.log('🎤 [AUDIO_FIX] Resultado processado:', result);
       
-      // Se o áudio contém múltiplas transações, usar modal de lista editável
-      if (result.transactions && Array.isArray(result.transactions) && result.transactions.length > 1) {
-        console.log('🎤 [AUDIO_MULTIPLE] Múltiplas transações detectadas no áudio, ativando modal de lista');
-        
-        // Adicionar mensagem do usuário com a transcrição
-        const userMessage: ChatMessage = {
-          id: uuidv4(),
-          text: result.transcription || '',
-          sender: 'user',
-          timestamp: new Date()
-        };
-        
-        setMessages(prev => [...prev, userMessage]);
-        
-        // Converter transações do áudio para o formato esperado
-        const audioTransactionList = result.transactions.map((tx: any, index: number) => ({
-          type: tx.type || 'expense',
-          amount: parseFloat(tx.amount || 0),
-          description: tx.description || `Transação ${index + 1}`,
-          category: tx.category || 'Outros',
-          date: tx.date || new Date().toISOString().split('T')[0]
-        })).filter((tx: any) => tx.amount > 0);
-        
-        // Usar modal de lista editável
-        setEditableTransactions(audioTransactionList);
-        setPendingAction({
-          tipo: 'generic_confirmation',
-          dados: {
-            ocrTransactions: audioTransactionList,
-            documentType: 'audio_multiple',
-            establishment: 'Transações detectadas no áudio'
-          }
-        });
-        setWaitingConfirmation(true);
-        
-        setIsProcessingAudio(false);
-        setLoadingState('audio-processing', false);
-        return;
-      }
       // Se o áudio contém uma transação única, ativar modal simples
-      else if (result.action === 'add_transaction' && result.amount && result.description) {
+      if (result.action === 'add_transaction' && result.amount && result.description) {
         console.log('🎤 [AUDIO_TRANSACTION] Transação detectada no áudio, ativando modal');
         
         // Adicionar mensagem do usuário com a transcrição
@@ -779,9 +741,9 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
   const safeMessage = validatedMessage;
 
   // ========================================
-  // VERIFICAÇÃO DE MENSAGENS: NOVO SISTEMA DE 3 MENSAGENS
+  // NOVO SISTEMA: REWARD AD NA PRIMEIRA MENSAGEM
   // ========================================
-  if (!skipAddingUserMessage) { // Só verifica limite para mensagens do usuário, não respostas do sistema
+  if (!skipAddingUserMessage) { // Só verifica para mensagens do usuário, não respostas do sistema
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error || !user) {
@@ -789,40 +751,76 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         return;
       }
 
-      // 🔒 NOVA VERIFICAÇÃO: Sistema de 3 mensagens para FREE
-      const messageLimit = await MessageLimitManager.canSendMessage(user.id);
+      // Verificar se o usuário é premium
+      const userPlan = await UserPlanManager.getUserPlan(user.id);
+      const isPremium = userPlan.planType !== 'free';
       
-      if (!messageLimit.allowed) {
-        console.log('🚫 [MESSAGE_LIMIT] Mensagem bloqueada:', messageLimit.reason);
+      if (!isPremium) {
+        // 🎯 NOVA ESTRATÉGIA: Para usuários FREE, sempre mostrar reward ad antes da primeira mensagem
+        console.log('🎬 [REWARD_AD] Usuário FREE - mostrando reward ad antes da mensagem');
         
-        if (messageLimit.reason === 'limit_reached') {
-          // Usuário FREE atingiu o limite de 3 mensagens
-          setMessages(prev => [...prev, {
-            id: uuidv4(),
-            text: `🚫 **Limite de mensagens atingido!**\n\nVocê já usou suas 3 mensagens gratuitas. Para continuar conversando com o Stater IA:\n\n✨ **Assine o Stater Premium** e tenha:\n• 🤖 Nunca mais se preocupe com limites de mensagens\n• 📊 Nunca mais se preocupe com limites de análise de PDFs e imagens\n• 🎙️ Nunca mais se preocupe com limites de áudios\n• 📄 Nunca mais se preocupe com limites de downloads de relatórios\n• 🔄 Nunca mais se preocupe com limites de transações recorrentes\n• 🔗 Conexão com Telegram liberada\n• 🚫 Sem anúncios\n\n💰 **A partir de R$ 8,90/semana**\n\n🎁 **Ou inicie seu teste grátis** de 3 dias!\n\n⬆️ Faça upgrade para continuar!`,
-            sender: 'assistant',
-            timestamp: new Date(),
-            avatarUrl: IA_AVATAR
-          }]);
+        // Verificar cooldown do reward ad para messages
+        const cooldownResult = await RewardCooldownManager.checkCooldownStatus(user.id, 'financial_analysis');
+        
+        if (cooldownResult.canWatchAd) {
+          // Mostrar reward ad
+          const adResult = await AdManager.showRewardedAd('messages');
           
-          setShowPaywall(true);
-          return;
-        } else if (messageLimit.reason === 'error') {
-          setError("Erro interno. Tente novamente em alguns segundos.");
-          return;
+          if (adResult.success) {
+            console.log('✅ [REWARD_AD] Assistido com sucesso - processando mensagem');
+            // Continuar com o processamento normal da mensagem
+          } else {
+            // Usuário não assistiu o reward ad, verificar se há mensagens restantes
+            const messageLimit = await MessageLimitManager.canSendMessage(user.id);
+            
+            if (!messageLimit.allowed) {
+              // Sem mensagens restantes e não assistiu reward ad = paywall
+              console.log('🚫 [PAYWALL] Sem mensagens restantes e reward ad não assistido');
+              setMessages(prev => [...prev, {
+                id: uuidv4(),
+                text: `� **Assine o Stater Premium**\n\nPara continuar conversando com o Stater IA:\n\n✨ **Benefícios Premium:**\n• 🤖 Mensagens ilimitadas\n• 📊 Análise ilimitada de PDFs e imagens\n• 🎙️ Áudios ilimitados\n• 📄 Downloads ilimitados de relatórios\n• 🔄 Transações recorrentes ilimitadas\n• 🔗 Conexão com Telegram\n• 🚫 Sem anúncios\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
+                sender: 'assistant',
+                timestamp: new Date(),
+                avatarUrl: IA_AVATAR
+              }]);
+              
+              setShowPaywall(true);
+              return;
+            } else {
+              // Ainda tem mensagens - consumir uma mensagem gratuita
+              await MessageLimitManager.incrementMessageCount(user.id);
+              console.log(`✅ [FREE_MESSAGE] Usando mensagem gratuita - Restantes: ${messageLimit.messagesRemaining - 1}`);
+            }
+          }
+        } else {
+          // Cooldown ativo - verificar se há mensagens restantes
+          const messageLimit = await MessageLimitManager.canSendMessage(user.id);
+          
+          if (!messageLimit.allowed) {
+            // Sem mensagens e cooldown ativo = paywall
+            console.log('🚫 [PAYWALL] Sem mensagens e cooldown de reward ad ativo');
+            setMessages(prev => [...prev, {
+              id: uuidv4(),
+              text: `⏰ **Aguarde o próximo reward ad**\n\nVocê pode assistir um novo anúncio em ${cooldownResult.remainingMinutes} minutos para ganhar mais mensagens.\n\n**Ou assine o Premium e tenha mensagens ilimitadas:**\n\n✨ **Stater Premium:**\n• 🤖 Mensagens ilimitadas\n• 📊 Análise ilimitada de PDFs e imagens\n• 🎙️ Áudios ilimitados\n• 🚫 Sem anúncios\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**`,
+              sender: 'assistant',
+              timestamp: new Date(),
+              avatarUrl: IA_AVATAR
+            }]);
+            
+            setShowPaywall(true);
+            return;
+          } else {
+            // Ainda tem mensagens - usar mensagem gratuita
+            await MessageLimitManager.incrementMessageCount(user.id);
+            console.log(`✅ [FREE_MESSAGE] Cooldown ativo, usando mensagem gratuita - Restantes: ${messageLimit.messagesRemaining - 1}`);
+          }
         }
       } else {
-        // Incrementar contador de mensagens para usuários FREE
-        if (messageLimit.messagesRemaining !== -1) { // -1 = ilimitado (premium)
-          await MessageLimitManager.incrementMessageCount(user.id);
-          console.log(`✅ [MESSAGE_LIMIT] Mensagem permitida - Restantes: ${messageLimit.messagesRemaining - 1}`);
-        } else {
-          console.log('✅ [MESSAGE_LIMIT] Usuário premium - mensagens ilimitadas');
-        }
+        console.log('✅ [PREMIUM] Usuário premium - mensagens ilimitadas');
       }
       
     } catch (error) {
-      console.error('Erro ao verificar limite de mensagens:', error);
+      console.error('Erro ao verificar sistema de reward ad/mensagens:', error);
       setError("Erro interno. Tente novamente.");
       return;
     }
@@ -2953,55 +2951,33 @@ const handleImageUpload = async (imageBase64: string) => {
     // Detectar tipo de arquivo
     const isPdf = !isTextFile && imageBase64.startsWith('data:application/pdf');
     
-    // 🔥 VERIFICAÇÃO ESPECÍFICA PARA PDF (LIMITE SEMANAL: 1 para FREE) - PRIMEIRO
-    if (isPdf) {
-      console.log('📑 [PDF_DETECTED] Iniciando verificação de limite de PDF para usuário:', user.id);
-      const pdfCheck = await UserPlanManager.checkAndUsePdf(user.id);
-      console.log('📑 [PDF_CHECK_RESULT]', pdfCheck);
+    // � NOVA ESTRATÉGIA: Para PDFs, imagens e mídias - PAYWALL IMEDIATO para usuários FREE
+    if (isPdf || !isTextFile) {
+      // Verificar se o usuário é premium
+      const userPlan = await UserPlanManager.getUserPlan(user.id);
+      const isPremium = userPlan.planType !== 'free';
       
-      if (!pdfCheck.allowed) {
-        console.log('❌ [PDF LIMIT] Limite de PDF atingido');
+      if (!isPremium) {
+        console.log(`❌ [MEDIA_PREMIUM_REQUIRED] ${isPdf ? 'PDF' : 'Imagem'} requer premium - mostrando paywall imediato`);
+        
+        const mediaType = isPdf ? '📑 PDFs' : '🖼️ Imagens';
         setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: `📑 **Limite semanal de PDFs atingido!**\n\nVocê já processou seu 1 PDF desta semana. Para continuar usando análise de PDFs:\n\n✨ **Assine o Stater Premium** e tenha:\n• Leitura ilimitada de PDFs\n• Análise de imagens ilimitada\n• Áudios ilimitados\n• Relatórios avançados\n\n💰 **A partir de R$ 8,90/semana**\n\n⏰ **Seu limite será renovado na próxima segunda-feira**\n\n💡 **Alternativa gratuita**: Faça uma captura de tela do PDF e envie como imagem!`,
+          text: `${mediaType} **Recurso Premium Necessário**\n\n❌ Análise de ${isPdf ? 'PDFs' : 'imagens'} está disponível apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• ${mediaType} ilimitados\n• 🎙️ Áudios ilimitados\n• 🤖 Mensagens ilimitadas\n• 📈 Relatórios avançados\n• 🚫 Sem anúncios\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
           sender: 'assistant',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
         }]);
         
-        if (pdfCheck.shouldShowPaywall) {
-          setShowPaywall(true);
-        }
+        setShowPaywall(true);
         setLoadingState('ai-thinking', false);
         return;
       }
       
-      console.log(`✅ [PDF OK] PDF permitido. Restantes: ${pdfCheck.remaining === -1 ? 'ilimitado' : pdfCheck.remaining}`);
-    } else {
-      // 🔥 VERIFICAÇÃO PARA IMAGENS (LIMITE SEMANAL: 1 para FREE) - SEGUNDO
-      const imageCheck = await UserPlanManager.checkAndUseImage(user.id);
-      
-      if (!imageCheck.allowed) {
-        console.log('❌ [IMAGE LIMIT] Limite de imagem atingido');
-        setMessages(prev => [...prev, {
-          id: uuidv4(),
-          text: `📷 **Limite semanal de imagens atingido!**\n\nVocê já processou sua 1 imagem desta semana. Para continuar usando OCR de imagens:\n\n✨ **Assine o Stater Premium** e tenha:\n• Análise ilimitada de imagens\n• Leitura de PDFs\n• Áudios ilimitados\n• Relatórios avançados\n\n💰 **A partir de R$ 8,90/semana**\n\n⏰ **Seu limite será renovado na próxima segunda-feira**`,
-          sender: 'assistant',
-          timestamp: new Date(),
-          avatarUrl: IA_AVATAR
-        }]);
-        
-        if (imageCheck.shouldShowPaywall) {
-          setShowPaywall(true);
-        }
-        setLoadingState('ai-thinking', false);
-        return;
-      }
-      
-      console.log(`✅ [IMAGE OK] Imagem permitida. Restantes: ${imageCheck.remaining === -1 ? 'ilimitado' : imageCheck.remaining}`);
+      console.log(`✅ [MEDIA_PREMIUM] Usuário premium - ${isPdf ? 'PDF' : 'imagem'} permitido`);
     }
     
-    // 🔍 DEBUG: Log detalhado para entender o que está acontecendo
+    //  DEBUG: Log detalhado para entender o que está acontecendo
     console.log('🔍 [DEBUG_DETECTION]', {
       isTextFile,
       imageBase64Length: imageBase64.length,

@@ -19,6 +19,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { AdManager } from '@/utils/adManager';
 import { AdCooldownManager } from '@/utils/adCooldownManager';
+import { TransactionCounter } from '@/utils/transactionCounter';
 import { AdModal, useAdModal } from '@/components/ui/AdModal';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
 import { AdCooldownStatus } from '@/components/monetization/AdCooldownStatus';
@@ -104,7 +105,7 @@ const Transactions: React.FC = () => {
         console.log('📊 [LIMITE] Limite atingido, abrindo paywall');
         toast({
           title: 'Limite diário atingido',
-          description: 'Você atingiu o limite de transações para hoje. Faça upgrade para adicionar ilimitadas!',
+          description: 'Você atingiu o limite de transações para hoje. Teste grátis por 3 dias, depois R$ 19,90/mês para transações ilimitadas!',
         });
         openPaywall('transactions');
         return;
@@ -133,23 +134,60 @@ const Transactions: React.FC = () => {
   };
 
   // Função para adicionar transação clonada
-  const handleSaveClonedTransaction = () => {
+  const handleSaveClonedTransaction = async () => {
     if (!newTransaction) return;
     const user = getCurrentUser();
     if (!user) {
       navigate('/login');
       return;
     }
+    
+    // Salvar transação
     const allTransactions = getTransactions();
     allTransactions.push(newTransaction);
     localStorage.setItem(`transactions_${user.id}`, JSON.stringify(allTransactions));
+    
     loadTransactions();
     setIsAddDialogOpen(false);
     setNewTransaction(null);
+    
     toast({
       title: 'Transação clonada',
       description: `${newTransaction.title} foi clonada com sucesso!`,
     });
+
+    // 🎯 NOVA ESTRATÉGIA: Verificar contador de transações para reward ad
+    try {
+      // Verificar se o usuário é premium
+      const userPlan = await UserPlanManager.getUserPlan(user.id);
+      const isPremium = userPlan.planType !== 'free';
+      
+      if (!isPremium) {
+        // Incrementar contador e verificar se deve mostrar reward ad
+        const counterResult = await TransactionCounter.incrementAndCheck(user.id);
+        
+        if (counterResult.shouldShowRewardAd) {
+          console.log('🎬 [TRANSACTION_REWARD] Mostrando reward ad após 5 transações');
+          
+          // Mostrar reward ad específico para transações
+          const adResult = await AdManager.showRewardedAd('transactions');
+          
+          if (adResult.success) {
+            console.log('✅ [TRANSACTION_REWARD] Reward ad assistido com sucesso');
+            toast({
+              title: '🎁 Recompensa obtida!',
+              description: 'Você ganhou mais transações por assistir o anúncio!',
+            });
+          } else {
+            console.log('❌ [TRANSACTION_REWARD] Reward ad não assistido');
+          }
+        } else {
+          console.log(`📊 [TRANSACTION_COUNTER] ${counterResult.nextRewardAt} transações restantes para próximo reward ad`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ [TRANSACTION_REWARD] Erro ao processar contador:', error);
+    }
   };
 
   // Função para excluir transação no modal de edição

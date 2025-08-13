@@ -585,7 +585,7 @@ export class AdManager {
       const rewardConfig = {
         bills: { actions: 3, cooldown: 30 },
         transactions: { actions: 5, cooldown: 20 },
-        financial_analysis: { actions: 1, cooldown: 10080 }, // 1 mensagem adicional por semana (7 dias)
+        financial_analysis: { actions: 1, cooldown: 60 }, // 1 mensagem adicional por hora (não 7 dias)
         report_downloads: { actions: 3, cooldown: 60 }, // 3 downloads por hora
         recurring_transactions: { actions: 2, cooldown: 60 } // 2 transações recorrentes por hora
       };

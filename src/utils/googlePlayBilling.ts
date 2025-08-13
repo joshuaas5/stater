@@ -11,10 +11,10 @@ export const PLAY_STORE_PRODUCTS = {
     trialPeriod: '3 dias'
   },
   [PlanType.MONTHLY]: {
-    productId: 'stater_monthly_1590',
+    productId: 'stater_monthly_1990',
     title: 'Stater Monthly',
     description: 'Plano mensal com 20 mensagens/dia e exports ilimitados',
-    price: 'R$ 15,90',
+    price: 'R$ 19,90',
     period: '30 dias',
     trialPeriod: '7 dias'
   },

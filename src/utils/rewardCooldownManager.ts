@@ -18,8 +18,8 @@ export interface CooldownConfig {
 export class RewardCooldownManager {
   private static readonly COOLDOWN_CONFIG: CooldownConfig = {
     financial_analysis: {
-      durationMinutes: 10080, // 7 dias (1 semana) de cooldown
-      rewardAmount: 1         // 1 mensagem adicional por semana
+      durationMinutes: 60,    // 1 hora de cooldown (não 7 dias)
+      rewardAmount: 1         // 1 mensagem adicional por hora
     },
     bills: {
       durationMinutes: 30,

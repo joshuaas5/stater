@@ -60,10 +60,17 @@ export function PaywallModal({ isOpen, onClose, onUpgrade, trigger, userId }: Pa
           productId = PLAY_STORE_PRODUCTS.monthly.productId;
           break;
         case 'trial':
-          // Por enquanto, mapear trial para monthly (versão gratuita por tempo limitado)
-          console.log('🎁 [TRIAL] Iniciando período de teste');
-          planType = PlanType.MONTHLY;
-          productId = PLAY_STORE_PRODUCTS.monthly.productId;
+          // Verificar se o usuário já usou o trial
+          const hasUsedTrial = await UserPlanManager.hasUsedTrial(userId);
+          if (hasUsedTrial) {
+            console.log('❌ [TRIAL] Usuário já usou o período de teste');
+            alert('Você já utilizou o período de teste gratuito. Escolha um plano para continuar.');
+            setLoading(false);
+            return;
+          }
+          
+          planType = PlanType.TRIAL;
+          productId = PLAY_STORE_PRODUCTS.trial?.productId || PLAY_STORE_PRODUCTS.monthly.productId;
           break;
         default:
           planType = PlanType.MONTHLY;
@@ -77,14 +84,13 @@ export function PaywallModal({ isOpen, onClose, onUpgrade, trigger, userId }: Pa
       
       if (isMobile) {
         // Usar Google Play Billing em dispositivos móveis
-        const result = await GooglePlayBilling.purchaseSubscription(productId, userId);
+        const result = await GooglePlayBilling.purchaseProduct(productId);
         
         if (result.success) {
           console.log('✅ [SUBSCRIPTION] Compra realizada com sucesso via Google Play');
           
-          // Ativar plano do usuário
-          const trialDays = plan === 'trial' ? 3 : undefined;
-          await UserPlanManager.activatePlan(userId, planType, result.purchaseData?.purchaseToken, productId, trialDays);
+          // Atualizar plano do usuário
+          await UserPlanManager.updateUserPlan(userId, planType);
           
           // Chamar callback de upgrade
           onUpgrade(planType);
@@ -99,9 +105,8 @@ export function PaywallModal({ isOpen, onClose, onUpgrade, trigger, userId }: Pa
         // Em ambiente web/desktop, simular sucesso para desenvolvimento
         console.log('🌐 [SUBSCRIPTION] Ambiente web - simulando assinatura para desenvolvimento');
         
-        // Ativar plano do usuário
-        const trialDays = plan === 'trial' ? 3 : undefined;
-        await UserPlanManager.activatePlan(userId, planType, `mock_token_${Date.now()}`, productId, trialDays);
+        // Atualizar plano do usuário
+        await UserPlanManager.updateUserPlan(userId, planType);
         
         // Chamar callback de upgrade
         onUpgrade(planType);

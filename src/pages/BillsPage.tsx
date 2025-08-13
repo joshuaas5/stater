@@ -259,7 +259,7 @@ const BillsPage: React.FC = () => {
         console.log('📊 [LIMITE] Limite atingido, abrindo paywall');
         toast({
           title: 'Limite diário atingido',
-          description: 'Você atingiu o limite de contas para hoje. Faça upgrade para adicionar ilimitadas!',
+          description: 'Você atingiu o limite de contas para hoje. Teste grátis por 3 dias, depois R$ 19,90/mês para contas ilimitadas!',
         });
         openPaywall('bills');
         return;

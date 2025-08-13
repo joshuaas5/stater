@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarIcon, Download, FileText, ChevronLeft, FileType2, FileOutput } from 'lucide-react';
+import { CalendarIcon, Download, FileText, ChevronLeft, FileType2, FileOutput, Play, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import PageHeader from '@/components/header/PageHeader';
@@ -16,10 +16,17 @@ import { exportReport, ExportConfig } from '@/utils/reportExporter';
 import { generateSimplePDF } from '@/utils/basicPdfExporter';
 import { generateExcelLikePDF } from '@/utils/simpleExcelPdfExporter';
 import { getCurrentUser, getTransactions, getBills } from '@/utils/localStorage';
+import { ReportDownloadLimitManager } from '@/utils/reportDownloadLimit';
+import { AdManager } from '@/utils/adManager';
+import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
+import { AdCooldownManager } from '@/utils/adCooldownManager';
+import { UserPlanManager } from '@/utils/userPlanManager';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ExportReportPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().setMonth(new Date().getMonth() - 1)));
   const [endDate, setEndDate] = useState<Date>(new Date());
@@ -27,6 +34,9 @@ const ExportReportPage: React.FC = () => {
   const [includeBills, setIncludeBills] = useState<boolean>(true);
   const [exportFormat, setExportFormat] = useState<'xlsx' | 'pdf' | 'ofx' | 'csv'>('xlsx');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [showDownloadLimit, setShowDownloadLimit] = useState<boolean>(false);
+  const [isWatchingAd, setIsWatchingAd] = useState<boolean>(false);
+  const [cooldownInfo, setCooldownInfo] = useState<any>(null);
   
   // Função para gerar uma dica financeira baseada nos dados
   const getFinancialTip = (income: number, expense: number, expensesByCategory: Record<string, number>) => {
@@ -57,7 +67,77 @@ const ExportReportPage: React.FC = () => {
   };
   
   const handleExport = async () => {
+    if (!user) {
+      toast({
+        title: 'Erro',
+        description: 'Usuário não autenticado. Faça login para continuar.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
+      // 🎯 NOVA ESTRATÉGIA: Para usuários FREE, mostrar reward ad imediatamente no primeiro acesso
+      const userPlan = await UserPlanManager.getUserPlan(user.id);
+      const isPremium = userPlan.planType !== 'free';
+      
+      if (!isPremium) {
+        console.log('🎬 [REPORT_REWARD] Usuário FREE acessando relatórios - mostrando reward ad imediato');
+        
+        // Verificar cooldown do reward ad
+        const cooldownResult = await RewardCooldownManager.checkCooldownStatus(user.id, 'report_downloads');
+        
+        if (cooldownResult.canWatchAd) {
+          // Mostrar reward ad imediatamente
+          const adResult = await AdManager.showRewardedAd('messages'); // Usar 'messages' como tipo válido
+          
+          if (adResult.success) {
+            console.log('✅ [REPORT_REWARD] Reward ad assistido com sucesso - permitindo download');
+            toast({
+              title: '🎁 Recompensa obtida!',
+              description: 'Você ganhou acesso ao relatório por assistir o anúncio!',
+            });
+          } else {
+            // Usuário não assistiu o reward ad, bloquear acesso
+            console.log('❌ [REPORT_REWARD] Reward ad não assistido - bloqueando acesso');
+            toast({
+              title: '🎬 Assista o anúncio',
+              description: 'Para baixar relatórios, é necessário assistir um anúncio ou assinar o Premium.',
+              variant: 'destructive',
+            });
+            return;
+          }
+        } else {
+          // Cooldown ativo - mostrar paywall ou informar sobre cooldown
+          console.log('⏰ [REPORT_REWARD] Cooldown ativo - mostrando informações');
+          toast({
+            title: '⏰ Aguarde para o próximo anúncio',
+            description: `Você pode assistir um novo anúncio em ${cooldownResult.remainingMinutes} minutos ou assinar o Premium para acesso ilimitado.`,
+            variant: 'default',
+          });
+          return;
+        }
+      } else {
+        console.log('✅ [REPORT_PREMIUM] Usuário premium - acesso direto aos relatórios');
+      }
+
+      // 🔒 VERIFICAR LIMITE DE DOWNLOADS (mantido como fallback)
+      const downloadLimit = await ReportDownloadLimitManager.canDownloadReport(user.id);
+      
+      if (!downloadLimit.allowed) {
+        if (downloadLimit.reason === 'limit_reached') {
+          setShowDownloadLimit(true);
+          return;
+        } else if (downloadLimit.reason === 'error') {
+          toast({
+            title: 'Erro',
+            description: 'Erro interno. Tente novamente em alguns segundos.',
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
+
       setIsGenerating(true);
       toast({
         title: 'Gerando relatório',
@@ -153,6 +233,9 @@ const ExportReportPage: React.FC = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
+      // 📊 INCREMENTAR CONTADOR DE DOWNLOADS
+      await ReportDownloadLimitManager.incrementDownloadCount(user.id);
+      
       toast({
         title: 'Relatório gerado com sucesso',
         description: `Seu relatório foi baixado como ${filename}`,
@@ -169,7 +252,7 @@ const ExportReportPage: React.FC = () => {
       setIsGenerating(false);
     }
   };
-  
+
   return (
     <div className="min-h-screen relative overflow-hidden pb-20" style={{ background: '#31518b' }}>
       {/* Header */}
@@ -364,6 +447,38 @@ const ExportReportPage: React.FC = () => {
           </CardFooter>
         </div>
       </div>
+
+      {/* 🚫 MODAL LIMITE DE DOWNLOADS */}
+      {showDownloadLimit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              Limite de downloads atingido
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Você já utilizou todos os seus downloads gratuitos este mês. 
+              Assista a um anúncio para ganhar 3 downloads extras!
+            </p>
+            
+            {cooldownInfo && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-blue-800">
+                  ⏱️ Próximo anúncio disponível em: {Math.ceil((cooldownInfo.cooldownEndTime.getTime() - Date.now()) / (1000 * 60))} minutos
+                </p>
+              </div>
+            )}
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDownloadLimit(false)}
+                className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
     </div>
   );

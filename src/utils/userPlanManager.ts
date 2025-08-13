@@ -71,7 +71,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
     showBanner: false           // Sem banner
   },
   [PlanType.MONTHLY]: {
-    // MENSAL - R$ 15,90 - EXATAMENTE COMO DEFINIDO
+    // MENSAL - R$ 19,90 - EXATAMENTE COMO DEFINIDO
     dailyMessages: 20,          // 20 mensagens de texto/dia
     dailyAudioMinutes: 10,      // 10 análises de áudio/dia
     weeklyImageScans: 50,       // 50 análises de fotos/semana

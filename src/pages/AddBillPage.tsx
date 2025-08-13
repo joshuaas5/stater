@@ -16,6 +16,8 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Calendar, CreditCard, Plus, X, Tag, ChevronDown, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserPlanManager } from '@/utils/userPlanManager';
+import { BillCounter } from '@/utils/billCounter';
+import { AdManager } from '@/utils/adManager';
 
 const formSchema = z.object({
   title: z.string().min(2, { message: "Título deve ter pelo menos 2 caracteres." }),
@@ -146,7 +148,7 @@ const AddBillPage: React.FC = () => {
     form.setValue('amount', totalAmount.toString());
   };
   
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const user = getCurrentUser();
     if (!user) {
       navigate('/login');
@@ -167,6 +169,8 @@ const AddBillPage: React.FC = () => {
     const originalDueDate = new Date(values.dueDate + 'T00:00:00');
     const recurringDay = originalDueDate.getDate();
     const totalInstallments = values.isRecurring && !values.isInfiniteRecurrence && values.totalInstallments ? parseInt(values.totalInstallments) : 1;
+
+    let billsAdded = 0;
 
     if (values.isRecurring && !values.isInfiniteRecurrence && totalInstallments > 1) {
       const billsToSave: Bill[] = [];
@@ -199,6 +203,7 @@ const AddBillPage: React.FC = () => {
         billsToSave.push(billInstallment);
       }
       billsToSave.forEach(b => saveBill(b));
+      billsAdded = billsToSave.length;
     } else {
       const newBill: Bill = {
         id: uuidv4(),
@@ -218,14 +223,49 @@ const AddBillPage: React.FC = () => {
         isInfiniteRecurrence: values.isRecurring ? values.isInfiniteRecurrence : undefined
       };
       saveBill(newBill);
+      billsAdded = 1;
     }
     
-    // REMOVIDO: Incremento de uso movido para o AddBillModal para evitar duplicação
-    // UserPlanManager.incrementUsage(userId, 'billsAdded').catch(error => {
-    //   console.error('Erro ao incrementar uso de bills:', error);
-    // });
+    // 🎯 NOVA ESTRATÉGIA: Sistema de contador de bills para reward ads
+    try {
+      // Verificar se o usuário é premium
+      const userPlan = await UserPlanManager.getUserPlan(user.id);
+      const isPremium = userPlan.planType !== 'free';
+      
+      if (!isPremium) {
+        // Para bills recorrentes, incrementar o contador apenas uma vez (não por parcela)
+        const incrementCount = values.isRecurring && !values.isInfiniteRecurrence && totalInstallments > 1 ? 1 : billsAdded;
+        
+        // Incrementar contador baseado na quantidade de bills únicas criadas
+        for (let i = 0; i < incrementCount; i++) {
+          const counterResult = await BillCounter.incrementAndCheck(user.id);
+          
+          if (counterResult.shouldShowRewardAd) {
+            console.log('🎬 [BILL_REWARD] Mostrando reward ad após 3 bills');
+            
+            // Mostrar reward ad específico para bills
+            const adResult = await AdManager.showRewardedAd('bills');
+            
+            if (adResult.success) {
+              console.log('✅ [BILL_REWARD] Reward ad assistido com sucesso');
+              toast({
+                title: '🎁 Recompensa obtida!',
+                description: 'Você ganhou mais recursos por assistir o anúncio!',
+              });
+            } else {
+              console.log('❌ [BILL_REWARD] Reward ad não assistido');
+            }
+            break; // Apenas um reward ad por operação
+          } else {
+            console.log(`📋 [BILL_COUNTER] ${counterResult.nextRewardAt} bills restantes para próximo reward ad`);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ [BILL_REWARD] Erro ao processar contador:', error);
+    }
     
-    // Navegar de volta para a página de bills (sem toast de notificação)
+    // Navegar de volta para a página de bills
     navigate('/bills');
   };
 

@@ -351,47 +351,45 @@ const RecurringTransactionsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Estatísticas */}
+      {/* Estatísticas - Reservar espaço para evitar layout jumping */}
       <div className="relative z-10 p-4">
-        {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-white">
-                  {stats.totalRecurring}
-                </p>
-                <p className="text-sm text-white/70">Total</p>
-              </div>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-white">
-                  {stats.byFrequency.weekly}
-                </p>
-                <p className="text-sm text-white/70">Semanais</p>
-              </div>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-white">
-                  {stats.byFrequency.monthly}
-                </p>
-                <p className="text-sm text-white/70">Mensais</p>
-              </div>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-white">
-                  {stats.byFrequency.yearly}
-                </p>
-                <p className="text-sm text-white/70">Anuais</p>
-              </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-white">
+                {stats?.totalRecurring || 0}
+              </p>
+              <p className="text-sm text-white/70">Total</p>
             </div>
           </div>
-        )}
+          
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-white">
+                {stats?.byFrequency?.weekly || 0}
+              </p>
+              <p className="text-sm text-white/70">Semanais</p>
+            </div>
+          </div>
+          
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-white">
+                {stats?.byFrequency?.monthly || 0}
+              </p>
+              <p className="text-sm text-white/70">Mensais</p>
+            </div>
+          </div>
+          
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-white">
+                {stats?.byFrequency?.yearly || 0}
+              </p>
+              <p className="text-sm text-white/70">Anuais</p>
+            </div>
+          </div>
+        </div>
 
         {/* Lista de Transações Recorrentes */}
         <div className="space-y-4">

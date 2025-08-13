@@ -27,6 +27,8 @@ import { getCurrentUser, getTransactions, isLoggedIn, saveTransaction, updateTra
 import { TransactionCounter } from '@/utils/transactionCounter';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { AdManager } from '@/utils/adManager';
+import { RecurringTransactionLimitManager } from '@/utils/recurringTransactionLimit';
+import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
 import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -1270,6 +1272,77 @@ const Dashboard: React.FC = () => {
               return;
             }
 
+            // 🚫 VALIDAÇÃO DE LIMITE DE TRANSAÇÕES RECORRENTES
+            if (transactionData.isRecurring) {
+              const recurringLimit = await RecurringTransactionLimitManager.canCreateRecurring(user.id);
+              
+              if (!recurringLimit.allowed) {
+                if (recurringLimit.reason === 'ad_required') {
+                  // Primeira transação da semana - anúncio obrigatório
+                  const cooldown = await RewardCooldownManager.checkCooldownStatus(user.id, 'recurring_transactions');
+                  
+                  if (cooldown.isInCooldown) {
+                    const remainingTime = cooldown.remainingMinutes || 0;
+                    toast({
+                      title: '⏳ Anúncio em cooldown',
+                      description: `Aguarde ${remainingTime} minutos para assistir outro anúncio de transações recorrentes`,
+                      variant: 'destructive',
+                    });
+                    return;
+                  }
+                  
+                  // Mostrar reward ad específico para transações recorrentes
+                  try {
+                    const watchResult = await AdManager.showRewardedAd('recurring_transactions');
+                    
+                    if (watchResult.success) {
+                      // Liberar criação de transação recorrente
+                      await RecurringTransactionLimitManager.unlockRecurringAfterAd(user.id);
+                      
+                      toast({
+                        title: '🎉 Transação recorrente liberada!',
+                        description: 'Você pode criar sua primeira transação recorrente desta semana!',
+                        variant: 'default',
+                      });
+                    } else {
+                      toast({
+                        title: 'Erro no anúncio',
+                        description: 'Não foi possível completar o anúncio. Tente novamente.',
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+                  } catch (error) {
+                    console.error('Erro ao assistir reward ad:', error);
+                    toast({
+                      title: 'Erro',
+                      description: 'Erro interno ao processar anúncio',
+                      variant: 'destructive',
+                    });
+                    return;
+                  }
+                } else if (recurringLimit.reason === 'limit_reached') {
+                  // Limite semanal atingido - mostrar paywall
+                  toast({
+                    title: '📊 Limite semanal atingido',
+                    description: 'Você já criou sua transação recorrente desta semana. Aguarde a próxima semana ou assine o plano premium para criar mais.',
+                    variant: 'destructive',
+                  });
+                  
+                  // Abrir paywall
+                  setShowPaywallModal(true);
+                  return;
+                } else if (recurringLimit.reason === 'error') {
+                  toast({
+                    title: 'Erro',
+                    description: 'Erro ao verificar limite de transações recorrentes',
+                    variant: 'destructive',
+                  });
+                  return;
+                }
+              }
+            }
+
             // VALIDAÇÃO CRÍTICA: Garantir amount válido
             const validAmount = transactionData.amount && !isNaN(transactionData.amount) && transactionData.amount > 0 
               ? transactionData.amount 
@@ -1294,10 +1367,16 @@ const Dashboard: React.FC = () => {
               originalAmount: transactionData.amount,
               validAmount: validAmount,
               type: transaction.type,
-              title: transaction.title
+              title: transaction.title,
+              isRecurring: transaction.isRecurring
             });
 
             saveTransaction(transaction);
+            
+            // 📊 INCREMENTAR CONTADOR DE TRANSAÇÕES RECORRENTES
+            if (transactionData.isRecurring) {
+              await RecurringTransactionLimitManager.incrementRecurringCount(user.id);
+            }
             
             // 🎯 NOVA ESTRATÉGIA: Verificar contador de transações para reward ad
             try {

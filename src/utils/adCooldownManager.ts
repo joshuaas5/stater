@@ -84,9 +84,31 @@ export class AdCooldownManager {
       const config = this.CONFIG[action];
 
       // Verificar se ainda tem ações gratuitas disponíveis
-      const freeActionsRemaining = await this.getFreeActionsRemaining(userId, action);
-      if (freeActionsRemaining > 0) {
-        return { allowed: true, reason: 'free_actions' };
+      // Para financial_analysis, verificar se ainda está dentro do período de acesso
+      if (action === 'financial_analysis') {
+        // Para análise financeira, verificar se está dentro do período de 1 hora de acesso
+        if (cooldownData.cooldownActive && cooldownData.nextAdAvailableAt) {
+          const now = new Date();
+          const accessGrantedAt = new Date(cooldownData.lastAdTime.getTime());
+          const accessExpiresAt = new Date(accessGrantedAt.getTime() + (60 * 60 * 1000)); // 1 hora de acesso
+          
+          if (now < accessExpiresAt) {
+            console.log('✅ [FINANCIAL_ANALYSIS] Usuário ainda tem acesso (dentro de 1 hora)');
+            return { allowed: true, reason: 'free_actions' };
+          } else {
+            console.log('⏰ [FINANCIAL_ANALYSIS] Acesso de 1 hora expirou, precisa de novo anúncio');
+            // Reset do cooldown para permitir novo anúncio
+            cooldownData.cooldownActive = false;
+            cooldownData.nextAdAvailableAt = undefined;
+            await this.saveCooldownData(cooldownData);
+          }
+        }
+      } else {
+        // Para bills e transactions, usar o sistema de ações gratuitas normal
+        const freeActionsRemaining = await this.getFreeActionsRemaining(userId, action);
+        if (freeActionsRemaining > 0) {
+          return { allowed: true, reason: 'free_actions' };
+        }
       }
 
       // Verificar se está em cooldown
@@ -176,9 +198,8 @@ export class AdCooldownManager {
       let message: string;
       
       if (action === 'financial_analysis') {
-        actionText = 'mensagem';
-        const days = Math.ceil(config.cooldownMinutes / 1440); // Converter minutos para dias
-        message = `🎉 Acesso concedido! Próximo anúncio em ${days} dias.`;
+        actionText = 'análise financeira';
+        message = `🎉 Acesso liberado! Você tem 1 hora de acesso livre à análise financeira.`;
       } else {
         actionText = action === 'bills' ? 'contas' : 'transações';
         message = `🎉 Você ganhou ${config.rewardActions} ${actionText}! Próximo anúncio em ${config.cooldownMinutes} min.`;
@@ -292,15 +313,10 @@ export class AdCooldownManager {
       const config = this.CONFIG[action];
       const now = new Date();
       
-      // Para financial_analysis, adicionar 1 mensagem extra ao contador (não resetar)
       if (action === 'financial_analysis') {
-        // Buscar contador atual
-        const currentCount = await MessageLimitManager.getCurrentMessageCount(userId);
-        // Adicionar 1 mensagem extra (diminuir o contador em 1)
-        if (currentCount > 0) {
-          await MessageLimitManager.decrementMessageCount(userId);
-        }
-        console.log(`🎁 Uma mensagem adicional concedida para usuário ${userId}`);
+        // Para análise financeira, apenas registrar que o acesso foi concedido
+        // O acesso será válido por 1 hora a partir de agora
+        console.log(`🎁 [FINANCIAL_ANALYSIS] Acesso de 1 hora concedido para usuário ${userId}`);
       } else {
         // Para bills e transactions, usar o sistema de ações gratuitas
         const actionsKey = `freeActions_${userId}_${action}_${this.getTodayString()}`;
@@ -314,7 +330,15 @@ export class AdCooldownManager {
       cooldownData.lastAdTime = now;
       cooldownData.adsWatchedToday++;
       cooldownData.cooldownActive = true;
-      cooldownData.nextAdAvailableAt = new Date(now.getTime() + (config.cooldownMinutes * 60 * 1000));
+      
+      if (action === 'financial_analysis') {
+        // Para análise financeira, não definir nextAdAvailableAt
+        // O próximo anúncio só será solicitado quando o usuário tentar acessar novamente após 1 hora
+        cooldownData.nextAdAvailableAt = undefined;
+      } else {
+        // Para outros tipos, usar cooldown normal
+        cooldownData.nextAdAvailableAt = new Date(now.getTime() + (config.cooldownMinutes * 60 * 1000));
+      }
       
       await this.saveCooldownData(cooldownData);
       

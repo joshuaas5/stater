@@ -131,7 +131,7 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '', onM
                     className="p-4 border-b border-white/10 last:border-b-0 hover:bg-white/5 transition-colors"
                   >
                     <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                         notification.type === 'day_warning' 
                           ? 'bg-orange-500/20 border border-orange-400/30' 
                           : 'bg-red-500/20 border border-red-400/30'
@@ -139,10 +139,10 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '', onM
                         {getNotificationIcon(notification.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm text-white mb-1">
+                        <h4 className="font-medium text-sm text-white mb-1 leading-tight">
                           {notification.title}
                         </h4>
-                        <p className="text-xs text-white/70 mb-2">
+                        <p className="text-xs text-white/70 mb-2 leading-relaxed">
                           {notification.message}
                         </p>
                         <div className="flex items-center justify-between">

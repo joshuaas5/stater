@@ -129,14 +129,13 @@ html, body, #root {
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer !important;
-  transition: all 0.2s ease !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease !important;
   z-index: 10 !important;
 }
 
 .toaster button[data-close-button]:hover {
   background: rgba(255, 255, 255, 1) !important;
   border-color: rgba(0, 0, 0, 0.2) !important;
-  transform: scale(1.05) !important;
 }
 
 .toaster button[data-close-button] svg {

@@ -132,7 +132,7 @@ export function PaywallModal({ isOpen, onClose, onUpgrade, trigger, userId }: Pa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="p-0 border-0 bg-transparent max-w-none w-full h-full sm:max-w-md sm:h-auto sm:w-auto">
+      <DialogContent className="p-0 border-0 bg-transparent max-w-none w-full h-full overflow-hidden">
         <VisuallyHidden>
           <DialogTitle>Stater Premium</DialogTitle>
           <DialogDescription>

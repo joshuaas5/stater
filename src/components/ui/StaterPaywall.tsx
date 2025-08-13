@@ -112,7 +112,11 @@ const StaterPaywall = () => {
                 <span>Não se preocupe mais com limites de mensagens, áudios, arquivos, relatórios ou transações</span>
               </li>
               <li className="flex items-start gap-2 sm:gap-3">
-                <span className="text-lg sm:text-xl flex-shrink-0">📱</span>
+                <span className="text-lg sm:text-xl flex-shrink-0">�</span>
+                <span>Livre de anúncios — experiência premium sem interrupções</span>
+              </li>
+              <li className="flex items-start gap-2 sm:gap-3">
+                <span className="text-lg sm:text-xl flex-shrink-0">�📱</span>
                 <span>Controle total pelo Telegram ou app</span>
               </li>
               <li className="flex items-start gap-2 sm:gap-3">

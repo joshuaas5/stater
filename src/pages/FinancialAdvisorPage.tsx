@@ -528,7 +528,7 @@ const isAddBillIntent = (msg: string) => {
       console.log('❌ [AUDIO_PREMIUM_REQUIRED] Áudio requer premium - mostrando paywall imediato');
       setMessages(prev => [...prev, {
         id: uuidv4(),
-        text: `🎙️ **Recurso Premium Necessário**\n\n❌ Áudios estão disponíveis apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• 🎙️ Áudios ilimitados\n• 📊 Análise de PDFs e imagens\n•  Relatórios ilimitados em diversos formatos\n• 🚫 Livre de anúncios\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
+        text: `🎙️ **Recurso Premium Necessário**\n\n❌ Áudios estão disponíveis apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• 🎙️ Envie áudios sempre que precisar\n• 📊 Análise de PDFs e imagens\n• 📋 Relatórios em diversos formatos\n• 🚫 Livre de anúncios\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
         sender: 'assistant',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR
@@ -874,7 +874,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
                 console.log('🚫 [PAYWALL] Sem mensagens restantes e reward ad não assistido');
                 setMessages(prev => [...prev, {
                   id: uuidv4(),
-                  text: `🚫 **Você atingiu seus limites**\n\nPara continuar usando o Stater:\n\n✨ **Stater Premium:**\n• 🤖 Não se preocupe mais com limites de mensagens\n• 📊 Análise de PDFs e imagens\n• 🎙️ IA entende áudios e facilita sua vida\n• 🚫 Livre de anúncios\n• 📋 Relatórios ilimitados em diversos formatos\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**`,
+                  text: `🚫 **Você atingiu seus limites**\n\nPara continuar usando o Stater:\n\n✨ **Stater Premium:**\n• 🤖 Não se preocupe mais com limites de mensagens\n• 📊 Análise de PDFs e imagens\n• 🎙️ Envie áudios sempre que precisar\n• 🚫 Livre de anúncios\n• 📋 Relatórios em diversos formatos\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**`,
                   sender: 'assistant',
                   timestamp: new Date(),
                   avatarUrl: IA_AVATAR
@@ -3051,7 +3051,7 @@ const handleImageUpload = async (imageBase64: string) => {
         const mediaType = isPdf ? '📑 PDFs' : '🖼️ Imagens';
         setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: `${mediaType} **Recurso Premium Necessário**\n\n❌ Análise de ${isPdf ? 'PDFs' : 'imagens'} está disponível apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• ${mediaType} ilimitados\n• 🎙️ Áudios ilimitados\n• 🤖 Não se preocupe mais com limites de mensagens\n•  Relatórios ilimitados em diversos formatos\n• 🚫 Livre de anúncios\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
+          text: `${mediaType} **Recurso Premium Necessário**\n\n❌ Análise de ${isPdf ? 'PDFs' : 'imagens'} está disponível apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• ${isPdf ? '📑 PDFs sem preocupação com limite' : '🖼️ Imagens sem preocupação com limite'}\n• 🎙️ Envie áudios sempre que precisar\n• 🤖 Não se preocupe mais com limites de mensagens\n• 📋 Relatórios em diversos formatos\n• 🚫 Livre de anúncios\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
           sender: 'assistant',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
@@ -3151,7 +3151,7 @@ const handleImageUpload = async (imageBase64: string) => {
       // Verificar se é erro de abort (timeout do cliente)
       if (abortControllerRef.current && abortControllerRef.current.signal.aborted) {        setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: "⏱️ Processamento Otimizado (40s)\n\nO documento está sendo processado de forma mais rápida agora.\n\n💡 Dicas para acelerar ainda mais:\n• Para PDFs grandes: Divida em seções menores ou use imagens\n• Para extratos longos: Faça capturas de tela de partes específicas\n• Alternativa mais rápida: Tire fotos claras das páginas importantes\n• Documentos complexos: Simplifique removendo páginas extras\n\n� Quer tentar novamente? O sistema está otimizado para respostas mais rápidas!",
+          text: "⏱️ Processamento Otimizado (40s)\n\nO documento está sendo processado de forma mais rápida agora.\n\n💡 Dicas para acelerar ainda mais:\n• Para PDFs grandes: Divida em seções menores ou use imagens\n• Para extratos longos: Faça capturas de tela de partes específicas\n• Alternativa mais rápida: Tire fotos claras das páginas importantes\n• Documentos complexos: Simplifique removendo páginas extras\n\n🔄 Quer tentar novamente? O sistema está otimizado para respostas mais rápidas!",
           sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR

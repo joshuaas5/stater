@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+﻿import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
@@ -528,7 +528,7 @@ const isAddBillIntent = (msg: string) => {
       console.log('❌ [AUDIO_PREMIUM_REQUIRED] Áudio requer premium - mostrando paywall imediato');
       setMessages(prev => [...prev, {
         id: uuidv4(),
-        text: `🎙️ **Recurso Premium Necessário**\n\n❌ Áudios estão disponíveis apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• 🎙️ Áudios ilimitados\n• 📊 Análise de PDFs e imagens\n• � Relatórios ilimitados em diversos formatos\n• 🚫 Livre de anúncios\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
+        text: `🎙️ **Recurso Premium Necessário**\n\n❌ Áudios estão disponíveis apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• 🎙️ Áudios ilimitados\n• 📊 Análise de PDFs e imagens\n•  Relatórios ilimitados em diversos formatos\n• 🚫 Livre de anúncios\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
         sender: 'assistant',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR
@@ -3054,7 +3054,7 @@ const handleImageUpload = async (imageBase64: string) => {
         const mediaType = isPdf ? '📑 PDFs' : '🖼️ Imagens';
         setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: `${mediaType} **Recurso Premium Necessário**\n\n❌ Análise de ${isPdf ? 'PDFs' : 'imagens'} está disponível apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• ${mediaType} ilimitados\n• 🎙️ Áudios ilimitados\n• 🤖 Não se preocupe mais com limites de mensagens\n• � Relatórios ilimitados em diversos formatos\n• 🚫 Livre de anúncios\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
+          text: `${mediaType} **Recurso Premium Necessário**\n\n❌ Análise de ${isPdf ? 'PDFs' : 'imagens'} está disponível apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• ${mediaType} ilimitados\n• 🎙️ Áudios ilimitados\n• 🤖 Não se preocupe mais com limites de mensagens\n•  Relatórios ilimitados em diversos formatos\n• 🚫 Livre de anúncios\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
           sender: 'assistant',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR

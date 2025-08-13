@@ -272,7 +272,7 @@ export class AdManager {
    * Simula a exibição de um anúncio rewarded
    * TODO: Integrar com AdMob ou similar
    */
-  static async showRewardedAd(type: 'bills' | 'transactions' | 'messages'): Promise<AdResult> {
+  static async showRewardedAd(type: 'bills' | 'transactions' | 'messages' | 'financial_analysis' | 'report_downloads' | 'recurring_transactions'): Promise<AdResult> {
     try {
       // Por enquanto, simular anúncio
       console.log(`🎬 Mostrando anúncio rewarded: ${type}`);
@@ -311,14 +311,20 @@ export class AdManager {
   /**
    * Define a recompensa baseada no tipo de anúncio
    */
-  static getAdReward(type: 'bills' | 'transactions' | 'messages'): string {
+  static getAdReward(type: 'bills' | 'transactions' | 'messages' | 'financial_analysis' | 'report_downloads' | 'recurring_transactions'): string {
     switch (type) {
       case 'bills':
         return 'Continue adicionando contas';
       case 'transactions':
         return 'Continue adicionando transações';
       case 'messages':
-        return 'Mensagens liberadas para uso';
+        return 'Continue enviando mensagens';
+      case 'financial_analysis':
+        return 'Continue usando análise financeira';
+      case 'report_downloads':
+        return 'Continue baixando relatórios';
+      case 'recurring_transactions':
+        return 'Continue criando transações recorrentes';
       default:
         return 'Obrigado por assistir!';
     }
@@ -327,7 +333,7 @@ export class AdManager {
   /**
    * Processa a recompensa após assistir um anúncio
    */
-  static async processAdReward(userId: string, type: 'bills' | 'transactions' | 'messages'): Promise<void> {
+  static async processAdReward(userId: string, type: 'bills' | 'transactions' | 'messages' | 'financial_analysis' | 'report_downloads' | 'recurring_transactions'): Promise<void> {
     try {
       // Marcar que o ad foi assistido
       if (type === 'bills' || type === 'transactions') {

@@ -115,7 +115,10 @@ export class RewardCooldownManager {
       const now = new Date();
       const cooldownEnds = new Date(now.getTime() + (config.durationMinutes * 60 * 1000));
 
-      console.log(`🎯 [COOLDOWN] Registrando reward para ${featureType} - duração: ${config.durationMinutes}min`);
+      console.log(`🎯 [COOLDOWN] Registrando reward para ${featureType}:`);
+      console.log(`   - Duração configurada: ${config.durationMinutes} minutos`);
+      console.log(`   - Cooldown termina em: ${cooldownEnds.toISOString()}`);
+      console.log(`   - Minutos até o fim: ${config.durationMinutes}`);
 
       const { error } = await supabase
         .from('reward_ad_cooldowns')

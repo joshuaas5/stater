@@ -89,7 +89,7 @@ const ExportReportPage: React.FC = () => {
         
         if (cooldownResult.canWatchAd) {
           // Mostrar reward ad imediatamente
-          const adResult = await AdManager.showRewardedAd('messages'); // Usar 'messages' como tipo válido
+          const adResult = await AdManager.showRewardedAd('report_downloads');
           
           if (adResult.success) {
             console.log('✅ [REPORT_REWARD] Reward ad assistido com sucesso - permitindo download');

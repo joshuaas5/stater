@@ -764,7 +764,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         
         if (cooldownResult.canWatchAd) {
           // Mostrar reward ad
-          const adResult = await AdManager.showRewardedAd('messages');
+          const adResult = await AdManager.showRewardedAd('financial_analysis');
           
           if (adResult.success) {
             console.log('✅ [REWARD_AD] Assistido com sucesso - processando mensagem');

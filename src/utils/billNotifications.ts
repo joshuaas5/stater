@@ -132,8 +132,6 @@ export const showBillNotifications = (): void => {
           duration: 8000,
           dismissible: true,
           closeButton: true
-            }
-          }
         });
         break;
     }

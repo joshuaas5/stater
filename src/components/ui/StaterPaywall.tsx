@@ -6,7 +6,7 @@ import React from "react";
  */
 
 const css = `
-.rotator { position: relative; height: 2.2em; overflow: hidden; }
+.rotator { position: relative; height: 3.2em; overflow: hidden; margin-bottom: 0.5rem; }
 .rotator > span { position: absolute; inset: 0; opacity: 0; transform: translateY(8px); animation: swap 12s infinite; }
 .rotator > span:nth-child(1){ animation-delay: 0s; }
 .rotator > span:nth-child(2){ animation-delay: 4s; }
@@ -40,7 +40,7 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {} }: StaterPaywallProps
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 z-[999999999]">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 z-[2147483648]">
       <div className="w-full max-w-sm bg-gradient-blue rounded-2xl shadow-glow overflow-hidden relative max-h-[95vh] overflow-y-auto">
         {/* CSS customizado */}
         <style>{`
@@ -61,7 +61,7 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {} }: StaterPaywallProps
         <div className="p-3 text-center">
           <Badge>🎁 TESTE GRÁTIS - 3 DIAS</Badge>
           
-          <h1 className="mt-2 text-lg font-extrabold text-white" aria-live="polite">
+          <h1 className="mt-3 text-lg font-extrabold text-white" aria-live="polite">
             <div className="rotator">
               <span>Seus insights financeiros estão bloqueados... 🔒</span>
               <span>Automação financeira a 1 clique de distância... 🤖</span>
@@ -69,7 +69,7 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {} }: StaterPaywallProps
             </div>
           </h1>
 
-          <p className="mt-3 text-xs text-blue-100 leading-relaxed">
+          <p className="mt-2 text-xs text-blue-100 leading-relaxed">
             💬 <strong>Envie áudios, fotos, PDFs</strong> — tudo organizado automaticamente.
           </p>
         </div>

@@ -77,45 +77,60 @@ const ExportReportPage: React.FC = () => {
     }
 
     try {
-      // 🎯 NOVA ESTRATÉGIA: Para usuários FREE, mostrar reward ad imediatamente no primeiro acesso
+      // 🎯 NOVO SISTEMA: Contador de relatórios para usuários FREE
       const userPlan = await UserPlanManager.getUserPlan(user.id);
       const isPremium = userPlan.planType !== 'free';
       
       if (!isPremium) {
-        console.log('🎬 [REPORT_REWARD] Usuário FREE acessando relatórios - mostrando reward ad imediato');
+        // Importar o ReportCounter
+        const { ReportCounter } = await import('@/utils/reportCounter');
         
-        // Verificar cooldown do reward ad
-        const cooldownResult = await RewardCooldownManager.checkCooldownStatus(user.id, 'report_downloads');
+        // Verificar contador de relatórios
+        const counterResult = await ReportCounter.incrementAndCheck(user.id);
         
-        if (cooldownResult.canWatchAd) {
-          // Mostrar reward ad imediatamente
-          const adResult = await AdManager.showRewardedAd('report_downloads');
+        if (counterResult.shouldShowRewardAd) {
+          console.log('🎬 [REPORT_REWARD] Mostrando reward ad após atingir limite');
           
-          if (adResult.success) {
-            console.log('✅ [REPORT_REWARD] Reward ad assistido com sucesso - permitindo download');
-            toast({
-              title: '🎁 Recompensa obtida!',
-              description: 'Você ganhou acesso ao relatório por assistir o anúncio!',
-            });
+          // Verificar cooldown do reward ad
+          const cooldownResult = await RewardCooldownManager.checkCooldownStatus(user.id, 'report_downloads');
+          
+          if (cooldownResult.canWatchAd) {
+            // Mostrar reward ad
+            const adResult = await AdManager.showRewardedAd('report_downloads');
+            
+            if (adResult.success) {
+              console.log('✅ [REPORT_REWARD] Reward ad assistido com sucesso - permitindo download');
+              toast({
+                title: '🎁 Recompensa obtida!',
+                description: 'Você ganhou acesso ao relatório por assistir o anúncio!',
+              });
+            } else {
+              // Usuário não assistiu o reward ad, bloquear acesso
+              console.log('❌ [REPORT_REWARD] Reward ad não assistido - bloqueando acesso');
+              toast({
+                title: '🎬 Assista o anúncio',
+                description: 'Para baixar mais relatórios, é necessário assistir um anúncio ou assinar o Premium.',
+                variant: 'destructive',
+              });
+              return;
+            }
           } else {
-            // Usuário não assistiu o reward ad, bloquear acesso
-            console.log('❌ [REPORT_REWARD] Reward ad não assistido - bloqueando acesso');
+            // Cooldown ativo - mostrar informações sobre cooldown
+            console.log('⏰ [REPORT_REWARD] Cooldown ativo - informando usuário');
             toast({
-              title: '🎬 Assista o anúncio',
-              description: 'Para baixar relatórios, é necessário assistir um anúncio ou assinar o Premium.',
-              variant: 'destructive',
+              title: '⏰ Aguarde para o próximo anúncio',
+              description: `Você pode assistir um novo anúncio em ${cooldownResult.remainingMinutes} minutos ou assinar o Premium para acesso ilimitado.`,
+              variant: 'default',
             });
             return;
           }
         } else {
-          // Cooldown ativo - mostrar paywall ou informar sobre cooldown
-          console.log('⏰ [REPORT_REWARD] Cooldown ativo - mostrando informações');
+          // Ainda dentro do limite gratuito ou já assistiu ad recentemente
+          console.log(`📊 [REPORT_REWARD] Relatório ${counterResult.currentCount} - permitindo download sem ad`);
           toast({
-            title: '⏰ Aguarde para o próximo anúncio',
-            description: `Você pode assistir um novo anúncio em ${cooldownResult.remainingMinutes} minutos ou assinar o Premium para acesso ilimitado.`,
-            variant: 'default',
+            title: '📊 Relatório disponível',
+            description: `Relatório ${counterResult.currentCount} - próximo anúncio em ${counterResult.nextRewardAt} relatórios.`,
           });
-          return;
         }
       } else {
         console.log('✅ [REPORT_PREMIUM] Usuário premium - acesso direto aos relatórios');

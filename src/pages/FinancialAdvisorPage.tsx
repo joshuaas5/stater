@@ -801,7 +801,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
             console.log('🚫 [PAYWALL] Sem mensagens e cooldown de reward ad ativo');
             setMessages(prev => [...prev, {
               id: uuidv4(),
-              text: `🚫 **Seus limites se renovam semanalmente**\n\nMas para uso ilimitado, basta assinar o Stater Premium:\n\n✨ **Stater Premium:**\n• 🤖 Nunca mais se preocupe com limites de mensagens\n• 📊 Análise de PDFs e imagens\n• 🎙️ IA entende áudios e facilita (muito) a sua vida\n• 🚫 Livre de anúncios\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**`,
+              text: `🚫 **Você atingiu seus limites**\n\nPara continuar usando o Stater:\n\n✨ **Stater Premium:**\n• 🤖 Mensagens com IA\n• 📊 Análise de PDFs e imagens\n• 🎙️ IA entende áudios e facilita sua vida\n• 🚫 Livre de anúncios\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**`,
               sender: 'assistant',
               timestamp: new Date(),
               avatarUrl: IA_AVATAR

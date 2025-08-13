@@ -778,7 +778,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
               console.log('🚫 [PAYWALL] Sem mensagens restantes e reward ad não assistido');
               setMessages(prev => [...prev, {
                 id: uuidv4(),
-                text: `� **Assine o Stater Premium**\n\nPara continuar conversando com o Stater IA:\n\n✨ **Benefícios Premium:**\n• 🤖 Mensagens ilimitadas\n• 📊 Análise ilimitada de PDFs e imagens\n• 🎙️ Áudios ilimitados\n• 📄 Downloads ilimitados de relatórios\n• 🔄 Transações recorrentes ilimitadas\n• 🔗 Conexão com Telegram\n• 🚫 Sem anúncios\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
+                text: `🚫 **Seus limites se renovam semanalmente**\n\nMas para uso ilimitado, basta assinar o Stater Premium:\n\n✨ **Stater Premium:**\n• 🤖 Nunca mais se preocupe com limites de mensagens\n• 📊 Análise de PDFs e imagens\n• 🎙️ IA entende áudios e facilita (muito) a sua vida\n• � Livre de anúncios\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**`,
                 sender: 'assistant',
                 timestamp: new Date(),
                 avatarUrl: IA_AVATAR
@@ -801,7 +801,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
             console.log('🚫 [PAYWALL] Sem mensagens e cooldown de reward ad ativo');
             setMessages(prev => [...prev, {
               id: uuidv4(),
-              text: `⏰ **Aguarde o próximo reward ad**\n\nVocê pode assistir um novo anúncio em ${cooldownResult.remainingMinutes} minutos para ganhar mais mensagens.\n\n**Ou assine o Premium e tenha mensagens ilimitadas:**\n\n✨ **Stater Premium:**\n• 🤖 Mensagens ilimitadas\n• 📊 Análise ilimitada de PDFs e imagens\n• 🎙️ Áudios ilimitados\n• 🚫 Sem anúncios\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**`,
+              text: `🚫 **Seus limites se renovam semanalmente**\n\nMas para uso ilimitado, basta assinar o Stater Premium:\n\n✨ **Stater Premium:**\n• 🤖 Nunca mais se preocupe com limites de mensagens\n• 📊 Análise de PDFs e imagens\n• 🎙️ IA entende áudios e facilita (muito) a sua vida\n• 🚫 Livre de anúncios\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**`,
               sender: 'assistant',
               timestamp: new Date(),
               avatarUrl: IA_AVATAR

@@ -110,6 +110,41 @@ html, body, #root {
   z-index: 2147483648 !important;
 }
 
+/* Sonner toast customization - botão X dentro do modal */
+.toaster [data-sonner-toast] {
+  position: relative !important;
+  padding-right: 44px !important; /* Espaço para o botão X */
+}
+
+.toaster button[data-close-button] {
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 6px !important;
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  z-index: 10 !important;
+}
+
+.toaster button[data-close-button]:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+  transform: scale(1.05) !important;
+}
+
+.toaster button[data-close-button] svg {
+  width: 14px !important;
+  height: 14px !important;
+  color: #666 !important;
+}
+
 @layer base {
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;700;900&family=Fredoka+One&display=swap');
 

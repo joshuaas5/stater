@@ -24,6 +24,9 @@ import {
   getTransactionsFromLastDays 
 } from '@/utils/dataProcessing';
 import { getCurrentUser, getTransactions, isLoggedIn, saveTransaction, updateTransaction, deleteTransaction, uuidv4, forceSupabaseSync, startAutoSync, stopAutoSync } from '@/utils/localStorage';
+import { TransactionCounter } from '@/utils/transactionCounter';
+import { UserPlanManager } from '@/utils/userPlanManager';
+import { AdManager } from '@/utils/adManager';
 import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -1218,6 +1221,39 @@ const Dashboard: React.FC = () => {
             });
 
             saveTransaction(transaction);
+            
+            // 🎯 NOVA ESTRATÉGIA: Verificar contador de transações para reward ad
+            try {
+              // Verificar se o usuário é premium
+              const userPlan = await UserPlanManager.getUserPlan(user.id);
+              const isPremium = userPlan.planType !== 'free';
+              
+              if (!isPremium) {
+                // Incrementar contador e verificar se deve mostrar reward ad
+                const counterResult = await TransactionCounter.incrementAndCheck(user.id);
+                
+                if (counterResult.shouldShowRewardAd) {
+                  console.log('🎬 [TRANSACTION_REWARD] Mostrando reward ad após 5 transações');
+                  
+                  // Mostrar reward ad específico para transações
+                  const adResult = await AdManager.showRewardedAd('transactions');
+                  
+                  if (adResult.success) {
+                    console.log('✅ [TRANSACTION_REWARD] Reward ad assistido com sucesso');
+                    toast({
+                      title: '🎁 Recompensa obtida!',
+                      description: 'Você ganhou mais transações por assistir o anúncio!',
+                    });
+                  } else {
+                    console.log('❌ [TRANSACTION_REWARD] Reward ad não assistido');
+                  }
+                } else {
+                  console.log(`📊 [TRANSACTION_COUNTER] ${counterResult.nextRewardAt} transações restantes para próximo reward ad`);
+                }
+              }
+            } catch (error) {
+              console.error('❌ [TRANSACTION_REWARD] Erro ao processar contador:', error);
+            }
             
             // Resetar formulário
             setNewTransaction({

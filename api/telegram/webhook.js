@@ -501,7 +501,7 @@ async function handleTextMessage(msg) {
         const isPremiumUser = await checkUserPremiumStatus(userSession.userId);
         if (!isPremiumUser) {
             console.log('❌ [TELEGRAM_BOT] Usuário não premium tentando usar bot:', userSession.userName);
-            await sendMessage(chatId, `🔒 *Acesso Premium Necessário*\n\n❌ O bot do Telegram está disponível apenas para usuários premium.\n\n✨ *Assine o Stater Premium* e tenha:\n• 🤖 Acesso completo ao bot\n• 📱 Stater IA ilimitado\n• 📊 Relatórios avançados\n• 🚫 Sem anúncios\n\n🎁 *Teste GRÁTIS por 3 dias!*\n💰 *Depois apenas R$ 19,90/mês*\n\n⬆️ Faça upgrade no app para continuar!`, { 
+            await sendMessage(chatId, `🔒 *Acesso Premium Necessário*\n\n❌ O bot do Telegram está disponível apenas para usuários premium.\n\n✨ *Assine o Stater Premium* e tenha:\n• 🤖 Não se preocupe mais com limites de mensagens\n• 📱 Stater IA ilimitado\n• 📊 Análise de PDFs e imagens\n• 📋 Relatórios ilimitados em diversos formatos\n• 🚫 Livre de anúncios\n• E muito mais!\n\n🎁 *Teste GRÁTIS por 3 dias!*\n💰 *Depois apenas R$ 19,90/mês*\n\n⬆️ Faça upgrade no app para continuar!`, { 
                 parse_mode: 'Markdown' 
             });
             return;

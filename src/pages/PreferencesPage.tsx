@@ -276,34 +276,7 @@ const PreferencesPage: React.FC = () => {
         </div>
       </div>
       
-      {/* SEÇÃO TELEGRAM - MOVIDA PARA DEPOIS DOS RECURSOS ADICIONAIS */}
-      <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-[10px] border border-white/20 p-5 mb-4">
-        <h2 className="text-base font-semibold text-white mb-3 flex items-center">
-          <MessageCircle size={18} className="mr-2" /> Bot Telegram
-        </h2>
-        <div className="space-y-3">
-          <p className="text-sm text-white/80">
-            Conecte sua conta ao nosso bot do Telegram para receber análises de extratos e conversar sobre suas finanças.
-          </p>
-          
-          <div className="bg-white/5 backdrop-blur-[8px] p-3 rounded-lg border border-white/20">
-            <p className="text-xs text-white/70 mb-2">🤖 <strong>@assistentefinanceiroiabot</strong> (STATER IA)</p>
-            <p className="text-xs text-white/70 mb-3">
-              • Análise automática de extratos bancários<br/>
-              • Chat inteligente sobre suas finanças<br/>
-              • Notificações de contas vencendo
-            </p>
-            
-            <Button 
-              variant="outline"
-              className="w-full border border-blue-400 bg-white/5 backdrop-blur-[8px] text-blue-400 hover:bg-blue-400/10 hover:backdrop-blur-[12px] transition-all duration-300"
-              onClick={() => navigate('/settings/telegram')}
-            >
-              <MessageCircle size={16} className="mr-2" /> Configurar Telegram
-            </Button>
-          </div>
-        </div>
-      </div>
+      {/* SEÇÃO TELEGRAM REMOVIDA - BOTÃO NÃO FUNCIONANTE */}
       
       <div className="pt-2 pb-4">
         <Button

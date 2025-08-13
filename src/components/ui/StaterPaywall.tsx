@@ -4,7 +4,6 @@ import React from "react";
  * Stater Paywall - Versão Mobile First
  * Fundo azul mais escuro, preços atualizados, design mais chamativo
  */
-
 const css = `
 .rotator { position: relative; height: 2.8em; overflow: hidden; }
 .rotator > span { position: absolute; inset: 0; opacity: 0; transform: translateY(12px); animation: swap 12s infinite; }
@@ -150,12 +149,8 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
                 <span>Relatórios detalhados com insights inteligentes</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-xl">�</span>
+                <span className="text-xl">🚫</span>
                 <span>Livre de anúncios</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">�🔒</span>
-                <span>Segurança total dos seus dados</span>
               </li>
             </ul>
           </div>
@@ -179,6 +174,10 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
           
           <div className="mt-4 text-center text-xs text-blue-300">
             Pagamentos seguros • Cancelamento fácil • Suporte via app
+            <br />
+            <span className="text-xs opacity-75">
+              Todas as transações são registradas e feitas diretamente pela Google Play
+            </span>
           </div>
         </div>
       </div>

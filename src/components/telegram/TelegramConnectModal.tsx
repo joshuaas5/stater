@@ -2,6 +2,9 @@
 import { X, Copy, Check } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { UserPlanManager } from '@/utils/userPlanManager';
+import { PaywallModal } from '@/components/ui/PaywallModal';
+import { PlanType } from '@/types';
 
 interface TelegramConnectModalProps {
   isOpen: boolean;
@@ -19,6 +22,7 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
   const [isCodeCopied, setIsCodeCopied] = useState(false);
   const [error, setError] = useState('');
   const [isPolling, setIsPolling] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const { user } = useAuth();
 
   // Função para logs apenas em desenvolvimento
@@ -98,6 +102,25 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
   const generateCode = async () => {
     if (!user) {
       setError('Usuário não autenticado');
+      return;
+    }
+
+    // 🔒 VERIFICAR PLANO PREMIUM PRIMEIRO
+    try {
+      console.log('🔍 [TELEGRAM] Verificando acesso ao Telegram para usuário:', user.id);
+      
+      const hasAccess = await UserPlanManager.hasFeatureAccess(user.id, 'telegramBot');
+      
+      if (!hasAccess) {
+        console.log('❌ [TELEGRAM] Usuário FREE tentando conectar Telegram - bloqueando');
+        setShowPaywall(true);
+        return;
+      }
+      
+      console.log('✅ [TELEGRAM] Usuário premium - permitindo conexão');
+    } catch (error) {
+      console.error('❌ [TELEGRAM] Erro ao verificar plano:', error);
+      setError('Erro ao verificar seu plano. Tente novamente.');
       return;
     }
 
@@ -198,145 +221,164 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
     window.open('https://t.me/assistentefinanceiroiabot', '_blank');
   };
 
+  const handlePaywallUpgrade = (planType: PlanType) => {
+    console.log('✅ [TELEGRAM] Usuário fez upgrade para:', planType);
+    setShowPaywall(false);
+    // Tentar gerar código novamente após upgrade
+    setTimeout(() => generateCode(), 1000);
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-sm max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 rounded-t-lg">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold">Conectar ao Telegram</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 p-1"
-            >
-              <X size={20} />
-            </button>
-          </div>
-        </div>
-
-        <div className="px-4 py-3 space-y-4">
-          <div className="text-center">
-            <p className="text-sm text-gray-600 mb-2">
-              🚀 <strong>Conecte-se ao Stater IA!</strong>
-            </p>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-              <p className="text-xs text-blue-800 mb-2 font-medium">✨ O que você pode fazer:</p>
-              <ul className="text-xs text-blue-700 space-y-1">
-                <li>📊 Ver saldo e transações</li>
-                <li>📸 Enviar foto do extrato</li>
-                <li>🤖 Fazer perguntas sobre dinheiro</li>
-                <li>💰 Registrar transações por voz</li>
-              </ul>
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg w-full max-w-sm max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 rounded-t-lg">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Conectar ao Telegram</h2>
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700 p-1"
+              >
+                <X size={20} />
+              </button>
             </div>
           </div>
-          
-          <div>
-            <p className="text-sm text-gray-700 mb-2 font-medium">📱 Como conectar:</p>
-            <ol className="text-xs text-gray-600 space-y-1 mb-3">
-              <li>1. Clique em "Gerar Código"</li>
-              <li>2. Vá ao bot do Telegram</li>
-              <li>3. Cole o código no chat</li>
-              <li>4. Pronto! ✅</li>
-            </ol>
-          </div>
 
-        {!generatedCode ? (
-          <div className="space-y-3">
-            <button
-              onClick={generateCode}
-              disabled={isGenerating}
-              className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium text-sm"
-            >
-              {isGenerating ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  Gerando...
-                </div>
-              ) : (
-                '🔑 Gerar Código'
-              )}
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="text-center">
-                <p className="text-xs text-blue-600 font-medium mb-2">Seu código:</p>
-                <div className="text-xl font-mono font-bold text-blue-800 tracking-widest mb-2">
-                  {generatedCode}
-                </div>
-                <button
-                  onClick={copyCode}
-                  className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
-                >
-                  {isCodeCopied ? (
-                    <>
-                      <Check size={14} />
-                      Copiado!
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={14} />
-                      Copiar
-                    </>
-                  )}
-                </button>
-                
-                {isPolling && (
-                  <div className="mt-2 flex items-center justify-center gap-2 text-xs text-green-600">
-                    <div className="animate-spin rounded-full h-3 w-3 border-2 border-green-600 border-t-transparent"></div>
-                    Aguardando conexão...
-                  </div>
-                )}
+          <div className="px-4 py-3 space-y-4">
+            <div className="text-center">
+              <p className="text-sm text-gray-600 mb-2">
+                🚀 <strong>Conecte-se ao Stater IA!</strong>
+              </p>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                <p className="text-xs text-blue-800 mb-2 font-medium">✨ O que você pode fazer:</p>
+                <ul className="text-xs text-blue-700 space-y-1">
+                  <li>📊 Ver saldo e transações</li>
+                  <li>📸 Enviar foto do extrato</li>
+                  <li>🤖 Fazer perguntas sobre dinheiro</li>
+                  <li>💰 Registrar transações por voz</li>
+                </ul>
               </div>
             </div>
             
-            <button
-              onClick={openTelegramBot}
-              className="w-full px-4 py-2.5 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium text-sm"
-            >
-              📱 Abrir Bot do Telegram
-            </button>
+            <div>
+              <p className="text-sm text-gray-700 mb-2 font-medium">📱 Como conectar:</p>
+              <ol className="text-xs text-gray-600 space-y-1 mb-3">
+                <li>1. Clique em "Gerar Código"</li>
+                <li>2. Vá ao bot do Telegram</li>
+                <li>3. Cole o código no chat</li>
+                <li>4. Pronto! ✅</li>
+              </ol>
+            </div>
+
+          {!generatedCode ? (
+            <div className="space-y-3">
+              <button
+                onClick={generateCode}
+                disabled={isGenerating}
+                className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium text-sm"
+              >
+                {isGenerating ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    Gerando...
+                  </div>
+                ) : (
+                  '🔑 Gerar Código'
+                )}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="text-center">
+                  <p className="text-xs text-blue-600 font-medium mb-2">Seu código:</p>
+                  <div className="text-xl font-mono font-bold text-blue-800 tracking-widest mb-2">
+                    {generatedCode}
+                  </div>
+                  <button
+                    onClick={copyCode}
+                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
+                  >
+                    {isCodeCopied ? (
+                      <>
+                        <Check size={14} />
+                        Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={14} />
+                        Copiar
+                      </>
+                    )}
+                  </button>
+                  
+                  {isPolling && (
+                    <div className="mt-2 flex items-center justify-center gap-2 text-xs text-green-600">
+                      <div className="animate-spin rounded-full h-3 w-3 border-2 border-green-600 border-t-transparent"></div>
+                      Aguardando conexão...
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <button
+                onClick={openTelegramBot}
+                className="w-full px-4 py-2.5 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium text-sm"
+              >
+                📱 Abrir Bot do Telegram
+              </button>
+              
+              <button
+                onClick={onClose}
+                className="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+              >
+                Fechar
+              </button>
+            </div>
+          )}
+
+          {error && (
+            <div className="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
+              {error}
+            </div>
+          )}
+
+          <div className="mt-4 text-xs text-gray-600">
+            <p className="font-semibold mb-2">
+              <strong>Bot:</strong> @assistentefinanceiroiabot
+            </p>
             
-            <button
-              onClick={onClose}
-              className="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
-            >
-              Fechar
-            </button>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-2">
+              <p className="font-semibold text-gray-700 mb-2">💬 Exemplos de como usar:</p>
+              <ul className="space-y-1 text-gray-600">
+                <li>• "Registrei uma compra de R$ 45 no mercado"</li>
+                <li>• "Qual meu saldo atual?"</li>
+                <li>• "Como posso economizar mais?"</li>
+                <li>• Envie fotos de extratos ou notas fiscais 📷</li>
+              </ul>
+            </div>
+            
+            <p className="text-xs text-gray-500 text-center">
+              ⏰ O código expira em 15 minutos
+            </p>
           </div>
-        )}
-
-        {error && (
-          <div className="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
-            {error}
           </div>
-        )}
-
-        <div className="mt-4 text-xs text-gray-600">
-          <p className="font-semibold mb-2">
-            <strong>Bot:</strong> @assistentefinanceiroiabot
-          </p>
-          
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-2">
-            <p className="font-semibold text-gray-700 mb-2">💬 Exemplos de como usar:</p>
-            <ul className="space-y-1 text-gray-600">
-              <li>• "Registrei uma compra de R$ 45 no mercado"</li>
-              <li>• "Qual meu saldo atual?"</li>
-              <li>• "Tenho contas para pagar hoje?"</li>
-              <li>• "Como posso economizar mais?"</li>
-              <li>• Envie fotos de extratos ou notas fiscais 📷</li>
-            </ul>
-          </div>
-          
-          <p className="text-xs text-gray-500 text-center">
-            ⏰ O código expira em 15 minutos
-          </p>
-        </div>
         </div>
       </div>
-    </div>
+
+      {/* Modal de Paywall para usuários FREE */}
+      {showPaywall && user && (
+        <PaywallModal
+          isOpen={showPaywall}
+          onClose={() => setShowPaywall(false)}
+          onUpgrade={handlePaywallUpgrade}
+          trigger="manual"
+          userId={user.id}
+        />
+      )}
+    </>
   );
 };

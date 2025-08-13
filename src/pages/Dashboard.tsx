@@ -39,7 +39,6 @@ import { useScrollOptimization } from '@/hooks/useScrollOptimization';
 import VirtualizedTransactionList from '@/components/virtualized/VirtualizedTransactionList';
 import { TransactionModal } from '@/components/modals/TransactionModal';
 import { AdBanner } from '@/components/monetization/AdBanner';
-import { UserPlanManager } from '@/utils/userPlanManager';
 
 //  DEBUG: Log para identificar re-renderizaes do Dashboard
 console.log(' Dashboard.tsx carregado/re-renderizado:', new Date().toISOString());
@@ -1170,7 +1169,7 @@ const Dashboard: React.FC = () => {
         }}
         transaction={editingTransaction}
         type={editingTransaction?.type || newTransaction.type}
-        onSave={(transactionData) => {
+        onSave={async (transactionData) => {
           if (editingTransaction) {
             // Lógica de edição
             const updatedTransaction: Transaction = {

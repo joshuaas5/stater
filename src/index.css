@@ -1,4 +1,13 @@
 
+/* Import scroll optimizations */
+@import './styles/scroll-optimizations.css';
+/* Import critical performance styles */
+@import './styles/critical-performance.css';
+/* IMPORT NAVBAR FORCE - PRIORIDADE ABSOLUTA */
+@import './styles/navbar-force.css';
+/* IMPORT NAVBAR ULTRA FORCE - MÁXIMA PRIORIDADE */
+@import './styles/navbar-ultra-force.css';
+
 /* ===== ANTI-FLASH BRANCO ESTRATÉGICO ===== */
 html, body, #root {
   /* Define a cor de fundo base do app. 
@@ -12,15 +21,6 @@ html, body, #root {
   margin: 0;
   padding: 0;
 }
-
-/* Import scroll optimizations */
-@import './styles/scroll-optimizations.css';
-/* Import critical performance styles */
-@import './styles/critical-performance.css';
-/* IMPORT NAVBAR FORCE - PRIORIDADE ABSOLUTA */
-@import './styles/navbar-force.css';
-/* IMPORT NAVBAR ULTRA FORCE - MÁXIMA PRIORIDADE */
-@import './styles/navbar-ultra-force.css';
 
 @tailwind base;
 @tailwind components;

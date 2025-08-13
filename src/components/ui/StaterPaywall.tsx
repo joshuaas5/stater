@@ -43,7 +43,7 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" data-testid="stater-paywall">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" data-testid="stater-paywall">
       {/* CSS customizado */}
       <style>{`
         ${css}
@@ -57,22 +57,23 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
         .shadow-glow { box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); }
       `}</style>
 
-      <div className="max-w-md mx-auto bg-gradient-blue rounded-3xl shadow-glow overflow-hidden relative">
+      {/* Mobile First Container */}
+      <div className="w-full h-full sm:max-w-md sm:h-auto sm:mx-4 bg-gradient-blue sm:rounded-3xl shadow-glow overflow-hidden relative flex flex-col">
         {/* Botão de fechar */}
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white/70 hover:text-white z-10 text-2xl"
+            className="absolute top-3 right-3 text-white/70 hover:text-white z-10 text-2xl w-8 h-8 flex items-center justify-center rounded-full bg-black/20"
           >
             ×
           </button>
         )}
 
-        {/* Header */}
-        <div className="p-6 text-center">
+        {/* Header Compacto */}
+        <div className="p-4 text-center flex-shrink-0">
           <Badge>🎁 TESTE GRÁTIS - 3 DIAS</Badge>
           
-          <h1 className="mt-4 text-2xl font-extrabold text-white" aria-live="polite">
+          <h1 className="mt-3 text-xl sm:text-2xl font-extrabold text-white" aria-live="polite">
             <div className="rotator">
               <span>Seus insights financeiros estão bloqueados... 🔒</span>
               <span>Automação financeira a 1 clique de distância... 🤖</span>
@@ -80,103 +81,93 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
             </div>
           </h1>
 
-          <p className="mt-4 text-blue-100 leading-relaxed">
+          <p className="mt-3 text-blue-100 text-sm leading-relaxed">
             💬 <strong>Envie áudios, fotos, PDFs ou notas</strong> diretamente para a IA.
             <br />
-            Ela organiza tudo automaticamente: despesas, assinaturas, metas e muito mais.
+            Ela organiza tudo automaticamente.
           </p>
         </div>
 
-        {/* Botões de Ação */}
-        <div className="px-6 pb-4 space-y-3">
+        {/* Botões de Ação Compactos */}
+        <div className="px-4 pb-3 space-y-3 flex-shrink-0">
           <button 
             onClick={() => handleSubscribe('trial')}
-            className="w-full bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold py-4 px-6 rounded-2xl text-lg shadow-xl pulse"
+            className="w-full bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold py-3 px-4 rounded-xl text-base shadow-xl pulse"
           >
-            🎁 INICIAR TESTE GRÁTIS - 3 DIAS
+            🎁 TESTE GRÁTIS - 3 DIAS
           </button>
           
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <button 
               onClick={() => handleSubscribe('monthly')}
-              className="bg-green-500 hover:bg-green-400 text-white font-semibold py-3 px-4 rounded-xl shadow-lg"
+              className="bg-green-500 hover:bg-green-400 text-white font-semibold py-2.5 px-3 rounded-lg shadow-lg text-sm"
             >
               💎 MENSAL<br/>
-              <span className="text-lg font-bold">R$ 19,90</span>
+              <span className="text-base font-bold">R$ 19,90</span>
             </button>
             <button 
               onClick={() => handleSubscribe('weekly')}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 px-3 rounded-lg shadow-lg text-sm"
             >
               📅 SEMANAL<br/>
-              <span className="text-lg font-bold">R$ 8,90</span>
+              <span className="text-base font-bold">R$ 8,90</span>
             </button>
           </div>
         </div>
 
-        {/* Garantias */}
-        <div className="px-6 pb-4">
-          <div className="bg-blue-800/50 rounded-2xl p-4 text-center">
-            <div className="text-sm text-blue-200">
-              ✅ Acesso completo por 3 dias • ✅ Cancele quando quiser • ✅ Sem compromisso
+        {/* Garantias Compactas */}
+        <div className="px-4 pb-3 flex-shrink-0">
+          <div className="bg-blue-800/50 rounded-xl p-3 text-center">
+            <div className="text-xs text-blue-200">
+              ✅ Acesso completo • ✅ Cancele quando quiser • ✅ Sem compromisso
             </div>
           </div>
         </div>
 
-        {/* Benefícios */}
-        <div className="px-6 pb-4">
-          <div className="bg-white/10 rounded-2xl p-5">
-            <div className="text-lg font-bold text-white mb-4 text-center">✨ Benefícios Premium</div>
-            <ul className="space-y-3 text-blue-100">
-              <li className="flex items-start gap-3">
-                <span className="text-xl">🎙️</span>
-                <span>Envie áudios — IA transcreve e registra automaticamente</span>
+        {/* Benefícios Scrolláveis */}
+        <div className="px-4 pb-3 flex-1 overflow-y-auto">
+          <div className="bg-white/10 rounded-xl p-4">
+            <div className="text-base font-bold text-white mb-3 text-center">✨ Benefícios Premium</div>
+            <ul className="space-y-2 text-blue-100 text-sm">
+              <li className="flex items-start gap-2">
+                <span className="text-base">🎙️</span>
+                <span>Envie áudios — IA transcreve automaticamente</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">📄</span>
-                <span>Envie PDFs, fotos e notas — tudo é processado e categorizado</span>
+              <li className="flex items-start gap-2">
+                <span className="text-base">📄</span>
+                <span>Envie PDFs, fotos — tudo é processado</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">🚀</span>
-                <span>Não se preocupe mais com limites de mensagens, arquivos, relatórios ou transações</span>
+              <li className="flex items-start gap-2">
+                <span className="text-base">🚀</span>
+                <span>Sem limites de mensagens ou arquivos</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">📱</span>
-                <span>Controle total pelo Telegram ou app</span>
+              <li className="flex items-start gap-2">
+                <span className="text-base">📱</span>
+                <span>Controle total pelo Telegram</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">📊</span>
-                <span>Relatórios detalhados com insights inteligentes</span>
+              <li className="flex items-start gap-2">
+                <span className="text-base">📊</span>
+                <span>Relatórios detalhados</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">🚫</span>
+              <li className="flex items-start gap-2">
+                <span className="text-base">🚫</span>
                 <span>Livre de anúncios</span>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Pricing Info */}
-        <div className="px-6 pb-4">
-          <div className="bg-green-500 rounded-2xl p-4 text-center">
-            <div className="text-white font-bold">💎 MELHOR OFERTA: MENSAL</div>
-            <div className="text-green-100 text-sm mt-1">
-              Economize com o plano mensal por apenas R$ 19,90
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 pb-6">
-          <div className="text-center text-blue-200 text-sm">
-            🛡️ "Não gostou? Cancele quando quiser. Simples assim."
+        {/* Footer Fixo */}
+        <div className="px-4 pb-4 flex-shrink-0">
+          <div className="text-center text-blue-200 text-xs">
+            🛡️ "Não gostou? Cancele quando quiser."
           </div>
           
-          <div className="mt-4 text-center text-xs text-blue-300">
-            Pagamentos seguros • Cancelamento fácil • Suporte via app
+          <div className="mt-2 text-center text-xs text-blue-300">
+            Pagamentos seguros • Cancelamento fácil
             <br />
             <span className="text-xs opacity-75">
-              Todas as transações são registradas e feitas diretamente pela Google Play
+              Transações via Google Play
             </span>
           </div>
         </div>

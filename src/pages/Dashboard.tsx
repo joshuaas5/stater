@@ -118,6 +118,9 @@ const Dashboard: React.FC = () => {
     }
     return false;
   });
+
+  // Estado para verificar se o usuário é premium
+  const [isUserPremium, setIsUserPremium] = useState(false);
   const [isCheckingTelegram, setIsCheckingTelegram] = useState(false); // Loading mais sutil
 
   // Função SIMPLIFICADA para verificar status do Telegram
@@ -214,6 +217,25 @@ const Dashboard: React.FC = () => {
       return () => clearInterval(interval);
     }
   }, [user?.id, isTelegramLinked]);
+
+  // Verificar se o usuário é premium
+  useEffect(() => {
+    const checkPremiumStatus = async () => {
+      if (user?.id) {
+        try {
+          const userPlan = await UserPlanManager.getUserPlan(user.id);
+          const isPremium = userPlan.planType !== PlanType.FREE;
+          setIsUserPremium(isPremium);
+          console.log('🔍 [PREMIUM] Status verificado:', isPremium ? 'Premium' : 'Free');
+        } catch (error) {
+          console.error('❌ [PREMIUM] Erro ao verificar status:', error);
+          setIsUserPremium(false);
+        }
+      }
+    };
+
+    checkPremiumStatus();
+  }, [user?.id]);
   
   // Novo filtro por nome
   const [newTransaction, setNewTransaction] = useState({
@@ -868,10 +890,13 @@ const Dashboard: React.FC = () => {
           <div className="flex items-start justify-between mb-5">
             <div className="flex items-center space-x-3">
               <h2 
-                className="text-white text-xl font-semibold"
+                className={`text-white text-xl font-semibold ${isUserPremium ? 'premium-glow' : ''}`}
                 style={{
-                  textShadow: '0 2px 10px rgba(0,0,0,0.3)',
-                  fontWeight: 600
+                  textShadow: isUserPremium 
+                    ? '0 2px 10px rgba(0,0,0,0.3), 0 0 20px rgba(255, 215, 0, 0.4), 0 0 30px rgba(255, 215, 0, 0.2)' 
+                    : '0 2px 10px rgba(0,0,0,0.3)',
+                  fontWeight: 600,
+                  animation: isUserPremium ? 'subtle-glow 3s ease-in-out infinite alternate' : 'none'
                 }}
               >
                 Olá, {userName}!
@@ -879,20 +904,22 @@ const Dashboard: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-3">
-              {/* Botão Stater Premium */}
-              <button
-                onClick={() => {
-                  console.log('🎯 [PREMIUM] Usuário clicou em Premium');
-                  setShowPaywallModal(true);
-                }}
-                className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-4 py-2 rounded-full font-bold text-sm hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2 pulse"
-                style={{
-                  boxShadow: '0 4px 15px rgba(251, 191, 36, 0.4)'
-                }}
-              >
-                <Star className="h-4 w-4" />
-                Premium
-              </button>
+              {/* Botão Stater Premium - só mostra se não for premium */}
+              {!isUserPremium && (
+                <button
+                  onClick={() => {
+                    console.log('🎯 [PREMIUM] Usuário clicou em Premium');
+                    setShowPaywallModal(true);
+                  }}
+                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-4 py-2 rounded-full font-bold text-sm hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2 pulse"
+                  style={{
+                    boxShadow: '0 4px 15px rgba(251, 191, 36, 0.4)'
+                  }}
+                >
+                  <Star className="h-4 w-4" />
+                  Premium
+                </button>
+              )}
               
               {/* Notification Icon */}
               <NotificationIcon />

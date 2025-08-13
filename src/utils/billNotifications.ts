@@ -120,26 +120,14 @@ export const showBillNotifications = (): void => {
       case 'day_warning':
         toast.warning(notification.title, {
           description: notification.message,
-          duration: 6000,
-          action: {
-            label: 'Ver conta',
-            onClick: () => {
-              window.location.hash = '#/bills';
-            }
-          }
+          duration: 6000
         });
         break;
         
       case 'overdue':
         toast.error(notification.title, {
           description: notification.message,
-          duration: 8000,
-          action: {
-            label: 'Ver conta',
-            onClick: () => {
-              window.location.hash = '#/bills';
-            }
-          }
+          duration: 8000
         });
         break;
     }

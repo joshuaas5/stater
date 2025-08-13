@@ -909,7 +909,10 @@ const Dashboard: React.FC = () => {
                 <button
                   onClick={() => {
                     console.log('🎯 [PREMIUM] Usuário clicou em Premium');
+                    console.log('🎯 [PREMIUM] Estado atual - isUserPremium:', isUserPremium);
+                    console.log('🎯 [PREMIUM] Estado atual - showPaywallModal:', showPaywallModal);
                     setShowPaywallModal(true);
+                    console.log('🎯 [PREMIUM] setShowPaywallModal(true) executado');
                   }}
                   className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-4 py-2 rounded-full font-bold text-sm hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2 pulse"
                   style={{

@@ -25,21 +25,28 @@ export function PaywallModal({ isOpen, onClose, onUpgrade, trigger, userId }: Pa
   const [loading, setLoading] = useState(false);
   const [hasReachedPaywall, setHasReachedPaywall] = useState(false);
 
+  // Log para debug
+  console.log('🔍 [PAYWALL_MODAL] Renderizando - isOpen:', isOpen, 'userId:', userId);
+
   // Carregar dados do usuário
   useEffect(() => {
     const loadUserData = async () => {
       try {
+        console.log('🔍 [PAYWALL_MODAL] Carregando dados do usuário...');
         const plan = await UserPlanManager.getUserPlan(userId);
         setCurrentPlan(plan);
+        console.log('🔍 [PAYWALL_MODAL] Plano do usuário:', plan);
         
         const paywall = await AdManager.hasReachedPaywall(userId);
         setHasReachedPaywall(paywall);
+        console.log('🔍 [PAYWALL_MODAL] Reached paywall:', paywall);
       } catch (error) {
-        console.error('Erro ao carregar dados do usuário:', error);
+        console.error('❌ [PAYWALL_MODAL] Erro ao carregar dados do usuário:', error);
       }
     };
 
     if (isOpen && userId) {
+      console.log('🔍 [PAYWALL_MODAL] Modal aberto, carregando dados...');
       loadUserData();
     }
   }, [isOpen, userId]);
@@ -120,6 +127,8 @@ export function PaywallModal({ isOpen, onClose, onUpgrade, trigger, userId }: Pa
       setLoading(false);
     }
   };
+
+  console.log('🔍 [PAYWALL_MODAL] Rendering - isOpen:', isOpen, 'currentPlan:', currentPlan?.planType);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

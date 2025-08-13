@@ -160,7 +160,7 @@ const Transactions: React.FC = () => {
     try {
       // Verificar se o usuário é premium
       const userPlan = await UserPlanManager.getUserPlan(user.id);
-      const isPremium = userPlan.planType !== 'free';
+      const isPremium = userPlan.planType !== PlanType.FREE;
       
       if (!isPremium) {
         // Incrementar contador e verificar se deve mostrar reward ad

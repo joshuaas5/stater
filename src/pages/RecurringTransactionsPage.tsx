@@ -12,6 +12,7 @@ import { RecurringTransactionLimitManager } from '@/utils/recurringTransactionLi
 import { AdManager } from '@/utils/adManager';
 import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
 import { useAuth } from '@/contexts/AuthContext';
+import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -27,6 +28,8 @@ const RecurringTransactionsPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { isPaywallOpen, openPaywall, closePaywall } = usePaywallModal();
+  
   const [recurringTransactions, setRecurringTransactions] = useState<Transaction[]>([]);
   const [recurringBills, setRecurringBills] = useState<Bill[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -628,8 +631,8 @@ const RecurringTransactionsPage: React.FC = () => {
               <button
                 onClick={() => {
                   setShowRecurringLimit(false);
-                  // Abrir PaywallModal (você precisa implementar isso)
-                  console.log('🎯 [RECURRING] Usuário escolheu upgrade premium');
+                  openPaywall('transactions');
+                  console.log('🎯 [RECURRING] Usuário escolheu upgrade premium - abrindo paywall');
                 }}
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all"
               >
@@ -676,6 +679,21 @@ const RecurringTransactionsPage: React.FC = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {/* PaywallModal */}
+      {user && (
+        <PaywallModal
+          isOpen={isPaywallOpen}
+          onClose={closePaywall}
+          onUpgrade={(planType) => {
+            console.log('🎯 [RECURRING] Upgrade realizado:', planType);
+            closePaywall();
+            loadData(); // Recarregar dados após upgrade
+          }}
+          trigger="transactions"
+          userId={user.id}
+        />
       )}
     </div>
   );

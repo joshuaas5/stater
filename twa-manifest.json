@@ -1,0 +1,50 @@
+{
+  "packageId": "com.timothy.stater",
+  "host": "stater.app",
+  "name": "Stater",
+  "launcherName": "Stater",
+  "display": "standalone",
+  "themeColor": "#1D4ED8",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#1D4ED8",
+  "enableNotifications": true,
+  "startUrl": "stater.app/login",
+  "iconUrl": "https://github.com/joshuaas5/ICTUS/blob/main/public/stater-logo-512.png?raw=true",
+  "maskableIconUrl": "https://imgur.com/a/mgBwo06",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "C:\\ICTUS\\stater-release-key.keystore",
+    "alias": "staterkeystore"
+  },
+  "appVersionName": "1",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://stater.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": true
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://stater.app/",
+  "minSdkVersion": 21,
+  "orientation": "portrait-primary",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "appVersion": "1"
+}

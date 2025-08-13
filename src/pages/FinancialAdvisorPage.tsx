@@ -812,13 +812,14 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
   const safeMessage = validatedMessage;
 
   // ========================================
-  // NOVO SISTEMA: REWARD AD NA PRIMEIRA MENSAGEM - OTIMIZADO
+  // SISTEMA OTIMIZADO: CACHE E DEBOUNCE
   // =======================================================
-  if (!skipAddingUserMessage && !isProcessingMessage) { // Evitar processamento duplo
-    // DEBOUNCE: Evitar verificações repetitivas em menos de 2 segundos
+  if (!skipAddingUserMessage && !isProcessingMessage) {
+    // DEBOUNCE: Evitar verificações repetitivas em menos de 3 segundos
     const now = Date.now();
-    if (now - lastMessageCheck < 2000) {
-      console.log('🔄 [DEBOUNCE] Verificação de mensagem recente ignorada');
+    if (now - lastMessageCheck < 3000) {
+      console.log('🔄 [DEBOUNCE] Verificação recente ignorada - processando mensagem diretamente');
+      // Pular verificações e processar mensagem diretamente se for muito recente
     } else {
       setIsProcessingMessage(true);
       setLastMessageCheck(now);
@@ -831,89 +832,85 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         return;
       }
 
-      // Usar cache do plano por 30 segundos para evitar chamadas repetitivas
+      // CACHE AGRESSIVO: Usar cache do plano por 60 segundos para performance
       let userPlan = cachedUserPlan;
-      if (!userPlan || (now - userPlan.cacheTime) > 30000) {
+      if (!userPlan || (now - (userPlan.cacheTime || 0)) > 60000) {
+        console.log('🔍 [USER_PLAN] Buscando plano para usuário:', user.id);
         userPlan = await UserPlanManager.getUserPlan(user.id);
         userPlan.cacheTime = now;
         setCachedUserPlan(userPlan);
+        console.log('✅ [USER_PLAN] Plano encontrado no Supabase:', userPlan.planType);
+      } else {
+        console.log('📋 [CACHE] Usando plano em cache:', userPlan.planType);
       }
       
       const isPremium = userPlan.planType !== 'free';
       
       if (!isPremium) {
-        // 🎯 NOVA ESTRATÉGIA: Para usuários FREE, sempre mostrar reward ad antes da primeira mensagem
-        console.log('🎬 [REWARD_AD] Usuário FREE - mostrando reward ad antes da mensagem');
+        // COOLDOWN SIMPLES: Verificar uma vez por minuto para performance
+        const lastCooldownCheck = localStorage.getItem(`cooldown_check_${user.id}`);
+        const shouldCheckCooldown = !lastCooldownCheck || (now - parseInt(lastCooldownCheck)) > 60000;
         
-        // Verificar cooldown do reward ad para messages
-        const cooldownResult = await RewardCooldownManager.checkCooldownStatus(user.id, 'financial_analysis');
-        
-        if (cooldownResult.canWatchAd) {
-          // Mostrar reward ad
-          const adResult = await AdManager.showRewardedAd('financial_analysis');
+        if (shouldCheckCooldown) {
+          console.log('🕐 [COOLDOWN] Verificando status para financial_analysis - usuário:', user.id);
+          const cooldownResult = await RewardCooldownManager.checkCooldownStatus(user.id, 'financial_analysis');
+          localStorage.setItem(`cooldown_check_${user.id}`, now.toString());
           
-          if (adResult.success) {
-            console.log('✅ [REWARD_AD] Assistido com sucesso - processando mensagem');
-            // Continuar com o processamento normal da mensagem
-          } else {
-            // Usuário não assistiu o reward ad, verificar se há mensagens restantes
-            const messageLimit = await MessageLimitManager.canSendMessage(user.id);
+          if (cooldownResult.canWatchAd) {
+            console.log('🎬 [REWARD_AD] Usuário FREE - mostrando reward ad antes da mensagem');
+            const adResult = await AdManager.showRewardedAd('financial_analysis');
             
-            if (!messageLimit.allowed) {
-              // Sem mensagens restantes e não assistiu reward ad = paywall
-              console.log('🚫 [PAYWALL] Sem mensagens restantes e reward ad não assistido');
-              setMessages(prev => [...prev, {
-                id: uuidv4(),
-                text: `🚫 **Seus limites se renovam semanalmente**\n\nMas para uso ilimitado, basta assinar o Stater Premium:\n\n✨ **Stater Premium:**\n• 🤖 Não se preocupe mais com limites de mensagens\n• 📊 Análise de PDFs e imagens\n• 🎙️ IA entende áudios e facilita sua vida\n• � Livre de anúncios\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**`,
-                sender: 'assistant',
-                timestamp: new Date(),
-                avatarUrl: IA_AVATAR
-              }]);
-              
-              setShowPaywall(true);
-              return;
+            if (adResult.success) {
+              console.log('✅ [REWARD_AD] Assistido com sucesso - processando mensagem');
             } else {
-              // Ainda tem mensagens - consumir uma mensagem gratuita
-              await MessageLimitManager.incrementMessageCount(user.id);
-              console.log(`✅ [FREE_MESSAGE] Usando mensagem gratuita - Restantes: ${messageLimit.messagesRemaining - 1}`);
+              // Verificar limite de mensagens apenas se reward ad não foi assistido
+              console.log('📊 [MESSAGE_LIMIT] Verificando limite de mensagens para usuário:', user.id);
+              const messageLimit = await MessageLimitManager.canSendMessage(user.id);
+              console.log('📊 [MESSAGE_LIMIT] Plano do usuário:', messageLimit);
+              console.log(`📊 [MESSAGE_LIMIT] Usuário FREE - Mensagens usadas: ${messageLimit.messagesUsed}/3`);
+              
+              if (!messageLimit.allowed) {
+                console.log('🚫 [MESSAGE_LIMIT] Limite de mensagens gratuitas atingido');
+                console.log('🚫 [PAYWALL] Sem mensagens restantes e reward ad não assistido');
+                setMessages(prev => [...prev, {
+                  id: uuidv4(),
+                  text: `🚫 **Você atingiu seus limites**\n\nPara continuar usando o Stater:\n\n✨ **Stater Premium:**\n• 🤖 Não se preocupe mais com limites de mensagens\n• 📊 Análise de PDFs e imagens\n• 🎙️ IA entende áudios e facilita sua vida\n• 🚫 Livre de anúncios\n• 📋 Relatórios ilimitados em diversos formatos\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**`,
+                  sender: 'assistant',
+                  timestamp: new Date(),
+                  avatarUrl: IA_AVATAR
+                }]);
+                
+                setShowPaywall(true);
+                setIsProcessingMessage(false);
+                return;
+              }
+            }
+          } else {
+            console.log(`⏰ [COOLDOWN] Restam ${cooldownResult.remainingMinutes} minutos`);
+            // Verificar mensagens mesmo em cooldown
+            const messageLimit = await MessageLimitManager.canSendMessage(user.id);
+            if (!messageLimit.allowed) {
+              console.log('🚫 [PAYWALL] Sem mensagens e cooldown de reward ad ativo');
+              setShowPaywall(true);
+              setIsProcessingMessage(false);
+              return;
             }
           }
         } else {
-          // Cooldown ativo - verificar se há mensagens restantes
-          const messageLimit = await MessageLimitManager.canSendMessage(user.id);
-          
-          if (!messageLimit.allowed) {
-            // Sem mensagens e cooldown ativo = paywall
-            console.log('🚫 [PAYWALL] Sem mensagens e cooldown de reward ad ativo');
-            setMessages(prev => [...prev, {
-              id: uuidv4(),
-              text: `🚫 **Você atingiu seus limites**\n\nPara continuar usando o Stater:\n\n✨ **Stater Premium:**\n• 🤖 Não se preocupe mais com limites de mensagens\n• 📊 Análise de PDFs e imagens\n• 🎙️ IA entende áudios e facilita sua vida\n• 🚫 Livre de anúncios\n• 📋 Relatórios ilimitados em diversos formatos\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**`,
-              sender: 'assistant',
-              timestamp: new Date(),
-              avatarUrl: IA_AVATAR
-            }]);
-            
-            setShowPaywall(true);
-            setIsProcessingMessage(false);
-            return;
-          } else {
-            // Ainda tem mensagens - usar mensagem gratuita
-            await MessageLimitManager.incrementMessageCount(user.id);
-            console.log(`✅ [FREE_MESSAGE] Cooldown ativo, usando mensagem gratuita - Restantes: ${messageLimit.messagesRemaining - 1}`);
-          }
+          console.log('📋 [COOLDOWN CACHE] Usando verificação recente de cooldown');
         }
       } else {
-        console.log('✅ [PREMIUM] Usuário premium - mensagens ilimitadas');
+        console.log('✅ [PREMIUM] Usuário premium - processamento direto');
       }
       
-    } catch (error) {
-      console.error('Erro ao verificar sistema de reward ad/mensagens:', error);
-      setError("Erro interno. Tente novamente.");
-      setIsProcessingMessage(false);
-      return;
-    } finally {
-      setIsProcessingMessage(false);
-    }
+      } catch (error) {
+        console.error('Erro ao verificar sistema de reward ad/mensagens:', error);
+        setError("Erro interno. Tente novamente.");
+        setIsProcessingMessage(false);
+        return;
+      } finally {
+        setIsProcessingMessage(false);
+      }
     }
   }
 

@@ -40,7 +40,7 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {} }: StaterPaywallProps
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 z-50">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 z-[999999999]">
       <div className="w-full max-w-sm bg-gradient-blue rounded-2xl shadow-glow overflow-hidden relative max-h-[95vh] overflow-y-auto">
         {/* CSS customizado */}
         <style>{`
@@ -70,9 +70,7 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {} }: StaterPaywallProps
           </h1>
 
           <p className="mt-3 text-xs text-blue-100 leading-relaxed">
-            💬 <strong>Envie áudios, fotos, PDFs ou notas</strong> diretamente para a IA.
-            <br />
-            Ela organiza tudo automaticamente: despesas, assinaturas, metas e muito mais.
+            💬 <strong>Envie áudios, fotos, PDFs</strong> — tudo organizado automaticamente.
           </p>
         </div>
 
@@ -131,10 +129,6 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {} }: StaterPaywallProps
               <li className="flex items-start gap-2">
                 <span className="text-sm flex-shrink-0">📊</span>
                 <span>Relatórios detalhados com insights inteligentes</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-sm flex-shrink-0">🔒</span>
-                <span>Segurança total dos seus dados</span>
               </li>
             </ul>
           </div>

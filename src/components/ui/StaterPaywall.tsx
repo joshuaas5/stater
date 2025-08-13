@@ -4,6 +4,7 @@ import React from "react";
  * Stater Paywall - Versão Mobile First
  * Fundo azul mais escuro, preços atualizados, design mais chamativo
  */
+
 const css = `
 .rotator { position: relative; height: 2.8em; overflow: hidden; }
 .rotator > span { position: absolute; inset: 0; opacity: 0; transform: translateY(12px); animation: swap 12s infinite; }
@@ -24,26 +25,15 @@ const css = `
 }
 `;
 
-interface StaterPaywallProps {
-  onClose?: () => void;
-  onSubscribe?: (plan: 'weekly' | 'monthly' | 'trial') => void;
-}
-
-const Badge = ({ children }: { children: React.ReactNode }) => (
+const Badge = ({ children }) => (
   <span className="inline-flex items-center gap-2 rounded-full bg-yellow-400 text-yellow-900 px-4 py-2 text-sm font-bold shadow-lg">
     {children}
   </span>
 );
 
-const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) => {
-  const handleSubscribe = (plan: 'weekly' | 'monthly' | 'trial') => {
-    if (onSubscribe) {
-      onSubscribe(plan);
-    }
-  };
-
+const StaterPaywall = () => {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 sm:p-6" data-testid="stater-paywall">
+    <div className="bg-slate-100 min-h-screen p-2 sm:p-4" data-testid="stater-paywall">
       {/* CSS customizado */}
       <style>{`
         ${css}
@@ -57,20 +47,9 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
         .shadow-glow { box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); }
       `}</style>
 
-      <div className="w-full max-w-sm mx-auto bg-gradient-blue rounded-3xl shadow-glow overflow-hidden relative">
-        {/* Botão de fechar - Mobile otimizado */}
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 text-white/80 hover:text-white z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/50 transition-all duration-200"
-            style={{ fontSize: '20px', lineHeight: '1' }}
-          >
-            ×
-          </button>
-        )}
-
+      <div className="w-full max-w-lg mx-auto bg-gradient-blue rounded-3xl shadow-glow overflow-hidden">
         {/* Header */}
-        <div className="p-4 sm:p-6 text-center">
+        <div className="p-5 sm:p-6 text-center">
           <Badge>🎁 TESTE GRÁTIS - 3 DIAS</Badge>
           
           <h1 className="mt-4 text-xl sm:text-2xl font-extrabold text-white" aria-live="polite">
@@ -89,34 +68,25 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
         </div>
 
         {/* Botões de Ação */}
-        <div className="px-4 sm:px-6 pb-4 space-y-3">
-          <button 
-            onClick={() => handleSubscribe('trial')}
-            className="w-full bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-2xl text-base sm:text-lg shadow-xl pulse transition-all duration-200"
-          >
+        <div className="px-5 sm:px-6 pb-4 space-y-3">
+          <button className="w-full bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-2xl text-base sm:text-lg shadow-xl pulse">
             🎁 INICIAR TESTE GRÁTIS - 3 DIAS
           </button>
           
           <div className="grid grid-cols-2 gap-3">
-            <button 
-              onClick={() => handleSubscribe('monthly')}
-              className="bg-green-500 hover:bg-green-400 text-white font-semibold py-2 sm:py-3 px-2 sm:px-4 rounded-xl shadow-lg text-sm transition-all duration-200"
-            >
+            <button className="bg-green-500 hover:bg-green-400 text-white font-semibold py-3 px-3 rounded-xl shadow-lg text-sm">
               💎 MENSAL<br/>
-              <span className="text-base sm:text-lg font-bold">R$ 19,90</span>
+              <span className="text-lg font-bold">R$ 19,90</span>
             </button>
-            <button 
-              onClick={() => handleSubscribe('weekly')}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 sm:py-3 px-2 sm:px-4 rounded-xl shadow-lg text-sm transition-all duration-200"
-            >
+            <button className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-3 rounded-xl shadow-lg text-sm">
               📅 SEMANAL<br/>
-              <span className="text-base sm:text-lg font-bold">R$ 8,90</span>
+              <span className="text-lg font-bold">R$ 8,90</span>
             </button>
           </div>
         </div>
 
         {/* Garantias */}
-        <div className="px-4 sm:px-6 pb-4">
+        <div className="px-5 sm:px-6 pb-4">
           <div className="bg-blue-800/50 rounded-2xl p-4 text-center">
             <div className="text-sm text-blue-200">
               ✅ Acesso completo por 3 dias • ✅ Cancele quando quiser • ✅ Sem compromisso
@@ -125,8 +95,8 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
         </div>
 
         {/* Benefícios */}
-        <div className="px-4 sm:px-6 pb-4">
-          <div className="bg-white/10 rounded-2xl p-4 sm:p-5">
+        <div className="px-5 sm:px-6 pb-4">
+          <div className="bg-white/10 rounded-2xl p-5">
             <div className="text-base sm:text-lg font-bold text-white mb-4 text-center">✨ Benefícios Premium</div>
             <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base text-blue-100">
               <li className="flex items-start gap-2 sm:gap-3">
@@ -150,7 +120,7 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
                 <span>Relatórios detalhados com insights inteligentes</span>
               </li>
               <li className="flex items-start gap-2 sm:gap-3">
-                <span className="text-lg sm:text-xl flex-shrink-0">🔒</span>
+                <span className="text-lg sm:text-xl flex-shrink-0">�</span>
                 <span>Segurança total dos seus dados</span>
               </li>
             </ul>
@@ -158,7 +128,7 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
         </div>
 
         {/* Pricing Info */}
-        <div className="px-4 sm:px-6 pb-4">
+        <div className="px-5 sm:px-6 pb-4">
           <div className="bg-green-500 rounded-2xl p-4 text-center">
             <div className="text-white font-bold">💎 MELHOR OFERTA: MENSAL</div>
             <div className="text-green-100 text-sm mt-1">
@@ -168,7 +138,7 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
         </div>
 
         {/* Footer */}
-        <div className="px-4 sm:px-6 pb-6">
+        <div className="px-5 sm:px-6 pb-6">
           <div className="text-center text-blue-200 text-sm">
             🛡️ "Não gostou? Cancele quando quiser. Simples assim."
           </div>

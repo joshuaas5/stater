@@ -9,10 +9,12 @@ export interface RecurringLimitInfo {
 }
 
 export class RecurringTransactionLimitManager {
-  private static readonly FREE_RECURRING_LIMIT = 2; // Usuários FREE têm 2 transações recorrentes por mês
+  private static readonly FREE_RECURRING_LIMIT = 1; // Usuários FREE têm 1 transação recorrente por semana (após anúncio)
+  private static readonly DAYS_PER_WEEK = 7;
 
   /**
    * Verifica se o usuário pode criar transação recorrente
+   * NOVA LÓGICA: Primeira transação da semana requer anúncio, libera apenas 1
    */
   static async canCreateRecurring(userId: string): Promise<RecurringLimitInfo> {
     try {
@@ -32,21 +34,25 @@ export class RecurringTransactionLimitManager {
         };
       }
 
-      console.log('📊 [RECURRING_LIMIT] Usuário FREE - verificando limite de 2 transações recorrentes/mês');
+      console.log('📊 [RECURRING_LIMIT] Usuário FREE - verificando sistema de anúncio + limite semanal');
 
-      // Para usuários FREE, verificar limite mensal
-      const currentMonth = new Date();
-      const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-      const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+      // Para usuários FREE: sistema semanal baseado em anúncios
+      const now = new Date();
+      const currentWeekStart = new Date(now);
+      currentWeekStart.setDate(now.getDate() - now.getDay()); // Início da semana (domingo)
+      currentWeekStart.setHours(0, 0, 0, 0);
+      
+      const currentWeekEnd = new Date(currentWeekStart);
+      currentWeekEnd.setDate(currentWeekStart.getDate() + 6); // Fim da semana (sábado)
+      currentWeekEnd.setHours(23, 59, 59, 999);
 
-      // Buscar transações recorrentes criadas no mês atual
+      // Buscar registros da semana atual
       const { data, error } = await supabase
         .from('user_recurring_count')
-        .select('recurring_count')
+        .select('*')
         .eq('user_id', userId)
-        .gte('created_at', monthStart.toISOString())
-        .lte('created_at', monthEnd.toISOString())
-        .single();
+        .gte('created_at', currentWeekStart.toISOString())
+        .lte('created_at', currentWeekEnd.toISOString());
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
         console.error('❌ [RECURRING_LIMIT] Erro ao buscar contadores:', error);
@@ -57,11 +63,23 @@ export class RecurringTransactionLimitManager {
         };
       }
 
-      const currentRecurring = data?.recurring_count || 0;
-      const recurringRemaining = this.FREE_RECURRING_LIMIT - currentRecurring;
+      const weeklyRecords = data || [];
+      
+      // Verificar se já assistiu ao anúncio nesta semana
+      const hasWatchedAd = weeklyRecords.some(record => 
+        record.month_year && record.month_year.includes('-AD')
+      );
 
-      if (recurringRemaining <= 0) {
-        console.log('🚫 [RECURRING_LIMIT] Limite atingido:', currentRecurring);
+      // Contar transações recorrentes criadas (excluindo registros de anúncio)
+      const recurringTransactions = weeklyRecords.filter(record => 
+        record.recurring_count > 0 && (!record.month_year || !record.month_year.includes('-AD'))
+      );
+
+      const currentRecurring = recurringTransactions.length;
+
+      // Se já atingiu o limite da semana (1 transação recorrente)
+      if (currentRecurring >= this.FREE_RECURRING_LIMIT) {
+        console.log('🚫 [RECURRING_LIMIT] Limite semanal atingido:', currentRecurring);
         return { 
           allowed: false, 
           recurringRemaining: 0,
@@ -69,6 +87,18 @@ export class RecurringTransactionLimitManager {
         };
       }
 
+      // Se não assistiu ao anúncio ainda nesta semana
+      if (!hasWatchedAd) {
+        console.log('📺 [RECURRING_LIMIT] Primeira transação recorrente da semana - anúncio obrigatório');
+        return { 
+          allowed: false, 
+          recurringRemaining: 1,
+          reason: 'ad_required' // Nova razão: anúncio obrigatório
+        };
+      }
+
+      // Anúncio já foi assistido, pode criar transação
+      const recurringRemaining = this.FREE_RECURRING_LIMIT - currentRecurring;
       console.log(`✅ [RECURRING_LIMIT] Transação recorrente permitida - Restantes: ${recurringRemaining}`);
       return { 
         allowed: true, 
@@ -86,114 +116,151 @@ export class RecurringTransactionLimitManager {
   }
 
   /**
-   * Incrementa o contador de transações recorrentes
+   * Incrementa o contador de transações recorrentes (sistema semanal)
    */
   static async incrementRecurringCount(userId: string): Promise<boolean> {
     try {
-      console.log('📊 [RECURRING_LIMIT] Incrementando contador para usuário:', userId);
+      console.log('📊 [RECURRING_LIMIT] Incrementando contador semanal para usuário:', userId);
 
-      const currentMonth = new Date();
+      const now = new Date();
 
-      // Usar upsert para criar ou atualizar o contador
+      // Criar registro individual para cada transação recorrente (permite rastreamento semanal)
       const { error } = await supabase
         .from('user_recurring_count')
-        .upsert({
+        .insert({
           user_id: userId,
-          recurring_count: 1,
-          month_year: `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`,
+          recurring_count: 1, // Cada registro representa 1 transação recorrente
+          month_year: `${now.getFullYear()}-W${this.getWeekNumber(now)}`, // Formato: 2025-W33
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,month_year',
-          ignoreDuplicates: false
         });
 
       if (error) {
-        console.error('❌ [RECURRING_LIMIT] Erro ao incrementar contador:', error);
+        console.error('❌ [RECURRING_LIMIT] Erro ao incrementar contador semanal:', error);
         return false;
       }
 
-      console.log('✅ [RECURRING_LIMIT] Contador incrementado com sucesso');
+      console.log('✅ [RECURRING_LIMIT] Contador semanal incrementado com sucesso');
       return true;
 
     } catch (error) {
-      console.error('❌ [RECURRING_LIMIT] Erro no incremento:', error);
+      console.error('❌ [RECURRING_LIMIT] Erro no incremento semanal:', error);
       return false;
     }
   }
 
   /**
-   * Adiciona transações recorrentes extras (usado pelo reward ad)
+   * Libera uma transação recorrente após assistir ao anúncio (sistema semanal)
+   * Este método é chamado APÓS o usuário assistir ao anúncio com sucesso
    */
-  static async addExtraRecurring(userId: string, amount: number): Promise<boolean> {
+  static async unlockRecurringAfterAd(userId: string): Promise<boolean> {
     try {
-      console.log(`🎁 [RECURRING_LIMIT] Adicionando ${amount} transações recorrentes extras para usuário:`, userId);
+      console.log('🎁 [RECURRING_LIMIT] Liberando transação recorrente após anúncio para usuário:', userId);
 
-      const currentMonth = new Date();
+      const now = new Date();
       
-      // Buscar contador atual
-      const { data: currentData, error: fetchError } = await supabase
-        .from('user_recurring_count')
-        .select('recurring_count')
-        .eq('user_id', userId)
-        .eq('month_year', `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('❌ [RECURRING_LIMIT] Erro ao buscar contador atual:', fetchError);
-        return false;
-      }
-
-      const currentCount = currentData?.recurring_count || 0;
-      const newCount = Math.max(0, currentCount - amount); // Reduz o contador (mais transações disponíveis)
-
-      // Atualizar contador
+      // Criar um registro especial indicando que o anúncio foi assistido esta semana
       const { error } = await supabase
         .from('user_recurring_count')
-        .upsert({
+        .insert({
           user_id: userId,
-          recurring_count: newCount,
-          month_year: `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`,
+          recurring_count: 0, // 0 = marca que o anúncio foi assistido (não conta no limite)
+          month_year: `${now.getFullYear()}-W${this.getWeekNumber(now)}-AD`, // Marca especial para anúncio
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,month_year'
         });
 
       if (error) {
-        console.error('❌ [RECURRING_LIMIT] Erro ao adicionar transações recorrentes extras:', error);
+        console.error('❌ [RECURRING_LIMIT] Erro ao registrar anúncio assistido:', error);
         return false;
       }
 
-      console.log(`✅ [RECURRING_LIMIT] ${amount} transações recorrentes extras adicionadas com sucesso`);
+      console.log('✅ [RECURRING_LIMIT] Transação recorrente liberada após anúncio');
       return true;
 
     } catch (error) {
-      console.error('❌ [RECURRING_LIMIT] Erro ao adicionar transações recorrentes extras:', error);
+      console.error('❌ [RECURRING_LIMIT] Erro ao liberar transação recorrente:', error);
       return false;
     }
   }
 
   /**
-   * Obtém o contador atual de transações recorrentes
+   * Verifica se o usuário já assistiu ao anúncio nesta semana
+   */
+  static async hasWatchedAdThisWeek(userId: string): Promise<boolean> {
+    try {
+      const now = new Date();
+      const currentWeekStart = new Date(now);
+      currentWeekStart.setDate(now.getDate() - now.getDay());
+      currentWeekStart.setHours(0, 0, 0, 0);
+      
+      const currentWeekEnd = new Date(currentWeekStart);
+      currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
+      currentWeekEnd.setHours(23, 59, 59, 999);
+
+      const { data, error } = await supabase
+        .from('user_recurring_count')
+        .select('month_year')
+        .eq('user_id', userId)
+        .like('month_year', `%W${this.getWeekNumber(now)}-AD%`)
+        .gte('created_at', currentWeekStart.toISOString())
+        .lte('created_at', currentWeekEnd.toISOString());
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('❌ [RECURRING_LIMIT] Erro ao verificar anúncio:', error);
+        return false;
+      }
+
+      return !!(data && data.length > 0);
+    } catch (error) {
+      console.error('❌ [RECURRING_LIMIT] Erro ao verificar anúncio semanal:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Obter número da semana no ano
+   */
+  private static getWeekNumber(date: Date): number {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  }
+
+  /**
+   * Obtém o contador atual de transações recorrentes (sistema semanal)
    */
   static async getCurrentRecurringCount(userId: string): Promise<number> {
     try {
-      const currentMonth = new Date();
+      const now = new Date();
+      const currentWeekStart = new Date(now);
+      currentWeekStart.setDate(now.getDate() - now.getDay());
+      currentWeekStart.setHours(0, 0, 0, 0);
       
+      const currentWeekEnd = new Date(currentWeekStart);
+      currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
+      currentWeekEnd.setHours(23, 59, 59, 999);
+
       const { data, error } = await supabase
         .from('user_recurring_count')
-        .select('recurring_count')
+        .select('*')
         .eq('user_id', userId)
-        .eq('month_year', `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`)
-        .single();
+        .gte('created_at', currentWeekStart.toISOString())
+        .lte('created_at', currentWeekEnd.toISOString());
 
       if (error && error.code !== 'PGRST116') {
         console.error('❌ [RECURRING_LIMIT] Erro ao buscar contador:', error);
         return 0;
       }
 
-      return data?.recurring_count || 0;
+      // Contar apenas transações recorrentes (excluindo registros de anúncio)
+      const recurringTransactions = (data || []).filter(record => 
+        record.recurring_count > 0 && (!record.month_year || !record.month_year.includes('-AD'))
+      );
+
+      return recurringTransactions.length;
     } catch (error) {
       console.error('❌ [RECURRING_LIMIT] Erro ao obter contador:', error);
       return 0;

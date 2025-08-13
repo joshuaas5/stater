@@ -110,11 +110,19 @@ const RecurringTransactionsPage: React.FC = () => {
     const recurringLimit = await RecurringTransactionLimitManager.canCreateRecurring(user.id);
     
     if (!recurringLimit.allowed) {
-      if (recurringLimit.reason === 'limit_reached') {
-        // Verificar cooldown do anúncio
+      if (recurringLimit.reason === 'ad_required') {
+        // Primeira transação da semana - anúncio obrigatório
         const cooldown = await RewardCooldownManager.checkCooldownStatus(user.id, 'recurring_transactions');
         setCooldownInfo(cooldown);
         setShowRecurringLimit(true);
+        return;
+      } else if (recurringLimit.reason === 'limit_reached') {
+        // Limite semanal atingido - aguardar próxima semana ou premium
+        toast({
+          title: '📊 Limite semanal atingido',
+          description: 'Você já criou sua transação recorrente desta semana. Aguarde a próxima semana ou assine o plano premium para criar mais.',
+          variant: 'destructive',
+        });
         return;
       } else if (recurringLimit.reason === 'error') {
         toast({
@@ -254,17 +262,14 @@ const RecurringTransactionsPage: React.FC = () => {
       const watchResult = await AdManager.showRewardedAd('recurring_transactions');
       
       if (watchResult.success) {
-        // Registrar cooldown
-        await RewardCooldownManager.recordReward(user.id, 'recurring_transactions');
-        
-        // Adicionar transações recorrentes extras
-        await RecurringTransactionLimitManager.addExtraRecurring(user.id, 2);
+        // Registrar que o anúncio foi assistido para liberar transação recorrente
+        await RecurringTransactionLimitManager.unlockRecurringAfterAd(user.id);
         
         setShowRecurringLimit(false);
         
         toast({
-          title: 'Limite expandido!',
-          description: 'Você ganhou 2 transações recorrentes extras por assistir ao anúncio',
+          title: '🎉 Transação recorrente liberada!',
+          description: 'Você pode criar sua primeira transação recorrente desta semana!',
           variant: 'default',
         });
       } else {
@@ -608,10 +613,10 @@ const RecurringTransactionsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">
-              🔒 Transações recorrentes limitadas
+              � Primeira transação recorrente da semana
             </h3>
             <p className="text-gray-600 mb-4">
-              Você já criou 2 transações recorrentes este mês (limite do plano gratuito).
+              Para criar sua primeira transação recorrente desta semana, você precisa assistir a um anúncio. Isso libera <strong>1 transação recorrente</strong> até a próxima semana.
             </p>
             
             {/* Opção Premium */}
@@ -641,9 +646,9 @@ const RecurringTransactionsPage: React.FC = () => {
             
             {/* Opção Anúncio */}
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-              <h4 className="font-semibold text-yellow-900 mb-2">🎬 Assistir anúncio</h4>
+              <h4 className="font-semibold text-yellow-900 mb-2">🎬 Assistir anúncio obrigatório</h4>
               <p className="text-sm text-yellow-800 mb-3">
-                Ganhe 2 transações recorrentes extras assistindo um anúncio
+                Assista a um anúncio para liberar <strong>1 transação recorrente</strong> esta semana
               </p>
               
               {cooldownInfo && cooldownInfo.isInCooldown ? (

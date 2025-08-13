@@ -122,13 +122,7 @@ export const showBillNotifications = (): void => {
           description: notification.message,
           duration: 6000,
           dismissible: true,
-          closeButton: true,
-          action: {
-            label: 'Ver conta',
-            onClick: () => {
-              window.location.hash = '#/bills';
-            }
-          }
+          closeButton: true
         });
         break;
         
@@ -137,11 +131,7 @@ export const showBillNotifications = (): void => {
           description: notification.message,
           duration: 8000,
           dismissible: true,
-          closeButton: true,
-          action: {
-            label: 'Ver conta',
-            onClick: () => {
-              window.location.hash = '#/bills';
+          closeButton: true
             }
           }
         });

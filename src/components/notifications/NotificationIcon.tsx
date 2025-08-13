@@ -4,12 +4,20 @@ import { checkBillDueDates, BillNotification } from '@/utils/billNotifications';
 
 interface NotificationIconProps {
   className?: string;
+  onModalToggle?: (isOpen: boolean) => void; // Callback para notificar quando modal abre/fecha
 }
 
-const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) => {
+const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '', onModalToggle }) => {
   const [notifications, setNotifications] = useState<BillNotification[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
+
+  // Notificar quando o modal abre/fecha
+  useEffect(() => {
+    if (onModalToggle) {
+      onModalToggle(showDropdown);
+    }
+  }, [showDropdown, onModalToggle]);
 
   // Verificar notificações
   const checkNotifications = () => {
@@ -85,12 +93,13 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
           
           {/* Dropdown */}
           <div 
-            className="absolute right-0 top-full mt-2 w-80 rounded-2xl shadow-2xl border-0 z-50 max-h-96 overflow-hidden"
+            className="absolute right-2 top-full mt-2 w-80 rounded-2xl shadow-2xl border-0 z-50 max-h-96 overflow-hidden"
             style={{
               background: 'rgba(49, 81, 139, 0.95)',
               backdropFilter: 'blur(20px)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
-              minWidth: '320px'
+              minWidth: '320px',
+              transform: 'translateX(-20px)' // Move 20px para a esquerda para não sobrepor o olho
             }}
           >
             {/* Header */}
@@ -140,19 +149,6 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({ className = '' }) =
                           <span className="text-xs text-white/50">
                             {notification.dueDate.toLocaleDateString('pt-BR')}
                           </span>
-                          <button
-                            onClick={() => {
-                              window.location.hash = '#/bills';
-                              setShowDropdown(false);
-                            }}
-                            className="text-xs font-medium px-2 py-1 rounded-lg transition-colors"
-                            style={{
-                              background: 'rgba(255, 255, 255, 0.1)',
-                              color: 'white'
-                            }}
-                          >
-                            Ver contas
-                          </button>
                         </div>
                       </div>
                     </div>

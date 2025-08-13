@@ -89,6 +89,9 @@ const Dashboard: React.FC = () => {
   // Estados para PaywallModal
   const [showPaywallModal, setShowPaywallModal] = useState(false);
   
+  // Estado para controlar visibilidade do botão do olho
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  
   // ADICIONADO: Estados para paginação das últimas transações
   const [transactionsPage, setTransactionsPage] = useState(1);
   const transactionsPerPage = 4;
@@ -923,7 +926,7 @@ const Dashboard: React.FC = () => {
               </button>
               
               {/* Notification Icon */}
-              <NotificationIcon />
+              <NotificationIcon onModalToggle={setIsNotificationModalOpen} />
             </div>
           </div>
           
@@ -985,15 +988,16 @@ const Dashboard: React.FC = () => {
             >
               Saldo da Conta
             </div>
-            <button
-              aria-label={balanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 hover:scale-110 relative z-0"
-              onClick={() => setBalanceVisible((v: boolean) => !v)}
-              style={{
-                background: 'rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(10px)'
-              }}
-            >
+            {!isNotificationModalOpen && (
+              <button
+                aria-label={balanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 hover:scale-110 relative z-0"
+                onClick={() => setBalanceVisible((v: boolean) => !v)}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
               {balanceVisible ? (
                 // Ícone do Olho Aberto - Design amigável com pupila menor
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1008,7 +1012,8 @@ const Dashboard: React.FC = () => {
                   <path d="M4 12c0 0 3-4 8-4s8 4 8 4" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
                 </svg>
               )}
-            </button>
+              </button>
+            )}
           </div>
           
           <div 

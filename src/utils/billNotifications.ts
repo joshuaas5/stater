@@ -1,6 +1,6 @@
 import { Bill } from '@/types';
 import { getBills } from '@/utils/localStorage';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/sonner';
 
 export interface BillNotification {
   id: string;

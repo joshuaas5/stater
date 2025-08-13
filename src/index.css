@@ -101,10 +101,11 @@ html, body, #root {
   animation: pulseGlow 2s infinite;
 }
 
-/* Container de toasts no topo */
+/* Container de toasts no topo ESQUERDO */
 [data-radix-toast-viewport] {
   top: 16px !important;
-  right: 16px !important;
+  left: 16px !important;
+  right: auto !important;
   bottom: auto !important;
   z-index: 2147483648 !important;
 }

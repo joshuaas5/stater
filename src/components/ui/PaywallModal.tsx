@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { PlanType, UserPlan } from '@/types';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { AdManager } from '@/utils/adManager';
@@ -121,6 +124,12 @@ export function PaywallModal({ isOpen, onClose, onUpgrade, trigger, userId }: Pa
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="p-0 border-0 bg-transparent max-w-none w-full h-full sm:max-w-md sm:h-auto sm:w-auto">
+        <VisuallyHidden>
+          <DialogTitle>Stater Premium</DialogTitle>
+          <DialogDescription>
+            Faça upgrade para o Stater Premium e desbloqueie todos os recursos
+          </DialogDescription>
+        </VisuallyHidden>
         <StaterPaywall 
           onClose={onClose}
           onSubscribe={handleSubscribe}

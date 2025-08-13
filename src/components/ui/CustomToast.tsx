@@ -109,7 +109,7 @@ export const CustomToastContainer: React.FC<{
 
   return (
     <div
-      className="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-[420px] z-[2147483648] pointer-events-none"
+      className="fixed top-4 left-4 sm:max-w-[420px] z-[2147483648] pointer-events-none"
       style={{ zIndex: 2147483648 }}
     >
       <div className="flex flex-col gap-2 pointer-events-auto">

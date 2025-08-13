@@ -5,7 +5,7 @@ import React from "react";
  * Fundo azul mais escuro, preços atualizados, design mais chamativo
  */
 const css = `
-.rotator { position: relative; height: 2.8em; overflow: hidden; }
+.rotator { position: relative; height: 2.2em; overflow: hidden; }
 .rotator > span { position: absolute; inset: 0; opacity: 0; transform: translateY(12px); animation: swap 12s infinite; }
 .rotator > span:nth-child(1){ animation-delay: 0s; }
 .rotator > span:nth-child(2){ animation-delay: 4s; }
@@ -57,23 +57,23 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
         .shadow-glow { box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); }
       `}</style>
 
-      {/* Mobile First Container */}
-      <div className="w-full h-full sm:max-w-md sm:h-auto sm:mx-4 bg-gradient-blue sm:rounded-3xl shadow-glow overflow-hidden relative flex flex-col">
+      {/* Mobile First Container - Otimizado */}
+      <div className="w-full h-full sm:max-w-md sm:h-auto sm:mx-4 bg-gradient-blue sm:rounded-2xl shadow-glow overflow-hidden relative flex flex-col max-h-screen">
         {/* Botão de fechar */}
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 text-white/70 hover:text-white z-10 text-2xl w-8 h-8 flex items-center justify-center rounded-full bg-black/20"
+            className="absolute top-2 right-2 text-white/70 hover:text-white z-10 text-xl w-7 h-7 flex items-center justify-center rounded-full bg-black/20"
           >
             ×
           </button>
         )}
 
-        {/* Header Compacto */}
-        <div className="p-4 text-center flex-shrink-0">
+        {/* Header Mais Compacto */}
+        <div className="p-3 text-center flex-shrink-0">
           <Badge>🎁 TESTE GRÁTIS - 3 DIAS</Badge>
           
-          <h1 className="mt-3 text-xl sm:text-2xl font-extrabold text-white" aria-live="polite">
+          <h1 className="mt-2 text-lg sm:text-xl font-extrabold text-white" aria-live="polite">
             <div className="rotator">
               <span>Seus insights financeiros estão bloqueados... 🔒</span>
               <span>Automação financeira a 1 clique de distância... 🤖</span>
@@ -81,18 +81,18 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
             </div>
           </h1>
 
-          <p className="mt-3 text-blue-100 text-sm leading-relaxed">
+          <p className="mt-2 text-blue-100 text-xs sm:text-sm leading-relaxed">
             💬 <strong>Envie áudios, fotos, PDFs ou notas</strong> diretamente para a IA.
             <br />
             Ela organiza tudo automaticamente.
           </p>
         </div>
 
-        {/* Botões de Ação Compactos */}
-        <div className="px-4 pb-3 space-y-3 flex-shrink-0">
+        {/* Botões de Ação Mais Compactos */}
+        <div className="px-3 pb-2 space-y-2 flex-shrink-0">
           <button 
             onClick={() => handleSubscribe('trial')}
-            className="w-full bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold py-3 px-4 rounded-xl text-base shadow-xl pulse"
+            className="w-full bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold py-2.5 px-3 rounded-xl text-sm shadow-xl pulse"
           >
             🎁 TESTE GRÁTIS - 3 DIAS
           </button>
@@ -100,70 +100,70 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
           <div className="grid grid-cols-2 gap-2">
             <button 
               onClick={() => handleSubscribe('monthly')}
-              className="bg-green-500 hover:bg-green-400 text-white font-semibold py-2.5 px-3 rounded-lg shadow-lg text-sm"
+              className="bg-green-500 hover:bg-green-400 text-white font-semibold py-2 px-2 rounded-lg shadow-lg text-xs"
             >
               💎 MENSAL<br/>
-              <span className="text-base font-bold">R$ 19,90</span>
+              <span className="text-sm font-bold">R$ 19,90</span>
             </button>
             <button 
               onClick={() => handleSubscribe('weekly')}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 px-3 rounded-lg shadow-lg text-sm"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-2 rounded-lg shadow-lg text-xs"
             >
               📅 SEMANAL<br/>
-              <span className="text-base font-bold">R$ 8,90</span>
+              <span className="text-sm font-bold">R$ 8,90</span>
             </button>
           </div>
         </div>
 
-        {/* Garantias Compactas */}
-        <div className="px-4 pb-3 flex-shrink-0">
-          <div className="bg-blue-800/50 rounded-xl p-3 text-center">
+        {/* Garantias Mais Compactas */}
+        <div className="px-3 pb-2 flex-shrink-0">
+          <div className="bg-blue-800/50 rounded-xl p-2 text-center">
             <div className="text-xs text-blue-200">
               ✅ Acesso completo • ✅ Cancele quando quiser • ✅ Sem compromisso
             </div>
           </div>
         </div>
 
-        {/* Benefícios Scrolláveis */}
-        <div className="px-4 pb-3 flex-1 overflow-y-auto">
-          <div className="bg-white/10 rounded-xl p-4">
-            <div className="text-base font-bold text-white mb-3 text-center">✨ Benefícios Premium</div>
-            <ul className="space-y-2 text-blue-100 text-sm">
+        {/* Benefícios Scrolláveis Compactos */}
+        <div className="px-3 pb-2 flex-1 overflow-y-auto">
+          <div className="bg-white/10 rounded-xl p-3">
+            <div className="text-sm font-bold text-white mb-2 text-center">✨ Benefícios Premium</div>
+            <ul className="space-y-1.5 text-blue-100 text-xs">
               <li className="flex items-start gap-2">
-                <span className="text-base">🎙️</span>
+                <span className="text-sm">🎙️</span>
                 <span>Envie áudios — IA transcreve automaticamente</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-base">📄</span>
+                <span className="text-sm">📄</span>
                 <span>Envie PDFs, fotos — tudo é processado</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-base">🚀</span>
-                <span>Sem limites de mensagens ou arquivos</span>
+                <span className="text-sm">🚀</span>
+                <span>Não se preocupe com limites</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-base">📱</span>
+                <span className="text-sm">📱</span>
                 <span>Controle total pelo Telegram</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-base">📊</span>
+                <span className="text-sm">📊</span>
                 <span>Relatórios detalhados</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-base">🚫</span>
+                <span className="text-sm">🚫</span>
                 <span>Livre de anúncios</span>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Footer Fixo */}
-        <div className="px-4 pb-4 flex-shrink-0">
+        {/* Footer Mais Compacto */}
+        <div className="px-3 pb-3 flex-shrink-0">
           <div className="text-center text-blue-200 text-xs">
             🛡️ "Não gostou? Cancele quando quiser."
           </div>
           
-          <div className="mt-2 text-center text-xs text-blue-300">
+          <div className="mt-1 text-center text-xs text-blue-300">
             Pagamentos seguros • Cancelamento fácil
             <br />
             <span className="text-xs opacity-75">

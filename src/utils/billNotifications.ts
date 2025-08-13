@@ -120,14 +120,30 @@ export const showBillNotifications = (): void => {
       case 'day_warning':
         toast.warning(notification.title, {
           description: notification.message,
-          duration: 6000
+          duration: 6000,
+          dismissible: true,
+          closeButton: true,
+          action: {
+            label: 'Ver conta',
+            onClick: () => {
+              window.location.hash = '#/bills';
+            }
+          }
         });
         break;
         
       case 'overdue':
         toast.error(notification.title, {
           description: notification.message,
-          duration: 8000
+          duration: 8000,
+          dismissible: true,
+          closeButton: true,
+          action: {
+            label: 'Ver conta',
+            onClick: () => {
+              window.location.hash = '#/bills';
+            }
+          }
         });
         break;
     }
@@ -146,7 +162,9 @@ const markBillAsPaid = (billId: string): void => {
     localStorage.setItem('bills', JSON.stringify(bills));
     
     toast.success('✅ Conta marcada como paga!', {
-      description: `${bills[billIndex].title} foi marcada como paga.`
+      description: `${bills[billIndex].title} foi marcada como paga.`,
+      dismissible: true,
+      closeButton: true
     });
   }
 };

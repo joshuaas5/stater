@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 /**
  * Stater Paywall - Versão Mobile First Otimizada
@@ -37,6 +37,46 @@ interface StaterPaywallProps {
 }
 
 const StaterPaywall = ({ isOpen = true, onClose = () => {} }: StaterPaywallProps) => {
+  // Esconder navbar quando paywall estiver aberto
+  useEffect(() => {
+    if (isOpen) {
+      // Esconder navbar
+      const navbar = document.querySelector('.stater-navbar-force');
+      const navbarOptimized = document.querySelector('.navbar-optimized');
+      const navbarElements = document.querySelectorAll('[class*="navbar"], nav');
+      
+      if (navbar) (navbar as HTMLElement).style.display = 'none';
+      if (navbarOptimized) (navbarOptimized as HTMLElement).style.display = 'none';
+      navbarElements.forEach(el => {
+        (el as HTMLElement).style.display = 'none';
+      });
+      
+      // Adicionar classe para esconder outros elementos que possam ser barras
+      document.body.classList.add('paywall-open');
+      
+      // Remover padding-bottom do body para não haver espaço vazio
+      document.body.style.paddingBottom = '0';
+    }
+    
+    return () => {
+      if (isOpen) {
+        // Restaurar navbar quando fechar
+        const navbar = document.querySelector('.stater-navbar-force');
+        const navbarOptimized = document.querySelector('.navbar-optimized');
+        const navbarElements = document.querySelectorAll('[class*="navbar"], nav');
+        
+        if (navbar) (navbar as HTMLElement).style.display = 'flex';
+        if (navbarOptimized) (navbarOptimized as HTMLElement).style.display = 'flex';
+        navbarElements.forEach(el => {
+          (el as HTMLElement).style.display = '';
+        });
+        
+        document.body.classList.remove('paywall-open');
+        document.body.style.paddingBottom = '64px';
+      }
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -47,6 +87,30 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {} }: StaterPaywallProps
           ${css}
           .bg-gradient-blue { background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); }
           .shadow-glow { box-shadow: 0 0 25px rgba(59, 130, 246, 0.4); }
+          
+          /* Esconder elementos durante paywall */
+          .paywall-open .stater-navbar-force,
+          .paywall-open .navbar-optimized,
+          .paywall-open [class*="navbar"],
+          .paywall-open nav,
+          .paywall-open header {
+            display: none !important;
+          }
+          
+          /* Remover barras cinzas e outros elementos que ficam por trás */
+          .paywall-open .sticky,
+          .paywall-open [class*="header"],
+          .paywall-open [class*="top-bar"],
+          .paywall-open [class*="mobile-header"] {
+            display: none !important;
+          }
+          
+          /* Esconder especificamente o MobileHeader e componentes similares */
+          .paywall-open .z-40,
+          .paywall-open .bg-white,
+          .paywall-open .border-gray-200 {
+            display: none !important;
+          }
         `}</style>
 
         {/* Botão Fechar - DENTRO do paywall */}

@@ -213,9 +213,13 @@ export const processRecurringTransactions = async (): Promise<RecurringProcessRe
       {
         description: `Total: R$ ${processedTransactions.reduce((sum, t) => sum + t.amount, 0).toFixed(2)}`,
         duration: 6000,
+        dismissible: true,
+        closeButton: true,
         action: {
-          label: "✕",
-          onClick: () => {},
+          label: "Ver",
+          onClick: () => {
+            window.location.hash = '#/transactions';
+          },
         },
       }
     );
@@ -266,6 +270,8 @@ export const processSpecificRecurring = async (transactionId: string): Promise<b
       {
         description: `${newTransaction.title} - R$ ${newTransaction.amount.toFixed(2)}`,
         duration: 4000,
+        dismissible: true,
+        closeButton: true
       }
     );
     

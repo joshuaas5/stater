@@ -521,6 +521,34 @@ export class UserPlanManager {
    */
   static async hasFeatureAccess(userId: string, feature: keyof PlanFeatures): Promise<boolean> {
     try {
+      // 🔒 VERIFICAÇÃO ESPECÍFICA PARA TELEGRAM - FORÇAR PREMIUM
+      if (feature === 'telegramBot') {
+        console.log('🔍 [TELEGRAM] Verificação específica para Telegram Bot');
+        
+        // Verificar se é beta user primeiro
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user && user.email && this.isBetaUser(user.email)) {
+            console.log(`🚀 [BETA USER] Acesso ao Telegram para usuário beta: ${user.email}`);
+            return true;
+          }
+        } catch (authError) {
+          console.log('Auth check falhou para beta user');
+        }
+        
+        // Para usuários normais, verificar se é premium
+        const userPlan = await this.getUserPlan(userId);
+        console.log(`📋 [TELEGRAM] Plano do usuário: ${userPlan.planType}`);
+        
+        if (userPlan.planType === PlanType.FREE) {
+          console.log('❌ [TELEGRAM] Usuário FREE tentando acessar Telegram - BLOQUEADO');
+          return false;
+        }
+        
+        console.log('✅ [TELEGRAM] Usuário premium - acesso liberado');
+        return true;
+      }
+      
       // Verificar se é beta user primeiro (usando o auth do Supabase para obter email)
       try {
         const { data: { user } } = await supabase.auth.getUser();

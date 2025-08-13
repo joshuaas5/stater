@@ -137,11 +137,41 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
   const handleSave = useCallback(async () => {
     // Validação final
-    validateField('title', formData.title);
-    validateField('amount', formData.amount);
-    validateField('category', formData.category);
-
-    if (Object.keys(errors).length > 0 || Object.values(errors).some(err => !!err)) return;
+    const newErrors = { ...errors };
+    
+    // Validar título
+    if (!formData.title?.trim()) {
+      newErrors.title = 'Descrição é obrigatória';
+    } else if (formData.title.trim().length < 2) {
+      newErrors.title = 'Descrição muito curta';
+    } else {
+      delete newErrors.title;
+    }
+    
+    // Validar valor
+    const numValue = parseFloat(formData.amount);
+    if (!formData.amount || isNaN(numValue) || numValue <= 0) {
+      newErrors.amount = 'Valor deve ser maior que zero';
+    } else if (numValue > 999999999) {
+      newErrors.amount = 'Valor muito alto';
+    } else {
+      delete newErrors.amount;
+    }
+    
+    // Validar categoria
+    if (!formData.category) {
+      newErrors.category = 'Categoria é obrigatória';
+    } else {
+      delete newErrors.category;
+    }
+    
+    // Atualizar erros e verificar se há problemas
+    setErrors(newErrors);
+    
+    if (Object.keys(newErrors).length > 0) {
+      console.log('❌ Validação falhou:', newErrors);
+      return;
+    }
 
     setIsSubmitting(true);
 

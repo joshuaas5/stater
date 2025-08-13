@@ -180,6 +180,65 @@ export const FinancialAdvisorPage: React.FC = () => {
   // Ref para controlar cancelamento de requisições
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // 🎤 FUNÇÃO PARA GARANTIR MODAL CUSTOMIZADO EM ÁUDIO
+  const forceCustomModalForAudio = useCallback((transactionData: any) => {
+    console.log('🎤 [FORCE_MODAL] Forçando modal customizado para áudio:', transactionData);
+    
+    // Desabilitar temporariamente qualquer interceptação do sistema
+    const preventNativeModal = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    };
+    
+    // Salvar a função confirm original
+    const originalConfirm = window.confirm;
+    
+    // Substituir temporariamente window.confirm
+    window.confirm = () => {
+      console.log('🎤 [BLOCK_CONFIRM] Bloqueando window.confirm nativo durante áudio');
+      return false; // Bloquear confirmação nativa
+    };
+    
+    // Adicionar listeners temporários para prevenir modais nativos
+    window.addEventListener('beforeunload', preventNativeModal, true);
+    window.addEventListener('unload', preventNativeModal, true);
+    
+    // Forçar ativação do modal customizado com delay garantido
+    setTimeout(() => {
+      try {
+        setPendingAction({
+          tipo: transactionData.transaction_type || 'expense',
+          dados: {
+            amount: transactionData.amount,
+            description: transactionData.description,
+            category: transactionData.category || 'Outros',
+            date: new Date().toISOString().split('T')[0]
+          }
+        });
+        
+        setWaitingConfirmation(true);
+        
+        console.log('🎤 [FORCE_MODAL] Modal customizado ativado com sucesso');
+        
+        // Restaurar funções originais após 3 segundos
+        setTimeout(() => {
+          window.confirm = originalConfirm;
+          window.removeEventListener('beforeunload', preventNativeModal, true);
+          window.removeEventListener('unload', preventNativeModal, true);
+          console.log('🎤 [RESTORE] Funções nativas restauradas');
+        }, 3000);
+        
+      } catch (error) {
+        console.error('🎤 [FORCE_MODAL] Erro ao forçar modal:', error);
+        // Garantir restauração mesmo em caso de erro
+        window.confirm = originalConfirm;
+        window.removeEventListener('beforeunload', preventNativeModal, true);
+        window.removeEventListener('unload', preventNativeModal, true);
+      }
+    }, 150);
+  }, []);
+
   // Function to cancel ongoing requests
   // FUNÇÃO REMOVIDA: handleCancelRequest não é mais necessária
   // const handleCancelRequest = () => {
@@ -545,29 +604,36 @@ const isAddBillIntent = (msg: string) => {
       
       // Se o áudio contém uma transação única, ativar modal simples
       if (result.action === 'add_transaction' && result.amount && result.description) {
-        console.log('🎤 [AUDIO_TRANSACTION] Transação detectada no áudio, ativando modal');
+        console.log('🎤 [AUDIO_TRANSACTION] Transação detectada no áudio, ativando modal customizado');
         
         // Adicionar mensagem do usuário com a transcrição
         const userMessage: ChatMessage = {
           id: uuidv4(),
-          text: result.transcription || '',
+          text: result.transcription || 'Comando de voz processado',
           sender: 'user',
           timestamp: new Date()
         };
         
         setMessages(prev => [...prev, userMessage]);
         
-        // Ativar modal de confirmação diretamente com os dados da transação
-        setPendingAction({
-          tipo: result.transaction_type || 'expense',
-          dados: {
-            amount: result.amount,
-            description: result.description,
-            category: result.category || 'Outros',
-            date: new Date().toISOString().split('T')[0]
-          }
+        // Adicionar resposta da IA confirmando detecção
+        const assistantMessage: ChatMessage = {
+          id: uuidv4(),
+          text: `🎤 Entendi! Detectei uma ${result.transaction_type === 'income' ? 'receita' : 'despesa'} de R$ ${result.amount.toFixed(2)} - ${result.description}. Confirme os dados abaixo:`,
+          sender: 'assistant',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+        
+        // USAR função especializada para forçar modal customizado
+        forceCustomModalForAudio({
+          transaction_type: result.transaction_type || 'expense',
+          amount: result.amount,
+          description: result.description,
+          category: result.category || 'Outros'
         });
-        setWaitingConfirmation(true);
         
         setIsProcessingAudio(false);
         setLoadingState('audio-processing', false);
@@ -4086,7 +4152,7 @@ return (
                     justifyContent: 'space-between',
                     alignItems: 'flex-start',
                     marginBottom: '15px',
-                    gap: '15px'
+                    gap: '10px'
                   }}>
                     <div style={{ flex: 1 }}>
                       <div style={{
@@ -4119,109 +4185,84 @@ return (
                       </div>
                       
                       <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px',
-                        marginBottom: '12px'
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr 1fr',
+                        gap: '10px',
+                        marginBottom: '10px'
                       }}>
-                        {/* Linha 1: Tipo e Valor lado a lado */}
-                        <div style={{
-                          display: 'grid',
-                          gridTemplateColumns: '1fr 1.2fr',
-                          gap: '12px'
-                        }}>
-                          <div>
-                            <label style={{ 
-                              fontSize: '13px', 
-                              color: '#374151',
-                              fontWeight: '700',
-                              display: 'block', 
-                              marginBottom: '6px',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.5px'
-                            }}>
-                              Tipo
-                            </label>
-                            <select
-                              value={transaction.type || 'expense'}
-                              onChange={(e) => updateTransaction(index, { 
-                                ...transaction, 
-                                type: e.target.value as 'income' | 'expense',
-                                amount: Math.abs(transaction.amount || 0) * (e.target.value === 'expense' ? -1 : 1)
-                              })}
-                              style={{
-                                background: 'white',
-                                border: '2px solid #e5e7eb',
-                                borderRadius: '10px',
-                                padding: '10px 12px',
-                                color: '#1f2937',
-                                fontSize: '14px',
-                                fontWeight: '600',
-                                width: '100%',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                cursor: 'pointer',
-                                appearance: 'none',
-                                backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")',
-                                backgroundPosition: 'right 8px center',
-                                backgroundRepeat: 'no-repeat',
-                                backgroundSize: '16px',
-                                paddingRight: '32px'
-                              }}
-                            >
-                              <option value="income">💰 Entrada</option>
-                              <option value="expense">💸 Saída</option>
-                            </select>
-                          </div>
-                          
-                          <div>
-                            <label style={{ 
-                              fontSize: '13px', 
-                              color: '#374151',
-                              fontWeight: '700',
-                              display: 'block', 
-                              marginBottom: '6px',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.5px'
-                            }}>
-                              Valor (R$)
-                            </label>
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={Math.abs(transaction.amount || 0)}
-                              onChange={(e) => updateTransaction(index, { 
-                                ...transaction, 
-                                amount: transaction.type === 'expense' ? -Math.abs(parseFloat(e.target.value) || 0) : Math.abs(parseFloat(e.target.value) || 0)
-                              })}
-                              style={{
-                                background: 'white',
-                                border: '2px solid #e5e7eb',
-                                borderRadius: '10px',
-                                padding: '10px 12px',
-                                color: '#1f2937',
-                                fontSize: '16px',
-                                fontWeight: '700',
-                                width: '100%',
-                                outline: 'none',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-                              }}
-                              placeholder="0,00"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Linha 2: Data ocupando largura completa */}
                         <div>
                           <label style={{ 
-                            fontSize: '13px', 
-                            color: '#374151',
-                            fontWeight: '700',
+                            fontSize: '12px', 
+                            color: '#374151', // Cinza escuro
+                            fontWeight: '600',
                             display: 'block', 
-                            marginBottom: '6px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px'
+                            marginBottom: '5px' 
+                          }}>
+                            Tipo
+                          </label>
+                          <select
+                            value={transaction.type || 'expense'}
+                            onChange={(e) => updateTransaction(index, { 
+                              ...transaction, 
+                              type: e.target.value as 'income' | 'expense',
+                              amount: Math.abs(transaction.amount || 0) * (e.target.value === 'expense' ? -1 : 1)
+                            })}
+                            style={{
+                              background: 'white',
+                              border: '2px solid #e5e7eb',
+                              borderRadius: '8px',
+                              padding: '8px 12px',
+                              color: '#1f2937',
+                              fontSize: '14px',
+                              width: '100%',
+                              outline: 'none',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="income">💰 Entrada</option>
+                            <option value="expense">💸 Saída</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label style={{ 
+                            fontSize: '12px', 
+                            color: '#374151', // Cinza escuro
+                            fontWeight: '600',
+                            display: 'block', 
+                            marginBottom: '5px' 
+                          }}>
+                            Valor (R$)
+                          </label>
+                          <input
+                            type="number"
+                            value={Math.abs(transaction.amount || 0)}
+                            onChange={(e) => updateTransaction(index, { 
+                              ...transaction, 
+                              amount: transaction.type === 'expense' ? -Math.abs(parseFloat(e.target.value) || 0) : Math.abs(parseFloat(e.target.value) || 0)
+                            })}
+                            style={{
+                              background: 'white', // Fundo branco sólido
+                              border: '2px solid #e5e7eb',
+                              borderRadius: '8px',
+                              padding: '8px 12px',
+                              color: '#1f2937', // Texto escuro
+                              fontSize: '14px',
+                              width: '100%',
+                              outline: 'none',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                            }}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label style={{ 
+                            fontSize: '12px', 
+                            color: '#374151', // Cinza escuro
+                            fontWeight: '600',
+                            display: 'block', 
+                            marginBottom: '5px' 
                           }}>
                             Data
                           </label>
@@ -4230,16 +4271,15 @@ return (
                             value={transaction.date || new Date().toISOString().split('T')[0]}
                             onChange={(e) => updateTransaction(index, { ...transaction, date: e.target.value })}
                             style={{
-                              background: 'white',
+                              background: 'white', // Fundo branco sólido
                               border: '2px solid #e5e7eb',
-                              borderRadius: '10px',
-                              padding: '10px 12px',
-                              color: '#1f2937',
+                              borderRadius: '8px',
+                              padding: '8px 12px',
+                              color: '#1f2937', // Texto escuro
                               fontSize: '14px',
-                              fontWeight: '600',
                               width: '100%',
                               outline: 'none',
-                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                             }}
                           />
                         </div>
@@ -4247,17 +4287,13 @@ return (
 
                       <div>
                         <label style={{ 
-                          fontSize: '13px', 
-                          color: '#374151',
-                          fontWeight: '700',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          marginBottom: '6px',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px'
+                          fontSize: '12px', 
+                          color: '#374151', // Cinza escuro
+                          fontWeight: '600',
+                          display: 'block', 
+                          marginBottom: '5px' 
                         }}>
-                          <Tag style={{ width: '14px', height: '14px' }} />
+                          <Tag style={{ width: '12px', height: '12px', display: 'inline-block', marginRight: '4px' }} />
                           Categoria
                         </label>
                         
@@ -4268,20 +4304,19 @@ return (
                             onClick={() => toggleCategoryDropdown(index)}
                             style={{
                               width: '100%',
-                              padding: '10px 12px',
+                              padding: '8px 12px',
                               border: '2px solid #e5e7eb',
-                              borderRadius: '10px',
+                              borderRadius: '8px',
                               background: 'white',
                               color: transaction.category ? '#1f2937' : '#9ca3af',
                               fontSize: '14px',
-                              fontWeight: '600',
                               textAlign: 'left',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               cursor: 'pointer',
                               outline: 'none',
-                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                               transition: 'all 0.2s ease'
                             }}
                           >
@@ -4407,36 +4442,29 @@ return (
                     <button
                       onClick={() => deleteTransaction(index)}
                       style={{
-                        background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1))',
+                        background: 'rgba(239, 68, 68, 0.1)',
                         border: '2px solid #ef4444',
-                        borderRadius: '12px',
+                        borderRadius: '8px',
                         color: '#dc2626',
-                        padding: '12px',
+                        padding: '8px',
                         cursor: 'pointer',
-                        fontSize: '16px',
+                        fontSize: '14px',
                         fontWeight: 'bold',
-                        width: '44px',
-                        height: '44px',
+                        width: '36px',
+                        height: '36px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexShrink: 0,
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)',
-                        alignSelf: 'flex-start',
-                        marginTop: '2px'
+                        position: 'relative',
+                        zIndex: 10
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
-                        e.currentTarget.style.transform = 'scale(1.05)';
-                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.3)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
-                        e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.2)';
                       }}
-                      title="Excluir transação"
                     >
                       🗑️
                     </button>

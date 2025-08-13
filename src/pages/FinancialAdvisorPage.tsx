@@ -4086,7 +4086,7 @@ return (
                     justifyContent: 'space-between',
                     alignItems: 'flex-start',
                     marginBottom: '15px',
-                    gap: '10px'
+                    gap: '15px'
                   }}>
                     <div style={{ flex: 1 }}>
                       <div style={{
@@ -4119,84 +4119,109 @@ return (
                       </div>
                       
                       <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr 1fr',
-                        gap: '10px',
-                        marginBottom: '10px'
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                        marginBottom: '12px'
                       }}>
-                        <div>
-                          <label style={{ 
-                            fontSize: '12px', 
-                            color: '#374151', // Cinza escuro
-                            fontWeight: '600',
-                            display: 'block', 
-                            marginBottom: '5px' 
-                          }}>
-                            Tipo
-                          </label>
-                          <select
-                            value={transaction.type || 'expense'}
-                            onChange={(e) => updateTransaction(index, { 
-                              ...transaction, 
-                              type: e.target.value as 'income' | 'expense',
-                              amount: Math.abs(transaction.amount || 0) * (e.target.value === 'expense' ? -1 : 1)
-                            })}
-                            style={{
-                              background: 'white',
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
-                              padding: '8px 12px',
-                              color: '#1f2937',
-                              fontSize: '14px',
-                              width: '100%',
-                              outline: 'none',
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <option value="income">💰 Entrada</option>
-                            <option value="expense">💸 Saída</option>
-                          </select>
+                        {/* Linha 1: Tipo e Valor lado a lado */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1.2fr',
+                          gap: '12px'
+                        }}>
+                          <div>
+                            <label style={{ 
+                              fontSize: '13px', 
+                              color: '#374151',
+                              fontWeight: '700',
+                              display: 'block', 
+                              marginBottom: '6px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}>
+                              Tipo
+                            </label>
+                            <select
+                              value={transaction.type || 'expense'}
+                              onChange={(e) => updateTransaction(index, { 
+                                ...transaction, 
+                                type: e.target.value as 'income' | 'expense',
+                                amount: Math.abs(transaction.amount || 0) * (e.target.value === 'expense' ? -1 : 1)
+                              })}
+                              style={{
+                                background: 'white',
+                                border: '2px solid #e5e7eb',
+                                borderRadius: '10px',
+                                padding: '10px 12px',
+                                color: '#1f2937',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                width: '100%',
+                                outline: 'none',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                cursor: 'pointer',
+                                appearance: 'none',
+                                backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")',
+                                backgroundPosition: 'right 8px center',
+                                backgroundRepeat: 'no-repeat',
+                                backgroundSize: '16px',
+                                paddingRight: '32px'
+                              }}
+                            >
+                              <option value="income">💰 Entrada</option>
+                              <option value="expense">💸 Saída</option>
+                            </select>
+                          </div>
+                          
+                          <div>
+                            <label style={{ 
+                              fontSize: '13px', 
+                              color: '#374151',
+                              fontWeight: '700',
+                              display: 'block', 
+                              marginBottom: '6px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}>
+                              Valor (R$)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={Math.abs(transaction.amount || 0)}
+                              onChange={(e) => updateTransaction(index, { 
+                                ...transaction, 
+                                amount: transaction.type === 'expense' ? -Math.abs(parseFloat(e.target.value) || 0) : Math.abs(parseFloat(e.target.value) || 0)
+                              })}
+                              style={{
+                                background: 'white',
+                                border: '2px solid #e5e7eb',
+                                borderRadius: '10px',
+                                padding: '10px 12px',
+                                color: '#1f2937',
+                                fontSize: '16px',
+                                fontWeight: '700',
+                                width: '100%',
+                                outline: 'none',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                              }}
+                              placeholder="0,00"
+                            />
+                          </div>
                         </div>
-                        
+
+                        {/* Linha 2: Data ocupando largura completa */}
                         <div>
                           <label style={{ 
-                            fontSize: '12px', 
-                            color: '#374151', // Cinza escuro
-                            fontWeight: '600',
+                            fontSize: '13px', 
+                            color: '#374151',
+                            fontWeight: '700',
                             display: 'block', 
-                            marginBottom: '5px' 
-                          }}>
-                            Valor (R$)
-                          </label>
-                          <input
-                            type="number"
-                            value={Math.abs(transaction.amount || 0)}
-                            onChange={(e) => updateTransaction(index, { 
-                              ...transaction, 
-                              amount: transaction.type === 'expense' ? -Math.abs(parseFloat(e.target.value) || 0) : Math.abs(parseFloat(e.target.value) || 0)
-                            })}
-                            style={{
-                              background: 'white', // Fundo branco sólido
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
-                              padding: '8px 12px',
-                              color: '#1f2937', // Texto escuro
-                              fontSize: '14px',
-                              width: '100%',
-                              outline: 'none',
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                            }}
-                          />
-                        </div>
-                        
-                        <div>
-                          <label style={{ 
-                            fontSize: '12px', 
-                            color: '#374151', // Cinza escuro
-                            fontWeight: '600',
-                            display: 'block', 
-                            marginBottom: '5px' 
+                            marginBottom: '6px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
                           }}>
                             Data
                           </label>
@@ -4205,15 +4230,16 @@ return (
                             value={transaction.date || new Date().toISOString().split('T')[0]}
                             onChange={(e) => updateTransaction(index, { ...transaction, date: e.target.value })}
                             style={{
-                              background: 'white', // Fundo branco sólido
+                              background: 'white',
                               border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
-                              padding: '8px 12px',
-                              color: '#1f2937', // Texto escuro
+                              borderRadius: '10px',
+                              padding: '10px 12px',
+                              color: '#1f2937',
                               fontSize: '14px',
+                              fontWeight: '600',
                               width: '100%',
                               outline: 'none',
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                             }}
                           />
                         </div>
@@ -4221,13 +4247,17 @@ return (
 
                       <div>
                         <label style={{ 
-                          fontSize: '12px', 
-                          color: '#374151', // Cinza escuro
-                          fontWeight: '600',
-                          display: 'block', 
-                          marginBottom: '5px' 
+                          fontSize: '13px', 
+                          color: '#374151',
+                          fontWeight: '700',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          marginBottom: '6px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px'
                         }}>
-                          <Tag style={{ width: '12px', height: '12px', display: 'inline-block', marginRight: '4px' }} />
+                          <Tag style={{ width: '14px', height: '14px' }} />
                           Categoria
                         </label>
                         
@@ -4238,19 +4268,20 @@ return (
                             onClick={() => toggleCategoryDropdown(index)}
                             style={{
                               width: '100%',
-                              padding: '8px 12px',
+                              padding: '10px 12px',
                               border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
+                              borderRadius: '10px',
                               background: 'white',
                               color: transaction.category ? '#1f2937' : '#9ca3af',
                               fontSize: '14px',
+                              fontWeight: '600',
                               textAlign: 'left',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               cursor: 'pointer',
                               outline: 'none',
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                               transition: 'all 0.2s ease'
                             }}
                           >
@@ -4376,29 +4407,36 @@ return (
                     <button
                       onClick={() => deleteTransaction(index)}
                       style={{
-                        background: 'rgba(239, 68, 68, 0.1)',
+                        background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1))',
                         border: '2px solid #ef4444',
-                        borderRadius: '8px',
+                        borderRadius: '12px',
                         color: '#dc2626',
-                        padding: '8px',
+                        padding: '12px',
                         cursor: 'pointer',
-                        fontSize: '14px',
+                        fontSize: '16px',
                         fontWeight: 'bold',
-                        width: '36px',
-                        height: '36px',
+                        width: '44px',
+                        height: '44px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexShrink: 0,
-                        position: 'relative',
-                        zIndex: 10
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)',
+                        alignSelf: 'flex-start',
+                        marginTop: '2px'
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.3)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.2)';
                       }}
+                      title="Excluir transação"
                     >
                       🗑️
                     </button>

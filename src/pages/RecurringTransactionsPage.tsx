@@ -608,37 +608,67 @@ const RecurringTransactionsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">
-              Limite de transações recorrentes atingido
+              🔒 Transações recorrentes limitadas
             </h3>
             <p className="text-gray-600 mb-4">
-              Você já utilizou todas as suas transações recorrentes gratuitas este mês. 
-              Assista a um anúncio para ganhar 2 transações recorrentes extras!
+              Você já criou 2 transações recorrentes este mês (limite do plano gratuito).
             </p>
             
-            {cooldownInfo && cooldownInfo.isInCooldown && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <p className="text-sm text-blue-800">
-                  ⏱️ Próximo anúncio disponível em: {cooldownInfo.remainingMinutes || 0} minutos
-                </p>
-              </div>
-            )}
-            
-            <div className="flex gap-3">
+            {/* Opção Premium */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <h4 className="font-semibold text-blue-900 mb-2">✨ Upgrade para Premium</h4>
+              <p className="text-sm text-blue-800 mb-3">
+                Transações recorrentes <strong>ilimitadas</strong> + todos os recursos premium
+              </p>
               <button
-                onClick={() => setShowRecurringLimit(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                onClick={() => {
+                  setShowRecurringLimit(false);
+                  // Abrir PaywallModal (você precisa implementar isso)
+                  console.log('🎯 [RECURRING] Usuário escolheu upgrade premium');
+                }}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all"
               >
-                Cancelar
+                🚀 Fazer Upgrade
               </button>
+            </div>
+            
+            {/* Divisor */}
+            <div className="flex items-center mb-4">
+              <div className="flex-1 border-t border-gray-300"></div>
+              <span className="px-3 text-gray-500 text-sm">ou</span>
+              <div className="flex-1 border-t border-gray-300"></div>
+            </div>
+            
+            {/* Opção Anúncio */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <h4 className="font-semibold text-yellow-900 mb-2">🎬 Assistir anúncio</h4>
+              <p className="text-sm text-yellow-800 mb-3">
+                Ganhe 2 transações recorrentes extras assistindo um anúncio
+              </p>
+              
+              {cooldownInfo && cooldownInfo.isInCooldown ? (
+                <div className="bg-yellow-100 border border-yellow-300 rounded p-2 mb-3">
+                  <p className="text-xs text-yellow-800">
+                    ⏱️ Próximo anúncio em: {cooldownInfo.remainingMinutes || 0} min
+                  </p>
+                </div>
+              ) : null}
               
               <button
                 onClick={handleWatchAd}
                 disabled={isWatchingAd || (cooldownInfo && cooldownInfo.isInCooldown)}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-yellow-500 text-yellow-900 py-2 px-4 rounded-lg font-semibold hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {isWatchingAd ? '📺 Assistindo...' : '🎬 Assistir Anúncio'}
               </button>
             </div>
+            
+            <button
+              onClick={() => setShowRecurringLimit(false)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all"
+            >
+              Cancelar
+            </button>
           </div>
         </div>
       )}

@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { UserPlanManager } from './userPlanManager';
+import { PlanType } from '@/types';
 
 export interface RecurringLimitInfo {
   allowed: boolean;
@@ -20,14 +21,18 @@ export class RecurringTransactionLimitManager {
       // Verificar plano do usuário
       const userPlan = await UserPlanManager.getUserPlan(userId);
       
+      console.log(`📋 [RECURRING_LIMIT] Plano do usuário: ${userPlan.planType}`);
+      
       // Usuários premium têm transações recorrentes sem limite
-      if (userPlan !== 'free' as any) {
+      if (userPlan.planType !== PlanType.FREE) {
         console.log('✅ [RECURRING_LIMIT] Usuário premium - transações recorrentes sem limite');
         return { 
           allowed: true, 
           recurringRemaining: -1 // -1 = sem limite
         };
       }
+
+      console.log('📊 [RECURRING_LIMIT] Usuário FREE - verificando limite de 2 transações recorrentes/mês');
 
       // Para usuários FREE, verificar limite mensal
       const currentMonth = new Date();

@@ -271,18 +271,22 @@ export class AdManager {
    */
   static async showRewardedAd(type: 'bills' | 'transactions' | 'messages' | 'financial_analysis' | 'report_downloads' | 'recurring_transactions'): Promise<AdResult> {
     try {
-      // Por enquanto, simular anúncio
-      console.log(`🎬 Mostrando anúncio rewarded: ${type}`);
+      console.log(`🎬 [AD_MANAGER] Iniciando reward ad: ${type}`);
       
-      // Simular tempo de anúncio (5-8 segundos)
-      const adDuration = Math.random() * 3000 + 5000; // 5-8 segundos
+      // Criar evento personalizado para mostrar o placeholder
+      const adEvent = new CustomEvent('showAdPlaceholder', {
+        detail: { type }
+      });
+      window.dispatchEvent(adEvent);
       
+      // Aguardar resultado do anúncio via Promise
       return new Promise((resolve) => {
-        setTimeout(() => {
-          // 90% de chance de sucesso (usuário assiste até o fim)
-          const success = Math.random() > 0.1;
+        const handleAdResult = (event: CustomEvent) => {
+          console.log(`✅ [AD_MANAGER] Resultado do ad: ${event.detail.success}`);
           
-          if (success) {
+          window.removeEventListener('adPlaceholderResult', handleAdResult as EventListener);
+          
+          if (event.detail.success) {
             resolve({
               success: true,
               reward: this.getAdReward(type)
@@ -293,11 +297,22 @@ export class AdManager {
               error: 'Anúncio não foi assistido até o fim'
             });
           }
-        }, adDuration);
+        };
+
+        window.addEventListener('adPlaceholderResult', handleAdResult as EventListener);
+        
+        // Timeout de segurança (30 segundos)
+        setTimeout(() => {
+          window.removeEventListener('adPlaceholderResult', handleAdResult as EventListener);
+          resolve({
+            success: false,
+            error: 'Timeout do anúncio'
+          });
+        }, 30000);
       });
       
     } catch (error) {
-      console.error('Erro ao mostrar anúncio:', error);
+      console.error('❌ [AD_MANAGER] Erro ao mostrar anúncio:', error);
       return {
         success: false,
         error: 'Erro ao carregar anúncio'

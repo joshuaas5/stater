@@ -4,7 +4,7 @@ import './Dashboard.module.css';
 import './Dashboard.premium.css';
 import '../styles/scroll-optimizations.css';
 import { useNavigate, Link } from 'react-router-dom';
-import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
+import { INCOME_CATEGORIES, EXPENSE_CATEGORIES, PlanType } from '@/types';
 import BalanceCard from '@/components/dashboard/BalanceCard';
 import BillsDueWidget from '@/components/bills/BillsDueWidget';
 import NotificationIcon from '@/components/notifications/NotificationIcon';
@@ -38,7 +38,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useScrollOptimization } from '@/hooks/useScrollOptimization';
 import VirtualizedTransactionList from '@/components/virtualized/VirtualizedTransactionList';
 import { TransactionModal } from '@/components/modals/TransactionModal';
+import { PaywallModal } from '@/components/ui/PaywallModal';
 import { AdBanner } from '@/components/monetization/AdBanner';
+import { AdPlaceholder } from '@/components/ads/AdPlaceholder';
 
 //  DEBUG: Log para identificar re-renderizaes do Dashboard
 console.log(' Dashboard.tsx carregado/re-renderizado:', new Date().toISOString());
@@ -77,6 +79,13 @@ const Dashboard: React.FC = () => {
   const [nameFilter, setNameFilter] = useState<string>('');
   
   // Estados para monetização
+  
+  // Estados para Ad Placeholder
+  const [showAdPlaceholder, setShowAdPlaceholder] = useState(false);
+  const [adType, setAdType] = useState<'bills' | 'transactions' | 'messages' | 'financial_analysis' | 'report_downloads' | 'recurring_transactions'>('transactions');
+  
+  // Estados para PaywallModal
+  const [showPaywallModal, setShowPaywallModal] = useState(false);
   
   // ADICIONADO: Estados para paginação das últimas transações
   const [transactionsPage, setTransactionsPage] = useState(1);
@@ -547,6 +556,32 @@ const Dashboard: React.FC = () => {
     }
   };
   
+  // 🎬 useEffect para gerenciar AdPlaceholder
+  useEffect(() => {
+    const handleShowAd = (event: CustomEvent) => {
+      console.log('🎬 [DASHBOARD] Recebido evento de mostrar ad:', event.detail.type);
+      setAdType(event.detail.type);
+      setShowAdPlaceholder(true);
+    };
+
+    const handleAdResult = (success: boolean) => {
+      console.log('✅ [DASHBOARD] Resultado do ad:', success);
+      setShowAdPlaceholder(false);
+      
+      // Enviar resultado de volta para o AdManager
+      const resultEvent = new CustomEvent('adPlaceholderResult', {
+        detail: { success }
+      });
+      window.dispatchEvent(resultEvent);
+    };
+
+    window.addEventListener('showAdPlaceholder', handleShowAd as EventListener);
+
+    return () => {
+      window.removeEventListener('showAdPlaceholder', handleShowAd as EventListener);
+    };
+  }, []);
+  
   const handleMonthChange = (month: number, year: number) => {
     setSelectedMonth(month);
     setSelectedYear(year);
@@ -843,8 +878,25 @@ const Dashboard: React.FC = () => {
               </h2>
             </div>
             
-            {/* Notification Icon */}
-            <NotificationIcon />
+            <div className="flex items-center gap-3">
+              {/* Botão Stater Premium */}
+              <button
+                onClick={() => {
+                  console.log('🎯 [PREMIUM] Usuário clicou em Premium');
+                  setShowPaywallModal(true);
+                }}
+                className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-4 py-2 rounded-full font-bold text-sm hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2 pulse"
+                style={{
+                  boxShadow: '0 4px 15px rgba(251, 191, 36, 0.4)'
+                }}
+              >
+                <Star className="h-4 w-4" />
+                Premium
+              </button>
+              
+              {/* Notification Icon */}
+              <NotificationIcon />
+            </div>
           </div>
           
           {/* Date Navigation */}
@@ -1225,11 +1277,15 @@ const Dashboard: React.FC = () => {
             try {
               // Verificar se o usuário é premium
               const userPlan = await UserPlanManager.getUserPlan(user.id);
-              const isPremium = userPlan.planType !== 'free';
+              const isPremium = userPlan.planType !== PlanType.FREE;
+              
+              console.log(`📊 [TRANSACTION_REWARD] Plano do usuário: ${userPlan.planType}, isPremium: ${isPremium}`);
               
               if (!isPremium) {
                 // Incrementar contador e verificar se deve mostrar reward ad
                 const counterResult = await TransactionCounter.incrementAndCheck(user.id);
+                
+                console.log(`📊 [TRANSACTION_COUNTER] Contador atual: ${counterResult.currentCount}, deve mostrar ad: ${counterResult.shouldShowRewardAd}`);
                 
                 if (counterResult.shouldShowRewardAd) {
                   console.log('🎬 [TRANSACTION_REWARD] Mostrando reward ad após 5 transações');
@@ -1582,6 +1638,43 @@ const Dashboard: React.FC = () => {
       
       {/* Ad Banner */}
       <AdBanner position="bottom" />
+      
+      {/* Ad Placeholder */}
+      <AdPlaceholder
+        isOpen={showAdPlaceholder}
+        onClose={() => {
+          const resultEvent = new CustomEvent('adPlaceholderResult', {
+            detail: { success: false }
+          });
+          window.dispatchEvent(resultEvent);
+          setShowAdPlaceholder(false);
+        }}
+        onReward={() => {
+          const resultEvent = new CustomEvent('adPlaceholderResult', {
+            detail: { success: true }
+          });
+          window.dispatchEvent(resultEvent);
+          setShowAdPlaceholder(false);
+        }}
+        type={adType}
+        duration={8}
+      />
+      
+      {/* Paywall Modal */}
+      <PaywallModal
+        isOpen={showPaywallModal}
+        onClose={() => setShowPaywallModal(false)}
+        onUpgrade={(planType) => {
+          console.log('✅ [PREMIUM] Upgrade realizado:', planType);
+          setShowPaywallModal(false);
+          toast({
+            title: '🎉 Upgrade realizado!',
+            description: `Bem-vindo ao plano ${planType}!`
+          });
+        }}
+        trigger="manual"
+        userId={user?.id || ''}
+      />
       
       </div>
     </div>

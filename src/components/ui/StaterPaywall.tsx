@@ -150,7 +150,11 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
                 <span>Relatórios detalhados com insights inteligentes</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-xl">🔒</span>
+                <span className="text-xl">�</span>
+                <span>Livre de anúncios</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-xl">�🔒</span>
                 <span>Segurança total dos seus dados</span>
               </li>
             </ul>

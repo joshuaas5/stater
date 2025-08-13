@@ -77,60 +77,45 @@ const ExportReportPage: React.FC = () => {
     }
 
     try {
-      // 🎯 NOVO SISTEMA: Contador de relatórios para usuários FREE
+      // 🎯 SISTEMA SIMPLES: SEMPRE reward ad para qualquer relatório (usuários FREE)
       const userPlan = await UserPlanManager.getUserPlan(user.id);
       const isPremium = userPlan.planType !== 'free';
       
       if (!isPremium) {
-        // Importar o ReportCounter
-        const { ReportCounter } = await import('@/utils/reportCounter');
+        console.log('🎬 [REPORT_REWARD] Usuário FREE - SEMPRE mostrar reward ad para relatórios');
         
-        // Verificar contador de relatórios
-        const counterResult = await ReportCounter.incrementAndCheck(user.id);
+        // Verificar cooldown do reward ad
+        const cooldownResult = await RewardCooldownManager.checkCooldownStatus(user.id, 'report_downloads');
         
-        if (counterResult.shouldShowRewardAd) {
-          console.log('🎬 [REPORT_REWARD] Mostrando reward ad após atingir limite');
+        if (cooldownResult.canWatchAd) {
+          // Mostrar reward ad SEMPRE
+          const adResult = await AdManager.showRewardedAd('report_downloads');
           
-          // Verificar cooldown do reward ad
-          const cooldownResult = await RewardCooldownManager.checkCooldownStatus(user.id, 'report_downloads');
-          
-          if (cooldownResult.canWatchAd) {
-            // Mostrar reward ad
-            const adResult = await AdManager.showRewardedAd('report_downloads');
-            
-            if (adResult.success) {
-              console.log('✅ [REPORT_REWARD] Reward ad assistido com sucesso - permitindo download');
-              toast({
-                title: '🎁 Recompensa obtida!',
-                description: 'Você ganhou acesso ao relatório por assistir o anúncio!',
-              });
-            } else {
-              // Usuário não assistiu o reward ad, bloquear acesso
-              console.log('❌ [REPORT_REWARD] Reward ad não assistido - bloqueando acesso');
-              toast({
-                title: '🎬 Assista o anúncio',
-                description: 'Para baixar mais relatórios, é necessário assistir um anúncio ou assinar o Premium.',
-                variant: 'destructive',
-              });
-              return;
-            }
-          } else {
-            // Cooldown ativo - mostrar informações sobre cooldown
-            console.log('⏰ [REPORT_REWARD] Cooldown ativo - informando usuário');
+          if (adResult.success) {
+            console.log('✅ [REPORT_REWARD] Reward ad assistido com sucesso - permitindo download');
             toast({
-              title: '⏰ Aguarde para o próximo anúncio',
-              description: `Você pode assistir um novo anúncio em ${cooldownResult.remainingMinutes} minutos ou assinar o Premium para acesso ilimitado.`,
-              variant: 'default',
+              title: '🎁 Recompensa obtida!',
+              description: 'Você ganhou acesso ao relatório por assistir o anúncio!',
+            });
+          } else {
+            // Usuário não assistiu o reward ad, bloquear acesso
+            console.log('❌ [REPORT_REWARD] Reward ad não assistido - bloqueando acesso');
+            toast({
+              title: '🎬 Assista o anúncio',
+              description: 'Para baixar relatórios, é necessário assistir um anúncio ou assinar o Premium.',
+              variant: 'destructive',
             });
             return;
           }
         } else {
-          // Ainda dentro do limite gratuito ou já assistiu ad recentemente
-          console.log(`📊 [REPORT_REWARD] Relatório ${counterResult.currentCount} - permitindo download sem ad`);
+          // Cooldown ativo - mostrar informações sobre cooldown
+          console.log('⏰ [REPORT_REWARD] Cooldown ativo - informando usuário');
           toast({
-            title: '📊 Relatório disponível',
-            description: `Relatório ${counterResult.currentCount} - próximo anúncio em ${counterResult.nextRewardAt} relatórios.`,
+            title: '⏰ Aguarde para o próximo anúncio',
+            description: `Você pode assistir um novo anúncio em ${cooldownResult.remainingMinutes} minutos ou assinar o Premium para acesso ilimitado.`,
+            variant: 'default',
           });
+          return;
         }
       } else {
         console.log('✅ [REPORT_PREMIUM] Usuário premium - acesso direto aos relatórios');

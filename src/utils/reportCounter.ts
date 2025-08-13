@@ -13,8 +13,8 @@ interface ReportCounterResult {
  * - Sistema similar ao BillCounter e TransactionCounter
  */
 export class ReportCounter {
-  private static readonly REWARD_AD_INTERVAL = 2; // A cada 2 relatórios
-  private static readonly FREE_REPORTS_LIMIT = 3; // 3 relatórios gratuitos iniciais
+  private static readonly REWARD_AD_INTERVAL = 1; // AD A CADA 1 RELATÓRIO (desde o primeiro)
+  private static readonly FREE_REPORTS_LIMIT = 0; // ZERO relatórios gratuitos - AD desde o primeiro
 
   /**
    * Incrementa o contador de reports e verifica se deve mostrar reward ad
@@ -73,28 +73,16 @@ export class ReportCounter {
       console.log(`📊 [REPORT_COUNTER] Contador atualizado para ${currentCount}`);
 
       // Lógica para determinar quando mostrar reward ad
-      // Primeiros relatórios são gratuitos, depois a cada X relatórios
-      if (currentCount <= this.FREE_REPORTS_LIMIT) {
-        // Ainda dentro do limite gratuito
-        console.log(`🆓 [REPORT_COUNTER] Relatório gratuito ${currentCount}/${this.FREE_REPORTS_LIMIT}`);
-        return { 
-          shouldShowRewardAd: false, 
-          currentCount, 
-          nextRewardAt: this.FREE_REPORTS_LIMIT + this.REWARD_AD_INTERVAL - currentCount 
-        };
-      } else {
-        // Verificar se deve mostrar reward ad baseado no intervalo
-        const reportsAfterFree = currentCount - this.FREE_REPORTS_LIMIT;
-        const shouldShow = (reportsAfterFree % this.REWARD_AD_INTERVAL) === 0;
-        
-        console.log(`🎬 [REPORT_COUNTER] Relatório ${currentCount} - Deve mostrar ad: ${shouldShow}`);
-        
-        return { 
-          shouldShowRewardAd: shouldShow, 
-          currentCount, 
-          nextRewardAt: shouldShow ? this.REWARD_AD_INTERVAL : (this.REWARD_AD_INTERVAL - (reportsAfterFree % this.REWARD_AD_INTERVAL))
-        };
-      }
+      // SEMPRE mostrar ad para qualquer relatório (desde o primeiro)
+      const shouldShow = true; // SEMPRE mostrar ad para relatórios
+      
+      console.log(`🎬 [REPORT_COUNTER] Relatório ${currentCount} - SEMPRE mostrar ad`);
+      
+      return { 
+        shouldShowRewardAd: shouldShow, 
+        currentCount, 
+        nextRewardAt: 1 // Sempre próximo ad = próximo relatório
+      };
 
     } catch (error) {
       console.error('❌ [REPORT_COUNTER] Erro geral:', error);

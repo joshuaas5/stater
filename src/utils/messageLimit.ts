@@ -88,47 +88,62 @@ export class MessageLimitManager {
     try {
       console.log('📈 [MESSAGE_LIMIT] Incrementando contador de mensagens para:', userId);
       
-      // Buscar contador atual
-      const { data: existing, error: fetchError } = await supabase
-        .from('user_message_count')
-        .select('message_count')
-        .eq('user_id', userId)
-        .single();
-      
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = not found
-        throw fetchError;
-      }
-      
-      if (existing) {
-        // Atualizar contador existente
-        const { error: updateError } = await supabase
+      // FALLBACK: Se a tabela não existir, usar localStorage temporariamente
+      try {
+        // Buscar contador atual
+        const { data: existing, error: fetchError } = await supabase
           .from('user_message_count')
-          .update({ 
-            message_count: existing.message_count + 1,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', userId);
+          .select('message_count')
+          .eq('user_id', userId)
+          .single();
         
-        if (updateError) throw updateError;
-        console.log('📈 [MESSAGE_LIMIT] Contador atualizado:', existing.message_count + 1);
-      } else {
-        // Criar novo registro
-        const { error: insertError } = await supabase
-          .from('user_message_count')
-          .insert({
-            user_id: userId,
-            message_count: 1,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = not found
+          throw fetchError;
+        }
         
-        if (insertError) throw insertError;
-        console.log('📈 [MESSAGE_LIMIT] Contador criado: 1');
+        if (existing) {
+          // Atualizar contador existente
+          const { error: updateError } = await supabase
+            .from('user_message_count')
+            .update({ 
+              message_count: existing.message_count + 1,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', userId);
+          
+          if (updateError) throw updateError;
+          console.log('📈 [MESSAGE_LIMIT] Contador atualizado:', existing.message_count + 1);
+        } else {
+          // Criar novo registro
+          const { error: insertError } = await supabase
+            .from('user_message_count')
+            .insert({
+              user_id: userId,
+              message_count: 1,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+          
+          if (insertError) throw insertError;
+          console.log('📈 [MESSAGE_LIMIT] Contador criado: 1');
+        }
+        
+      } catch (supabaseError: any) {
+        // FALLBACK: Se a tabela não existir ou houver erro 406, usar localStorage
+        console.warn('⚠️ [MESSAGE_LIMIT] Tabela user_message_count não encontrada, usando fallback localStorage');
+        
+        const today = new Date().toDateString();
+        const countKey = `message_count_${userId}_${today}`;
+        const currentCount = parseInt(localStorage.getItem(countKey) || '0');
+        const newCount = currentCount + 1;
+        
+        localStorage.setItem(countKey, newCount.toString());
+        console.log('📈 [MESSAGE_LIMIT] Contador localStorage incrementado:', newCount);
       }
       
     } catch (error) {
       console.error('❌ [MESSAGE_LIMIT] Erro ao incrementar contador:', error);
-      throw error;
+      // Não fazer throw para não quebrar a funcionalidade principal
     }
   }
   
@@ -149,8 +164,14 @@ export class MessageLimitManager {
       
       return data?.message_count || 0;
     } catch (error) {
-      console.error('❌ [MESSAGE_LIMIT] Erro ao buscar contador:', error);
-      return 0;
+      // FALLBACK: Se a tabela não existir, usar localStorage
+      console.warn('⚠️ [MESSAGE_LIMIT] Usando fallback localStorage para contador');
+      
+      const today = new Date().toDateString();
+      const countKey = `message_count_${userId}_${today}`;
+      const currentCount = parseInt(localStorage.getItem(countKey) || '0');
+      
+      return currentCount;
     }
   }
   

@@ -114,6 +114,12 @@ self.addEventListener('fetch', (event) => {
 
 // 🔧 Tratar mensagens do cliente de forma otimizada
 self.addEventListener('message', (event) => {
+  // Reduzir logs para scroll
+  if (event.data?.type === 'SCROLL_START' || event.data?.type === 'SCROLL_END') {
+    // Não fazer log de scroll - muito verbose
+    return;
+  }
+  
   console.log('[SW] Mensagem recebida:', event.data);
   
   if (event.data?.type === 'SKIP_WAITING') {
@@ -125,10 +131,5 @@ self.addEventListener('message', (event) => {
       console.log('[SW] Cache limpo');
       event.ports?.[0]?.postMessage({ success: true });
     });
-  }
-  
-  // 🔧 Novos tipos de mensagem para controle
-  if (event.data?.type === 'SCROLL_START' || event.data?.type === 'SCROLL_END') {
-    // Apenas registrar sem logs excessivos
   }
 });

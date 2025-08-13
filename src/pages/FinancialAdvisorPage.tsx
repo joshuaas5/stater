@@ -177,6 +177,11 @@ export const FinancialAdvisorPage: React.FC = () => {
   // Hook para gerenciar múltiplos estados de loading
   const { setLoading: setLoadingState, isLoading: isLoadingState, isAnyLoading } = useLoadingStates();
 
+  // Estados para controle de debounce e cache
+  const [lastMessageCheck, setLastMessageCheck] = useState<number>(0);
+  const [cachedUserPlan, setCachedUserPlan] = useState<any>(null);
+  const [isProcessingMessage, setIsProcessingMessage] = useState(false);
+
   // Ref para controlar cancelamento de requisições
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -807,18 +812,33 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
   const safeMessage = validatedMessage;
 
   // ========================================
-  // NOVO SISTEMA: REWARD AD NA PRIMEIRA MENSAGEM
-  // ========================================
-  if (!skipAddingUserMessage) { // Só verifica para mensagens do usuário, não respostas do sistema
-    try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
+  // NOVO SISTEMA: REWARD AD NA PRIMEIRA MENSAGEM - OTIMIZADO
+  // =======================================================
+  if (!skipAddingUserMessage && !isProcessingMessage) { // Evitar processamento duplo
+    // DEBOUNCE: Evitar verificações repetitivas em menos de 2 segundos
+    const now = Date.now();
+    if (now - lastMessageCheck < 2000) {
+      console.log('🔄 [DEBOUNCE] Verificação de mensagem recente ignorada');
+    } else {
+      setIsProcessingMessage(true);
+      setLastMessageCheck(now);
+      
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
         setError("Erro: Usuário não identificado. Por favor, faça login novamente.");
+        setIsProcessingMessage(false);
         return;
       }
 
-      // Verificar se o usuário é premium
-      const userPlan = await UserPlanManager.getUserPlan(user.id);
+      // Usar cache do plano por 30 segundos para evitar chamadas repetitivas
+      let userPlan = cachedUserPlan;
+      if (!userPlan || (now - userPlan.cacheTime) > 30000) {
+        userPlan = await UserPlanManager.getUserPlan(user.id);
+        userPlan.cacheTime = now;
+        setCachedUserPlan(userPlan);
+      }
+      
       const isPremium = userPlan.planType !== 'free';
       
       if (!isPremium) {
@@ -874,6 +894,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
             }]);
             
             setShowPaywall(true);
+            setIsProcessingMessage(false);
             return;
           } else {
             // Ainda tem mensagens - usar mensagem gratuita
@@ -888,7 +909,11 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
     } catch (error) {
       console.error('Erro ao verificar sistema de reward ad/mensagens:', error);
       setError("Erro interno. Tente novamente.");
+      setIsProcessingMessage(false);
       return;
+    } finally {
+      setIsProcessingMessage(false);
+    }
     }
   }
 

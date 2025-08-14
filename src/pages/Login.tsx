@@ -4,8 +4,13 @@ import AuthForm from '@/components/auth/AuthForm';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { useStableHeight } from '@/hooks/useStableHeight';
+import '@/styles/anti-flicker.css';
 
 const Login: React.FC = () => {
+  // Hook para altura estável em mobile
+  useStableHeight();
+  
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -273,47 +278,45 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
-      {/* Partículas flutuantes */}
-      <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: 20 }).map((_, i) => (
+    <div className="homepage-container stable-height relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
+      {/* Partículas flutuantes - otimizadas */}
+      <div className="absolute inset-0 overflow-hidden stable-particles">
+        {Array.from({ length: 15 }).map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
+            className="absolute w-1 h-1 bg-white/15 rounded-full no-flicker"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
+              animationDelay: `${Math.random() * 2}s`,
             }}
           />
         ))}
       </div>
       
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-black/20" />
-      <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/30 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-pulse" />
+      {/* Background Effects - otimizados */}
+      <div className="absolute inset-0 bg-black/20 no-flicker" />
+      <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/15 rounded-full blur-3xl stable-blur" />
+      <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl stable-blur" />
       
-      {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+      {/* Main Content - otimizado */}
+      <div className="relative z-10 stable-height flex items-center justify-center p-4 no-flicker">
         <div className="w-full max-w-md mx-auto">
-          {/* Logo Section */}
-          <div className="text-center mb-8 animate-fadeIn">
+          {/* Logo Section - otimizada */}
+          <div className="text-center mb-8 no-flicker">
             <div className="flex justify-center mb-6">
               <img 
                 src="/stater-logo-512.png" 
                 alt="STATER Logo" 
-                className="w-24 h-24 sm:w-32 sm:h-32 object-contain drop-shadow-2xl"
+                className="w-24 h-24 sm:w-32 sm:h-32 object-contain stable-logo"
               />
             </div>
             <h1 
-              className="text-3xl sm:text-5xl font-bold text-white mb-2 uppercase tracking-wide"
+              className="text-3xl sm:text-5xl font-bold text-white mb-2 uppercase tracking-wide stable-text-shadow no-flicker"
               style={{
                 fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
                 letterSpacing: '2px',
-                textShadow: 'rgb(59, 130, 246) 2px 2px 0px, rgb(29, 78, 216) 4px 4px 0px, rgba(59, 130, 246, 0.8) 0px 0px 20px, rgba(0, 0, 0, 0.6) 0px 2px 8px',
-                filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 3px 6px)'
+                textShadow: 'rgb(59, 130, 246) 2px 2px 0px, rgb(29, 78, 216) 4px 4px 0px',
               }}
             >
               STATER
@@ -321,8 +324,8 @@ const Login: React.FC = () => {
             <p className="text-blue-200 text-base sm:text-lg font-medium">Inteligência para prosperar</p>
           </div>
 
-          {/* Login Card */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8 animate-slideUp mx-4 sm:mx-0">
+          {/* Login Card - otimizado */}
+          <div className="bg-white/10 rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8 mx-4 sm:mx-0 stable-backdrop no-flicker">
             {/* Title */}
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-white mb-2">

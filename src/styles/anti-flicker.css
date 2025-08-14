@@ -24,6 +24,12 @@
   backface-visibility: hidden;
   -webkit-transform: translateZ(0);
   -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+  /* MOBILE ESPECÍFICO - força layer de composição */
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
+  /* Força renderização na GPU */
+  -webkit-transform-style: preserve-3d;
 }
 
 /* 3. Otimizações específicas para texto com shadow */
@@ -35,6 +41,12 @@
   backface-visibility: hidden;
   /* Força uma camada de composição */
   transform-style: preserve-3d;
+  font-display: swap; /* Para fontes externas */
+  text-rendering: optimizeSpeed; /* Prioriza performance */
+  /* MOBILE - força renderização estável */
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  contain: layout style;
 }
 
 /* 4. Efeitos blur estáveis */
@@ -136,5 +148,46 @@
     box-shadow: initial !important;
     background-color: initial !important;
     opacity: 1 !important;
+  }
+}
+
+/* 15. MOBILE ANTI-FLICKERING EXTREMO */
+@media screen and (max-width: 768px) {
+  /* Força GPU em TODOS os elementos críticos */
+  h1, h2, h3, .text-5xl, .text-7xl {
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
+    will-change: transform !important;
+    contain: layout style !important;
+  }
+  
+  /* Força estabilidade em imagens */
+  img {
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
+  }
+  
+  /* Força estabilidade em elementos com background */
+  .bg-gradient-to-br, .bg-white\/5, .bg-blue-500\/20 {
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    transform: translate3d(0, 0, 0) !important;
+    contain: layout style paint !important;
+  }
+  
+  /* Desabilita animações problemáticas em mobile */
+  .animate-pulse, .animate-spin {
+    animation: none !important;
+  }
+  
+  /* Container principal ultra-estável para mobile */
+  .homepage-container {
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    transform: translate3d(0, 0, 0) !important;
   }
 }

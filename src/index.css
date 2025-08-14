@@ -12,15 +12,20 @@
 
 /* ===== CONFIGURAÇÃO GLOBAL DE LAYOUT ===== */
 html, body, #root {
-  /* Remove a cor de fundo azul que criava uma barra na parte inferior */
+  /* Background branco para evitar faixas azuis */
   background-color: white !important;
   
   /* Garante que o container principal ocupe toda a altura */
   min-height: 100vh;
   
-  /* Remove margens padrão que podem causar bordas brancas */
+  /* Remove margens padrão que podem causar bordas */
   margin: 0;
   padding: 0;
+  
+  /* MOBILE: Evita zoom e garante layout estável */
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @tailwind base;

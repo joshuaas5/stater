@@ -15,10 +15,10 @@
 -->
 <resources>
     <color name="shortcut_background">#F5F5F5</color>
-    <color name="backgroundColor">#000000</color>
-    <color name="colorPrimary">#2563eb</color>
-    <color name="colorPrimaryDark">#1d4ed8</color>
+    <color name="backgroundColor">#31518b</color>
+    <color name="colorPrimary">#31518b</color>
+    <color name="colorPrimaryDark">#1d3a6f</color>
     <color name="navigationColor">#000000</color>
     <color name="navigationColorDark">#000000</color>
-    <color name="statusBarBlue">#2563eb</color>
+    <color name="statusBarBlue">#31518b</color>
 </resources>

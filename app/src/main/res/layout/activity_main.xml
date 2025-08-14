@@ -26,22 +26,16 @@
             android:layout_height="match_parent"
             android:visibility="visible" />
 
-        <!-- Splash logo para loading states (sobreposta ao WebView) -->
-        <RelativeLayout
-            android:id="@+id/splash_container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+        <!-- Splash logo centralizado para loading inicial -->
+        <ImageView
+            android:id="@+id/splash_logo"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/splash_src"
+            android:scaleType="centerInside"
             android:background="@color/backgroundColor"
-            android:visibility="gone">
-            
-            <ImageView
-                android:id="@+id/splash_logo"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:layout_centerInParent="true"
-                android:src="@drawable/splash_src"
-                android:scaleType="centerInside" />
-        </RelativeLayout>
+            android:visibility="visible" />
 
     </RelativeLayout>
 

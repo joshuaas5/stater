@@ -23,7 +23,7 @@ plugins {
 def twaManifest = [
     applicationId: 'com.timothy.stater',
     hostName: 'stater.app', // The domain being opened in the TWA.
-    launchUrl: 'stater.app/login', // The start path for the TWA. Must be relative to the domain.
+    launchUrl: '/login', // The start path for the TWA. Must be relative to the domain.
     name: 'Stater', // The application name.
     launcherName: 'Stater', // The name shown on the Android Launcher.
     themeColor: '#1D4ED8', // The color used for the status bar.
@@ -150,9 +150,18 @@ android {
 
         
     }
+    signingConfigs {
+        release {
+            storeFile file('../stater-release-key.keystore')
+            storePassword 'jg190169@'
+            keyAlias 'stater'
+            keyPassword 'jg190169@'
+        }
+    }
     buildTypes {
         release {
             minifyEnabled true
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {

@@ -113,6 +113,11 @@
 
             <meta-data android:name="android.support.customtabs.trusted.FILE_PROVIDER_AUTHORITY"
                 android:value="@string/providerAuthority"/>
+            
+            <!-- Forçar modo TWA standalone -->
+            <meta-data android:name="android.support.customtabs.trusted.EXTRA_HIDE_URL_BAR" android:value="true"/>
+            <meta-data android:name="android.support.customtabs.trusted.DISPLAY_MODE" android:value="standalone"/>
+            <meta-data android:name="android.support.customtabs.trusted.FORCE_TRUSTED_WEB_ACTIVITY" android:value="true"/>
 
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
 

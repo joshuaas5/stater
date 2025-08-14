@@ -1,0 +1,52 @@
+/* PaywallModal Anti-Flicker CSS */
+[data-state="open"] .paywall-modal-content {
+  animation: none !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Telegram Modal Z-Index Fix */
+.telegram-connect-modal {
+  z-index: 2147483648 !important;
+}
+
+.telegram-connect-modal .modal-backdrop {
+  z-index: 2147483647 !important;
+}
+
+/* Banner Ad Z-Index Control */
+.ad-banner {
+  z-index: 1000 !important;
+  position: relative !important;
+}
+
+/* Modal hierarchy */
+.dialog-overlay {
+  z-index: 2147483640 !important;
+}
+
+.paywall-modal {
+  z-index: 2147483645 !important;
+}
+
+.telegram-modal {
+  z-index: 2147483648 !important;
+}
+
+/* Anti-flicker for modals */
+.modal-content {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Smooth transitions */
+.paywall-transition {
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+/* Prevent layout shift */
+.paywall-container {
+  contain: layout style paint;
+}

@@ -28,33 +28,43 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
 
     try {
       console.log('🔒 [FINANCIAL_GATE] Verificando acesso para usuário:', user.id);
+      
+      // Verificar se usuário é premium primeiro
+      const { UserPlanManager } = await import('@/utils/userPlanManager');
+      const userPlan = await UserPlanManager.getUserPlan(user.id);
+      console.log('📋 [FINANCIAL_GATE] Plano do usuário:', userPlan.planType);
+      
+      // Se é premium, liberar acesso direto
+      if (userPlan.planType !== 'free') {
+        console.log('✅ [FINANCIAL_GATE] Usuário premium - acesso liberado');
+        setHasAccess(true);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Para usuários FREE, verificar sistema de anúncios
+      console.log('🔒 [FINANCIAL_GATE] Usuário FREE - verificando sistema de anúncios');
       const canAccessResult = await AdCooldownManager.canPerformAction(user.id, 'financial_analysis');
       console.log('🔒 [FINANCIAL_GATE] Resultado do acesso:', canAccessResult);
       
-      // Se tem acesso (premium, developer ou ações livres), liberar imediatamente
-      if (canAccessResult.allowed) {
-        console.log('🔒 [FINANCIAL_GATE] Acesso permitido! Liberando conteúdo');
-        setHasAccess(true);
-        setTimeUntilNextAd(null);
-        return;
+      setHasAccess(canAccessResult.allowed);
+
+      if (!canAccessResult.allowed) {
+        console.log('🔒 [FINANCIAL_GATE] Acesso negado, verificando cooldown...');
+        // Verificar se há cooldown ativo
+        const stats = await AdCooldownManager.getCooldownStats(user.id);
+        console.log('🔒 [FINANCIAL_GATE] Stats de cooldown:', stats);
+        const financialStats = stats.financial_analysis;
+        
+        if (financialStats.cooldownActive && financialStats.minutesUntilNextAd) {
+          setTimeUntilNextAd(financialStats.minutesUntilNextAd);
+          console.log('🔒 [FINANCIAL_GATE] Cooldown ativo, próximo anúncio em:', financialStats.minutesUntilNextAd, 'minutos');
+        }
+      } else {
+        console.log('🔒 [FINANCIAL_GATE] Acesso permitido! Usuário pode ver o conteúdo');
       }
-
-      // Se está em cooldown, verificar tempo restante
-      if (canAccessResult.reason === 'cooldown_active' && canAccessResult.minutesUntilNextAd) {
-        console.log('🔒 [FINANCIAL_GATE] Em cooldown, próximo anúncio em:', canAccessResult.minutesUntilNextAd, 'minutos');
-        setTimeUntilNextAd(canAccessResult.minutesUntilNextAd);
-        setHasAccess(false);
-        return;
-      }
-
-      // Precisa assistir anúncio
-      console.log('🔒 [FINANCIAL_GATE] Usuário precisa assistir anúncio para acessar');
-      setHasAccess(false);
-      setTimeUntilNextAd(null);
-
     } catch (error) {
       console.error('🔒 [FINANCIAL_GATE] Erro ao verificar acesso:', error);
-      setHasAccess(false);
     } finally {
       setIsLoading(false);
     }
@@ -71,26 +81,20 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
       const result = await AdCooldownManager.watchAdForActions(user.id, 'financial_analysis');
       
       if (result.success) {
-        console.log('🎉 [FINANCIAL_GATE] Anúncio assistido com sucesso! Liberando acesso');
         setHasAccess(true);
         setTimeUntilNextAd(null);
-        
-        // Após assistir o anúncio, o usuário tem 1 hora de acesso livre
-        // O sistema automaticamente pedirá novo anúncio após 1 hora
-        console.log('🎉 [FINANCIAL_GATE] Usuário agora tem 1 hora de acesso livre');
       } else {
         setAdError(result.message || 'Erro ao assistir anúncio');
-        console.error('❌ [FINANCIAL_GATE] Falha ao assistir anúncio:', result.message);
       }
     } catch (error) {
-      console.error('❌ [FINANCIAL_GATE] Erro ao assistir anúncio:', error);
+      console.error('Erro ao assistir anúncio:', error);
       setAdError('Erro inesperado. Tente novamente.');
     } finally {
       setIsWatchingAd(false);
     }
   };
 
-  // Atualizar timer do cooldown e verificar expiração
+  // Atualizar timer do cooldown
   useEffect(() => {
     if (timeUntilNextAd && timeUntilNextAd > 0) {
       const interval = setInterval(() => {
@@ -99,7 +103,6 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
             return prev - 1;
           } else {
             // Cooldown terminou, verificar acesso novamente
-            console.log('⏰ [FINANCIAL_GATE] Cooldown expirou, verificando acesso novamente');
             checkAccess();
             return null;
           }
@@ -109,30 +112,6 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
       return () => clearInterval(interval);
     }
   }, [timeUntilNextAd]);
-
-  // Verificação periódica para detectar quando o acesso expira (sem interromper o usuário)
-  useEffect(() => {
-    if (hasAccess && user?.id) {
-      const interval = setInterval(async () => {
-        console.log('🔍 [FINANCIAL_GATE] Verificação silenciosa de acesso...');
-        try {
-          const canAccessResult = await AdCooldownManager.canPerformAction(user.id, 'financial_analysis');
-          
-          // Se perdeu o acesso mas está usando a análise, não interromper
-          // Apenas registrar que precisará de novo anúncio na próxima vez que acessar
-          if (!canAccessResult.allowed) {
-            console.log('⏰ [FINANCIAL_GATE] Acesso expirou. Próximo acesso precisará de anúncio.');
-            // Não remover hasAccess aqui para não interromper o usuário
-            // A verificação será feita apenas quando ele sair e tentar entrar novamente
-          }
-        } catch (error) {
-          console.error('❌ [FINANCIAL_GATE] Erro na verificação silenciosa:', error);
-        }
-      }, 5 * 60 * 1000); // Verificar a cada 5 minutos
-
-      return () => clearInterval(interval);
-    }
-  }, [hasAccess, user?.id]);
 
   // Verificar acesso inicial
   useEffect(() => {

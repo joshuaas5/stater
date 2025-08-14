@@ -18,13 +18,14 @@ import PersistentLayout from '@/components/layout/PersistentLayout';
 import HomePage from '@/pages/HomePage';
 import Dashboard from '@/pages/Dashboard';
 import FinancialAdvisorPage from '@/pages/FinancialAdvisorPage';
+// Import the paywall fixes CSS
+import '@/styles/paywall-fixes.css';
 import FinancialAnalysisPage from '@/pages/FinancialAnalysisPage';
 import Transactions from '@/pages/Transactions';
 import BillsPage from '@/pages/BillsPage';
 import AddBillPage from '@/pages/AddBillPage';
 import ChartsPage from '@/pages/ChartsPage';
 import ExportReportPage from '@/pages/ExportReportPage';
-import RecurringTransactionsPage from '@/pages/RecurringTransactionsPage';
 import NotificationsPage from '@/pages/NotificationsPage';
 import PreferencesPage from '@/pages/PreferencesPage';
 import SecurityPage from '@/pages/SecurityPage';
@@ -100,8 +101,6 @@ const App = () => (
                           <Route path="/add-bill" element={<AddBillPage />} />
                           <Route path="/charts" element={<ChartsPage />} />
                           <Route path="/export" element={<ExportReportPage />} />
-                          <Route path="/export-report" element={<ExportReportPage />} />
-                          <Route path="/recurring-transactions" element={<RecurringTransactionsPage />} />
                           <Route path="/notifications" element={<NotificationsPage />} />
                           <Route path="/preferences" element={<PreferencesPage />} />
                           <Route path="/security" element={<SecurityPage />} />

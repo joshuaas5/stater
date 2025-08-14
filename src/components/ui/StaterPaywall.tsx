@@ -34,9 +34,10 @@ const Badge = ({ children }: { children: React.ReactNode }) => (
 interface StaterPaywallProps {
   isOpen?: boolean;
   onClose?: () => void;
+  onSubscribe?: (plan: 'weekly' | 'monthly' | 'trial') => void;
 }
 
-const StaterPaywall = ({ isOpen = true, onClose = () => {} }: StaterPaywallProps) => {
+const StaterPaywall = ({ isOpen = true, onClose = () => {}, onSubscribe }: StaterPaywallProps) => {
   // Esconder navbar quando paywall estiver aberto
   useEffect(() => {
     if (isOpen) {
@@ -140,16 +141,25 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {} }: StaterPaywallProps
 
         {/* Botões de Ação */}
         <div className="px-3 pb-3 space-y-2">
-          <button className="w-full bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold py-2.5 px-3 rounded-xl text-sm shadow-xl pulse">
+          <button 
+            onClick={() => onSubscribe && onSubscribe('trial')}
+            className="w-full bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold py-2.5 px-3 rounded-xl text-sm shadow-xl pulse"
+          >
             🎁 INICIAR TESTE GRÁTIS - 3 DIAS
           </button>
           
           <div className="grid grid-cols-2 gap-2">
-            <button className="bg-green-500 hover:bg-green-400 text-white font-semibold py-2 px-2 rounded-lg shadow-lg text-xs">
+            <button 
+              onClick={() => onSubscribe && onSubscribe('monthly')}
+              className="bg-green-500 hover:bg-green-400 text-white font-semibold py-2 px-2 rounded-lg shadow-lg text-xs"
+            >
               💎 MENSAL<br/>
               <span className="text-base font-bold">R$ 19,90</span>
             </button>
-            <button className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-2 rounded-lg shadow-lg text-xs">
+            <button 
+              onClick={() => onSubscribe && onSubscribe('weekly')}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-2 rounded-lg shadow-lg text-xs"
+            >
               📅 SEMANAL<br/>
               <span className="text-base font-bold">R$ 8,90</span>
             </button>

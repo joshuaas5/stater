@@ -44,10 +44,40 @@
                 android:value="@string/launchUrl" />
         </activity>
 
+        <!-- MainActivity principal com WebView nativo -->
+        <activity android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/appName"
+            android:theme="@android:style/Theme.NoTitleBar"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:launchMode="singleTop">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Intent filter para links do stater.app -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="stater.app" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="www.stater.app" />
+            </intent-filter>
+        </activity>
+
+        <!-- LauncherActivity do TWA mantida para compatibilidade (mas não é launcher) -->
         <activity android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
             android:alwaysRetainTaskState="true"
             android:label="@string/launcherName"
-            android:exported="true"
+            android:exported="false"
             android:launchMode="singleTask"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             
@@ -59,25 +89,17 @@
             <meta-data android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_REQUIRED"
                 android:value="true" />
 
-            <!-- Desabilitar Custom Tab fallback -->
+            <!-- Fallback para WebView para evitar fechar caso validação falhe -->
             <meta-data android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
-                android:value="none" />
+                android:value="webview" />
+
+            <!-- Confiar também no subdomínio www (evita fallback se houver redireção) -->
+            <meta-data android:name="android.support.customtabs.trusted.ADDITIONAL_TRUSTED_ORIGINS"
+                android:value="https://www.stater.app" />
 
             <!-- Desativar splash do PWA para evitar logo estourada -->
             <meta-data android:name="android.support.customtabs.trusted.SKIP_WEB_MANIFEST_SPLASH"
                 android:value="true" />
-
-            <!-- Forçar verificação TWA em cada página -->
-            <meta-data android:name="android.support.customtabs.trusted.ALWAYS_VERIFY_ORIGIN"
-                android:value="true" />
-
-            <!-- Forçar verificação local sem depender do Google -->
-            <meta-data android:name="android.support.customtabs.trusted.DIGITAL_ASSET_LINKS_VALIDATION_TYPE"
-                android:value="0" />
-
-            <!-- Aumentar tempo de verificação (24h) -->
-            <meta-data android:name="android.support.customtabs.trusted.VALIDATION_TTL"
-                android:value="86400000" />
 
             <!-- Configurações de cores -->
             <meta-data
@@ -109,26 +131,8 @@
             <meta-data android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
                 android:value="300"/>
 
-            <!-- Forçar modo TWA standalone -->
-            <meta-data android:name="android.support.customtabs.trusted.EXTRA_HIDE_URL_BAR" android:value="true"/>
-            <meta-data android:name="android.support.customtabs.trusted.DISPLAY_MODE" android:value="standalone"/>
-            <meta-data android:name="android.support.customtabs.trusted.FORCE_TRUSTED_WEB_ACTIVITY" android:value="true"/>
-            
-            <!-- Debugging e configuração adicional -->
-            <meta-data android:name="android.support.customtabs.trusted.DISABLE_EXTRA_VALIDATION" android:value="true"/>
+            <!-- Estratégia padrão de splash nativa do TWA -->
             <meta-data android:name="android.support.customtabs.trusted.SPLASH_SCREEN_STRATEGY" android:value="native"/>
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="stater.app" />
-            </intent-filter>
         </activity>
 
         <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />

@@ -14,13 +14,6 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<!--
- The "package" attribute is rewritten by the Gradle build with the value of applicationId.
-     It is still required here, as it is used to derive paths, for instance when referring
-     to an Activity by ".MyActivity" instead of the full name. If more Activities are added to the
-     application, the package attribute will need to reflect the correct path in order to use
-     the abbreviated format.
--->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.timothy.stater"
     android:versionCode="1"
@@ -30,6 +23,7 @@
         android:minSdkVersion="21"
         android:targetSdkVersion="35" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <queries>
@@ -57,7 +51,6 @@
     <uses-permission android:name="com.timothy.stater.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" /> <!-- Although the *SdkVersion is captured in gradle build files, this is required for non gradle builds -->
     <!-- <uses-sdk android:minSdkVersion="14"/> -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name="com.timothy.stater.Application"
@@ -69,12 +62,30 @@
         android:manageSpaceActivity="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+
+        <!-- URL inicial ABSOLUTA do TWA -->
+        <meta-data
+            android:name="android.support.customtabs.trusted.DEFAULT_URL"
+            android:value="https://stater.app/" />
+
+        <!-- Declaração para verificação Digital Asset Links -->
         <meta-data
             android:name="asset_statements"
             android:resource="@string/assetStatements" />
+
+        <!-- Splash: usa maskable icon e evita corte -->
         <meta-data
-            android:name="web_manifest_url"
-            android:value="@string/webManifestUrl" />
+            android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
+            android:resource="@drawable/splash_logo" />
+        <meta-data
+            android:name="android.support.customtabs.trusted.SPLASH_IMAGE_SCALE_TYPE"
+            android:value="centerInside" />
+        <meta-data
+            android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
+            android:resource="@color/backgroundColor" />
+        <meta-data
+            android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
+            android:value="@integer/splashScreenFadeOutDuration" />
         <meta-data
             android:name="twa_generator"
             android:value="@string/generatorApp" />
@@ -88,7 +99,9 @@
             android:name="com.timothy.stater.LauncherActivity"
             android:alwaysRetainTaskState="true"
             android:exported="true"
-            android:label="@string/launcherName" >
+            android:label="@string/launcherName"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
             <meta-data
                 android:name="android.support.customtabs.trusted.DEFAULT_URL"
                 android:value="@string/launchUrl" />
@@ -112,10 +125,13 @@
                 android:resource="@color/navigationDividerColorDark" />
             <meta-data
                 android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
-                android:resource="@drawable/splash" />
+                android:resource="@drawable/splash_logo" />
             <meta-data
                 android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
                 android:resource="@color/backgroundColor" />
+            <meta-data
+                android:name="android.support.customtabs.trusted.SPLASH_IMAGE_SCALE_TYPE"
+                android:value="centerInside" />
             <meta-data
                 android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
                 android:value="@integer/splashScreenFadeOutDuration" />
@@ -155,7 +171,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="@string/hostName"
+                    android:host="stater.app"
                     android:scheme="https" />
             </intent-filter>
         </activity>

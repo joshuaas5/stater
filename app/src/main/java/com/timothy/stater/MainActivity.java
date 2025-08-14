@@ -69,14 +69,7 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                
-                // Esconder splash logo quando página carregar
-                View splashLogo = findViewById(R.id.splash_logo);
-                if (splashLogo != null) {
-                    splashLogo.setVisibility(View.GONE);
-                }
-                
-                // Apenas esconder UI do sistema - SEM JavaScript injection
+                // Apenas esconder UI do sistema
                 hideSystemUI();
             }
         });
@@ -97,8 +90,19 @@ public class MainActivity extends Activity {
             @Override
             public void run() {
                 webView.loadUrl("https://stater.app/login");
+                
+                // Esconder splash logo após carregamento começar
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        View splashLogo = findViewById(R.id.splash_logo);
+                        if (splashLogo != null) {
+                            splashLogo.setVisibility(View.GONE);
+                        }
+                    }
+                }, 1500); // 1.5 segundos total para esconder splash
             }
-        }, 1000); // 1 segundo de splash
+        }, 1000); // 1 segundo de splash inicial
         
         hideSystemUI();
     }

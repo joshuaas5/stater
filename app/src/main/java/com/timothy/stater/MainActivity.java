@@ -22,11 +22,16 @@ public class MainActivity extends Activity {
         // Configurar status bar azul ANTES de qualquer outra coisa
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setStatusBarColor(getResources().getColor(R.color.statusBarBlue));
-            // Garante que o content fique atrás da status bar mas seja visível
-            getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            );
+            // Ícones da status bar em branco para contrastar com o azul
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                );
+            } else {
+                getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                );
+            }
         }
         
         setContentView(R.layout.activity_main);
@@ -114,7 +119,12 @@ public class MainActivity extends Activity {
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        // Status bar permanece visível, apenas navigation bar é escondida
+        // Status bar permanece visível com cor azul, apenas navigation bar é escondida
+        
+        // Garantir que a status bar fique azul
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(getResources().getColor(R.color.statusBarBlue));
+        }
     }
     
     @Override

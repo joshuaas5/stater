@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useStableHeight } from '@/hooks/useStableHeight';
 import '@/styles/anti-flicker.css';
+import '@/styles/mobile-login-compact.css';
 
 const Login: React.FC = () => {
   // Hook para altura estável em mobile

@@ -19,14 +19,21 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Configurar status bar azul ANTES de qualquer outra coisa
+        // ✅ CONFIGURAR STATUS BAR AZUL DO STATER
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(getResources().getColor(R.color.statusBarBlue));
-            // Garante que o content fique atrás da status bar mas seja visível
+            // Status bar com cor azul do STATER (#31518b)
+            getWindow().setStatusBarColor(Color.parseColor("#31518b"));
+            
+            // Configurar para usar o espaço completo mas manter status bar visível
             getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                 View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
             );
+            
+            // Garantir que o conteúdo fique abaixo da status bar
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                getWindow().setDecorFitsSystemWindows(false);
+            }
         }
         
         setContentView(R.layout.activity_main);
@@ -109,12 +116,14 @@ public class MainActivity extends Activity {
     }
     
     private void hideSystemUI() {
+        // ✅ MANTER STATUS BAR AZUL SEMPRE VISÍVEL - só esconder navigation bar
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        // Status bar permanece visível, apenas navigation bar é escondida
+        // Status bar azul sempre visível - só navigation bar escondida
     }
     
     @Override

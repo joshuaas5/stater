@@ -3,6 +3,7 @@ import App from './App'
 import './index.css'
 import './styles/mobile-first.css'
 import './styles/paywall-fixes.css'
+import './styles/status-bar-global.css'
 
 // 🔧 CORREÇÃO FINAL: Detectar e remover fragments vazios de forma segura
 const handleUrlFragments = () => {

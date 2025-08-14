@@ -2,27 +2,31 @@
 
 /* Aplicar apenas em telas mobile */
 @media (max-width: 768px) {
-  /* ✅ CONTAINER PRINCIPAL - padding-top para status bar azul */
+  /* ✅ CONTAINER LOGIN - específico (global já cuida do padding-top) */
   .homepage-container {
-    padding-top: max(env(safe-area-inset-top, 30px), 30px) !important;
     min-height: 100vh !important;
     padding-left: 1rem !important;
     padding-right: 1rem !important;
+    padding-bottom: max(env(safe-area-inset-bottom, 20px), 20px) !important;
+    /* Garantir que tudo caiba na viewport */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
   }
 
   /* ✅ LOGO SECTION - reduzir espaçamento */
   .homepage-container .text-center.mb-8 {
-    margin-bottom: 1.5rem !important; /* era mb-8 (2rem) */
+    margin-bottom: 1.25rem !important; /* era mb-8 (2rem) */
   }
   
   .homepage-container .text-center.mb-8 .flex.justify-center.mb-6 {
-    margin-bottom: 1rem !important; /* era mb-6 (1.5rem) */
+    margin-bottom: 0.75rem !important; /* era mb-6 (1.5rem) */
   }
   
-  /* Logo menor em mobile */
+  /* ✅ LOGO MAIOR - aumentada conforme pedido */
   .homepage-container .w-24.h-24.sm\:w-32.sm\:h-32 {
-    width: 4rem !important; /* era w-24 (6rem) */
-    height: 4rem !important;
+    width: 5.5rem !important; /* aumentado para 5.5rem (88px) */
+    height: 5.5rem !important;
   }
 
   /* ✅ TÍTULO - reduzir tamanho e espaçamento */
@@ -136,17 +140,13 @@
 
 /* ✅ Para telas com altura limitada */
 @media (max-height: 700px) {
-  .homepage-container {
-    padding-top: max(env(safe-area-inset-top, 25px), 25px) !important;
-  }
-  
   .homepage-container .text-center.mb-8 {
     margin-bottom: 1rem !important;
   }
   
   .homepage-container .w-24.h-24.sm\:w-32.sm\:h-32 {
-    width: 3.5rem !important;
-    height: 3.5rem !important;
+    width: 4.5rem !important; /* mantém um tamanho decente */
+    height: 4.5rem !important;
   }
   
   .homepage-container .text-3xl.sm\:text-5xl {

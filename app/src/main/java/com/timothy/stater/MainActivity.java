@@ -8,6 +8,7 @@ import android.webkit.WebChromeClient;
 import android.app.Activity;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.WindowInsets;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Build;
@@ -19,20 +20,24 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // ✅ CONFIGURAR STATUS BAR AZUL DO STATER
+        // ✅ STATUS BAR AZUL + CONFIGURAÇÃO COMPLETA
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // Status bar com cor azul do STATER (#31518b)
+            // Status bar com cor azul STATER (#31518b)
             getWindow().setStatusBarColor(Color.parseColor("#31518b"));
             
-            // Configurar para usar o espaço completo mas manter status bar visível
-            getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            );
-            
-            // Garantir que o conteúdo fique abaixo da status bar
+            // Configuração para Android 11+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 getWindow().setDecorFitsSystemWindows(false);
+                getWindow().getInsetsController().setSystemBarsAppearance(
+                    0, // light status bar icons (texto branco)
+                    WindowInsets.Type.statusBars()
+                );
+            } else {
+                // Para versões anteriores
+                getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                );
             }
         }
         

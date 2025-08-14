@@ -1,0 +1,123 @@
+/* 🌐 STATUS BAR GLOBAL - Aplicado em TODO o app */
+
+/* ✅ CONFIGURAÇÃO UNIVERSAL PARA STATUS BAR AZUL */
+:root {
+  --status-bar-height: max(env(safe-area-inset-top, 30px), 30px);
+}
+
+/* ✅ APLICAR PADDING-TOP GLOBAL EM MOBILE */
+@media (max-width: 768px) {
+  /* Container principal do app */
+  body,
+  #root,
+  .app-container,
+  .main-container,
+  .dashboard-container,
+  .homepage-container {
+    padding-top: var(--status-bar-height) !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Garantir que todos os containers principais não sejam cortados */
+  .container,
+  .page-container,
+  .content-container,
+  .layout-container {
+    padding-top: var(--status-bar-height) !important;
+    min-height: calc(100vh - var(--status-bar-height)) !important;
+  }
+
+  /* Modals e elementos flutuantes */
+  .modal,
+  .popup,
+  .dropdown-menu,
+  .floating-element {
+    top: var(--status-bar-height) !important;
+    max-height: calc(100vh - var(--status-bar-height)) !important;
+  }
+
+  /* Headers e navigation bars */
+  .header,
+  .navbar,
+  .top-bar,
+  .app-header {
+    top: var(--status-bar-height) !important;
+    position: sticky !important;
+  }
+
+  /* Fixed elements */
+  .fixed-top {
+    top: var(--status-bar-height) !important;
+  }
+
+  /* Botões flutuantes */
+  .floating-action-button,
+  .fab {
+    bottom: max(env(safe-area-inset-bottom, 20px), 20px) !important;
+  }
+}
+
+/* ✅ Para telas com altura muito limitada */
+@media (max-height: 600px) and (max-width: 768px) {
+  :root {
+    --status-bar-height: max(env(safe-area-inset-top, 25px), 25px);
+  }
+}
+
+/* ✅ Para iPhone com notch/Dynamic Island */
+@media (max-width: 430px) {
+  :root {
+    --status-bar-height: max(env(safe-area-inset-top, 44px), 44px);
+  }
+}
+
+/* ✅ APLICAR EM ELEMENTOS ESPECÍFICOS DO STATER */
+@media (max-width: 768px) {
+  /* Dashboard específico */
+  .dashboard-main,
+  .dashboard-content {
+    padding-top: calc(var(--status-bar-height) + 1rem) !important;
+  }
+
+  /* Painel lateral */
+  .sidebar,
+  .side-menu {
+    top: var(--status-bar-height) !important;
+    height: calc(100vh - var(--status-bar-height)) !important;
+  }
+
+  /* Cards e elementos de conteúdo */
+  .card-container,
+  .content-card {
+    margin-top: 0.5rem !important;
+  }
+
+  /* Botões de ação no topo */
+  .top-actions,
+  .header-actions {
+    position: sticky !important;
+    top: calc(var(--status-bar-height) + 1rem) !important;
+    z-index: 100 !important;
+  }
+}
+
+/* ✅ GARANTIR QUE NADA SEJA CORTADO */
+@media (max-width: 768px) {
+  * {
+    /* Evitar overflow que cause corte */
+    box-sizing: border-box;
+  }
+
+  /* Container de scroll */
+  .scroll-container {
+    max-height: calc(100vh - var(--status-bar-height)) !important;
+    overflow-y: auto !important;
+  }
+
+  /* Garantir que listas longas não sejam cortadas */
+  .list-container,
+  .table-container {
+    max-height: calc(100vh - var(--status-bar-height) - 2rem) !important;
+    overflow-y: auto !important;
+  }
+}

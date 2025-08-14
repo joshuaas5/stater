@@ -29,29 +29,10 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Translucent.NoTitleBar">
 
-        <!-- URL inicial ABSOLUTA do TWA -->
-        <meta-data
-            android:name="android.support.customtabs.trusted.DEFAULT_URL"
-            android:value="https://stater.app/" />
-
         <!-- Declaração para verificação Digital Asset Links -->
         <meta-data
             android:name="asset_statements"
             android:resource="@string/assetStatements" />
-
-        <!-- Splash: usa maskable icon e evita corte -->
-        <meta-data
-            android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
-            android:resource="@drawable/splash_logo" />
-        <meta-data
-            android:name="android.support.customtabs.trusted.SPLASH_IMAGE_SCALE_TYPE"
-            android:value="center" />
-        <meta-data
-            android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
-            android:resource="@color/backgroundColor" />
-        <meta-data
-            android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
-            android:value="@integer/splashScreenFadeOutDuration" />
 
         <meta-data
             android:name="twa_generator"
@@ -112,21 +93,10 @@
             <meta-data android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
                 android:value="@integer/splashScreenFadeOutDuration"/>
 
-            <meta-data android:name="android.support.customtabs.trusted.FILE_PROVIDER_AUTHORITY"
-                android:value="@string/providerAuthority"/>
-            
             <!-- Forçar modo TWA standalone -->
             <meta-data android:name="android.support.customtabs.trusted.EXTRA_HIDE_URL_BAR" android:value="true"/>
             <meta-data android:name="android.support.customtabs.trusted.DISPLAY_MODE" android:value="standalone"/>
             <meta-data android:name="android.support.customtabs.trusted.FORCE_TRUSTED_WEB_ACTIVITY" android:value="true"/>
-
-            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
-
-            <meta-data android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
-                android:value="@string/fallbackType" />
-
-            <meta-data android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
-                android:value="@string/orientation"/>
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -139,10 +109,6 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="stater.app" />
             </intent-filter>
-
-            
-
-            
         </activity>
 
         <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />

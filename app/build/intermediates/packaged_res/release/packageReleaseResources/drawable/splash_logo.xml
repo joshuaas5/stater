@@ -1,24 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- círculo de fundo, ajusta o tamanho do "badge" -->
+    <!-- Ícone maskable menor e bem centralizado -->
     <item android:gravity="center">
-        <shape android:shape="oval">
-            <size android:width="128dp" android:height="128dp"/>
-            <solid android:color="@android:color/white"/>
-        </shape>
-    </item>
-
-    <!-- ícone com margem interna para ficar menor dentro do círculo -->
-    <item>
-        <inset
-            android:insetLeft="32dp"
-            android:insetTop="32dp"
-            android:insetRight="32dp"
-            android:insetBottom="32dp">
-            <bitmap
-                android:src="@drawable/splash_src"
-                android:gravity="center"
-                android:antialias="true"/>
-        </inset>
+        <bitmap
+            android:src="@drawable/splash_src"
+            android:gravity="center"
+            android:antialias="true"/>
     </item>
 </layer-list>

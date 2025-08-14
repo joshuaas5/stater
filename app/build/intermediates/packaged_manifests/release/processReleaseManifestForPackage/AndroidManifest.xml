@@ -79,7 +79,7 @@
             android:resource="@drawable/splash_logo" />
         <meta-data
             android:name="android.support.customtabs.trusted.SPLASH_IMAGE_SCALE_TYPE"
-            android:value="centerInside" />
+            android:value="center" />
         <meta-data
             android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
             android:resource="@color/backgroundColor" />
@@ -96,15 +96,17 @@
                 android:value="@string/launchUrl" />
         </activity>
         <activity
-            android:name="com.timothy.stater.LauncherActivity"
+            android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
             android:alwaysRetainTaskState="true"
             android:exported="true"
             android:label="@string/launcherName"
             android:launchMode="singleTask"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
+
+            <!-- usar URL ABSOLUTA para evitar concatenação errada -->
             <meta-data
                 android:name="android.support.customtabs.trusted.DEFAULT_URL"
-                android:value="@string/launchUrl" />
+                android:value="https://stater.app/" />
             <meta-data
                 android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
                 android:resource="@color/colorPrimary" />
@@ -118,10 +120,10 @@
                 android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR_DARK"
                 android:resource="@color/navigationColorDark" />
             <meta-data
-                android:name="androix.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR"
+                android:name="androidx.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR"
                 android:resource="@color/navigationDividerColor" />
             <meta-data
-                android:name="androix.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR_DARK"
+                android:name="androidx.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR_DARK"
                 android:resource="@color/navigationDividerColorDark" />
             <meta-data
                 android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
@@ -131,7 +133,7 @@
                 android:resource="@color/backgroundColor" />
             <meta-data
                 android:name="android.support.customtabs.trusted.SPLASH_IMAGE_SCALE_TYPE"
-                android:value="centerInside" />
+                android:value="center" />
             <meta-data
                 android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
                 android:value="@integer/splashScreenFadeOutDuration" />

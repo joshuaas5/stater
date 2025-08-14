@@ -694,9 +694,10 @@ int drawable notify_panel_notification_icon_bg 0x7f070081
 int drawable shortcut_legacy_background 0x7f070082
 int drawable splash 0x7f070083
 int drawable splash_logo 0x7f070084
-int drawable test_level_drawable 0x7f070085
-int drawable tooltip_frame_dark 0x7f070086
-int drawable tooltip_frame_light 0x7f070087
+int drawable splash_src 0x7f070085
+int drawable test_level_drawable 0x7f070086
+int drawable tooltip_frame_dark 0x7f070087
+int drawable tooltip_frame_light 0x7f070088
 int id ALT 0x7f080000
 int id CTRL 0x7f080001
 int id FUNCTION 0x7f080002

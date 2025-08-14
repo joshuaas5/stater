@@ -695,6 +695,7 @@ drawable notify_panel_notification_icon_bg
 drawable shortcut_legacy_background
 drawable splash
 drawable splash_logo
+drawable splash_src
 drawable test_level_drawable
 drawable tooltip_frame_dark
 drawable tooltip_frame_light

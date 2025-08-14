@@ -1,9 +1,5 @@
 [
     {
-        "merged": "com.timothy.stater.app-release-4:/drawable_splash_logo.png.flat",
-        "source": "com.timothy.stater.app-main-5:/drawable/splash_logo.png"
-    },
-    {
         "merged": "com.timothy.stater.app-release-4:/mipmap-xhdpi_ic_maskable.png.flat",
         "source": "com.timothy.stater.app-main-5:/mipmap-xhdpi/ic_maskable.png"
     },
@@ -36,6 +32,10 @@
         "source": "com.timothy.stater.app-main-5:/drawable/ic_notification_icon.png"
     },
     {
+        "merged": "com.timothy.stater.app-release-4:/drawable_splash_src.png.flat",
+        "source": "com.timothy.stater.app-main-5:/drawable/splash_src.png"
+    },
+    {
         "merged": "com.timothy.stater.app-release-4:/mipmap-xxxhdpi_ic_launcher.png.flat",
         "source": "com.timothy.stater.app-main-5:/mipmap-xxxhdpi/ic_launcher.png"
     },
@@ -46,6 +46,10 @@
     {
         "merged": "com.timothy.stater.app-release-4:/xml_filepaths.xml.flat",
         "source": "com.timothy.stater.app-main-5:/xml/filepaths.xml"
+    },
+    {
+        "merged": "com.timothy.stater.app-release-4:/drawable_splash_logo.xml.flat",
+        "source": "com.timothy.stater.app-main-5:/drawable/splash_logo.xml"
     },
     {
         "merged": "com.timothy.stater.app-release-4:/xml_shortcuts.xml.flat",

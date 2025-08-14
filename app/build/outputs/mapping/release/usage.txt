@@ -13030,6 +13030,7 @@ com.google.j2objc.annotations.WeakOuter
 com.google.thirdparty.publicsuffix.PublicSuffixPatterns
 com.google.thirdparty.publicsuffix.PublicSuffixType
 com.google.thirdparty.publicsuffix.TrieParser
+com.timothy.stater.LauncherActivity
 com.timothy.stater.R$bool
 com.timothy.stater.R$color
 com.timothy.stater.R$drawable

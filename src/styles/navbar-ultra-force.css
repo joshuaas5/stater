@@ -81,11 +81,11 @@ body .stater-navbar-force,
   opacity: 1 !important;
 }
 
-/* Adiciona padding no body para não sobrepor */
-body {
+/* Padding removido - páginas individuais controlam seu próprio espaçamento */
+/* body {
   padding-bottom: 64px !important;
   margin-bottom: 0 !important;
-}
+} */
 
 /* Remove qualquer transformação que possa afetar */
 .stater-navbar-force {

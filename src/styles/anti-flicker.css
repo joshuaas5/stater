@@ -1,0 +1,140 @@
+/* CORREÇÕES ANTI-FLICKERING PARA HOMEPAGE */
+
+/* 1. Altura estável para mobile - usa variável CSS customizada */
+.stable-height {
+  min-height: 100dvh; /* Dynamic viewport height para navegadores que suportam */
+  height: 100dvh;
+  min-height: calc(var(--vh, 1vh) * 100); /* Fallback com variável customizada */
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+@supports not (height: 100dvh) {
+  .stable-height {
+    min-height: 100vh;
+    height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
+    height: calc(var(--vh, 1vh) * 100);
+  }
+}
+
+/* 2. GPU acceleration forçada para elementos que piscam */
+.no-flicker {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+}
+
+/* 3. Otimizações específicas para texto com shadow */
+.stable-text-shadow {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+  /* Força uma camada de composição */
+  transform-style: preserve-3d;
+}
+
+/* 4. Efeitos blur estáveis */
+.stable-blur {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  contain: layout style paint;
+}
+
+/* 5. Remove hover effects em mobile/touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .mobile-no-hover:hover {
+    background-color: initial !important;
+    transform: none !important;
+    box-shadow: initial !important;
+    opacity: 1 !important;
+  }
+}
+
+/* 6. Hover effects apenas para dispositivos com hover capability */
+@media (hover: hover) and (pointer: fine) {
+  .desktop-hover:hover {
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+  }
+  
+  .desktop-hover-scale:hover {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+  }
+  
+  .desktop-hover-shadow:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.3s ease;
+  }
+}
+
+/* 7. Animações suaves sem flickering */
+.smooth-transition {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* 8. Contentor estável para partículas animadas */
+.stable-particles {
+  contain: layout style paint;
+  will-change: auto; /* Remove will-change desnecessário */
+  transform: translateZ(0);
+}
+
+/* 9. Logo estável - remove filters problemáticos */
+.stable-logo {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* Simplifica shadows para reduzir recálculos */
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* 10. Container principal estável */
+.homepage-container {
+  position: relative;
+  will-change: scroll-position;
+  transform: translateZ(0);
+  isolation: isolate;
+}
+
+/* 11. Otimizações para evitar flickering de fontes */
+.stable-text-shadow {
+  font-display: swap; /* Para fontes externas */
+  text-rendering: optimizeSpeed; /* Prioriza performance */
+}
+
+/* 12. Preload de elementos críticos */
+.critical-element {
+  contain: layout style paint;
+  will-change: transform;
+}
+
+/* 13. Reduz flickering em elementos com backdrop-filter */
+.stable-backdrop {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* 14. Performance para mobile - desabilita hover em touch */
+@media (pointer: coarse) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .mobile-no-hover:hover,
+  .mobile-no-hover:focus,
+  .mobile-no-hover:active {
+    transform: none !important;
+    box-shadow: initial !important;
+    background-color: initial !important;
+    opacity: 1 !important;
+  }
+}

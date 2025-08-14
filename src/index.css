@@ -3,16 +3,17 @@
 @import './styles/scroll-optimizations.css';
 /* Import critical performance styles */
 @import './styles/critical-performance.css';
+/* Import anti-flicker fixes */
+@import './styles/anti-flicker.css';
 /* IMPORT NAVBAR FORCE - PRIORIDADE ABSOLUTA */
 @import './styles/navbar-force.css';
 /* IMPORT NAVBAR ULTRA FORCE - MÁXIMA PRIORIDADE */
 @import './styles/navbar-ultra-force.css';
 
-/* ===== ANTI-FLASH BRANCO ESTRATÉGICO ===== */
+/* ===== CONFIGURAÇÃO GLOBAL DE LAYOUT ===== */
 html, body, #root {
-  /* Define a cor de fundo base do app. 
-     Isso garante que, mesmo antes do React carregar, a tela não seja branca. */
-  background-color: #31518b !important;
+  /* Remove a cor de fundo azul que criava uma barra na parte inferior */
+  background-color: white !important;
   
   /* Garante que o container principal ocupe toda a altura */
   min-height: 100vh;
@@ -372,30 +373,7 @@ html, body, #root {
   }
 }
 
-/* Regra forçada para Financial Advisor Page */
-div.financial-advisor-page {
-  background-color: #31518b !important;
-}
-
-/* Regra forçada para Financial Analysis Page */
-div.financial-analysis-page {
-  background-color: #31518b !important;
-}
-
-/* Regra forçada para placeholders dos inputs */
-input::placeholder {
-  color: white !important;
-}
-
-/* Regra forçada para modais de transação */
-div[role="dialog"] {
-  background-color: #31518b !important;
-}
-
-/* Regra forçada para componente FinancialInsights */
-.financial-insights-card {
-  background-color: #31518b !important;
-}
+/* Regras específicas removidas - páginas devem definir suas próprias cores */
 
 /* CRITICAL PERFORMANCE OPTIMIZATIONS */
 

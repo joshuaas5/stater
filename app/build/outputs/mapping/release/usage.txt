@@ -13032,9 +13032,22 @@ com.google.thirdparty.publicsuffix.PublicSuffixType
 com.google.thirdparty.publicsuffix.TrieParser
 com.timothy.stater.LauncherActivity
 com.timothy.stater.R$bool
-com.timothy.stater.R$color
+com.timothy.stater.R$color:
+    public static int backgroundColor
+    public static int colorPrimary
+    public static int colorPrimaryDark
+    public static int navigationColor
+    public static int navigationColorDark
+    public static int navigationDividerColor
+    public static int navigationDividerColorDark
+    public static int shortcut_background
+    private void <init>()
 com.timothy.stater.R$drawable
+com.timothy.stater.R$id:
+    private void <init>()
 com.timothy.stater.R$integer
+com.timothy.stater.R$layout:
+    private void <init>()
 com.timothy.stater.R$mipmap
 com.timothy.stater.R$string
 com.timothy.stater.R$xml

@@ -4,8 +4,12 @@ import { Button } from '@/components/ui/button';
 import { TrendingUp, Shield, Smartphone, Users, BarChart3, Zap, MessageCircle, Camera, Mic, Brain, Bell } from 'lucide-react';
 import { SuperwallPlugin } from '@/plugins/superwall';
 import { StaterPaywallModern } from '../plugins/superwall-modern';
+import { useStableHeight } from '@/hooks/useStableHeight';
+import '@/styles/anti-flicker.css';
 
 const HomePage: React.FC = () => {
+  // Hook para corrigir altura em mobile
+  useStableHeight();
   
   const detectPlatform = () => {
     if (typeof window === 'undefined') return 'server';
@@ -60,42 +64,42 @@ const HomePage: React.FC = () => {
     }
   };
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
-      {/* Partículas flutuantes */}
-      <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: 50 }).map((_, i) => (
+    <div className="homepage-container stable-height relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
+      {/* Partículas flutuantes - reduzidas e otimizadas */}
+      <div className="absolute inset-0 overflow-hidden stable-particles">
+        {Array.from({ length: 20 }).map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-white/20 rounded-full"
+            className="absolute w-1 h-1 bg-white/15 rounded-full no-flicker"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 2}s`,
             }}
           />
         ))}
       </div>
       
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-black/10" />
-      <div className="absolute top-10 left-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
+      {/* Background Effects - otimizados */}
+      <div className="absolute inset-0 bg-black/10 no-flicker" />
+      <div className="absolute top-10 left-10 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl stable-blur" />
+      <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl stable-blur" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/8 rounded-full blur-3xl stable-blur" />
       
       {/* Header */}
-      <header className="relative z-10 w-full py-6 px-4">
+      <header className="relative z-10 w-full py-6 px-4 no-flicker">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+          <Link to="/" className="flex items-center space-x-3 desktop-hover smooth-transition mobile-no-hover">
             <img 
               src="/stater-logo-192.png" 
               alt="Stater Logo" 
-              className="h-12 w-12 object-contain drop-shadow-lg"
+              className="h-12 w-12 object-contain stable-logo"
             />
             <h1 
-              className="text-2xl font-bold text-white"
+              className="text-2xl font-bold text-white stable-text-shadow"
               style={{
                 fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                textShadow: 'rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
-                filter: 'drop-shadow(rgba(0, 0, 0, 0.3) 0px 2px 4px)'
+                textShadow: 'rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px',
               }}
             >
               STATER
@@ -103,14 +107,14 @@ const HomePage: React.FC = () => {
           </Link>
           <div className="flex space-x-4">
             <Link to="/register">
-              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg">
+              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg mobile-no-hover desktop-hover-shadow smooth-transition">
                 Cadastrar
               </Button>
             </Link>
             <Link to="/login">
               <Button 
                 variant="outline" 
-                className="bg-white/5 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
+                className="bg-white/5 border-white/20 text-white backdrop-blur-sm mobile-no-hover desktop-hover smooth-transition"
               >
                 Entrar
               </Button>
@@ -120,36 +124,35 @@ const HomePage: React.FC = () => {
       </header>
 
       {/* Hero Section */}
-      <main className="relative z-10 w-full">
+      <main className="relative z-10 w-full no-flicker">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center mb-20">
-            {/* Logo Principal */}
+            {/* Logo Principal - optimizado */}
             <div className="flex justify-center mb-8">
-              <div className="relative">
+              <div className="relative no-flicker">
                 <img 
                   src="/stater-logo-512.png" 
                   alt="Stater - Assistente Financeiro IA" 
-                  className="h-32 w-32 md:h-40 md:w-40 object-contain drop-shadow-2xl"
+                  className="h-32 w-32 md:h-40 md:w-40 object-contain stable-logo"
                 />
-                {/* Glow effect */}
-                <div className="absolute inset-0 h-32 w-32 md:h-40 md:w-40 bg-blue-500/30 rounded-full blur-2xl"></div>
+                {/* Glow effect - simplificado */}
+                <div className="absolute inset-0 h-32 w-32 md:h-40 md:w-40 bg-blue-500/20 rounded-full blur-2xl stable-blur"></div>
               </div>
             </div>
             
-            {/* Título com fonte especial */}
+            {/* Título com fonte especial - otimizado */}
             <div className="mb-8">
               <h1 
-                className="text-5xl md:text-7xl font-bold text-white mb-4 uppercase tracking-wide"
+                className="text-5xl md:text-7xl font-bold text-white mb-4 uppercase tracking-wide stable-text-shadow no-flicker"
                 style={{
                   fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
                   letterSpacing: '2px',
-                  textShadow: 'rgb(59, 130, 246) 3px 3px 0px, rgb(29, 78, 216) 6px 6px 0px, rgba(59, 130, 246, 0.8) 0px 0px 30px, rgba(0, 0, 0, 0.6) 0px 3px 10px',
-                  filter: 'drop-shadow(rgba(0, 0, 0, 0.5) 0px 4px 8px)'
+                  textShadow: 'rgb(59, 130, 246) 3px 3px 0px, rgb(29, 78, 216) 6px 6px 0px',
                 }}
               >
                 STATER
               </h1>
-              <p className="text-blue-200 text-xl md:text-2xl font-medium mb-2">
+              <p className="text-blue-200 text-xl md:text-2xl font-medium mb-2 no-flicker">
                 Assistente Financeiro Inteligente
               </p>
             </div>
@@ -169,16 +172,16 @@ const HomePage: React.FC = () => {
                 <strong> acompanhar e controlar suas finanças</strong> de forma inteligente.
               </p>
               
-              {/* Principais funcionalidades */}
+              {/* Principais funcionalidades - otimizadas */}
               <div className="grid md:grid-cols-2 gap-6 mb-10 max-w-4xl mx-auto">
-                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
+                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10 no-flicker">
                   <h3 className="text-lg font-bold text-white mb-3">🎙️ Comando de Voz</h3>
                   <p className="text-blue-100 text-sm">
                     Fale naturalmente: <strong>"Gastei 200 reais abastecendo o carro"</strong> - nossa IA 
                     ouve, identifica a categoria e organiza automaticamente.
                   </p>
                 </div>
-                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
+                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10 no-flicker">
                   <h3 className="text-lg font-bold text-white mb-3">📄 Leitura Inteligente</h3>
                   <p className="text-blue-100 text-sm">
                     Fotografe qualquer <strong>nota fiscal</strong>, <strong>extrato</strong> ou 
@@ -187,7 +190,7 @@ const HomePage: React.FC = () => {
                 </div>
               </div>
               
-              <p className="text-2xl text-blue-200 font-bold mb-10">
+              <p className="text-2xl text-blue-200 font-bold mb-10 no-flicker">
                 Inteligência financeira ao seu alcance.
               </p>
               
@@ -195,7 +198,7 @@ const HomePage: React.FC = () => {
                 <Link to="/register">
                   <Button 
                     size="lg" 
-                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-10 py-4 text-lg shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-10 py-4 text-lg shadow-2xl mobile-no-hover desktop-hover-scale desktop-hover-shadow smooth-transition"
                   >
                     Começar Agora
                   </Button>
@@ -204,7 +207,7 @@ const HomePage: React.FC = () => {
                   <Button 
                     size="lg" 
                     variant="outline" 
-                    className="bg-white/5 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm px-10 py-4 text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                    className="bg-white/5 border-white/20 text-white backdrop-blur-sm px-10 py-4 text-lg shadow-lg mobile-no-hover desktop-hover-scale desktop-hover-shadow smooth-transition"
                   >
                     Já tenho uma conta
                   </Button>
@@ -213,36 +216,36 @@ const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Prova Social */}
+          {/* Prova Social - otimizada */}
           <div className="mb-20">
-            <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-12">
-              <h3 className="text-3xl md:text-4xl font-bold text-white mb-8 text-center">
+            <div className="bg-white/10 rounded-3xl shadow-2xl border border-white/20 p-12 stable-backdrop no-flicker">
+              <h3 className="text-3xl md:text-4xl font-bold text-white mb-8 text-center stable-text-shadow">
                 Transforme sua relação com o dinheiro
               </h3>
               <div className="grid md:grid-cols-2 gap-12">
                 <div className="space-y-6">
                   <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500/20 to-red-600/30 rounded-2xl border border-red-400/30 mb-4 backdrop-blur-sm">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500/20 to-red-600/30 rounded-2xl border border-red-400/30 mb-4 stable-backdrop no-flicker">
                       <div className="w-12 h-12 bg-red-500/40 rounded-lg flex items-center justify-center">
                         <div className="w-6 h-6 border-2 border-red-300 rounded-full border-dashed animate-spin"></div>
                       </div>
                     </div>
-                    <h4 className="text-xl font-bold text-red-300">Situação Atual</h4>
+                    <h4 className="text-xl font-bold text-red-300 stable-text-shadow">Situação Atual</h4>
                   </div>
                   <div className="space-y-4">
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 backdrop-blur-sm">
+                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 stable-backdrop no-flicker">
                       <p className="text-red-100 text-center leading-relaxed">
                         <strong>"Eu esquecia de anotar os gastos"</strong><br/>
                         <span className="text-red-200 text-sm">No final do mês não sabia onde tinha gasto meu dinheiro</span>
                       </p>
                     </div>
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 backdrop-blur-sm">
+                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 stable-backdrop no-flicker">
                       <p className="text-red-100 text-center leading-relaxed">
                         <strong>"Horas organizando planilhas"</strong><br/>
                         <span className="text-red-200 text-sm">Tempo perdido que poderia estar aproveitando a vida</span>
                       </p>
                     </div>
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 backdrop-blur-sm">
+                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 stable-backdrop no-flicker">
                       <p className="text-red-100 text-center leading-relaxed">
                         <strong>"Descobria os gastos excessivos tarde demais"</strong><br/>
                         <span className="text-red-200 text-sm">Dinheiro que já tinha ido embora</span>

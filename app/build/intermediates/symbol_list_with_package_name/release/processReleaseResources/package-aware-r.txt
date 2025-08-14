@@ -433,6 +433,7 @@ color secondary_text_default_material_light
 color secondary_text_disabled_material_dark
 color secondary_text_disabled_material_light
 color shortcut_background
+color statusBarBlue
 color switch_thumb_disabled_material_dark
 color switch_thumb_disabled_material_light
 color switch_thumb_material_dark
@@ -849,6 +850,7 @@ id showHome
 id showTitle
 id spacer
 id special_effects_controller_view_tag
+id splash_logo
 id split_action_bar
 id src_atop
 id src_in
@@ -889,6 +891,7 @@ id view_tree_on_back_pressed_dispatcher_owner
 id view_tree_saved_state_registry_owner
 id view_tree_view_model_store_owner
 id visible_removing_fragment_view_tag
+id webview
 id wide
 id withText
 id wrap_content
@@ -934,6 +937,7 @@ layout abc_search_dropdown_item_icons_2line
 layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
+layout activity_main
 layout browser_actions_context_menu_page
 layout browser_actions_context_menu_row
 layout custom_dialog

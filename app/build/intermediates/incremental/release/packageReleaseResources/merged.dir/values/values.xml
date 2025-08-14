@@ -10,6 +10,7 @@
     <color name="navigationDividerColor">#000000</color>
     <color name="navigationDividerColorDark">#000000</color>
     <color name="shortcut_background">#F5F5F5</color>
+    <color name="statusBarBlue">#2563eb</color>
     <integer name="splashScreenFadeOutDuration">300</integer>
     <string name="appName" translatable="false">Stater</string>
     <string name="assetStatements">

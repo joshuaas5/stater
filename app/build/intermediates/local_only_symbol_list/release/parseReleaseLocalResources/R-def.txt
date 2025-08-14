@@ -10,12 +10,16 @@ color navigationColorDark
 color navigationDividerColor
 color navigationDividerColorDark
 color shortcut_background
+color statusBarBlue
 drawable ic_notification_icon
 drawable shortcut_legacy_background
 drawable splash
 drawable splash_logo
 drawable splash_src
+id splash_logo
+id webview
 integer splashScreenFadeOutDuration
+layout activity_main
 mipmap ic_launcher
 mipmap ic_maskable
 string appName

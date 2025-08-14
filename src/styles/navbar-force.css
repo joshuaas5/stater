@@ -35,11 +35,11 @@
   opacity: 1 !important;
 }
 
-/* Adiciona espaçamento no body para não sobrepor conteúdo */
-body {
+/* Espaçamento removido - páginas individuais controlam seu próprio padding */
+/* body {
   padding-bottom: 64px !important;
   margin-bottom: 0 !important;
-}
+} */
 
 /* Garante que a navbar não seja afetada por containers */
 body, html, #root, [data-react-root] {

@@ -40,6 +40,10 @@
         "source": "com.timothy.stater.app-main-5:/mipmap-xxxhdpi/ic_launcher.png"
     },
     {
+        "merged": "com.timothy.stater.app-release-4:/layout_activity_main.xml.flat",
+        "source": "com.timothy.stater.app-main-5:/layout/activity_main.xml"
+    },
+    {
         "merged": "com.timothy.stater.app-release-4:/mipmap-hdpi_ic_launcher.png.flat",
         "source": "com.timothy.stater.app-main-5:/mipmap-hdpi/ic_launcher.png"
     },

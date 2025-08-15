@@ -80,12 +80,12 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 
-                // ✅ DETECTAR ALTURA REAL DA STATUS BAR E APLICAR PADDING
-                int statusBarHeight = getStatusBarHeight();
+                // ✅ DETECTAR ALTURA REAL DA STATUS BAR E APLICAR PADDING + MARGEM EXTRA
+                int statusBarHeight = getStatusBarHeight() + 8; // +8px extra para não cortar
                 
                 String viewportFix = 
                     "javascript:(function() {" +
-                    // Usar altura real detectada da status bar
+                    // Usar altura real detectada da status bar + margem extra
                     "var statusBarHeight = " + statusBarHeight + ";" +
                     
                     // Remover CSS existente

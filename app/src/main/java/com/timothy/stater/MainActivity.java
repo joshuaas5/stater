@@ -20,24 +20,20 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // ✅ STATUS BAR AZUL + CONFIGURAÇÃO COMPLETA
+        // ✅ STATUS BAR AZUL FORÇADA - SEM FAIXA BRANCA
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // Status bar com cor azul STATER (#31518b)
+            // Forçar status bar azul ANTES de tudo
             getWindow().setStatusBarColor(Color.parseColor("#31518b"));
             
-            // Configuração para Android 11+
+            // Remover qualquer faixa branca - layout completo
+            getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
+            
+            // Para Android 11+ - garantir que funcione
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 getWindow().setDecorFitsSystemWindows(false);
-                getWindow().getInsetsController().setSystemBarsAppearance(
-                    0, // light status bar icons (texto branco)
-                    WindowInsets.Type.statusBars()
-                );
-            } else {
-                // Para versões anteriores
-                getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                );
             }
         }
         
@@ -82,7 +78,23 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                // Apenas esconder UI do sistema
+                
+                // ✅ INJETAR CSS PARA REMOVER FAIXA BRANCA
+                String cssInjection = 
+                    "javascript:(function() {" +
+                    "var style = document.createElement('style');" +
+                    "style.innerHTML = '" +
+                    "body { margin-top: 0 !important; padding-top: 0 !important; background-color: #31518b !important; }" +
+                    "html { margin-top: 0 !important; padding-top: 0 !important; background-color: #31518b !important; }" +
+                    "#root { margin-top: 0 !important; }" +
+                    ".homepage-container { margin-top: 0 !important; }" +
+                    "';" +
+                    "document.head.appendChild(style);" +
+                    "})()";
+                
+                view.evaluateJavascript(cssInjection, null);
+                
+                // Esconder UI do sistema
                 hideSystemUI();
             }
         });
@@ -121,14 +133,20 @@ public class MainActivity extends Activity {
     }
     
     private void hideSystemUI() {
-        // ✅ MANTER STATUS BAR AZUL SEMPRE VISÍVEL - só esconder navigation bar
+        // ✅ FORÇAR STATUS BAR AZUL SEMPRE VISÍVEL
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // Reforçar a cor azul
+            getWindow().setStatusBarColor(Color.parseColor("#31518b"));
+        }
+        
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        // Status bar azul sempre visível - só navigation bar escondida
+        // Status bar azul sempre visível - navigation bar escondida
     }
     
     @Override

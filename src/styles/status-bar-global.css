@@ -1,21 +1,37 @@
 /* 🌐 STATUS BAR GLOBAL - Aplicado em TODO o app */
 
-/* ✅ CONFIGURAÇÃO UNIVERSAL PARA STATUS BAR AZUL */
+/* ✅ CONFIGURAÇÃO UNIVERSAL PARA STATUS BAR AZUL - SEM FAIXA BRANCA */
 :root {
-  --status-bar-height: max(env(safe-area-inset-top, 30px), 30px);
+  --status-bar-height: max(env(safe-area-inset-top, 0px), 0px);
 }
 
-/* ✅ APLICAR PADDING-TOP GLOBAL EM MOBILE */
+/* ✅ REMOVER QUALQUER FAIXA BRANCA */
 @media (max-width: 768px) {
-  /* Container principal do app */
-  body,
-  #root,
+  /* Garantir que não tenha espaço em branco no topo */
+  html, body {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    background-color: #31518b !important;
+  }
+
+  /* Container principal do app - SEM padding-top extra */
+  #root {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  /* Containers específicos - apenas padding mínimo se necessário */
   .app-container,
   .main-container,
-  .dashboard-container,
+  .dashboard-container {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  /* Login específico - sem padding-top global */
   .homepage-container {
-    padding-top: var(--status-bar-height) !important;
-    box-sizing: border-box !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
   }
 
   /* Garantir que todos os containers principais não sejam cortados */
@@ -23,17 +39,16 @@
   .page-container,
   .content-container,
   .layout-container {
-    padding-top: var(--status-bar-height) !important;
-    min-height: calc(100vh - var(--status-bar-height)) !important;
+    margin-top: 0 !important;
+    min-height: 100vh !important;
   }
 
-  /* Modals e elementos flutuantes */
+  /* Modals e elementos flutuantes - apenas pequeno offset se necessário */
   .modal,
   .popup,
-  .dropdown-menu,
-  .floating-element {
-    top: var(--status-bar-height) !important;
-    max-height: calc(100vh - var(--status-bar-height)) !important;
+  .dropdown-menu {
+    top: 10px !important;
+    max-height: calc(100vh - 20px) !important;
   }
 
   /* Headers e navigation bars */
@@ -41,13 +56,13 @@
   .navbar,
   .top-bar,
   .app-header {
-    top: var(--status-bar-height) !important;
+    top: 0 !important;
     position: sticky !important;
   }
 
   /* Fixed elements */
   .fixed-top {
-    top: var(--status-bar-height) !important;
+    top: 0 !important;
   }
 
   /* Botões flutuantes */
@@ -57,33 +72,27 @@
   }
 }
 
-/* ✅ Para telas com altura muito limitada */
-@media (max-height: 600px) and (max-width: 768px) {
-  :root {
-    --status-bar-height: max(env(safe-area-inset-top, 25px), 25px);
-  }
-}
-
-/* ✅ Para iPhone com notch/Dynamic Island */
+/* ✅ Para iPhone com notch/Dynamic Island - mínimo necessário */
 @media (max-width: 430px) {
-  :root {
-    --status-bar-height: max(env(safe-area-inset-top, 44px), 44px);
+  .modal,
+  .popup {
+    top: max(env(safe-area-inset-top, 10px), 10px) !important;
   }
 }
 
-/* ✅ APLICAR EM ELEMENTOS ESPECÍFICOS DO STATER */
+/* ✅ APLICAR EM ELEMENTOS ESPECÍFICOS DO STATER - sem padding-top excessivo */
 @media (max-width: 768px) {
   /* Dashboard específico */
   .dashboard-main,
   .dashboard-content {
-    padding-top: calc(var(--status-bar-height) + 1rem) !important;
+    padding-top: 1rem !important; /* apenas 1rem, não mais */
   }
 
   /* Painel lateral */
   .sidebar,
   .side-menu {
-    top: var(--status-bar-height) !important;
-    height: calc(100vh - var(--status-bar-height)) !important;
+    top: 0 !important;
+    height: 100vh !important;
   }
 
   /* Cards e elementos de conteúdo */
@@ -96,7 +105,7 @@
   .top-actions,
   .header-actions {
     position: sticky !important;
-    top: calc(var(--status-bar-height) + 1rem) !important;
+    top: 1rem !important;
     z-index: 100 !important;
   }
 }

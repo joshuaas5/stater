@@ -1,132 +1,98 @@
 /* 🌐 STATUS BAR GLOBAL - Aplicado em TODO o app */
 
-/* ✅ CONFIGURAÇÃO UNIVERSAL PARA STATUS BAR AZUL - SEM FAIXA BRANCA */
+/* ✅ CONFIGURAÇÃO UNIVERSAL PARA STATUS BAR AZUL - VIEWPORT CORRETO */
 :root {
-  --status-bar-height: max(env(safe-area-inset-top, 0px), 0px);
+  --status-bar-height: 24px; /* Altura padrão da status bar */
+  --app-content-height: calc(100vh - var(--status-bar-height));
 }
 
-/* ✅ REMOVER QUALQUER FAIXA BRANCA */
+/* ✅ GARANTIR QUE TODO CONTEÚDO COMECE ABAIXO DA STATUS BAR */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+  background-color: #31518b !important; /* Cor da status bar */
+}
+
+/* ✅ ROOT CONTAINER - posicionamento correto sempre */
+#root {
+  position: fixed !important;
+  top: var(--status-bar-height) !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: var(--app-content-height) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* ✅ CONTAINERS PRINCIPAIS - altura correta */
+.homepage-container,
+.dashboard-container,
+.app-container,
+.main-container {
+  min-height: 100% !important;
+  height: auto !important;
+}
+
+/* ✅ MODALS E OVERLAYS - posicionamento correto */
+.modal,
+.paywall-modal,
+.subscription-modal,
+.dialog-overlay {
+  position: fixed !important;
+  top: var(--status-bar-height) !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: var(--app-content-height) !important;
+  z-index: 1000 !important;
+}
+
+/* ✅ MOBILE SPECIFIC - ajustes para dispositivos móveis */
 @media (max-width: 768px) {
-  /* Garantir que não tenha espaço em branco no topo */
-  html, body {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-    background-color: #31518b !important;
+  :root {
+    --status-bar-height: 28px; /* Um pouco maior em mobile */
   }
 
-  /* Container principal do app - SEM padding-top extra */
-  #root {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
+  /* Garantir que listas e scrolls funcionem corretamente */
+  .scroll-container,
+  .list-container,
+  .content-scroll {
+    max-height: calc(100% - 20px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
-  /* Containers específicos - apenas padding mínimo se necessário */
-  .app-container,
-  .main-container,
-  .dashboard-container {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-  }
-
-  /* Login específico - sem padding-top global */
-  .homepage-container {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-  }
-
-  /* Garantir que todos os containers principais não sejam cortados */
-  .container,
-  .page-container,
-  .content-container,
-  .layout-container {
-    margin-top: 0 !important;
-    min-height: 100vh !important;
-  }
-
-  /* Modals e elementos flutuantes - apenas pequeno offset se necessário */
-  .modal,
-  .popup,
-  .dropdown-menu {
-    top: 10px !important;
-    max-height: calc(100vh - 20px) !important;
-  }
-
-  /* Headers e navigation bars */
+  /* Headers fixos */
   .header,
   .navbar,
-  .top-bar,
-  .app-header {
-    top: 0 !important;
+  .top-bar {
     position: sticky !important;
-  }
-
-  /* Fixed elements */
-  .fixed-top {
     top: 0 !important;
+    z-index: 100 !important;
   }
 
   /* Botões flutuantes */
   .floating-action-button,
   .fab {
+    position: fixed !important;
     bottom: max(env(safe-area-inset-bottom, 20px), 20px) !important;
+    z-index: 200 !important;
   }
 }
 
-/* ✅ Para iPhone com notch/Dynamic Island - mínimo necessário */
-@media (max-width: 430px) {
-  .modal,
-  .popup {
-    top: max(env(safe-area-inset-top, 10px), 10px) !important;
+/* ✅ TELAS PEQUENAS - ajuste fino */
+@media (max-width: 375px) {
+  :root {
+    --status-bar-height: 26px;
   }
 }
 
-/* ✅ APLICAR EM ELEMENTOS ESPECÍFICOS DO STATER - sem padding-top excessivo */
-@media (max-width: 768px) {
-  /* Dashboard específico */
-  .dashboard-main,
-  .dashboard-content {
-    padding-top: 1rem !important; /* apenas 1rem, não mais */
-  }
-
-  /* Painel lateral */
-  .sidebar,
-  .side-menu {
-    top: 0 !important;
-    height: 100vh !important;
-  }
-
-  /* Cards e elementos de conteúdo */
-  .card-container,
-  .content-card {
-    margin-top: 0.5rem !important;
-  }
-
-  /* Botões de ação no topo */
-  .top-actions,
-  .header-actions {
-    position: sticky !important;
-    top: 1rem !important;
-    z-index: 100 !important;
-  }
-}
-
-/* ✅ GARANTIR QUE NADA SEJA CORTADO */
-@media (max-width: 768px) {
-  * {
-    /* Evitar overflow que cause corte */
-    box-sizing: border-box;
-  }
-
-  /* Container de scroll */
-  .scroll-container {
-    max-height: calc(100vh - var(--status-bar-height)) !important;
-    overflow-y: auto !important;
-  }
-
-  /* Garantir que listas longas não sejam cortadas */
-  .list-container,
-  .table-container {
-    max-height: calc(100vh - var(--status-bar-height) - 2rem) !important;
-    overflow-y: auto !important;
+/* ✅ ALTURA LIMITADA - otimizações */
+@media (max-height: 700px) {
+  :root {
+    --status-bar-height: 22px; /* Menor para aproveitar espaço */
   }
 }

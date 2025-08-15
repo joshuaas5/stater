@@ -1,18 +1,18 @@
-/* 📱 MOBILE LOGIN COMPACT - Redimensionamento para caber na viewport */
+/* 📱 MOBILE LOGIN COMPACT - Redimensionamento para viewport correto */
 
 /* Aplicar apenas em telas mobile */
 @media (max-width: 768px) {
-  /* ✅ CONTAINER LOGIN - com padding-top extra de segurança */
+  /* ✅ CONTAINER LOGIN - usar altura disponível corretamente */
   .homepage-container {
-    min-height: 100vh !important;
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-    padding-top: 1rem !important; /* EXTRA PADDING para evitar corte da status bar */
+    min-height: 100% !important; /* 100% da área disponível (já descontada a status bar) */
+    height: auto !important;
+    padding: 1rem !important; /* Padding uniforme */
     padding-bottom: max(env(safe-area-inset-bottom, 20px), 20px) !important;
-    /* Garantir que tudo caiba na viewport */
+    /* Layout flex centralizado */
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
+    overflow-y: auto !important;
   }
 
   /* ✅ LOGO SECTION - reduzir espaçamento */

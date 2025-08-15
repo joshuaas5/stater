@@ -4,6 +4,7 @@ import './index.css'
 import './styles/mobile-first.css'
 import './styles/paywall-fixes.css'
 import './styles/status-bar-global.css'
+import './styles/stater-ia-keyboard.css'
 
 // 🔧 CORREÇÃO FINAL: Detectar e remover fragments vazios de forma segura
 const handleUrlFragments = () => {

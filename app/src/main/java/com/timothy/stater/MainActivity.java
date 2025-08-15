@@ -80,27 +80,27 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 
-                // ✅ DETECTAR ALTURA REAL DA STATUS BAR E APLICAR PADDING + MARGEM EXTRA
-                int statusBarHeight = getStatusBarHeight() + 8; // +8px extra para não cortar
+                // ✅ DETECTAR ALTURA REAL + MARGEM GENEROSA PARA EVITAR QUALQUER CORTE
+                int statusBarHeight = getStatusBarHeight() + 16; // +16px margem extra generosa
                 
                 String viewportFix = 
                     "javascript:(function() {" +
-                    // Usar altura real detectada da status bar + margem extra
+                    // Usar altura real detectada da status bar + margem extra generosa
                     "var statusBarHeight = " + statusBarHeight + ";" +
                     
                     // Remover CSS existente
                     "var existingStyles = document.querySelectorAll('style[data-stater-viewport]');" +
                     "existingStyles.forEach(function(style) { style.remove(); });" +
                     
-                    // CSS para posicionar conteúdo EXATAMENTE abaixo da status bar AZUL
+                    // CSS para posicionar conteúdo COM MARGEM SEGURA abaixo da status bar
                     "var style = document.createElement('style');" +
                     "style.setAttribute('data-stater-viewport', 'true');" +
                     "style.innerHTML = '" +
                     "* { box-sizing: border-box; }" +
                     "html { height: 100%; overflow: hidden; margin: 0; padding: 0; }" +
                     "body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #31518b !important; }" +
-                    "#root { position: absolute; top: ' + statusBarHeight + 'px; left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; }" +
-                    ".login-container, .homepage-container, .dashboard-container, .main-container, .app-container { min-height: 100%; }" +
+                    "#root { position: absolute; top: ' + statusBarHeight + 'px; left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; padding-top: 8px; }" +
+                    ".login-container, .homepage-container, .dashboard-container, .main-container, .app-container { min-height: calc(100% - 8px); }" +
                     "';" +
                     "document.head.appendChild(style);" +
                     
@@ -113,7 +113,7 @@ public class MainActivity extends Activity {
                     "}" +
                     "viewport.content = 'width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, shrink-to-fit=no, maximum-scale=1.0';" +
                     
-                    "console.log('Status bar real height applied: ' + statusBarHeight + 'px');" +
+                    "console.log('Status bar height with safety margin: ' + statusBarHeight + 'px');" +
                     "})()";
                 
                 view.evaluateJavascript(viewportFix, null);

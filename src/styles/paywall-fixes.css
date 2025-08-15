@@ -70,7 +70,7 @@
     max-width: none !important;
     margin: 0 !important;
     
-    /* Anti-flicker e anti-scroll bug - ESSENCIAL */
+    /* Anti-flicker e anti-scroll bug - ESSENCIAL + ANTI-MOVIMENTO */
     transform: translate3d(0, 0, 0) !important;
     -webkit-transform: translate3d(0, 0, 0) !important;
     backface-visibility: hidden !important;
@@ -80,9 +80,14 @@
     will-change: auto !important;
     z-index: 1000 !important;
     
-    /* Prevenir movimento durante scroll */
-    touch-action: pan-y !important;
-    overscroll-behavior: contain !important;
+    /* FIXAR COMPLETAMENTE - não se move com scroll */
+    position: fixed !important;
+    touch-action: none !important;
+    overscroll-behavior: none !important;
+    pointer-events: auto !important;
+    
+    /* Garantir que fique acima de tudo */
+    z-index: 2147483647 !important;
   }
 
   /* ✅ BACKDROP - posicionamento correto e anti-movimento */

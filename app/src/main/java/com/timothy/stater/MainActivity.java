@@ -7,6 +7,7 @@ import android.webkit.WebViewClient;
 import android.webkit.WebChromeClient;
 import android.app.Activity;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowInsets;
 import android.graphics.Color;
@@ -79,20 +80,43 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 
-                // ✅ INJETAR CSS PARA REMOVER FAIXA BRANCA
-                String cssInjection = 
+                // ✅ DETECTAR ALTURA REAL DA STATUS BAR E APLICAR PADDING
+                int statusBarHeight = getStatusBarHeight();
+                
+                String viewportFix = 
                     "javascript:(function() {" +
+                    // Usar altura real detectada da status bar
+                    "var statusBarHeight = " + statusBarHeight + ";" +
+                    
+                    // Remover CSS existente
+                    "var existingStyles = document.querySelectorAll('style[data-stater-viewport]');" +
+                    "existingStyles.forEach(function(style) { style.remove(); });" +
+                    
+                    // CSS para posicionar conteúdo EXATAMENTE abaixo da status bar AZUL
                     "var style = document.createElement('style');" +
+                    "style.setAttribute('data-stater-viewport', 'true');" +
                     "style.innerHTML = '" +
-                    "body { margin-top: 0 !important; padding-top: 0 !important; background-color: #31518b !important; }" +
-                    "html { margin-top: 0 !important; padding-top: 0 !important; background-color: #31518b !important; }" +
-                    "#root { margin-top: 0 !important; }" +
-                    ".homepage-container { margin-top: 0 !important; }" +
+                    "* { box-sizing: border-box; }" +
+                    "html { height: 100%; overflow: hidden; margin: 0; padding: 0; }" +
+                    "body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #31518b !important; }" +
+                    "#root { position: absolute; top: ' + statusBarHeight + 'px; left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; }" +
+                    ".login-container, .homepage-container, .dashboard-container, .main-container, .app-container { min-height: 100%; }" +
                     "';" +
                     "document.head.appendChild(style);" +
+                    
+                    // Meta viewport otimizado para não fazer zoom
+                    "var viewport = document.querySelector(\"meta[name=viewport]\");" +
+                    "if (!viewport) {" +
+                    "  viewport = document.createElement('meta');" +
+                    "  viewport.name = 'viewport';" +
+                    "  document.head.appendChild(viewport);" +
+                    "}" +
+                    "viewport.content = 'width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, shrink-to-fit=no, maximum-scale=1.0';" +
+                    
+                    "console.log('Status bar real height applied: ' + statusBarHeight + 'px');" +
                     "})()";
                 
-                view.evaluateJavascript(cssInjection, null);
+                view.evaluateJavascript(viewportFix, null);
                 
                 // Esconder UI do sistema
                 hideSystemUI();
@@ -133,10 +157,20 @@ public class MainActivity extends Activity {
     }
     
     private void hideSystemUI() {
-        // ✅ FORÇAR STATUS BAR AZUL SEMPRE VISÍVEL
+        // ✅ STATUS BAR AZUL SEMPRE VISÍVEL
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // Reforçar a cor azul
-            getWindow().setStatusBarColor(Color.parseColor("#31518b"));
+            Window window = getWindow();
+            // Limpar flags que podem interferir
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            // Forçar cor azul
+            window.setStatusBarColor(Color.parseColor("#31518b"));
+            
+            // Texto branco na status bar (para contraste com azul)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                View decor = window.getDecorView();
+                decor.setSystemUiVisibility(decor.getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            }
         }
         
         View decorView = getWindow().getDecorView();
@@ -147,6 +181,21 @@ public class MainActivity extends Activity {
                         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         // Status bar azul sempre visível - navigation bar escondida
+    }
+    
+    private int getStatusBarHeight() {
+        int result = 0;
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = getResources().getDimensionPixelSize(resourceId);
+        }
+        
+        // Fallback para dispositivos que não conseguimos detectar
+        if (result == 0) {
+            result = (int) Math.ceil(24 * getResources().getDisplayMetrics().density); // 24dp default
+        }
+        
+        return result;
     }
     
     @Override

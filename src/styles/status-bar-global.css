@@ -17,7 +17,7 @@ html, body {
   box-sizing: border-box !important;
 }
 
-/* ✅ ROOT CONTAINER - posicionamento correto sempre */
+/* ✅ ROOT CONTAINER - posicionamento correto sempre SEM SCROLL VISÍVEL */
 #root {
   position: fixed !important;
   top: var(--status-bar-height) !important;
@@ -26,11 +26,40 @@ html, body {
   bottom: 0 !important;
   width: 100vw !important; /* Garantir largura total */
   height: var(--app-content-height) !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  overflow: hidden !important; /* MUDAR PARA HIDDEN para eliminar scrollbars */
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
+}
+
+/* ✅ CONTAINER INTERNO PARA SCROLL - sem scrollbar visível */
+#root > * {
+  height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  
+  /* OCULTAR SCROLLBAR completamente */
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* Internet Explorer 10+ */
+}
+
+/* Ocultar scrollbar no WebKit (Chrome, Safari, etc) */
+#root > *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* ✅ FORÇA GLOBAL - Garantir que nenhuma scrollbar apareça */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* ✅ CONTAINERS PRINCIPAIS - altura correta */

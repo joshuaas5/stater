@@ -51,34 +51,26 @@
   contain: layout style paint;
 }
 
-/* 📱 PAYWALL MOBILE COMPACT - Posicionamento correto com status bar */
+/* 📱 PAYWALL MOBILE COMPACT - Redimensionamento igual ao login ORIGINAL */
 @media (max-width: 768px) {
-  /* ✅ MODAL PAYWALL - usar sistema global de viewport + anti-scroll bug */
-  [class*="paywall"],
-  [class*="subscription"],
-  [class*="upgrade"],
-  [class*="payment"],
-  [class*="pricing"],
+  /* ✅ MODAL PAYWALL - posicionamento correto COM ANTI-SCROLL BUG */
   .paywall-modal,
   .subscription-modal,
   .upgrade-modal,
   .payment-modal,
-  .pricing-modal,
-  div[data-radix-popper-content-wrapper],
-  div[role="dialog"] {
-    /* Herdar posicionamento do CSS global */
+  .pricing-modal {
     position: fixed !important;
     top: var(--status-bar-height) !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
-    width: 100vw !important; /* Largura total */
+    width: 100vw !important;
     height: var(--app-content-height) !important;
     max-height: none !important;
     max-width: none !important;
     margin: 0 !important;
     
-    /* Anti-flicker e anti-scroll bug - CRÍTICO */
+    /* Anti-flicker e anti-scroll bug - ESSENCIAL */
     transform: translate3d(0, 0, 0) !important;
     -webkit-transform: translate3d(0, 0, 0) !important;
     backface-visibility: hidden !important;
@@ -103,7 +95,7 @@
     bottom: 0 !important;
     width: 100vw !important;
     height: var(--app-content-height) !important;
-    background: rgba(0, 0, 0, 0.85) !important;
+    background: rgba(0, 0, 0, 0.8) !important;
     backdrop-filter: blur(4px) !important;
     z-index: 999 !important;
     
@@ -113,19 +105,14 @@
     touch-action: none !important;
   }
 
-  /* ✅ CONTAINER DO PAYWALL - mais compacto */
-  [class*="paywall"] > *,
-  [class*="subscription"] > *,
-  [class*="upgrade"] > *,
+  /* ✅ CONTAINER DO PAYWALL - igual ao login compacto ORIGINAL */
   .paywall-container,
   .subscription-container,
-  .upgrade-container,
-  div[data-radix-popper-content-wrapper] > *,
-  div[role="dialog"] > * {
+  .upgrade-container {
     min-height: 100% !important;
     height: auto !important;
-    padding: 0.75rem !important; /* Reduzido de 1rem */
-    padding-bottom: max(env(safe-area-inset-bottom, 16px), 16px) !important;
+    padding: 1rem !important;
+    padding-bottom: max(env(safe-area-inset-bottom, 20px), 20px) !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
@@ -135,298 +122,200 @@
     /* Anti-movimento durante scroll */
     transform: translate3d(0, 0, 0) !important;
     will-change: auto !important;
+    
+    /* OCULTAR SCROLLBAR no paywall também */
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  
+  /* Ocultar scrollbar no WebKit para paywall */
+  .paywall-container::-webkit-scrollbar,
+  .subscription-container::-webkit-scrollbar,
+  .upgrade-container::-webkit-scrollbar {
+    display: none !important;
   }
 
-  /* ✅ HEADER/LOGO DO PAYWALL - mais compacto */
+  /* ✅ HEADER/LOGO DO PAYWALL - reduzir espaçamento */
   .paywall-header,
   .subscription-header {
-    margin-bottom: 0.5rem !important; /* Reduzido de 1rem */
-    text-align: center !important;
+    margin-bottom: 1rem !important; /* reduzido */
   }
   
   .paywall-header img,
   .paywall-logo {
-    width: 3rem !important; /* Reduzido de 4rem */
-    height: 3rem !important;
+    width: 4rem !important; /* menor que o login */
+    height: 4rem !important;
   }
 
-  /* ✅ CARD PRINCIPAL DO PAYWALL - mais compacto */
+  /* ✅ CARD PRINCIPAL DO PAYWALL - compacto */
   .paywall-card,
   .subscription-card,
   .pricing-card {
-    padding: 1rem !important; /* Reduzido de 1.25rem */
-    margin: 0.5rem !important; /* Reduzido de 0.75rem */
-    border-radius: 1.25rem !important; /* Reduzido de 1.5rem */
-    background: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(10px) !important;
+    padding: 1.25rem !important; /* igual ao login */
+    margin: 0.75rem !important;
+    border-radius: 1.5rem !important;
   }
 
-  /* ✅ TÍTULOS - menores */
+  /* ✅ TÍTULOS - reduzir tamanhos */
   .paywall-title,
   .subscription-title {
-    font-size: 1.25rem !important; /* Reduzido de 1.5rem */
-    margin-bottom: 0.375rem !important; /* Reduzido de 0.5rem */
-    font-weight: bold !important;
-    text-align: center !important;
+    font-size: 1.5rem !important; /* era maior */
+    margin-bottom: 0.5rem !important;
   }
 
   .paywall-subtitle,
   .subscription-subtitle {
-    font-size: 0.8125rem !important; /* Reduzido de 0.875rem */
-    margin-bottom: 0.75rem !important; /* Reduzido de 1rem */
-    text-align: center !important;
-    opacity: 0.8 !important;
+    font-size: 0.875rem !important; /* compacto */
+    margin-bottom: 1rem !important;
   }
 
-  /* ✅ PLANOS/PREÇOS - mais compactos */
+  /* ✅ PLANOS/PREÇOS - compactos */
   .pricing-plan,
   .subscription-plan {
-    padding: 0.75rem !important; /* Reduzido de 1rem */
-    margin-bottom: 0.5rem !important; /* Reduzido de 0.75rem */
-    border-radius: 0.875rem !important; /* Reduzido de 1rem */
-    text-align: center !important;
+    padding: 1rem !important; /* reduzido */
+    margin-bottom: 0.75rem !important;
   }
 
   .pricing-plan .price,
   .plan-price {
-    font-size: 1.5rem !important; /* Reduzido de 1.75rem */
-    font-weight: bold !important;
+    font-size: 1.75rem !important; /* menor */
   }
 
   .pricing-plan .period,
   .plan-period {
-    font-size: 0.6875rem !important; /* Reduzido de 0.75rem */
-    opacity: 0.7 !important;
+    font-size: 0.75rem !important;
   }
 
-  /* ✅ FEATURES/BENEFÍCIOS - lista mais compacta */
+  /* ✅ FEATURES/BENEFÍCIOS - lista compacta */
   .paywall-features,
   .subscription-features {
-    margin: 0.75rem 0 !important; /* Reduzido de 1rem */
+    margin: 1rem 0 !important;
   }
 
   .paywall-features li,
   .subscription-features li {
-    padding: 0.25rem 0 !important; /* Reduzido de 0.375rem */
-    font-size: 0.8125rem !important; /* Reduzido de 0.875rem */
-    display: flex !important;
-    align-items: center !important;
+    padding: 0.375rem 0 !important; /* espaçamento menor */
+    font-size: 0.875rem !important;
   }
 
   .paywall-features .check-icon,
   .feature-icon {
-    width: 0.875rem !important; /* Reduzido de 1rem */
-    height: 0.875rem !important;
-    margin-right: 0.375rem !important; /* Reduzido de 0.5rem */
+    width: 1rem !important;
+    height: 1rem !important;
   }
 
-  /* ✅ BOTÕES - menores e mais compactos */
+  /* ✅ BOTÕES - igual ao login compacto */
   .paywall-button,
   .subscription-button,
   .upgrade-button {
-    padding: 0.625rem 0.875rem !important; /* Reduzido de 0.75rem 1rem */
-    font-size: 0.8125rem !important; /* Reduzido de 0.875rem */
-    border-radius: 0.875rem !important; /* Reduzido de 1rem */
-    margin: 0.375rem 0 !important; /* Reduzido de 0.5rem */
-    font-weight: 600 !important;
-    transition: all 0.2s ease !important;
+    padding: 0.75rem 1rem !important; /* igual ao login */
+    font-size: 0.875rem !important;
+    border-radius: 1rem !important;
+    margin: 0.5rem 0 !important;
   }
 
   .paywall-button.primary,
   .subscription-button.primary {
-    margin-bottom: 0.5rem !important; /* Reduzido de 0.75rem */
-    background: linear-gradient(to right, #3b82f6, #1d4ed8) !important;
-    color: white !important;
+    margin-bottom: 0.75rem !important;
   }
 
-  /* ✅ BOTÃO FECHAR - posição fixa no topo */
+  /* ✅ BOTÃO FECHAR - posição fixa */
   .paywall-close,
   .modal-close {
     position: absolute !important;
-    top: 0.75rem !important; /* Reduzido de 1rem */
-    right: 0.75rem !important;
-    width: 1.75rem !important; /* Reduzido de 2rem */
-    height: 1.75rem !important;
+    top: 1rem !important;
+    right: 1rem !important;
+    width: 2rem !important;
+    height: 2rem !important;
     z-index: 10 !important;
-    background: rgba(0, 0, 0, 0.5) !important;
-    border-radius: 50% !important;
-    border: none !important;
-    color: white !important;
-    cursor: pointer !important;
   }
 
   /* ✅ TEXTO LEGAL/TERMOS - menor */
   .paywall-legal,
   .subscription-terms,
   .payment-terms {
-    font-size: 0.625rem !important; /* Reduzido de 0.675rem */
-    margin-top: 0.75rem !important; /* Reduzido de 1rem */
-    padding: 0.375rem !important; /* Reduzido de 0.5rem */
-    text-align: center !important;
-    opacity: 0.6 !important;
+    font-size: 0.675rem !important; /* bem pequeno */
+    margin-top: 1rem !important;
+    padding: 0.5rem !important;
   }
 
-  /* ✅ LOADING STATES - mais compactos */
+  /* ✅ LOADING STATES - compactos */
   .paywall-loading,
   .subscription-loading {
-    padding: 1.5rem 0.75rem !important; /* Reduzido de 2rem 1rem */
-    text-align: center !important;
+    padding: 2rem 1rem !important;
   }
 
   .paywall-spinner {
-    width: 1.75rem !important; /* Reduzido de 2rem */
-    height: 1.75rem !important;
-    margin: 0 auto !important;
+    width: 2rem !important;
+    height: 2rem !important;
   }
 
   /* ✅ BADGES/TAGS - menores */
   .paywall-badge,
   .plan-badge,
   .popular-badge {
-    padding: 0.1875rem 0.375rem !important; /* Reduzido de 0.25rem 0.5rem */
-    font-size: 0.5625rem !important; /* Reduzido de 0.625rem */
-    border-radius: 0.375rem !important; /* Reduzido de 0.5rem */
-    font-weight: bold !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.625rem !important;
+    border-radius: 0.5rem !important;
   }
 
   /* ✅ DIVIDERS - espaçamento menor */
   .paywall-divider,
   .subscription-divider {
-    margin: 0.75rem 0 !important; /* Reduzido de 1rem */
-    height: 1px !important;
-    background: rgba(255, 255, 255, 0.1) !important;
+    margin: 1rem 0 !important;
   }
 
   /* ✅ FOOTER DO PAYWALL - compacto */
   .paywall-footer {
-    margin-top: 0.75rem !important; /* Reduzido de 1rem */
-    padding-top: 0.75rem !important;
-    text-align: center !important;
+    margin-top: 1rem !important;
+    padding-top: 1rem !important;
   }
 }
 
-/* 📱 GENERIC MODAL COMPACT - Para qualquer modal não identificado */
-@media (max-width: 768px) {
-  /* Seletor genérico para qualquer modal/dialog */
-  div[role="dialog"],
-  div[data-state="open"],
-  .modal,
-  .dialog,
-  .popup {
-    position: fixed !important;
-    top: var(--status-bar-height) !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: var(--app-content-height) !important;
-    margin: 0 !important;
-    padding: 0.75rem !important;
-    
-    /* Anti-flicker */
-    transform: translate3d(0, 0, 0) !important;
-    backface-visibility: hidden !important;
-    
-    /* Layout compacto */
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    overflow-y: auto !important;
-  }
-  
-  /* Aplicar fonte menor em qualquer texto de modal */
-  div[role="dialog"] *,
-  div[data-state="open"] *,
-  .modal *,
-  .dialog * {
-    font-size: 0.8rem !important;
-    padding: 0.5rem !important;
-    margin: 0.25rem !important;
-  }
-  
-  /* Botões menores em modais */
-  div[role="dialog"] button,
-  div[data-state="open"] button,
-  .modal button,
-  .dialog button {
-    padding: 0.625rem 0.875rem !important;
-    font-size: 0.8125rem !important;
-    border-radius: 0.875rem !important;
-  }
-}
-
-/* ✅ Para telas muito pequenas (iPhone SE, etc.) - ULTRA COMPACTO */
+/* ✅ Para telas muito pequenas (iPhone SE, etc.) */
 @media (max-width: 375px) {
   .paywall-container,
   .subscription-container {
-    padding: 0.5rem !important; /* Reduzido ainda mais */
+    padding: 0.75rem !important;
   }
   
   .paywall-card,
   .subscription-card {
-    margin: 0.25rem !important; /* Reduzido de 0.5rem */
-    padding: 0.75rem !important; /* Reduzido de 1rem */
+    margin: 0.5rem !important;
+    padding: 1rem !important;
   }
 
   .paywall-title,
   .subscription-title {
-    font-size: 1.125rem !important; /* Reduzido de 1.25rem */
+    font-size: 1.25rem !important;
   }
 
   .pricing-plan .price,
   .plan-price {
-    font-size: 1.25rem !important; /* Reduzido de 1.5rem */
-  }
-  
-  .paywall-features li,
-  .subscription-features li {
-    font-size: 0.75rem !important; /* Reduzido de 0.8125rem */
-    padding: 0.1875rem 0 !important; /* Reduzido de 0.25rem */
-  }
-  
-  .paywall-button,
-  .subscription-button {
-    padding: 0.5rem 0.75rem !important; /* Reduzido de 0.625rem 0.875rem */
-    font-size: 0.75rem !important; /* Reduzido de 0.8125rem */
+    font-size: 1.5rem !important;
   }
 }
 
-/* ✅ Para telas com altura limitada - ULTRA COMPACTO */
+/* ✅ Para telas com altura limitada - ainda mais compacto */
 @media (max-height: 700px) {
   .paywall-container {
-    padding: 0.375rem !important; /* Reduzido de 0.5rem */
-    justify-content: flex-start !important; /* Não centralizar para economizar espaço */
+    padding: 0.5rem !important;
   }
 
   .paywall-header {
-    margin-bottom: 0.25rem !important; /* Reduzido de 0.5rem */
-  }
-  
-  .paywall-header img,
-  .paywall-logo {
-    width: 2.5rem !important; /* Reduzido de 3rem */
-    height: 2.5rem !important;
+    margin-bottom: 0.5rem !important;
   }
 
   .paywall-card {
-    padding: 0.75rem !important; /* Reduzido de 1rem */
+    padding: 1rem !important;
   }
 
   .paywall-features {
-    margin: 0.5rem 0 !important; /* Reduzido de 0.75rem */
+    margin: 0.75rem 0 !important;
   }
 
   .paywall-features li {
-    padding: 0.125rem 0 !important; /* Reduzido de 0.25rem */
-  }
-  
-  .paywall-title {
-    font-size: 1.125rem !important; /* Reduzido de 1.25rem */
-    margin-bottom: 0.25rem !important; /* Reduzido de 0.375rem */
-  }
-  
-  .paywall-subtitle {
-    margin-bottom: 0.5rem !important; /* Reduzido de 0.75rem */
+    padding: 0.25rem 0 !important;
   }
 }
 
@@ -438,11 +327,15 @@
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     scroll-behavior: smooth !important;
+    
+    /* Ocultar scrollbar aqui também */
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
   }
 
-  /* Ocultar scrollbar em mobile se necessário */
-  .paywall-scroll-container::-webkit-scrollbar {
-    display: none;
+  .paywall-scroll-container::-webkit-scrollbar,
+  .subscription-scroll::-webkit-scrollbar {
+    display: none !important;
   }
 }
 

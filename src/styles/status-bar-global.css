@@ -22,9 +22,12 @@ html, body {
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
+  width: 100vw !important; /* Garantir largura total */
   height: var(--app-content-height) !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* ✅ CONTAINERS PRINCIPAIS - altura correta */

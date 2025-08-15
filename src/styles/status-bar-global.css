@@ -26,37 +26,31 @@ html, body {
   bottom: 0 !important;
   width: 100vw !important; /* Garantir largura total */
   height: var(--app-content-height) !important;
-  overflow: hidden !important; /* MUDAR PARA HIDDEN para eliminar scrollbars */
+  overflow-y: auto !important; /* VOLTAR PARA AUTO para mostrar conteúdo */
+  overflow-x: hidden !important;
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
-}
-
-/* ✅ CONTAINER INTERNO PARA SCROLL - sem scrollbar visível */
-#root > * {
-  height: 100% !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
   
-  /* OCULTAR SCROLLBAR completamente */
+  /* OCULTAR SCROLLBAR mas manter funcionalidade */
   scrollbar-width: none !important; /* Firefox */
   -ms-overflow-style: none !important; /* Internet Explorer 10+ */
 }
 
 /* Ocultar scrollbar no WebKit (Chrome, Safari, etc) */
-#root > *::-webkit-scrollbar {
+#root::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
 }
 
-/* ✅ FORÇA GLOBAL - Garantir que nenhuma scrollbar apareça */
-* {
+/* ✅ SCROLLBAR HIDDEN - apenas onde necessário */
+.hide-scrollbar {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
 }
 
-*::-webkit-scrollbar {
+.hide-scrollbar::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;

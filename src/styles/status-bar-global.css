@@ -10,9 +10,11 @@
 html, body {
   margin: 0 !important;
   padding: 0 !important;
+  width: 100vw !important;
   height: 100vh !important;
   overflow: hidden !important;
   background-color: #31518b !important; /* Cor da status bar */
+  box-sizing: border-box !important;
 }
 
 /* ✅ ROOT CONTAINER - posicionamento correto sempre */
@@ -28,6 +30,7 @@ html, body {
   overflow-x: hidden !important;
   margin: 0 !important;
   padding: 0 !important;
+  box-sizing: border-box !important;
 }
 
 /* ✅ CONTAINERS PRINCIPAIS - altura correta */
@@ -97,5 +100,25 @@ html, body {
 @media (max-height: 700px) {
   :root {
     --status-bar-height: 22px; /* Menor para aproveitar espaço */
+  }
+}
+
+/* ✅ DESKTOP - sem status bar, mas manter estrutura */
+@media (min-width: 769px) {
+  :root {
+    --status-bar-height: 0px; /* Sem status bar no desktop */
+    --app-content-height: 100vh;
+  }
+  
+  html, body {
+    width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+  
+  #root {
+    top: 0 !important; /* No desktop começa do topo */
+    height: 100vh !important;
+    width: 100vw !important;
+    box-sizing: border-box !important;
   }
 }

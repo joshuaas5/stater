@@ -54,11 +54,18 @@
 /* 📱 PAYWALL MOBILE COMPACT - Posicionamento correto com status bar */
 @media (max-width: 768px) {
   /* ✅ MODAL PAYWALL - usar sistema global de viewport + anti-scroll bug */
+  [class*="paywall"],
+  [class*="subscription"],
+  [class*="upgrade"],
+  [class*="payment"],
+  [class*="pricing"],
   .paywall-modal,
   .subscription-modal,
   .upgrade-modal,
   .payment-modal,
-  .pricing-modal {
+  .pricing-modal,
+  div[data-radix-popper-content-wrapper],
+  div[role="dialog"] {
     /* Herdar posicionamento do CSS global */
     position: fixed !important;
     top: var(--status-bar-height) !important;
@@ -107,9 +114,14 @@
   }
 
   /* ✅ CONTAINER DO PAYWALL - mais compacto */
+  [class*="paywall"] > *,
+  [class*="subscription"] > *,
+  [class*="upgrade"] > *,
   .paywall-container,
   .subscription-container,
-  .upgrade-container {
+  .upgrade-container,
+  div[data-radix-popper-content-wrapper] > *,
+  div[role="dialog"] > * {
     min-height: 100% !important;
     height: auto !important;
     padding: 0.75rem !important; /* Reduzido de 1rem */
@@ -290,6 +302,56 @@
     margin-top: 0.75rem !important; /* Reduzido de 1rem */
     padding-top: 0.75rem !important;
     text-align: center !important;
+  }
+}
+
+/* 📱 GENERIC MODAL COMPACT - Para qualquer modal não identificado */
+@media (max-width: 768px) {
+  /* Seletor genérico para qualquer modal/dialog */
+  div[role="dialog"],
+  div[data-state="open"],
+  .modal,
+  .dialog,
+  .popup {
+    position: fixed !important;
+    top: var(--status-bar-height) !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: var(--app-content-height) !important;
+    margin: 0 !important;
+    padding: 0.75rem !important;
+    
+    /* Anti-flicker */
+    transform: translate3d(0, 0, 0) !important;
+    backface-visibility: hidden !important;
+    
+    /* Layout compacto */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Aplicar fonte menor em qualquer texto de modal */
+  div[role="dialog"] *,
+  div[data-state="open"] *,
+  .modal *,
+  .dialog * {
+    font-size: 0.8rem !important;
+    padding: 0.5rem !important;
+    margin: 0.25rem !important;
+  }
+  
+  /* Botões menores em modais */
+  div[role="dialog"] button,
+  div[data-state="open"] button,
+  .modal button,
+  .dialog button {
+    padding: 0.625rem 0.875rem !important;
+    font-size: 0.8125rem !important;
+    border-radius: 0.875rem !important;
   }
 }
 

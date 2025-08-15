@@ -96,13 +96,13 @@ public class MainActivity extends Activity {
             }
         });
         
-        // Delay pequeno para mostrar splash e depois carregar URL
+        // Delay mínimo para splash suave
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 webView.loadUrl("https://stater.app/login");
                 
-                // Esconder splash logo após carregamento começar
+                // Esconder splash logo rapidamente após carregamento começar
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -111,9 +111,9 @@ public class MainActivity extends Activity {
                             splashLogo.setVisibility(View.GONE);
                         }
                     }
-                }, 1500); // 1.5 segundos total para esconder splash
+                }, 800); // Reduzido de 1.5s para 0.8s
             }
-        }, 1000); // 1 segundo de splash inicial
+        }, 500); // Reduzido de 1s para 0.5s
         
         hideSystemUI();
     }

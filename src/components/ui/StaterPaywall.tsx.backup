@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from "react";
+import React, { useEffect } from "react";
 
 /**
  * Stater Paywall - Versão Mobile First Otimizada
@@ -124,7 +124,7 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {}, onSubscribe }: State
 
         {/* Header */}
         <div className="p-3 text-center">
-          <Badge>🎁 ACESSO PREMIUM</Badge>
+          <Badge>🎁 TESTE GRÁTIS - 3 DIAS</Badge>
           
           <h1 className="mt-3 text-lg font-extrabold text-white" aria-live="polite">
             <div className="rotator">
@@ -145,7 +145,7 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {}, onSubscribe }: State
             onClick={() => onSubscribe && onSubscribe('trial')}
             className="w-full bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold py-2.5 px-3 rounded-xl text-sm shadow-xl pulse"
           >
-            🎁 INICIAR ACESSO PREMIUM
+            🎁 INICIAR TESTE GRÁTIS - 3 DIAS
           </button>
           
           <div className="grid grid-cols-2 gap-2">
@@ -202,7 +202,7 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {}, onSubscribe }: State
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-sm flex-shrink-0">📊</span>
-                <span>Relatórios detalhados e avançados</span>
+                <span>Relatórios detalhados com insights inteligentes</span>
               </li>
             </ul>
           </div>
@@ -221,7 +221,7 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {}, onSubscribe }: State
         {/* Footer */}
         <div className="px-3 pb-3">
           <div className="text-center text-blue-200 text-xs">
-            🛡️ "Suporte completo e atendimento personalizado."
+            🛡️ "Não gostou? Cancele quando quiser. Simples assim."
           </div>
           
           <div className="mt-2 text-center text-xs text-blue-300">

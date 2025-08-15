@@ -655,7 +655,7 @@ export class StaterPaywallModern {
           
           <button class="stater-cta-modern" onclick="StaterPaywall.handlePurchase('onboarding', 'trial')">
             <div class="stater-cta-text">COMEÇAR TESTE GRÁTIS</div>
-            <div class="stater-cta-price">7 dias • Sem compromisso</div>
+            <div class="stater-cta-price">7 dias • Suporte completo</div>
           </button>
           
           <button class="stater-cta-skip" onclick="StaterPaywall.close()">

@@ -160,7 +160,7 @@
             android:exported="false"
             android:label="@string/launcherName"
             android:launchMode="singleTask"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
+            android:theme="@style/Theme.TwaLauncher" >
 
             <!-- URL ABSOLUTA com barra final -->
             <meta-data

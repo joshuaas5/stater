@@ -48,6 +48,7 @@ string twa_loading
 string webManifestUrl
 style AppTheme
 style AppTheme.NoActionBar
+style BaseBlackTheme
 style Theme.TwaLauncher
 xml file_paths
 xml filepaths

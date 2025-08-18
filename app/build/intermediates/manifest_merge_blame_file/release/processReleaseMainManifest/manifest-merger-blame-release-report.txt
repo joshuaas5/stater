@@ -281,8 +281,8 @@
 161-->C:\ICTUS\app\src\main\AndroidManifest.xml:111:13-49
 162            android:launchMode="singleTask"
 162-->C:\ICTUS\app\src\main\AndroidManifest.xml:113:13-44
-163            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
-163-->C:\ICTUS\app\src\main\AndroidManifest.xml:114:13-71
+163            android:theme="@style/Theme.TwaLauncher" >
+163-->C:\ICTUS\app\src\main\AndroidManifest.xml:114:13-53
 164
 165            <!-- URL ABSOLUTA com barra final -->
 166            <meta-data

@@ -111,7 +111,7 @@
             android:label="@string/launcherName"
             android:exported="false"
             android:launchMode="singleTask"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+            android:theme="@style/Theme.TwaLauncher">
             
             <!-- URL ABSOLUTA com barra final -->
             <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"

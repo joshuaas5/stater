@@ -23,6 +23,9 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.annotation.NonNull;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends Activity {
     private WebView webView;
@@ -139,40 +142,31 @@ public class MainActivity extends Activity {
             }
             
             @Override
-            public void onPermissionRequest(PermissionRequest request) {
-                // ✅ CONCESSÃO SILENCIOSA E AUTOMÁTICA
-                runOnUiThread(() -> {
-                    String[] requestedResources = request.getResources();
-                    
-                    // Verificar se temos permissões Android primeiro
-                    boolean needsAndroidPermissions = false;
-                    for (String resource : requestedResources) {
-                        if (resource.equals(PermissionRequest.RESOURCE_AUDIO_CAPTURE) && 
-                            ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                            needsAndroidPermissions = true;
-                            break;
-                        }
-                        if (resource.equals(PermissionRequest.RESOURCE_VIDEO_CAPTURE) && 
-                            ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                            needsAndroidPermissions = true;
-                            break;
+            public void onPermissionRequest(final PermissionRequest request) {
+                final String[] requestedResources = request.getResources();
+                final List<String> androidPermissions = new ArrayList<>();
+
+                for (String resource : requestedResources) {
+                    if (resource.equals(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) {
+                        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                            androidPermissions.add(Manifest.permission.RECORD_AUDIO);
                         }
                     }
-                    
-                    if (needsAndroidPermissions) {
-                        // Guardar request e solicitar permissões silenciosamente
-                        currentPermissionRequest = request;
-                        requestPermissionsOnDemand(() -> {
-                            if (currentPermissionRequest != null) {
-                                currentPermissionRequest.grant(currentPermissionRequest.getResources());
-                                currentPermissionRequest = null;
-                            }
-                        });
-                    } else {
-                        // Conceder diretamente
-                        request.grant(requestedResources);
+                    if (resource.equals(PermissionRequest.RESOURCE_VIDEO_CAPTURE)) {
+                        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                            androidPermissions.add(Manifest.permission.CAMERA);
+                        }
                     }
-                });
+                }
+
+                if (androidPermissions.isEmpty()) {
+                    // Se já temos as permissões, conceder ao WebView
+                    runOnUiThread(() -> request.grant(requestedResources));
+                } else {
+                    // Se não, solicitar as permissões necessárias
+                    currentPermissionRequest = request;
+                    ActivityCompat.requestPermissions(MainActivity.this, androidPermissions.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+                }
             }
             
             @Override
@@ -220,21 +214,16 @@ public class MainActivity extends Activity {
     }
     
     private void hideSystemUI() {
-        // ✅ STATUS BAR AZUL SEM FAIXA BRANCA
+        // ✅ STATUS BAR AZUL SEMPRE VISÍVEL - SEM FAIXA BRANCA
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            
-            // Status bar azul sempre
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.setStatusBarColor(Color.parseColor("#31518b"));
-            window.setNavigationBarColor(Color.parseColor("#31518b"));
             
             // Texto branco na status bar (para contraste com azul)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 View decor = window.getDecorView();
-                // Remover flag que deixa o texto escuro
                 decor.setSystemUiVisibility(decor.getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
             }
         }
@@ -333,27 +322,29 @@ public class MainActivity extends Activity {
     }
     
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         
         if (requestCode == PERMISSION_REQUEST_CODE) {
             boolean allGranted = true;
-            int deniedCount = 0;
-            
             for (int result : grantResults) {
                 if (result != PackageManager.PERMISSION_GRANTED) {
                     allGranted = false;
-                    deniedCount++;
+                    break;
                 }
             }
             
-            if (allGranted) {
-                // Permissões concedidas silenciosamente
-            } else {
-                // Permissões negadas silenciosamente - app continua funcionando
+            if (currentPermissionRequest != null) {
+                if (allGranted) {
+                    // Permissões concedidas, agora conceder ao WebView
+                    runOnUiThread(() -> currentPermissionRequest.grant(currentPermissionRequest.getResources()));
+                } else {
+                    // Permissões negadas, negar no WebView
+                    runOnUiThread(() -> currentPermissionRequest.deny());
+                }
+                currentPermissionRequest = null;
             }
             
-            // Executar callback se existe
             if (permissionCallback != null) {
                 permissionCallback.run();
                 permissionCallback = null;

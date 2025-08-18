@@ -44,7 +44,6 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
       
       // Para usuários FREE, verificar se há cooldown ativo (já assistiu ad recentemente)
       console.log('🔒 [FINANCIAL_GATE] Usuário FREE - verificando cooldown do reward ad');
-      const { RewardCooldownManager } = await import('@/utils/rewardCooldownManager');
       const cooldownInfo = await RewardCooldownManager.checkCooldownStatus(user.id, 'financial_analysis');
       console.log('🔒 [FINANCIAL_GATE] Info de cooldown:', cooldownInfo);
       
@@ -55,7 +54,7 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
         setTimeUntilNextAd(cooldownInfo.remainingMinutes || 0);
       } else {
         console.log('🔒 [FINANCIAL_GATE] Nenhum cooldown ativo - precisa assistir reward ad');
-        setHasAccess(false);
+        setHasAccess(false); // ✅ GARANTIR BLOQUEIO
         setTimeUntilNextAd(null);
       }
     } catch (error) {
@@ -124,8 +123,9 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
     }
   }, [timeUntilNextAd]);
 
-  // Verificar acesso inicial
+  // Verificar acesso inicial e re-verificar quando o usuário muda
   useEffect(() => {
+    setIsLoading(true); // Forçar loading ao re-verificar
     checkAccess();
   }, [user?.id]);
 

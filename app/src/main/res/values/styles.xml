@@ -1,75 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     
-    <!-- 🖤 TEMA BASE ESCURO - ELIMINA QUALQUER FLASH BRANCO -->
-    <style name="BaseBlackTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
-        <!-- ⚫ COR DE FUNDO DA JANELA: PRIMEIRA LINHA DE DEFESA CONTRA FLASH BRANCO -->
-        <item name="android:windowBackground">@android:color/black</item>
+    <!-- � TEMA AZUL COMO DIA 14/08 - FUNCIONAVA PERFEITAMENTE -->
+    <style name="BaseTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+        <!-- 🔵 STATUS BAR AZUL QUE FUNCIONAVA -->
+        <item name="android:statusBarColor" tools:targetApi="l">@color/status_bar_color</item>
         
-        <!-- ⚫ BARRA DE STATUS PRETA SÓLIDA -->
-        <item name="android:statusBarColor" tools:targetApi="l">@android:color/black</item>
+        <!-- 🔵 FUNDO AZUL PARA EVITAR FLASH BRANCO -->
+        <item name="android:windowBackground">@color/backgroundColor</item>
         
-        <!-- ⚫ BARRA DE NAVEGAÇÃO PRETA -->
-        <item name="android:navigationBarColor" tools:targetApi="l">@android:color/black</item>
-        
-        <!-- 🎯 CONTROLES FUNDAMENTAIS PARA ELIMINAR FLASH -->
+        <!-- 🎯 CONFIGURAÇÃO SIMPLES QUE FUNCIONAVA -->
         <item name="android:windowDrawsSystemBarBackgrounds" tools:targetApi="l">true</item>
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowTranslucentNavigation">false</item>
         
-        <!-- ⚪ ÍCONES BRANCOS NA BARRA DE STATUS (CONTRASTE COM PRETO) -->
+        <!-- 🔵 ÍCONES BRANCOS (CONTRASTE COM AZUL) -->
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">false</item>
         
-        <!-- 🔒 GARANTIAS EXTRAS CONTRA QUALQUER FLASH -->
-        <item name="android:windowAnimationStyle">@null</item>
-        <item name="android:windowContentTransitions" tools:targetApi="l">false</item>
-        <item name="android:windowAllowEnterTransitionOverlap" tools:targetApi="l">false</item>
-        <item name="android:windowAllowReturnTransitionOverlap" tools:targetApi="l">false</item>
-        
-        <!-- 🖤 SPLASH SCREEN ESCURO (Android 12+) -->
-        <item name="android:windowSplashScreenBackground" tools:targetApi="s">@android:color/black</item>
-        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="s">@android:color/transparent</item>
-        
-        <!-- 🌑 CORES BÁSICAS ESCURAS -->
-        <item name="android:colorPrimary" tools:targetApi="l">@android:color/black</item>
-        <item name="android:colorPrimaryDark" tools:targetApi="l">@android:color/black</item>
+        <!-- � CORES AZUIS CONSISTENTES -->
+        <item name="android:colorPrimary" tools:targetApi="l">@color/colorPrimary</item>
+        <item name="android:colorPrimaryDark" tools:targetApi="l">@color/colorPrimaryDark</item>
         <item name="android:colorAccent" tools:targetApi="l">@android:color/white</item>
     </style>
     
-    <!-- 🎯 TEMA PRINCIPAL DO TWA - HERDA TODA PROTEÇÃO ANTI-FLASH -->
-    <style name="Theme.TwaLauncher" parent="BaseBlackTheme">
-        <!-- 🖤 REFORÇO TRIPLO: JANELA, STATUS BAR E NAVEGAÇÃO PRETAS -->
-        <item name="android:windowBackground">@android:color/black</item>
-        <item name="android:statusBarColor" tools:targetApi="l">@android:color/black</item>
-        <item name="android:navigationBarColor" tools:targetApi="l">@android:color/black</item>
+    <!-- 🎯 TEMA PRINCIPAL DO TWA - BASEADO NO QUE FUNCIONAVA -->
+    <style name="Theme.TwaLauncher" parent="BaseTheme">
+        <!-- � REFORÇO: STATUS BAR AZUL -->
+        <item name="android:statusBarColor" tools:targetApi="l">@color/status_bar_color</item>
+        <item name="android:windowBackground">@color/backgroundColor</item>
         
         <!-- ⚪ ÍCONES SEMPRE BRANCOS -->
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">false</item>
-        
-        <!-- 🎪 ELIMINAÇÃO TOTAL DE TRANSIÇÕES QUE CAUSAM FLASH -->
-        <item name="android:windowEnterAnimation">@null</item>
-        <item name="android:windowExitAnimation">@null</item>
-        <item name="android:activityOpenEnterAnimation">@null</item>
-        <item name="android:activityOpenExitAnimation">@null</item>
-        <item name="android:activityCloseEnterAnimation">@null</item>
-        <item name="android:activityCloseExitAnimation">@null</item>
-        
-        <!-- 🔒 MÁXIMA PROTEÇÃO CONTRA FLASH NA INICIALIZAÇÃO -->
-        <item name="android:windowDisablePreview">true</item>
-        <item name="android:windowNoDisplay">false</item>
-        <item name="android:windowShowWallpaper">false</item>
     </style>
     
     <!-- 📱 TEMA ALTERNATIVO PARA COMPATIBILIDADE LEGACY -->
     <style name="AppTheme" parent="Theme.TwaLauncher">
-        <!-- Herda toda a proteção do Theme.TwaLauncher -->
+        <!-- Herda toda a configuração do Theme.TwaLauncher -->
     </style>
     
     <!-- 📱 TEMA SEM ACTION BAR PARA COMPATIBILIDADE -->
     <style name="AppTheme.NoActionBar" parent="Theme.TwaLauncher">
-        <!-- Herda toda a proteção do Theme.TwaLauncher -->
+        <!-- Herda toda a configuração do Theme.TwaLauncher -->
     </style>
     
 </resources>

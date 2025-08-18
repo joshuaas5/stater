@@ -478,41 +478,23 @@ public class MainActivity extends Activity {
     }
     
     private void hideSystemUI() {
-        // 🖤 FORÇA STATUS BAR PRETA SÓLIDA - ANTI-FLASH DEFINITIVO
-        Window window = getWindow();
+        // � STATUS BAR AZUL COMO DIA 14/08 - SIMPLES E FUNCIONAL
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // Limpar TODAS as flags problemáticas
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-            
-            // Força controle total
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            
-            // 🖤 STATUS BAR PRETA SÓLIDA - SEM EXCEÇÃO
-            window.setStatusBarColor(Color.BLACK);
-            
-            // Navigation bar também preta para consistência
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.setNavigationBarColor(Color.BLACK);
-            }
+            // 🔵 Reforçar cor azul que funcionava
+            getWindow().setStatusBarColor(Color.parseColor("#31518b"));
         }
         
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            View decor = window.getDecorView();
-            int flags = decor.getSystemUiVisibility();
-            
-            // Remove flags que causam ícones escuros (queremos ícones brancos)
-            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
-            
-            // Adiciona flags para estabilidade visual (ANTI-FLASH)
-            flags |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-            flags |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-            
-            decor.setSystemUiVisibility(flags);
-        }
+        // Layout igual ao que funcionava no dia 14
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        );
         
-        android.util.Log.d("TWA_THEME", "🖤 hideSystemUI: Status bar PRETA forçada - ANTI-FLASH ativo");
+        android.util.Log.d("TWA_THEME", "� hideSystemUI: Status bar AZUL como dia 14/08");
     }
     
     private int getStatusBarHeight() {
@@ -1024,39 +1006,30 @@ public class MainActivity extends Activity {
     }
     
     /**
-     * 🖤 CONFIGURAÇÃO DEFINITIVA DA BARRA DE STATUS PRETA
-     * FORÇA status bar PRETA SÓLIDA - SEM FLASH, SEM CORES ESTRANHAS
+     * � STATUS BAR AZUL COMO ESTAVA FUNCIONANDO NO DIA 14/08
+     * Cor azul #31518b que funcionava perfeitamente
      */
     private void configureStatusBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // Limpar TODAS as flags que causam problemas
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+            // 🔵 COR AZUL QUE FUNCIONAVA (#31518b)
+            window.setStatusBarColor(Color.parseColor("#31518b"));
             
-            // Habilitar controle TOTAL da barra de status
+            // Configuração simples que funcionava
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             
-            // 🖤 FORÇA STATUS BAR PRETA SÓLIDA - FINAL
-            window.setStatusBarColor(Color.BLACK);
-            
-            // Configurar ícones BRANCOS (para contraste com preto)
+            // Layout estável como estava no dia 14
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 View decorView = window.getDecorView();
-                int flags = decorView.getSystemUiVisibility();
-                
-                // REMOVER flag que deixa ícones escuros - queremos ícones BRANCOS
-                flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-                
-                // Adicionar flags para estabilidade visual (sem flash)
-                flags |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-                flags |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-                
-                decorView.setSystemUiVisibility(flags);
+                decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                );
             }
             
-            android.util.Log.d("TWA_THEME", "🖤 Status bar PRETA configurada - SEM FLASH");
+            android.util.Log.d("TWA_THEME", "� Status bar AZUL configurada como dia 14/08");
         }
     }
     

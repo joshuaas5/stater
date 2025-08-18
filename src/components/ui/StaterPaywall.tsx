@@ -3,6 +3,7 @@
 /**
  * Stater Paywall - Versão Mobile First Otimizada
  * Fundo azul mais escuro, preços atualizados, design compacto
+ * CORRIGIDO: Layout robusto sem deslocamento + rodapé limpo
  */
 
 const css = `
@@ -81,8 +82,8 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {}, onSubscribe }: State
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 z-[2147483648]">
-      <div className="w-full max-w-sm bg-gradient-blue rounded-2xl shadow-glow overflow-hidden relative max-h-[95vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm min-h-screen flex items-center justify-center p-4 z-[2147483649] overflow-y-auto">
+      <div className="w-full max-w-md bg-gradient-blue rounded-2xl shadow-glow overflow-hidden relative mx-auto">
         {/* CSS customizado */}
         <style>{`
           ${css}
@@ -209,23 +210,12 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {}, onSubscribe }: State
         </div>
 
         {/* Pricing Info */}
-        <div className="px-3 pb-3">
+        <div className="px-3 pb-4">
           <div className="bg-green-500 rounded-xl p-2.5 text-center">
             <div className="text-white font-bold text-sm">💎 MELHOR OFERTA: MENSAL</div>
             <div className="text-green-100 text-xs mt-1">
               Economize com o plano mensal por apenas R$ 19,90
             </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-3 pb-3">
-          <div className="text-center text-blue-200 text-xs">
-            🛡️ "Suporte completo e atendimento personalizado."
-          </div>
-          
-          <div className="mt-2 text-center text-xs text-blue-300">
-            Pagamentos seguros • Cancelamento fácil • Suporte via app
           </div>
         </div>
       </div>

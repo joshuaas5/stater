@@ -133,7 +133,7 @@ export function PaywallModal({ isOpen, onClose, onUpgrade, trigger, userId }: Pa
           maxWidth: 'none',
           maxHeight: 'none',
           transform: 'none',
-          zIndex: 2147483647
+          zIndex: 2147483648
         }}
       >
         <VisuallyHidden>

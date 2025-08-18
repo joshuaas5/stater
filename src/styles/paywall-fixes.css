@@ -14,23 +14,23 @@
   z-index: 2147483647 !important;
 }
 
-/* Banner Ad Z-Index Control */
+/* Banner Ad Z-Index Control - Menor que modais */
 .ad-banner {
-  z-index: 1000 !important;
+  z-index: 30 !important;
   position: relative !important;
 }
 
-/* Modal hierarchy */
+/* Modal hierarchy - Hierarquia correta */
 .dialog-overlay {
-  z-index: 2147483640 !important;
+  z-index: 2147483647 !important;
 }
 
 .paywall-modal {
-  z-index: 2147483645 !important;
+  z-index: 2147483648 !important;
 }
 
 .telegram-modal {
-  z-index: 2147483648 !important;
+  z-index: 2147483649 !important;
 }
 
 /* Anti-flicker for modals */

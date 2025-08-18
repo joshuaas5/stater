@@ -339,9 +339,6 @@ public class MainActivity extends Activity {
             Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             intent.setData(Uri.parse("package:" + getPackageName()));
             
-            // Toast informativo
-            Toast.makeText(this, "Abra as configurações para permitir todas as permissões", Toast.LENGTH_LONG).show();
-            
             // Executar onSuccess após 3 segundos (usuário teve tempo de configurar)
             new Handler().postDelayed(onSuccess, 3000);
         }
@@ -665,11 +662,9 @@ public class MainActivity extends Activity {
             if (allPermissionsGranted) {
                 android.util.Log.d("TWA_MICROPHONE", "🎉 TODAS as permissões concedidas - aprovando solicitação web");
                 grantWebPermission();
-                Toast.makeText(this, "✅ Permissões de microfone/câmera concedidas!", Toast.LENGTH_SHORT).show();
             } else {
                 android.util.Log.d("TWA_MICROPHONE", "⚠️ Algumas permissões negadas - negando solicitação web");
                 denyWebPermission();
-                Toast.makeText(this, "❌ Permissões necessárias foram negadas", Toast.LENGTH_SHORT).show();
             }
             
             return; // CRÍTICO: Retornar aqui para não executar código legado
@@ -741,7 +736,7 @@ public class MainActivity extends Activity {
             implementAudioPermissionBypass();
         } else if (attempts >= 2) {
             // Após muitas tentativas, usar estratégia alternativa
-            Toast.makeText(this, "Vá em Configurações > Permissões para permitir", Toast.LENGTH_LONG).show();
+            // Remover toast desnecessário para o usuário
         }
     }
     

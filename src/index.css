@@ -32,7 +32,7 @@ html, body, #root {
 @tailwind components;
 @tailwind utilities;
 
-/* FORÇA NAVBAR SEMPRE VISÍVEL - PRIORIDADE MÁXIMA */
+/* FORÇA NAVBAR SEMPRE VISÍVEL - PRIORIDADE MÁXIMA MANTIDA */
 .navbar-fixed-bottom {
   position: fixed !important;
   bottom: 0 !important;
@@ -40,7 +40,7 @@ html, body, #root {
   right: 0 !important;
   width: 100vw !important;
   height: 64px !important;
-  z-index: 2147483647 !important; /* Máximo z-index possível */
+  z-index: 40 !important; /* Reduzido para permitir modais acima */
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -54,16 +54,16 @@ html, body, #root {
   visibility: visible !important;
 }
 
-/* TOAST NOTIFICATIONS - FORÇA ACIMA DA NAVBAR */
+/* TOAST NOTIFICATIONS - FORÇA ACIMA DE TUDO */
 [data-state="open"][data-radix-collection-item],
 [data-radix-toast-viewport] {
-  z-index: 2147483648 !important; /* Acima do máximo z-index da navbar */
+  z-index: 2147483650 !important; /* Acima de todos os modais */
   position: fixed !important;
 }
 
 /* Toast individual sempre visível */
 [role="status"][aria-live][data-state="open"] {
-  z-index: 2147483648 !important;
+  z-index: 2147483650 !important;
   position: fixed !important;
   pointer-events: auto !important;
 }

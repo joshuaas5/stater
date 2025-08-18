@@ -323,9 +323,10 @@ public class MainActivity extends Activity {
         return File.createTempFile(imageFileName, ".jpg", storageDir);
     }
     
+    private PermissionRequest currentPermissionRequest;
     private ValueCallback<Uri[]> filePathCallback;
     private Runnable permissionCallback;
-    private PermissionRequest currentPermissionRequest;
+
     private boolean hasAllPermissions() {
         for (String permission : REQUIRED_PERMISSIONS) {
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
@@ -348,29 +349,52 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        
+
         if (requestCode == PERMISSION_REQUEST_CODE) {
-            boolean allGranted = true;
-            for (int result : grantResults) {
-                if (result != PackageManager.PERMISSION_GRANTED) {
-                    allGranted = false;
-                    break;
-                }
-            }
-            
+            // Lógica para a solicitação de permissão do WebChromeClient (microfone, câmera)
             if (currentPermissionRequest != null) {
-                if (allGranted) {
-                    // Permissões concedidas, agora conceder ao WebView
-                    runOnUiThread(() -> currentPermissionRequest.grant(currentPermissionRequest.getResources()));
-                } else {
-                    // Permissões negadas, negar no WebView
-                    runOnUiThread(() -> currentPermissionRequest.deny());
+                List<String> grantedResources = new ArrayList<>();
+                boolean allGranted = true;
+
+                // Mapeia as permissões do Android para os recursos do WebView
+                for (int i = 0; i < permissions.length; i++) {
+                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                        if (Manifest.permission.RECORD_AUDIO.equals(permissions[i])) {
+                            grantedResources.add(PermissionRequest.RESOURCE_AUDIO_CAPTURE);
+                        }
+                        if (Manifest.permission.CAMERA.equals(permissions[i])) {
+                            grantedResources.add(PermissionRequest.RESOURCE_VIDEO_CAPTURE);
+                        }
+                    } else {
+                        allGranted = false;
+                    }
                 }
+
+                if (!grantedResources.isEmpty()) {
+                    // Concede os recursos que foram permitidos
+                    final String[] resourcesToGrant = grantedResources.toArray(new String[0]);
+                    runOnUiThread(() -> currentPermissionRequest.grant(resourcesToGrant));
+                }
+                
+                // Se alguma permissão essencial foi negada, nega a solicitação inteira
+                if (!allGranted) {
+                     runOnUiThread(() -> currentPermissionRequest.deny());
+                }
+
                 currentPermissionRequest = null;
             }
-            
-            if (permissionCallback != null) {
-                permissionCallback.run();
+            // Lógica para o callback de permissão do upload de arquivo
+            else if (permissionCallback != null) {
+                if (hasAllPermissions()) {
+                    permissionCallback.run();
+                } else {
+                    Toast.makeText(this, "Permissões negadas. Não é possível continuar.", Toast.LENGTH_LONG).show();
+                    // Se o upload de arquivo estava pendente, precisa ser cancelado
+                    if (filePathCallback != null) {
+                        filePathCallback.onReceiveValue(null);
+                        filePathCallback = null;
+                    }
+                }
                 permissionCallback = null;
             }
         }

@@ -125,7 +125,7 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {}, onSubscribe }: State
 
         {/* Header */}
         <div className="p-3 text-center">
-          <Badge>🎁 ACESSO PREMIUM</Badge>
+          <Badge>🎁 3 DIAS GRÁTIS!</Badge>
           
           <h1 className="mt-3 text-lg font-extrabold text-white" aria-live="polite">
             <div className="rotator">
@@ -146,7 +146,7 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {}, onSubscribe }: State
             onClick={() => onSubscribe && onSubscribe('trial')}
             className="w-full bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold py-2.5 px-3 rounded-xl text-sm shadow-xl pulse"
           >
-            🎁 INICIAR ACESSO PREMIUM
+            🎁 INICIAR PREMIUM GRÁTIS
           </button>
           
           <div className="grid grid-cols-2 gap-2">

@@ -27,8 +27,11 @@ public class MainActivity extends Activity {
         
         //  STATUS BAR AZUL FORÇADA - SEM FAIXA BRANCA
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // Forçar status bar azul ANTES de tudo
-            getWindow().setStatusBarColor(Color.parseColor("#31518b"));
+            // Forçar status bar azul ANTES de tudo - MÚLTIPLAS ABORDAGENS
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setStatusBarColor(Color.parseColor("#31518b"));
             
             // Remover qualquer faixa branca - layout completo
             getWindow().getDecorView().setSystemUiVisibility(

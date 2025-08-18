@@ -33,7 +33,7 @@ const AuthLoadingScreen: React.FC = () => {
 
         {/* Texto de carregamento */}
         <div className="text-center">
-          <h2 className="text-white text-lg font-medium mb-1">ICTUS</h2>
+          <h2 className="text-white text-lg font-medium mb-1">Stater</h2>
           <p className="text-white/60 text-sm">Verificando autenticação...</p>
         </div>
 

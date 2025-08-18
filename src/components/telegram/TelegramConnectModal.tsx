@@ -105,19 +105,16 @@ export const TelegramConnectModal: React.FC<TelegramConnectModalProps> = ({
       return;
     }
 
-    // 🔒 VERIFICAR PLANO PREMIUM PRIMEIRO
+    // 🔒 VERIFICAR PLANO PREMIUM PRIMEIRO - BLOQUEAR PARA USUÁRIOS FREE
     try {
       console.log('🔍 [TELEGRAM] Verificando acesso ao Telegram para usuário:', user.id);
       
-      // DEBUG: Vamos verificar o plano do usuário também
       const userPlan = await UserPlanManager.getUserPlan(user.id);
       console.log('📋 [TELEGRAM] Plano atual do usuário:', userPlan);
       
-      const hasAccess = await UserPlanManager.hasFeatureAccess(user.id, 'telegramBot');
-      console.log('🔑 [TELEGRAM] Resultado da verificação de acesso:', hasAccess);
-      
-      if (!hasAccess) {
-        console.log('❌ [TELEGRAM] Usuário FREE tentando conectar Telegram - bloqueando');
+      // ✅ CORRIGIDO: Bloquear especificamente usuários FREE
+      if (userPlan.planType === 'free') {
+        console.log('❌ [TELEGRAM] Usuário FREE tentando conectar Telegram - BLOQUEADO');
         setShowPaywall(true);
         return;
       }

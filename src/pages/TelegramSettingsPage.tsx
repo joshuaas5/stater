@@ -5,6 +5,8 @@ import { getCurrentUser } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { TelegramConnectModal } from '@/components/telegram/TelegramConnectModal';
+import { UserPlanManager } from '@/utils/userPlanManager';
+import { PaywallModal } from '@/components/ui/PaywallModal';
 import { 
   MessageCircle, 
   ArrowLeft, 
@@ -24,13 +26,28 @@ const TelegramSettingsPage: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [telegramInfo, setTelegramInfo] = useState<any>(null);
   const [showTelegramModal, setShowTelegramModal] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [userPlan, setUserPlan] = useState<any>(null);
   // Estados removidos - agora usando TelegramConnectModal
   // const [linkCode, setLinkCode] = useState('');
   // const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     checkTelegramConnection();
+    checkUserPlan();
   }, []);
+
+  const checkUserPlan = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const plan = await UserPlanManager.getUserPlan(user.id);
+      setUserPlan(plan);
+      console.log('📋 [TELEGRAM_PAGE] Plano do usuário:', plan);
+    } catch (error) {
+      console.error('❌ [TELEGRAM_PAGE] Erro ao verificar plano:', error);
+    }
+  };
 
   const checkTelegramConnection = async () => {
     if (!user) return;
@@ -64,9 +81,30 @@ const TelegramSettingsPage: React.FC = () => {
     }
   };
 
-  const generateLinkCode = () => {
-    // Agora usando TelegramConnectModal unificado
-    setShowTelegramModal(true);
+  const generateLinkCode = async () => {
+    // 🔒 VERIFICAR PLANO ANTES DE ABRIR MODAL
+    if (!user?.id) return;
+    
+    try {
+      const plan = await UserPlanManager.getUserPlan(user.id);
+      console.log('🔍 [TELEGRAM_PAGE] Verificando acesso - plano:', plan.planType);
+      
+      if (plan.planType === 'free') {
+        console.log('❌ [TELEGRAM_PAGE] Usuário FREE tentando acessar - BLOQUEADO');
+        setShowPaywall(true);
+        return;
+      }
+      
+      console.log('✅ [TELEGRAM_PAGE] Usuário premium - abrindo modal');
+      setShowTelegramModal(true);
+    } catch (error) {
+      console.error('❌ [TELEGRAM_PAGE] Erro ao verificar plano:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao verificar seu plano. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Função removida - agora usando TelegramConnectModal
@@ -280,6 +318,20 @@ const TelegramSettingsPage: React.FC = () => {
           setTimeout(() => checkTelegramConnection(), 2000);
         }}
       />
+      
+      {/* Paywall para usuários FREE */}
+      {user?.id && (
+        <PaywallModal
+          isOpen={showPaywall}
+          onClose={() => setShowPaywall(false)}
+          onUpgrade={(planType) => {
+            console.log('Upgrade para:', planType);
+            setShowPaywall(false);
+          }}
+          trigger="manual"
+          userId={user.id}
+        />
+      )}
     </div>
   );
 };

@@ -48,19 +48,21 @@ public class MainActivity extends Activity {
         
         // ✅ STATUS BAR AZUL FORÇADA - SEM FAIXA BRANCA
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // Forçar status bar azul ANTES de tudo
-            getWindow().setStatusBarColor(Color.parseColor("#31518b"));
+            Window window = getWindow();
+            // Limpar flags problemáticas
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
             
-            // Remover qualquer faixa branca - layout completo
-            getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            // Definir flags corretas
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            
+            // Status bar azul sempre
+            window.setStatusBarColor(Color.parseColor("#31518b"));
+            
+            // Layout não deve sobrepor a status bar
+            window.getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
             );
-            
-            // Para Android 11+ - garantir que funcione
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                getWindow().setDecorFitsSystemWindows(false);
-            }
         }
         
         setContentView(R.layout.activity_main);
@@ -74,8 +76,7 @@ public class MainActivity extends Activity {
         webSettings.setDatabaseEnabled(true);
         webSettings.setMediaPlaybackRequiresUserGesture(false);
         
-        // Solicitar permissões no início
-        requestPermissions();
+        // ❌ NÃO solicitar permissões no início - apenas quando necessário
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
         webSettings.setAllowFileAccess(true);
         webSettings.setAllowContentAccess(true);
@@ -132,40 +133,41 @@ public class MainActivity extends Activity {
             
             @Override
             public void onPermissionRequest(PermissionRequest request) {
-                // Aceitar automaticamente permissões do WebView se as permissões Android foram concedidas
-                if (hasAllPermissions()) {
-                    runOnUiThread(() -> {
-                        request.grant(request.getResources());
-                        Toast.makeText(MainActivity.this, "Permissão concedida para " + request.getOrigin(), Toast.LENGTH_SHORT).show();
+                // ✅ SOLICITAR PERMISSÕES APENAS QUANDO NECESSÁRIO
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, "Solicitando permissões para " + request.getOrigin(), Toast.LENGTH_SHORT).show();
+                    // Solicitar permissões Android apenas quando WebView precisar
+                    requestPermissionsOnDemand(() -> {
+                        if (hasAllPermissions()) {
+                            request.grant(request.getResources());
+                            Toast.makeText(MainActivity.this, "✅ Permissão concedida!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            request.deny();
+                            Toast.makeText(MainActivity.this, "❌ Permissões negadas", Toast.LENGTH_SHORT).show();
+                        }
                     });
-                } else {
-                    runOnUiThread(() -> {
-                        request.deny();
-                        Toast.makeText(MainActivity.this, "Permissões do Android necessárias não foram concedidas", Toast.LENGTH_LONG).show();
-                        // Tentar solicitar permissões novamente
-                        requestPermissions();
-                    });
-                }
+                });
             }
             
-            // Suporte para upload de arquivos (Android 5.0+)
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                // ✅ SOLICITAR PERMISSÕES APENAS QUANDO USAR FILE UPLOAD
                 if (!hasAllPermissions()) {
-                    Toast.makeText(MainActivity.this, "Permissões necessárias para upload de arquivos não concedidas", Toast.LENGTH_LONG).show();
-                    requestPermissions();
-                    return false;
+                    Toast.makeText(MainActivity.this, "Solicitando permissões para upload de arquivos...", Toast.LENGTH_SHORT).show();
+                    requestPermissionsOnDemand(() -> {
+                        if (hasAllPermissions()) {
+                            openFileChooser(filePathCallback, fileChooserParams);
+                        } else {
+                            Toast.makeText(MainActivity.this, "❌ Permissões necessárias para upload não concedidas", Toast.LENGTH_LONG).show();
+                            if (filePathCallback != null) {
+                                filePathCallback.onReceiveValue(null);
+                            }
+                        }
+                    });
+                    return true;
                 }
                 
-                // Permitir seleção de arquivos
-                try {
-                    Intent intent = fileChooserParams.createIntent();
-                    startActivityForResult(intent, 1001);
-                    return true;
-                } catch (Exception e) {
-                    Toast.makeText(MainActivity.this, "Erro ao abrir seletor de arquivos: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    return false;
-                }
+                return openFileChooser(filePathCallback, fileChooserParams);
             }
         });
         
@@ -192,13 +194,13 @@ public class MainActivity extends Activity {
     }
     
     private void hideSystemUI() {
-        // ✅ STATUS BAR AZUL SEMPRE VISÍVEL
+        // ✅ STATUS BAR AZUL SEMPRE VISÍVEL - SEM FAIXA BRANCA
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             // Limpar flags que podem interferir
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            // Forçar cor azul
+            // Status bar azul sempre
             window.setStatusBarColor(Color.parseColor("#31518b"));
             
             // Texto branco na status bar (para contraste com azul)
@@ -208,14 +210,13 @@ public class MainActivity extends Activity {
             }
         }
         
+        // ✅ LAYOUT NORMAL - NÃO SOBREPOR STATUS BAR
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        // Status bar azul sempre visível - navigation bar escondida
     }
     
     private int getStatusBarHeight() {
@@ -234,15 +235,17 @@ public class MainActivity extends Activity {
     }
     
     // Métodos para gerenciamento de permissões
-    private void requestPermissions() {
+    private void requestPermissionsOnDemand(Runnable onComplete) {
         if (!hasAllPermissions()) {
-            // Mostrar explicação antes de solicitar permissões críticas
-            Toast.makeText(this, "O app precisa de permissões para câmera, microfone e arquivos para funcionar corretamente", Toast.LENGTH_LONG).show();
+            // Guardar callback para executar após permissões
+            this.permissionCallback = onComplete;
+            
+            // Mostrar explicação contextual
+            Toast.makeText(this, "🔒 Permissões necessárias para esta funcionalidade", Toast.LENGTH_SHORT).show();
             
             // Solicitar todas as permissões necessárias
             String[] allPermissions;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                // Combinar permissões básicas com permissões do Android 13+
                 String[] combined = new String[REQUIRED_PERMISSIONS.length + ANDROID_13_PERMISSIONS.length];
                 System.arraycopy(REQUIRED_PERMISSIONS, 0, combined, 0, REQUIRED_PERMISSIONS.length);
                 System.arraycopy(ANDROID_13_PERMISSIONS, 0, combined, REQUIRED_PERMISSIONS.length, ANDROID_13_PERMISSIONS.length);
@@ -252,9 +255,29 @@ public class MainActivity extends Activity {
             }
             
             ActivityCompat.requestPermissions(this, allPermissions, PERMISSION_REQUEST_CODE);
+        } else {
+            // Já tem permissões, executar callback
+            onComplete.run();
         }
     }
     
+    private boolean openFileChooser(ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
+        try {
+            Intent intent = fileChooserParams.createIntent();
+            this.filePathCallback = filePathCallback;
+            startActivityForResult(intent, 1001);
+            return true;
+        } catch (Exception e) {
+            Toast.makeText(this, "❌ Erro ao abrir seletor: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            if (filePathCallback != null) {
+                filePathCallback.onReceiveValue(null);
+            }
+            return false;
+        }
+    }
+    
+    private ValueCallback<Uri[]> filePathCallback;
+    private Runnable permissionCallback;
     private boolean hasAllPermissions() {
         for (String permission : REQUIRED_PERMISSIONS) {
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
@@ -290,22 +313,33 @@ public class MainActivity extends Activity {
             }
             
             if (allGranted) {
-                Toast.makeText(this, "✅ Todas as permissões concedidas! O app funcionará corretamente.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "✅ Permissões concedidas!", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "⚠️ " + deniedCount + " permissões foram negadas. Algumas funcionalidades podem não funcionar (câmera, microfone, uploads).", Toast.LENGTH_LONG).show();
-                
-                // Tentar novamente após 3 segundos se muitas permissões foram negadas
-                if (deniedCount >= 2) {
-                    new android.os.Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (!hasAllPermissions()) {
-                                Toast.makeText(MainActivity.this, "Tentando solicitar permissões novamente...", Toast.LENGTH_SHORT).show();
-                                requestPermissions();
-                            }
-                        }
-                    }, 3000);
+                Toast.makeText(this, "⚠️ " + deniedCount + " permissões negadas. Funcionalidade limitada.", Toast.LENGTH_SHORT).show();
+            }
+            
+            // Executar callback se existe
+            if (permissionCallback != null) {
+                permissionCallback.run();
+                permissionCallback = null;
+            }
+        }
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        
+        if (requestCode == 1001) {
+            if (filePathCallback != null) {
+                Uri[] results = null;
+                if (resultCode == Activity.RESULT_OK && intent != null) {
+                    if (intent.getDataString() != null) {
+                        results = new Uri[]{Uri.parse(intent.getDataString())};
+                    }
                 }
+                filePathCallback.onReceiveValue(results);
+                filePathCallback = null;
             }
         }
     }

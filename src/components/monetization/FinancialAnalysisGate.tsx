@@ -1,7 +1,7 @@
 // src/components/monetization/FinancialAnalysisGate.tsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { AdCooldownManager } from '@/utils/adCooldownManager';
+import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lock, Play, Clock, CheckCircle, AlertCircle } from 'lucide-react';

@@ -106,7 +106,7 @@
             android:exported="true"
             android:label="@string/appName"
             android:launchMode="singleTop"
-            android:theme="@style/AppTheme.NoActionBar" >
+            android:theme="@style/Theme.TwaLauncher" >
 
             <!-- 🚀 TWA Enhancements: Manifest URL para melhor integração PWA -->
             <meta-data

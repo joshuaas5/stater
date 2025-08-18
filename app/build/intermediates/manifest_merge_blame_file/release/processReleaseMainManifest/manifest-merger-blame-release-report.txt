@@ -182,8 +182,8 @@
 107-->C:\ICTUS\app\src\main\AndroidManifest.xml:66:13-44
 108            android:launchMode="singleTop"
 108-->C:\ICTUS\app\src\main\AndroidManifest.xml:69:13-43
-109            android:theme="@style/AppTheme.NoActionBar" >
-109-->C:\ICTUS\app\src\main\AndroidManifest.xml:67:13-56
+109            android:theme="@style/Theme.TwaLauncher" >
+109-->C:\ICTUS\app\src\main\AndroidManifest.xml:67:13-53
 110
 111            <!-- 🚀 TWA Enhancements: Manifest URL para melhor integração PWA -->
 112            <meta-data

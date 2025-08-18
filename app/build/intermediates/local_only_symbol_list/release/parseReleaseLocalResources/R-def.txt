@@ -5,12 +5,15 @@ bool enableSiteSettingsShortcut
 color backgroundColor
 color colorPrimary
 color colorPrimaryDark
+color dark_blue
 color navigationColor
 color navigationColorDark
 color navigationDividerColor
 color navigationDividerColorDark
 color shortcut_background
 color statusBarBlue
+color status_bar_color
+color status_bar_dark
 drawable ic_notification_icon
 drawable shortcut_legacy_background
 drawable splash
@@ -45,6 +48,7 @@ string twa_loading
 string webManifestUrl
 style AppTheme
 style AppTheme.NoActionBar
+style Theme.TwaLauncher
 xml file_paths
 xml filepaths
 xml shortcuts

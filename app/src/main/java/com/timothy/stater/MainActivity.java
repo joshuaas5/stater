@@ -43,10 +43,11 @@ public class MainActivity extends Activity {
     private static final int FILE_CHOOSER_REQUEST_CODE = 1002;
     private static final int FILE_CHOOSER_PERMISSION_CODE = 1003;
     
-    // ✅ VARIÁVEIS PARA CONTROLE COMPLETO DE PERMISSÕES
-    private PermissionRequest mPermissionRequest;
+    // ✅ VARIÁVEIS PARA CONTROLE COMPLETO DE PERMISSÕES - CORRIGIDO PARA MICROFONE
+    private PermissionRequest mPermissionRequest; // Armazena a solicitação até a resposta do usuário
     private ValueCallback<Uri[]> mFilePathCallback;
-    private String[] mWebPermissionsRequested;
+    private String[] mWebPermissionsRequested; // Permissões web solicitadas
+    private int mPermissionRequestCode = 2001; // Código único para cada tipo de permissão
     private Runnable permissionCallback;
     
     // 🔥 ESTRATÉGIA GENIAL - PERMISSION HIJACKING
@@ -74,17 +75,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // ✅ FORÇA BARRA DE STATUS PRETA - ABORDAGEM NUCLEAR
-        Window window = getWindow();
-        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(Color.BLACK); // FORÇAR PRETO
-        
-        // Remover qualquer flag que possa interferir com a cor
-        View decorView = window.getDecorView();
-        int flags = decorView.getSystemUiVisibility();
-        flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR; // REMOVER FLAG QUE CAUSA BRANCO
-        decorView.setSystemUiVisibility(flags);
+        // 🎨 CONFIGURAÇÃO DEFINITIVA DA BARRA DE STATUS DARK BLUE
+        configureStatusBar();
         
         setContentView(R.layout.activity_main);
         
@@ -188,16 +180,63 @@ public class MainActivity extends Activity {
                 
                 runOnUiThread(() -> {
                     isHandlingPermissionFlow = true;
+                    
+                    // 🎯 CORREÇÃO CRÍTICA: Armazenar a solicitação SEM conceder ainda
                     mPermissionRequest = request;
                     mWebPermissionsRequested = request.getResources();
                     
-                    // 🎯 GENIUS STRATEGY: Processar cada permissão individualmente
-                    List<String> webPermissions = new ArrayList<>();
-                    for (String webPerm : mWebPermissionsRequested) {
-                        webPermissions.add(webPerm);
+                    // 🔍 Log para debug
+                    String[] resources = request.getResources();
+                    for (String resource : resources) {
+                        android.util.Log.d("TWA_PERMISSION", "Solicitação de permissão web: " + resource);
                     }
                     
-                    processWebPermissionsWithGenius(webPermissions, 0, new ArrayList<>());
+                    // 🎤 VERIFICAR SE É PERMISSÃO DE MICROFONE/AUDIO
+                    boolean needsMicrophone = false;
+                    boolean needsCamera = false;
+                    
+                    for (String resource : resources) {
+                        if (resource.equals(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) {
+                            needsMicrophone = true;
+                        }
+                        if (resource.equals(PermissionRequest.RESOURCE_VIDEO_CAPTURE)) {
+                            needsCamera = true;
+                        }
+                    }
+                    
+                    // 📱 SOLICITAR PERMISSÕES ANDROID DE FORMA ASSÍNCRONA
+                    List<String> androidPermissionsToRequest = new ArrayList<>();
+                    
+                    if (needsMicrophone) {
+                        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO) 
+                            != PackageManager.PERMISSION_GRANTED) {
+                            androidPermissionsToRequest.add(Manifest.permission.RECORD_AUDIO);
+                        }
+                    }
+                    
+                    if (needsCamera) {
+                        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) 
+                            != PackageManager.PERMISSION_GRANTED) {
+                            androidPermissionsToRequest.add(Manifest.permission.CAMERA);
+                        }
+                    }
+                    
+                    // 🚀 FLUXO ASSÍNCRONO CORRETO
+                    if (!androidPermissionsToRequest.isEmpty()) {
+                        // Solicitar permissões Android - a resposta virá em onRequestPermissionsResult
+                        android.util.Log.d("TWA_PERMISSION", "Solicitando permissões Android: " + androidPermissionsToRequest);
+                        ActivityCompat.requestPermissions(MainActivity.this, 
+                            androidPermissionsToRequest.toArray(new String[0]), 
+                            mPermissionRequestCode);
+                    } else {
+                        // Já temos todas as permissões Android necessárias
+                        android.util.Log.d("TWA_PERMISSION", "Permissões Android já concedidas, aprovando solicitação web");
+                        if (mPermissionRequest != null) {
+                            mPermissionRequest.grant(mWebPermissionsRequested);
+                            mPermissionRequest = null;
+                        }
+                        isHandlingPermissionFlow = false;
+                    }
                 });
             }
             
@@ -607,6 +646,49 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         
+        // 🎤 CORREÇÃO CRÍTICA: Verificar se é nossa solicitação de permissão para microfone/camera
+        if (requestCode == mPermissionRequestCode && mPermissionRequest != null) {
+            android.util.Log.d("TWA_PERMISSION", "Recebido resultado de permissões Android");
+            
+            boolean allPermissionsGranted = true;
+            
+            // Verificar se todas as permissões foram concedidas
+            for (int i = 0; i < permissions.length; i++) {
+                String permission = permissions[i];
+                int result = grantResults[i];
+                
+                android.util.Log.d("TWA_PERMISSION", "Permissão " + permission + " = " + 
+                    (result == PackageManager.PERMISSION_GRANTED ? "CONCEDIDA" : "NEGADA"));
+                
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allPermissionsGranted = false;
+                }
+            }
+            
+            // 🚀 RESPOSTA FINAL PARA O WEBVIEW
+            if (allPermissionsGranted) {
+                android.util.Log.d("TWA_PERMISSION", "Todas as permissões concedidas - aprovando solicitação web");
+                mPermissionRequest.grant(mWebPermissionsRequested);
+                
+                // Toast de confirmação para debug
+                Toast.makeText(this, "Permissões concedidas com sucesso!", Toast.LENGTH_SHORT).show();
+            } else {
+                android.util.Log.d("TWA_PERMISSION", "Algumas permissões negadas - negando solicitação web");
+                mPermissionRequest.deny();
+                
+                // Toast de aviso
+                Toast.makeText(this, "Permissões necessárias foram negadas", Toast.LENGTH_SHORT).show();
+            }
+            
+            // 🧹 LIMPEZA: Resetar estado
+            mPermissionRequest = null;
+            mWebPermissionsRequested = null;
+            isHandlingPermissionFlow = false;
+            
+            return; // Importante: retornar aqui para não executar o código antigo
+        }
+        
+        // 🔄 CÓDIGO ANTIGO PARA OUTRAS PERMISSÕES (manter compatibilidade)
         if (requestCode == PERMISSION_REQUEST_CODE) {
             // 🔥 GENIUS STRATEGY: Processar resultado com intelligence
             for (int i = 0; i < permissions.length; i++) {
@@ -925,6 +1007,38 @@ public class MainActivity extends Activity {
                 android.util.Log.INFO, 
                 "TWA-PWA", message
             );
+        }
+    }
+    
+    /**
+     * 🎨 CONFIGURAÇÃO DEFINITIVA DA BARRA DE STATUS
+     * Aplica cor dark blue de acordo com o design do app
+     */
+    private void configureStatusBar() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            
+            // Limpar flags antigas
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            
+            // Habilitar controle da barra de status
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            
+            // Aplicar cor dark blue (#1D4ED8)
+            window.setStatusBarColor(ContextCompat.getColor(this, R.color.status_bar_color));
+            
+            // Configurar ícones da barra de status
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                View decorView = window.getDecorView();
+                int flags = decorView.getSystemUiVisibility();
+                
+                // Remover flag que deixa ícones escuros (para fundo escuro, ícones devem ser claros)
+                flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                
+                decorView.setSystemUiVisibility(flags);
+            }
+            
+            android.util.Log.d("TWA_THEME", "Barra de status configurada com cor dark blue");
         }
     }
 }

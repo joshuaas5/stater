@@ -13070,6 +13070,8 @@ com.timothy.stater.R$string
 com.timothy.stater.R$style
 com.timothy.stater.R$xml
 com.timothy.stater.R
+com.timothy.stater.TwaDelegationService:
+    private static final java.lang.String TAG
 javax.inject.Inject
 javax.inject.Named
 javax.inject.Qualifier

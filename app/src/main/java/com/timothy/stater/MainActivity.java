@@ -176,66 +176,62 @@ public class MainActivity extends Activity {
             
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
-                if (isHandlingPermissionFlow) return; // Evitar loops
+                if (isHandlingPermissionFlow) {
+                    android.util.Log.w("TWA_MICROPHONE", "Solicitação de permissão ignorada - já processando outra");
+                    return;
+                }
                 
                 runOnUiThread(() -> {
                     isHandlingPermissionFlow = true;
                     
-                    // 🎯 CORREÇÃO CRÍTICA: Armazenar a solicitação SEM conceder ainda
+                    // ✅ SOLUÇÃO PADRÃO DA INDÚSTRIA: Armazenar solicitação sem conceder
                     mPermissionRequest = request;
                     mWebPermissionsRequested = request.getResources();
                     
-                    // 🔍 Log para debug
+                    // ✅ LOG DETALHADO PARA DEBUG
                     String[] resources = request.getResources();
+                    android.util.Log.d("TWA_MICROPHONE", "=== NOVA SOLICITAÇÃO DE PERMISSÃO ===");
                     for (String resource : resources) {
-                        android.util.Log.d("TWA_PERMISSION", "Solicitação de permissão web: " + resource);
+                        android.util.Log.d("TWA_MICROPHONE", "Permissão web solicitada: " + resource);
                     }
                     
-                    // 🎤 VERIFICAR SE É PERMISSÃO DE MICROFONE/AUDIO
+                    // ✅ IDENTIFICAR PERMISSÕES NECESSÁRIAS COM PRECISÃO
+                    List<String> androidPermissionsNeeded = new ArrayList<>();
                     boolean needsMicrophone = false;
                     boolean needsCamera = false;
                     
                     for (String resource : resources) {
-                        if (resource.equals(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) {
+                        if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) {
                             needsMicrophone = true;
+                            android.util.Log.d("TWA_MICROPHONE", "✅ Permissão de MICROFONE detectada");
+                            if (ContextCompat.checkSelfPermission(MainActivity.this, 
+                                    Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                                androidPermissionsNeeded.add(Manifest.permission.RECORD_AUDIO);
+                            }
                         }
-                        if (resource.equals(PermissionRequest.RESOURCE_VIDEO_CAPTURE)) {
+                        
+                        if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource)) {
                             needsCamera = true;
+                            android.util.Log.d("TWA_MICROPHONE", "✅ Permissão de CÂMERA detectada");
+                            if (ContextCompat.checkSelfPermission(MainActivity.this, 
+                                    Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                                androidPermissionsNeeded.add(Manifest.permission.CAMERA);
+                            }
                         }
                     }
                     
-                    // 📱 SOLICITAR PERMISSÕES ANDROID DE FORMA ASSÍNCRONA
-                    List<String> androidPermissionsToRequest = new ArrayList<>();
-                    
-                    if (needsMicrophone) {
-                        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO) 
-                            != PackageManager.PERMISSION_GRANTED) {
-                            androidPermissionsToRequest.add(Manifest.permission.RECORD_AUDIO);
-                        }
-                    }
-                    
-                    if (needsCamera) {
-                        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) 
-                            != PackageManager.PERMISSION_GRANTED) {
-                            androidPermissionsToRequest.add(Manifest.permission.CAMERA);
-                        }
-                    }
-                    
-                    // 🚀 FLUXO ASSÍNCRONO CORRETO
-                    if (!androidPermissionsToRequest.isEmpty()) {
-                        // Solicitar permissões Android - a resposta virá em onRequestPermissionsResult
-                        android.util.Log.d("TWA_PERMISSION", "Solicitando permissões Android: " + androidPermissionsToRequest);
-                        ActivityCompat.requestPermissions(MainActivity.this, 
-                            androidPermissionsToRequest.toArray(new String[0]), 
-                            mPermissionRequestCode);
+                    // ✅ FLUXO ASSÍNCRONO PADRÃO DA INDÚSTRIA
+                    if (!androidPermissionsNeeded.isEmpty()) {
+                        android.util.Log.d("TWA_MICROPHONE", "🚀 Solicitando permissões Android: " + androidPermissionsNeeded);
+                        
+                        // CRÍTICO: Solicitar permissões - resposta em onRequestPermissionsResult
+                        ActivityCompat.requestPermissions(MainActivity.this,
+                                androidPermissionsNeeded.toArray(new String[0]),
+                                mPermissionRequestCode);
                     } else {
                         // Já temos todas as permissões Android necessárias
-                        android.util.Log.d("TWA_PERMISSION", "Permissões Android já concedidas, aprovando solicitação web");
-                        if (mPermissionRequest != null) {
-                            mPermissionRequest.grant(mWebPermissionsRequested);
-                            mPermissionRequest = null;
-                        }
-                        isHandlingPermissionFlow = false;
+                        android.util.Log.d("TWA_MICROPHONE", "✅ Permissões Android já concedidas, aprovando solicitação web");
+                        grantWebPermission();
                     }
                 });
             }
@@ -646,49 +642,40 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         
-        // 🎤 CORREÇÃO CRÍTICA: Verificar se é nossa solicitação de permissão para microfone/camera
+        // ✅ PADRÃO DA INDÚSTRIA: Verificar se é nossa solicitação TWA
         if (requestCode == mPermissionRequestCode && mPermissionRequest != null) {
-            android.util.Log.d("TWA_PERMISSION", "Recebido resultado de permissões Android");
+            android.util.Log.d("TWA_MICROPHONE", "=== RESULTADO DE PERMISSÕES ANDROID RECEBIDO ===");
             
             boolean allPermissionsGranted = true;
             
-            // Verificar se todas as permissões foram concedidas
+            // ✅ VERIFICAR RESULTADO DE CADA PERMISSÃO
             for (int i = 0; i < permissions.length; i++) {
                 String permission = permissions[i];
                 int result = grantResults[i];
                 
-                android.util.Log.d("TWA_PERMISSION", "Permissão " + permission + " = " + 
-                    (result == PackageManager.PERMISSION_GRANTED ? "CONCEDIDA" : "NEGADA"));
+                String status = (result == PackageManager.PERMISSION_GRANTED) ? "✅ CONCEDIDA" : "❌ NEGADA";
+                android.util.Log.d("TWA_MICROPHONE", "Permissão " + permission + " = " + status);
                 
                 if (result != PackageManager.PERMISSION_GRANTED) {
                     allPermissionsGranted = false;
                 }
             }
             
-            // 🚀 RESPOSTA FINAL PARA O WEBVIEW
+            // ✅ RESPOSTA DEFINITIVA PARA O WEBVIEW
             if (allPermissionsGranted) {
-                android.util.Log.d("TWA_PERMISSION", "Todas as permissões concedidas - aprovando solicitação web");
-                mPermissionRequest.grant(mWebPermissionsRequested);
-                
-                // Toast de confirmação para debug
-                Toast.makeText(this, "Permissões concedidas com sucesso!", Toast.LENGTH_SHORT).show();
+                android.util.Log.d("TWA_MICROPHONE", "🎉 TODAS as permissões concedidas - aprovando solicitação web");
+                grantWebPermission();
+                Toast.makeText(this, "✅ Permissões de microfone/câmera concedidas!", Toast.LENGTH_SHORT).show();
             } else {
-                android.util.Log.d("TWA_PERMISSION", "Algumas permissões negadas - negando solicitação web");
-                mPermissionRequest.deny();
-                
-                // Toast de aviso
-                Toast.makeText(this, "Permissões necessárias foram negadas", Toast.LENGTH_SHORT).show();
+                android.util.Log.d("TWA_MICROPHONE", "⚠️ Algumas permissões negadas - negando solicitação web");
+                denyWebPermission();
+                Toast.makeText(this, "❌ Permissões necessárias foram negadas", Toast.LENGTH_SHORT).show();
             }
             
-            // 🧹 LIMPEZA: Resetar estado
-            mPermissionRequest = null;
-            mWebPermissionsRequested = null;
-            isHandlingPermissionFlow = false;
-            
-            return; // Importante: retornar aqui para não executar o código antigo
+            return; // CRÍTICO: Retornar aqui para não executar código legado
         }
         
-        // 🔄 CÓDIGO ANTIGO PARA OUTRAS PERMISSÕES (manter compatibilidade)
+        // 🔄 CÓDIGO LEGADO PARA OUTRAS PERMISSÕES (manter compatibilidade)
         if (requestCode == PERMISSION_REQUEST_CODE) {
             // 🔥 GENIUS STRATEGY: Processar resultado com intelligence
             for (int i = 0; i < permissions.length; i++) {
@@ -854,6 +841,10 @@ public class MainActivity extends Activity {
     
     @Override
     protected void onDestroy() {
+        // ✅ LIMPEZA EM CASO DE DESTRUIÇÃO DA ATIVIDADE
+        android.util.Log.d("TWA_MICROPHONE", "🔚 MainActivity sendo destruída - limpando permissões pendentes");
+        clearPendingPermission();
+        
         if (webView != null) {
             webView.destroy();
         }
@@ -1040,5 +1031,42 @@ public class MainActivity extends Activity {
             
             android.util.Log.d("TWA_THEME", "Barra de status configurada com cor dark blue");
         }
+    }
+    
+    /**
+     * ✅ MÉTODOS PADRÃO DA INDÚSTRIA PARA GERENCIAR PERMISSÕES WEB
+     */
+    
+    /**
+     * Conceder permissão à página web
+     */
+    private void grantWebPermission() {
+        if (mPermissionRequest != null && mWebPermissionsRequested != null) {
+            android.util.Log.d("TWA_MICROPHONE", "🎉 Concedendo permissões web: " + 
+                java.util.Arrays.toString(mWebPermissionsRequested));
+            mPermissionRequest.grant(mWebPermissionsRequested);
+            clearPendingPermission();
+        }
+    }
+
+    /**
+     * Negar permissão à página web
+     */
+    private void denyWebPermission() {
+        if (mPermissionRequest != null) {
+            android.util.Log.d("TWA_MICROPHONE", "❌ Negando permissões web");
+            mPermissionRequest.deny();
+            clearPendingPermission();
+        }
+    }
+
+    /**
+     * Limpar estado de permissão pendente
+     */
+    private void clearPendingPermission() {
+        android.util.Log.d("TWA_MICROPHONE", "🧹 Limpando estado de permissão pendente");
+        mPermissionRequest = null;
+        mWebPermissionsRequested = null;
+        isHandlingPermissionFlow = false;
     }
 }

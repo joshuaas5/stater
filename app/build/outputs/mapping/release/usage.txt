@@ -13034,8 +13034,18 @@ com.timothy.stater.LauncherActivity
 com.timothy.stater.MainActivity:
     private static final int PERMISSION_REQUEST_CODE
     private int getStatusBarHeight()
+    private void requestPermissionsOnDemand(java.lang.Runnable)
 com.timothy.stater.R$bool
-com.timothy.stater.R$color
+com.timothy.stater.R$color:
+    public static int backgroundColor
+    public static int colorPrimaryDark
+    public static int navigationColor
+    public static int navigationColorDark
+    public static int navigationDividerColor
+    public static int navigationDividerColorDark
+    public static int shortcut_background
+    public static int statusBarBlue
+    private void <init>()
 com.timothy.stater.R$drawable
 com.timothy.stater.R$id:
     private void <init>()
@@ -13044,6 +13054,7 @@ com.timothy.stater.R$layout:
     private void <init>()
 com.timothy.stater.R$mipmap
 com.timothy.stater.R$string
+com.timothy.stater.R$style
 com.timothy.stater.R$xml
 com.timothy.stater.R
 javax.inject.Inject

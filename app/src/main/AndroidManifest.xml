@@ -43,7 +43,7 @@
         android:label="@string/appName"
         android:manageSpaceActivity="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.Translucent.NoTitleBar">
+        android:theme="@style/AppTheme">
 
         <!-- Declaração para verificação Digital Asset Links -->
         <meta-data
@@ -64,7 +64,7 @@
         <activity android:name=".MainActivity"
             android:exported="true"
             android:label="@string/appName"
-            android:theme="@android:style/Theme.NoTitleBar"
+            android:theme="@style/AppTheme.NoActionBar"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:launchMode="singleTop">
 
@@ -156,15 +156,7 @@
         <activity android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
             android:configChanges="orientation|screenSize" />
 
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="@string/providerAuthority"
-            android:grantUriPermissions="true"
-            android:exported="false">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/filepaths" />
-        </provider>
+        
 
         <service
             android:name=".DelegationService"

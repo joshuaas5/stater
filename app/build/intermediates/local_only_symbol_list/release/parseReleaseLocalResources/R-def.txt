@@ -33,6 +33,8 @@ string launcherName
 string orientation
 string providerAuthority
 string webManifestUrl
+style AppTheme
+style AppTheme.NoActionBar
 xml file_paths
 xml filepaths
 xml shortcuts

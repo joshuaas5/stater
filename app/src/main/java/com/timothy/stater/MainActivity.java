@@ -57,23 +57,11 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // ✅ STATUS BAR AZUL FORÇADA - SEM FAIXA BRANCA
+        // ✅ Status bar controlada por tema; garantir flags limpas
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
-            // Limpar flags problemáticas
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-            
-            // Definir flags corretas
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            
-            // Status bar azul sempre
-            window.setStatusBarColor(Color.parseColor("#31518b"));
-            
-            // Layout não deve sobrepor a status bar
-            window.getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            );
         }
         
         setContentView(R.layout.activity_main);
@@ -178,14 +166,12 @@ public class MainActivity extends Activity {
             
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
-                // ✅ SOLICITAR PERMISSÕES APENAS QUANDO USAR FILE UPLOAD
-                if (!hasAllPermissions()) {
-                    Toast.makeText(MainActivity.this, "Solicitando permissões para upload de arquivos...", Toast.LENGTH_SHORT).show();
-                    requestPermissionsOnDemand(() -> {
-                        if (hasAllPermissions()) {
+                // ✅ Solicitar apenas as permissões necessárias para upload (sem toasts)
+                if (!hasUploadPermissions()) {
+                    requestUploadPermissions(() -> {
+                        if (hasUploadPermissions()) {
                             openFileChooser(filePathCallback, fileChooserParams);
                         } else {
-                            Toast.makeText(MainActivity.this, "❌ Permissões necessárias para upload não concedidas", Toast.LENGTH_LONG).show();
                             if (filePathCallback != null) {
                                 filePathCallback.onReceiveValue(null);
                             }
@@ -193,7 +179,6 @@ public class MainActivity extends Activity {
                     });
                     return true;
                 }
-                
                 return openFileChooser(filePathCallback, fileChooserParams);
             }
         });
@@ -221,19 +206,20 @@ public class MainActivity extends Activity {
     }
     
     private void hideSystemUI() {
-        // STATUS BAR TRANSPARENTE COM CONTEÚDO POR BAIXO
+        // ✅ Manter layout estável e cor da status bar vinda do tema (azul)
         Window window = getWindow();
-        window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-        
-        // Garante que a cor da status bar seja transparente
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.setStatusBarColor(Color.TRANSPARENT);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            // Usa a cor do tema para evitar faixa branca
+            window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimary));
         }
-
-        // Ícones da status bar escuros para contraste com fundo claro
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Remover ícones escuros (LIGHT_STATUS_BAR) pois a barra é escura (azul)
             View decor = window.getDecorView();
-            decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            int flags = decor.getSystemUiVisibility();
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            decor.setSystemUiVisibility(flags | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         }
     }
     
@@ -272,6 +258,30 @@ public class MainActivity extends Activity {
             ActivityCompat.requestPermissions(this, allPermissions, PERMISSION_REQUEST_CODE);
         } else {
             // Já tem permissões, executar callback
+            onComplete.run();
+        }
+    }
+
+    // ✅ Permissões específicas para upload (galeria + câmera) sem exigir microfone
+    private void requestUploadPermissions(Runnable onComplete) {
+        List<String> perms = new ArrayList<>();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                perms.add(Manifest.permission.READ_MEDIA_IMAGES);
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                perms.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            perms.add(Manifest.permission.CAMERA);
+        }
+
+        if (!perms.isEmpty()) {
+            this.permissionCallback = onComplete;
+            ActivityCompat.requestPermissions(this, perms.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+        } else {
             onComplete.run();
         }
     }
@@ -345,6 +355,18 @@ public class MainActivity extends Activity {
         
         return true;
     }
+
+    // ✅ Apenas as permissões usadas para upload (sem microfone)
+    private boolean hasUploadPermissions() {
+        boolean cameraOk = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+        boolean readOk;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            readOk = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED;
+        } else {
+            readOk = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        }
+        return cameraOk && readOk;
+    }
     
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -371,14 +393,12 @@ public class MainActivity extends Activity {
                 }
 
                 if (!grantedResources.isEmpty()) {
-                    // Concede os recursos que foram permitidos
+                    // Concede apenas os recursos que foram permitidos
                     final String[] resourcesToGrant = grantedResources.toArray(new String[0]);
                     runOnUiThread(() -> currentPermissionRequest.grant(resourcesToGrant));
-                }
-                
-                // Se alguma permissão essencial foi negada, nega a solicitação inteira
-                if (!allGranted) {
-                     runOnUiThread(() -> currentPermissionRequest.deny());
+                } else {
+                    // Nenhuma permissão concedida
+                    runOnUiThread(() -> currentPermissionRequest.deny());
                 }
 
                 currentPermissionRequest = null;
@@ -388,7 +408,6 @@ public class MainActivity extends Activity {
                 if (hasAllPermissions()) {
                     permissionCallback.run();
                 } else {
-                    Toast.makeText(this, "Permissões negadas. Não é possível continuar.", Toast.LENGTH_LONG).show();
                     // Se o upload de arquivo estava pendente, precisa ser cancelado
                     if (filePathCallback != null) {
                         filePathCallback.onReceiveValue(null);

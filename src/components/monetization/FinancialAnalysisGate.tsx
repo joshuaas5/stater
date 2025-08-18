@@ -42,29 +42,26 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
         return;
       }
       
-      // Para usuários FREE, verificar sistema de anúncios
-      console.log('🔒 [FINANCIAL_GATE] Usuário FREE - verificando sistema de anúncios');
-      const canAccessResult = await AdCooldownManager.canPerformAction(user.id, 'financial_analysis');
-      console.log('🔒 [FINANCIAL_GATE] Resultado do acesso:', canAccessResult);
+      // Para usuários FREE, verificar se há cooldown ativo (já assistiu ad recentemente)
+      console.log('🔒 [FINANCIAL_GATE] Usuário FREE - verificando cooldown do reward ad');
+      const { RewardCooldownManager } = await import('@/utils/rewardCooldownManager');
+      const cooldownInfo = await RewardCooldownManager.checkCooldownStatus(user.id, 'financial_analysis');
+      console.log('🔒 [FINANCIAL_GATE] Info de cooldown:', cooldownInfo);
       
-      setHasAccess(canAccessResult.allowed);
-
-      if (!canAccessResult.allowed) {
-        console.log('🔒 [FINANCIAL_GATE] Acesso negado, verificando cooldown...');
-        // Verificar se há cooldown ativo
-        const stats = await AdCooldownManager.getCooldownStats(user.id);
-        console.log('🔒 [FINANCIAL_GATE] Stats de cooldown:', stats);
-        const financialStats = stats.financial_analysis;
-        
-        if (financialStats.cooldownActive && financialStats.minutesUntilNextAd) {
-          setTimeUntilNextAd(financialStats.minutesUntilNextAd);
-          console.log('🔒 [FINANCIAL_GATE] Cooldown ativo, próximo anúncio em:', financialStats.minutesUntilNextAd, 'minutos');
-        }
+      // Se há cooldown ativo (isInCooldown = true), usuário já assistiu ad recentemente - liberar acesso
+      if (cooldownInfo.isInCooldown) {
+        console.log('✅ [FINANCIAL_GATE] Cooldown ativo - usuário assistiu ad recentemente, acesso liberado');
+        setHasAccess(true);
+        setTimeUntilNextAd(cooldownInfo.remainingMinutes || 0);
       } else {
-        console.log('🔒 [FINANCIAL_GATE] Acesso permitido! Usuário pode ver o conteúdo');
+        console.log('🔒 [FINANCIAL_GATE] Nenhum cooldown ativo - precisa assistir reward ad');
+        setHasAccess(false);
+        setTimeUntilNextAd(null);
       }
     } catch (error) {
       console.error('🔒 [FINANCIAL_GATE] Erro ao verificar acesso:', error);
+      // Em caso de erro, usuário FREE fica bloqueado
+      setHasAccess(false);
     } finally {
       setIsLoading(false);
     }
@@ -78,16 +75,30 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
     setAdError(null);
 
     try {
-      const result = await AdCooldownManager.watchAdForActions(user.id, 'financial_analysis');
+      console.log('🎬 [FINANCIAL_GATE] Iniciando reward ad para financial_analysis');
+      
+      // Importar AdManager dinamicamente
+      const { AdManager } = await import('@/utils/adManager');
+      const result = await AdManager.showRewardedAd('financial_analysis');
       
       if (result.success) {
+        console.log('✅ [FINANCIAL_GATE] Reward ad assistido com sucesso!');
+        
+        // Registrar o cooldown no sistema
+        const { RewardCooldownManager } = await import('@/utils/rewardCooldownManager');
+        await RewardCooldownManager.setRewardCooldown(user.id, 'financial_analysis');
+        
+        // Liberar acesso imediatamente
         setHasAccess(true);
-        setTimeUntilNextAd(null);
+        setTimeUntilNextAd(60); // 1 hora = 60 minutos
+        
+        console.log('🔓 [FINANCIAL_GATE] Acesso liberado por 1 hora!');
       } else {
-        setAdError(result.message || 'Erro ao assistir anúncio');
+        console.log('❌ [FINANCIAL_GATE] Reward ad cancelado ou falhou');
+        setAdError('Anúncio cancelado. Tente novamente para acessar a análise financeira.');
       }
     } catch (error) {
-      console.error('Erro ao assistir anúncio:', error);
+      console.error('❌ [FINANCIAL_GATE] Erro no reward ad:', error);
       setAdError('Erro inesperado. Tente novamente.');
     } finally {
       setIsWatchingAd(false);

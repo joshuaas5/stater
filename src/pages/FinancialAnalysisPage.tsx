@@ -1,14 +1,10 @@
 ﻿// src/pages/FinancialAnalysisPage.tsx
-import React, { Suspense, lazy, Component, ErrorInfo, ReactNode, useState, useEffect } from 'react';
+import React, { Suspense, lazy, Component, ErrorInfo, ReactNode } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from '@/components/ui/card';
-import { Brain, Target, BookOpen, Loader2, TrendingUp, AlertCircle, Gift, Clock } from 'lucide-react';
+import { Brain, Target, BookOpen, Loader2, TrendingUp, AlertCircle } from 'lucide-react';
 import FinancialAnalysisGate from '@/components/monetization/FinancialAnalysisGate';
 import { AdBanner } from '@/components/monetization/AdBanner';
-import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
-import { AdManager } from '@/utils/adManager';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 
 // Lazy load dos componentes pesados
 const ModernCharts = lazy(() => import('@/components/dashboard/ModernCharts'));
@@ -73,61 +69,6 @@ const LoadingCard = ({ title }: { title: string }) => (
 
 
 const FinancialAnalysisPage: React.FC = () => {
-  const { user } = useAuth();
-  const [cooldownInfo, setCooldownInfo] = useState<any>(null);
-  const [isLoadingAd, setIsLoadingAd] = useState(false);
-
-  // Verificar status do cooldown
-  useEffect(() => {
-    const checkCooldown = async () => {
-      if (user?.id) {
-        try {
-          const info = await RewardCooldownManager.checkCooldownStatus(user.id, 'financial_analysis');
-          setCooldownInfo(info);
-        } catch (error) {
-          console.error('Erro ao verificar cooldown:', error);
-        }
-      }
-    };
-    
-    checkCooldown();
-    // Verificar a cada minuto
-    const interval = setInterval(checkCooldown, 60000);
-    return () => clearInterval(interval);
-  }, [user?.id]);
-
-  const handleWatchRewardAd = async () => {
-    if (!user?.id || !cooldownInfo?.canWatchAd) return;
-    
-    setIsLoadingAd(true);
-    try {
-      console.log(' [FINANCIAL_ANALYSIS] Iniciando reward ad');
-      
-      const adResult = await AdManager.showRewardedAd('financial_analysis');
-      
-      if (adResult.success) {
-        console.log(' [FINANCIAL_ANALYSIS] Reward ad assistido com sucesso');
-        
-        // Registrar o cooldown
-        await RewardCooldownManager.setRewardCooldown(user.id, 'financial_analysis');
-        
-        // Atualizar o status do cooldown
-        const newInfo = await RewardCooldownManager.checkCooldownStatus(user.id, 'financial_analysis');
-        setCooldownInfo(newInfo);
-        
-        // Mostrar feedback positivo
-        console.log(' [FINANCIAL_ANALYSIS] Benefício concedido - Acesso liberado por 1 hora!');
-        
-      } else {
-        console.log(' [FINANCIAL_ANALYSIS] Reward ad cancelado ou falhou');
-      }
-    } catch (error) {
-      console.error(' [FINANCIAL_ANALYSIS] Erro no reward ad:', error);
-    } finally {
-      setIsLoadingAd(false);
-    }
-  };
-
   return (
     <FinancialAnalysisGate>
       <div className="financial-analysis-page min-h-screen pb-20" style={{
@@ -237,54 +178,6 @@ const FinancialAnalysisPage: React.FC = () => {
           </Tabs>
         </div>
         
-
-        {/* Reward Ad Button */}
-        {cooldownInfo && (
-          <div className="px-4 pb-4">
-            {cooldownInfo.canWatchAd ? (
-              <Card className="bg-gradient-to-r from-purple-500 to-pink-500 border-0 shadow-lg">
-                <div className="p-4 text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Gift className="h-5 w-5 text-white" />
-                    <span className="text-white font-bold"> Reward Ad Disponível!</span>
-                  </div>
-                  <p className="text-white/90 text-sm mb-3">
-                    Assista um anúncio e desbloqueie <strong>acesso premium por 1 hora</strong>!
-                  </p>
-                  <Button
-                    onClick={handleWatchRewardAd}
-                    disabled={isLoadingAd}
-                    className="bg-white text-purple-600 hover:bg-gray-100 font-semibold px-6 py-2 rounded-full shadow-md transition-all duration-200"
-                  >
-                    {isLoadingAd ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Carregando...
-                      </>
-                    ) : (
-                      <>
-                        <Gift className="h-4 w-4 mr-2" />
-                        Assistir Anúncio
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </Card>
-            ) : cooldownInfo.isInCooldown ? (
-              <Card className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                <div className="p-4 text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Clock className="h-5 w-5 text-gray-500" />
-                    <span className="text-gray-600 dark:text-gray-400 font-semibold"> Próximo Reward Ad</span>
-                  </div>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">
-                    Disponível em {cooldownInfo.remainingMinutes} minutos
-                  </p>
-                </div>
-              </Card>
-            ) : null}
-          </div>
-        )}
         {/* Ad Banner */}
         <AdBanner position="bottom" />
         

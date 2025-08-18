@@ -1013,8 +1013,8 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // 🔵 COR AZUL QUE FUNCIONAVA (#31518b)
-            window.setStatusBarColor(Color.parseColor("#31518b"));
+            // � TORNAR STATUS BAR TRANSPARENTE para mostrar a real do sistema
+            window.setStatusBarColor(Color.TRANSPARENT);
             
             // Configuração simples que funcionava
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -1025,7 +1025,8 @@ public class MainActivity extends Activity {
                 View decorView = window.getDecorView();
                 decorView.setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR  // 🔋 Ícones escuros na status bar
                 );
             }
             

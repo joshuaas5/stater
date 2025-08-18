@@ -261,6 +261,10 @@ const Login: React.FC = () => {
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            prompt: 'select_account', // 🔥 FORÇA SELEÇÃO DE CONTA
+            access_type: 'offline',
+          },
         },
       });
       

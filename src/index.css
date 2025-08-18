@@ -22,6 +22,9 @@ html, body, #root {
   margin: 0;
   padding: 0;
   
+  /* 🔋 PADDING TOP para compensar status bar transparente */
+  padding-top: env(safe-area-inset-top, 24px);
+  
   /* MOBILE: Evita zoom e garante layout estável */
   -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;

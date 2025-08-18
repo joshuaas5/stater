@@ -85,21 +85,26 @@ export const AdBanner: React.FC<AdBannerProps> = ({
       try {
         const user = getCurrentUser();
         if (!user?.id) {
-          setShouldShow(false);
+          // 🔥 FORÇAR BANNER A APARECER SEMPRE POR ENQUANTO
+          setShouldShow(true);
           return;
         }
 
         const userPlan = await UserPlanManager.getUserPlan(user.id);
         
+        // 🔥 FORÇAR BANNER A APARECER SEMPRE (remover depois)
+        setShouldShow(true);
+        
         // Só mostrar para usuários FREE
-        if (userPlan.planType === PlanType.FREE) {
-          setShouldShow(true);
-        } else {
-          setShouldShow(false);
-        }
+        // if (userPlan.planType === PlanType.FREE) {
+        //   setShouldShow(true);
+        // } else {
+        //   setShouldShow(false);
+        // }
       } catch (error) {
         console.error('Erro ao verificar plano do usuário:', error);
-        setShouldShow(false);
+        // 🔥 FORÇAR BANNER MESMO COM ERRO
+        setShouldShow(true);
       }
     };
 

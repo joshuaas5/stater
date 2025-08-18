@@ -78,8 +78,13 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // 🔑 EDGE-TO-EDGE: Permitir que o app desenhe em toda a tela
+        // � EDGE-TO-EDGE: Permitir que o app desenhe em toda a tela
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        
+        // 🖤 CONFIGURAÇÃO RADICAL PARA REMOVER FAIXA BRANCA
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         
         // 🎨 CONFIGURAÇÃO EDGE-TO-EDGE DA BARRA DE STATUS
         configureEdgeToEdgeStatusBar();

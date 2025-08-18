@@ -142,112 +142,99 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
     return <>{children}</>;
   }
 
-  // Gate de acesso - usuário precisa assistir anúncio
+  // Gate de acesso - TELA EXCLUSIVA para reward ad (sem informações técnicas)
   return (
     <div className="financial-analysis-page min-h-screen pb-20" style={{
-      background: '#31518b',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
-      {/* Header igual ao da página original */}
-      <div 
-        className="sticky top-0 z-50"
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '12px 30px',
-          background: 'rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
-          height: '60px'
-        }}
-      >
-        <h1 
-          style={{
-            fontSize: '24px',
-            fontWeight: 800,
-            color: '#ffffff',
-            fontFamily: '"Fredoka One", "Comic Sans MS", "Poppins", sans-serif',
-            letterSpacing: '1px',
-            textShadow: '2px 2px 0px #3b82f6, 4px 4px 0px #1d4ed8, 0 0 20px rgba(59, 130, 246, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
-            textTransform: 'uppercase',
-            position: 'relative',
-            filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5))'
-          }}
-        >
-          ANÁLISE FINANCEIRA
-        </h1>
-      </div>
-
-      {/* Modal de acesso bloqueado */}
-      <div className="flex items-center justify-center min-h-[calc(100vh-60px)] p-4">
-        <Card className="max-w-lg w-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-white/30 dark:border-gray-700/30 shadow-xl">
-          <CardContent className="p-8 text-center space-y-6">
-            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-blue-100 dark:bg-blue-900/30 rounded-full">
-              <Lock className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-            </div>
-
-            <div className="space-y-3">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Conteúdo Desbloqueável
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <Card className="max-w-lg w-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border border-white/30 dark:border-gray-700/30 shadow-2xl rounded-3xl">
+          <CardContent className="p-10 text-center">
+            {/* Ícone principal */}
+            <div className="mb-8">
+              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-xl">
+                <Play className="h-10 w-10 text-white" />
+              </div>
+              
+              {/* Título principal */}
+              <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+                Análise Financeira
               </h2>
-              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                Para acessar a análise financeira completa, assista a um anúncio recompensado.
+              
+              {/* Mensagem simples e direta */}
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                Assista para ver sua análise financeira personalizada!
               </p>
             </div>
 
-            {/* Mostrar erro se houver */}
-            {adError && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-                <p className="text-red-700 dark:text-red-300 text-sm">{adError}</p>
+            {/* Estado do botão baseado na situação */}
+            {timeUntilNextAd && timeUntilNextAd > 0 ? (
+              // Estado: Cooldown ativo
+              <div className="space-y-4">
+                <div className="bg-gray-100 dark:bg-gray-700 rounded-2xl p-6">
+                  <Clock className="h-8 w-8 text-gray-500 mx-auto mb-3" />
+                  <p className="text-gray-600 dark:text-gray-300 text-lg">
+                    Aguarde um momento para assistir novamente
+                  </p>
+                </div>
               </div>
-            )}
+            ) : (
+              // Estado: Pode assistir anúncio
+              <div className="space-y-6">
+                <Button
+                  onClick={watchRewardedAd}
+                  disabled={isWatchingAd}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 px-8 rounded-2xl text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  style={{ minHeight: '60px' }}
+                >
+                  {isWatchingAd ? (
+                    <div className="flex items-center justify-center space-x-3">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                      <span>Carregando...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center space-x-3">
+                      <Play className="h-6 w-6" />
+                      <span>Assistir e Desbloquear</span>
+                    </div>
+                  )}
+                </Button>
 
-            {/* Mostrar cooldown se ativo */}
-            {timeUntilNextAd && timeUntilNextAd > 0 && (
-              <div className="flex items-center gap-2 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
-                <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
-                <p className="text-orange-700 dark:text-orange-300 text-sm">
-                  Próximo anúncio disponível em {timeUntilNextAd} minutos
-                </p>
-              </div>
-            )}
-
-            {/* Botão de assistir anúncio */}
-            {(!timeUntilNextAd || timeUntilNextAd <= 0) && (
-              <Button
-                onClick={watchRewardedAd}
-                disabled={isWatchingAd}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isWatchingAd ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>Carregando anúncio...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Play className="h-5 w-5" />
-                    <span>Assistir Anúncio para Acessar</span>
+                {/* Erro do anúncio */}
+                {adError && (
+                  <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-xl p-4">
+                    <div className="flex items-center justify-center space-x-2">
+                      <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                      <p className="text-red-700 dark:text-red-300 text-sm">{adError}</p>
+                    </div>
                   </div>
                 )}
-              </Button>
+              </div>
             )}
 
-            {/* Informações sobre o sistema */}
-            <div className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
-              <div className="flex items-center gap-2 justify-center">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Análises personalizadas e insights</span>
-              </div>
-              <div className="flex items-center gap-2 justify-center">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Gráficos interativos avançados</span>
-              </div>
-              <div className="flex items-center gap-2 justify-center">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Recomendações inteligentes</span>
+            {/* Benefícios após assistir */}
+            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Após assistir, você terá acesso a:
+              </p>
+              <div className="grid grid-cols-2 gap-3 text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Insights personalizados</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Gráficos detalhados</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Análise de saúde financeira</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Recomendações de livros</span>
+                </div>
               </div>
             </div>
           </CardContent>

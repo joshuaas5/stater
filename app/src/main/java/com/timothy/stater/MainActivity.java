@@ -13,9 +13,31 @@ import android.view.WindowInsets;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Build;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.webkit.PermissionRequest;
+import android.widget.Toast;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class MainActivity extends Activity {
     private WebView webView;
+    private static final int PERMISSION_REQUEST_CODE = 1001;
+    
+    // Permissões necessárias
+    private static final String[] REQUIRED_PERMISSIONS = {
+        Manifest.permission.CAMERA,
+        Manifest.permission.RECORD_AUDIO,
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+    
+    // Permissões para Android 13+
+    private static final String[] ANDROID_13_PERMISSIONS = {
+        Manifest.permission.READ_MEDIA_IMAGES,
+        Manifest.permission.READ_MEDIA_VIDEO,
+        Manifest.permission.READ_MEDIA_AUDIO
+    };
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +70,9 @@ public class MainActivity extends Activity {
         webSettings.setDomStorageEnabled(true);
         webSettings.setDatabaseEnabled(true);
         webSettings.setMediaPlaybackRequiresUserGesture(false);
+        
+        // Solicitar permissões no início
+        requestPermissions();
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
         webSettings.setAllowFileAccess(true);
         webSettings.setAllowContentAccess(true);
@@ -92,6 +117,17 @@ public class MainActivity extends Activity {
                 super.onProgressChanged(view, newProgress);
                 if (newProgress == 100) {
                     hideSystemUI();
+                }
+            }
+            
+            @Override
+            public void onPermissionRequest(PermissionRequest request) {
+                // Aceitar automaticamente permissões do WebView se as permissões Android foram concedidas
+                if (hasAllPermissions()) {
+                    request.grant(request.getResources());
+                } else {
+                    request.deny();
+                    Toast.makeText(MainActivity.this, "Permissões necessárias não concedidas", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -158,6 +194,59 @@ public class MainActivity extends Activity {
         }
         
         return result;
+    }
+    
+    // Métodos para gerenciamento de permissões
+    private void requestPermissions() {
+        if (!hasAllPermissions()) {
+            // Solicitar permissões básicas
+            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, PERMISSION_REQUEST_CODE);
+            
+            // Para Android 13+, solicitar permissões de mídia
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ActivityCompat.requestPermissions(this, ANDROID_13_PERMISSIONS, PERMISSION_REQUEST_CODE + 1);
+            }
+        }
+    }
+    
+    private boolean hasAllPermissions() {
+        for (String permission : REQUIRED_PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        
+        // Verificar permissões do Android 13+ se aplicável
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            for (String permission : ANDROID_13_PERMISSIONS) {
+                if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+    
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        
+        if (requestCode == PERMISSION_REQUEST_CODE || requestCode == PERMISSION_REQUEST_CODE + 1) {
+            boolean allGranted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            
+            if (allGranted) {
+                Toast.makeText(this, "Permissões concedidas!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Algumas permissões foram negadas. Funcionalidades podem estar limitadas.", Toast.LENGTH_LONG).show();
+            }
+        }
     }
     
     @Override

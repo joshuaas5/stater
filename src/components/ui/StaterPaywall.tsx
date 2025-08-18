@@ -79,11 +79,22 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {}, onSubscribe }: State
     };
   }, [isOpen]);
 
+  // ✅ ISOLAMENTO DE EVENTOS - Impede propagação para componentes pais
+  const handleModalInteraction = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm min-h-screen flex items-center justify-center p-4 z-[2147483649] overflow-y-auto">
-      <div className="w-full max-w-md bg-gradient-blue rounded-2xl shadow-glow overflow-hidden relative mx-auto">
+      <div 
+        className="w-full max-w-md bg-gradient-blue rounded-2xl shadow-glow overflow-hidden relative mx-auto"
+        onClick={handleModalInteraction}
+        onTouchStart={handleModalInteraction}
+        onTouchMove={handleModalInteraction}
+        onScroll={handleModalInteraction}
+      >
         {/* CSS customizado */}
         <style>{`
           ${css}

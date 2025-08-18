@@ -24,6 +24,9 @@ import android.provider.MediaStore;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.annotation.NonNull;
+// 🔑 IMPORTS PARA EDGE-TO-EDGE
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.File;
@@ -75,8 +78,11 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // 🎨 CONFIGURAÇÃO DEFINITIVA DA BARRA DE STATUS DARK BLUE
-        configureStatusBar();
+        // 🔑 EDGE-TO-EDGE: Permitir que o app desenhe em toda a tela
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        
+        // 🎨 CONFIGURAÇÃO EDGE-TO-EDGE DA BARRA DE STATUS
+        configureEdgeToEdgeStatusBar();
         
         setContentView(R.layout.activity_main);
         
@@ -825,7 +831,7 @@ public class MainActivity extends Activity {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
             // 🖤 REFORÇAR STATUS BAR PRETA quando janela ganha foco
-            configureStatusBar();
+            configureEdgeToEdgeStatusBar();
             hideSystemUI();
             
             android.util.Log.d("TWA_THEME", "🖤 Window focus: Status bar PRETA reforçada");
@@ -935,7 +941,7 @@ public class MainActivity extends Activity {
         super.onResume();
         
         // 🖤 REFORÇAR STATUS BAR PRETA quando app volta ao foco
-        configureStatusBar();
+        configureEdgeToEdgeStatusBar();
         hideSystemUI();
         
         // Notificar PWA que o app foi resumido
@@ -1009,7 +1015,7 @@ public class MainActivity extends Activity {
      * � STATUS BAR AZUL COMO ESTAVA FUNCIONANDO NO DIA 14/08
      * Cor azul #31518b que funcionava perfeitamente
      */
-    private void configureStatusBar() {
+    private void configureEdgeToEdgeStatusBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
@@ -1020,14 +1026,13 @@ public class MainActivity extends Activity {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             
-            // Layout estável como estava no dia 14
+            // 🎨 Configurar ícones da barra de status com WindowInsetsController
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                View decorView = window.getDecorView();
-                decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR  // 🔋 Ícones escuros na status bar
-                );
+                WindowInsetsControllerCompat controller = 
+                    WindowCompat.getInsetsController(window, window.getDecorView());
+                
+                // false = ícones claros (para fundo escuro #31518b)
+                controller.setAppearanceLightStatusBars(false);
             }
             
             android.util.Log.d("TWA_THEME", "� Status bar AZUL configurada como dia 14/08");

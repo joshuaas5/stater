@@ -10,30 +10,70 @@
 /* IMPORT NAVBAR ULTRA FORCE - MÁXIMA PRIORIDADE */
 @import './styles/navbar-ultra-force.css';
 
-/* ===== CONFIGURAÇÃO GLOBAL DE LAYOUT ===== */
+/* ===== CONFIGURAÇÃO GLOBAL EDGE-TO-EDGE ===== */
 html, body, #root {
-  /* Background azul para status bar consistente */
+  /* Background azul que se estende por toda a tela */
   background-color: #31518b !important;
   
   /* Garante que o container principal ocupe toda a altura */
   min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height para mobile */
   
   /* Remove margens padrão que podem causar bordas */
   margin: 0;
   padding: 0;
   
-  /* 🔋 PADDING TOP para compensar status bar transparente */
+  /* � PADDING DE SEGURANÇA PARA ÁREAS EDGE-TO-EDGE */
+  /* env(safe-area-inset-*) detecta automaticamente notch, status bar, etc. */
   padding-top: env(safe-area-inset-top, 24px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   
   /* MOBILE: Evita zoom e garante layout estável */
   -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* 🚫 Evitar overflow horizontal */
+  overflow-x: hidden;
 }
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 🎯 CLASSES UTILITÁRIAS EDGE-TO-EDGE */
+@layer utilities {
+  .safe-area-padding {
+    /* Padding completo para todas as áreas seguras */
+    padding-top: env(safe-area-inset-top, 1.5rem);
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  
+  .safe-top-only {
+    /* Apenas padding superior (para quando não queremos nas laterais) */
+    padding-top: env(safe-area-inset-top, 1.5rem);
+  }
+  
+  .safe-bottom-only {
+    /* Apenas padding inferior (para navegação bottom) */
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  
+  .edge-to-edge-container {
+    /* Container edge-to-edge completo */
+    min-height: 100dvh;
+    background-color: #31518b;
+    padding-top: env(safe-area-inset-top, 1.5rem);
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    overflow-x: hidden;
+  }
+}
 
 /* FORÇA NAVBAR SEMPRE VISÍVEL - PRIORIDADE MÁXIMA MANTIDA */
 .navbar-fixed-bottom {
@@ -425,4 +465,30 @@ html, body, #root {
 svg {
   shape-rendering: optimizeSpeed;
   transform: translate3d(0, 0, 0);
+}
+
+/* 🔧 CONFIGURAÇÕES ESPECÍFICAS PARA ELEMENTOS FIXOS EDGE-TO-EDGE */
+.navbar-fixed, .header-fixed {
+  /* Para elementos fixos no topo, adicionar o offset da área segura */
+  top: env(safe-area-inset-top, 24px);
+}
+
+.bottom-navigation {
+  /* Para navegação inferior, considerar a área segura de baixo */
+  bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.banner-bottom {
+  /* Para banners inferiores, posicionar acima da navegação + área segura */
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+}
+
+/* 📱 COMPATIBILIDADE COM DISPOSITIVOS COM NOTCH */
+@supports (padding: max(0px)) {
+  .safe-area-aware {
+    padding-top: max(env(safe-area-inset-top), 24px);
+    padding-left: max(env(safe-area-inset-left), 0px);
+    padding-right: max(env(safe-area-inset-right), 0px);
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
 }

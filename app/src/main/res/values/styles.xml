@@ -3,16 +3,22 @@
     
     <!-- � TEMA AZUL COMO DIA 14/08 - FUNCIONAVA PERFEITAMENTE -->
     <style name="BaseTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
-        <!-- 🔵 STATUS BAR AZUL QUE FUNCIONAVA -->
-        <item name="android:statusBarColor" tools:targetApi="l">@color/status_bar_color</item>
+        <!-- 🌟 STATUS BAR TRANSPARENTE PARA EDGE-TO-EDGE -->
+        <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
+        
+        <!-- 🌟 NAVIGATION BAR TRANSPARENTE -->
+        <item name="android:navigationBarColor" tools:targetApi="l">@android:color/transparent</item>
         
         <!-- 🔵 FUNDO AZUL PARA EVITAR FLASH BRANCO -->
         <item name="android:windowBackground">@color/backgroundColor</item>
         
-        <!-- 🎯 CONFIGURAÇÃO SIMPLES QUE FUNCIONAVA -->
+        <!-- 📱 CONFIGURAÇÕES EDGE-TO-EDGE -->
         <item name="android:windowDrawsSystemBarBackgrounds" tools:targetApi="l">true</item>
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowTranslucentNavigation">false</item>
+        
+        <!-- 📱 SUPORTE PARA DISPOSITIVOS COM NOTCH/ILHA DINÂMICA -->
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
         
         <!-- 🔵 ÍCONES BRANCOS (CONTRASTE COM AZUL) -->
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>

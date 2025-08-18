@@ -53,7 +53,10 @@
     </style>
     <style name="BaseTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
         
-        <item name="android:statusBarColor" ns1:targetApi="l">@color/status_bar_color</item>
+        <item name="android:statusBarColor" ns1:targetApi="l">@android:color/transparent</item>
+        
+        
+        <item name="android:navigationBarColor" ns1:targetApi="l">@android:color/transparent</item>
         
         
         <item name="android:windowBackground">@color/backgroundColor</item>
@@ -62,6 +65,9 @@
         <item name="android:windowDrawsSystemBarBackgrounds" ns1:targetApi="l">true</item>
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowTranslucentNavigation">false</item>
+        
+        
+        <item name="android:windowLayoutInDisplayCutoutMode" ns1:targetApi="p">shortEdges</item>
         
         
         <item name="android:windowLightStatusBar" ns1:targetApi="m">false</item>

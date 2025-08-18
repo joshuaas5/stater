@@ -32,5 +32,13 @@
         }
     }]
     
-  </string>  
+  </string>
+  
+  <!-- Configurações do app -->
+  <string name="launcherName">Stater</string>
+  <string name="generatorApp">TWA Generator</string>
+  <string name="appName">Stater</string>
+  
+  <!-- FileProvider authority para uploads de arquivos -->
+  <string name="providerAuthority">com.timothy.stater.fileprovider</string>
 </resources>

@@ -76,12 +76,19 @@ public class MainActivity extends Activity {
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
         webSettings.setAllowFileAccess(true);
         webSettings.setAllowContentAccess(true);
+        webSettings.setAllowFileAccessFromFileURLs(true);
+        webSettings.setAllowUniversalAccessFromFileURLs(true);
         webSettings.setGeolocationEnabled(true);
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setUseWideViewPort(true);
         webSettings.setBuiltInZoomControls(false);
         webSettings.setDisplayZoomControls(false);
         webSettings.setSupportZoom(true);
+        
+        // Habilitar upload de arquivos e mixed content
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        }
         
         // User-Agent customizado para evitar bloqueio do Google OAuth
         String userAgent = "Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
@@ -124,10 +131,37 @@ public class MainActivity extends Activity {
             public void onPermissionRequest(PermissionRequest request) {
                 // Aceitar automaticamente permissões do WebView se as permissões Android foram concedidas
                 if (hasAllPermissions()) {
-                    request.grant(request.getResources());
+                    runOnUiThread(() -> {
+                        request.grant(request.getResources());
+                        Toast.makeText(MainActivity.this, "Permissão concedida para " + request.getOrigin(), Toast.LENGTH_SHORT).show();
+                    });
                 } else {
-                    request.deny();
-                    Toast.makeText(MainActivity.this, "Permissões necessárias não concedidas", Toast.LENGTH_SHORT).show();
+                    runOnUiThread(() -> {
+                        request.deny();
+                        Toast.makeText(MainActivity.this, "Permissões do Android necessárias não foram concedidas", Toast.LENGTH_LONG).show();
+                        // Tentar solicitar permissões novamente
+                        requestPermissions();
+                    });
+                }
+            }
+            
+            // Suporte para upload de arquivos (Android 5.0+)
+            @Override
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                if (!hasAllPermissions()) {
+                    Toast.makeText(MainActivity.this, "Permissões necessárias para upload de arquivos não concedidas", Toast.LENGTH_LONG).show();
+                    requestPermissions();
+                    return false;
+                }
+                
+                // Permitir seleção de arquivos
+                try {
+                    Intent intent = fileChooserParams.createIntent();
+                    startActivityForResult(intent, 1001);
+                    return true;
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "Erro ao abrir seletor de arquivos: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    return false;
                 }
             }
         });
@@ -199,13 +233,22 @@ public class MainActivity extends Activity {
     // Métodos para gerenciamento de permissões
     private void requestPermissions() {
         if (!hasAllPermissions()) {
-            // Solicitar permissões básicas
-            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, PERMISSION_REQUEST_CODE);
+            // Mostrar explicação antes de solicitar permissões críticas
+            Toast.makeText(this, "O app precisa de permissões para câmera, microfone e arquivos para funcionar corretamente", Toast.LENGTH_LONG).show();
             
-            // Para Android 13+, solicitar permissões de mídia
+            // Solicitar todas as permissões necessárias
+            String[] allPermissions;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                ActivityCompat.requestPermissions(this, ANDROID_13_PERMISSIONS, PERMISSION_REQUEST_CODE + 1);
+                // Combinar permissões básicas com permissões do Android 13+
+                String[] combined = new String[REQUIRED_PERMISSIONS.length + ANDROID_13_PERMISSIONS.length];
+                System.arraycopy(REQUIRED_PERMISSIONS, 0, combined, 0, REQUIRED_PERMISSIONS.length);
+                System.arraycopy(ANDROID_13_PERMISSIONS, 0, combined, REQUIRED_PERMISSIONS.length, ANDROID_13_PERMISSIONS.length);
+                allPermissions = combined;
+            } else {
+                allPermissions = REQUIRED_PERMISSIONS;
             }
+            
+            ActivityCompat.requestPermissions(this, allPermissions, PERMISSION_REQUEST_CODE);
         }
     }
     
@@ -232,19 +275,34 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         
-        if (requestCode == PERMISSION_REQUEST_CODE || requestCode == PERMISSION_REQUEST_CODE + 1) {
+        if (requestCode == PERMISSION_REQUEST_CODE) {
             boolean allGranted = true;
+            int deniedCount = 0;
+            
             for (int result : grantResults) {
                 if (result != PackageManager.PERMISSION_GRANTED) {
                     allGranted = false;
-                    break;
+                    deniedCount++;
                 }
             }
             
             if (allGranted) {
-                Toast.makeText(this, "Permissões concedidas!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "✅ Todas as permissões concedidas! O app funcionará corretamente.", Toast.LENGTH_LONG).show();
             } else {
-                Toast.makeText(this, "Algumas permissões foram negadas. Funcionalidades podem estar limitadas.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "⚠️ " + deniedCount + " permissões foram negadas. Algumas funcionalidades podem não funcionar (câmera, microfone, uploads).", Toast.LENGTH_LONG).show();
+                
+                // Tentar novamente após 3 segundos se muitas permissões foram negadas
+                if (deniedCount >= 2) {
+                    new android.os.Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!hasAllPermissions()) {
+                                Toast.makeText(MainActivity.this, "Tentando solicitar permissões novamente...", Toast.LENGTH_SHORT).show();
+                                requestPermissions();
+                            }
+                        }
+                    }, 3000);
+                }
             }
         }
     }

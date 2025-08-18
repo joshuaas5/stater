@@ -26,6 +26,13 @@ import androidx.core.content.ContextCompat;
 import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import android.os.Environment;
+import androidx.core.content.FileProvider;
 
 public class MainActivity extends Activity {
     private WebView webView;
@@ -214,26 +221,20 @@ public class MainActivity extends Activity {
     }
     
     private void hideSystemUI() {
-        // ✅ STATUS BAR AZUL SEMPRE VISÍVEL - SEM FAIXA BRANCA
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = getWindow();
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.setStatusBarColor(Color.parseColor("#31518b"));
-            
-            // Texto branco na status bar (para contraste com azul)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                View decor = window.getDecorView();
-                decor.setSystemUiVisibility(decor.getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-            }
-        }
+        // STATUS BAR TRANSPARENTE COM CONTEÚDO POR BAIXO
+        Window window = getWindow();
+        window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         
-        // ✅ LAYOUT QUE NÃO SOBREPÕE STATUS BAR
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        // Garante que a cor da status bar seja transparente
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.setStatusBarColor(Color.TRANSPARENT);
+        }
+
+        // Ícones da status bar escuros para contraste com fundo claro
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            View decor = window.getDecorView();
+            decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        }
     }
     
     private int getStatusBarHeight() {
@@ -275,28 +276,51 @@ public class MainActivity extends Activity {
         }
     }
     
+    private Uri cameraImageUri;
+
     private boolean openFileChooser(ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
-        try {
-            this.filePathCallback = filePathCallback;
-            
-            // ✅ MELHORADO: Criar intent com múltiplas opções SILENCIOSAMENTE
-            Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
-            galleryIntent.addCategory(Intent.CATEGORY_OPENABLE);
-            galleryIntent.setType("*/*");
-            
-            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            
-            Intent chooserIntent = Intent.createChooser(galleryIntent, "Selecionar arquivo");
-            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
-            
-            startActivityForResult(chooserIntent, 1001);
-            return true;
-        } catch (Exception e) {
-            if (filePathCallback != null) {
-                filePathCallback.onReceiveValue(null);
-            }
-            return false;
+        if (this.filePathCallback != null) {
+            this.filePathCallback.onReceiveValue(null);
+            this.filePathCallback = null;
         }
+        this.filePathCallback = filePathCallback;
+
+        // Intent para a câmera
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Tratar erro
+            }
+            if (photoFile != null) {
+                cameraImageUri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri);
+            }
+        }
+
+        // Intent para a galeria
+        Intent contentSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE);
+        contentSelectionIntent.setType("*/*");
+        contentSelectionIntent.putExtra(Intent.EXTRA_MIME_TYPES, fileChooserParams.getAcceptTypes());
+
+        // Intent do chooser
+        Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
+        chooserIntent.putExtra(Intent.EXTRA_INTENT, contentSelectionIntent);
+        chooserIntent.putExtra(Intent.EXTRA_TITLE, "Selecione uma opção");
+        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{takePictureIntent});
+
+        startActivityForResult(chooserIntent, 1001);
+        return true;
+    }
+
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        return File.createTempFile(imageFileName, ".jpg", storageDir);
     }
     
     private ValueCallback<Uri[]> filePathCallback;
@@ -357,34 +381,27 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, intent);
         
         if (requestCode == 1001) {
-            if (filePathCallback != null) {
-                Uri[] results = null;
-                
-                try {
-                    if (resultCode == Activity.RESULT_OK) {
-                        if (intent != null) {
-                            // ✅ MELHORADO: Múltiplas formas de obter o arquivo
-                            if (intent.getDataString() != null) {
-                                results = new Uri[]{Uri.parse(intent.getDataString())};
-                            } else if (intent.getData() != null) {
-                                results = new Uri[]{intent.getData()};
-                            } else if (intent.getClipData() != null) {
-                                // Múltiplos arquivos
-                                int count = intent.getClipData().getItemCount();
-                                results = new Uri[count];
-                                for (int i = 0; i < count; i++) {
-                                    results[i] = intent.getClipData().getItemAt(i).getUri();
-                                }
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    // Erro silencioso
-                }
-                
-                filePathCallback.onReceiveValue(results);
-                filePathCallback = null;
+            if (filePathCallback == null) {
+                return;
             }
+
+            Uri[] results = null;
+            // Se a câmera foi usada, o resultado estará em cameraImageUri
+            if (resultCode == Activity.RESULT_OK) {
+                if (intent == null || intent.getData() == null) {
+                    if (cameraImageUri != null) {
+                        results = new Uri[]{cameraImageUri};
+                    }
+                } else {
+                    String dataString = intent.getDataString();
+                    if (dataString != null) {
+                        results = new Uri[]{Uri.parse(dataString)};
+                    }
+                }
+            }
+            
+            filePathCallback.onReceiveValue(results);
+            filePathCallback = null;
         }
     }
     

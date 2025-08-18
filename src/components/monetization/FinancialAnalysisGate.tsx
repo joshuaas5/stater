@@ -66,42 +66,20 @@ const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children 
     }
   };
 
-  // Assistir anúncio recompensado
+  // Assistir anúncio recompensado (MODO DE DESENVOLVIMENTO ATIVADO)
   const watchRewardedAd = async () => {
-    if (!user?.id || isWatchingAd) return;
+    if (!user?.id) return;
 
-    setIsWatchingAd(true);
-    setAdError(null);
-
-    try {
-      console.log('🎬 [FINANCIAL_GATE] Iniciando reward ad para financial_analysis');
-      
-      // Importar AdManager dinamicamente
-      const { AdManager } = await import('@/utils/adManager');
-      const result = await AdManager.showRewardedAd('financial_analysis');
-      
-      if (result.success) {
-        console.log('✅ [FINANCIAL_GATE] Reward ad assistido com sucesso!');
-        
-        // Registrar o cooldown no sistema
-        const { RewardCooldownManager } = await import('@/utils/rewardCooldownManager');
-        await RewardCooldownManager.setRewardCooldown(user.id, 'financial_analysis');
-        
-        // Liberar acesso imediatamente
-        setHasAccess(true);
-        setTimeUntilNextAd(60); // 1 hora = 60 minutos
-        
-        console.log('🔓 [FINANCIAL_GATE] Acesso liberado por 1 hora!');
-      } else {
-        console.log('❌ [FINANCIAL_GATE] Reward ad cancelado ou falhou');
-        setAdError('Anúncio cancelado. Tente novamente para acessar a análise financeira.');
-      }
-    } catch (error) {
-      console.error('❌ [FINANCIAL_GATE] Erro no reward ad:', error);
-      setAdError('Erro inesperado. Tente novamente.');
-    } finally {
-      setIsWatchingAd(false);
-    }
+    console.log('🔓 [FINANCIAL_GATE] MODO DEV: Acesso liberado diretamente sem ad.');
+    
+    // Registrar o cooldown no sistema para manter a lógica
+    await RewardCooldownManager.setRewardCooldown(user.id, 'financial_analysis');
+    
+    // Liberar acesso imediatamente
+    setHasAccess(true);
+    setTimeUntilNextAd(60); // 1 hora = 60 minutos
+    
+    console.log('🔓 [FINANCIAL_GATE] Acesso liberado por 1 hora!');
   };
 
   // Atualizar timer do cooldown

@@ -260,7 +260,7 @@
         <!-- ✅ ADICIONADO: FileProvider para uploads de câmera -->
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.timothy.stater.fileprovider"
+            android:authorities="com.timothy.stater.provider"
             android:exported="false"
             android:grantUriPermissions="true" >
             <meta-data

@@ -367,7 +367,6 @@
 209-->C:\ICTUS\app\src\main\AndroidManifest.xml:157:13-59
 210
 211        <provider
-211-->C:\ICTUS\app\src\main\AndroidManifest.xml:159:9-167:20
 212            android:name="androidx.core.content.FileProvider"
 212-->C:\ICTUS\app\src\main\AndroidManifest.xml:160:13-62
 213            android:authorities="@string/providerAuthority"
@@ -456,10 +455,9 @@
 259
 260        <!-- ✅ ADICIONADO: FileProvider para uploads de câmera -->
 261        <provider
-261-->C:\ICTUS\app\src\main\AndroidManifest.xml:159:9-167:20
 262            android:name="androidx.core.content.FileProvider"
 262-->C:\ICTUS\app\src\main\AndroidManifest.xml:160:13-62
-263            android:authorities="com.timothy.stater.fileprovider"
+263            android:authorities="com.timothy.stater.provider"
 263-->C:\ICTUS\app\src\main\AndroidManifest.xml:161:13-60
 264            android:exported="false"
 264-->C:\ICTUS\app\src\main\AndroidManifest.xml:163:13-37

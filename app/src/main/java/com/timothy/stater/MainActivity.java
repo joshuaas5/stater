@@ -33,10 +33,20 @@ import java.util.Date;
 import java.util.Locale;
 import android.os.Environment;
 import androidx.core.content.FileProvider;
+import java.util.Map;
+import java.util.HashMap;
 
 public class MainActivity extends Activity {
     private WebView webView;
     private static final int PERMISSION_REQUEST_CODE = 1001;
+    private static final int FILE_CHOOSER_REQUEST_CODE = 1002;
+    private static final int FILE_CHOOSER_PERMISSION_CODE = 1003;
+    
+    // ✅ VARIÁVEIS PARA CONTROLE COMPLETO DE PERMISSÕES
+    private PermissionRequest mPermissionRequest;
+    private ValueCallback<Uri[]> mFilePathCallback;
+    private String[] mWebPermissionsRequested;
+    private Runnable permissionCallback;
     
     // Permissões necessárias
     private static final String[] REQUIRED_PERMISSIONS = {
@@ -57,12 +67,17 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // ✅ Status bar controlada por tema; garantir flags limpas
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = getWindow();
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        }
+        // ✅ FORÇA BARRA DE STATUS PRETA - ABORDAGEM NUCLEAR
+        Window window = getWindow();
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(Color.BLACK); // FORÇAR PRETO
+        
+        // Remover qualquer flag que possa interferir com a cor
+        View decorView = window.getDecorView();
+        int flags = decorView.getSystemUiVisibility();
+        flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR; // REMOVER FLAG QUE CAUSA BRANCO
+        decorView.setSystemUiVisibility(flags);
         
         setContentView(R.layout.activity_main);
         
@@ -138,30 +153,34 @@ public class MainActivity extends Activity {
             
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
-                final String[] requestedResources = request.getResources();
-                final List<String> androidPermissions = new ArrayList<>();
-
-                for (String resource : requestedResources) {
-                    if (resource.equals(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) {
-                        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                            androidPermissions.add(Manifest.permission.RECORD_AUDIO);
+                runOnUiThread(() -> {
+                    mPermissionRequest = request;
+                    mWebPermissionsRequested = request.getResources();
+                    
+                    // Verificar quais permissões Android são necessárias
+                    Map<String, String> permissionMap = createPermissionMap();
+                    List<String> androidPermissionsNeeded = new ArrayList<>();
+                    
+                    for (String webPermission : mWebPermissionsRequested) {
+                        String androidPermission = permissionMap.get(webPermission);
+                        if (androidPermission != null && 
+                            ContextCompat.checkSelfPermission(MainActivity.this, androidPermission) 
+                                != PackageManager.PERMISSION_GRANTED) {
+                            androidPermissionsNeeded.add(androidPermission);
                         }
                     }
-                    if (resource.equals(PermissionRequest.RESOURCE_VIDEO_CAPTURE)) {
-                        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                            androidPermissions.add(Manifest.permission.CAMERA);
-                        }
+                    
+                    if (androidPermissionsNeeded.isEmpty()) {
+                        // Todas as permissões já concedidas - aprovar imediatamente
+                        mPermissionRequest.grant(mWebPermissionsRequested);
+                    } else {
+                        // Solicitar permissões faltantes
+                        ActivityCompat.requestPermissions(
+                            MainActivity.this,
+                            androidPermissionsNeeded.toArray(new String[0]),
+                            PERMISSION_REQUEST_CODE);
                     }
-                }
-
-                if (androidPermissions.isEmpty()) {
-                    // Se já temos as permissões, conceder ao WebView
-                    runOnUiThread(() -> request.grant(requestedResources));
-                } else {
-                    // Se não, solicitar as permissões necessárias
-                    currentPermissionRequest = request;
-                    ActivityCompat.requestPermissions(MainActivity.this, androidPermissions.toArray(new String[0]), PERMISSION_REQUEST_CODE);
-                }
+                });
             }
             
             @Override
@@ -205,17 +224,24 @@ public class MainActivity extends Activity {
         hideSystemUI();
     }
     
+    // ✅ MAPEAMENTO EXPLÍCITO PERMISSÕES WEBVIEW → ANDROID
+    private Map<String, String> createPermissionMap() {
+        Map<String, String> map = new HashMap<>();
+        map.put(PermissionRequest.RESOURCE_AUDIO_CAPTURE, Manifest.permission.RECORD_AUDIO);
+        map.put(PermissionRequest.RESOURCE_VIDEO_CAPTURE, Manifest.permission.CAMERA);
+        return map;
+    }
+    
     private void hideSystemUI() {
-        // ✅ Manter layout estável e cor da status bar vinda do tema (azul)
+        // ✅ FORÇA STATUS BAR PRETA SEM INTERFERÊNCIA
         Window window = getWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            // Usa a cor do tema para evitar faixa branca
-            window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimary));
+            window.setStatusBarColor(Color.BLACK); // FORÇA PRETO
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Remover ícones escuros (LIGHT_STATUS_BAR) pois a barra é escura (azul)
+            // Remove flags que causam branco
             View decor = window.getDecorView();
             int flags = decor.getSystemUiVisibility();
             flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
@@ -285,15 +311,13 @@ public class MainActivity extends Activity {
             onComplete.run();
         }
     }
-    
-    private Uri cameraImageUri;
 
     private boolean openFileChooser(ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
-        if (this.filePathCallback != null) {
-            this.filePathCallback.onReceiveValue(null);
-            this.filePathCallback = null;
+        if (this.mFilePathCallback != null) {
+            this.mFilePathCallback.onReceiveValue(null);
+            this.mFilePathCallback = null;
         }
-        this.filePathCallback = filePathCallback;
+        this.mFilePathCallback = filePathCallback;
 
         // Intent para a câmera
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -333,9 +357,7 @@ public class MainActivity extends Activity {
         return File.createTempFile(imageFileName, ".jpg", storageDir);
     }
     
-    private PermissionRequest currentPermissionRequest;
-    private ValueCallback<Uri[]> filePathCallback;
-    private Runnable permissionCallback;
+    private Uri cameraImageUri;
 
     private boolean hasAllPermissions() {
         for (String permission : REQUIRED_PERMISSIONS) {
@@ -371,50 +393,52 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            // Lógica para a solicitação de permissão do WebChromeClient (microfone, câmera)
-            if (currentPermissionRequest != null) {
-                List<String> grantedResources = new ArrayList<>();
-                boolean allGranted = true;
-
-                // Mapeia as permissões do Android para os recursos do WebView
-                for (int i = 0; i < permissions.length; i++) {
-                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                        if (Manifest.permission.RECORD_AUDIO.equals(permissions[i])) {
-                            grantedResources.add(PermissionRequest.RESOURCE_AUDIO_CAPTURE);
-                        }
-                        if (Manifest.permission.CAMERA.equals(permissions[i])) {
-                            grantedResources.add(PermissionRequest.RESOURCE_VIDEO_CAPTURE);
-                        }
-                    } else {
-                        allGranted = false;
-                    }
-                }
-
-                if (!grantedResources.isEmpty()) {
-                    // Concede apenas os recursos que foram permitidos
-                    final String[] resourcesToGrant = grantedResources.toArray(new String[0]);
-                    runOnUiThread(() -> currentPermissionRequest.grant(resourcesToGrant));
-                } else {
-                    // Nenhuma permissão concedida
-                    runOnUiThread(() -> currentPermissionRequest.deny());
-                }
-
-                currentPermissionRequest = null;
+        
+        if (requestCode == PERMISSION_REQUEST_CODE && mPermissionRequest != null) {
+            // ✅ PROCESSAMENTO EXPLÍCITO DO RESULTADO - WEBVIEW PERMISSIONS
+            Map<String, String> permissionMap = createPermissionMap();
+            Map<String, String> inverseMap = new HashMap<>();
+            for (Map.Entry<String, String> entry : permissionMap.entrySet()) {
+                inverseMap.put(entry.getValue(), entry.getKey());
             }
-            // Lógica para o callback de permissão do upload de arquivo
-            else if (permissionCallback != null) {
-                if (hasAllPermissions()) {
-                    permissionCallback.run();
-                } else {
-                    // Se o upload de arquivo estava pendente, precisa ser cancelado
-                    if (filePathCallback != null) {
-                        filePathCallback.onReceiveValue(null);
-                        filePathCallback = null;
+            
+            List<String> grantedWebPermissions = new ArrayList<>();
+            
+            // Verificar cada permissão Android solicitada
+            for (int i = 0; i < permissions.length; i++) {
+                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                    // Converter permissão Android para permissão WebView
+                    String webPermission = inverseMap.get(permissions[i]);
+                    if (webPermission != null) {
+                        grantedWebPermissions.add(webPermission);
                     }
                 }
-                permissionCallback = null;
+            }
+            
+            // Conceder apenas as permissões aprovadas
+            if (!grantedWebPermissions.isEmpty()) {
+                mPermissionRequest.grant(grantedWebPermissions.toArray(new String[0]));
+            } else {
+                mPermissionRequest.deny();
+            }
+            
+            mPermissionRequest = null;
+            mWebPermissionsRequested = null;
+        } else if (requestCode == FILE_CHOOSER_PERMISSION_CODE && mFilePathCallback != null) {
+            // ✅ LÓGICA ESPECÍFICA PARA PERMISSÕES DE UPLOAD DE ARQUIVO
+            boolean allGranted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            
+            if (allGranted) {
+                openFileChooserSimple();
+            } else {
+                mFilePathCallback.onReceiveValue(null);
+                mFilePathCallback = null;
             }
         }
     }
@@ -424,7 +448,7 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, intent);
         
         if (requestCode == 1001) {
-            if (filePathCallback == null) {
+            if (mFilePathCallback == null) {
                 return;
             }
 
@@ -443,9 +467,36 @@ public class MainActivity extends Activity {
                 }
             }
             
-            filePathCallback.onReceiveValue(results);
-            filePathCallback = null;
+            mFilePathCallback.onReceiveValue(results);
+            mFilePathCallback = null;
+        } else if (requestCode == FILE_CHOOSER_REQUEST_CODE) {
+            // ✅ LÓGICA PARA openFileChooserSimple()
+            if (mFilePathCallback == null) return;
+            
+            Uri[] results = null;
+            if (resultCode == Activity.RESULT_OK && intent != null) {
+                String dataString = intent.getDataString();
+                if (dataString != null) {
+                    results = new Uri[]{Uri.parse(dataString)};
+                }
+            }
+            
+            mFilePathCallback.onReceiveValue(results);
+            mFilePathCallback = null;
         }
+    }
+    
+    // ✅ UPLOAD DE ARQUIVO SIMPLIFICADO
+    private void openFileChooserSimple() {
+        Intent contentSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE);
+        contentSelectionIntent.setType("*/*");
+        
+        Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
+        chooserIntent.putExtra(Intent.EXTRA_INTENT, contentSelectionIntent);
+        chooserIntent.putExtra(Intent.EXTRA_TITLE, "Selecione um arquivo");
+        
+        startActivityForResult(chooserIntent, FILE_CHOOSER_REQUEST_CODE);
     }
     
     @Override

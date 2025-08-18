@@ -12,7 +12,7 @@ interface FinancialAnalysisGateProps {
 
 const FinancialAnalysisGate: React.FC<FinancialAnalysisGateProps> = ({ children }) => {
   const { user } = useAuth();
-  const [hasAccess, setHasAccess] = useState(false); // Começar sempre sem acesso
+  const [hasAccess, setHasAccess] = useState(false); // ✅ SEMPRE BLOQUEAR NO INÍCIO
   const [isLoading, setIsLoading] = useState(true);
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [adError, setAdError] = useState<string | null>(null);

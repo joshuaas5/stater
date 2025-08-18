@@ -140,12 +140,9 @@ public class MainActivity extends Activity {
             
             @Override
             public void onPermissionRequest(PermissionRequest request) {
-                // ✅ FORÇAR CONCESSÃO DE PERMISSÕES DO WEBVIEW
+                // ✅ CONCESSÃO SILENCIOSA E AUTOMÁTICA
                 runOnUiThread(() -> {
                     String[] requestedResources = request.getResources();
-                    String permissions = String.join(", ", requestedResources);
-                    
-                    Toast.makeText(MainActivity.this, "🎥 Concedendo permissões: " + permissions, Toast.LENGTH_SHORT).show();
                     
                     // Verificar se temos permissões Android primeiro
                     boolean needsAndroidPermissions = false;
@@ -163,21 +160,17 @@ public class MainActivity extends Activity {
                     }
                     
                     if (needsAndroidPermissions) {
-                        // Guardar request para usar após permissões
+                        // Guardar request e solicitar permissões silenciosamente
                         currentPermissionRequest = request;
-                        Toast.makeText(MainActivity.this, "🔐 Solicitando permissões do sistema...", Toast.LENGTH_SHORT).show();
                         requestPermissionsOnDemand(() -> {
-                            // Após obter permissões Android, conceder permissões WebView
                             if (currentPermissionRequest != null) {
                                 currentPermissionRequest.grant(currentPermissionRequest.getResources());
-                                Toast.makeText(MainActivity.this, "✅ Permissões concedidas!", Toast.LENGTH_SHORT).show();
                                 currentPermissionRequest = null;
                             }
                         });
                     } else {
-                        // Já temos permissões Android, conceder diretamente ao WebView
+                        // Conceder diretamente
                         request.grant(requestedResources);
-                        Toast.makeText(MainActivity.this, "✅ Acesso liberado!", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -227,29 +220,31 @@ public class MainActivity extends Activity {
     }
     
     private void hideSystemUI() {
-        // ✅ STATUS BAR AZUL SEMPRE VISÍVEL - SEM FAIXA BRANCA
+        // ✅ STATUS BAR AZUL SEM FAIXA BRANCA
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
-            // Limpar flags que podem interferir
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            
             // Status bar azul sempre
             window.setStatusBarColor(Color.parseColor("#31518b"));
+            window.setNavigationBarColor(Color.parseColor("#31518b"));
             
             // Texto branco na status bar (para contraste com azul)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 View decor = window.getDecorView();
+                // Remover flag que deixa o texto escuro
                 decor.setSystemUiVisibility(decor.getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
             }
         }
         
-        // ✅ LAYOUT NORMAL - NÃO SOBREPOR STATUS BAR
+        // ✅ LAYOUT QUE NÃO SOBREPÕE STATUS BAR
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
     
     private int getStatusBarHeight() {
@@ -273,10 +268,7 @@ public class MainActivity extends Activity {
             // Guardar callback para executar após permissões
             this.permissionCallback = onComplete;
             
-            // Mostrar explicação contextual
-            Toast.makeText(this, "🔒 Permissões necessárias para esta funcionalidade", Toast.LENGTH_SHORT).show();
-            
-            // Solicitar todas as permissões necessárias
+            // Solicitar todas as permissões necessárias SILENCIOSAMENTE
             String[] allPermissions;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 String[] combined = new String[REQUIRED_PERMISSIONS.length + ANDROID_13_PERMISSIONS.length];
@@ -298,7 +290,7 @@ public class MainActivity extends Activity {
         try {
             this.filePathCallback = filePathCallback;
             
-            // ✅ MELHORADO: Criar intent com múltiplas opções
+            // ✅ MELHORADO: Criar intent com múltiplas opções SILENCIOSAMENTE
             Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
             galleryIntent.addCategory(Intent.CATEGORY_OPENABLE);
             galleryIntent.setType("*/*");
@@ -309,10 +301,8 @@ public class MainActivity extends Activity {
             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
             
             startActivityForResult(chooserIntent, 1001);
-            Toast.makeText(this, "📷 Seletor de arquivos aberto", Toast.LENGTH_SHORT).show();
             return true;
         } catch (Exception e) {
-            Toast.makeText(this, "❌ Erro ao abrir seletor: " + e.getMessage(), Toast.LENGTH_LONG).show();
             if (filePathCallback != null) {
                 filePathCallback.onReceiveValue(null);
             }
@@ -358,9 +348,9 @@ public class MainActivity extends Activity {
             }
             
             if (allGranted) {
-                Toast.makeText(this, "✅ Permissões concedidas!", Toast.LENGTH_SHORT).show();
+                // Permissões concedidas silenciosamente
             } else {
-                Toast.makeText(this, "⚠️ " + deniedCount + " permissões negadas. Funcionalidade limitada.", Toast.LENGTH_SHORT).show();
+                // Permissões negadas silenciosamente - app continua funcionando
             }
             
             // Executar callback se existe
@@ -385,10 +375,8 @@ public class MainActivity extends Activity {
                             // ✅ MELHORADO: Múltiplas formas de obter o arquivo
                             if (intent.getDataString() != null) {
                                 results = new Uri[]{Uri.parse(intent.getDataString())};
-                                Toast.makeText(this, "📄 Arquivo selecionado", Toast.LENGTH_SHORT).show();
                             } else if (intent.getData() != null) {
                                 results = new Uri[]{intent.getData()};
-                                Toast.makeText(this, "📄 Arquivo obtido", Toast.LENGTH_SHORT).show();
                             } else if (intent.getClipData() != null) {
                                 // Múltiplos arquivos
                                 int count = intent.getClipData().getItemCount();
@@ -396,17 +384,11 @@ public class MainActivity extends Activity {
                                 for (int i = 0; i < count; i++) {
                                     results[i] = intent.getClipData().getItemAt(i).getUri();
                                 }
-                                Toast.makeText(this, "📄 " + count + " arquivos selecionados", Toast.LENGTH_SHORT).show();
                             }
-                        } else {
-                            // Possível foto da câmera sem dados extras
-                            Toast.makeText(this, "📷 Foto capturada", Toast.LENGTH_SHORT).show();
                         }
-                    } else {
-                        Toast.makeText(this, "❌ Seleção cancelada", Toast.LENGTH_SHORT).show();
                     }
                 } catch (Exception e) {
-                    Toast.makeText(this, "❌ Erro ao processar arquivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    // Erro silencioso
                 }
                 
                 filePathCallback.onReceiveValue(results);

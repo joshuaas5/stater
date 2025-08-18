@@ -1,10 +1,11 @@
 ﻿// src/pages/FinancialAnalysisPage.tsx
-import React, { Suspense, lazy, Component, ErrorInfo, ReactNode } from 'react';
+import React, { Suspense, lazy, Component, ErrorInfo, ReactNode, useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from '@/components/ui/card';
 import { Brain, Target, BookOpen, Loader2, TrendingUp, AlertCircle } from 'lucide-react';
 import FinancialAnalysisGate from '@/components/monetization/FinancialAnalysisGate';
 import { AdBanner } from '@/components/monetization/AdBanner';
+import { AdPlaceholder } from '@/components/ads/AdPlaceholder';
 
 // Lazy load dos componentes pesados
 const ModernCharts = lazy(() => import('@/components/dashboard/ModernCharts'));
@@ -69,6 +70,30 @@ const LoadingCard = ({ title }: { title: string }) => (
 
 
 const FinancialAnalysisPage: React.FC = () => {
+  const [showAdPlaceholder, setShowAdPlaceholder] = useState(false);
+  const [adType, setAdType] = useState<'bills' | 'transactions' | 'messages' | 'financial_analysis' | 'report_downloads' | 'recurring_transactions'>('financial_analysis');
+
+  // Sistema de ads global para esta página
+  useEffect(() => {
+    const handleShowAd = (event: CustomEvent) => {
+      console.log('🎬 [FINANCIAL_ANALYSIS] Recebeu evento para mostrar ad:', event.detail.type);
+      setAdType(event.detail.type || 'financial_analysis');
+      setShowAdPlaceholder(true);
+    };
+
+    const handleHideAd = () => {
+      setShowAdPlaceholder(false);
+    };
+
+    window.addEventListener('showAdPlaceholder', handleShowAd as EventListener);
+    window.addEventListener('hideAdPlaceholder', handleHideAd as EventListener);
+
+    return () => {
+      window.removeEventListener('showAdPlaceholder', handleShowAd as EventListener);
+      window.removeEventListener('hideAdPlaceholder', handleHideAd as EventListener);
+    };
+  }, []);
+
   return (
     <FinancialAnalysisGate>
       <div className="financial-analysis-page min-h-screen pb-20" style={{
@@ -180,6 +205,27 @@ const FinancialAnalysisPage: React.FC = () => {
         
         {/* Ad Banner */}
         <AdBanner position="bottom" />
+        
+        {/* Ad Placeholder para reward ads */}
+        <AdPlaceholder
+          isOpen={showAdPlaceholder}
+          onClose={() => {
+            const resultEvent = new CustomEvent('adPlaceholderResult', {
+              detail: { success: false }
+            });
+            window.dispatchEvent(resultEvent);
+            setShowAdPlaceholder(false);
+          }}
+          onReward={() => {
+            const resultEvent = new CustomEvent('adPlaceholderResult', {
+              detail: { success: true }
+            });
+            window.dispatchEvent(resultEvent);
+            setShowAdPlaceholder(false);
+          }}
+          type={adType}
+          duration={8}
+        />
         
         {/* O NavBar foi movido para o PersistentLayout.tsx */}
       </div>

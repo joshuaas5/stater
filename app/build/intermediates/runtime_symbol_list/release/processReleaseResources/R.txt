@@ -1879,6 +1879,7 @@ int styleable ViewStubCompat_android_id 0
 int styleable ViewStubCompat_android_layout 1
 int styleable ViewStubCompat_android_inflatedId 2
 int xml com_android_billingclient_phenotype 0x7f110000
-int xml filepaths 0x7f110001
-int xml image_share_filepaths 0x7f110002
-int xml shortcuts 0x7f110003
+int xml file_paths 0x7f110001
+int xml filepaths 0x7f110002
+int xml image_share_filepaths 0x7f110003
+int xml shortcuts 0x7f110004

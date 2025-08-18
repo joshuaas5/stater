@@ -52,6 +52,10 @@
         "source": "com.timothy.stater.app-main-5:/xml/filepaths.xml"
     },
     {
+        "merged": "com.timothy.stater.app-release-4:/xml_file_paths.xml.flat",
+        "source": "com.timothy.stater.app-main-5:/xml/file_paths.xml"
+    },
+    {
         "merged": "com.timothy.stater.app-release-4:/drawable_splash_logo.xml.flat",
         "source": "com.timothy.stater.app-main-5:/drawable/splash_logo.xml"
     },

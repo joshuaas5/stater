@@ -33,5 +33,6 @@ string launcherName
 string orientation
 string providerAuthority
 string webManifestUrl
+xml file_paths
 xml filepaths
 xml shortcuts

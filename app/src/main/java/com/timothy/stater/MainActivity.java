@@ -20,6 +20,7 @@ import android.content.pm.PackageManager;
 import android.widget.Toast;
 import android.content.Intent;
 import android.net.Uri;
+import android.provider.MediaStore;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -89,7 +90,13 @@ public class MainActivity extends Activity {
         webSettings.setDisplayZoomControls(false);
         webSettings.setSupportZoom(true);
         
-        // Habilitar upload de arquivos e mixed content
+        // ✅ CONFIGURAÇÕES CRÍTICAS PARA MÍDIA E UPLOAD
+        webSettings.setAllowFileAccessFromFileURLs(true);
+        webSettings.setAllowUniversalAccessFromFileURLs(true);
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+        webSettings.setSupportMultipleWindows(true);
+        
+        // Configurar suporte a uploads e mídia
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
@@ -133,19 +140,45 @@ public class MainActivity extends Activity {
             
             @Override
             public void onPermissionRequest(PermissionRequest request) {
-                // ✅ SOLICITAR PERMISSÕES APENAS QUANDO NECESSÁRIO
+                // ✅ FORÇAR CONCESSÃO DE PERMISSÕES DO WEBVIEW
                 runOnUiThread(() -> {
-                    Toast.makeText(MainActivity.this, "Solicitando permissões para " + request.getOrigin(), Toast.LENGTH_SHORT).show();
-                    // Solicitar permissões Android apenas quando WebView precisar
-                    requestPermissionsOnDemand(() -> {
-                        if (hasAllPermissions()) {
-                            request.grant(request.getResources());
-                            Toast.makeText(MainActivity.this, "✅ Permissão concedida!", Toast.LENGTH_SHORT).show();
-                        } else {
-                            request.deny();
-                            Toast.makeText(MainActivity.this, "❌ Permissões negadas", Toast.LENGTH_SHORT).show();
+                    String[] requestedResources = request.getResources();
+                    String permissions = String.join(", ", requestedResources);
+                    
+                    Toast.makeText(MainActivity.this, "🎥 Concedendo permissões: " + permissions, Toast.LENGTH_SHORT).show();
+                    
+                    // Verificar se temos permissões Android primeiro
+                    boolean needsAndroidPermissions = false;
+                    for (String resource : requestedResources) {
+                        if (resource.equals(PermissionRequest.RESOURCE_AUDIO_CAPTURE) && 
+                            ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                            needsAndroidPermissions = true;
+                            break;
                         }
-                    });
+                        if (resource.equals(PermissionRequest.RESOURCE_VIDEO_CAPTURE) && 
+                            ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                            needsAndroidPermissions = true;
+                            break;
+                        }
+                    }
+                    
+                    if (needsAndroidPermissions) {
+                        // Guardar request para usar após permissões
+                        currentPermissionRequest = request;
+                        Toast.makeText(MainActivity.this, "🔐 Solicitando permissões do sistema...", Toast.LENGTH_SHORT).show();
+                        requestPermissionsOnDemand(() -> {
+                            // Após obter permissões Android, conceder permissões WebView
+                            if (currentPermissionRequest != null) {
+                                currentPermissionRequest.grant(currentPermissionRequest.getResources());
+                                Toast.makeText(MainActivity.this, "✅ Permissões concedidas!", Toast.LENGTH_SHORT).show();
+                                currentPermissionRequest = null;
+                            }
+                        });
+                    } else {
+                        // Já temos permissões Android, conceder diretamente ao WebView
+                        request.grant(requestedResources);
+                        Toast.makeText(MainActivity.this, "✅ Acesso liberado!", Toast.LENGTH_SHORT).show();
+                    }
                 });
             }
             
@@ -263,9 +296,20 @@ public class MainActivity extends Activity {
     
     private boolean openFileChooser(ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
         try {
-            Intent intent = fileChooserParams.createIntent();
             this.filePathCallback = filePathCallback;
-            startActivityForResult(intent, 1001);
+            
+            // ✅ MELHORADO: Criar intent com múltiplas opções
+            Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
+            galleryIntent.addCategory(Intent.CATEGORY_OPENABLE);
+            galleryIntent.setType("*/*");
+            
+            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            
+            Intent chooserIntent = Intent.createChooser(galleryIntent, "Selecionar arquivo");
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
+            
+            startActivityForResult(chooserIntent, 1001);
+            Toast.makeText(this, "📷 Seletor de arquivos aberto", Toast.LENGTH_SHORT).show();
             return true;
         } catch (Exception e) {
             Toast.makeText(this, "❌ Erro ao abrir seletor: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -278,6 +322,7 @@ public class MainActivity extends Activity {
     
     private ValueCallback<Uri[]> filePathCallback;
     private Runnable permissionCallback;
+    private PermissionRequest currentPermissionRequest;
     private boolean hasAllPermissions() {
         for (String permission : REQUIRED_PERMISSIONS) {
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
@@ -333,11 +378,37 @@ public class MainActivity extends Activity {
         if (requestCode == 1001) {
             if (filePathCallback != null) {
                 Uri[] results = null;
-                if (resultCode == Activity.RESULT_OK && intent != null) {
-                    if (intent.getDataString() != null) {
-                        results = new Uri[]{Uri.parse(intent.getDataString())};
+                
+                try {
+                    if (resultCode == Activity.RESULT_OK) {
+                        if (intent != null) {
+                            // ✅ MELHORADO: Múltiplas formas de obter o arquivo
+                            if (intent.getDataString() != null) {
+                                results = new Uri[]{Uri.parse(intent.getDataString())};
+                                Toast.makeText(this, "📄 Arquivo selecionado", Toast.LENGTH_SHORT).show();
+                            } else if (intent.getData() != null) {
+                                results = new Uri[]{intent.getData()};
+                                Toast.makeText(this, "📄 Arquivo obtido", Toast.LENGTH_SHORT).show();
+                            } else if (intent.getClipData() != null) {
+                                // Múltiplos arquivos
+                                int count = intent.getClipData().getItemCount();
+                                results = new Uri[count];
+                                for (int i = 0; i < count; i++) {
+                                    results[i] = intent.getClipData().getItemAt(i).getUri();
+                                }
+                                Toast.makeText(this, "📄 " + count + " arquivos selecionados", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            // Possível foto da câmera sem dados extras
+                            Toast.makeText(this, "📷 Foto capturada", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "❌ Seleção cancelada", Toast.LENGTH_SHORT).show();
                     }
+                } catch (Exception e) {
+                    Toast.makeText(this, "❌ Erro ao processar arquivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
+                
                 filePathCallback.onReceiveValue(results);
                 filePathCallback = null;
             }

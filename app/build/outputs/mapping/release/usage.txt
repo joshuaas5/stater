@@ -13046,19 +13046,7 @@ com.timothy.stater.MainActivity:
     private void requestPermissionsOnDemand(java.lang.Runnable)
     private void requestUploadPermissions(java.lang.Runnable)
 com.timothy.stater.R$bool
-com.timothy.stater.R$color:
-    public static int backgroundColor
-    public static int colorPrimary
-    public static int colorPrimaryDark
-    public static int dark_blue
-    public static int navigationColor
-    public static int navigationColorDark
-    public static int navigationDividerColor
-    public static int navigationDividerColorDark
-    public static int shortcut_background
-    public static int statusBarBlue
-    public static int status_bar_dark
-    private void <init>()
+com.timothy.stater.R$color
 com.timothy.stater.R$drawable
 com.timothy.stater.R$id:
     private void <init>()

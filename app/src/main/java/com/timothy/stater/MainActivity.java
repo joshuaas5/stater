@@ -478,20 +478,41 @@ public class MainActivity extends Activity {
     }
     
     private void hideSystemUI() {
-        // ✅ FORÇA STATUS BAR PRETA SEM INTERFERÊNCIA
+        // 🖤 FORÇA STATUS BAR PRETA SÓLIDA - ANTI-FLASH DEFINITIVO
         Window window = getWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // Limpar TODAS as flags problemáticas
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+            
+            // Força controle total
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(Color.BLACK); // FORÇA PRETO
+            
+            // 🖤 STATUS BAR PRETA SÓLIDA - SEM EXCEÇÃO
+            window.setStatusBarColor(Color.BLACK);
+            
+            // Navigation bar também preta para consistência
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                window.setNavigationBarColor(Color.BLACK);
+            }
         }
+        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Remove flags que causam branco
             View decor = window.getDecorView();
             int flags = decor.getSystemUiVisibility();
+            
+            // Remove flags que causam ícones escuros (queremos ícones brancos)
             flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            decor.setSystemUiVisibility(flags | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+            
+            // Adiciona flags para estabilidade visual (ANTI-FLASH)
+            flags |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+            flags |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+            
+            decor.setSystemUiVisibility(flags);
         }
+        
+        android.util.Log.d("TWA_THEME", "🖤 hideSystemUI: Status bar PRETA forçada - ANTI-FLASH ativo");
     }
     
     private int getStatusBarHeight() {
@@ -821,7 +842,11 @@ public class MainActivity extends Activity {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
+            // 🖤 REFORÇAR STATUS BAR PRETA quando janela ganha foco
+            configureStatusBar();
             hideSystemUI();
+            
+            android.util.Log.d("TWA_THEME", "🖤 Window focus: Status bar PRETA reforçada");
         }
     }
     
@@ -927,6 +952,10 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         
+        // 🖤 REFORÇAR STATUS BAR PRETA quando app volta ao foco
+        configureStatusBar();
+        hideSystemUI();
+        
         // Notificar PWA que o app foi resumido
         if (webView != null) {
             webView.evaluateJavascript(
@@ -935,7 +964,7 @@ public class MainActivity extends Activity {
                 "}", null);
         }
     }
-    
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -947,9 +976,7 @@ public class MainActivity extends Activity {
                 "  window.TWA.notifyNative('app-paused', {timestamp: Date.now()});" +
                 "}", null);
         }
-    }
-    
-    // 🌉 TWA JavaScript Bridge for Enhanced PWA-Native Communication
+    }    // 🌉 TWA JavaScript Bridge for Enhanced PWA-Native Communication
     private class TWAJavaScriptInterface {
         
         @JavascriptInterface
@@ -997,34 +1024,39 @@ public class MainActivity extends Activity {
     }
     
     /**
-     * 🎨 CONFIGURAÇÃO DEFINITIVA DA BARRA DE STATUS
-     * Aplica cor dark blue de acordo com o design do app
+     * 🖤 CONFIGURAÇÃO DEFINITIVA DA BARRA DE STATUS PRETA
+     * FORÇA status bar PRETA SÓLIDA - SEM FLASH, SEM CORES ESTRANHAS
      */
     private void configureStatusBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // Limpar flags antigas
+            // Limpar TODAS as flags que causam problemas
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
             
-            // Habilitar controle da barra de status
+            // Habilitar controle TOTAL da barra de status
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             
-            // Aplicar cor dark blue (#1D4ED8)
-            window.setStatusBarColor(ContextCompat.getColor(this, R.color.status_bar_color));
+            // 🖤 FORÇA STATUS BAR PRETA SÓLIDA - FINAL
+            window.setStatusBarColor(Color.BLACK);
             
-            // Configurar ícones da barra de status
+            // Configurar ícones BRANCOS (para contraste com preto)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 View decorView = window.getDecorView();
                 int flags = decorView.getSystemUiVisibility();
                 
-                // Remover flag que deixa ícones escuros (para fundo escuro, ícones devem ser claros)
+                // REMOVER flag que deixa ícones escuros - queremos ícones BRANCOS
                 flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                
+                // Adicionar flags para estabilidade visual (sem flash)
+                flags |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+                flags |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
                 
                 decorView.setSystemUiVisibility(flags);
             }
             
-            android.util.Log.d("TWA_THEME", "Barra de status configurada com cor dark blue");
+            android.util.Log.d("TWA_THEME", "🖤 Status bar PRETA configurada - SEM FLASH");
         }
     }
     

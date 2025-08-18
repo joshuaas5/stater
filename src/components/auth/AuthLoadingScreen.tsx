@@ -10,20 +10,7 @@ const AuthLoadingScreen: React.FC = () => {
       <div className="flex flex-col items-center gap-6">
         {/* Logo ou ícone da aplicação */}
         <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
-          <svg
-            className="w-8 h-8 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
-          </svg>
+          <div className="w-8 h-8 bg-white/20 rounded-lg"></div>
         </div>
 
         {/* Spinner principal */}

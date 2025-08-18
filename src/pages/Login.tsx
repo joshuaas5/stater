@@ -270,14 +270,15 @@ const Login: React.FC = () => {
           description: "Erro ao conectar com Google",
           variant: "destructive",
         });
+        setIsGoogleLoading(false);
       }
+      // Se não há erro, mantém loading até o redirect
     } catch (error) {
       toast({
         title: "Erro",
         description: "Erro inesperado",
         variant: "destructive",
       });
-    } finally {
       setIsGoogleLoading(false);
     }
   };

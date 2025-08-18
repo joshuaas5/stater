@@ -2716,19 +2716,7 @@
         }
     }]
     
-  </string><string name="launcherName">Stater</string><string name="generatorApp">TWA Generator</string><string name="appName">Stater</string><string name="providerAuthority">com.timothy.stater.fileprovider</string><string name="permission_camera_rationale">O Stater precisa acessar a câmera para permitir upload de fotos</string><string name="permission_microphone_rationale">O Stater precisa acessar o microfone para funcionalidades de áudio</string><string name="permission_storage_rationale">O Stater precisa acessar o armazenamento para upload de arquivos</string><string name="permission_location_rationale">O Stater precisa acessar a localização para recursos baseados em local</string><string name="permission_denied_message">Permissão necessária para o funcionamento completo do app</string><string name="twa_loading">Carregando Stater...</string><string name="twa_error">Erro ao carregar aplicativo</string><string name="twa_connection_error">Verifique sua conexão com a internet</string><string name="notification_channel_name">Stater Notifications</string><string name="notification_channel_description">Notificações do aplicativo Stater</string></file><file path="C:\ICTUS\app\src\main\res\values\styles.xml" qualifiers=""><style name="Theme.TwaLauncher" parent="BaseTheme">
-        
-        <item name="android:statusBarColor" ns2:targetApi="l">@color/status_bar_color</item>
-        <item name="android:windowBackground">@color/backgroundColor</item>
-        
-        
-        <item name="android:windowLightStatusBar" ns2:targetApi="m">false</item>
-        <item name="android:windowLightNavigationBar" ns2:targetApi="o">false</item>
-    </style><style name="AppTheme" parent="Theme.TwaLauncher">
-        
-    </style><style name="AppTheme.NoActionBar" parent="Theme.TwaLauncher">
-        
-    </style><style name="BaseTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+  </string><string name="launcherName">Stater</string><string name="generatorApp">TWA Generator</string><string name="appName">Stater</string><string name="providerAuthority">com.timothy.stater.fileprovider</string><string name="permission_camera_rationale">O Stater precisa acessar a câmera para permitir upload de fotos</string><string name="permission_microphone_rationale">O Stater precisa acessar o microfone para funcionalidades de áudio</string><string name="permission_storage_rationale">O Stater precisa acessar o armazenamento para upload de arquivos</string><string name="permission_location_rationale">O Stater precisa acessar a localização para recursos baseados em local</string><string name="permission_denied_message">Permissão necessária para o funcionamento completo do app</string><string name="twa_loading">Carregando Stater...</string><string name="twa_error">Erro ao carregar aplicativo</string><string name="twa_connection_error">Verifique sua conexão com a internet</string><string name="notification_channel_name">Stater Notifications</string><string name="notification_channel_description">Notificações do aplicativo Stater</string></file><file path="C:\ICTUS\app\src\main\res\values\styles.xml" qualifiers=""><style name="BaseTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
         
         <item name="android:statusBarColor" ns2:targetApi="l">@color/status_bar_color</item>
         
@@ -2748,6 +2736,18 @@
         <item name="android:colorPrimary" ns2:targetApi="l">@color/colorPrimary</item>
         <item name="android:colorPrimaryDark" ns2:targetApi="l">@color/colorPrimaryDark</item>
         <item name="android:colorAccent" ns2:targetApi="l">@android:color/white</item>
+    </style><style name="Theme.TwaLauncher" parent="BaseTheme">
+        
+        <item name="android:statusBarColor" ns2:targetApi="l">@color/status_bar_color</item>
+        <item name="android:windowBackground">@color/backgroundColor</item>
+        
+        
+        <item name="android:windowLightStatusBar" ns2:targetApi="m">false</item>
+        <item name="android:windowLightNavigationBar" ns2:targetApi="o">false</item>
+    </style><style name="AppTheme" parent="Theme.TwaLauncher">
+        
+    </style><style name="AppTheme.NoActionBar" parent="Theme.TwaLauncher">
+        
     </style></file><file name="filepaths" path="C:\ICTUS\app\src\main\res\xml\filepaths.xml" qualifiers="" type="xml"/><file name="file_paths" path="C:\ICTUS\app\src\main\res\xml\file_paths.xml" qualifiers="" type="xml"/><file name="shortcuts" path="C:\ICTUS\app\src\main\res\xml\shortcuts.xml" qualifiers="" type="xml"/></source></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="release$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="C:\ICTUS\app\src\release\res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="release" generated-set="release$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="C:\ICTUS\app\src\release\res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="C:\ICTUS\app\build\generated\res\resValues\release"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated" generated-set="generated$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="C:\ICTUS\app\build\generated\res\resValues\release"><file path="C:\ICTUS\app\build\generated\res\resValues\release\values\gradleResValues.xml" qualifiers=""><bool name="enableNotification">true</bool><bool name="enableSiteSettingsShortcut">true</bool><color name="backgroundColor">#1D4ED8</color><color name="colorPrimary">#1D4ED8</color><color name="colorPrimaryDark">#000000</color><color name="navigationColor">#000000</color><color name="navigationColorDark">#000000</color><color name="navigationDividerColor">#000000</color><color name="navigationDividerColorDark">#000000</color><integer name="splashScreenFadeOutDuration">300</integer><string name="appName" translatable="false">Stater</string><string name="fallbackType" translatable="false">customtabs</string><string name="fullScopeUrl" translatable="false">https://stater.app/</string><string name="generatorApp" translatable="false">bubblewrap-cli</string><string name="hostName" translatable="false">stater.app</string><string name="launchUrl" translatable="false">https://stater.app/login</string><string name="launcherName" translatable="false">Stater</string><string name="orientation" translatable="false">portrait-primary</string><string name="providerAuthority" translatable="false">com.timothy.stater.fileprovider</string><string name="webManifestUrl" translatable="false">https://stater.app/manifest.json</string></file></source></dataSet><mergedItems><configuration qualifiers=""><declare-styleable name="AlertDialog">
         <attr name="android:layout"/>
         <attr format="reference" name="buttonPanelSideLayout"/>

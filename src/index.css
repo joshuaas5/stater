@@ -12,8 +12,8 @@
 
 /* ===== CONFIGURAÇÃO GLOBAL DE LAYOUT ===== */
 html, body, #root {
-  /* Background branco para evitar faixas azuis */
-  background-color: white !important;
+  /* Background azul para status bar consistente */
+  background-color: #31518b !important;
   
   /* Garante que o container principal ocupe toda a altura */
   min-height: 100vh;

@@ -13035,9 +13035,13 @@ com.timothy.stater.MainActivity:
     private static final int FILE_CHOOSER_PERMISSION_CODE
     private static final int FILE_CHOOSER_REQUEST_CODE
     private static final int PERMISSION_REQUEST_CODE
+    private static final long PERMISSION_RETRY_DELAY
     private int getStatusBarHeight()
     private boolean hasAllPermissions()
+    private boolean hasUploadPermissions()
+    private void openFileChooserSimple()
     private void requestPermissionsOnDemand(java.lang.Runnable)
+    private void requestUploadPermissions(java.lang.Runnable)
 com.timothy.stater.R$bool
 com.timothy.stater.R$color
 com.timothy.stater.R$drawable

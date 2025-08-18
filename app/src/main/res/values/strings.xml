@@ -41,4 +41,20 @@
   
   <!-- FileProvider authority para uploads de arquivos -->
   <string name="providerAuthority">com.timothy.stater.fileprovider</string>
+  
+  <!-- TWA Permission Messages -->
+  <string name="permission_camera_rationale">O Stater precisa acessar a câmera para permitir upload de fotos</string>
+  <string name="permission_microphone_rationale">O Stater precisa acessar o microfone para funcionalidades de áudio</string>
+  <string name="permission_storage_rationale">O Stater precisa acessar o armazenamento para upload de arquivos</string>
+  <string name="permission_location_rationale">O Stater precisa acessar a localização para recursos baseados em local</string>
+  <string name="permission_denied_message">Permissão necessária para o funcionamento completo do app</string>
+  
+  <!-- TWA Status Messages -->
+  <string name="twa_loading">Carregando Stater...</string>
+  <string name="twa_error">Erro ao carregar aplicativo</string>
+  <string name="twa_connection_error">Verifique sua conexão com a internet</string>
+  
+  <!-- Notification Channel -->
+  <string name="notification_channel_name">Stater Notifications</string>
+  <string name="notification_channel_description">Notificações do aplicativo Stater</string>
 </resources>

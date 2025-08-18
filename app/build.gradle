@@ -34,6 +34,13 @@ def twaManifest = [
     navigationDividerColorDark: '#000000', // The dark navbar divider color.
     backgroundColor: '#1D4ED8', // The color used for the splash screen background.
     enableNotifications: true, // Set to true to enable notification delegation.
+    enableSiteSettingsShortcut: true, // Enable TWA site settings shortcut
+    orientation: 'default', // Screen orientation for TWA
+    display: 'standalone', // TWA display mode
+    // Configurações específicas para permissions e performance
+    enableWebViewDebugging: false, // Disable in production
+    enablePermissionsHandling: true, // Enable native permission handling
+    enableJavaScriptBridge: true, // Enable TWA-Native communication
     // Every shortcut must include the following fields:
     // - name: String that will show up in the shortcut.
     // - short_name: Shorter string used if |name| is too long.

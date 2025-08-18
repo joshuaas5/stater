@@ -374,10 +374,20 @@
     <string name="manage_space_no_data_toast">This app holds no browsing data.</string>
     <string name="manage_space_not_supported_toast">This app\'s data is stored in %1$s.</string>
     <string name="no_provider_toast">Please install Chrome Stable 72 or later.</string>
+    <string name="notification_channel_description">Notificações do aplicativo Stater</string>
+    <string name="notification_channel_name">Stater Notifications</string>
     <string name="orientation" translatable="false">portrait-primary</string>
+    <string name="permission_camera_rationale">O Stater precisa acessar a câmera para permitir upload de fotos</string>
+    <string name="permission_denied_message">Permissão necessária para o funcionamento completo do app</string>
+    <string name="permission_location_rationale">O Stater precisa acessar a localização para recursos baseados em local</string>
+    <string name="permission_microphone_rationale">O Stater precisa acessar o microfone para funcionalidades de áudio</string>
+    <string name="permission_storage_rationale">O Stater precisa acessar o armazenamento para upload de arquivos</string>
     <string name="providerAuthority" translatable="false">com.timothy.stater.fileprovider</string>
     <string name="search_menu_title">Search</string>
     <string name="status_bar_notification_info_overflow">999+</string>
+    <string name="twa_connection_error">Verifique sua conexão com a internet</string>
+    <string name="twa_error">Erro ao carregar aplicativo</string>
+    <string name="twa_loading">Carregando Stater...</string>
     <string name="update_chrome_toast">Please update to Chrome Stable 72 or later.</string>
     <string name="webManifestUrl" translatable="false">https://stater.app/manifest.json</string>
     <style name="AlertDialog.AppCompat" parent="Base.AlertDialog.AppCompat"/>

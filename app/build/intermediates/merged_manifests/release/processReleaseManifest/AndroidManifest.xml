@@ -107,6 +107,22 @@
             android:label="@string/appName"
             android:launchMode="singleTop"
             android:theme="@style/AppTheme.NoActionBar" >
+
+            <!-- 🚀 TWA Enhancements: Manifest URL para melhor integração PWA -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.WEB_MANIFEST_URL"
+                android:value="https://stater.app/manifest.json" />
+
+            <!-- 🎯 TWA Service Worker Support -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.DEFAULT_URL"
+                android:value="https://stater.app/login" />
+
+            <!-- 🔧 TWA Performance Optimizations -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
+                android:value="300" />
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

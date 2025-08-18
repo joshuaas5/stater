@@ -35,6 +35,7 @@ import android.os.Environment;
 import androidx.core.content.FileProvider;
 import java.util.Map;
 import java.util.HashMap;
+import android.webkit.JavascriptInterface;
 
 public class MainActivity extends Activity {
     private WebView webView;
@@ -115,19 +116,28 @@ public class MainActivity extends Activity {
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         webSettings.setSupportMultipleWindows(true);
         
+        // 🚀 TWA SPECIFIC OPTIMIZATIONS
+        webSettings.setMediaPlaybackRequiresUserGesture(false); // Permite autoplay de áudio/vídeo
+        webSettings.setOffscreenPreRaster(true); // Melhora performance de rendering
+        
         // Configurar suporte a uploads e mídia
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
         
-        // User-Agent customizado para evitar bloqueio do Google OAuth
-        String userAgent = "Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+        // 🎯 TWA Enhanced Features
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            webSettings.setSafeBrowsingEnabled(false); // Desabilita safe browsing para TWA
+        }
+        
+        // User-Agent customizado para evitar bloqueio do Google OAuth + TWA identification
+        String userAgent = "Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 TWA/Stater";
         webSettings.setUserAgentString(userAgent);
         
         // Desabilitar overscroll para evitar pull-to-refresh
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         
-        // WebViewClient personalizado
+        // 🚀 TWA Enhanced WebViewClient
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -144,8 +154,23 @@ public class MainActivity extends Activity {
                 
                 // ✅ APENAS GARANTIR STATUS BAR AZUL - CSS cuida do resto
                 hideSystemUI();
+                
+                // 🎯 TWA Service Worker Support Enhancement
+                injectTWAServiceWorkerSupport(view);
+            }
+            
+            @Override
+            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                
+                // 🚀 TWA Performance: Preload critical resources
+                if (url.contains("stater.app")) {
+                    optimizeTWALoading(view);
+                }
             }
         });
+        
+        webView.addJavascriptInterface(new TWAJavaScriptInterface(), "TWANative");
         
         // 🔥 WebChromeClient com GENIUS PERMISSION STRATEGY
         webView.setWebChromeClient(new WebChromeClient() {
@@ -751,5 +776,155 @@ public class MainActivity extends Activity {
             webView.destroy();
         }
         super.onDestroy();
+    }
+    
+    // 🚀 TWA SPECIFIC ENHANCEMENTS
+    
+    /**
+     * Injeta suporte aprimorado para Service Workers em TWA
+     */
+    private void injectTWAServiceWorkerSupport(WebView webView) {
+        String jsCode = 
+            "if ('serviceWorker' in navigator) {" +
+            "  window.addEventListener('load', function() {" +
+            "    navigator.serviceWorker.register('/sw.js').then(function(registration) {" +
+            "      console.log('TWA: Service Worker registered successfully:', registration.scope);" +
+            "      if (window.TWANative) TWANative.logToNative('info', 'Service Worker registered');" +
+            "    }).catch(function(error) {" +
+            "      console.log('TWA: Service Worker registration failed:', error);" +
+            "      if (window.TWANative) TWANative.logToNative('error', 'Service Worker failed: ' + error);" +
+            "    });" +
+            "  });" +
+            "}" +
+            // Comunicação TWA-específica aprimorada
+            "window.TWA = {" +
+            "  isInTWA: true," +
+            "  version: '1.0'," +
+            "  platform: 'android'," +
+            "  native: window.TWANative || {}," +
+            "  notifyNative: function(event, data) {" +
+            "    console.log('TWA Event:', event, data);" +
+            "    if (window.TWANative) {" +
+            "      window.TWANative.logToNative('info', 'TWA Event: ' + event + ' - ' + JSON.stringify(data));" +
+            "    }" +
+            "  }," +
+            "  showToast: function(message) {" +
+            "    if (window.TWANative) window.TWANative.showToast(message);" +
+            "  }," +
+            "  requestFullscreen: function() {" +
+            "    if (window.TWANative) window.TWANative.requestFullscreen();" +
+            "  }," +
+            "  getAppInfo: function() {" +
+            "    return window.TWANative ? JSON.parse(window.TWANative.getAppInfo()) : {};" +
+            "  }" +
+            "};" +
+            // Eventos PWA aprimorados
+            "window.addEventListener('beforeinstallprompt', function(e) {" +
+            "  e.preventDefault();" +
+            "  if (window.TWA) window.TWA.notifyNative('install-prompt-prevented', {});" +
+            "});" +
+            "window.addEventListener('appinstalled', function(e) {" +
+            "  if (window.TWA) window.TWA.notifyNative('app-installed', {});" +
+            "});";
+            
+        webView.evaluateJavascript(jsCode, null);
+    }
+    
+    /**
+     * Otimizações de carregamento específicas para TWA
+     */
+    private void optimizeTWALoading(WebView webView) {
+        // Preload de recursos críticos
+        String preloadCode = 
+            "if (document.head) {" +
+            "  var preloadManifest = document.createElement('link');" +
+            "  preloadManifest.rel = 'preload';" +
+            "  preloadManifest.href = '/manifest.json';" +
+            "  preloadManifest.as = 'fetch';" +
+            "  preloadManifest.crossOrigin = 'anonymous';" +
+            "  document.head.appendChild(preloadManifest);" +
+            // Cache de recursos críticos
+            "  var preloadCSS = document.createElement('link');" +
+            "  preloadCSS.rel = 'preload';" +
+            "  preloadCSS.href = '/static/css/main.css';" +
+            "  preloadCSS.as = 'style';" +
+            "  document.head.appendChild(preloadCSS);" +
+            "}";
+            
+        webView.evaluateJavascript(preloadCode, null);
+    }
+    
+    // 🎯 TWA Performance Monitoring
+    @Override
+    protected void onResume() {
+        super.onResume();
+        
+        // Notificar PWA que o app foi resumido
+        if (webView != null) {
+            webView.evaluateJavascript(
+                "if (window.TWA && window.TWA.notifyNative) {" +
+                "  window.TWA.notifyNative('app-resumed', {timestamp: Date.now()});" +
+                "}", null);
+        }
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        
+        // Notificar PWA que o app foi pausado
+        if (webView != null) {
+            webView.evaluateJavascript(
+                "if (window.TWA && window.TWA.notifyNative) {" +
+                "  window.TWA.notifyNative('app-paused', {timestamp: Date.now()});" +
+                "}", null);
+        }
+    }
+    
+    // 🌉 TWA JavaScript Bridge for Enhanced PWA-Native Communication
+    private class TWAJavaScriptInterface {
+        
+        @JavascriptInterface
+        public void showToast(String message) {
+            runOnUiThread(() -> Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show());
+        }
+        
+        @JavascriptInterface
+        public String getAppInfo() {
+            return "{'version':'1.0','platform':'android','isTWA':true,'packageName':'" + getPackageName() + "'}";
+        }
+        
+        @JavascriptInterface
+        public void requestFullscreen() {
+            runOnUiThread(() -> hideSystemUI());
+        }
+        
+        @JavascriptInterface
+        public void vibrate(int duration) {
+            // Implementar vibração se necessário
+            android.os.Vibrator v = (android.os.Vibrator) getSystemService(android.content.Context.VIBRATOR_SERVICE);
+            if (v != null && v.hasVibrator()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    v.vibrate(android.os.VibrationEffect.createOneShot(duration, android.os.VibrationEffect.DEFAULT_AMPLITUDE));
+                } else {
+                    v.vibrate(duration);
+                }
+            }
+        }
+        
+        @JavascriptInterface
+        public boolean hasPermission(String permission) {
+            return ContextCompat.checkSelfPermission(MainActivity.this, permission) == PackageManager.PERMISSION_GRANTED;
+        }
+        
+        @JavascriptInterface
+        public void logToNative(String level, String message) {
+            android.util.Log.println(
+                level.equals("error") ? android.util.Log.ERROR : 
+                level.equals("warn") ? android.util.Log.WARN : 
+                android.util.Log.INFO, 
+                "TWA-PWA", message
+            );
+        }
     }
 }

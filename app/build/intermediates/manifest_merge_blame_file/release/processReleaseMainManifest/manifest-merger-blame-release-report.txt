@@ -80,16 +80,16 @@
 52        <intent>
 52-->[com.google.androidbrowserhelper:androidbrowserhelper:2.6.2] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5053e02be90783e54992393be394bb70\transformed\androidbrowserhelper-2.6.2\AndroidManifest.xml:23:9-29:18
 53            <action android:name="android.intent.action.VIEW" />
-53-->C:\ICTUS\app\src\main\AndroidManifest.xml:78:17-68
-53-->C:\ICTUS\app\src\main\AndroidManifest.xml:78:25-66
+53-->C:\ICTUS\app\src\main\AndroidManifest.xml:93:17-68
+53-->C:\ICTUS\app\src\main\AndroidManifest.xml:93:25-66
 54
 55            <category android:name="android.intent.category.BROWSABLE" />
-55-->C:\ICTUS\app\src\main\AndroidManifest.xml:80:17-78
-55-->C:\ICTUS\app\src\main\AndroidManifest.xml:80:27-75
+55-->C:\ICTUS\app\src\main\AndroidManifest.xml:95:17-78
+55-->C:\ICTUS\app\src\main\AndroidManifest.xml:95:27-75
 56
 57            <data android:scheme="https" />
-57-->C:\ICTUS\app\src\main\AndroidManifest.xml:81:17-74
-57-->C:\ICTUS\app\src\main\AndroidManifest.xml:81:23-45
+57-->C:\ICTUS\app\src\main\AndroidManifest.xml:96:17-74
+57-->C:\ICTUS\app\src\main\AndroidManifest.xml:96:23-45
 58        </intent>
 59        <intent>
 59-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:13:9-15:18
@@ -125,7 +125,7 @@
 75-->[com.google.android.datatransport:transport-backend-cct:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\85bc3f8cc97bd85b10d760e1ca7886a3\transformed\transport-backend-cct-3.1.8\AndroidManifest.xml:24:22-76
 76
 77    <application
-77-->C:\ICTUS\app\src\main\AndroidManifest.xml:39:5-210:19
+77-->C:\ICTUS\app\src\main\AndroidManifest.xml:39:5-225:19
 78        android:name="com.timothy.stater.Application"
 78-->C:\ICTUS\app\src\main\AndroidManifest.xml:40:9-35
 79        android:allowBackup="true"
@@ -171,7 +171,7 @@
 101
 102        <!-- MainActivity principal com WebView nativo -->
 103        <activity
-103-->C:\ICTUS\app\src\main\AndroidManifest.xml:64:9-90:20
+103-->C:\ICTUS\app\src\main\AndroidManifest.xml:64:9-105:20
 104            android:name="com.timothy.stater.MainActivity"
 104-->C:\ICTUS\app\src\main\AndroidManifest.xml:64:19-47
 105            android:configChanges="orientation|screenSize|keyboardHidden"
@@ -184,413 +184,438 @@
 108-->C:\ICTUS\app\src\main\AndroidManifest.xml:69:13-43
 109            android:theme="@style/AppTheme.NoActionBar" >
 109-->C:\ICTUS\app\src\main\AndroidManifest.xml:67:13-56
-110            <intent-filter>
-110-->C:\ICTUS\app\src\main\AndroidManifest.xml:71:13-74:29
-111                <action android:name="android.intent.action.MAIN" />
-111-->C:\ICTUS\app\src\main\AndroidManifest.xml:72:17-69
-111-->C:\ICTUS\app\src\main\AndroidManifest.xml:72:25-66
-112
-113                <category android:name="android.intent.category.LAUNCHER" />
-113-->C:\ICTUS\app\src\main\AndroidManifest.xml:73:17-77
-113-->C:\ICTUS\app\src\main\AndroidManifest.xml:73:27-74
-114            </intent-filter>
+110
+111            <!-- 🚀 TWA Enhancements: Manifest URL para melhor integração PWA -->
+112            <meta-data
+112-->C:\ICTUS\app\src\main\AndroidManifest.xml:72:13-74:68
+113                android:name="android.support.customtabs.trusted.WEB_MANIFEST_URL"
+113-->C:\ICTUS\app\src\main\AndroidManifest.xml:73:17-83
+114                android:value="https://stater.app/manifest.json" />
+114-->C:\ICTUS\app\src\main\AndroidManifest.xml:74:17-65
 115
-116            <!-- Intent filter para links do stater.app -->
-117            <intent-filter android:autoVerify="true" >
-117-->C:\ICTUS\app\src\main\AndroidManifest.xml:77:13-82:29
-117-->C:\ICTUS\app\src\main\AndroidManifest.xml:77:28-53
-118                <action android:name="android.intent.action.VIEW" />
-118-->C:\ICTUS\app\src\main\AndroidManifest.xml:78:17-68
-118-->C:\ICTUS\app\src\main\AndroidManifest.xml:78:25-66
-119
-120                <category android:name="android.intent.category.DEFAULT" />
-120-->C:\ICTUS\app\src\main\AndroidManifest.xml:79:17-76
-120-->C:\ICTUS\app\src\main\AndroidManifest.xml:79:27-73
-121                <category android:name="android.intent.category.BROWSABLE" />
-121-->C:\ICTUS\app\src\main\AndroidManifest.xml:80:17-78
-121-->C:\ICTUS\app\src\main\AndroidManifest.xml:80:27-75
-122
-123                <data
-123-->C:\ICTUS\app\src\main\AndroidManifest.xml:81:17-74
-124                    android:host="stater.app"
-124-->C:\ICTUS\app\src\main\AndroidManifest.xml:81:46-71
-125                    android:scheme="https" />
-125-->C:\ICTUS\app\src\main\AndroidManifest.xml:81:23-45
-126            </intent-filter>
-127            <intent-filter android:autoVerify="true" >
-127-->C:\ICTUS\app\src\main\AndroidManifest.xml:84:13-89:29
-127-->C:\ICTUS\app\src\main\AndroidManifest.xml:84:28-53
-128                <action android:name="android.intent.action.VIEW" />
-128-->C:\ICTUS\app\src\main\AndroidManifest.xml:78:17-68
-128-->C:\ICTUS\app\src\main\AndroidManifest.xml:78:25-66
-129
-130                <category android:name="android.intent.category.DEFAULT" />
-130-->C:\ICTUS\app\src\main\AndroidManifest.xml:79:17-76
-130-->C:\ICTUS\app\src\main\AndroidManifest.xml:79:27-73
-131                <category android:name="android.intent.category.BROWSABLE" />
-131-->C:\ICTUS\app\src\main\AndroidManifest.xml:80:17-78
-131-->C:\ICTUS\app\src\main\AndroidManifest.xml:80:27-75
-132
-133                <data
-133-->C:\ICTUS\app\src\main\AndroidManifest.xml:81:17-74
-134                    android:host="www.stater.app"
-134-->C:\ICTUS\app\src\main\AndroidManifest.xml:81:46-71
-135                    android:scheme="https" />
-135-->C:\ICTUS\app\src\main\AndroidManifest.xml:81:23-45
-136            </intent-filter>
-137        </activity>
+116            <!-- 🎯 TWA Service Worker Support -->
+117            <meta-data
+117-->C:\ICTUS\app\src\main\AndroidManifest.xml:77:13-79:60
+118                android:name="android.support.customtabs.trusted.DEFAULT_URL"
+118-->C:\ICTUS\app\src\main\AndroidManifest.xml:78:17-78
+119                android:value="https://stater.app/login" />
+119-->C:\ICTUS\app\src\main\AndroidManifest.xml:79:17-57
+120
+121            <!-- 🔧 TWA Performance Optimizations -->
+122            <meta-data
+122-->C:\ICTUS\app\src\main\AndroidManifest.xml:82:13-84:39
+123                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
+123-->C:\ICTUS\app\src\main\AndroidManifest.xml:83:17-98
+124                android:value="300" />
+124-->C:\ICTUS\app\src\main\AndroidManifest.xml:84:17-36
+125
+126            <intent-filter>
+126-->C:\ICTUS\app\src\main\AndroidManifest.xml:86:13-89:29
+127                <action android:name="android.intent.action.MAIN" />
+127-->C:\ICTUS\app\src\main\AndroidManifest.xml:87:17-69
+127-->C:\ICTUS\app\src\main\AndroidManifest.xml:87:25-66
+128
+129                <category android:name="android.intent.category.LAUNCHER" />
+129-->C:\ICTUS\app\src\main\AndroidManifest.xml:88:17-77
+129-->C:\ICTUS\app\src\main\AndroidManifest.xml:88:27-74
+130            </intent-filter>
+131
+132            <!-- Intent filter para links do stater.app -->
+133            <intent-filter android:autoVerify="true" >
+133-->C:\ICTUS\app\src\main\AndroidManifest.xml:92:13-97:29
+133-->C:\ICTUS\app\src\main\AndroidManifest.xml:92:28-53
+134                <action android:name="android.intent.action.VIEW" />
+134-->C:\ICTUS\app\src\main\AndroidManifest.xml:93:17-68
+134-->C:\ICTUS\app\src\main\AndroidManifest.xml:93:25-66
+135
+136                <category android:name="android.intent.category.DEFAULT" />
+136-->C:\ICTUS\app\src\main\AndroidManifest.xml:94:17-76
+136-->C:\ICTUS\app\src\main\AndroidManifest.xml:94:27-73
+137                <category android:name="android.intent.category.BROWSABLE" />
+137-->C:\ICTUS\app\src\main\AndroidManifest.xml:95:17-78
+137-->C:\ICTUS\app\src\main\AndroidManifest.xml:95:27-75
 138
-139        <!-- LauncherActivity do TWA mantida para compatibilidade (mas não é launcher) -->
-140        <activity
-140-->C:\ICTUS\app\src\main\AndroidManifest.xml:93:9-152:20
-141            android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
-141-->C:\ICTUS\app\src\main\AndroidManifest.xml:93:19-90
-142            android:alwaysRetainTaskState="true"
-142-->C:\ICTUS\app\src\main\AndroidManifest.xml:94:13-49
-143            android:exported="false"
-143-->C:\ICTUS\app\src\main\AndroidManifest.xml:96:13-37
-144            android:label="@string/launcherName"
-144-->C:\ICTUS\app\src\main\AndroidManifest.xml:95:13-49
-145            android:launchMode="singleTask"
-145-->C:\ICTUS\app\src\main\AndroidManifest.xml:97:13-44
-146            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
-146-->C:\ICTUS\app\src\main\AndroidManifest.xml:98:13-71
-147
-148            <!-- URL ABSOLUTA com barra final -->
-149            <meta-data
-149-->C:\ICTUS\app\src\main\AndroidManifest.xml:101:13-102:60
-150                android:name="android.support.customtabs.trusted.DEFAULT_URL"
-150-->C:\ICTUS\app\src\main\AndroidManifest.xml:101:24-85
-151                android:value="https://stater.app/login" />
-151-->C:\ICTUS\app\src\main\AndroidManifest.xml:102:17-57
-152
-153            <!-- Verificação TWA obrigatória -->
-154            <meta-data
-154-->C:\ICTUS\app\src\main\AndroidManifest.xml:105:13-106:40
-155                android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_REQUIRED"
-155-->C:\ICTUS\app\src\main\AndroidManifest.xml:105:24-103
-156                android:value="true" />
-156-->C:\ICTUS\app\src\main\AndroidManifest.xml:106:17-37
-157
-158            <!-- Fallback para WebView para evitar fechar caso validação falhe -->
-159            <meta-data
-159-->C:\ICTUS\app\src\main\AndroidManifest.xml:109:13-110:43
-160                android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
-160-->C:\ICTUS\app\src\main\AndroidManifest.xml:109:24-91
-161                android:value="webview" />
-161-->C:\ICTUS\app\src\main\AndroidManifest.xml:110:17-40
-162
-163            <!-- Confiar também no subdomínio www (evita fallback se houver redireção) -->
-164            <meta-data
-164-->C:\ICTUS\app\src\main\AndroidManifest.xml:113:13-114:58
-165                android:name="android.support.customtabs.trusted.ADDITIONAL_TRUSTED_ORIGINS"
-165-->C:\ICTUS\app\src\main\AndroidManifest.xml:113:24-100
-166                android:value="https://www.stater.app" />
-166-->C:\ICTUS\app\src\main\AndroidManifest.xml:114:17-55
-167
-168            <!-- Desativar splash do PWA para evitar logo estourada -->
-169            <meta-data
-169-->C:\ICTUS\app\src\main\AndroidManifest.xml:117:13-118:40
-170                android:name="android.support.customtabs.trusted.SKIP_WEB_MANIFEST_SPLASH"
-170-->C:\ICTUS\app\src\main\AndroidManifest.xml:117:24-98
-171                android:value="true" />
-171-->C:\ICTUS\app\src\main\AndroidManifest.xml:118:17-37
-172
-173            <!-- Configurações de cores -->
-174            <meta-data
-174-->C:\ICTUS\app\src\main\AndroidManifest.xml:121:13-123:58
-175                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
-175-->C:\ICTUS\app\src\main\AndroidManifest.xml:122:17-83
-176                android:resource="@color/colorPrimary" />
-176-->C:\ICTUS\app\src\main\AndroidManifest.xml:123:17-55
-177            <meta-data
-177-->C:\ICTUS\app\src\main\AndroidManifest.xml:125:13-127:62
-178                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR_DARK"
-178-->C:\ICTUS\app\src\main\AndroidManifest.xml:126:17-88
-179                android:resource="@color/colorPrimaryDark" />
-179-->C:\ICTUS\app\src\main\AndroidManifest.xml:127:17-59
+139                <data
+139-->C:\ICTUS\app\src\main\AndroidManifest.xml:96:17-74
+140                    android:host="stater.app"
+140-->C:\ICTUS\app\src\main\AndroidManifest.xml:96:46-71
+141                    android:scheme="https" />
+141-->C:\ICTUS\app\src\main\AndroidManifest.xml:96:23-45
+142            </intent-filter>
+143            <intent-filter android:autoVerify="true" >
+143-->C:\ICTUS\app\src\main\AndroidManifest.xml:99:13-104:29
+143-->C:\ICTUS\app\src\main\AndroidManifest.xml:99:28-53
+144                <action android:name="android.intent.action.VIEW" />
+144-->C:\ICTUS\app\src\main\AndroidManifest.xml:93:17-68
+144-->C:\ICTUS\app\src\main\AndroidManifest.xml:93:25-66
+145
+146                <category android:name="android.intent.category.DEFAULT" />
+146-->C:\ICTUS\app\src\main\AndroidManifest.xml:94:17-76
+146-->C:\ICTUS\app\src\main\AndroidManifest.xml:94:27-73
+147                <category android:name="android.intent.category.BROWSABLE" />
+147-->C:\ICTUS\app\src\main\AndroidManifest.xml:95:17-78
+147-->C:\ICTUS\app\src\main\AndroidManifest.xml:95:27-75
+148
+149                <data
+149-->C:\ICTUS\app\src\main\AndroidManifest.xml:96:17-74
+150                    android:host="www.stater.app"
+150-->C:\ICTUS\app\src\main\AndroidManifest.xml:96:46-71
+151                    android:scheme="https" />
+151-->C:\ICTUS\app\src\main\AndroidManifest.xml:96:23-45
+152            </intent-filter>
+153        </activity>
+154
+155        <!-- LauncherActivity do TWA mantida para compatibilidade (mas não é launcher) -->
+156        <activity
+156-->C:\ICTUS\app\src\main\AndroidManifest.xml:108:9-167:20
+157            android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
+157-->C:\ICTUS\app\src\main\AndroidManifest.xml:108:19-90
+158            android:alwaysRetainTaskState="true"
+158-->C:\ICTUS\app\src\main\AndroidManifest.xml:109:13-49
+159            android:exported="false"
+159-->C:\ICTUS\app\src\main\AndroidManifest.xml:111:13-37
+160            android:label="@string/launcherName"
+160-->C:\ICTUS\app\src\main\AndroidManifest.xml:110:13-49
+161            android:launchMode="singleTask"
+161-->C:\ICTUS\app\src\main\AndroidManifest.xml:112:13-44
+162            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
+162-->C:\ICTUS\app\src\main\AndroidManifest.xml:113:13-71
+163
+164            <!-- URL ABSOLUTA com barra final -->
+165            <meta-data
+165-->C:\ICTUS\app\src\main\AndroidManifest.xml:77:13-79:60
+166                android:name="android.support.customtabs.trusted.DEFAULT_URL"
+166-->C:\ICTUS\app\src\main\AndroidManifest.xml:78:17-78
+167                android:value="https://stater.app/login" />
+167-->C:\ICTUS\app\src\main\AndroidManifest.xml:79:17-57
+168
+169            <!-- Verificação TWA obrigatória -->
+170            <meta-data
+170-->C:\ICTUS\app\src\main\AndroidManifest.xml:120:13-121:40
+171                android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_REQUIRED"
+171-->C:\ICTUS\app\src\main\AndroidManifest.xml:120:24-103
+172                android:value="true" />
+172-->C:\ICTUS\app\src\main\AndroidManifest.xml:121:17-37
+173
+174            <!-- Fallback para WebView para evitar fechar caso validação falhe -->
+175            <meta-data
+175-->C:\ICTUS\app\src\main\AndroidManifest.xml:124:13-125:43
+176                android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
+176-->C:\ICTUS\app\src\main\AndroidManifest.xml:124:24-91
+177                android:value="webview" />
+177-->C:\ICTUS\app\src\main\AndroidManifest.xml:125:17-40
+178
+179            <!-- Confiar também no subdomínio www (evita fallback se houver redireção) -->
 180            <meta-data
-180-->C:\ICTUS\app\src\main\AndroidManifest.xml:129:13-131:61
-181                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
-181-->C:\ICTUS\app\src\main\AndroidManifest.xml:130:17-87
-182                android:resource="@color/navigationColor" />
-182-->C:\ICTUS\app\src\main\AndroidManifest.xml:131:17-58
-183            <meta-data
-183-->C:\ICTUS\app\src\main\AndroidManifest.xml:133:13-135:65
-184                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR_DARK"
-184-->C:\ICTUS\app\src\main\AndroidManifest.xml:134:17-92
-185                android:resource="@color/navigationColorDark" />
-185-->C:\ICTUS\app\src\main\AndroidManifest.xml:135:17-62
-186
-187            <!-- Splash Screen usando stater-logo-152 -->
-188            <meta-data
-188-->C:\ICTUS\app\src\main\AndroidManifest.xml:138:13-139:59
-189                android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
-189-->C:\ICTUS\app\src\main\AndroidManifest.xml:138:24-95
-190                android:resource="@drawable/splash_logo" />
-190-->C:\ICTUS\app\src\main\AndroidManifest.xml:139:17-57
-191            <meta-data
-191-->C:\ICTUS\app\src\main\AndroidManifest.xml:141:13-142:60
-192                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
-192-->C:\ICTUS\app\src\main\AndroidManifest.xml:141:24-104
-193                android:resource="@color/backgroundColor" />
-193-->C:\ICTUS\app\src\main\AndroidManifest.xml:142:17-58
-194            <meta-data
-194-->C:\ICTUS\app\src\main\AndroidManifest.xml:144:13-145:41
-195                android:name="android.support.customtabs.trusted.SPLASH_IMAGE_SCALE_TYPE"
-195-->C:\ICTUS\app\src\main\AndroidManifest.xml:144:24-97
-196                android:value="center" />
-196-->C:\ICTUS\app\src\main\AndroidManifest.xml:145:17-39
-197            <meta-data
-197-->C:\ICTUS\app\src\main\AndroidManifest.xml:147:13-148:38
-198                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
-198-->C:\ICTUS\app\src\main\AndroidManifest.xml:147:24-105
-199                android:value="300" />
-199-->C:\ICTUS\app\src\main\AndroidManifest.xml:148:17-36
-200
-201            <!-- Estratégia padrão de splash nativa do TWA -->
-202            <meta-data
-202-->C:\ICTUS\app\src\main\AndroidManifest.xml:151:13-121
-203                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_STRATEGY"
-203-->C:\ICTUS\app\src\main\AndroidManifest.xml:151:24-96
-204                android:value="native" />
-204-->C:\ICTUS\app\src\main\AndroidManifest.xml:151:97-119
-205        </activity>
-206        <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />
-206-->C:\ICTUS\app\src\main\AndroidManifest.xml:154:9-90
-206-->C:\ICTUS\app\src\main\AndroidManifest.xml:154:19-87
-207        <activity
-207-->C:\ICTUS\app\src\main\AndroidManifest.xml:156:9-157:62
-208            android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
-208-->C:\ICTUS\app\src\main\AndroidManifest.xml:156:19-97
-209            android:configChanges="orientation|screenSize" />
-209-->C:\ICTUS\app\src\main\AndroidManifest.xml:157:13-59
-210
-211        <service
-211-->C:\ICTUS\app\src\main\AndroidManifest.xml:161:9-172:19
-212            android:name="com.timothy.stater.DelegationService"
-212-->C:\ICTUS\app\src\main\AndroidManifest.xml:162:13-46
-213            android:enabled="@bool/enableNotification"
-213-->C:\ICTUS\app\src\main\AndroidManifest.xml:163:13-55
-214            android:exported="@bool/enableNotification" >
-214-->C:\ICTUS\app\src\main\AndroidManifest.xml:164:13-56
-215            <meta-data
-215-->C:\ICTUS\app\src\main\AndroidManifest.xml:165:13-167:69
-216                android:name="android.support.customtabs.trusted.SMALL_ICON"
-216-->C:\ICTUS\app\src\main\AndroidManifest.xml:166:17-77
-217                android:resource="@drawable/ic_notification_icon" />
-217-->C:\ICTUS\app\src\main\AndroidManifest.xml:167:17-66
-218
-219            <intent-filter>
-219-->C:\ICTUS\app\src\main\AndroidManifest.xml:168:13-171:29
-220                <action android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE" />
-220-->C:\ICTUS\app\src\main\AndroidManifest.xml:169:17-105
-220-->C:\ICTUS\app\src\main\AndroidManifest.xml:169:25-103
-221
-222                <category android:name="android.intent.category.DEFAULT" />
-222-->C:\ICTUS\app\src\main\AndroidManifest.xml:79:17-76
-222-->C:\ICTUS\app\src\main\AndroidManifest.xml:79:27-73
-223            </intent-filter>
-224        </service>
-225
-226        <activity android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity" />
-226-->C:\ICTUS\app\src\main\AndroidManifest.xml:174:9-114
-226-->C:\ICTUS\app\src\main\AndroidManifest.xml:174:19-111
-227        <activity
-227-->C:\ICTUS\app\src\main\AndroidManifest.xml:175:9-188:20
-228            android:name="com.google.androidbrowserhelper.playbilling.provider.PaymentActivity"
-228-->C:\ICTUS\app\src\main\AndroidManifest.xml:176:13-96
-229            android:configChanges="keyboardHidden|keyboard|orientation|screenLayout|screenSize"
-229-->C:\ICTUS\app\src\main\AndroidManifest.xml:178:13-96
-230            android:exported="true"
-230-->C:\ICTUS\app\src\main\AndroidManifest.xml:179:13-36
-231            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
-231-->C:\ICTUS\app\src\main\AndroidManifest.xml:177:13-72
-232            <intent-filter>
-232-->C:\ICTUS\app\src\main\AndroidManifest.xml:181:13-183:29
-233                <action android:name="org.chromium.intent.action.PAY" />
-233-->C:\ICTUS\app\src\main\AndroidManifest.xml:182:17-73
-233-->C:\ICTUS\app\src\main\AndroidManifest.xml:182:25-70
-234            </intent-filter>
-235
-236            <meta-data
-236-->C:\ICTUS\app\src\main\AndroidManifest.xml:185:13-187:67
-237                android:name="org.chromium.default_payment_method_name"
-237-->C:\ICTUS\app\src\main\AndroidManifest.xml:186:17-72
-238                android:value="https://play.google.com/billing" />
-238-->C:\ICTUS\app\src\main\AndroidManifest.xml:187:17-64
-239        </activity>
-240
-241        <!-- This service checks who calls it at runtime. -->
-242        <service
-242-->C:\ICTUS\app\src\main\AndroidManifest.xml:191:9-197:19
-243            android:name="com.google.androidbrowserhelper.playbilling.provider.PaymentService"
-243-->C:\ICTUS\app\src\main\AndroidManifest.xml:192:13-95
-244            android:exported="true" >
-244-->C:\ICTUS\app\src\main\AndroidManifest.xml:193:13-36
-245            <intent-filter>
-245-->C:\ICTUS\app\src\main\AndroidManifest.xml:194:13-196:29
-246                <action android:name="org.chromium.intent.action.IS_READY_TO_PAY" />
-246-->C:\ICTUS\app\src\main\AndroidManifest.xml:195:17-85
-246-->C:\ICTUS\app\src\main\AndroidManifest.xml:195:25-82
-247            </intent-filter>
-248        </service>
-249
-250        <!-- ✅ ADICIONADO: FileProvider para uploads de câmera -->
-251        <provider
-252            android:name="androidx.core.content.FileProvider"
-252-->C:\ICTUS\app\src\main\AndroidManifest.xml:201:13-62
-253            android:authorities="com.timothy.stater.provider"
-253-->C:\ICTUS\app\src\main\AndroidManifest.xml:202:13-60
-254            android:exported="false"
-254-->C:\ICTUS\app\src\main\AndroidManifest.xml:203:13-37
-255            android:grantUriPermissions="true" >
-255-->C:\ICTUS\app\src\main\AndroidManifest.xml:204:13-47
-256            <meta-data
-256-->C:\ICTUS\app\src\main\AndroidManifest.xml:205:13-207:54
-257                android:name="android.support.FILE_PROVIDER_PATHS"
-257-->C:\ICTUS\app\src\main\AndroidManifest.xml:206:17-67
-258                android:resource="@xml/file_paths" />
-258-->C:\ICTUS\app\src\main\AndroidManifest.xml:207:17-51
-259        </provider>
-260
-261        <meta-data
-261-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:22:9-24:37
-262            android:name="com.google.android.play.billingclient.version"
-262-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:23:13-73
-263            android:value="7.1.1" />
-263-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:24:13-34
-264
-265        <activity
-265-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:26:9-30:75
-266            android:name="com.android.billingclient.api.ProxyBillingActivity"
-266-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:27:13-78
-267            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-267-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:28:13-96
-268            android:exported="false"
-268-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:29:13-37
-269            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-269-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:30:13-72
-270        <activity
-270-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:31:9-35:75
-271            android:name="com.android.billingclient.api.ProxyBillingActivityV2"
-271-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:32:13-80
-272            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-272-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:33:13-96
-273            android:exported="false"
-273-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:34:13-37
-274            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-274-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:35:13-72
-275        <activity
-275-->[com.google.android.gms:play-services-base:18.5.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\57bacb9ef58048c0e6f8321d8067096b\transformed\play-services-base-18.5.0\AndroidManifest.xml:5:9-173
-276            android:name="com.google.android.gms.common.api.GoogleApiActivity"
-276-->[com.google.android.gms:play-services-base:18.5.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\57bacb9ef58048c0e6f8321d8067096b\transformed\play-services-base-18.5.0\AndroidManifest.xml:5:19-85
-277            android:exported="false"
-277-->[com.google.android.gms:play-services-base:18.5.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\57bacb9ef58048c0e6f8321d8067096b\transformed\play-services-base-18.5.0\AndroidManifest.xml:5:146-170
-278            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-278-->[com.google.android.gms:play-services-base:18.5.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\57bacb9ef58048c0e6f8321d8067096b\transformed\play-services-base-18.5.0\AndroidManifest.xml:5:86-145
-279
-280        <meta-data
-280-->[com.google.android.gms:play-services-basement:18.4.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\af1250092db6525f6762c9b32f91bede\transformed\play-services-basement-18.4.0\AndroidManifest.xml:6:9-122
-281            android:name="com.google.android.gms.version"
-281-->[com.google.android.gms:play-services-basement:18.4.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\af1250092db6525f6762c9b32f91bede\transformed\play-services-basement-18.4.0\AndroidManifest.xml:6:20-65
-282            android:value="@integer/google_play_services_version" />
-282-->[com.google.android.gms:play-services-basement:18.4.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\af1250092db6525f6762c9b32f91bede\transformed\play-services-basement-18.4.0\AndroidManifest.xml:6:66-119
-283
-284        <provider
-284-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:24:9-32:20
-285            android:name="androidx.startup.InitializationProvider"
-285-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:25:13-67
-286            android:authorities="com.timothy.stater.androidx-startup"
-286-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:26:13-68
-287            android:exported="false" >
-287-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:27:13-37
-288            <meta-data
-288-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:29:13-31:52
-289                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-289-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:30:17-75
-290                android:value="androidx.startup" />
-290-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:31:17-49
-291            <meta-data
-291-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\4bc52031417e9743197e36b704fe409f\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:29:13-31:52
-292                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-292-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\4bc52031417e9743197e36b704fe409f\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:30:17-78
-293                android:value="androidx.startup" />
-293-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\4bc52031417e9743197e36b704fe409f\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:31:17-49
-294            <meta-data
-294-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:29:13-31:52
-295                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
-295-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:30:17-85
-296                android:value="androidx.startup" />
-296-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:31:17-49
-297        </provider>
-298
-299        <service
-299-->[com.google.android.datatransport:transport-backend-cct:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\85bc3f8cc97bd85b10d760e1ca7886a3\transformed\transport-backend-cct-3.1.8\AndroidManifest.xml:28:9-34:19
-300            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
-300-->[com.google.android.datatransport:transport-backend-cct:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\85bc3f8cc97bd85b10d760e1ca7886a3\transformed\transport-backend-cct-3.1.8\AndroidManifest.xml:29:13-103
-301            android:exported="false" >
-301-->[com.google.android.datatransport:transport-backend-cct:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\85bc3f8cc97bd85b10d760e1ca7886a3\transformed\transport-backend-cct-3.1.8\AndroidManifest.xml:30:13-37
-302            <meta-data
-302-->[com.google.android.datatransport:transport-backend-cct:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\85bc3f8cc97bd85b10d760e1ca7886a3\transformed\transport-backend-cct-3.1.8\AndroidManifest.xml:31:13-33:39
-303                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
-303-->[com.google.android.datatransport:transport-backend-cct:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\85bc3f8cc97bd85b10d760e1ca7886a3\transformed\transport-backend-cct-3.1.8\AndroidManifest.xml:32:17-94
-304                android:value="cct" />
-304-->[com.google.android.datatransport:transport-backend-cct:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\85bc3f8cc97bd85b10d760e1ca7886a3\transformed\transport-backend-cct-3.1.8\AndroidManifest.xml:33:17-36
-305        </service>
-306        <service
-306-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:26:9-30:19
-307            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
-307-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:27:13-117
-308            android:exported="false"
-308-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:28:13-37
-309            android:permission="android.permission.BIND_JOB_SERVICE" >
-309-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:29:13-69
-310        </service>
-311
-312        <receiver
-312-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:32:9-34:40
-313            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
-313-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:33:13-132
-314            android:exported="false" />
-314-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:34:13-37
-315        <receiver
-315-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:34:9-52:20
-316            android:name="androidx.profileinstaller.ProfileInstallReceiver"
-316-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:35:13-76
-317            android:directBootAware="false"
-317-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:36:13-44
-318            android:enabled="true"
-318-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:37:13-35
-319            android:exported="true"
-319-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:38:13-36
-320            android:permission="android.permission.DUMP" >
-320-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:39:13-57
-321            <intent-filter>
-321-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:40:13-42:29
-322                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
-322-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:17-91
-322-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:25-88
-323            </intent-filter>
-324            <intent-filter>
-324-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:43:13-45:29
-325                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
-325-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:17-85
-325-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:25-82
-326            </intent-filter>
-327            <intent-filter>
-327-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:46:13-48:29
-328                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
-328-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:17-88
-328-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:25-85
-329            </intent-filter>
-330            <intent-filter>
-330-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:49:13-51:29
-331                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
-331-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:17-95
-331-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:25-92
-332            </intent-filter>
-333        </receiver>
-334    </application>
-335
-336</manifest>
+180-->C:\ICTUS\app\src\main\AndroidManifest.xml:128:13-129:58
+181                android:name="android.support.customtabs.trusted.ADDITIONAL_TRUSTED_ORIGINS"
+181-->C:\ICTUS\app\src\main\AndroidManifest.xml:128:24-100
+182                android:value="https://www.stater.app" />
+182-->C:\ICTUS\app\src\main\AndroidManifest.xml:129:17-55
+183
+184            <!-- Desativar splash do PWA para evitar logo estourada -->
+185            <meta-data
+185-->C:\ICTUS\app\src\main\AndroidManifest.xml:132:13-133:40
+186                android:name="android.support.customtabs.trusted.SKIP_WEB_MANIFEST_SPLASH"
+186-->C:\ICTUS\app\src\main\AndroidManifest.xml:132:24-98
+187                android:value="true" />
+187-->C:\ICTUS\app\src\main\AndroidManifest.xml:133:17-37
+188
+189            <!-- Configurações de cores -->
+190            <meta-data
+190-->C:\ICTUS\app\src\main\AndroidManifest.xml:136:13-138:58
+191                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
+191-->C:\ICTUS\app\src\main\AndroidManifest.xml:137:17-83
+192                android:resource="@color/colorPrimary" />
+192-->C:\ICTUS\app\src\main\AndroidManifest.xml:138:17-55
+193            <meta-data
+193-->C:\ICTUS\app\src\main\AndroidManifest.xml:140:13-142:62
+194                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR_DARK"
+194-->C:\ICTUS\app\src\main\AndroidManifest.xml:141:17-88
+195                android:resource="@color/colorPrimaryDark" />
+195-->C:\ICTUS\app\src\main\AndroidManifest.xml:142:17-59
+196            <meta-data
+196-->C:\ICTUS\app\src\main\AndroidManifest.xml:144:13-146:61
+197                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
+197-->C:\ICTUS\app\src\main\AndroidManifest.xml:145:17-87
+198                android:resource="@color/navigationColor" />
+198-->C:\ICTUS\app\src\main\AndroidManifest.xml:146:17-58
+199            <meta-data
+199-->C:\ICTUS\app\src\main\AndroidManifest.xml:148:13-150:65
+200                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR_DARK"
+200-->C:\ICTUS\app\src\main\AndroidManifest.xml:149:17-92
+201                android:resource="@color/navigationColorDark" />
+201-->C:\ICTUS\app\src\main\AndroidManifest.xml:150:17-62
+202
+203            <!-- Splash Screen usando stater-logo-152 -->
+204            <meta-data
+204-->C:\ICTUS\app\src\main\AndroidManifest.xml:153:13-154:59
+205                android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
+205-->C:\ICTUS\app\src\main\AndroidManifest.xml:153:24-95
+206                android:resource="@drawable/splash_logo" />
+206-->C:\ICTUS\app\src\main\AndroidManifest.xml:154:17-57
+207            <meta-data
+207-->C:\ICTUS\app\src\main\AndroidManifest.xml:156:13-157:60
+208                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
+208-->C:\ICTUS\app\src\main\AndroidManifest.xml:156:24-104
+209                android:resource="@color/backgroundColor" />
+209-->C:\ICTUS\app\src\main\AndroidManifest.xml:157:17-58
+210            <meta-data
+210-->C:\ICTUS\app\src\main\AndroidManifest.xml:159:13-160:41
+211                android:name="android.support.customtabs.trusted.SPLASH_IMAGE_SCALE_TYPE"
+211-->C:\ICTUS\app\src\main\AndroidManifest.xml:159:24-97
+212                android:value="center" />
+212-->C:\ICTUS\app\src\main\AndroidManifest.xml:160:17-39
+213            <meta-data
+213-->C:\ICTUS\app\src\main\AndroidManifest.xml:82:13-84:39
+214                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
+214-->C:\ICTUS\app\src\main\AndroidManifest.xml:83:17-98
+215                android:value="300" />
+215-->C:\ICTUS\app\src\main\AndroidManifest.xml:84:17-36
+216
+217            <!-- Estratégia padrão de splash nativa do TWA -->
+218            <meta-data
+218-->C:\ICTUS\app\src\main\AndroidManifest.xml:166:13-121
+219                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_STRATEGY"
+219-->C:\ICTUS\app\src\main\AndroidManifest.xml:166:24-96
+220                android:value="native" />
+220-->C:\ICTUS\app\src\main\AndroidManifest.xml:166:97-119
+221        </activity>
+222        <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />
+222-->C:\ICTUS\app\src\main\AndroidManifest.xml:169:9-90
+222-->C:\ICTUS\app\src\main\AndroidManifest.xml:169:19-87
+223        <activity
+223-->C:\ICTUS\app\src\main\AndroidManifest.xml:171:9-172:62
+224            android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
+224-->C:\ICTUS\app\src\main\AndroidManifest.xml:171:19-97
+225            android:configChanges="orientation|screenSize" />
+225-->C:\ICTUS\app\src\main\AndroidManifest.xml:172:13-59
+226
+227        <service
+227-->C:\ICTUS\app\src\main\AndroidManifest.xml:176:9-187:19
+228            android:name="com.timothy.stater.DelegationService"
+228-->C:\ICTUS\app\src\main\AndroidManifest.xml:177:13-46
+229            android:enabled="@bool/enableNotification"
+229-->C:\ICTUS\app\src\main\AndroidManifest.xml:178:13-55
+230            android:exported="@bool/enableNotification" >
+230-->C:\ICTUS\app\src\main\AndroidManifest.xml:179:13-56
+231            <meta-data
+231-->C:\ICTUS\app\src\main\AndroidManifest.xml:180:13-182:69
+232                android:name="android.support.customtabs.trusted.SMALL_ICON"
+232-->C:\ICTUS\app\src\main\AndroidManifest.xml:181:17-77
+233                android:resource="@drawable/ic_notification_icon" />
+233-->C:\ICTUS\app\src\main\AndroidManifest.xml:182:17-66
+234
+235            <intent-filter>
+235-->C:\ICTUS\app\src\main\AndroidManifest.xml:183:13-186:29
+236                <action android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE" />
+236-->C:\ICTUS\app\src\main\AndroidManifest.xml:184:17-105
+236-->C:\ICTUS\app\src\main\AndroidManifest.xml:184:25-103
+237
+238                <category android:name="android.intent.category.DEFAULT" />
+238-->C:\ICTUS\app\src\main\AndroidManifest.xml:94:17-76
+238-->C:\ICTUS\app\src\main\AndroidManifest.xml:94:27-73
+239            </intent-filter>
+240        </service>
+241
+242        <activity android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity" />
+242-->C:\ICTUS\app\src\main\AndroidManifest.xml:189:9-114
+242-->C:\ICTUS\app\src\main\AndroidManifest.xml:189:19-111
+243        <activity
+243-->C:\ICTUS\app\src\main\AndroidManifest.xml:190:9-203:20
+244            android:name="com.google.androidbrowserhelper.playbilling.provider.PaymentActivity"
+244-->C:\ICTUS\app\src\main\AndroidManifest.xml:191:13-96
+245            android:configChanges="keyboardHidden|keyboard|orientation|screenLayout|screenSize"
+245-->C:\ICTUS\app\src\main\AndroidManifest.xml:193:13-96
+246            android:exported="true"
+246-->C:\ICTUS\app\src\main\AndroidManifest.xml:194:13-36
+247            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+247-->C:\ICTUS\app\src\main\AndroidManifest.xml:192:13-72
+248            <intent-filter>
+248-->C:\ICTUS\app\src\main\AndroidManifest.xml:196:13-198:29
+249                <action android:name="org.chromium.intent.action.PAY" />
+249-->C:\ICTUS\app\src\main\AndroidManifest.xml:197:17-73
+249-->C:\ICTUS\app\src\main\AndroidManifest.xml:197:25-70
+250            </intent-filter>
+251
+252            <meta-data
+252-->C:\ICTUS\app\src\main\AndroidManifest.xml:200:13-202:67
+253                android:name="org.chromium.default_payment_method_name"
+253-->C:\ICTUS\app\src\main\AndroidManifest.xml:201:17-72
+254                android:value="https://play.google.com/billing" />
+254-->C:\ICTUS\app\src\main\AndroidManifest.xml:202:17-64
+255        </activity>
+256
+257        <!-- This service checks who calls it at runtime. -->
+258        <service
+258-->C:\ICTUS\app\src\main\AndroidManifest.xml:206:9-212:19
+259            android:name="com.google.androidbrowserhelper.playbilling.provider.PaymentService"
+259-->C:\ICTUS\app\src\main\AndroidManifest.xml:207:13-95
+260            android:exported="true" >
+260-->C:\ICTUS\app\src\main\AndroidManifest.xml:208:13-36
+261            <intent-filter>
+261-->C:\ICTUS\app\src\main\AndroidManifest.xml:209:13-211:29
+262                <action android:name="org.chromium.intent.action.IS_READY_TO_PAY" />
+262-->C:\ICTUS\app\src\main\AndroidManifest.xml:210:17-85
+262-->C:\ICTUS\app\src\main\AndroidManifest.xml:210:25-82
+263            </intent-filter>
+264        </service>
+265
+266        <!-- ✅ ADICIONADO: FileProvider para uploads de câmera -->
+267        <provider
+268            android:name="androidx.core.content.FileProvider"
+268-->C:\ICTUS\app\src\main\AndroidManifest.xml:216:13-62
+269            android:authorities="com.timothy.stater.provider"
+269-->C:\ICTUS\app\src\main\AndroidManifest.xml:217:13-60
+270            android:exported="false"
+270-->C:\ICTUS\app\src\main\AndroidManifest.xml:218:13-37
+271            android:grantUriPermissions="true" >
+271-->C:\ICTUS\app\src\main\AndroidManifest.xml:219:13-47
+272            <meta-data
+272-->C:\ICTUS\app\src\main\AndroidManifest.xml:220:13-222:54
+273                android:name="android.support.FILE_PROVIDER_PATHS"
+273-->C:\ICTUS\app\src\main\AndroidManifest.xml:221:17-67
+274                android:resource="@xml/file_paths" />
+274-->C:\ICTUS\app\src\main\AndroidManifest.xml:222:17-51
+275        </provider>
+276
+277        <meta-data
+277-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:22:9-24:37
+278            android:name="com.google.android.play.billingclient.version"
+278-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:23:13-73
+279            android:value="7.1.1" />
+279-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:24:13-34
+280
+281        <activity
+281-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:26:9-30:75
+282            android:name="com.android.billingclient.api.ProxyBillingActivity"
+282-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:27:13-78
+283            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+283-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:28:13-96
+284            android:exported="false"
+284-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:29:13-37
+285            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+285-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:30:13-72
+286        <activity
+286-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:31:9-35:75
+287            android:name="com.android.billingclient.api.ProxyBillingActivityV2"
+287-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:32:13-80
+288            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+288-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:33:13-96
+289            android:exported="false"
+289-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:34:13-37
+290            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+290-->[com.android.billingclient:billing:7.1.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\1dcabcea90c9508775a51aeea5d7fca7\transformed\billing-7.1.1\AndroidManifest.xml:35:13-72
+291        <activity
+291-->[com.google.android.gms:play-services-base:18.5.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\57bacb9ef58048c0e6f8321d8067096b\transformed\play-services-base-18.5.0\AndroidManifest.xml:5:9-173
+292            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+292-->[com.google.android.gms:play-services-base:18.5.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\57bacb9ef58048c0e6f8321d8067096b\transformed\play-services-base-18.5.0\AndroidManifest.xml:5:19-85
+293            android:exported="false"
+293-->[com.google.android.gms:play-services-base:18.5.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\57bacb9ef58048c0e6f8321d8067096b\transformed\play-services-base-18.5.0\AndroidManifest.xml:5:146-170
+294            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+294-->[com.google.android.gms:play-services-base:18.5.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\57bacb9ef58048c0e6f8321d8067096b\transformed\play-services-base-18.5.0\AndroidManifest.xml:5:86-145
+295
+296        <meta-data
+296-->[com.google.android.gms:play-services-basement:18.4.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\af1250092db6525f6762c9b32f91bede\transformed\play-services-basement-18.4.0\AndroidManifest.xml:6:9-122
+297            android:name="com.google.android.gms.version"
+297-->[com.google.android.gms:play-services-basement:18.4.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\af1250092db6525f6762c9b32f91bede\transformed\play-services-basement-18.4.0\AndroidManifest.xml:6:20-65
+298            android:value="@integer/google_play_services_version" />
+298-->[com.google.android.gms:play-services-basement:18.4.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\af1250092db6525f6762c9b32f91bede\transformed\play-services-basement-18.4.0\AndroidManifest.xml:6:66-119
+299
+300        <provider
+300-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:24:9-32:20
+301            android:name="androidx.startup.InitializationProvider"
+301-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:25:13-67
+302            android:authorities="com.timothy.stater.androidx-startup"
+302-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:26:13-68
+303            android:exported="false" >
+303-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:27:13-37
+304            <meta-data
+304-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:29:13-31:52
+305                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+305-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:30:17-75
+306                android:value="androidx.startup" />
+306-->[androidx.emoji2:emoji2:1.3.0] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\5cb7738f5242d8c4e38c8ffa2b265b31\transformed\emoji2-1.3.0\AndroidManifest.xml:31:17-49
+307            <meta-data
+307-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\4bc52031417e9743197e36b704fe409f\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:29:13-31:52
+308                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+308-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\4bc52031417e9743197e36b704fe409f\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:30:17-78
+309                android:value="androidx.startup" />
+309-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\4bc52031417e9743197e36b704fe409f\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:31:17-49
+310            <meta-data
+310-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:29:13-31:52
+311                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+311-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:30:17-85
+312                android:value="androidx.startup" />
+312-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:31:17-49
+313        </provider>
+314
+315        <service
+315-->[com.google.android.datatransport:transport-backend-cct:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\85bc3f8cc97bd85b10d760e1ca7886a3\transformed\transport-backend-cct-3.1.8\AndroidManifest.xml:28:9-34:19
+316            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+316-->[com.google.android.datatransport:transport-backend-cct:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\85bc3f8cc97bd85b10d760e1ca7886a3\transformed\transport-backend-cct-3.1.8\AndroidManifest.xml:29:13-103
+317            android:exported="false" >
+317-->[com.google.android.datatransport:transport-backend-cct:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\85bc3f8cc97bd85b10d760e1ca7886a3\transformed\transport-backend-cct-3.1.8\AndroidManifest.xml:30:13-37
+318            <meta-data
+318-->[com.google.android.datatransport:transport-backend-cct:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\85bc3f8cc97bd85b10d760e1ca7886a3\transformed\transport-backend-cct-3.1.8\AndroidManifest.xml:31:13-33:39
+319                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+319-->[com.google.android.datatransport:transport-backend-cct:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\85bc3f8cc97bd85b10d760e1ca7886a3\transformed\transport-backend-cct-3.1.8\AndroidManifest.xml:32:17-94
+320                android:value="cct" />
+320-->[com.google.android.datatransport:transport-backend-cct:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\85bc3f8cc97bd85b10d760e1ca7886a3\transformed\transport-backend-cct-3.1.8\AndroidManifest.xml:33:17-36
+321        </service>
+322        <service
+322-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:26:9-30:19
+323            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+323-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:27:13-117
+324            android:exported="false"
+324-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:28:13-37
+325            android:permission="android.permission.BIND_JOB_SERVICE" >
+325-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:29:13-69
+326        </service>
+327
+328        <receiver
+328-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:32:9-34:40
+329            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+329-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:33:13-132
+330            android:exported="false" />
+330-->[com.google.android.datatransport:transport-runtime:3.1.8] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\390580f802b798735a90189ae7e85163\transformed\transport-runtime-3.1.8\AndroidManifest.xml:34:13-37
+331        <receiver
+331-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:34:9-52:20
+332            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+332-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:35:13-76
+333            android:directBootAware="false"
+333-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:36:13-44
+334            android:enabled="true"
+334-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:37:13-35
+335            android:exported="true"
+335-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:38:13-36
+336            android:permission="android.permission.DUMP" >
+336-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:39:13-57
+337            <intent-filter>
+337-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:40:13-42:29
+338                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+338-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:17-91
+338-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:25-88
+339            </intent-filter>
+340            <intent-filter>
+340-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:43:13-45:29
+341                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+341-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:17-85
+341-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:25-82
+342            </intent-filter>
+343            <intent-filter>
+343-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:46:13-48:29
+344                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+344-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:17-88
+344-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:25-85
+345            </intent-filter>
+346            <intent-filter>
+346-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:49:13-51:29
+347                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+347-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:17-95
+347-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Editora Vélos\.gradle\caches\8.11.1\transforms\bb4a0d32d1b17a1dcea0cf71d2bde5e0\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:25-92
+348            </intent-filter>
+349        </receiver>
+350    </application>
+351
+352</manifest>

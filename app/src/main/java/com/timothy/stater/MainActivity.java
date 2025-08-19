@@ -228,6 +228,9 @@ public class MainActivity extends Activity {
                 // � INJETAR BACKGROUND AZUL TOTAL
                 injectBackgroundBlue();
                 
+                // 🔒 PROTEÇÃO DE LOGIN - BLOQUEAR ACESSO À HOMEPAGE
+                injectLoginProtection();
+                
                 // �🎯 TWA Service Worker Support Enhancement
                 injectTWAServiceWorkerSupport(view);
             }
@@ -1479,6 +1482,91 @@ public class MainActivity extends Activity {
             "    meta.content = '#31518b';" +
             "    " +
             "    console.log('🎨 Background azul dominante aplicado!');" +
+            "})();",
+            null
+        );
+    }
+
+    private void injectLoginProtection() {
+        webView.evaluateJavascript(
+            "(function() {" +
+            "    // 🔒 PROTEÇÃO DE ACESSO - BLOQUEAR HOMEPAGE SEM LOGIN" +
+            "    function enforceLoginProtection() {" +
+            "        var currentPath = window.location.pathname;" +
+            "        var isLoggedIn = false;" +
+            "        " +
+            "        // Verificar se há token de autenticação ou sessão ativa" +
+            "        try {" +
+            "            // Verificar localStorage" +
+            "            var token = localStorage.getItem('authToken') || localStorage.getItem('token') || localStorage.getItem('access_token');" +
+            "            var userSession = localStorage.getItem('user') || localStorage.getItem('userSession');" +
+            "            " +
+            "            // Verificar sessionStorage" +
+            "            var sessionToken = sessionStorage.getItem('authToken') || sessionStorage.getItem('token');" +
+            "            " +
+            "            // Verificar cookies de autenticação" +
+            "            var hasAuthCookie = document.cookie.includes('auth') || document.cookie.includes('session') || document.cookie.includes('token');" +
+            "            " +
+            "            isLoggedIn = !!(token || userSession || sessionToken || hasAuthCookie);" +
+            "            " +
+            "            console.log('🔍 Verificação de login:', {" +
+            "                path: currentPath," +
+            "                hasToken: !!token," +
+            "                hasSession: !!userSession," +
+            "                hasSessionToken: !!sessionToken," +
+            "                hasAuthCookie: hasAuthCookie," +
+            "                isLoggedIn: isLoggedIn" +
+            "            });" +
+            "        } catch(e) {" +
+            "            console.warn('❌ Erro ao verificar autenticação:', e);" +
+            "            isLoggedIn = false;" +
+            "        }" +
+            "        " +
+            "        // Lista de páginas que requerem login (todas exceto login)" +
+            "        var protectedPaths = ['/', '/dashboard', '/home', '/app', '/main', '/index'];" +
+            "        var isProtectedPath = protectedPaths.some(path => " +
+            "            currentPath === path || currentPath.startsWith(path + '/') || " +
+            "            (path === '/' && currentPath.length <= 1)" +
+            "        );" +
+            "        " +
+            "        // Se não está logado E está em página protegida, redirecionar" +
+            "        if (!isLoggedIn && isProtectedPath && !currentPath.includes('/login')) {" +
+            "            console.log('🚫 Acesso negado - redirecionando para login');" +
+            "            console.log('Path atual:', currentPath);" +
+            "            window.location.href = 'https://stater.app/login';" +
+            "            return;" +
+            "        }" +
+            "        " +
+            "        console.log('✅ Verificação de acesso aprovada');" +
+            "    }" +
+            "    " +
+            "    // Executar verificação imediatamente" +
+            "    enforceLoginProtection();" +
+            "    " +
+            "    // Verificar novamente quando o DOM estiver pronto" +
+            "    if (document.readyState === 'loading') {" +
+            "        document.addEventListener('DOMContentLoaded', enforceLoginProtection);" +
+            "    }" +
+            "    " +
+            "    // Interceptar mudanças de URL (SPA)" +
+            "    var originalPushState = history.pushState;" +
+            "    var originalReplaceState = history.replaceState;" +
+            "    " +
+            "    history.pushState = function() {" +
+            "        originalPushState.apply(history, arguments);" +
+            "        setTimeout(enforceLoginProtection, 100);" +
+            "    };" +
+            "    " +
+            "    history.replaceState = function() {" +
+            "        originalReplaceState.apply(history, arguments);" +
+            "        setTimeout(enforceLoginProtection, 100);" +
+            "    };" +
+            "    " +
+            "    window.addEventListener('popstate', function() {" +
+            "        setTimeout(enforceLoginProtection, 100);" +
+            "    });" +
+            "    " +
+            "    console.log('🔒 Sistema de proteção de login ativado!');" +
             "})();",
             null
         );

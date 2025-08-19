@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  
+  <!-- 🎯 VIEWPORT CRUCIAL - viewport-fit=cover É A CHAVE -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  
+  <!-- 🔥 ELIMINAÇÃO FAIXA BRANCA - CONFIGURAÇÕES APPLE -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Stater" />
+  
+  <!-- 💀 OVERRIDE TOTAL DE FAIXA BRANCA -->
+  <meta name="theme-color" content="#31518b" />
+  <meta name="msapplication-navbutton-color" content="#31518b" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  
+  <!-- 🌟 SAFE AREA SUPORTE COMPLETO -->
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  
+  <!-- 📱 PWA MANIFEST -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  
+  <!-- 🎨 BACKGROUND INSTANTÂNEO - ANTI-FLASH -->
+  <style>
+    html, body {
+      background-color: #31518b !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow-x: hidden;
+    }
+    
+    /* 🔥 SAFE AREA CSS VARIABLES */
+    :root {
+      --sat: env(safe-area-inset-top);
+      --sar: env(safe-area-inset-right); 
+      --sab: env(safe-area-inset-bottom);
+      --sal: env(safe-area-inset-left);
+    }
+  </style>
+  
+  <title>Stater</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

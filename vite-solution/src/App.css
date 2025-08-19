@@ -1,0 +1,90 @@
+/* 🔥 APP ESPECÍFICO - ANTI-FAIXA BRANCA RADICAL */
+
+.App {
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: 100svh;
+  background-color: #31518b;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* 📱 SAFE AREA CUSTOM UTILITIES */
+.min-h-screen-safe {
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: calc(100vh - env(safe-area-inset-bottom));
+}
+
+/* 🎯 STATUS BAR OVERRIDE PARA iOS */
+@supports (-webkit-appearance: none) {
+  .App {
+    /* iOS Safari específico */
+    min-height: -webkit-fill-available;
+    background-color: #31518b;
+  }
+  
+  /* Forçar altura completa em iOS */
+  html {
+    height: -webkit-fill-available;
+  }
+}
+
+/* 🔥 GARANTIR QUE NENHUM ELEMENTO TENHA BACKGROUND BRANCO */
+* {
+  background-color: transparent !important;
+}
+
+html, body, #root, .App {
+  background-color: #31518b !important;
+}
+
+/* 📱 RESPONSIVE BREAKPOINTS PARA MOBILE */
+@media screen and (max-width: 768px) {
+  .App {
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* 🎯 IPHONE X+ NOTCH ESPECÍFICO */
+@media screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
+  /* iPhone X/XS */
+  .App {
+    height: 100vh;
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+@media screen and (device-width: 414px) and (device-height: 896px) {
+  /* iPhone XR/11/XS Max/11 Pro Max */
+  .App {
+    height: 100vh;
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+@media screen and (device-width: 390px) and (device-height: 844px) {
+  /* iPhone 12/13/14 */
+  .App {
+    height: 100vh;
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+@media screen and (device-width: 428px) and (device-height: 926px) {
+  /* iPhone 12/13/14 Pro Max */
+  .App {
+    height: 100vh;
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* 🔄 FORÇA REFLOW PARA ELIMINAR FAIXA BRANCA */
+.force-reflow {
+  transform: translateZ(0);
+  will-change: transform;
+}

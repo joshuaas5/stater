@@ -2756,10 +2756,10 @@
         
     </style><style name="LauncherTheme" parent="Theme.TwaLauncher">
         <item name="android:windowBackground">@color/backgroundColor</item>
-        <item name="android:statusBarColor" ns2:targetApi="l">@android:color/transparent</item>
+        <item name="android:statusBarColor" ns2:targetApi="l">@color/staterBlue</item>
     </style><style name="SplashTheme" parent="Theme.TwaLauncher">
         <item name="android:windowBackground">@color/backgroundColor</item>
-        <item name="android:statusBarColor" ns2:targetApi="l">@android:color/transparent</item>
+        <item name="android:statusBarColor" ns2:targetApi="l">@color/staterBlue</item>
     </style></file><file path="C:\ICTUS\app\src\main\res\values-v21\styles.xml" qualifiers="v21"><style name="BaseTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
         <item name="android:statusBarColor" ns2:targetApi="l">@android:color/transparent</item>
         <item name="android:navigationBarColor" ns2:targetApi="l">@android:color/transparent</item>

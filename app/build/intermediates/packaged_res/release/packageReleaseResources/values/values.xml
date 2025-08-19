@@ -84,11 +84,11 @@
     </style>
     <style name="LauncherTheme" parent="Theme.TwaLauncher">
         <item name="android:windowBackground">@color/backgroundColor</item>
-        <item name="android:statusBarColor" ns1:targetApi="l">@android:color/transparent</item>
+        <item name="android:statusBarColor" ns1:targetApi="l">@color/staterBlue</item>
     </style>
     <style name="SplashTheme" parent="Theme.TwaLauncher">
         <item name="android:windowBackground">@color/backgroundColor</item>
-        <item name="android:statusBarColor" ns1:targetApi="l">@android:color/transparent</item>
+        <item name="android:statusBarColor" ns1:targetApi="l">@color/staterBlue</item>
     </style>
     <style name="Theme.TwaLauncher" parent="BaseTheme">
         

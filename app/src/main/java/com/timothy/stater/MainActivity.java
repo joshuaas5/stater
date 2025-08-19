@@ -133,6 +133,9 @@ public class MainActivity extends Activity {
         
         webView = findViewById(R.id.webview);
         
+        // 🎨 BACKGROUND AZUL STATER PARA WEBVIEW - HARMONIA TOTAL
+        webView.setBackgroundColor(Color.parseColor("#31518b")); // AZUL STATER
+        
         // Configurações do WebView
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -222,7 +225,10 @@ public class MainActivity extends Activity {
                 // 🎯 INJETAR CSS EDGE-TO-EDGE
                 injectEdgeToEdgeCSS(view);
                 
-                // 🎯 TWA Service Worker Support Enhancement
+                // � INJETAR BACKGROUND AZUL TOTAL
+                injectBackgroundBlue();
+                
+                // �🎯 TWA Service Worker Support Enhancement
                 injectTWAServiceWorkerSupport(view);
             }
         });
@@ -1451,6 +1457,28 @@ public class MainActivity extends Activity {
             "    style.innerHTML = `" + css + "`;" +
             "    document.head.appendChild(style);" +
             "    console.log('✅ CSS Edge-to-Edge aprimorado aplicado!');" +
+            "})();",
+            null
+        );
+    }
+
+    private void injectBackgroundBlue() {
+        webView.evaluateJavascript(
+            "(function() {" +
+            "    // Garantir background azul dominante" +
+            "    document.body.style.backgroundColor = '#31518b';" +
+            "    document.documentElement.style.backgroundColor = '#31518b';" +
+            "    " +
+            "    // Meta theme-color para máxima harmonia" +
+            "    var meta = document.querySelector('meta[name=theme-color]');" +
+            "    if (!meta) {" +
+            "        meta = document.createElement('meta');" +
+            "        meta.name = 'theme-color';" +
+            "        document.head.appendChild(meta);" +
+            "    }" +
+            "    meta.content = '#31518b';" +
+            "    " +
+            "    console.log('🎨 Background azul dominante aplicado!');" +
             "})();",
             null
         );

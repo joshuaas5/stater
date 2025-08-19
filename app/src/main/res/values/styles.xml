@@ -52,15 +52,16 @@
     </style>
     
     <!-- 🚪 TEMA PARA LAUNCHER ACTIVITY -->
+    <!-- 🎬 TEMA LAUNCHER - STATUS BAR AZUL DESDE O INÍCIO -->
     <style name="LauncherTheme" parent="Theme.TwaLauncher">
         <item name="android:windowBackground">@color/backgroundColor</item>
-        <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/staterBlue</item>
     </style>
     
-    <!-- 📱 TEMA SPLASH PARA MANTER CONSISTÊNCIA VISUAL -->
+    <!-- 🎬 TEMA SPLASH - STATUS BAR AZUL CONSISTENTE -->
     <style name="SplashTheme" parent="Theme.TwaLauncher">
         <item name="android:windowBackground">@color/backgroundColor</item>
-        <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/staterBlue</item>
     </style>
     
 </resources>

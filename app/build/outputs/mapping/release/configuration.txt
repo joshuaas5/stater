@@ -12,14 +12,12 @@
 -keep class com.google.androidbrowserhelper.playbilling.provider.PaymentActivity { <init>(); }
 -keep class com.google.androidbrowserhelper.playbilling.provider.PaymentService { <init>(); }
 -keep class com.google.androidbrowserhelper.trusted.FocusActivity { <init>(); }
--keep class com.google.androidbrowserhelper.trusted.LauncherActivity { <init>(); }
 -keep class com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity { <init>(); }
 -keep class com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity { <init>(); }
 -keep class com.google.androidbrowserhelper.trusted.WebViewFallbackActivity { <init>(); }
 -keep class com.timothy.stater.Application { <init>(); }
 -keep class com.timothy.stater.DelegationService { <init>(); }
--keep class com.timothy.stater.MainActivity { <init>(); }
--keep class com.timothy.stater.TwaDelegationService { <init>(); }
+-keep class com.timothy.stater.LauncherActivity { <init>(); }
 -keep class android.widget.Space { <init>(android.content.Context, android.util.AttributeSet); }
 
 -keep class androidx.appcompat.app.AlertController$RecycleListView { <init>(android.content.Context, android.util.AttributeSet); }

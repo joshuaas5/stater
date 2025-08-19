@@ -18,7 +18,7 @@
     <color name="accent_material_light">@color/material_deep_teal_500</color>
     <color name="androidx_core_ripple_material_light">#1f000000</color>
     <color name="androidx_core_secondary_text_default_material_light">#8a000000</color>
-    <color name="backgroundColor">#1D4ED8</color>
+    <color name="backgroundColor">#1E40AF</color>
     <color name="background_floating_material_dark">@color/material_grey_800</color>
     <color name="background_floating_material_light">@android:color/white</color>
     <color name="background_material_dark">@color/material_grey_850</color>
@@ -37,8 +37,8 @@
     <color name="button_material_light">#ffd6d7d7</color>
     <color name="call_notification_answer_color">#1d873b</color>
     <color name="call_notification_decline_color">#d93025</color>
-    <color name="colorPrimary">#1D4ED8</color>
-    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorPrimary">#1E40AF</color>
+    <color name="colorPrimaryDark">#1E40AF</color>
     <color name="common_google_signin_btn_text_dark_default">@android:color/white</color>
     <color name="common_google_signin_btn_text_dark_disabled">#1F000000</color>
     <color name="common_google_signin_btn_text_dark_focused">@android:color/black</color>
@@ -58,6 +58,7 @@
     <color name="foreground_material_light">@android:color/black</color>
     <color name="highlighted_text_material_dark">#6680cbc4</color>
     <color name="highlighted_text_material_light">#66009688</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
     <color name="material_blue_grey_800">#ff37474f</color>
     <color name="material_blue_grey_900">#ff263238</color>
     <color name="material_blue_grey_950">#ff21272b</color>
@@ -70,10 +71,10 @@
     <color name="material_grey_800">#ff424242</color>
     <color name="material_grey_850">#ff303030</color>
     <color name="material_grey_900">#ff212121</color>
-    <color name="navigationColor">#000000</color>
-    <color name="navigationColorDark">#000000</color>
-    <color name="navigationDividerColor">#000000</color>
-    <color name="navigationDividerColorDark">#000000</color>
+    <color name="navigationColor">#1E40AF</color>
+    <color name="navigationColorDark">#1E40AF</color>
+    <color name="navigationDividerColor">#1E40AF</color>
+    <color name="navigationDividerColorDark">#1E40AF</color>
     <color name="notification_action_color_filter">#ffffffff</color>
     <color name="notification_icon_bg_color">#ff9e9e9e</color>
     <color name="primary_dark_material_dark">@android:color/black</color>
@@ -328,7 +329,7 @@
     <string name="abc_toolbar_collapse_description">Collapse</string>
     <string name="androidx_startup" translatable="false">androidx.startup</string>
     <string name="appName" translatable="false">Stater</string>
-    <string name="app_name">Play Billing</string>
+    <string name="app_name">Stater</string>
     <string name="assetStatements">
     [{
         \"relation\": [\"delegate_permission/common.handle_all_urls\"],
@@ -372,7 +373,7 @@
     <string name="fullScopeUrl" translatable="false">https://stater.app/</string>
     <string name="generatorApp" translatable="false">bubblewrap-cli</string>
     <string name="hostName" translatable="false">stater.app</string>
-    <string name="launchUrl" translatable="false">https://stater.app/login</string>
+    <string name="launchUrl" translatable="false">https://stater.appstater.app/login</string>
     <string name="launcherName" translatable="false">Stater</string>
     <string name="manage_space_no_data_toast">This app holds no browsing data.</string>
     <string name="manage_space_not_supported_toast">This app\'s data is stored in %1$s.</string>
@@ -388,6 +389,7 @@
     <string name="providerAuthority" translatable="false">com.timothy.stater.fileprovider</string>
     <string name="search_menu_title">Search</string>
     <string name="status_bar_notification_info_overflow">999+</string>
+    <string name="title_activity_main">Stater - Assistente Financeiro</string>
     <string name="twa_connection_error">Verifique sua conexão com a internet</string>
     <string name="twa_error">Erro ao carregar aplicativo</string>
     <string name="twa_loading">Carregando Stater...</string>
@@ -403,6 +405,11 @@
     </style>
     <style name="AppTheme.NoActionBar" parent="Theme.TwaLauncher">
         
+    </style>
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.TwaLauncher">
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="android:statusBarColor" ns2:targetApi="l">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar" ns2:targetApi="m">false</item>
     </style>
     <style name="Base.AlertDialog.AppCompat" parent="android:Widget">
         <item name="android:layout">@layout/abc_alert_dialog_material</item>
@@ -1514,10 +1521,6 @@
         <item name="android:colorPrimaryDark" ns2:targetApi="l">@color/colorPrimaryDark</item>
         <item name="android:colorAccent" ns2:targetApi="l">@android:color/white</item>
     </style>
-    <style name="LauncherTheme" parent="Theme.TwaLauncher">
-        <item name="android:windowBackground">@color/backgroundColor</item>
-        <item name="android:statusBarColor" ns2:targetApi="l">@android:color/transparent</item>
-    </style>
     <style name="Platform.AppCompat" parent="android:Theme.Holo">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
@@ -1733,10 +1736,6 @@
         <item name="android:paddingLeft">@dimen/abc_action_bar_overflow_padding_start_material</item>
         <item name="android:paddingRight">@dimen/abc_action_bar_overflow_padding_end_material</item>
     </style>
-    <style name="SplashTheme" parent="Theme.TwaLauncher">
-        <item name="android:windowBackground">@color/backgroundColor</item>
-        <item name="android:statusBarColor" ns2:targetApi="l">@android:color/transparent</item>
-    </style>
     <style name="TextAppearance.AppCompat" parent="Base.TextAppearance.AppCompat"/>
     <style name="TextAppearance.AppCompat.Body1" parent="Base.TextAppearance.AppCompat.Body1"/>
     <style name="TextAppearance.AppCompat.Body2" parent="Base.TextAppearance.AppCompat.Body2"/>
@@ -1842,7 +1841,7 @@
     </style>
     <style name="Theme.TwaLauncher" parent="BaseTheme">
         
-        <item name="android:statusBarColor" ns2:targetApi="l">@android:color/transparent</item>
+        <item name="android:statusBarColor" ns2:targetApi="l">@color/status_bar_color</item>
         <item name="android:windowBackground">@color/backgroundColor</item>
         
         
@@ -1961,11 +1960,11 @@
     <declare-styleable name="ActionBar">
         
         <attr name="navigationMode">
-            <!-- Normal static title text -->
+            
             <enum name="normal" value="0"/>
-            <!-- The action bar will use a selection list for navigation. -->
+            
             <enum name="listMode" value="1"/>
-            <!-- The action bar will use a series of horizontal tabs for navigation. -->
+            
             <enum name="tabMode" value="2"/>
         </attr>
         
@@ -2117,22 +2116,17 @@
 
         
         <attr name="tintMode">
-            <!-- The tint is drawn on top of the drawable.
-                 [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] -->
+            
             <enum name="src_over" value="3"/>
-            <!-- The tint is masked by the alpha channel of the drawable. The drawable’s
-                 color channels are thrown out. [Sa * Da, Sc * Da] -->
+            
             <enum name="src_in" value="5"/>
-            <!-- The tint is drawn above the drawable, but with the drawable’s alpha
-                 channel masking the result. [Da, Sc * Da + (1 - Sa) * Dc] -->
+            
             <enum name="src_atop" value="9"/>
-            <!-- Multiplies the color and alpha channels of the drawable with those of
-                 the tint. [Sa * Da, Sc * Dc] -->
+            
             <enum name="multiply" value="14"/>
-            <!-- [Sa + Da - Sa * Da, Sc + Dc - Sc * Dc] -->
+            
             <enum name="screen" value="15"/>
-            <!-- Combines the tint and icon color and alpha channels, clamping the
-                 result to valid color values. Saturate(S + D) -->
+            
             <enum name="add" value="16"/>
         </attr>
     </declare-styleable>
@@ -2144,22 +2138,17 @@
         <attr format="color" name="tickMarkTint"/>
         
         <attr name="tickMarkTintMode">
-            <!-- The tint is drawn on top of the drawable.
-                 [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] -->
+            
             <enum name="src_over" value="3"/>
-            <!-- The tint is masked by the alpha channel of the drawable. The drawable’s
-                 color channels are thrown out. [Sa * Da, Sc * Da] -->
+            
             <enum name="src_in" value="5"/>
-            <!-- The tint is drawn above the drawable, but with the drawable’s alpha
-                 channel masking the result. [Da, Sc * Da + (1 - Sa) * Dc] -->
+            
             <enum name="src_atop" value="9"/>
-            <!-- Multiplies the color and alpha channels of the drawable with those of
-                 the tint. [Sa * Da, Sc * Dc] -->
+            
             <enum name="multiply" value="14"/>
-            <!-- [Sa + Da - Sa * Da, Sc + Dc - Sc * Dc] -->
+            
             <enum name="screen" value="15"/>
-            <!-- Combines the tint and drawable color and alpha channels, clamping the
-                 result to valid color values. Saturate(S + D) -->
+            
             <enum name="add" value="16"/>
         </attr>
     </declare-styleable>
@@ -2180,10 +2169,9 @@
         <attr name="android:textAppearance"/>
         
         <attr format="enum" name="autoSizeTextType">
-            <!-- No auto-sizing (default). -->
+            
             <enum name="none" value="0"/>
-            <!-- Uniform horizontal and vertical text size scaling to fit within the
-            container. -->
+            
             <enum name="uniform" value="1"/>
         </attr>
         
@@ -2215,22 +2203,17 @@
         <attr format="color" name="drawableTint"/>
         
         <attr name="drawableTintMode">
-            <!-- The tint is drawn on top of the drawable.
-                 [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] -->
+            
             <enum name="src_over" value="3"/>
-            <!-- The tint is masked by the alpha channel of the drawable. The drawable’s
-                 color channels are thrown out. [Sa * Da, Sc * Da] -->
+            
             <enum name="src_in" value="5"/>
-            <!-- The tint is drawn above the drawable, but with the drawable’s alpha
-                 channel masking the result. [Da, Sc * Da + (1 - Sa) * Dc] -->
+            
             <enum name="src_atop" value="9"/>
-            <!-- Multiplies the color and alpha channels of the drawable with those of
-                 the tint. [Sa * Da, Sc * Dc] -->
+            
             <enum name="multiply" value="14"/>
-            <!-- [Sa + Da - Sa * Da, Sc + Dc - Sc * Dc] -->
+            
             <enum name="screen" value="15"/>
-            <!-- Combines the tint and drawable color and alpha channels, clamping the
-                 result to valid color values. Saturate(S + D) -->
+            
             <enum name="add" value="16"/>
         </attr>
         
@@ -2618,22 +2601,17 @@
 
         
         <attr name="checkMarkTintMode">
-            <!-- The tint is drawn on top of the drawable.
-                 [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] -->
+            
             <enum name="src_over" value="3"/>
-            <!-- The tint is masked by the alpha channel of the drawable. The drawable’s
-                 color channels are thrown out. [Sa * Da, Sc * Da] -->
+            
             <enum name="src_in" value="5"/>
-            <!-- The tint is drawn above the drawable, but with the drawable’s alpha
-                 channel masking the result. [Da, Sc * Da + (1 - Sa) * Dc] -->
+            
             <enum name="src_atop" value="9"/>
-            <!-- Multiplies the color and alpha channels of the drawable with those of
-                 the tint. [Sa * Da, Sc * Dc] -->
+            
             <enum name="multiply" value="14"/>
-            <!-- [Sa + Da - Sa * Da, Sc + Dc - Sc * Dc] -->
+            
             <enum name="screen" value="15"/>
-            <!-- Combines the tint and icon color and alpha channels, clamping the
-                 result to valid color values. Saturate(S + D) -->
+            
             <enum name="add" value="16"/>
         </attr>
     </declare-styleable>
@@ -2656,22 +2634,17 @@
 
         
         <attr name="buttonTintMode">
-            <!-- The tint is drawn on top of the drawable.
-                 [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] -->
+            
             <enum name="src_over" value="3"/>
-            <!-- The tint is masked by the alpha channel of the drawable. The drawable’s
-                 color channels are thrown out. [Sa * Da, Sc * Da] -->
+            
             <enum name="src_in" value="5"/>
-            <!-- The tint is drawn above the drawable, but with the drawable’s alpha
-                 channel masking the result. [Da, Sc * Da + (1 - Sa) * Dc] -->
+            
             <enum name="src_atop" value="9"/>
-            <!-- Multiplies the color and alpha channels of the drawable with those of
-                 the tint. [Sa * Da, Sc * Dc] -->
+            
             <enum name="multiply" value="14"/>
-            <!-- [Sa + Da - Sa * Da, Sc + Dc - Sc * Dc] -->
+            
             <enum name="screen" value="15"/>
-            <!-- Combines the tint and icon color and alpha channels, clamping the
-                 result to valid color values. Saturate(S + D) -->
+            
             <enum name="add" value="16"/>
         </attr>
     </declare-styleable>
@@ -2704,23 +2677,14 @@
         <attr format="reference" name="fontProviderCerts"/>
         
         <attr name="fontProviderFetchStrategy">
-            <!-- The blocking font fetch works as follows.
-              First, check the local cache, then if the requested font is not cached, request the
-              font from the provider and wait until it is finished.  You can change the length of
-              the timeout by modifying fontProviderFetchTimeout.  If the timeout happens, the
-              default typeface will be used instead. -->
+            
             <enum name="blocking" value="0"/>
-            <!-- The async font fetch works as follows.
-              First, check the local cache, then if the requeted font is not cached, trigger a
-              request the font and continue with layout inflation. Once the font fetch succeeds, the
-              target text view will be refreshed with the downloaded font data. The
-              fontProviderFetchTimeout will be ignored if async loading is specified. -->
+            
             <enum name="async" value="1"/>
         </attr>
         
         <attr format="integer" name="fontProviderFetchTimeout">
-            <!-- A special value for the timeout. In this case, the blocking font fetching will not
-              timeout and wait until a reply is received from the font provider. -->
+            
             <enum name="forever" value="-1"/>
         </attr>
         
@@ -2928,24 +2892,15 @@
 
         
         <attr name="showAsAction">
-            <!-- Never show this item in an action bar, show it in the overflow menu instead.
-                 Mutually exclusive with "ifRoom" and "always". -->
+            
             <flag name="never" value="0"/>
-            <!-- Show this item in an action bar if there is room for it as determined
-                 by the system. Favor this option over "always" where possible.
-                 Mutually exclusive with "never" and "always". -->
+            
             <flag name="ifRoom" value="1"/>
-            <!-- Always show this item in an actionbar, even if it would override
-                 the system's limits of how much stuff to put there. This may make
-                 your action bar look bad on some screens. In most cases you should
-                 use "ifRoom" instead. Mutually exclusive with "ifRoom" and "never". -->
+            
             <flag name="always" value="2"/>
-            <!-- When this item is shown as an action in the action bar, show a text
-                 label with it even if it has an icon representation. -->
+            
             <flag name="withText" value="4"/>
-            <!-- This item's action view collapses to a normal menu
-                 item. When expanded, the action view takes over a
-                 larger segment of its container. -->
+            
             <flag name="collapseActionView" value="8"/>
         </attr>
 
@@ -2969,22 +2924,17 @@
 
         
         <attr name="iconTintMode">
-            <!-- The tint is drawn on top of the icon.
-                 [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] -->
+            
             <enum name="src_over" value="3"/>
-            <!-- The tint is masked by the alpha channel of the icon. The icon’s
-                 color channels are thrown out. [Sa * Da, Sc * Da] -->
+            
             <enum name="src_in" value="5"/>
-            <!-- The tint is drawn above the icon, but with the icon’s alpha
-                 channel masking the result. [Da, Sc * Da + (1 - Sa) * Dc] -->
+            
             <enum name="src_atop" value="9"/>
-            <!-- Multiplies the color and alpha channels of the icon with those of
-                 the tint. [Sa * Da, Sc * Dc] -->
+            
             <enum name="multiply" value="14"/>
-            <!-- [Sa + Da - Sa * Da, Sc + Dc - Sc * Dc] -->
+            
             <enum name="screen" value="15"/>
-            <!-- Combines the tint and icon color and alpha channels, clamping the
-                 result to valid color values. Saturate(S + D) -->
+            
             <enum name="add" value="16"/>
         </attr>
 
@@ -3118,22 +3068,17 @@
         <attr format="color" name="thumbTint"/>
         
         <attr name="thumbTintMode">
-            <!-- The tint is drawn on top of the drawable.
-                 [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] -->
+            
             <enum name="src_over" value="3"/>
-            <!-- The tint is masked by the alpha channel of the drawable. The drawable’s
-                 color channels are thrown out. [Sa * Da, Sc * Da] -->
+            
             <enum name="src_in" value="5"/>
-            <!-- The tint is drawn above the drawable, but with the drawable’s alpha
-                 channel masking the result. [Da, Sc * Da + (1 - Sa) * Dc] -->
+            
             <enum name="src_atop" value="9"/>
-            <!-- Multiplies the color and alpha channels of the drawable with those of
-                 the tint. [Sa * Da, Sc * Dc] -->
+            
             <enum name="multiply" value="14"/>
-            <!-- [Sa + Da - Sa * Da, Sc + Dc - Sc * Dc] -->
+            
             <enum name="screen" value="15"/>
-            <!-- Combines the tint and drawable color and alpha channels, clamping the
-                 result to valid color values. Saturate(S + D) -->
+            
             <enum name="add" value="16"/>
         </attr>
         
@@ -3142,22 +3087,17 @@
         <attr format="color" name="trackTint"/>
         
         <attr name="trackTintMode">
-            <!-- The tint is drawn on top of the drawable.
-                 [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] -->
+            
             <enum name="src_over" value="3"/>
-            <!-- The tint is masked by the alpha channel of the drawable. The drawable’s
-                 color channels are thrown out. [Sa * Da, Sc * Da] -->
+            
             <enum name="src_in" value="5"/>
-            <!-- The tint is drawn above the drawable, but with the drawable’s alpha
-                 channel masking the result. [Da, Sc * Da + (1 - Sa) * Dc] -->
+            
             <enum name="src_atop" value="9"/>
-            <!-- Multiplies the color and alpha channels of the drawable with those of
-                 the tint. [Sa * Da, Sc * Dc] -->
+            
             <enum name="multiply" value="14"/>
-            <!-- [Sa + Da - Sa * Da, Sc + Dc - Sc * Dc] -->
+            
             <enum name="screen" value="15"/>
-            <!-- Combines the tint and drawable color and alpha channels, clamping the
-                 result to valid color values. Saturate(S + D) -->
+            
             <enum name="add" value="16"/>
         </attr>
         
@@ -3223,11 +3163,11 @@
         <attr name="contentInsetEndWithActions"/>
         <attr format="dimension" name="maxButtonHeight"/>
         <attr name="buttonGravity">
-            <!-- Place object in the vertical center of its container, not changing its size. -->
+            
             <flag name="center_vertical" value="0x10"/>
-            <!-- Push object to the top of its container, not changing its size. -->
+            
             <flag name="top" value="0x30"/>
-            <!-- Push object to the bottom of its container, not changing its size. -->
+            
             <flag name="bottom" value="0x50"/>
         </attr>
         
@@ -3271,22 +3211,17 @@
 
         
         <attr name="backgroundTintMode">
-            <!-- The tint is drawn on top of the drawable.
-                 [Sa + (1 - Sa)*Da, Rc = Sc + (1 - Sa)*Dc] -->
+            
             <enum name="src_over" value="3"/>
-            <!-- The tint is masked by the alpha channel of the drawable. The drawable’s
-                 color channels are thrown out. [Sa * Da, Sc * Da] -->
+            
             <enum name="src_in" value="5"/>
-            <!-- The tint is drawn above the drawable, but with the drawable’s alpha
-                 channel masking the result. [Da, Sc * Da + (1 - Sa) * Dc] -->
+            
             <enum name="src_atop" value="9"/>
-            <!-- Multiplies the color and alpha channels of the drawable with those of
-                 the tint. [Sa * Da, Sc * Dc] -->
+            
             <enum name="multiply" value="14"/>
-            <!-- [Sa + Da - Sa * Da, Sc + Dc - Sc * Dc] -->
+            
             <enum name="screen" value="15"/>
-            <!-- Combines the tint and icon color and alpha channels, clamping the
-                 result to valid color values. Saturate(S + D) -->
+            
             <enum name="add" value="16"/>
         </attr>
     </declare-styleable>

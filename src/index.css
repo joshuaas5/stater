@@ -12,8 +12,8 @@
 
 /* ===== CONFIGURAÇÃO GLOBAL EDGE-TO-EDGE ===== */
 html, body, #root {
-  /* Background azul que se estende por toda a tela */
-  background-color: #31518b !important;
+  /* Background azul consistente com theme_color (#1e40af) */
+  background-color: #1e40af !important;
   
   /* Garante que o container principal ocupe toda a altura */
   min-height: 100vh;
@@ -25,7 +25,7 @@ html, body, #root {
   
   /* � PADDING DE SEGURANÇA PARA ÁREAS EDGE-TO-EDGE */
   /* env(safe-area-inset-*) detecta automaticamente notch, status bar, etc. */
-  padding-top: env(safe-area-inset-top, 24px);
+  padding-top: env(safe-area-inset-top, 0px);
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);

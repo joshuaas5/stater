@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     
-    <!-- 🔵 TEMA AZUL COMO DIA 14/08 - FUNCIONAVA PERFEITAMENTE -->
+    <!-- � TEMA AZUL COMO DIA 14/08 - FUNCIONAVA PERFEITAMENTE -->
     <style name="BaseTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
         <!-- 🌟 STATUS BAR TRANSPARENTE PARA EDGE-TO-EDGE -->
         <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
@@ -24,19 +24,19 @@
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">false</item>
         
-        <!-- 🔵 CORES AZUIS CONSISTENTES -->
+        <!-- � CORES AZUIS CONSISTENTES -->
         <item name="android:colorPrimary" tools:targetApi="l">@color/colorPrimary</item>
         <item name="android:colorPrimaryDark" tools:targetApi="l">@color/colorPrimaryDark</item>
         <item name="android:colorAccent" tools:targetApi="l">@android:color/white</item>
     </style>
     
-    <!-- 🎯 TEMA PRINCIPAL DO TWA - EDGE-TO-EDGE TRANSPARENTE -->
+    <!-- 🎯 TEMA PRINCIPAL DO TWA - BASEADO NO QUE FUNCIONAVA -->
     <style name="Theme.TwaLauncher" parent="BaseTheme">
-        <!-- 🌟 STATUS BAR TRANSPARENTE PARA MOSTRAR AZUL DO APP -->
-        <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
+        <!-- � REFORÇO: STATUS BAR AZUL -->
+        <item name="android:statusBarColor" tools:targetApi="l">@color/status_bar_color</item>
         <item name="android:windowBackground">@color/backgroundColor</item>
         
-        <!-- ⚪ ÍCONES SEMPRE BRANCOS PARA FUNDO AZUL -->
+        <!-- ⚪ ÍCONES SEMPRE BRANCOS -->
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">false</item>
     </style>
@@ -51,16 +51,11 @@
         <!-- Herda toda a configuração do Theme.TwaLauncher -->
     </style>
     
-    <!-- 🚪 TEMA PARA LAUNCHER ACTIVITY -->
-    <style name="LauncherTheme" parent="Theme.TwaLauncher">
-        <item name="android:windowBackground">@color/backgroundColor</item>
+    <!-- 🚀 TEMA DE LAUNCH PARA SPLASH SCREEN -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.TwaLauncher">
+        <item name="android:windowBackground">@drawable/splash</item>
         <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
-    </style>
-    
-    <!-- 📱 TEMA SPLASH PARA MANTER CONSISTÊNCIA VISUAL -->
-    <style name="SplashTheme" parent="Theme.TwaLauncher">
-        <item name="android:windowBackground">@color/backgroundColor</item>
-        <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
     </style>
     
 </resources>

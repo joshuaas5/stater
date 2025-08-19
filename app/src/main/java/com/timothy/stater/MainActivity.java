@@ -78,17 +78,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // 🌟 EDGE-TO-EDGE COMPLETO - COMO APPS PREMIUM (Instagram, TikTok, Netflix)
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        
-        // 🎨 STATUS BAR TRANSPARENTE para edge-to-edge
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().setNavigationBarColor(Color.TRANSPARENT);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        
-        // 🎨 CONFIGURAÇÃO MODERNA DO EDGE-TO-EDGE
-        configureEdgeToEdgeStatusBar();
+        // 🌟 CONFIGURAR STATUS BAR TRANSPARENTE LOGO NO INÍCIO
+        configureTransparentStatusBar();
         
         setContentView(R.layout.activity_main);
         
@@ -153,27 +144,31 @@ public class MainActivity extends Activity {
             }
             
             @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                
-                // 🌟 INJETAR CSS EDGE-TO-EDGE - COMO PAYWALL
-                injectEdgeToEdgeCSS(view);
-                
-                // ✅ MANTER EDGE-TO-EDGE ATIVO
-                hideSystemUI();
-                
-                // 🎯 TWA Service Worker Support Enhancement
-                injectTWAServiceWorkerSupport(view);
-            }
-            
-            @Override
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
+                
+                // 🌟 FIX: Reconfigurar status bar em CADA carregamento de página
+                configureTransparentStatusBar();
                 
                 // 🚀 TWA Performance: Preload critical resources
                 if (url.contains("stater.app")) {
                     optimizeTWALoading(view);
                 }
+            }
+            
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                
+                // 🌟 FIX: Reconfigurar status bar APÓS carregamento completo
+                configureTransparentStatusBar();
+                hideSystemUI();
+                
+                // 🎯 CSS para corrigir espaçamentos
+                injectFixCSS(view);
+                
+                // 🎯 TWA Service Worker Support Enhancement
+                injectTWAServiceWorkerSupport(view);
             }
         });
         
@@ -492,21 +487,123 @@ public class MainActivity extends Activity {
         );
     }
     
-    private void hideSystemUI() {
-        // 🖤 STATUS BAR PRETA - SIMPLES E FUNCIONAL
+    // � MÉTODO DEDICADO PARA STATUS BAR TRANSPARENTE (FIX DEFINITIVO)
+    private void configureTransparentStatusBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // � Reforçar cor preta que é robusta
-            getWindow().setStatusBarColor(Color.BLACK);
+            Window window = getWindow();
+            
+            // Remover flags conflitantes
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            
+            // Forçar transparência
+            window.setStatusBarColor(Color.TRANSPARENT);
+            
+            // Garantir ícones BRANCOS
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                View decorView = window.getDecorView();
+                int flags = decorView.getSystemUiVisibility();
+                // Remover a flag de ícones escuros
+                flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                // Adicionar flags para layout full screen estável
+                flags |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+                decorView.setSystemUiVisibility(flags);
+            }
+            
+            android.util.Log.d("STATER", "Status bar configurada como TRANSPARENTE com ícones BRANCOS");
+        }
+    }
+    
+    // �🎯 CSS METÓDICO PARA CORRIGIR TODOS OS PROBLEMAS
+    private void injectFixCSS(WebView webView) {
+        String css = "" +
+            // ESPAÇO PARA STATUS BAR TRANSPARENTE
+            "body, #root, .app-container { " +
+            "   padding-top: 25px !important; " +
+            "   margin: 0 !important; " +
+            "   background-color: #31518b !important; " +
+            "} " +
+            
+            // NAVBAR COM ALTURA CORRETA E TEXTO VISÍVEL
+            ".bottom-navigation, nav[class*='bottom'], .tab-bar, .navbar-bottom { " +
+            "   height: 70px !important; " +
+            "   min-height: 70px !important; " +
+            "   padding-top: 10px !important; " +
+            "   padding-bottom: 8px !important; " +
+            "   display: flex !important; " +
+            "   align-items: center !important; " +
+            "} " +
+            
+            // TEXTO DA NAVBAR COMPLETAMENTE VISÍVEL
+            ".bottom-navigation span, nav[class*='bottom'] span, .tab-bar span, .navbar-bottom span { " +
+            "   display: block !important; " +
+            "   visibility: visible !important; " +
+            "   font-size: 12px !important; " +
+            "   line-height: 16px !important; " +
+            "   margin-top: 6px !important; " +
+            "   text-overflow: visible !important; " +
+            "   white-space: normal !important; " +
+            "   overflow: visible !important; " +
+            "} " +
+            
+            // BANNER POSICIONADO CORRETAMENTE
+            "[class*='banner'], [id*='banner'], .ad-container, .banner-container { " +
+            "   position: fixed !important; " +
+            "   bottom: 75px !important; " +
+            "   left: 8px !important; " +
+            "   right: 8px !important; " +
+            "   max-width: calc(100% - 16px) !important; " +
+            "   z-index: 999 !important; " +
+            "   margin: 0 auto !important; " +
+            "} " +
+            
+            // HEADER PRINCIPAL COM ESPAÇO ADEQUADO
+            ".header, .greeting, .greeting-header, h1:first-of-type { " +
+            "   padding-top: 20px !important; " +
+            "   margin-top: 0 !important; " +
+            "} ";
+
+        webView.evaluateJavascript(
+            "(function() {" +
+            "    var style = document.createElement('style');" +
+            "    style.id = 'edge-to-edge-fix';" +
+            "    style.innerHTML = `" + css + "`;" +
+            "    " +
+            "    // REMOVER ESTILO ANTERIOR SE EXISTIR" +
+            "    var oldStyle = document.getElementById('edge-to-edge-fix');" +
+            "    if (oldStyle) oldStyle.parentNode.removeChild(oldStyle);" +
+            "    var oldStyle2 = document.getElementById('spacing-fix-v2');" +
+            "    if (oldStyle2) oldStyle2.parentNode.removeChild(oldStyle2);" +
+            "    " +
+            "    document.head.appendChild(style);" +
+            "})();",
+            null
+        );
+    }
+    
+    private void hideSystemUI() {
+        // 🌟 REFORÇAR TRANSPARÊNCIA DA STATUS BAR
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.setStatusBarColor(Color.TRANSPARENT);
+            
+            // Manter layout edge-to-edge
+            View decorView = window.getDecorView();
+            decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            );
+            
+            // Ícones BRANCOS para fundo azul
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                WindowInsetsControllerCompat controller = 
+                    WindowCompat.getInsetsController(window, decorView);
+                controller.setAppearanceLightStatusBars(false); // FALSE = ícones BRANCOS
+            }
         }
         
-        // Layout simples e estável
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        );
-        
-        android.util.Log.d("TWA_THEME", "🖤 hideSystemUI: Status bar PRETA - ROBUSTA");
+        android.util.Log.d("TWA_THEME", "🌟 Status bar transparente reforçada!");
     }
     
     private int getStatusBarHeight() {
@@ -942,22 +1039,6 @@ public class MainActivity extends Activity {
     }
     
     // 🎯 TWA Performance Monitoring
-    @Override
-    protected void onResume() {
-        super.onResume();
-        
-        // 🖤 REFORÇAR STATUS BAR PRETA quando app volta ao foco
-        configureEdgeToEdgeStatusBar();
-        hideSystemUI();
-        
-        // Notificar PWA que o app foi resumido
-        if (webView != null) {
-            webView.evaluateJavascript(
-                "if (window.TWA && window.TWA.notifyNative) {" +
-                "  window.TWA.notifyNative('app-resumed', {timestamp: Date.now()});" +
-                "}", null);
-        }
-    }
 
     @Override
     protected void onPause() {
@@ -1018,133 +1099,30 @@ public class MainActivity extends Activity {
     }
     
     /**
-     * 🌟 INJETAR CSS EDGE-TO-EDGE - AJUSTES FINOS APLICADOS
-     * Corrige sobreposição, navbar reduzida e banner flutuando
-     */
-    private void injectEdgeToEdgeCSS(WebView webView) {
-        String edgeToEdgeCSS = 
-            "javascript:(function() {" +
-            "  const style = document.createElement('style');" +
-            "  style.id = 'edge-to-edge-adjustments';" +
-            "  style.innerHTML = `" +
-            "    /* � VARIÁVEIS SAFE AREA MELHORADAS */" +
-            "    :root {" +
-            "      --status-bar-height: env(safe-area-inset-top, 24px);" +
-            "      --nav-bar-height: env(safe-area-inset-bottom, 0px);" +
-            "      --safe-padding-top: calc(var(--status-bar-height) + 12px);" +
-            "    }" +
-            "    " +
-            "    /* 📱 CORPO COM PADDING SEGURO AUMENTADO */" +
-            "    body, #root, .app-container {" +
-            "      padding-top: var(--safe-padding-top) !important;" +
-            "      padding-bottom: var(--nav-bar-height) !important;" +
-            "      margin: 0 !important;" +
-            "      background-color: #31518b !important;" +
-            "    }" +
-            "    " +
-            "    /* 👋 HEADER COM ESPAÇO EXTRA (Olá, Joshua!) */" +
-            "    .navbar-top, header, .header, .greeting-header, h1:first-of-type, .greeting {" +
-            "      padding-top: calc(var(--status-bar-height) + 16px) !important;" +
-            "      padding-bottom: 12px !important;" +
-            "      margin-top: 0 !important;" +
-            "      height: auto !important;" +
-            "    }" +
-            "    " +
-            "    /* 📍 NAVBAR INFERIOR RESTAURADA COM TEXTOS */" +
-            "    .bottom-navigation, nav[class*='bottom'], .navbar-bottom, .tab-bar, [class*='tab'] {" +
-            "      height: 72px !important;" +
-            "      min-height: 72px !important;" +
-            "      padding-bottom: calc(var(--nav-bar-height) + 8px) !important;" +
-            "      padding-top: 12px !important;" +
-            "      position: fixed !important;" +
-            "      bottom: 0 !important;" +
-            "      left: 0 !important;" +
-            "      right: 0 !important;" +
-            "      z-index: 50 !important;" +
-            "    }" +
-            "    " +
-            "    /* 📝 TEXTOS DA NAVBAR VISÍVEIS */" +
-            "    .bottom-navigation span, nav[class*='bottom'] span, .tab-bar span, [class*='tab'] span {" +
-            "      display: block !important;" +
-            "      opacity: 1 !important;" +
-            "      font-size: 11px !important;" +
-            "      visibility: visible !important;" +
-            "      line-height: 1.2 !important;" +
-            "      margin-top: 4px !important;" +
-            "    }" +
-            "    " +
-            "    /* 📢 BANNER FIXO ACIMA DA NAVBAR */" +
-            "    [class*='ad-banner'], [id*='ad-banner'], [class*='banner'], .ad-container, [class*='ad'] {" +
-            "      position: fixed !important;" +
-            "      bottom: calc(72px + var(--nav-bar-height)) !important;" +
-            "      left: 8px !important;" +
-            "      right: 8px !important;" +
-            "      z-index: 40 !important;" +
-            "      margin: 0 auto !important;" +
-            "      max-width: calc(100% - 16px) !important;" +
-            "      border-radius: 8px !important;" +
-            "      box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;" +
-            "    }" +
-            "    " +
-            "    /* 🎯 TÍTULOS COM ESPAÇAMENTO EXTRA */" +
-            "    h1, h2, .title, .page-title {" +
-            "      margin-top: 16px !important;" +
-            "      padding-top: 8px !important;" +
-            "    }" +
-            "    " +
-            "    /* 📊 CONTEÚDO PRINCIPAL AJUSTADO */" +
-            "    .main-content, .container, [class*='main'], .content {" +
-            "      min-height: calc(100vh - var(--safe-padding-top) - 72px - var(--nav-bar-height)) !important;" +
-            "      padding-bottom: calc(72px + var(--nav-bar-height) + 16px) !important;" +
-            "    }" +
-            "    " +
-            "    /* 🔧 ELEMENTOS FIXOS AJUSTADOS */" +
-            "    .fixed-top, .absolute-top {" +
-            "      top: var(--safe-padding-top) !important;" +
-            "    }" +
-            "  `;" +
-            "  " +
-            "  // Remove estilo anterior se existir" +
-            "  const oldStyle = document.getElementById('edge-to-edge-adjustments');" +
-            "  if (oldStyle) oldStyle.remove();" +
-            "  " +
-            "  document.head.appendChild(style);" +
-            "  console.log('� CSS Edge-to-edge com ajustes finos aplicado!');" +
-            "})();";
-        
-        webView.evaluateJavascript(edgeToEdgeCSS, null);
-        
-        android.util.Log.d("TWA_THEME", "� CSS Edge-to-edge com ajustes finos injetado!");
-    }
-    
-    /**
-     * 🌟 STATUS BAR TRANSPARENTE - COMO VOCÊ GOSTAVA ANTES!
-     * Transparência total para experiência premium
+     * � STATUS BAR AZUL COMO ESTAVA FUNCIONANDO NO DIA 14/08
+     * Cor azul #31518b que funcionava perfeitamente
      */
     private void configureEdgeToEdgeStatusBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // 🌟 FORÇAR TRANSPARÊNCIA TOTAL - SEM COR ALGUMA
+            // � TORNAR STATUS BAR TRANSPARENTE para mostrar a real do sistema
             window.setStatusBarColor(Color.TRANSPARENT);
-            window.setNavigationBarColor(Color.TRANSPARENT);
             
-            // Configuração transparente premium
+            // Configuração simples que funcionava
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
             
-            // 🎨 ÍCONES BRANCOS para fundo azul (como antes)
+            // 🎨 Configurar ícones da barra de status com WindowInsetsController
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 WindowInsetsControllerCompat controller = 
                     WindowCompat.getInsetsController(window, window.getDecorView());
                 
-                // false = ícones BRANCOS (para ver no fundo azul transparente)
+                // false = ícones claros (para fundo escuro #31518b)
                 controller.setAppearanceLightStatusBars(false);
-                controller.setAppearanceLightNavigationBars(false);
             }
             
-            android.util.Log.d("TWA_THEME", "🌟 Status bar TRANSPARENTE restaurada - como você gostava!");
+            android.util.Log.d("TWA_THEME", "� Status bar AZUL configurada como dia 14/08");
         }
     }
     
@@ -1183,5 +1161,21 @@ public class MainActivity extends Activity {
         mPermissionRequest = null;
         mWebPermissionsRequested = null;
         isHandlingPermissionFlow = false;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 🌟 FIX: Garantir status bar transparente ao retornar para o app
+        configureTransparentStatusBar();
+        hideSystemUI();
+        
+        // Notificar PWA que o app foi resumido
+        if (webView != null) {
+            webView.evaluateJavascript(
+                "if (window.TWA && window.TWA.notifyNative) {" +
+                "  window.TWA.notifyNative('app-resumed', {timestamp: Date.now()});" +
+                "}", null);
+        }
     }
 }

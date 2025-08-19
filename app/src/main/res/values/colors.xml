@@ -22,7 +22,10 @@
     <color name="navigationColorDark">#000000</color>
     <color name="statusBarBlue">#31518b</color>
     
-    <!-- 🎨 CORES PARA BARRA DE STATUS DARK BLUE -->
+    <!-- � COR AZUL STATER PARA STATUS BAR SÓLIDA -->
+    <color name="staterBlue">#31518b</color>
+    
+    <!-- �🎨 CORES PARA BARRA DE STATUS DARK BLUE -->
     <color name="dark_blue">#0B1120</color>
     <color name="status_bar_color">#1D4ED8</color>
     <color name="status_bar_dark">#0B1120</color>

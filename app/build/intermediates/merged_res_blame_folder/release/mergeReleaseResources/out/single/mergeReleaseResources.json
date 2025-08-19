@@ -8,20 +8,20 @@
         "source": "com.timothy.stater.app-main-5:/mipmap-hdpi/ic_launcher_round.png"
     },
     {
-        "merged": "com.timothy.stater.app-release-4:/drawable_splash.xml.flat",
-        "source": "com.timothy.stater.app-main-5:/drawable/splash.xml"
-    },
-    {
         "merged": "com.timothy.stater.app-release-4:/drawable-land-xxxhdpi_splash.png.flat",
         "source": "com.timothy.stater.app-main-5:/drawable-land-xxxhdpi/splash.png"
     },
     {
-        "merged": "com.timothy.stater.app-release-4:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
-        "source": "com.timothy.stater.app-main-5:/mipmap-xxxhdpi/ic_launcher_round.png"
+        "merged": "com.timothy.stater.app-release-4:/drawable_splash.xml.flat",
+        "source": "com.timothy.stater.app-main-5:/drawable/splash.xml"
     },
     {
         "merged": "com.timothy.stater.app-release-4:/drawable-port-xxhdpi_splash.png.flat",
         "source": "com.timothy.stater.app-main-5:/drawable-port-xxhdpi/splash.png"
+    },
+    {
+        "merged": "com.timothy.stater.app-release-4:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
+        "source": "com.timothy.stater.app-main-5:/mipmap-xxxhdpi/ic_launcher_round.png"
     },
     {
         "merged": "com.timothy.stater.app-release-4:/drawable-land-xxhdpi_splash.png.flat",
@@ -48,12 +48,12 @@
         "source": "com.timothy.stater.app-main-5:/mipmap-anydpi-v26/ic_launcher.xml"
     },
     {
-        "merged": "com.timothy.stater.app-release-4:/drawable_splash_src.png.flat",
-        "source": "com.timothy.stater.app-main-5:/drawable/splash_src.png"
-    },
-    {
         "merged": "com.timothy.stater.app-release-4:/drawable-land-hdpi_splash.png.flat",
         "source": "com.timothy.stater.app-main-5:/drawable-land-hdpi/splash.png"
+    },
+    {
+        "merged": "com.timothy.stater.app-release-4:/drawable_splash_src.png.flat",
+        "source": "com.timothy.stater.app-main-5:/drawable/splash_src.png"
     },
     {
         "merged": "com.timothy.stater.app-release-4:/mipmap-xxxhdpi_ic_launcher.png.flat",
@@ -80,12 +80,12 @@
         "source": "com.timothy.stater.app-main-5:/xml/config.xml"
     },
     {
-        "merged": "com.timothy.stater.app-release-4:/drawable_ic_launcher_background.xml.flat",
-        "source": "com.timothy.stater.app-main-5:/drawable/ic_launcher_background.xml"
-    },
-    {
         "merged": "com.timothy.stater.app-release-4:/mipmap-mdpi_ic_launcher.png.flat",
         "source": "com.timothy.stater.app-main-5:/mipmap-mdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.timothy.stater.app-release-4:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.timothy.stater.app-main-5:/drawable/ic_launcher_background.xml"
     },
     {
         "merged": "com.timothy.stater.app-release-4:/mipmap-xxhdpi_ic_launcher_round.png.flat",
@@ -96,12 +96,12 @@
         "source": "com.timothy.stater.app-main-5:/mipmap-xhdpi/ic_maskable.png"
     },
     {
-        "merged": "com.timothy.stater.app-release-4:/drawable-port-xxxhdpi_splash.png.flat",
-        "source": "com.timothy.stater.app-main-5:/drawable-port-xxxhdpi/splash.png"
-    },
-    {
         "merged": "com.timothy.stater.app-release-4:/mipmap-xxxhdpi_ic_maskable.png.flat",
         "source": "com.timothy.stater.app-main-5:/mipmap-xxxhdpi/ic_maskable.png"
+    },
+    {
+        "merged": "com.timothy.stater.app-release-4:/drawable-port-xxxhdpi_splash.png.flat",
+        "source": "com.timothy.stater.app-main-5:/drawable-port-xxxhdpi/splash.png"
     },
     {
         "merged": "com.timothy.stater.app-release-4:/mipmap-mdpi_ic_maskable.png.flat",

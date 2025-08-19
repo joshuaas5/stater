@@ -123,6 +123,14 @@ public class MainActivity extends Activity {
         
         setContentView(R.layout.activity_main);
         
+        // 🔥 FORÇA STATUS BAR AZUL APÓS LAYOUT (ANTI-OVERRIDE DO TEMA)
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                forceStatusBarBlue();
+            }
+        }, 100); // 100ms delay para garantir que o tema foi aplicado
+        
         webView = findViewById(R.id.webview);
         
         // Configurações do WebView
@@ -202,6 +210,14 @@ public class MainActivity extends Activity {
                 
                 // 🔑 MANTER EDGE-TO-EDGE APÓS CARREGAMENTO
                 maintainEdgeToEdge();
+                
+                // 🔥 FORÇA STATUS BAR AZUL APÓS CARREGAMENTO (ANTI-FLASH)
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        forceStatusBarBlue();
+                    }
+                }, 200); // 200ms delay para garantir
                 
                 // 🎯 INJETAR CSS EDGE-TO-EDGE
                 injectEdgeToEdgeCSS(view);
@@ -1218,24 +1234,50 @@ public class MainActivity extends Activity {
     }
 
     /**
+     * 🔥 FORÇA STATUS BAR AZUL - SOBRESCREVE QUALQUER CONFIGURAÇÃO
+     */
+    private void forceStatusBarBlue() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            try {
+                Window window = getWindow();
+                
+                // 🎯 COR AZUL STATER FORÇADA
+                window.setStatusBarColor(Color.parseColor("#31518b"));
+                
+                // 🔧 GARANTIR FLAGS CORRETAS
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                
+                // ⚪ ÍCONES BRANCOS FORÇADOS
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    View decorView = window.getDecorView();
+                    WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
+                    controller.setAppearanceLightStatusBars(false); // FALSE = ÍCONES BRANCOS
+                }
+                
+                android.util.Log.d("TWA_FORCE_BLUE", "🔥 Status bar AZUL forçada com sucesso!");
+                
+            } catch (Exception e) {
+                android.util.Log.e("TWA_FORCE_BLUE", "❌ Erro ao forçar status bar azul: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
      * 🎯 STATUS BAR AZUL STATER - SEM FLASH BRANCO DEFINITIVO
      */
     private void maintainEdgeToEdge() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // 🔥 ESTRATÉGIA ANTI-FLASH: STATUS BAR COM COR SÓLIDA AZUL STATER
-            window.setStatusBarColor(Color.parseColor("#31518b")); // AZUL STATER SÓLIDO
+            // 🔥 FORÇA STATUS BAR AZUL (REUTILIZA FUNÇÃO)
+            forceStatusBarBlue();
             
-            // 🎯 NAVIGATION BAR: Mantém transparente para edge-to-edge
+            // 🎯 NAVIGATION BAR: Transparente para edge-to-edge
             window.setNavigationBarColor(Color.TRANSPARENT);
             
             // 📱 EDGE-TO-EDGE APENAS PARA NAVIGATION BAR (embaixo)
             WindowCompat.setDecorFitsSystemWindows(window, false);
-            
-            // 🔧 FLAGS: Layout que permite controle da status bar
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             
             // 📐 LAYOUT: Fullscreen apenas para navigation, status bar controlada
             View decorView = window.getDecorView();
@@ -1245,14 +1287,13 @@ public class MainActivity extends Activity {
                 // ❌ REMOVIDO: SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN - deixa status bar controlada
             );
             
-            // 🎨 ÍCONES: Brancos para combinar com fundo azul
+            // 🎨 ÍCONES: Brancos para combinar com fundo azul (já feito em forceStatusBarBlue)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
-                controller.setAppearanceLightStatusBars(false); // FALSE = ícones BRANCOS
-                controller.setAppearanceLightNavigationBars(false); // FALSE = ícones BRANCOS
+                controller.setAppearanceLightNavigationBars(false); // FALSE = ícones BRANCOS na nav
             }
             
-            android.util.Log.d("TWA_STATUS_BAR", "🎯 Status bar AZUL SÓLIDA aplicada - ZERO flash branco!");
+            android.util.Log.d("TWA_MAINTAIN", "🎯 Edge-to-edge mantido com status bar azul forçada!");
         }
     }
 

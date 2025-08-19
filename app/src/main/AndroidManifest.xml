@@ -117,9 +117,9 @@
             <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
                 android:value="https://stater.app/login" />
 
-            <!-- Verificação TWA obrigatória -->
+            <!-- Verificação TWA obrigatória desativada para evitar fechamento se a verificação falhar -->
             <meta-data android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_REQUIRED"
-                android:value="true" />
+                android:value="false" />
 
             <!-- Fallback para WebView para evitar fechar caso validação falhe -->
             <meta-data android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"

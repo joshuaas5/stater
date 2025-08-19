@@ -12,6 +12,7 @@ color navigationColorDark
 color navigationDividerColor
 color navigationDividerColorDark
 color shortcut_background
+color staterBlue
 color statusBarBlue
 color status_bar_color
 color status_bar_dark
@@ -55,8 +56,9 @@ string twa_loading
 string webManifestUrl
 style AppTheme
 style AppTheme.NoActionBar
-style AppTheme.NoActionBarLaunch
 style BaseTheme
+style LauncherTheme
+style SplashTheme
 style Theme.TwaLauncher
 xml config
 xml file_paths

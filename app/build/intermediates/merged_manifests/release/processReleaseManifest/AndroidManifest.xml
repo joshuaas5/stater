@@ -14,13 +14,6 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<!--
- The "package" attribute is rewritten by the Gradle build with the value of applicationId.
-     It is still required here, as it is used to derive paths, for instance when referring
-     to an Activity by ".MyActivity" instead of the full name. If more Activities are added to the
-     application, the package attribute will need to reflect the correct path in order to use
-     the abbreviated format.
--->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.timothy.stater"
     android:versionCode="1"
@@ -30,7 +23,31 @@
         android:minSdkVersion="21"
         android:targetSdkVersion="35" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Permissões para microfone, câmera e uploads -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <!-- Permissões específicas para Android 13+ (API 33+) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+    <!-- Hardware features como opcionais para compatibilidade -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
 
     <queries>
         <intent>
@@ -57,7 +74,6 @@
     <uses-permission android:name="com.timothy.stater.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" /> <!-- Although the *SdkVersion is captured in gradle build files, this is required for non gradle builds -->
     <!-- <uses-sdk android:minSdkVersion="14"/> -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name="com.timothy.stater.Application"
@@ -68,13 +84,12 @@
         android:label="@string/appName"
         android:manageSpaceActivity="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+        android:theme="@style/AppTheme" >
+
+        <!-- Declaração para verificação Digital Asset Links -->
         <meta-data
             android:name="asset_statements"
             android:resource="@string/assetStatements" />
-        <meta-data
-            android:name="web_manifest_url"
-            android:value="@string/webManifestUrl" />
         <meta-data
             android:name="twa_generator"
             android:value="@string/generatorApp" />
@@ -84,58 +99,47 @@
                 android:name="android.support.customtabs.trusted.MANAGE_SPACE_URL"
                 android:value="@string/launchUrl" />
         </activity>
+
+        <!-- MainActivity principal com WebView nativo -->
         <activity
-            android:name="com.timothy.stater.LauncherActivity"
-            android:alwaysRetainTaskState="true"
+            android:name="com.timothy.stater.MainActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="true"
-            android:label="@string/launcherName" >
+            android:label="@string/appName"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.TwaLauncher" >
+
+            <!-- 🚀 TWA Enhancements: Manifest URL para melhor integração PWA -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.WEB_MANIFEST_URL"
+                android:value="https://stater.app/manifest.json" />
+
+            <!-- 🎯 TWA Service Worker Support -->
             <meta-data
                 android:name="android.support.customtabs.trusted.DEFAULT_URL"
-                android:value="@string/launchUrl" />
-            <meta-data
-                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
-                android:resource="@color/colorPrimary" />
-            <meta-data
-                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR_DARK"
-                android:resource="@color/colorPrimaryDark" />
-            <meta-data
-                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
-                android:resource="@color/navigationColor" />
-            <meta-data
-                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR_DARK"
-                android:resource="@color/navigationColorDark" />
-            <meta-data
-                android:name="androix.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR"
-                android:resource="@color/navigationDividerColor" />
-            <meta-data
-                android:name="androix.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR_DARK"
-                android:resource="@color/navigationDividerColorDark" />
-            <meta-data
-                android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
-                android:resource="@drawable/splash" />
-            <meta-data
-                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
-                android:resource="@color/backgroundColor" />
+                android:value="https://stater.app/login" />
+
+            <!-- 🔧 TWA Performance Optimizations -->
             <meta-data
                 android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
-                android:value="@integer/splashScreenFadeOutDuration" />
-            <meta-data
-                android:name="android.support.customtabs.trusted.FILE_PROVIDER_AUTHORITY"
-                android:value="@string/providerAuthority" />
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
-            <meta-data
-                android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
-                android:value="@string/fallbackType" />
-            <meta-data
-                android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
-                android:value="@string/orientation" />
+                android:value="300" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Intent filter para links do stater.app -->
+            <intent-filter android:autoVerify="true" >
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="stater.app"
+                    android:scheme="https" />
             </intent-filter>
             <intent-filter android:autoVerify="true" >
                 <action android:name="android.intent.action.VIEW" />
@@ -144,24 +148,82 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="@string/hostName"
+                    android:host="www.stater.app"
                     android:scheme="https" />
             </intent-filter>
+        </activity>
+
+        <!-- LauncherActivity do TWA mantida para compatibilidade (mas não é launcher) -->
+        <activity
+            android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:alwaysRetainTaskState="true"
+            android:exported="false"
+            android:label="@string/launcherName"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.TwaLauncher" >
+
+            <!-- URL ABSOLUTA com barra final -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.DEFAULT_URL"
+                android:value="https://stater.app/login" />
+
+            <!-- Verificação TWA obrigatória desativada para evitar fechamento se a verificação falhar -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_REQUIRED"
+                android:value="false" />
+
+            <!-- Fallback para WebView para evitar fechar caso validação falhe -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
+                android:value="webview" />
+
+            <!-- Confiar também no subdomínio www (evita fallback se houver redireção) -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.ADDITIONAL_TRUSTED_ORIGINS"
+                android:value="https://www.stater.app" />
+
+            <!-- Desativar splash do PWA para evitar logo estourada -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.SKIP_WEB_MANIFEST_SPLASH"
+                android:value="true" />
+
+            <!-- Configurações de cores -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
+                android:resource="@android:color/transparent" />
+            <meta-data
+                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR_DARK"
+                android:resource="@android:color/transparent" />
+            <meta-data
+                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
+                android:resource="@color/navigationColor" />
+            <meta-data
+                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR_DARK"
+                android:resource="@color/navigationColorDark" />
+
+            <!-- Splash Screen usando stater-logo-152 -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
+                android:resource="@drawable/splash_logo" />
+            <meta-data
+                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
+                android:resource="@color/backgroundColor" />
+            <meta-data
+                android:name="android.support.customtabs.trusted.SPLASH_IMAGE_SCALE_TYPE"
+                android:value="center" />
+            <meta-data
+                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
+                android:value="300" />
+
+            <!-- Estratégia padrão de splash nativa do TWA -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_STRATEGY"
+                android:value="native" />
         </activity>
         <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />
         <activity
             android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
             android:configChanges="orientation|screenSize" />
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="@string/providerAuthority"
-            android:exported="false"
-            android:grantUriPermissions="true" >
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/filepaths" />
-        </provider>
 
         <service
             android:name="com.timothy.stater.DelegationService"
@@ -201,6 +263,29 @@
                 <action android:name="org.chromium.intent.action.IS_READY_TO_PAY" />
             </intent-filter>
         </service>
+
+        <!-- ✅ SERVIÇO DE DELEGAÇÃO CRÍTICO PARA PERMISSÕES TWA -->
+        <service
+            android:name="com.timothy.stater.TwaDelegationService"
+            android:enabled="true"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+
+        <!-- ✅ ADICIONADO: FileProvider para uploads de câmera -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.timothy.stater.provider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <meta-data
             android:name="com.google.android.play.billingclient.version"

@@ -86,35 +86,39 @@ public class MainActivity extends Activity {
             }
         });
         
-        // 🔥 EDGE-TO-EDGE COMPLETO - COMO APPS PREMIUM (INSTAGRAM, TIKTOK, NETFLIX)
+        // 🎯 STATUS BAR AZUL STATER DEFINITIVA - ANTI-FLASH BRANCO
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // 🔑 LINHA MÁGICA - EDGE-TO-EDGE ATIVADO
-            WindowCompat.setDecorFitsSystemWindows(window, false);
+            // � STATUS BAR: COR SÓLIDA AZUL STATER (não transparente!)
+            window.setStatusBarColor(Color.parseColor("#31518b")); // AZUL STATER REAL
             
-            // CONFIGURAÇÕES COMPLETAS PARA EDGE-TO-EDGE
-            window.setStatusBarColor(Color.TRANSPARENT);
+            // 📱 NAVIGATION BAR: Transparente para edge-to-edge na parte inferior
             window.setNavigationBarColor(Color.TRANSPARENT);
             
-            // FLAGS NECESSÁRIAS PARA EDGE-TO-EDGE
+            // 🎨 FLAGS PARA CONTROLE DA STATUS BAR
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
             
-            // LAYOUT FULLSCREEN EDGE-TO-EDGE
+            // 📐 EDGE-TO-EDGE HÍBRIDO: Status bar controlada + Navigation bar edge-to-edge
+            WindowCompat.setDecorFitsSystemWindows(window, false);
+            
+            // 🔧 LAYOUT: Controle preciso - status bar fixa, navigation edge-to-edge
             View decorView = window.getDecorView();
             int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+                    // ❌ REMOVIDO: SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN (deixa status bar controlada)
             decorView.setSystemUiVisibility(uiOptions);
             
-            // ÍCONES BRANCOS (PARA FUNDO AZUL #31518b)
+            // 🎨 ÍCONES BRANCOS (para combinar com azul #31518b)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
                 controller.setAppearanceLightStatusBars(false); // FALSE = ÍCONES BRANCOS
                 controller.setAppearanceLightNavigationBars(false); // FALSE = ÍCONES BRANCOS
             }
+            
+            android.util.Log.d("TWA_INIT", "🎯 Status bar AZUL SÓLIDA inicializada - Flash branco eliminado!");
         }
         
         setContentView(R.layout.activity_main);
@@ -1214,36 +1218,41 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * 🔑 MANTER EDGE-TO-EDGE EM TODAS AS NAVEGAÇÕES (ROBUSTA)
+     * 🎯 STATUS BAR AZUL STATER - SEM FLASH BRANCO DEFINITIVO
      */
     private void maintainEdgeToEdge() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // 1️⃣ CORE: Edge-to-edge habilitado
-            WindowCompat.setDecorFitsSystemWindows(window, false);
+            // 🔥 ESTRATÉGIA ANTI-FLASH: STATUS BAR COM COR SÓLIDA AZUL STATER
+            window.setStatusBarColor(Color.parseColor("#31518b")); // AZUL STATER SÓLIDO
             
-            // 2️⃣ STATUS BAR: Transparente
-            window.setStatusBarColor(Color.TRANSPARENT);
-            
-            // 3️⃣ NAVIGATION BAR: Transparente
+            // 🎯 NAVIGATION BAR: Mantém transparente para edge-to-edge
             window.setNavigationBarColor(Color.TRANSPARENT);
             
-            // 4️⃣ FLAGS: Layout completo (edge-to-edge)
+            // 📱 EDGE-TO-EDGE APENAS PARA NAVIGATION BAR (embaixo)
+            WindowCompat.setDecorFitsSystemWindows(window, false);
+            
+            // 🔧 FLAGS: Layout que permite controle da status bar
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            
+            // 📐 LAYOUT: Fullscreen apenas para navigation, status bar controlada
             View decorView = window.getDecorView();
             decorView.setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                // ❌ REMOVIDO: SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN - deixa status bar controlada
             );
             
-            // 5️⃣ ÍCONES: Brancos para fundo escuro
+            // 🎨 ÍCONES: Brancos para combinar com fundo azul
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
                 controller.setAppearanceLightStatusBars(false); // FALSE = ícones BRANCOS
+                controller.setAppearanceLightNavigationBars(false); // FALSE = ícones BRANCOS
             }
             
-            android.util.Log.d("TWA_EDGE_TO_EDGE", "🔑 Edge-to-edge mantido: status bar transparente + ícones brancos");
+            android.util.Log.d("TWA_STATUS_BAR", "🎯 Status bar AZUL SÓLIDA aplicada - ZERO flash branco!");
         }
     }
 
@@ -1252,9 +1261,9 @@ public class MainActivity extends Activity {
      */
     private void injectEdgeToEdgeCSS(WebView webView) {
         String css = "" +
-            // 🔥 SISTEMA DE CORES E VARIÁVEIS PREMIUM
+            // 🎯 SISTEMA DE CORES OTIMIZADO PARA STATUS BAR AZUL SÓLIDA
             ":root { " +
-            "   --status-bar-height: env(safe-area-inset-top, 24px); " +
+            "   --status-bar-height: 0px; " + // ZERO porque status bar agora é controlada pelo Android
             "   --nav-height: 76px; " +
             "   --stater-blue: #31518b; " +
             "   --stater-blue-dark: #1d2951; " +
@@ -1262,25 +1271,14 @@ public class MainActivity extends Activity {
             "   --border-radius: 16px; " +
             "} " +
             
-            // 🚫 ELIMINAR FLASH BRANCO TOTAL - PRIORIDADE MÁXIMA
+            // 🎨 BACKGROUND HARMÔNICO COM STATUS BAR AZUL
             "html, body, #root, .app, .main, [class*='container'], [class*='wrapper'] { " +
             "   background-color: var(--stater-blue) !important; " +
             "   background: var(--stater-blue) !important; " +
             "   color: white !important; " +
             "} " +
             
-            // 🔝 STATUS BAR AREA - ANTI-FLASH DEFINITIVO
-            "body::before { " +
-            "   content: ''; " +
-            "   position: fixed !important; " +
-            "   top: 0 !important; " +
-            "   left: 0 !important; " +
-            "   right: 0 !important; " +
-            "   height: var(--status-bar-height) !important; " +
-            "   background: var(--stater-blue) !important; " +
-            "   z-index: 9999 !important; " +
-            "   pointer-events: none !important; " +
-            "} " +
+            // ❌ REMOVIDO: body::before - status bar agora é controlada pelo Android com cor sólida
             
             // 🎯 LOGO STATER - DESIGN PREMIUM SEM CORTES
             ".stater-logo, [class*='logo'], img[alt*='Stater'], img[src*='logo'], " +
@@ -1297,9 +1295,9 @@ public class MainActivity extends Activity {
             "   filter: drop-shadow(0 4px 12px rgba(255,255,255,0.1)) !important; " +
             "} " +
             
-            // 📱 HEADER LOGIN - ESPAÇAMENTO PREMIUM
+            // 📱 HEADER LOGIN - ESPAÇAMENTO OTIMIZADO (sem padding extra para status bar)
             ".login-header, [class*='login'] header, .auth-header, .page-header { " +
-            "   padding-top: calc(var(--status-bar-height) + 32px) !important; " +
+            "   padding-top: 24px !important; " + // Padding normal, status bar é controlada pelo Android
             "   padding-bottom: 24px !important; " +
             "   text-align: center !important; " +
             "   background: transparent !important; " +
@@ -1346,17 +1344,17 @@ public class MainActivity extends Activity {
             "   z-index: 999 !important; " +
             "} " +
             
-            // 3️⃣ HEADERS GERAIS - ESPAÇAMENTO INTELIGENTE
+            // 3️⃣ HEADERS GERAIS - ESPAÇAMENTO NORMAL (sem compensação de status bar)
             ".greeting-header, .greeting, .header-greeting, .header-top, " +
             ".dashboard-header, h1:first-of-type, .welcome-text { " +
-            "   padding-top: calc(var(--status-bar-height) + 20px) !important; " +
+            "   padding-top: 20px !important; " + // Padding normal
             "   margin-bottom: 16px !important; " +
             "   background: transparent !important; " +
             "} " +
             
             // 💎 BOTÕES PREMIUM
             ".premium-button, [class*='premium'], .notification-icon, .bell-icon { " +
-            "   margin-top: calc(var(--status-bar-height) + 12px) !important; " +
+            "   margin-top: 12px !important; " + // Margin normal
             "   border-radius: var(--border-radius) !important; " +
             "   box-shadow: var(--shadow-premium) !important; " +
             "} " +
@@ -1381,11 +1379,11 @@ public class MainActivity extends Activity {
             "   background: transparent !important; " +
             "} " +
             
-            // 🎨 CORPO PRINCIPAL - GRADIENTE SUTIL
+            // 🎨 CORPO PRINCIPAL - GRADIENTE SUTIL HARMÔNICO
             "body, #root { " +
             "   background: linear-gradient(135deg, #31518b 0%, #1d2951 100%) !important; " +
             "   min-height: 100vh !important; " +
-            "   padding-top: var(--status-bar-height) !important; " +
+            "   padding-top: 0px !important; " + // ZERO padding - status bar controlada pelo Android
             "} " +
             
             // ⚡ ANIMAÇÕES MICRO-INTERAÇÕES
@@ -1393,7 +1391,7 @@ public class MainActivity extends Activity {
             "   transition: background-color 0.2s ease, transform 0.2s ease !important; " +
             "} " +
             
-            // 🔥 ANTI-FLASH ABSOLUTO - ÚLTIMA LINHA DE DEFESA
+            // 🎯 ANTI-FLASH - SEM ELEMENTOS CONFLITANDO COM STATUS BAR NATIVA
             "body *, #root *, .app *, [class] { " +
             "   background-color: transparent !important; " +
             "} " +

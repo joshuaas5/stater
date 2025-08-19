@@ -1189,41 +1189,87 @@ public class MainActivity extends Activity {
      */
     private void injectEdgeToEdgeCSS(WebView webView) {
         String css = "" +
-            // CSS para acomodar a barra de status no edge-to-edge
-            "body, #root, [data-reactroot] { " +
-            "   padding-top: env(safe-area-inset-top, 24px) !important; " +
-            "   background-color: #31518b !important; " +
-            "   margin-top: 0 !important; " +
+            // 1️⃣ ALTURA DA NAVBAR AUMENTADA + LOGO CORRIGIDA
+            ".bottom-navigation, nav[class*='bottom'], .tab-bar { " +
+            "   height: 76px !important; " +
+            "   padding-top: 10px !important; " +
+            "   padding-bottom: 8px !important; " +
+            "   box-shadow: 0 -2px 5px rgba(0,0,0,0.05) !important; " +
             "} " +
-            
-            // CSS para o header/navbar
-            "header, .header, [class*='header'], [class*='navbar'] { " +
-            "   padding-top: env(safe-area-inset-top, 24px) !important; " +
-            "   background-color: #31518b !important; " +
+            ".bottom-navigation img, nav[class*='bottom'] img, .tab-bar img, .stater-logo { " +
+            "   max-height: 36px !important; " +
+            "   margin-top: -3px !important; " +
+            "   object-fit: contain !important; " +
+            "   transform: scale(1.1) !important; " +
             "} " +
-            
-            // CSS para o banner de ads
-            "[class*='banner'], .ad-container, [class*='ads'] { " +
+            ".bottom-navigation span, nav[class*='bottom'] span, .tab-bar span { " +
+            "   display: block !important; " +
+            "   visibility: visible !important; " +
+            "   font-size: 11px !important; " +
+            "   line-height: 14px !important; " +
+            "   margin-top: 4px !important; " +
+            "   overflow: visible !important; " +
+            "} " +
+            // 2️⃣ BANNER GRUDADO NA NAVBAR (SEM ESPAÇO)
+            "[class*='ad-banner'], [id*='ad-banner'], [class*='banner'], .ad-container, " +
+            "[class*='marketplace'], .promo-banner, [class*='casa-orga'], .casa-banner, " +
+            ".economia-banner, [class*='econom'] { " +
             "   position: fixed !important; " +
-            "   bottom: 65px !important; " +
-            "   left: 8px !important; " +
-            "   right: 8px !important; " +
+            "   bottom: 76px !important; " +
+            "   left: 0px !important; " +
+            "   right: 0px !important; " +
+            "   margin: 0 !important; " +
+            "   padding: 8px !important; " +
             "   z-index: 999 !important; " +
+            "   border-top: 1px solid rgba(0,0,0,0.1) !important; " +
+            "   background-color: inherit !important; " +
             "} " +
-            
-            // CSS para remover qualquer margem superior indesejada
-            "* { " +
+            // 3️⃣ AJUSTE PARA STATUS BAR SEM SOBREPOSIÇÃO
+            ".greeting-header, .greeting, .header-greeting, .header-top, " +
+            ".dashboard-header, h1:first-of-type, .welcome-text { " +
+            "   padding-top: calc(env(safe-area-inset-top, 24px) + 10px) !important; " +
+            "   margin-bottom: 5px !important; " +
+            "} " +
+            ".premium-button, [class*='premium'], .notification-icon, .bell-icon { " +
+            "   margin-top: calc(env(safe-area-inset-top, 24px) + 5px) !important; " +
+            "} " +
+            // 4️⃣ REMOVER BARRA DE ROLAGEM VERTICAL
+            "html, body { " +
+            "   overflow-x: hidden !important; " +
+            "   scrollbar-width: none !important; " +
+            "   -ms-overflow-style: none !important; " +
+            "} " +
+            "::-webkit-scrollbar { " +
+            "   display: none !important; " +
+            "   width: 0 !important; " +
+            "   background: transparent !important; " +
+            "} " +
+            ".dashboard-container, .main-content, .scroll-container { " +
+            "   scrollbar-width: none !important; " +
+            "   -ms-overflow-style: none !important; " +
+            "} " +
+            // VARIÁVEL CSS PARA USO EM TODO O APP
+            ":root { " +
             "   --status-bar-height: env(safe-area-inset-top, 24px); " +
+            "   --nav-height: 76px; " +
+            "} " +
+            // CORPO DO APP COM PADDING CORRETO
+            "body, #root { " +
+            "   padding-top: env(safe-area-inset-top, 24px) !important; " +
+            "   background-color: #31518b !important; " +
             "} ";
 
         webView.evaluateJavascript(
             "(function() {" +
+            "    // Remover estilo anterior se existir" +
+            "    var oldStyle = document.getElementById('edge-to-edge-fix');" +
+            "    if (oldStyle) oldStyle.parentNode.removeChild(oldStyle);" +
+            "    " +
             "    var style = document.createElement('style');" +
-            "    style.id = 'edge-to-edge-css';" +
+            "    style.id = 'edge-to-edge-fix'; " +
             "    style.innerHTML = `" + css + "`;" +
-            "    var existingStyle = document.getElementById('edge-to-edge-css');" +
-            "    if (existingStyle) existingStyle.remove();" +
             "    document.head.appendChild(style);" +
+            "    console.log('✅ CSS Edge-to-Edge aprimorado aplicado!');" +
             "})();",
             null
         );

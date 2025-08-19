@@ -78,9 +78,17 @@
         <item name="android:colorPrimaryDark" ns1:targetApi="l">@color/colorPrimaryDark</item>
         <item name="android:colorAccent" ns1:targetApi="l">@android:color/white</item>
     </style>
+    <style name="LauncherTheme" parent="Theme.TwaLauncher">
+        <item name="android:windowBackground">@color/backgroundColor</item>
+        <item name="android:statusBarColor" ns1:targetApi="l">@android:color/transparent</item>
+    </style>
+    <style name="SplashTheme" parent="Theme.TwaLauncher">
+        <item name="android:windowBackground">@color/backgroundColor</item>
+        <item name="android:statusBarColor" ns1:targetApi="l">@android:color/transparent</item>
+    </style>
     <style name="Theme.TwaLauncher" parent="BaseTheme">
         
-        <item name="android:statusBarColor" ns1:targetApi="l">@color/status_bar_color</item>
+        <item name="android:statusBarColor" ns1:targetApi="l">@android:color/transparent</item>
         <item name="android:windowBackground">@color/backgroundColor</item>
         
         

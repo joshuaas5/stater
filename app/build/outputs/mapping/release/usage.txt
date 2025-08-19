@@ -13101,9 +13101,11 @@ com.timothy.stater.MainActivity:
     private static final int FILE_CHOOSER_REQUEST_CODE
     private static final int PERMISSION_REQUEST_CODE
     private static final long PERMISSION_RETRY_DELAY
+    private void configureTransparentStatusBar()
     private int getStatusBarHeight()
     private boolean hasAllPermissions()
     private boolean hasUploadPermissions()
+    private void injectFixCSS(android.webkit.WebView)
     private synthetic void lambda$processWebPermissionsWithGenius$4(java.util.List,java.lang.String,java.util.List,int)
     private synthetic void lambda$processWebPermissionsWithGenius$5(java.util.List,int,java.util.List)
     private void openFileChooserSimple()

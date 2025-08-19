@@ -1514,6 +1514,10 @@
         <item name="android:colorPrimaryDark" ns2:targetApi="l">@color/colorPrimaryDark</item>
         <item name="android:colorAccent" ns2:targetApi="l">@android:color/white</item>
     </style>
+    <style name="LauncherTheme" parent="Theme.TwaLauncher">
+        <item name="android:windowBackground">@color/backgroundColor</item>
+        <item name="android:statusBarColor" ns2:targetApi="l">@android:color/transparent</item>
+    </style>
     <style name="Platform.AppCompat" parent="android:Theme.Holo">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
@@ -1729,6 +1733,10 @@
         <item name="android:paddingLeft">@dimen/abc_action_bar_overflow_padding_start_material</item>
         <item name="android:paddingRight">@dimen/abc_action_bar_overflow_padding_end_material</item>
     </style>
+    <style name="SplashTheme" parent="Theme.TwaLauncher">
+        <item name="android:windowBackground">@color/backgroundColor</item>
+        <item name="android:statusBarColor" ns2:targetApi="l">@android:color/transparent</item>
+    </style>
     <style name="TextAppearance.AppCompat" parent="Base.TextAppearance.AppCompat"/>
     <style name="TextAppearance.AppCompat.Body1" parent="Base.TextAppearance.AppCompat.Body1"/>
     <style name="TextAppearance.AppCompat.Body2" parent="Base.TextAppearance.AppCompat.Body2"/>
@@ -1834,7 +1842,7 @@
     </style>
     <style name="Theme.TwaLauncher" parent="BaseTheme">
         
-        <item name="android:statusBarColor" ns2:targetApi="l">@color/status_bar_color</item>
+        <item name="android:statusBarColor" ns2:targetApi="l">@android:color/transparent</item>
         <item name="android:windowBackground">@color/backgroundColor</item>
         
         

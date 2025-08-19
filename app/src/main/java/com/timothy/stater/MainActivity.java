@@ -78,14 +78,36 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // CONFIGURAÇÃO SIMPLES QUE FUNCIONAVA ANTES
-        Window window = getWindow();
-        window.setStatusBarColor(Color.TRANSPARENT);
-        WindowCompat.setDecorFitsSystemWindows(window, false);
-        
-        // Ícones BRANCOS para fundo azul
-        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, window.getDecorView());
-        controller.setAppearanceLightStatusBars(false);
+        // 🔥 EDGE-TO-EDGE COMPLETO - COMO APPS PREMIUM (INSTAGRAM, TIKTOK, NETFLIX)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            
+            // 🔑 LINHA MÁGICA - EDGE-TO-EDGE ATIVADO
+            WindowCompat.setDecorFitsSystemWindows(window, false);
+            
+            // CONFIGURAÇÕES COMPLETAS PARA EDGE-TO-EDGE
+            window.setStatusBarColor(Color.TRANSPARENT);
+            window.setNavigationBarColor(Color.TRANSPARENT);
+            
+            // FLAGS NECESSÁRIAS PARA EDGE-TO-EDGE
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+            
+            // LAYOUT FULLSCREEN EDGE-TO-EDGE
+            View decorView = window.getDecorView();
+            int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+            decorView.setSystemUiVisibility(uiOptions);
+            
+            // ÍCONES BRANCOS (PARA FUNDO AZUL #31518b)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
+                controller.setAppearanceLightStatusBars(false); // FALSE = ÍCONES BRANCOS
+                controller.setAppearanceLightNavigationBars(false); // FALSE = ÍCONES BRANCOS
+            }
+        }
         
         setContentView(R.layout.activity_main);
         

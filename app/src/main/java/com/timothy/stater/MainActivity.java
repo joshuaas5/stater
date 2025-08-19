@@ -78,15 +78,12 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // � EDGE-TO-EDGE: Permitir que o app desenhe em toda a tela
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        
-        // 🖤 CONFIGURAÇÃO RADICAL PARA REMOVER FAIXA BRANCA
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+        // 🖤 CONFIGURAÇÃO SIMPLES E ROBUSTA - BARRA PRETA FIXA
+        getWindow().setStatusBarColor(Color.BLACK);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         
-        // 🎨 CONFIGURAÇÃO EDGE-TO-EDGE DA BARRA DE STATUS
+        // 🎨 CONFIGURAÇÃO DA BARRA DE STATUS
         configureEdgeToEdgeStatusBar();
         
         setContentView(R.layout.activity_main);
@@ -489,23 +486,20 @@ public class MainActivity extends Activity {
     }
     
     private void hideSystemUI() {
-        // � STATUS BAR AZUL COMO DIA 14/08 - SIMPLES E FUNCIONAL
+        // 🖤 STATUS BAR PRETA - SIMPLES E FUNCIONAL
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // 🔵 Reforçar cor azul que funcionava
-            getWindow().setStatusBarColor(Color.parseColor("#31518b"));
+            // � Reforçar cor preta que é robusta
+            getWindow().setStatusBarColor(Color.BLACK);
         }
         
-        // Layout igual ao que funcionava no dia 14
+        // Layout simples e estável
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(
             View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
         );
         
-        android.util.Log.d("TWA_THEME", "� hideSystemUI: Status bar AZUL como dia 14/08");
+        android.util.Log.d("TWA_THEME", "🖤 hideSystemUI: Status bar PRETA - ROBUSTA");
     }
     
     private int getStatusBarHeight() {
@@ -1017,30 +1011,30 @@ public class MainActivity extends Activity {
     }
     
     /**
-     * � STATUS BAR AZUL COMO ESTAVA FUNCIONANDO NO DIA 14/08
-     * Cor azul #31518b que funcionava perfeitamente
+     * 🖤 STATUS BAR PRETA SIMPLES - CONFIGURAÇÃO ROBUSTA
+     * Volta para a abordagem que funcionava
      */
     private void configureEdgeToEdgeStatusBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // � TORNAR STATUS BAR TRANSPARENTE para mostrar a real do sistema
-            window.setStatusBarColor(Color.TRANSPARENT);
+            // 🖤 STATUS BAR PRETA - SIMPLES E FUNCIONAL
+            window.setStatusBarColor(Color.BLACK);
             
             // Configuração simples que funcionava
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             
-            // 🎨 Configurar ícones da barra de status com WindowInsetsController
+            // 🎨 Configurar ícones da barra de status para barra preta
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 WindowInsetsControllerCompat controller = 
                     WindowCompat.getInsetsController(window, window.getDecorView());
                 
-                // false = ícones claros (para fundo escuro #31518b)
+                // false = ícones claros (para fundo preto)
                 controller.setAppearanceLightStatusBars(false);
             }
             
-            android.util.Log.d("TWA_THEME", "� Status bar AZUL configurada como dia 14/08");
+            android.util.Log.d("TWA_THEME", "🖤 Status bar PRETA configurada - ROBUSTA");
         }
     }
     

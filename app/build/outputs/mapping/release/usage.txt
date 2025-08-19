@@ -5674,17 +5674,16 @@ androidx.core.view.ViewPropertyAnimatorListenerAdapter
 androidx.core.view.ViewPropertyAnimatorUpdateListener
 androidx.core.view.ViewStructureCompat$Api23Impl
 androidx.core.view.ViewStructureCompat
-androidx.core.view.WindowCompat$Api16Impl:
-    private void <init>()
+androidx.core.view.WindowCompat$Api16Impl
 androidx.core.view.WindowCompat$Api28Impl
-androidx.core.view.WindowCompat$Api30Impl:
-    private void <init>()
+androidx.core.view.WindowCompat$Api30Impl
 androidx.core.view.WindowCompat:
     public static final int FEATURE_ACTION_BAR
     public static final int FEATURE_ACTION_BAR_OVERLAY
     public static final int FEATURE_ACTION_MODE_OVERLAY
     private void <init>()
     public static android.view.View requireViewById(android.view.Window,int)
+    public static void setDecorFitsSystemWindows(android.view.Window,boolean)
 androidx.core.view.WindowInsetsAnimationCompat$BoundsCompat
 androidx.core.view.WindowInsetsAnimationCompat$Callback$DispatchMode
 androidx.core.view.WindowInsetsAnimationCompat$Callback

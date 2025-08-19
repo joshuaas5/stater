@@ -199,6 +199,21 @@ public class MainActivity extends Activity {
             }
         });
         
+        // 🔑 LISTENER PARA REFORÇAR EDGE-TO-EDGE
+        getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+            @Override
+            public void onSystemUiVisibilityChange(int visibility) {
+                // Sempre que o sistema UI mudar, reforçar edge-to-edge
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        maintainEdgeToEdge();
+                        android.util.Log.d("TWA_EDGE_TO_EDGE", "🔄 Sistema UI mudou: Edge-to-edge reforçado");
+                    }
+                }, 100); // Pequeno delay para garantir que a mudança seja processada
+            }
+        });
+        
         webView.addJavascriptInterface(new TWAJavaScriptInterface(), "TWANative");
         
         // 🔥 WebChromeClient com GENIUS PERMISSION STRATEGY
@@ -207,7 +222,8 @@ public class MainActivity extends Activity {
             public void onProgressChanged(WebView view, int newProgress) {
                 super.onProgressChanged(view, newProgress);
                 if (newProgress == 100) {
-                    hideSystemUI();
+                    // 🔑 MANTER EDGE-TO-EDGE AO INVÉS DE hideSystemUI
+                    maintainEdgeToEdge();
                 }
             }
             
@@ -298,7 +314,7 @@ public class MainActivity extends Activity {
             }
         }, 500); // Reduzido de 1s para 0.5s
         
-        hideSystemUI();
+        maintainEdgeToEdge();
     }
     
     // ✅ MAPEAMENTO EXPLÍCITO PERMISSÕES WEBVIEW → ANDROID
@@ -960,11 +976,10 @@ public class MainActivity extends Activity {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
-            // 🖤 REFORÇAR STATUS BAR PRETA quando janela ganha foco
-            configureEdgeToEdgeStatusBar();
-            hideSystemUI();
+            // � MANTER EDGE-TO-EDGE quando janela ganha foco
+            maintainEdgeToEdge();
             
-            android.util.Log.d("TWA_THEME", "🖤 Window focus: Status bar PRETA reforçada");
+            android.util.Log.d("TWA_THEME", "� Window focus: Edge-to-edge mantido");
         }
     }
     
@@ -1093,7 +1108,7 @@ public class MainActivity extends Activity {
         
         @JavascriptInterface
         public void requestFullscreen() {
-            runOnUiThread(() -> hideSystemUI());
+            runOnUiThread(() -> maintainEdgeToEdge());
         }
         
         @JavascriptInterface
@@ -1191,18 +1206,37 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * 🔑 MANTER EDGE-TO-EDGE EM TODAS AS NAVEGAÇÕES
+     * 🔑 MANTER EDGE-TO-EDGE EM TODAS AS NAVEGAÇÕES (ROBUSTA)
      */
     private void maintainEdgeToEdge() {
-        // Reativar edge-to-edge
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        
-        // Status bar transparente
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        
-        // Configurar ícones brancos
-        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        controller.setAppearanceLightStatusBars(false); // FALSE = ícones BRANCOS
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            
+            // 1️⃣ CORE: Edge-to-edge habilitado
+            WindowCompat.setDecorFitsSystemWindows(window, false);
+            
+            // 2️⃣ STATUS BAR: Transparente
+            window.setStatusBarColor(Color.TRANSPARENT);
+            
+            // 3️⃣ NAVIGATION BAR: Transparente
+            window.setNavigationBarColor(Color.TRANSPARENT);
+            
+            // 4️⃣ FLAGS: Layout completo (edge-to-edge)
+            View decorView = window.getDecorView();
+            decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
+            
+            // 5️⃣ ÍCONES: Brancos para fundo escuro
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
+                controller.setAppearanceLightStatusBars(false); // FALSE = ícones BRANCOS
+            }
+            
+            android.util.Log.d("TWA_EDGE_TO_EDGE", "🔑 Edge-to-edge mantido: status bar transparente + ícones brancos");
+        }
     }
 
     /**

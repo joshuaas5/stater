@@ -16,9 +16,12 @@
 package com.timothy.stater;
 
 import android.content.pm.ActivityInfo;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Window;
+import android.view.WindowManager;
 
 
 
@@ -31,6 +34,13 @@ public class LauncherActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+    // ✅ Não forçar cor preta aqui — usar tema e styles para consistência edge-to-edge
+    Window window = getWindow();
+    window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+    // Garantir transparência para manter consistência com MainActivity
+    window.setStatusBarColor(Color.TRANSPARENT);
+
         // Setting an orientation crashes the app due to the transparent background on Android 8.0
         // Oreo and below. We only set the orientation on Oreo and above. This only affects the
         // splash screen and Chrome will still respect the orientation.

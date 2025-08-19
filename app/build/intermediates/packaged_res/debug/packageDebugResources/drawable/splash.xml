@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Fundo azul escuro -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#1D4ED8" />
+        </shape>
+    </item>
+    
+    <!-- Logo 128x128 otimizada e bem centralizada -->
+    <item android:gravity="center" android:width="80dp" android:height="80dp">
+        <bitmap 
+            android:src="@drawable/splash_logo" 
+            android:gravity="center"
+            android:filter="true"
+            android:antialias="true" />
+    </item>
+</layer-list>

@@ -1,7 +1,61 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2021 Google Inc. All Rights Reserved.
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
 <resources>
-    <string name="app_name">Stater</string>
-    <string name="title_activity_main">Stater</string>
-    <string name="package_name">com.joshua.stater</string>
-    <string name="custom_url_scheme">com.joshua.stater</string>
+  <string name="app_name">Stater</string>
+  <string name="title_activity_main">Stater - Assistente Financeiro</string>
+
+  <!--
+    This variable below expresses the relationship between the app and the site,
+    as documented in the TWA documentation at
+    https://developers.google.com/web/updates/2017/10/using-twa#set_up_digital_asset_links_in_an_android_app
+    and is injected into the AndroidManifest.xml
+  -->
+  <string name="assetStatements">
+    [{
+        \"relation\": [\"delegate_permission/common.handle_all_urls\"],
+        \"target\": {
+            \"namespace\": \"web\",
+            \"site\": \"https://stater.app\"
+        }
+    }]
+    
+  </string>
+  
+  <!-- Configurações do app -->
+  <string name="launcherName">Stater</string>
+  <string name="generatorApp">TWA Generator</string>
+  <string name="appName">Stater</string>
+  
+  <!-- FileProvider authority para uploads de arquivos -->
+  <string name="providerAuthority">com.timothy.stater.fileprovider</string>
+  
+  <!-- TWA Permission Messages -->
+  <string name="permission_camera_rationale">O Stater precisa acessar a câmera para permitir upload de fotos</string>
+  <string name="permission_microphone_rationale">O Stater precisa acessar o microfone para funcionalidades de áudio</string>
+  <string name="permission_storage_rationale">O Stater precisa acessar o armazenamento para upload de arquivos</string>
+  <string name="permission_location_rationale">O Stater precisa acessar a localização para recursos baseados em local</string>
+  <string name="permission_denied_message">Permissão necessária para o funcionamento completo do app</string>
+  
+  <!-- TWA Status Messages -->
+  <string name="twa_loading">Carregando Stater...</string>
+  <string name="twa_error">Erro ao carregar aplicativo</string>
+  <string name="twa_connection_error">Verifique sua conexão com a internet</string>
+  
+  <!-- Notification Channel -->
+  <string name="notification_channel_name">Stater Notifications</string>
+  <string name="notification_channel_description">Notificações do aplicativo Stater</string>
 </resources>

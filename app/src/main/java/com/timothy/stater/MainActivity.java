@@ -1018,50 +1018,103 @@ public class MainActivity extends Activity {
     }
     
     /**
-     * 🌟 INJETAR CSS EDGE-TO-EDGE - EXPERIÊNCIA PREMIUM
-     * Aplica o mesmo comportamento do paywall para todo o app
+     * 🌟 INJETAR CSS EDGE-TO-EDGE - AJUSTES FINOS APLICADOS
+     * Corrige sobreposição, navbar reduzida e banner flutuando
      */
     private void injectEdgeToEdgeCSS(WebView webView) {
         String edgeToEdgeCSS = 
             "javascript:(function() {" +
             "  const style = document.createElement('style');" +
+            "  style.id = 'edge-to-edge-adjustments';" +
             "  style.innerHTML = `" +
-            "    /* 🌟 EDGE-TO-EDGE CSS - PREMIUM EXPERIENCE */" +
+            "    /* � VARIÁVEIS SAFE AREA MELHORADAS */" +
             "    :root {" +
             "      --status-bar-height: env(safe-area-inset-top, 24px);" +
             "      --nav-bar-height: env(safe-area-inset-bottom, 0px);" +
+            "      --safe-padding-top: calc(var(--status-bar-height) + 12px);" +
             "    }" +
             "    " +
-            "    /* Corpo do app com safe areas */" +
-            "    body {" +
-            "      padding-top: var(--status-bar-height) !important;" +
+            "    /* 📱 CORPO COM PADDING SEGURO AUMENTADO */" +
+            "    body, #root, .app-container {" +
+            "      padding-top: var(--safe-padding-top) !important;" +
             "      padding-bottom: var(--nav-bar-height) !important;" +
             "      margin: 0 !important;" +
+            "      background-color: #31518b !important;" +
             "    }" +
             "    " +
-            "    /* Header/Navbar fixo no topo */" +
-            "    .navbar, .header, [class*='header'], [class*='navbar'] {" +
-            "      padding-top: calc(var(--status-bar-height) + 8px) !important;" +
+            "    /* 👋 HEADER COM ESPAÇO EXTRA (Olá, Joshua!) */" +
+            "    .navbar-top, header, .header, .greeting-header, h1:first-of-type, .greeting {" +
+            "      padding-top: calc(var(--status-bar-height) + 16px) !important;" +
+            "      padding-bottom: 12px !important;" +
             "      margin-top: 0 !important;" +
+            "      height: auto !important;" +
             "    }" +
             "    " +
-            "    /* Banner inferior com safe area */" +
-            "    .banner-bottom, [class*='banner'] {" +
-            "      bottom: calc(var(--nav-bar-height) + 80px) !important;" +
+            "    /* 📍 NAVBAR INFERIOR RESTAURADA COM TEXTOS */" +
+            "    .bottom-navigation, nav[class*='bottom'], .navbar-bottom, .tab-bar, [class*='tab'] {" +
+            "      height: 72px !important;" +
+            "      min-height: 72px !important;" +
+            "      padding-bottom: calc(var(--nav-bar-height) + 8px) !important;" +
+            "      padding-top: 12px !important;" +
+            "      position: fixed !important;" +
+            "      bottom: 0 !important;" +
+            "      left: 0 !important;" +
+            "      right: 0 !important;" +
+            "      z-index: 50 !important;" +
             "    }" +
             "    " +
-            "    /* Layout principal com safe areas */" +
-            "    .main-content, .container, [class*='main'] {" +
-            "      min-height: calc(100vh - var(--status-bar-height) - var(--nav-bar-height)) !important;" +
+            "    /* 📝 TEXTOS DA NAVBAR VISÍVEIS */" +
+            "    .bottom-navigation span, nav[class*='bottom'] span, .tab-bar span, [class*='tab'] span {" +
+            "      display: block !important;" +
+            "      opacity: 1 !important;" +
+            "      font-size: 11px !important;" +
+            "      visibility: visible !important;" +
+            "      line-height: 1.2 !important;" +
+            "      margin-top: 4px !important;" +
+            "    }" +
+            "    " +
+            "    /* 📢 BANNER FIXO ACIMA DA NAVBAR */" +
+            "    [class*='ad-banner'], [id*='ad-banner'], [class*='banner'], .ad-container, [class*='ad'] {" +
+            "      position: fixed !important;" +
+            "      bottom: calc(72px + var(--nav-bar-height)) !important;" +
+            "      left: 8px !important;" +
+            "      right: 8px !important;" +
+            "      z-index: 40 !important;" +
+            "      margin: 0 auto !important;" +
+            "      max-width: calc(100% - 16px) !important;" +
+            "      border-radius: 8px !important;" +
+            "      box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;" +
+            "    }" +
+            "    " +
+            "    /* 🎯 TÍTULOS COM ESPAÇAMENTO EXTRA */" +
+            "    h1, h2, .title, .page-title {" +
+            "      margin-top: 16px !important;" +
+            "      padding-top: 8px !important;" +
+            "    }" +
+            "    " +
+            "    /* 📊 CONTEÚDO PRINCIPAL AJUSTADO */" +
+            "    .main-content, .container, [class*='main'], .content {" +
+            "      min-height: calc(100vh - var(--safe-padding-top) - 72px - var(--nav-bar-height)) !important;" +
+            "      padding-bottom: calc(72px + var(--nav-bar-height) + 16px) !important;" +
+            "    }" +
+            "    " +
+            "    /* 🔧 ELEMENTOS FIXOS AJUSTADOS */" +
+            "    .fixed-top, .absolute-top {" +
+            "      top: var(--safe-padding-top) !important;" +
             "    }" +
             "  `;" +
+            "  " +
+            "  // Remove estilo anterior se existir" +
+            "  const oldStyle = document.getElementById('edge-to-edge-adjustments');" +
+            "  if (oldStyle) oldStyle.remove();" +
+            "  " +
             "  document.head.appendChild(style);" +
-            "  console.log('🌟 Edge-to-edge CSS injetado - Experiência premium ativada!');" +
+            "  console.log('� CSS Edge-to-edge com ajustes finos aplicado!');" +
             "})();";
         
         webView.evaluateJavascript(edgeToEdgeCSS, null);
         
-        android.util.Log.d("TWA_THEME", "🌟 CSS Edge-to-edge injetado com sucesso!");
+        android.util.Log.d("TWA_THEME", "� CSS Edge-to-edge com ajustes finos injetado!");
     }
     
     /**

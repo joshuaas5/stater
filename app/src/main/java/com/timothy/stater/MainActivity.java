@@ -86,55 +86,42 @@ public class MainActivity extends Activity {
             }
         });
         
-        // 🎯 STATUS BAR AZUL STATER DEFINITIVA - ANTI-FLASH BRANCO
+        // 🎯 EDGE-TO-EDGE COMPLETO - FULLSCREEN ATÉ A STATUS BAR
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // � STATUS BAR: COR SÓLIDA AZUL STATER (não transparente!)
-            window.setStatusBarColor(Color.BLACK); // PRETO TOTAL
-            
-            // 📱 NAVIGATION BAR: Transparente para edge-to-edge na parte inferior
-            window.setNavigationBarColor(Color.TRANSPARENT);
-            
-            // 🎨 FLAGS PARA CONTROLE DA STATUS BAR
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-            
-            // 📐 EDGE-TO-EDGE HÍBRIDO: Status bar controlada + Navigation bar edge-to-edge
+            // 🌟 EDGE-TO-EDGE TOTAL - PERMITE CONTEÚDO ATRÁS DA STATUS BAR
             WindowCompat.setDecorFitsSystemWindows(window, false);
             
-            // 🔧 LAYOUT: Controle preciso - status bar fixa, navigation edge-to-edge
-            View decorView = window.getDecorView();
-            int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-                    // ❌ REMOVIDO: SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN (deixa status bar controlada)
-            decorView.setSystemUiVisibility(uiOptions);
+            // � STATUS BAR TRANSPARENTE - FULLSCREEN VERDADEIRO
+            window.setStatusBarColor(Color.TRANSPARENT);
             
-            // 🎨 ÍCONES BRANCOS (para combinar com azul #31518b)
+            // 📱 NAVIGATION BAR: Transparente para edge-to-edge completo
+            window.setNavigationBarColor(Color.TRANSPARENT);
+            
+            // 🎨 ÍCONES DA STATUS BAR BRANCOS (PARA CONTRASTE COM CONTEÚDO)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
+                WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, window.getDecorView());
                 controller.setAppearanceLightStatusBars(false); // FALSE = ÍCONES BRANCOS
                 controller.setAppearanceLightNavigationBars(false); // FALSE = ÍCONES BRANCOS
             }
             
-            android.util.Log.d("TWA_INIT", "🎯 Status bar AZUL SÓLIDA inicializada - Flash branco eliminado!");
+            // 🔧 LAYOUT FULLSCREEN - CONTEÚDO ATÉ O TOPO
+            View decorView = window.getDecorView();
+            int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE 
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+            decorView.setSystemUiVisibility(uiOptions);
+            
+            android.util.Log.d("TWA_INIT", "� Edge-to-edge COMPLETO ativado - App fullscreen até a status bar!");
         }
         
         setContentView(R.layout.activity_main);
         
-        // 🔥 FORÇA STATUS BAR PRETA APÓS LAYOUT (ANTI-OVERRIDE DO TEMA)
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                forceStatusBarBlack();
-            }
-        }, 100); // 100ms delay para garantir que o tema foi aplicado
-        
         webView = findViewById(R.id.webview);
         
-        // 🎨 BACKGROUND AZUL STATER PARA WEBVIEW - HARMONIA TOTAL
-        webView.setBackgroundColor(Color.parseColor("#31518b")); // AZUL STATER
+        // 🎨 BACKGROUND PRETO PARA WEBVIEW - HARMONIA COM STATUS BAR
+        webView.setBackgroundColor(Color.BLACK);
         
         // Configurações do WebView
         WebSettings webSettings = webView.getSettings();
@@ -214,24 +201,16 @@ public class MainActivity extends Activity {
                 // 🔑 MANTER EDGE-TO-EDGE APÓS CARREGAMENTO
                 maintainEdgeToEdge();
                 
-                // 🔥 FORÇA STATUS BAR PRETA APÓS CARREGAMENTO (ANTI-FLASH)
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        forceStatusBarBlack();
-                    }
-                }, 200); // 200ms delay para garantir
-                
                 // 🎯 INJETAR CSS EDGE-TO-EDGE
                 injectEdgeToEdgeCSS(view);
                 
-                // � INJETAR BACKGROUND AZUL TOTAL
+                // 🔵 INJETAR BACKGROUND AZUL TOTAL
                 injectBackgroundBlue();
                 
                 // 🔒 PROTEÇÃO DE LOGIN - BLOQUEAR ACESSO À HOMEPAGE
                 injectLoginProtection();
                 
-                // �🎯 TWA Service Worker Support Enhancement
+                // 🎯 TWA Service Worker Support Enhancement
                 injectTWAServiceWorkerSupport(view);
             }
         });
@@ -576,8 +555,7 @@ public class MainActivity extends Activity {
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             
-            // Forçar transparência
-            window.setStatusBarColor(Color.TRANSPARENT);
+            // STATUS BAR gerenciada pelo tema XML - não sobrescrever aqui
             
             // Garantir ícones BRANCOS
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -590,7 +568,7 @@ public class MainActivity extends Activity {
                 decorView.setSystemUiVisibility(flags);
             }
             
-            android.util.Log.d("STATER", "Status bar configurada como TRANSPARENTE com ícones BRANCOS");
+            android.util.Log.d("STATER", "Status bar ícones BRANCOS - cor controlada pelo tema XML");
         }
     }
     
@@ -662,10 +640,10 @@ public class MainActivity extends Activity {
     }
     
     private void hideSystemUI() {
-        // 🌟 REFORÇAR TRANSPARÊNCIA DA STATUS BAR
+        // 🌟 MANTER STATUS BAR DO TEMA XML - NÃO SOBRESCREVER
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
-            window.setStatusBarColor(Color.TRANSPARENT);
+            // STATUS BAR gerenciada pelo tema XML - não alterar cor aqui
             
             // Manter layout edge-to-edge
             View decorView = window.getDecorView();
@@ -675,7 +653,7 @@ public class MainActivity extends Activity {
                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
             );
             
-            // Ícones BRANCOS para fundo azul
+            // Ícones BRANCOS para fundo preto da status bar
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 WindowInsetsControllerCompat controller = 
                     WindowCompat.getInsetsController(window, decorView);
@@ -1185,8 +1163,7 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // � TORNAR STATUS BAR TRANSPARENTE para mostrar a real do sistema
-            window.setStatusBarColor(Color.TRANSPARENT);
+            // STATUS BAR gerenciada pelo tema XML - não alterar cor programaticamente
             
             // Configuração simples que funcionava
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -1197,11 +1174,11 @@ public class MainActivity extends Activity {
                 WindowInsetsControllerCompat controller = 
                     WindowCompat.getInsetsController(window, window.getDecorView());
                 
-                // false = ícones claros (para fundo escuro #31518b)
+                // false = ícones claros (para fundo preto da status bar)
                 controller.setAppearanceLightStatusBars(false);
             }
             
-            android.util.Log.d("TWA_THEME", "� Status bar AZUL configurada como dia 14/08");
+            android.util.Log.d("TWA_THEME", "🖤 Status bar PRETA gerenciada pelo tema XML");
         }
     }
     
@@ -1243,44 +1220,13 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * 🔥 FORÇA STATUS BAR PRETA - SOBRESCREVE QUALQUER CONFIGURAÇÃO
-     */
-    private void forceStatusBarBlack() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            try {
-                Window window = getWindow();
-                
-                // 🖤 COR PRETA FORÇADA
-                window.setStatusBarColor(Color.BLACK);
-                
-                // 🔧 GARANTIR FLAGS CORRETAS
-                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-                window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-                
-                // ⚪ ÍCONES BRANCOS FORÇADOS
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    View decorView = window.getDecorView();
-                    WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
-                    controller.setAppearanceLightStatusBars(false); // FALSE = ÍCONES BRANCOS
-                }
-                
-                android.util.Log.d("TWA_FORCE_BLACK", "🔥 Status bar PRETA forçada com sucesso!");
-                
-            } catch (Exception e) {
-                android.util.Log.e("TWA_FORCE_BLACK", "❌ Erro ao forçar status bar preta: " + e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * 🎯 STATUS BAR AZUL STATER - SEM FLASH BRANCO DEFINITIVO
+     * 🎯 MANTER EDGE-TO-EDGE - SEM MANIPULAR STATUS BAR (TEMA XML É FONTE DA VERDADE)
      */
     private void maintainEdgeToEdge() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // 🔥 FORÇA STATUS BAR PRETA (REUTILIZA FUNÇÃO)
-            forceStatusBarBlack();
+            // STATUS BAR gerenciada pelo tema XML - não tocar aqui
             
             // 🎯 NAVIGATION BAR: Transparente para edge-to-edge
             window.setNavigationBarColor(Color.TRANSPARENT);
@@ -1296,13 +1242,13 @@ public class MainActivity extends Activity {
                 // ❌ REMOVIDO: SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN - deixa status bar controlada
             );
             
-            // 🎨 ÍCONES: Brancos para combinar com fundo azul (já feito em forceStatusBarBlue)
+            // 🎨 ÍCONES: Brancos para navigation bar
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
                 controller.setAppearanceLightNavigationBars(false); // FALSE = ícones BRANCOS na nav
             }
             
-            android.util.Log.d("TWA_MAINTAIN", "🎯 Edge-to-edge mantido com status bar azul forçada!");
+            android.util.Log.d("TWA_MAINTAIN", "🎯 Edge-to-edge mantido - Status bar controlada pelo tema XML!");
         }
     }
 
@@ -1311,21 +1257,33 @@ public class MainActivity extends Activity {
      */
     private void injectEdgeToEdgeCSS(WebView webView) {
         String css = "" +
-            // 🎯 SISTEMA DE CORES OTIMIZADO PARA STATUS BAR AZUL SÓLIDA
+            // 🎯 SISTEMA DE CORES OTIMIZADO PARA EDGE-TO-EDGE COMPLETO
             ":root { " +
-            "   --status-bar-height: 0px; " + // ZERO porque status bar agora é controlada pelo Android
-            "   --nav-height: 76px; " +
+            "   --status-bar-height: env(safe-area-inset-top, 24px); " + // ALTURA REAL DA STATUS BAR
+            "   --nav-height: 85px; " + // NAVBAR AUMENTADA
             "   --stater-blue: #31518b; " +
             "   --stater-blue-dark: #1d2951; " +
             "   --shadow-premium: 0 8px 32px rgba(0,0,0,0.12); " +
             "   --border-radius: 16px; " +
             "} " +
             
-            // 🎨 BACKGROUND HARMÔNICO COM STATUS BAR AZUL
+            // � EDGE-TO-EDGE: PADDING PARA STATUS BAR NO HEADER
+            "header, .header, .app-header, .app-bar, div[class*='Header'], div[class*='AppBar'] { " +
+            "   padding-top: calc(var(--status-bar-height) + 16px) !important; " +
+            "   padding-bottom: 16px !important; " +
+            "   background: transparent !important; " +
+            "} " +
+            
+            // �🎨 BACKGROUND HARMÔNICO EDGE-TO-EDGE
             "html, body, #root, .app, .main, [class*='container'], [class*='wrapper'] { " +
             "   background-color: var(--stater-blue) !important; " +
             "   background: var(--stater-blue) !important; " +
             "   color: white !important; " +
+            "   padding: 0 !important; " +
+            "   margin: 0 !important; " +
+            "   margin-top: -15px !important; " + // PUXAR PARA CIMA ELIMINANDO FAIXA BRANCA
+            "   position: relative !important; " +
+            "   top: 0 !important; " +
             "} " +
             
             // ❌ REMOVIDO: body::before - status bar agora é controlada pelo Android com cor sólida
@@ -1345,45 +1303,70 @@ public class MainActivity extends Activity {
             "   filter: drop-shadow(0 4px 12px rgba(255,255,255,0.1)) !important; " +
             "} " +
             
-            // 📱 HEADER LOGIN - ESPAÇAMENTO OTIMIZADO (sem padding extra para status bar)
+            // 🚫 ANTI-FAIXA BRANCA ESPECÍFICA - PÁGINAS PROBLEMÁTICAS
+            ".login-page, .dashboard-page, [class*='login'], [class*='dashboard'], " +
+            "[class*='financial'], [class*='analise'], [class*='settings'], [class*='config'], " +
+            ".page-wrapper, .container-fluid, .MuiContainer-root, .page-content { " +
+            "   background: var(--stater-blue) !important; " +
+            "   margin-top: -25px !important; " + // PUXAR MAIS PARA CIMA
+            "   padding-top: 0 !important; " +
+            "   border-top: none !important; " +
+            "   position: relative !important; " +
+            "   top: -10px !important; " + // POSIÇÃO NEGATIVA PARA SUBIR
+            "} " +
+            
+            // 🔥 OVERRIDE RADICAL PARA ELIMINAR QUALQUER BRANCO
+            ".MuiPaper-root, .paper, .card, .panel, .section { " +
+            "   background: transparent !important; " +
+            "   margin-top: -10px !important; " +
+            "} " +
+            
+            // 💀 MORTE À FAIXA BRANCA - CSS ASSASSINO
+            "body > *, #root > *, .app > * { " +
+            "   margin-top: 0 !important; " +
+            "   padding-top: 0 !important; " +
+            "   border-top: none !important; " +
+            "} " +
+            
+            // 📱 HEADER LOGIN - ESPAÇAMENTO OTIMIZADO PARA EDGE-TO-EDGE
             ".login-header, [class*='login'] header, .auth-header, .page-header { " +
-            "   padding-top: 24px !important; " + // Padding normal, status bar é controlada pelo Android
+            "   padding-top: calc(var(--status-bar-height) + 24px) !important; " + // Respeitando status bar
             "   padding-bottom: 24px !important; " +
             "   text-align: center !important; " +
             "   background: transparent !important; " +
             "} " +
             
-            // 1️⃣ NAVBAR GLASS MORPHISM PREMIUM
+            // 1️⃣ NAVBAR GLASS MORPHISM PREMIUM - TAMANHO AUMENTADO
             ".bottom-navigation, nav[class*='bottom'], .tab-bar { " +
-            "   height: 90px !important; " +
-            "   padding-top: 36px !important; " +
-            "   padding-bottom: 8px !important; " +
+            "   height: 85px !important; " + // AUMENTADA DE 90px PARA 85px (MAIS PROPORCIONADA)
+            "   padding-top: 12px !important; " + // PADDING OTIMIZADO
+            "   padding-bottom: 10px !important; " + // PADDING INFERIOR CONFORTÁVEL
             "   background: rgba(49, 81, 139, 0.95) !important; " +
             "   backdrop-filter: blur(20px) !important; " +
             "   border-top: 1px solid rgba(255,255,255,0.1) !important; " +
             "   box-shadow: var(--shadow-premium) !important; " +
             "} " +
             
-            // ÍCONES DA NAVBAR - POSICIONAMENTO PERFEITO
+            // ÍCONES DA NAVBAR - POSICIONAMENTO PERFEITO PARA NOVO TAMANHO
             ".bottom-navigation .MuiBottomNavigationAction-root, " +
             "nav[class*='bottom'] .nav-item, .tab-bar .tab-item { " +
-            "   padding-top: 28px !important; " +
+            "   padding-top: 8px !important; " + // AJUSTADO PARA NAVBAR MENOR
             "   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; " +
             "} " +
             
             ".bottom-navigation img, nav[class*='bottom'] img, .tab-bar img { " +
-            "   max-height: 32px !important; " +
+            "   max-height: 28px !important; " + // ÍCONES LIGEIRAMENTE MENORES
             "   filter: brightness(1.1) !important; " +
             "   transition: transform 0.2s ease !important; " +
             "} " +
             
-            // TEXTOS DA NAVBAR - TIPOGRAFIA PREMIUM
+            // TEXTOS DA NAVBAR - TIPOGRAFIA PREMIUM MELHORADA
             ".bottom-navigation span, nav[class*='bottom'] span, .tab-bar span { " +
             "   display: block !important; " +
-            "   font-size: 10px !important; " +
+            "   visibility: visible !important; " +
+            "   font-size: 12px !important; " + // FONTE MAIOR (era 10px)
             "   font-weight: 500 !important; " +
-            "   position: absolute !important; " +
-            "   bottom: 6px !important; " +
+            "   margin-top: 4px !important; " + // ESPAÇAMENTO DO ÍCONE
             "   letter-spacing: 0.5px !important; " +
             "   opacity: 0.9 !important; " +
             "} " +
@@ -1394,17 +1377,24 @@ public class MainActivity extends Activity {
             "   z-index: 999 !important; " +
             "} " +
             
-            // 3️⃣ HEADERS GERAIS - ESPAÇAMENTO NORMAL (sem compensação de status bar)
+            // 3️⃣ HEADERS GERAIS - ESPAÇAMENTO PARA EDGE-TO-EDGE
             ".greeting-header, .greeting, .header-greeting, .header-top, " +
             ".dashboard-header, h1:first-of-type, .welcome-text { " +
-            "   padding-top: 20px !important; " + // Padding normal
+            "   padding-top: calc(var(--status-bar-height) + 20px) !important; " + // Respeitando status bar
             "   margin-bottom: 16px !important; " +
             "   background: transparent !important; " +
             "} " +
             
+            // 🎯 GARANTIR QUE CONTEÚDO NÃO FIQUE SOB A NAVBAR MAIOR
+            "main, .main, div[class*='Content'], div[class*='Body'], " +
+            "div[class*='container'], div[class*='wrapper'] { " +
+            "   padding-bottom: 85px !important; " + // MESMO TAMANHO DA NAVBAR
+            "   margin-bottom: 10px !important; " + // RESPIRO EXTRA
+            "} " +
+            
             // 💎 BOTÕES PREMIUM
             ".premium-button, [class*='premium'], .notification-icon, .bell-icon { " +
-            "   margin-top: 12px !important; " + // Margin normal
+            "   margin-top: calc(var(--status-bar-height) + 12px) !important; " + // Respeitando status bar
             "   border-radius: var(--border-radius) !important; " +
             "   box-shadow: var(--shadow-premium) !important; " +
             "} " +
@@ -1429,11 +1419,11 @@ public class MainActivity extends Activity {
             "   background: transparent !important; " +
             "} " +
             
-            // 🎨 CORPO PRINCIPAL - GRADIENTE SUTIL HARMÔNICO
+            // 🎨 CORPO PRINCIPAL - GRADIENTE EDGE-TO-EDGE
             "body, #root { " +
             "   background: linear-gradient(135deg, #31518b 0%, #1d2951 100%) !important; " +
             "   min-height: 100vh !important; " +
-            "   padding-top: 0px !important; " + // ZERO padding - status bar controlada pelo Android
+            "   padding-top: 0px !important; " + // ZERO - deixar edge-to-edge total
             "} " +
             
             // ⚡ ANIMAÇÕES MICRO-INTERAÇÕES
@@ -1441,7 +1431,7 @@ public class MainActivity extends Activity {
             "   transition: background-color 0.2s ease, transform 0.2s ease !important; " +
             "} " +
             
-            // 🎯 ANTI-FLASH - SEM ELEMENTOS CONFLITANDO COM STATUS BAR NATIVA
+            // 🎯 ANTI-FLASH - BACKGROUND CONSISTENTE EDGE-TO-EDGE
             "body *, #root *, .app *, [class] { " +
             "   background-color: transparent !important; " +
             "} " +
@@ -1468,9 +1458,38 @@ public class MainActivity extends Activity {
     private void injectBackgroundBlue() {
         webView.evaluateJavascript(
             "(function() {" +
-            "    // Garantir background azul dominante" +
-            "    document.body.style.backgroundColor = '#31518b';" +
-            "    document.documentElement.style.backgroundColor = '#31518b';" +
+            "    // 🔥 ELIMINAÇÃO RADICAL DA FAIXA BRANCA" +
+            "    function killWhiteStrip() {" +
+            "        // Garantir background azul dominante" +
+            "        document.body.style.backgroundColor = '#31518b';" +
+            "        document.documentElement.style.backgroundColor = '#31518b';" +
+            "        document.body.style.margin = '0';" +
+            "        document.body.style.padding = '0';" +
+            "        document.body.style.marginTop = '-15px';" +
+            "        " +
+            "        // Forçar todos os containers principais" +
+            "        var containers = document.querySelectorAll('div, main, section, .container, .wrapper, .page');" +
+            "        containers.forEach(function(el) {" +
+            "            el.style.marginTop = '0';" +
+            "            el.style.paddingTop = '0';" +
+            "            el.style.borderTop = 'none';" +
+            "            if (el.offsetTop < 30) {" + // Se estiver muito no topo
+            "                el.style.marginTop = '-15px';" + // Puxar para cima
+            "            }" +
+            "        });" +
+            "        " +
+            "        // Elementos específicos problemáticos" +
+            "        var problematic = document.querySelectorAll('.MuiContainer-root, .page-wrapper, .login-page, .dashboard');" +
+            "        problematic.forEach(function(el) {" +
+            "            el.style.marginTop = '-20px';" +
+            "            el.style.background = '#31518b';" +
+            "        });" +
+            "    }" +
+            "    " +
+            "    // Executar imediatamente e observar mudanças" +
+            "    killWhiteStrip();" +
+            "    setTimeout(killWhiteStrip, 100);" +
+            "    setTimeout(killWhiteStrip, 500);" +
             "    " +
             "    // Meta theme-color para máxima harmonia" +
             "    var meta = document.querySelector('meta[name=theme-color]');" +
@@ -1481,7 +1500,7 @@ public class MainActivity extends Activity {
             "    }" +
             "    meta.content = '#31518b';" +
             "    " +
-            "    console.log('🎨 Background azul dominante aplicado!');" +
+            "    console.log('🎨 Background azul dominante + Anti-faixa branca aplicado!');" +
             "})();",
             null
         );

@@ -2745,6 +2745,8 @@
     </style><style name="Theme.TwaLauncher" parent="BaseTheme">
         
         <item name="android:statusBarColor" ns2:targetApi="l">@android:color/black</item>
+        
+        
         <item name="android:windowBackground">@color/backgroundColor</item>
         
         

@@ -34,6 +34,8 @@
     <style name="Theme.TwaLauncher" parent="BaseTheme">
         <!-- 🖤 STATUS BAR PRETA SÓLIDA - NÃO TRANSPARENTE -->
         <item name="android:statusBarColor" tools:targetApi="l">@android:color/black</item>
+        <!-- CORREÇÃO DEFINITIVA: Define o fundo da janela para a cor do app -->
+        <!-- Isso elimina o "flash" branco antes do layout carregar. -->
         <item name="android:windowBackground">@color/backgroundColor</item>
         
         <!-- ⚪ ÍCONES SEMPRE BRANCOS PARA FUNDO PRETO -->

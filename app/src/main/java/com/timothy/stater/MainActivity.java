@@ -78,12 +78,16 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // 🖤 CONFIGURAÇÃO SIMPLES E ROBUSTA - BARRA PRETA FIXA
-        getWindow().setStatusBarColor(Color.BLACK);
+        // 🌟 EDGE-TO-EDGE COMPLETO - COMO APPS PREMIUM (Instagram, TikTok, Netflix)
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        
+        // 🎨 STATUS BAR TRANSPARENTE para edge-to-edge
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         
-        // 🎨 CONFIGURAÇÃO DA BARRA DE STATUS
+        // 🎨 CONFIGURAÇÃO MODERNA DO EDGE-TO-EDGE
         configureEdgeToEdgeStatusBar();
         
         setContentView(R.layout.activity_main);
@@ -152,7 +156,10 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 
-                // ✅ APENAS GARANTIR STATUS BAR AZUL - CSS cuida do resto
+                // 🌟 INJETAR CSS EDGE-TO-EDGE - COMO PAYWALL
+                injectEdgeToEdgeCSS(view);
+                
+                // ✅ MANTER EDGE-TO-EDGE ATIVO
                 hideSystemUI();
                 
                 // 🎯 TWA Service Worker Support Enhancement
@@ -1011,30 +1018,80 @@ public class MainActivity extends Activity {
     }
     
     /**
-     * 🖤 STATUS BAR PRETA SIMPLES - CONFIGURAÇÃO ROBUSTA
-     * Volta para a abordagem que funcionava
+     * 🌟 INJETAR CSS EDGE-TO-EDGE - EXPERIÊNCIA PREMIUM
+     * Aplica o mesmo comportamento do paywall para todo o app
+     */
+    private void injectEdgeToEdgeCSS(WebView webView) {
+        String edgeToEdgeCSS = 
+            "javascript:(function() {" +
+            "  const style = document.createElement('style');" +
+            "  style.innerHTML = `" +
+            "    /* 🌟 EDGE-TO-EDGE CSS - PREMIUM EXPERIENCE */" +
+            "    :root {" +
+            "      --status-bar-height: env(safe-area-inset-top, 24px);" +
+            "      --nav-bar-height: env(safe-area-inset-bottom, 0px);" +
+            "    }" +
+            "    " +
+            "    /* Corpo do app com safe areas */" +
+            "    body {" +
+            "      padding-top: var(--status-bar-height) !important;" +
+            "      padding-bottom: var(--nav-bar-height) !important;" +
+            "      margin: 0 !important;" +
+            "    }" +
+            "    " +
+            "    /* Header/Navbar fixo no topo */" +
+            "    .navbar, .header, [class*='header'], [class*='navbar'] {" +
+            "      padding-top: calc(var(--status-bar-height) + 8px) !important;" +
+            "      margin-top: 0 !important;" +
+            "    }" +
+            "    " +
+            "    /* Banner inferior com safe area */" +
+            "    .banner-bottom, [class*='banner'] {" +
+            "      bottom: calc(var(--nav-bar-height) + 80px) !important;" +
+            "    }" +
+            "    " +
+            "    /* Layout principal com safe areas */" +
+            "    .main-content, .container, [class*='main'] {" +
+            "      min-height: calc(100vh - var(--status-bar-height) - var(--nav-bar-height)) !important;" +
+            "    }" +
+            "  `;" +
+            "  document.head.appendChild(style);" +
+            "  console.log('🌟 Edge-to-edge CSS injetado - Experiência premium ativada!');" +
+            "})();";
+        
+        webView.evaluateJavascript(edgeToEdgeCSS, null);
+        
+        android.util.Log.d("TWA_THEME", "🌟 CSS Edge-to-edge injetado com sucesso!");
+    }
+    
+    /**
+     * 🌟 EDGE-TO-EDGE MODERNO - COMO APPS PREMIUM
+     * Transparência total para experiência imersiva
      */
     private void configureEdgeToEdgeStatusBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // 🖤 STATUS BAR PRETA - SIMPLES E FUNCIONAL
-            window.setStatusBarColor(Color.BLACK);
+            // 🌟 STATUS BAR TRANSPARENTE - EDGE-TO-EDGE TOTAL
+            window.setStatusBarColor(Color.TRANSPARENT);
+            window.setNavigationBarColor(Color.TRANSPARENT);
             
-            // Configuração simples que funcionava
+            // Configuração edge-to-edge moderna
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
             
-            // 🎨 Configurar ícones da barra de status para barra preta
+            // 🎨 Configurar ícones da barra de status
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 WindowInsetsControllerCompat controller = 
                     WindowCompat.getInsetsController(window, window.getDecorView());
                 
-                // false = ícones claros (para fundo preto)
-                controller.setAppearanceLightStatusBars(false);
+                // true = ícones escuros (para ver no fundo claro do app)
+                controller.setAppearanceLightStatusBars(true);
+                controller.setAppearanceLightNavigationBars(true);
             }
             
-            android.util.Log.d("TWA_THEME", "🖤 Status bar PRETA configurada - ROBUSTA");
+            android.util.Log.d("TWA_THEME", "🌟 Edge-to-edge ATIVADO - Experiência premium!");
         }
     }
     

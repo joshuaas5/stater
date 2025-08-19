@@ -5674,16 +5674,17 @@ androidx.core.view.ViewPropertyAnimatorListenerAdapter
 androidx.core.view.ViewPropertyAnimatorUpdateListener
 androidx.core.view.ViewStructureCompat$Api23Impl
 androidx.core.view.ViewStructureCompat
-androidx.core.view.WindowCompat$Api16Impl
+androidx.core.view.WindowCompat$Api16Impl:
+    private void <init>()
 androidx.core.view.WindowCompat$Api28Impl
-androidx.core.view.WindowCompat$Api30Impl
+androidx.core.view.WindowCompat$Api30Impl:
+    private void <init>()
 androidx.core.view.WindowCompat:
     public static final int FEATURE_ACTION_BAR
     public static final int FEATURE_ACTION_BAR_OVERLAY
     public static final int FEATURE_ACTION_MODE_OVERLAY
     private void <init>()
     public static android.view.View requireViewById(android.view.Window,int)
-    public static void setDecorFitsSystemWindows(android.view.Window,boolean)
 androidx.core.view.WindowInsetsAnimationCompat$BoundsCompat
 androidx.core.view.WindowInsetsAnimationCompat$Callback$DispatchMode
 androidx.core.view.WindowInsetsAnimationCompat$Callback
@@ -5791,7 +5792,6 @@ androidx.core.view.WindowInsetsControllerCompat$Impl23:
     public boolean isAppearanceLightStatusBars()
 androidx.core.view.WindowInsetsControllerCompat$Impl26:
     public boolean isAppearanceLightNavigationBars()
-    public void setAppearanceLightNavigationBars(boolean)
 androidx.core.view.WindowInsetsControllerCompat$Impl30$1
 androidx.core.view.WindowInsetsControllerCompat$Impl30:
     void addOnControllableInsetsChangedListener(androidx.core.view.WindowInsetsControllerCompat$OnControllableInsetsChangedListener)
@@ -5802,7 +5802,6 @@ androidx.core.view.WindowInsetsControllerCompat$Impl30:
     public boolean isAppearanceLightStatusBars()
     private synthetic void lambda$addOnControllableInsetsChangedListener$0(androidx.core.view.WindowInsetsControllerCompat$OnControllableInsetsChangedListener,android.view.WindowInsetsController,int)
     void removeOnControllableInsetsChangedListener(androidx.core.view.WindowInsetsControllerCompat$OnControllableInsetsChangedListener)
-    public void setAppearanceLightNavigationBars(boolean)
     void setSystemBarsBehavior(int)
     void show(int)
 androidx.core.view.WindowInsetsControllerCompat$Impl:
@@ -5813,7 +5812,6 @@ androidx.core.view.WindowInsetsControllerCompat$Impl:
     public boolean isAppearanceLightNavigationBars()
     public boolean isAppearanceLightStatusBars()
     void removeOnControllableInsetsChangedListener(androidx.core.view.WindowInsetsControllerCompat$OnControllableInsetsChangedListener)
-    public void setAppearanceLightNavigationBars(boolean)
     void setSystemBarsBehavior(int)
     void show(int)
 androidx.core.view.WindowInsetsControllerCompat$OnControllableInsetsChangedListener
@@ -5830,7 +5828,6 @@ androidx.core.view.WindowInsetsControllerCompat:
     public boolean isAppearanceLightNavigationBars()
     public boolean isAppearanceLightStatusBars()
     public void removeOnControllableInsetsChangedListener(androidx.core.view.WindowInsetsControllerCompat$OnControllableInsetsChangedListener)
-    public void setAppearanceLightNavigationBars(boolean)
     public void setSystemBarsBehavior(int)
     public void show(int)
     public static androidx.core.view.WindowInsetsControllerCompat toWindowInsetsControllerCompat(android.view.WindowInsetsController)

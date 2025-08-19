@@ -78,31 +78,14 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // ⚠️ STATUS BAR TRANSPARENTE CORRIGIDA - REMOVENDO CONFLITOS
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = getWindow();
-            
-            // 🔑 EDGE-TO-EDGE BÁSICO
-            WindowCompat.setDecorFitsSystemWindows(window, false);
-            
-            // LIMPAR FLAGS CONFLITANTES
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            
-            // TRANSPARÊNCIA FORÇADA - USA COLOR.TRANSPARENT (NÃO cores do XML)
-            window.setStatusBarColor(Color.TRANSPARENT);
-            
-            // LAYOUT FULLSCREEN
-            View decorView = window.getDecorView();
-            int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-            decorView.setSystemUiVisibility(flags);
-            
-            // ÍCONES BRANCOS
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
-                controller.setAppearanceLightStatusBars(false); // FALSE = ícones BRANCOS
-            }
-        }
+        // CONFIGURAÇÃO SIMPLES QUE FUNCIONAVA ANTES
+        Window window = getWindow();
+        window.setStatusBarColor(Color.TRANSPARENT);
+        WindowCompat.setDecorFitsSystemWindows(window, false);
+        
+        // Ícones BRANCOS para fundo azul
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, window.getDecorView());
+        controller.setAppearanceLightStatusBars(false);
         
         setContentView(R.layout.activity_main);
         
@@ -1205,51 +1188,40 @@ public class MainActivity extends Activity {
      */
     private void injectEdgeToEdgeCSS(WebView webView) {
         String css = "" +
-            // 1️⃣ ALTURA DA NAVBAR AUMENTADA + LOGO CORRIGIDA
+            // 1️⃣ NAVBAR AUMENTADA ATÉ O BANNER
             ".bottom-navigation, nav[class*='bottom'], .tab-bar { " +
-            "   height: 76px !important; " +
-            "   padding-top: 10px !important; " +
+            "   height: 95px !important; " +          // ALTURA AUMENTADA para alcançar o banner
+            "   padding-top: 40px !important; " +     // PADDING GRANDE no topo
             "   padding-bottom: 8px !important; " +
             "   box-shadow: 0 -2px 5px rgba(0,0,0,0.05) !important; " +
             "} " +
+            
+            // ÍCONES DA NAVBAR - POSICIONAMENTO AJUSTADO
+            ".bottom-navigation .MuiBottomNavigationAction-root, " +
+            "nav[class*='bottom'] .nav-item, .tab-bar .tab-item { " +
+            "   padding-top: 35px !important; " +     // Posiciona ícones para baixo
+            "} " +
+            
             ".bottom-navigation img, nav[class*='bottom'] img, .tab-bar img, .stater-logo { " +
             "   max-height: 36px !important; " +
             "   margin-top: -3px !important; " +
             "   object-fit: contain !important; " +
             "   transform: scale(1.1) !important; " +
             "} " +
+            
+            // TEXTOS DA NAVBAR - AJUSTADOS PARA NOVA ALTURA
             ".bottom-navigation span, nav[class*='bottom'] span, .tab-bar span { " +
             "   display: block !important; " +
             "   visibility: visible !important; " +
             "   font-size: 11px !important; " +
-            "   line-height: 14px !important; " +
-            "   margin-top: 4px !important; " +
+            "   position: absolute !important; " +
+            "   bottom: 8px !important; " +           // Fixa textos embaixo
             "   overflow: visible !important; " +
             "} " +
-            // 2️⃣ BANNER GRUDADO NA NAVBAR - VERSÃO AGRESSIVA E DEFINITIVA
-            "div[class*='banner'], div[id*='banner'], div[class*='Banner'], " +
-            "div[class*='ad'], div[class*='marketplace'], div[class*='casa'], " +
-            "div[class*='econom'], div[class*='promo'], div[class*='offer'], " +
-            ".ad-container, .banner-container, .marketplace, " +
-            "[class*='ad-banner'], [id*='ad-banner'], [class*='banner'], " +
-            "[class*='marketplace'], .promo-banner, [class*='casa-orga'], .casa-banner, " +
-            ".economia-banner, [class*='econom'] { " +
+            // 2️⃣ BANNER - NÃO MEXER MAIS NELE, DEIXAR COMO ESTÁ
+            "[class*='banner'], [id*='banner'], .ad-container { " +
             "   position: fixed !important; " +
-            "   bottom: 75px !important; " +          // 1PX MENOR que navbar (75 vs 76)
-            "   left: 0 !important; " +
-            "   right: 0 !important; " +
-            "   margin: 0 !important; " +
-            "   margin-bottom: 0 !important; " +      // FORÇAR SEM MARGEM
-            "   padding-bottom: 0 !important; " +     // FORÇAR SEM PADDING
-            "   border-bottom: none !important; " +   // REMOVER BORDA
-            "   z-index: 9999 !important; " +         // VALOR MUITO ALTO
-            "   background-color: inherit !important; " +
-            "} " +
-            // FORÇAR TODOS ELEMENTOS FILHOS DO BANNER SEM MARGIN/PADDING BOTTOM
-            "div[class*='banner'] *, div[id*='banner'] *, div[class*='ad'] *, " +
-            "div[class*='marketplace'] *, .ad-container *, .banner-container * { " +
-            "   margin-bottom: 0 !important; " +
-            "   padding-bottom: 0 !important; " +
+            "   z-index: 999 !important; " +
             "} " +
             // 3️⃣ AJUSTE PARA STATUS BAR SEM SOBREPOSIÇÃO
             ".greeting-header, .greeting, .header-greeting, .header-top, " +

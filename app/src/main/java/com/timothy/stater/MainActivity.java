@@ -78,36 +78,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // 🔥 EDGE-TO-EDGE COMPLETO - COMO APPS PREMIUM (INSTAGRAM, TIKTOK, NETFLIX)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = getWindow();
-            
-            // 🔑 LINHA MÁGICA - EDGE-TO-EDGE ATIVADO
-            WindowCompat.setDecorFitsSystemWindows(window, false);
-            
-            // CONFIGURAÇÕES COMPLETAS PARA EDGE-TO-EDGE
-            window.setStatusBarColor(Color.TRANSPARENT);
-            window.setNavigationBarColor(Color.TRANSPARENT);
-            
-            // FLAGS NECESSÁRIAS PARA EDGE-TO-EDGE
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-            
-            // LAYOUT FULLSCREEN EDGE-TO-EDGE
-            View decorView = window.getDecorView();
-            int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-            decorView.setSystemUiVisibility(uiOptions);
-            
-            // ÍCONES BRANCOS (PARA FUNDO AZUL #31518b)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
-                controller.setAppearanceLightStatusBars(false); // FALSE = ÍCONES BRANCOS
-                controller.setAppearanceLightNavigationBars(false); // FALSE = ÍCONES BRANCOS
-            }
-        }
+        // � EDGE-TO-EDGE SIMPLES E LIMPO
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         
         setContentView(R.layout.activity_main);
         
@@ -175,10 +147,7 @@ public class MainActivity extends Activity {
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
                 
-                // 🔑 MANTER EDGE-TO-EDGE EM CADA NAVEGAÇÃO
-                maintainEdgeToEdge();
-                
-                // 🚀 TWA Performance: Preload critical resources
+                //  TWA Performance: Preload critical resources
                 if (url.contains("stater.app")) {
                     optimizeTWALoading(view);
                 }
@@ -188,29 +157,11 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 
-                // 🔑 MANTER EDGE-TO-EDGE APÓS CARREGAMENTO
-                maintainEdgeToEdge();
-                
                 // 🎯 INJETAR CSS EDGE-TO-EDGE
                 injectEdgeToEdgeCSS(view);
                 
                 // 🎯 TWA Service Worker Support Enhancement
                 injectTWAServiceWorkerSupport(view);
-            }
-        });
-        
-        // 🔑 LISTENER PARA REFORÇAR EDGE-TO-EDGE
-        getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-            @Override
-            public void onSystemUiVisibilityChange(int visibility) {
-                // Sempre que o sistema UI mudar, reforçar edge-to-edge
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        maintainEdgeToEdge();
-                        android.util.Log.d("TWA_EDGE_TO_EDGE", "🔄 Sistema UI mudou: Edge-to-edge reforçado");
-                    }
-                }, 100); // Pequeno delay para garantir que a mudança seja processada
             }
         });
         
@@ -221,10 +172,7 @@ public class MainActivity extends Activity {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
                 super.onProgressChanged(view, newProgress);
-                if (newProgress == 100) {
-                    // 🔑 MANTER EDGE-TO-EDGE AO INVÉS DE hideSystemUI
-                    maintainEdgeToEdge();
-                }
+                // Progresso sem configurações de status bar
             }
             
             @Override
@@ -313,8 +261,6 @@ public class MainActivity extends Activity {
                 }, 800); // Reduzido de 1.5s para 0.8s
             }
         }, 500); // Reduzido de 1s para 0.5s
-        
-        maintainEdgeToEdge();
     }
     
     // ✅ MAPEAMENTO EXPLÍCITO PERMISSÕES WEBVIEW → ANDROID
@@ -1108,7 +1054,7 @@ public class MainActivity extends Activity {
         
         @JavascriptInterface
         public void requestFullscreen() {
-            runOnUiThread(() -> maintainEdgeToEdge());
+            // Sem configurações de status bar
         }
         
         @JavascriptInterface
@@ -1333,8 +1279,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        // 🔑 MANTER EDGE-TO-EDGE AO RETORNAR PARA O APP
-        maintainEdgeToEdge();
+        // Sem configurações de status bar
         
         // Notificar PWA que o app foi resumido
         if (webView != null) {

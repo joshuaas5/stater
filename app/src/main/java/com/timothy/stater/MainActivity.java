@@ -78,8 +78,15 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // 🌟 CONFIGURAR STATUS BAR TRANSPARENTE LOGO NO INÍCIO
-        configureTransparentStatusBar();
+        // 🔑 ATIVAR EDGE-TO-EDGE - A CHAVE MÁGICA QUE ESTAVA FALTANDO!
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        
+        // Status bar transparente
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        
+        // Configurar ícones brancos para fundo azul
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        controller.setAppearanceLightStatusBars(false); // FALSE = ícones BRANCOS
         
         setContentView(R.layout.activity_main);
         
@@ -147,8 +154,8 @@ public class MainActivity extends Activity {
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
                 
-                // 🌟 FIX: Reconfigurar status bar em CADA carregamento de página
-                configureTransparentStatusBar();
+                // 🔑 MANTER EDGE-TO-EDGE EM CADA NAVEGAÇÃO
+                maintainEdgeToEdge();
                 
                 // 🚀 TWA Performance: Preload critical resources
                 if (url.contains("stater.app")) {
@@ -160,12 +167,11 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 
-                // 🌟 FIX: Reconfigurar status bar APÓS carregamento completo
-                configureTransparentStatusBar();
-                hideSystemUI();
+                // 🔑 MANTER EDGE-TO-EDGE APÓS CARREGAMENTO
+                maintainEdgeToEdge();
                 
-                // 🎯 CSS para corrigir espaçamentos
-                injectFixCSS(view);
+                // 🎯 INJETAR CSS EDGE-TO-EDGE
+                injectEdgeToEdgeCSS(view);
                 
                 // 🎯 TWA Service Worker Support Enhancement
                 injectTWAServiceWorkerSupport(view);
@@ -1163,12 +1169,71 @@ public class MainActivity extends Activity {
         isHandlingPermissionFlow = false;
     }
 
+    /**
+     * 🔑 MANTER EDGE-TO-EDGE EM TODAS AS NAVEGAÇÕES
+     */
+    private void maintainEdgeToEdge() {
+        // Reativar edge-to-edge
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        
+        // Status bar transparente
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        
+        // Configurar ícones brancos
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        controller.setAppearanceLightStatusBars(false); // FALSE = ícones BRANCOS
+    }
+
+    /**
+     * � INJETAR CSS EDGE-TO-EDGE CORRETO
+     */
+    private void injectEdgeToEdgeCSS(WebView webView) {
+        String css = "" +
+            // CSS para acomodar a barra de status no edge-to-edge
+            "body, #root, [data-reactroot] { " +
+            "   padding-top: env(safe-area-inset-top, 24px) !important; " +
+            "   background-color: #31518b !important; " +
+            "   margin-top: 0 !important; " +
+            "} " +
+            
+            // CSS para o header/navbar
+            "header, .header, [class*='header'], [class*='navbar'] { " +
+            "   padding-top: env(safe-area-inset-top, 24px) !important; " +
+            "   background-color: #31518b !important; " +
+            "} " +
+            
+            // CSS para o banner de ads
+            "[class*='banner'], .ad-container, [class*='ads'] { " +
+            "   position: fixed !important; " +
+            "   bottom: 65px !important; " +
+            "   left: 8px !important; " +
+            "   right: 8px !important; " +
+            "   z-index: 999 !important; " +
+            "} " +
+            
+            // CSS para remover qualquer margem superior indesejada
+            "* { " +
+            "   --status-bar-height: env(safe-area-inset-top, 24px); " +
+            "} ";
+
+        webView.evaluateJavascript(
+            "(function() {" +
+            "    var style = document.createElement('style');" +
+            "    style.id = 'edge-to-edge-css';" +
+            "    style.innerHTML = `" + css + "`;" +
+            "    var existingStyle = document.getElementById('edge-to-edge-css');" +
+            "    if (existingStyle) existingStyle.remove();" +
+            "    document.head.appendChild(style);" +
+            "})();",
+            null
+        );
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
-        // 🌟 FIX: Garantir status bar transparente ao retornar para o app
-        configureTransparentStatusBar();
-        hideSystemUI();
+        // 🔑 MANTER EDGE-TO-EDGE AO RETORNAR PARA O APP
+        maintainEdgeToEdge();
         
         // Notificar PWA que o app foi resumido
         if (webView != null) {

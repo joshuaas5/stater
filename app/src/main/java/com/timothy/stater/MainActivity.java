@@ -1118,33 +1118,33 @@ public class MainActivity extends Activity {
     }
     
     /**
-     * 🌟 EDGE-TO-EDGE MODERNO - COMO APPS PREMIUM
-     * Transparência total para experiência imersiva
+     * 🌟 STATUS BAR TRANSPARENTE - COMO VOCÊ GOSTAVA ANTES!
+     * Transparência total para experiência premium
      */
     private void configureEdgeToEdgeStatusBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // 🌟 STATUS BAR TRANSPARENTE - EDGE-TO-EDGE TOTAL
+            // 🌟 FORÇAR TRANSPARÊNCIA TOTAL - SEM COR ALGUMA
             window.setStatusBarColor(Color.TRANSPARENT);
             window.setNavigationBarColor(Color.TRANSPARENT);
             
-            // Configuração edge-to-edge moderna
+            // Configuração transparente premium
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
             
-            // 🎨 Configurar ícones da barra de status
+            // 🎨 ÍCONES BRANCOS para fundo azul (como antes)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 WindowInsetsControllerCompat controller = 
                     WindowCompat.getInsetsController(window, window.getDecorView());
                 
-                // true = ícones escuros (para ver no fundo claro do app)
-                controller.setAppearanceLightStatusBars(true);
-                controller.setAppearanceLightNavigationBars(true);
+                // false = ícones BRANCOS (para ver no fundo azul transparente)
+                controller.setAppearanceLightStatusBars(false);
+                controller.setAppearanceLightNavigationBars(false);
             }
             
-            android.util.Log.d("TWA_THEME", "🌟 Edge-to-edge ATIVADO - Experiência premium!");
+            android.util.Log.d("TWA_THEME", "🌟 Status bar TRANSPARENTE restaurada - como você gostava!");
         }
     }
     

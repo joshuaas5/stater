@@ -91,7 +91,7 @@ public class MainActivity extends Activity {
             Window window = getWindow();
             
             // � STATUS BAR: COR SÓLIDA AZUL STATER (não transparente!)
-            window.setStatusBarColor(Color.parseColor("#31518b")); // AZUL STATER REAL
+            window.setStatusBarColor(Color.BLACK); // PRETO TOTAL
             
             // 📱 NAVIGATION BAR: Transparente para edge-to-edge na parte inferior
             window.setNavigationBarColor(Color.TRANSPARENT);
@@ -123,11 +123,11 @@ public class MainActivity extends Activity {
         
         setContentView(R.layout.activity_main);
         
-        // 🔥 FORÇA STATUS BAR AZUL APÓS LAYOUT (ANTI-OVERRIDE DO TEMA)
+        // 🔥 FORÇA STATUS BAR PRETA APÓS LAYOUT (ANTI-OVERRIDE DO TEMA)
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                forceStatusBarBlue();
+                forceStatusBarBlack();
             }
         }, 100); // 100ms delay para garantir que o tema foi aplicado
         
@@ -214,11 +214,11 @@ public class MainActivity extends Activity {
                 // 🔑 MANTER EDGE-TO-EDGE APÓS CARREGAMENTO
                 maintainEdgeToEdge();
                 
-                // 🔥 FORÇA STATUS BAR AZUL APÓS CARREGAMENTO (ANTI-FLASH)
+                // 🔥 FORÇA STATUS BAR PRETA APÓS CARREGAMENTO (ANTI-FLASH)
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        forceStatusBarBlue();
+                        forceStatusBarBlack();
                     }
                 }, 200); // 200ms delay para garantir
                 
@@ -1240,15 +1240,15 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * 🔥 FORÇA STATUS BAR AZUL - SOBRESCREVE QUALQUER CONFIGURAÇÃO
+     * 🔥 FORÇA STATUS BAR PRETA - SOBRESCREVE QUALQUER CONFIGURAÇÃO
      */
-    private void forceStatusBarBlue() {
+    private void forceStatusBarBlack() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             try {
                 Window window = getWindow();
                 
-                // 🎯 COR AZUL STATER FORÇADA
-                window.setStatusBarColor(Color.parseColor("#31518b"));
+                // 🖤 COR PRETA FORÇADA
+                window.setStatusBarColor(Color.BLACK);
                 
                 // 🔧 GARANTIR FLAGS CORRETAS
                 window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -1261,10 +1261,10 @@ public class MainActivity extends Activity {
                     controller.setAppearanceLightStatusBars(false); // FALSE = ÍCONES BRANCOS
                 }
                 
-                android.util.Log.d("TWA_FORCE_BLUE", "🔥 Status bar AZUL forçada com sucesso!");
+                android.util.Log.d("TWA_FORCE_BLACK", "🔥 Status bar PRETA forçada com sucesso!");
                 
             } catch (Exception e) {
-                android.util.Log.e("TWA_FORCE_BLUE", "❌ Erro ao forçar status bar azul: " + e.getMessage());
+                android.util.Log.e("TWA_FORCE_BLACK", "❌ Erro ao forçar status bar preta: " + e.getMessage());
             }
         }
     }
@@ -1276,8 +1276,8 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // 🔥 FORÇA STATUS BAR AZUL (REUTILIZA FUNÇÃO)
-            forceStatusBarBlue();
+            // 🔥 FORÇA STATUS BAR PRETA (REUTILIZA FUNÇÃO)
+            forceStatusBarBlack();
             
             // 🎯 NAVIGATION BAR: Transparente para edge-to-edge
             window.setNavigationBarColor(Color.TRANSPARENT);

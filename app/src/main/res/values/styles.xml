@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     
-    <!-- 🖤 TEMA PRETO - STATUS BAR PRETA SÓLIDA -->
+    <!-- � TEMA EDGE-TO-EDGE PREMIUM - COMO INSTAGRAM/TIKTOK -->
     <style name="BaseTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
-        <!-- 🖤 STATUS BAR PRETA SÓLIDA - ANTI-FLASH BRANCO -->
-        <item name="android:statusBarColor" tools:targetApi="l">@android:color/black</item>
+        <!-- � STATUS BAR TRANSPARENTE PARA EDGE-TO-EDGE -->
+        <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
         
         <!-- 🌟 NAVIGATION BAR TRANSPARENTE -->
         <item name="android:navigationBarColor" tools:targetApi="l">@android:color/transparent</item>
         
-        <!-- 🔵 FUNDO AZUL PARA EVITAR FLASH BRANCO -->
+        <!-- 🔵 FUNDO AZUL STATER PARA EVITAR FLASH BRANCO -->
         <item name="android:windowBackground">@color/backgroundColor</item>
         
-        <!-- 📱 CONFIGURAÇÕES EDGE-TO-EDGE -->
+        <!-- � CONFIGURAÇÕES EDGE-TO-EDGE CRÍTICAS -->
         <item name="android:windowDrawsSystemBarBackgrounds" tools:targetApi="l">true</item>
-        <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
         
         <!-- 📱 SUPORTE PARA DISPOSITIVOS COM NOTCH/ILHA DINÂMICA -->
         <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
         
-        <!-- ⚪ ÍCONES BRANCOS (CONTRASTE COM PRETO) -->
+        <!-- ⚪ ÍCONES BRANCOS (CONTRASTE COM FUNDO AZUL) -->
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">false</item>
         
@@ -28,17 +28,18 @@
         <item name="android:colorPrimary" tools:targetApi="l">@color/colorPrimary</item>
         <item name="android:colorPrimaryDark" tools:targetApi="l">@color/colorPrimaryDark</item>
         <item name="android:colorAccent" tools:targetApi="l">@android:color/white</item>
+        
+        <!-- 🎯 REMOVER SOMBRAS DO ACTIONBAR -->
+        <item name="android:windowContentOverlay">@null</item>
     </style>
     
-    <!-- 🎯 TEMA PRINCIPAL DO TWA - STATUS BAR PRETA SÓLIDA -->
+    <!-- 🎯 TEMA PRINCIPAL DO TWA - EDGE-TO-EDGE TOTAL -->
     <style name="Theme.TwaLauncher" parent="BaseTheme">
-        <!-- 🖤 STATUS BAR PRETA SÓLIDA - NÃO TRANSPARENTE -->
-        <item name="android:statusBarColor" tools:targetApi="l">@android:color/black</item>
-        <!-- CORREÇÃO DEFINITIVA: Define o fundo da janela para a cor do app -->
-        <!-- Isso elimina o "flash" branco antes do layout carregar. -->
+        <!-- � STATUS BAR TRANSPARENTE - EDGE-TO-EDGE VERDADEIRO -->
+        <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
         <item name="android:windowBackground">@color/backgroundColor</item>
         
-        <!-- ⚪ ÍCONES SEMPRE BRANCOS PARA FUNDO PRETO -->
+        <!-- ⚪ ÍCONES SEMPRE BRANCOS PARA CONTRASTE -->
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">false</item>
     </style>

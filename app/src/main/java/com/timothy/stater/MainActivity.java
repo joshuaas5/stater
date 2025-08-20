@@ -86,42 +86,42 @@ public class MainActivity extends Activity {
             }
         });
         
-        // 🎯 EDGE-TO-EDGE COMPLETO - FULLSCREEN ATÉ A STATUS BAR
+        // 🚀 EDGE-TO-EDGE DEFINITIVO - SOLUÇÃO PREMIUM COMO INSTAGRAM/TIKTOK
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             
-            // 🌟 EDGE-TO-EDGE TOTAL - PERMITE CONTEÚDO ATRÁS DA STATUS BAR
+            // 🔑 CHAVE MÁGICA: MODO EDGE-TO-EDGE VERDADEIRO
             WindowCompat.setDecorFitsSystemWindows(window, false);
             
-            // � STATUS BAR TRANSPARENTE - FULLSCREEN VERDADEIRO
+            // 💎 STATUS BAR TRANSPARENTE - PERMITE CONTEÚDO ATRÁS
             window.setStatusBarColor(Color.TRANSPARENT);
             
-            // 📱 NAVIGATION BAR: Transparente para edge-to-edge completo
+            // 📱 NAVIGATION BAR TRANSPARENTE - EDGE-TO-EDGE COMPLETO
             window.setNavigationBarColor(Color.TRANSPARENT);
             
-            // 🎨 ÍCONES DA STATUS BAR BRANCOS (PARA CONTRASTE COM CONTEÚDO)
+            // 🎨 ÍCONES DA STATUS BAR BRANCOS (CONTRASTE COM FUNDO AZUL)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, window.getDecorView());
                 controller.setAppearanceLightStatusBars(false); // FALSE = ÍCONES BRANCOS
                 controller.setAppearanceLightNavigationBars(false); // FALSE = ÍCONES BRANCOS
             }
             
-            // 🔧 LAYOUT FULLSCREEN - CONTEÚDO ATÉ O TOPO
+            // 🔧 FLAGS PARA LAYOUT FULLSCREEN EDGE-TO-EDGE
             View decorView = window.getDecorView();
             int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE 
                     | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
             decorView.setSystemUiVisibility(uiOptions);
             
-            android.util.Log.d("TWA_INIT", "� Edge-to-edge COMPLETO ativado - App fullscreen até a status bar!");
+            android.util.Log.d("TWA_EDGE_TO_EDGE", "🚀 MODO EDGE-TO-EDGE PREMIUM ATIVADO - Faixa branca ELIMINADA!");
         }
         
         setContentView(R.layout.activity_main);
         
         webView = findViewById(R.id.webview);
         
-        // 🎨 BACKGROUND PRETO PARA WEBVIEW - HARMONIA COM STATUS BAR
-        webView.setBackgroundColor(Color.BLACK);
+        // 🎨 BACKGROUND AZUL STATER PARA WEBVIEW - ELIMINA FLASH BRANCO
+        webView.setBackgroundColor(Color.parseColor("#31518b"));
         
         // Configurações do WebView
         WebSettings webSettings = webView.getSettings();
@@ -1253,51 +1253,57 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * � INJETAR CSS EDGE-TO-EDGE CORRETO
+     * 🚀 INJETAR CSS EDGE-TO-EDGE PREMIUM - SOLUÇÃO DEFINITIVA
      */
     private void injectEdgeToEdgeCSS(WebView webView) {
         String css = "" +
-            // 🎯 SISTEMA DE CORES OTIMIZADO PARA EDGE-TO-EDGE COMPLETO
-            ":root { " +
-            "   --status-bar-height: env(safe-area-inset-top, 24px); " + // ALTURA REAL DA STATUS BAR
-            "   --nav-height: 85px; " + // NAVBAR AUMENTADA
-            "   --stater-blue: #31518b; " +
-            "   --stater-blue-dark: #1d2951; " +
-            "   --shadow-premium: 0 8px 32px rgba(0,0,0,0.12); " +
-            "   --border-radius: 16px; " +
-            "} " +
-            
-            // � EDGE-TO-EDGE: PADDING PARA STATUS BAR NO HEADER
-            "header, .header, .app-header, .app-bar, div[class*='Header'], div[class*='AppBar'] { " +
-            "   padding-top: calc(var(--status-bar-height) + 16px) !important; " +
-            "   padding-bottom: 16px !important; " +
-            "   background: transparent !important; " +
-            "} " +
-            
-            // �🎨 BACKGROUND HARMÔNICO EDGE-TO-EDGE
-            "html, body, #root, .app, .main, [class*='container'], [class*='wrapper'] { " +
-            "   background-color: var(--stater-blue) !important; " +
-            "   background: var(--stater-blue) !important; " +
-            "   color: white !important; " +
-            "   padding: 0 !important; " +
+            // 🎯 CSS RESET PARA EDGE-TO-EDGE VERDADEIRO
+            "html, body { " +
             "   margin: 0 !important; " +
-            "   margin-top: -15px !important; " + // PUXAR PARA CIMA ELIMINANDO FAIXA BRANCA
-            "   position: relative !important; " +
-            "   top: 0 !important; " +
+            "   padding: 0 !important; " +
+            "   height: 100% !important; " +
+            "   width: 100% !important; " +
+            "   overflow-x: hidden !important; " +
+            "   background-color: #31518b !important; " +
             "} " +
             
-            // ❌ REMOVIDO: body::before - status bar agora é controlada pelo Android com cor sólida
+            // 💎 EDGE-TO-EDGE: HEADER COM PADDING PARA STATUS BAR
+            "header, .header, .app-bar, div[class*='Header'], div[class*='AppBar'], " +
+            ".login-header, .auth-header, .top-bar, .navbar-top { " +
+            "   padding-top: env(safe-area-inset-top, 48px) !important; " +
+            "   padding-left: env(safe-area-inset-left, 16px) !important; " +
+            "   padding-right: env(safe-area-inset-right, 16px) !important; " +
+            "   background-color: #31518b !important; " +
+            "   position: relative !important; " +
+            "   z-index: 1000 !important; " +
+            "} " +
             
-            // 🎯 LOGO STATER - DESIGN PREMIUM SEM CORTES
+            // 🎨 CONTEÚDO PRINCIPAL COM SAFE AREAS
+            "main, .main, .content, div[class*='Content'], div[class*='Body'], " +
+            "div[class*='container'], div[class*='wrapper'], #root, .app { " +
+            "   background-color: #31518b !important; " +
+            "   min-height: 100vh !important; " +
+            "   padding-left: env(safe-area-inset-left, 0px) !important; " +
+            "   padding-right: env(safe-area-inset-right, 0px) !important; " +
+            "   padding-bottom: env(safe-area-inset-bottom, 85px) !important; " +
+            "} " +
+            
+            // 🔥 ELIMINAR QUALQUER FUNDO BRANCO RESIDUAL
+            "* { " +
+            "   background-color: transparent !important; " +
+            "} " +
+            "html, body, #root, .app, .main, [class*='container'], [class*='wrapper'] { " +
+            "   background-color: #31518b !important; " +
+            "} " +
+            
+            // 🎯 LOGO STATER OTIMIZADO PARA EDGE-TO-EDGE
             ".stater-logo, [class*='logo'], img[alt*='Stater'], img[src*='logo'], " +
             ".login-header img, .auth-header img, header img { " +
             "   max-width: 180px !important; " +
             "   max-height: 64px !important; " +
-            "   height: auto !important; " +
-            "   width: auto !important; " +
-            "   object-fit: contain !important; " +
-            "   object-position: center !important; " +
             "   margin: 16px auto !important; " +
+            "   display: block !important; " +
+            "} " +
             "   display: block !important; " +
             "   transform: none !important; " +
             "   filter: drop-shadow(0 4px 12px rgba(255,255,255,0.1)) !important; " +

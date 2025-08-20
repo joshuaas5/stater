@@ -129,7 +129,7 @@ const NavBar: React.FC = () => {
       body.style.overscrollBehavior = 'none';
       body.style.overflowX = 'hidden';
       // ADICIONADO: Padding bottom para compensar navbar fixa
-      body.style.paddingBottom = '64px';
+      body.style.paddingBottom = '90px';
     }
     if (root) {
       root.style.transform = 'none';

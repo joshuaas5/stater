@@ -575,3 +575,19 @@ svg {
   flex-direction: column;
 }
 
+/* CORREÇÃO SCROLL LATERAL */
+* {
+  overflow-x: hidden !important;
+}
+
+html, body {
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+}
+
+.edge-to-edge-page,
+.edge-to-edge-container {
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+}
+

@@ -1,9 +1,9 @@
 /* ✨ MELHORIAS PARA PÁGINA DE LOGIN - DESIGN FOFINHO */
 
-/* Background mais escuro e profundo para mobile */
+/* Background ligeiramente mais escuro apenas para a página de login */
 @media (max-width: 768px) {
   .edge-to-edge-page {
-    background: linear-gradient(135deg, #0f1a3e 0%, #0a1434 25%, #061024 50%, #030b1a 75%, #010610 100%) !important;
+    background: linear-gradient(135deg, #2a4374 0%, #1e3562 50%, #31518b 100%) !important;
   }
 }
 
@@ -34,7 +34,7 @@
 
 .login-divider-text span {
   padding: 0.5rem 1.5rem;
-  background: linear-gradient(90deg, transparent 0%, #0f1a3e 20%, #0f1a3e 80%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, #31518b 20%, #31518b 80%, transparent 100%);
   color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
   border-radius: 9999px;

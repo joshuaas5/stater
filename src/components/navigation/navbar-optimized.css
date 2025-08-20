@@ -5,12 +5,12 @@
   left: 0 !important;
   right: 0 !important;
   width: 100% !important;
-  height: 100px; /* Aumentado de 90px para 100px - mais fofinha */
+  height: 90px; /* Voltando ao tamanho original */
   z-index: 999;
-  background: linear-gradient(135deg, #31518b 0%, #2a4374 50%, #1e3562 100%); /* Gradiente mais suave e fofinho */
-  backdrop-filter: blur(8px); /* Mais blur para suavidade */
-  border-top: 2px solid rgba(255, 255, 255, 0.25); /* Borda mais visível */
-  box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.3), 0 -2px 10px rgba(49, 81, 139, 0.4); /* Sombra dupla mais fofinha */
+  background: #31518b; /* Background simples e sólido */
+  backdrop-filter: blur(5px);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
   display: flex;
   overscroll-behavior: none;
@@ -19,15 +19,14 @@
   will-change: transform;
   /* Garantir que não seja removido por outros elementos */
   contain: layout;
-  border-radius: 25px 25px 0 0; /* Bordas arredondadas no topo para ficar fofinha */
 }
 
 .navbar-content {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  height: 100px; /* Atualizado para coincidir com nova altura */
-  padding: 1rem 0.75rem; /* Padding maior para mais fofura */
+  height: 90px; /* Voltando ao tamanho original */
+  padding: 0.8rem 0.5rem; /* Padding original */
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
@@ -38,72 +37,64 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 82px; /* Aumentado de 76px para 82px */
-  padding: 0.75rem 0.875rem; /* Padding maior para mais fofura */
-  border-radius: 1.25rem; /* Mais arredondado para ficar fofinho */
-  transition: all 0.3s ease; /* Transição mais suave */
+  min-width: 76px; /* Tamanho original */
+  padding: 0.5rem 0.7rem; /* Padding original */
+  border-radius: 0.875rem; /* Arredondamento original */
+  transition: background-color 0.2s ease; /* Transição simples */
   background-color: transparent;
   border: none;
   cursor: pointer;
 }
 
 .navbar-button:hover {
-  background-color: rgba(255, 255, 255, 0.15); /* Hover mais visível */
-  transform: translateY(-2px); /* Efeito de elevação fofinho */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombra no hover */
+  background-color: rgba(255, 255, 255, 0.1); /* Hover simples */
 }
 
 .navbar-button-active {
-  background-color: rgba(255, 255, 255, 0.25); /* Mais opaco para destaque */
+  background-color: rgba(255, 255, 255, 0.2);
   /* Borda em CSS em vez de estilo inline */
-  border: 2px solid rgba(255, 255, 255, 0.3); /* Borda mais visível */
-  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.15), 0 0 20px rgba(49, 81, 139, 0.3); /* Sombra dupla fofinha */
-  transform: translateY(-1px); /* Leve elevação */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
 }
 
 .navbar-icon-container {
-  margin-bottom: 0.4rem; /* Aumentado para mais espaço */
+  margin-bottom: 0.3rem;
 }
 
 .navbar-icon {
   color: white;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3)); /* Sombra sutil no ícone */
 }
 
 .navbar-icon-active {
-  filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3)); /* Sombra mais visível quando ativo */
-  color: #ffffff; /* Branco puro quando ativo */
+  filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.2));
 }
 
 .navbar-label {
-  font-size: 0.85rem; /* Ligeiramente maior */
+  font-size: 0.82rem;
   color: white;
-  font-weight: 600; /* Mais bold */
+  font-weight: 500;
   opacity: 0.9;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* Sombra no texto */
 }
 
 .navbar-label-active {
   opacity: 1;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); /* Sombra mais forte quando ativo */
 }
 
 .navbar-indicator {
-  width: 1.75rem; /* Ligeiramente maior */
-  height: 0.1875rem; /* Um pouco mais alto */
+  width: 1.5rem;
+  height: 0.125rem;
   background-color: white;
   border-radius: 9999px;
-  margin-top: 0.3rem;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6), 0 0 16px rgba(255, 255, 255, 0.3); /* Brilho fofinho */
+  margin-top: 0.25rem;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
 }
 
 .navbar-logo-text {
-  font-size: 0.85rem; /* Ligeiramente maior */
+  font-size: 0.82rem;
   font-weight: 700;
   color: white;
   font-family: 'Fredoka One', 'Comic Sans MS', Poppins, sans-serif;
-  letter-spacing: 0.75px; /* Mais espaçamento */
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); /* Sombra no logo */
+  letter-spacing: 0.5px;
 }
 
 /* Otimizações específicas para mobile - ULTRA-PERFORMANCE */

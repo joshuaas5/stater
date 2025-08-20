@@ -24,10 +24,12 @@
     margin-bottom: 0.75rem !important; /* era mb-6 (1.5rem) */
   }
   
-  /* ✅ LOGO MAIOR - aumentada conforme pedido */
+  /* ✅ LOGO - tamanho adequado sem cortar */
   .homepage-container .w-24.h-24.sm\:w-32.sm\:h-32 {
-    width: 5.5rem !important; /* aumentado para 5.5rem (88px) */
-    height: 5.5rem !important;
+    width: 6rem !important; /* 96px - maior para não cortar */
+    height: 6rem !important;
+    max-width: none !important; /* Remove qualquer limitação */
+    max-height: none !important;
   }
 
   /* ✅ TÍTULO - reduzir tamanho e espaçamento */

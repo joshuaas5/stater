@@ -276,6 +276,11 @@ const Login: React.FC = () => {
           variant: "destructive",
         });
         setIsGoogleLoading(false);
+      } else {
+        // ✅ Timeout para resetar loading se não redirecionar
+        setTimeout(() => {
+          setIsGoogleLoading(false);
+        }, 5000);
       }
       // Se não há erro, mantém loading até o redirect
     } catch (error) {
@@ -289,8 +294,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="edge-to-edge-page">
-      {/* Partículas flutuantes - otimizadas */}
+    <div className="edge-to-edge-login">      {/* Partículas flutuantes - otimizadas */}
       <div className="absolute inset-0 overflow-hidden stable-particles">
         {Array.from({ length: 15 }).map((_, i) => (
           <div

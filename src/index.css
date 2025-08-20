@@ -36,10 +36,19 @@ html, body {
   flex: 1;
 }
 
-/* Classe específica para página de login com background ligeiramente mais escuro apenas */
+/* Classe específica para dashboard - SEMPRE cor original */
 .edge-to-edge-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #2a4374 0%, #1e3562 50%, #31518b 100%) !important; /* Apenas um pouco mais escuro que o original */
+  background-color: #31518b !important; /* COR ORIGINAL SEMPRE - NUNCA MUDAR */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* Classe específica APENAS para página de login */
+.edge-to-edge-login {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #2a4374 0%, #1e3562 50%, #31518b 100%) !important;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -117,4 +126,21 @@ html, body {
 .navbar-text {
   font-size: 12px;
   font-weight: 500;
+}
+
+/* CORRIGIR BORDAS ARREDONDADAS DOS BOTÕES */
+button {
+  border-radius: 0.375rem !important; /* 6px - valor padrão do Tailwind rounded-md */
+}
+
+button.rounded-lg {
+  border-radius: 0.5rem !important; /* 8px */
+}
+
+button.rounded-xl {
+  border-radius: 0.75rem !important; /* 12px */
+}
+
+button.rounded-full {
+  border-radius: 9999px !important;
 }

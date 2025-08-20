@@ -39,6 +39,8 @@ import androidx.core.content.FileProvider;
 import java.util.Map;
 import java.util.HashMap;
 import android.webkit.JavascriptInterface;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class MainActivity extends Activity {
     private WebView webView;
@@ -78,15 +80,24 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // ✅ EDGE-TO-EDGE DEFINITIVO - SOLUÇÃO COMPLETA
-        Window window = getWindow();
-        
-        // 🔥 STATUS BAR TRANSPARENTE - PERMITE CONTEÚDO ATRÁS
-        window.setStatusBarColor(Color.TRANSPARENT);
-        window.setNavigationBarColor(Color.TRANSPARENT);
-        
-        // 🚀 EDGE-TO-EDGE REAL - CONTEÚDO OCUPA TODA A TELA
-        WindowCompat.setDecorFitsSystemWindows(window, false);
+        try {
+            android.util.Log.d("TWA_DEBUG", "🚀 MainActivity onCreate iniciado");
+            saveLogToFile("TWA_DEBUG", "🚀 MainActivity onCreate iniciado");
+            
+            // ✅ EDGE-TO-EDGE DEFINITIVO - SOLUÇÃO COMPLETA
+            Window window = getWindow();
+            
+            android.util.Log.d("TWA_DEBUG", "✅ Window obtida, configurando edge-to-edge");
+            saveLogToFile("TWA_DEBUG", "✅ Window obtida, configurando edge-to-edge");
+            
+            // 🔥 STATUS BAR TRANSPARENTE - PERMITE CONTEÚDO ATRÁS
+            window.setStatusBarColor(Color.TRANSPARENT);
+            window.setNavigationBarColor(Color.TRANSPARENT);
+            
+            android.util.Log.d("TWA_DEBUG", "✅ Cores transparentes aplicadas");
+            
+            // 🚀 EDGE-TO-EDGE REAL - CONTEÚDO OCUPA TODA A TELA
+            WindowCompat.setDecorFitsSystemWindows(window, false);
         
         // 💎 ÍCONES DA STATUS BAR CLAROS (PARA BACKGROUND AZUL)
         WindowInsetsControllerCompat windowInsetsController = 
@@ -113,8 +124,12 @@ public class MainActivity extends Activity {
         
         webView = findViewById(R.id.webview);
         
+        android.util.Log.d("TWA_DEBUG", "✅ WebView encontrada e inicializada");
+        
         // ✅ WEBVIEW BACKGROUND AZUL - ELIMINA FAIXA BRANCA DURANTE CARREGAMENTO
         webView.setBackgroundColor(Color.parseColor("#31518b"));
+        
+        android.util.Log.d("TWA_DEBUG", "✅ Background azul aplicado ao WebView");
         
         // Configurações do WebView
         WebSettings webSettings = webView.getSettings();
@@ -123,8 +138,10 @@ public class MainActivity extends Activity {
         webSettings.setDatabaseEnabled(true);
         webSettings.setMediaPlaybackRequiresUserGesture(false);
         
+        android.util.Log.d("TWA_DEBUG", "✅ Configurações básicas do WebView aplicadas");
+        
         // ❌ NÃO solicitar permissões no início - apenas quando necessário
-        webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); // 🚀 OFFLINE PRIMEIRO
         webSettings.setAllowFileAccess(true);
         webSettings.setAllowContentAccess(true);
         webSettings.setAllowFileAccessFromFileURLs(true);
@@ -135,6 +152,9 @@ public class MainActivity extends Activity {
         webSettings.setBuiltInZoomControls(false);
         webSettings.setDisplayZoomControls(false);
         webSettings.setSupportZoom(true);
+        
+        // 🌐 CONFIGURAÇÕES DE CACHE PARA OFFLINE (MODERNIZADAS)
+        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); // 🚀 OFFLINE PRIMEIRO
         
         // ✅ CONFIGURAÇÕES CRÍTICAS PARA MÍDIA E UPLOAD
         webSettings.setAllowFileAccessFromFileURLs(true);
@@ -195,6 +215,28 @@ public class MainActivity extends Activity {
                 // 🚀 TWA Performance: Preload critical resources
                 if (url.contains("stater.app")) {
                     optimizeTWALoading(view);
+                }
+            }
+            
+            @Override
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                super.onReceivedError(view, errorCode, description, failingUrl);
+                
+                // 🌐 FALLBACK OFFLINE - FUNCIONALIDADE SOLICITADA
+                if (errorCode == ERROR_HOST_LOOKUP || errorCode == ERROR_CONNECT || 
+                    errorCode == ERROR_TIMEOUT || errorCode == ERROR_UNKNOWN) {
+                    
+                    android.util.Log.d("TWA_OFFLINE", "🌐 Erro de conexão detectado, tentando cache");
+                    
+                    // Tenta carregar da cache
+                    WebSettings settings = view.getSettings();
+                    settings.setCacheMode(WebSettings.LOAD_CACHE_ONLY);
+                    view.loadUrl(failingUrl);
+                    
+                    // Volta para modo normal após 3 segundos
+                    view.postDelayed(() -> {
+                        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+                    }, 3000);
                 }
             }
         });
@@ -299,6 +341,22 @@ public class MainActivity extends Activity {
         }, 500); // Reduzido de 1s para 0.5s
         
         hideSystemUI();
+        
+        android.util.Log.d("TWA_DEBUG", "✅ MainActivity onCreate concluído com sucesso");
+        
+        } catch (Exception e) {
+            android.util.Log.e("TWA_ERROR", "❌ ERRO CRÍTICO no onCreate: " + e.getMessage(), e);
+            saveLogToFile("TWA_ERROR", "❌ ERRO CRÍTICO no onCreate: " + e.getMessage() + " Stack: " + android.util.Log.getStackTraceString(e));
+            // Tenta carregar uma página de erro básica
+            try {
+                if (webView != null) {
+                    webView.loadUrl("data:text/html,<html><body style='background:#31518b;color:white;text-align:center;padding:50px;'><h1>Erro no App</h1><p>" + e.getMessage() + "</p></body></html>");
+                }
+            } catch (Exception e2) {
+                android.util.Log.e("TWA_ERROR", "❌ Falha ao carregar página de erro: " + e2.getMessage());
+                saveLogToFile("TWA_ERROR", "❌ Falha ao carregar página de erro: " + e2.getMessage());
+            }
+        }
     }
     
     // ✅ MAPEAMENTO EXPLÍCITO PERMISSÕES WEBVIEW → ANDROID
@@ -1056,7 +1114,14 @@ public class MainActivity extends Activity {
             "      --safe-padding-top: calc(var(--status-bar-height) + 12px);" +
             "    }" +
             "    " +
-            "    /* 📱 CORPO COM PADDING SEGURO AUMENTADO */" +
+            "    /* � REMOVER SCROLL HORIZONTAL - FIX SOLICITADO */" +
+            "    html, body {" +
+            "      overflow-x: hidden !important;" +
+            "      max-width: 100vw !important;" +
+            "      box-sizing: border-box !important;" +
+            "    }" +
+            "    " +
+            "    /* �📱 CORPO COM PADDING SEGURO AUMENTADO */" +
             "    body, #root, .app-container {" +
             "      padding-top: var(--safe-padding-top) !important;" +
             "      padding-bottom: var(--nav-bar-height) !important;" +
@@ -1072,17 +1137,19 @@ public class MainActivity extends Activity {
             "      height: auto !important;" +
             "    }" +
             "    " +
-            "    /* 📍 NAVBAR INFERIOR RESTAURADA COM TEXTOS */" +
+            "    /* 📍 NAVBAR INFERIOR PERFEITAMENTE ALINHADA - 95PX */" +
             "    .bottom-navigation, nav[class*='bottom'], .navbar-bottom, .tab-bar, [class*='tab'] {" +
-            "      height: 72px !important;" +
-            "      min-height: 72px !important;" +
-            "      padding-bottom: calc(var(--nav-bar-height) + 8px) !important;" +
-            "      padding-top: 12px !important;" +
+            "      height: 100px !important;" +
+            "      min-height: 100px !important;" +
+            "      padding-bottom: calc(var(--nav-bar-height) + 10px) !important;" +
+            "      padding-top: 15px !important;" +
             "      position: fixed !important;" +
             "      bottom: 0 !important;" +
             "      left: 0 !important;" +
             "      right: 0 !important;" +
             "      z-index: 50 !important;" +
+            "      width: 100% !important;" +
+            "      box-sizing: border-box !important;" +
             "    }" +
             "    " +
             "    /* 📝 TEXTOS DA NAVBAR VISÍVEIS */" +
@@ -1095,10 +1162,10 @@ public class MainActivity extends Activity {
             "      margin-top: 4px !important;" +
             "    }" +
             "    " +
-            "    /* 📢 BANNER FIXO ACIMA DA NAVBAR */" +
+            "    /* 📢 BANNER PERFEITAMENTE ALINHADO COM NAVBAR 95PX */" +
             "    [class*='ad-banner'], [id*='ad-banner'], [class*='banner'], .ad-container, [class*='ad'] {" +
             "      position: fixed !important;" +
-            "      bottom: calc(72px + var(--nav-bar-height)) !important;" +
+            "      bottom: calc(100px + var(--nav-bar-height)) !important;" +
             "      left: 8px !important;" +
             "      right: 8px !important;" +
             "      z-index: 40 !important;" +
@@ -1114,15 +1181,66 @@ public class MainActivity extends Activity {
             "      padding-top: 8px !important;" +
             "    }" +
             "    " +
-            "    /* 📊 CONTEÚDO PRINCIPAL AJUSTADO */" +
+            "    /* 📊 CONTEÚDO PRINCIPAL AJUSTADO PARA 95PX */" +
             "    .main-content, .container, [class*='main'], .content {" +
-            "      min-height: calc(100vh - var(--safe-padding-top) - 72px - var(--nav-bar-height)) !important;" +
-            "      padding-bottom: calc(72px + var(--nav-bar-height) + 16px) !important;" +
+            "      min-height: calc(100vh - var(--safe-padding-top) - 100px - var(--nav-bar-height)) !important;" +
+            "      padding-bottom: calc(100px + var(--nav-bar-height) + 16px) !important;" +
             "    }" +
             "    " +
             "    /* 🔧 ELEMENTOS FIXOS AJUSTADOS */" +
             "    .fixed-top, .absolute-top {" +
             "      top: var(--safe-padding-top) !important;" +
+            "    }" +
+            "    " +
+            "    /* 🚫 SCROLLBAR INVISÍVEL - SOLUÇÃO DEFINITIVA */" +
+            "    body, html, div, main, section, article {" +
+            "      scrollbar-width: none !important;" + // Firefox
+            "      -ms-overflow-style: none !important;" + // IE/Edge
+            "    }" +
+            "    " +
+            "    /* 🔥 WEBKIT SCROLLBAR OCULTO - CHROME/SAFARI */" +
+            "    body::-webkit-scrollbar, html::-webkit-scrollbar," +
+            "    div::-webkit-scrollbar, main::-webkit-scrollbar," +
+            "    section::-webkit-scrollbar, article::-webkit-scrollbar," +
+            "    *::-webkit-scrollbar {" +
+            "      width: 0px !important;" +
+            "      height: 0px !important;" +
+            "      background: transparent !important;" +
+            "      display: none !important;" +
+            "    }" +
+            "    " +
+            "    /* 📱 OVERFLOW CONTROL TOTAL */" +
+            "    #root, .app, .application, [data-react-app] {" +
+            "      overflow-x: hidden !important;" +
+            "      max-width: 100vw !important;" +
+            "      box-sizing: border-box !important;" +
+            "    }" +
+            "    " +
+            "    /* 🚫 ELIMINAÇÃO FORÇADA DE SCROLL LATERAL */" +
+            "    *, *::before, *::after {" +
+            "      overflow-x: hidden !important;" +
+            "      max-width: 100vw !important;" +
+            "      box-sizing: border-box !important;" +
+            "    }" +
+            "    " +
+            "    html, body {" +
+            "      overflow-x: hidden !important;" +
+            "      overflow-y: auto !important;" +
+            "      width: 100% !important;" +
+            "      max-width: 100vw !important;" +
+            "    }" +
+            "    " +
+            "    /* SCROLLBAR COMPLETAMENTE OCULTO */" +
+            "    ::-webkit-scrollbar {" +
+            "      width: 0px !important;" +
+            "      height: 0px !important;" +
+            "      display: none !important;" +
+            "    }" +
+            "    " +
+            "    .edge-to-edge-container, .safe-area-content {" +
+            "      overflow-x: hidden !important;" +
+            "      width: 100% !important;" +
+            "      max-width: 100vw !important;" +
             "    }" +
             "  `;" +
             "  " +
@@ -1205,5 +1323,18 @@ public class MainActivity extends Activity {
         mPermissionRequest = null;
         mWebPermissionsRequested = null;
         isHandlingPermissionFlow = false;
+    }
+    
+    // 🔍 MÉTODO PARA SALVAR LOGS EM ARQUIVO PARA DEBUG
+    private void saveLogToFile(String tag, String message) {
+        try {
+            File logFile = new File(getExternalFilesDir(null), "stater_debug.log");
+            FileWriter writer = new FileWriter(logFile, true);
+            writer.append(new Date().toString() + " [" + tag + "] " + message + "\n");
+            writer.close();
+            android.util.Log.d("DEBUG_FILE", "Log salvo em: " + logFile.getAbsolutePath());
+        } catch (IOException e) {
+            android.util.Log.e("DEBUG_FILE", "Erro ao salvar log: " + e.getMessage());
+        }
     }
 }

@@ -154,7 +154,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({
   const Icon = currentAd.icon;
   const positionClasses = position === 'top' 
     ? 'top-0 border-b' 
-    : 'bottom-20 border-t'; // Ajustado para bottom-20 (80px) para ficar acima da navbar
+    : 'bottom-24 border-t'; // Ajustado para bottom-24 (96px) para ficar acima da navbar de 100px
 
   return (
     <div className={`

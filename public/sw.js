@@ -1,14 +1,18 @@
-// 🔧 Service Worker OTIMIZADO - Reduzindo interceptações e logs
-const CACHE_NAME = 'stater-app-v5';
+// 🔧 Service Worker OTIMIZADO - Melhor suporte offline
+const CACHE_NAME = 'stater-app-v6';
 
-// Lista mínima de arquivos para cache
+// Lista expandida de arquivos para cache offline
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.ico',
-  '/icon-192.svg'
+  '/icon-192.svg',
+  '/offline.html' // Página offline de fallback
 ];
+
+// Cache dinâmico para assets importantes
+const DYNAMIC_CACHE = 'stater-dynamic-v6';
 
 // 🔧 URLs críticas que NUNCA devem ser interceptadas
 const criticalUrls = [
@@ -36,14 +40,14 @@ self.addEventListener('activate', (event) => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
+          if (cacheName !== CACHE_NAME && cacheName !== DYNAMIC_CACHE) {
             console.log('[SW] Removendo cache antigo:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
-      console.log('[SW] Service Worker pronto para lidar com requisições!');
+      console.log('[SW] Service Worker pronto para funcionalidade offline!');
       return self.clients.claim();
     })
   );
@@ -73,40 +77,61 @@ self.addEventListener('fetch', (event) => {
     return; // Não interceptar
   }
   
-  // 🔧 Interceptar apenas recursos estáticos específicos
+  // 🔧 Estratégia de cache melhorada para offline
   const isStaticResource = url.includes('.js') || url.includes('.css') || 
                           url.includes('.png') || url.includes('.svg') ||
-                          url.includes('.ico') || url.includes('.json');
+                          url.includes('.ico') || url.includes('.json') ||
+                          url.includes('.woff') || url.includes('.woff2');
   
   if (!isStaticResource && !url.includes(self.location.origin)) {
     return; // Deixar recursos externos passarem
   }
   
-  // 🔧 Cache strategy simplificada
+  // 🔧 Estratégia Cache First para recursos estáticos, Network First para HTML
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        if (response) {
-          return response; // Retornar do cache
+        if (response && isStaticResource) {
+          return response; // Cache first para recursos estáticos
         }
         
-        // Buscar da rede apenas se necessário
+        // Network first para HTML e API calls
         return fetch(event.request)
-          .then(response => {
-            // Apenas cachear se for um recurso estático válido
-            if (isStaticResource && response.status === 200) {
-              const responseToCache = response.clone();
-              caches.open(CACHE_NAME)
-                .then(cache => cache.put(event.request, responseToCache));
+          .then(networkResponse => {
+            // Cachear recursos importantes
+            if (networkResponse.status === 200) {
+              const responseToCache = networkResponse.clone();
+              
+              if (isStaticResource) {
+                // Cache estático
+                caches.open(CACHE_NAME)
+                  .then(cache => cache.put(event.request, responseToCache));
+              } else if (event.request.mode === 'navigate') {
+                // Cache dinâmico para navegação
+                caches.open(DYNAMIC_CACHE)
+                  .then(cache => cache.put(event.request, responseToCache));
+              }
             }
-            return response;
+            return networkResponse;
           })
           .catch(() => {
-            // Fallback para página offline se necessário
-            if (event.request.mode === 'navigate') {
-              return caches.match('/');
+            // Fallback offline
+            if (response) {
+              return response; // Retornar cache se disponível
             }
-            return new Response('Offline', { status: 503 });
+            
+            if (event.request.mode === 'navigate') {
+              return caches.match('/') || caches.match('/index.html');
+            }
+            
+            // Resposta offline para outros recursos
+            return new Response(
+              JSON.stringify({ error: 'Offline', cached: false }), 
+              { 
+                status: 503, 
+                headers: { 'Content-Type': 'application/json' }
+              }
+            );
           });
       })
   );

@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useStableHeight } from '@/hooks/useStableHeight';
 import '@/styles/anti-flicker.css';
 import '@/styles/mobile-login-compact.css';
+import '@/styles/login-improvements.css';
 
 const Login: React.FC = () => {
   // Hook para altura estável em mobile
@@ -334,8 +335,8 @@ const Login: React.FC = () => {
             <p className="text-blue-200 text-base sm:text-lg font-medium">Inteligência para prosperar</p>
           </div>
 
-          {/* Login Card - otimizado */}
-          <div className="bg-white/10 rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8 mx-4 sm:mx-0 stable-backdrop no-flicker">
+          {/* Login Card - otimizado com melhorias fofinhas */}
+          <div className="login-form-container bg-white/10 rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8 mx-4 sm:mx-0 stable-backdrop no-flicker">
             {/* Title */}
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-white mb-2">
@@ -367,7 +368,7 @@ const Login: React.FC = () => {
                       placeholder="Email"
                       value={loginData.email}
                       onChange={(e) => setLoginData({...loginData, email: e.target.value})}
-                      className="w-full px-6 py-4 bg-white/5 border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                      className="login-input w-full px-6 py-4 bg-white/5 border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                       required
                     />
                     {errors.loginEmail && (
@@ -380,7 +381,7 @@ const Login: React.FC = () => {
                       placeholder="Senha"
                       value={loginData.password}
                       onChange={(e) => setLoginData({...loginData, password: e.target.value})}
-                      className="w-full px-6 py-4 bg-white/5 border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                      className="login-input w-full px-6 py-4 bg-white/5 border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                       required
                     />
                     {errors.loginPassword && (
@@ -404,12 +405,12 @@ const Login: React.FC = () => {
                   )}
                 </button>
 
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
+                <div className="login-divider">
+                  <div className="login-divider-line">
                     <div className="w-full border-t border-white/20"></div>
                   </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-transparent text-white/60">ou</span>
+                  <div className="login-divider-text">
+                    <span>ou</span>
                   </div>
                 </div>
 

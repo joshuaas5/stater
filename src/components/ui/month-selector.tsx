@@ -129,7 +129,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({ onMonthChange }) =
           <PopoverTrigger asChild>
             <div className="flex items-center cursor-pointer">
               <div className="flex items-center rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl py-3 px-6 hover:bg-white/20 transition-all duration-300 relative overflow-hidden group">
-                <CalendarIcon size={20} className="mr-3 text-white/80" />
+                <CalendarIcon size={20} className="mr-3 text-white fill-current" />
                 <span 
                   className="font-bold text-lg text-white"
                   style={{

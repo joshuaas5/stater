@@ -889,7 +889,7 @@ const Dashboard: React.FC = () => {
         <div 
           className="text-center pt-4 pb-6 px-4 relative"
           style={{
-            background: '#31518b',
+            background: '#4a6fa5',
             backdropFilter: 'blur(10px)'
           }}
         >
@@ -1058,7 +1058,7 @@ const Dashboard: React.FC = () => {
               border: '2px solid rgba(46, 204, 113, 0.5)'
             }}
           >
-            <span style={{ fontSize: '16px' }}>↗</span>
+            <TrendingUp size={16} />
             Entrada
           </button>
           <button 
@@ -1070,7 +1070,7 @@ const Dashboard: React.FC = () => {
               border: '2px solid rgba(231, 76, 60, 0.5)'
             }}
           >
-            <span style={{ fontSize: '16px' }}>↙</span>
+            <TrendingDown size={16} />
             Saída
           </button>
         </div>

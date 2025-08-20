@@ -127,20 +127,3 @@ html, body {
   font-size: 12px;
   font-weight: 500;
 }
-
-/* CORRIGIR BORDAS ARREDONDADAS DOS BOTÕES */
-button {
-  border-radius: 0.375rem !important; /* 6px - valor padrão do Tailwind rounded-md */
-}
-
-button.rounded-lg {
-  border-radius: 0.5rem !important; /* 8px */
-}
-
-button.rounded-xl {
-  border-radius: 0.75rem !important; /* 12px */
-}
-
-button.rounded-full {
-  border-radius: 9999px !important;
-}

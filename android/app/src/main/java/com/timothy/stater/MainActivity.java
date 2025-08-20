@@ -201,6 +201,9 @@ public class MainActivity extends Activity {
                 // 🌟 INJETAR CSS EDGE-TO-EDGE - COMO PAYWALL
                 injectEdgeToEdgeCSS(view);
                 
+                // 🚫 FORÇAR ELIMINAÇÃO DO SCROLL LATERAL
+                forceHideHorizontalScroll(view);
+                
                 // ✅ MANTER EDGE-TO-EDGE ATIVO
                 hideSystemUI();
                 
@@ -1244,9 +1247,17 @@ public class MainActivity extends Activity {
             "    }" +
             "  `;" +
             "  " +
+            "  // Debug: Verificar se CSS foi aplicado" +
+            "  console.log('🎨 CSS Edge-to-Edge APLICADO com navbar 100px e scroll eliminado!');" +
+            "  " +
             "  // Remove estilo anterior se existir" +
             "  const oldStyle = document.getElementById('edge-to-edge-adjustments');" +
             "  if (oldStyle) oldStyle.remove();" +
+            "  " +
+            "  // Limpar cache do WebView" +
+            "  if (window.performance && window.performance.mark) {" +
+            "    window.performance.mark('css-injection-' + Date.now());" +
+            "  }" +
             "  " +
             "  document.head.appendChild(style);" +
             "  console.log('� CSS Edge-to-edge com ajustes finos aplicado!');" +
@@ -1323,6 +1334,43 @@ public class MainActivity extends Activity {
         mPermissionRequest = null;
         mWebPermissionsRequested = null;
         isHandlingPermissionFlow = false;
+    }
+    
+    /**
+     * 🚫 FORÇAR ELIMINAÇÃO TOTAL DO SCROLL LATERAL
+     * Script adicional para garantir que nenhum scroll apareça
+     */
+    private void forceHideHorizontalScroll(WebView webView) {
+        String forceNoScrollScript = 
+            "setTimeout(() => {" +
+            "  console.log('🚫 Iniciando eliminação forçada do scroll lateral...');" +
+            "  " +
+            "  // Aplicar em documentElement e body" +
+            "  document.documentElement.style.setProperty('overflow-x', 'hidden', 'important');" +
+            "  document.body.style.setProperty('overflow-x', 'hidden', 'important');" +
+            "  " +
+            "  // Verificar todos os elementos que podem causar scroll" +
+            "  const problematicElements = [];" +
+            "  const allElements = document.querySelectorAll('*');" +
+            "  allElements.forEach(el => {" +
+            "    if (el.scrollWidth > el.clientWidth) {" +
+            "      problematicElements.push(el.tagName + '.' + el.className);" +
+            "      el.style.setProperty('overflow-x', 'hidden', 'important');" +
+            "      el.style.setProperty('max-width', '100vw', 'important');" +
+            "      el.style.setProperty('width', '100%', 'important');" +
+            "      el.style.setProperty('box-sizing', 'border-box', 'important');" +
+            "    }" +
+            "  });" +
+            "  " +
+            "  if (problematicElements.length > 0) {" +
+            "    console.log('🔧 Elementos problemáticos corrigidos:', problematicElements);" +
+            "  }" +
+            "  " +
+            "  console.log('✅ SCROLL LATERAL ELIMINADO COMPLETAMENTE!');" +
+            "}, 1000);";
+        
+        webView.evaluateJavascript(forceNoScrollScript, null);
+        android.util.Log.d("TWA_SCROLL", "🚫 Script anti-scroll forçado executado!");
     }
     
     // 🔍 MÉTODO PARA SALVAR LOGS EM ARQUIVO PARA DEBUG

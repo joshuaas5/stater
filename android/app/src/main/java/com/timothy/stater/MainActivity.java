@@ -78,6 +78,25 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        // ✅ EDGE-TO-EDGE DEFINITIVO - SOLUÇÃO COMPLETA
+        Window window = getWindow();
+        
+        // 🔥 STATUS BAR TRANSPARENTE - PERMITE CONTEÚDO ATRÁS
+        window.setStatusBarColor(Color.TRANSPARENT);
+        window.setNavigationBarColor(Color.TRANSPARENT);
+        
+        // 🚀 EDGE-TO-EDGE REAL - CONTEÚDO OCUPA TODA A TELA
+        WindowCompat.setDecorFitsSystemWindows(window, false);
+        
+        // 💎 ÍCONES DA STATUS BAR CLAROS (PARA BACKGROUND AZUL)
+        WindowInsetsControllerCompat windowInsetsController = 
+            WindowCompat.getInsetsController(window, window.getDecorView());
+        windowInsetsController.setAppearanceLightStatusBars(false);
+        windowInsetsController.setAppearanceLightNavigationBars(false);
+        
+        // 🎯 BACKGROUND AZUL STATER PARA ELIMINAR QUALQUER FAIXA BRANCA
+        window.getDecorView().setBackgroundColor(Color.parseColor("#31518b"));
+        
         // 🌟 EDGE-TO-EDGE COMPLETO - COMO APPS PREMIUM (Instagram, TikTok, Netflix)
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         
@@ -93,6 +112,9 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         
         webView = findViewById(R.id.webview);
+        
+        // ✅ WEBVIEW BACKGROUND AZUL - ELIMINA FAIXA BRANCA DURANTE CARREGAMENTO
+        webView.setBackgroundColor(Color.parseColor("#31518b"));
         
         // Configurações do WebView
         WebSettings webSettings = webView.getSettings();

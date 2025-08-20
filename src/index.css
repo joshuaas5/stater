@@ -10,40 +10,62 @@
 /* IMPORT NAVBAR ULTRA FORCE - MÁXIMA PRIORIDADE */
 @import './styles/navbar-ultra-force.css';
 
-/* ===== CONFIGURAÇÃO GLOBAL EDGE-TO-EDGE ===== */
+/* ===== CONFIGURAÇÃO GLOBAL EDGE-TO-EDGE DEFINITIVA - VERSÃO 2.0 ===== */
 html, body, #root {
-  /* Background azul consistente com theme_color (#1e40af) */
-  background-color: #1e40af !important;
+  /* 🔥 Background azul Stater que se estende por toda a tela */
+  background-color: #31518b !important;
+  background: #31518b !important;
   
-  /* Garante que o container principal ocupe toda a altura */
-  min-height: 100vh;
-  min-height: 100dvh; /* Dynamic viewport height para mobile */
+  /* 📱 Garante que o container principal ocupe toda a altura disponível */
+  min-height: 100vh !important;
+  min-height: 100dvh !important; /* Dynamic viewport height para mobile */
+  min-height: -webkit-fill-available !important; /* iOS Safari fix */
   
-  /* Remove margens padrão que podem causar bordas */
-  margin: 0;
-  padding: 0;
-  
-  /* � PADDING DE SEGURANÇA PARA ÁREAS EDGE-TO-EDGE */
-  /* env(safe-area-inset-*) detecta automaticamente notch, status bar, etc. */
-  padding-top: env(safe-area-inset-top, 0px);
-  padding-left: env(safe-area-inset-left, 0px);
-  padding-right: env(safe-area-inset-right, 0px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  
-  /* MOBILE: Evita zoom e garante layout estável */
-  -webkit-text-size-adjust: 100%;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* 💀 Remove margens e padding padrão que podem causar bordas brancas */
+  margin: 0 !important;
+  padding: 0 !important;
   
   /* 🚫 Evitar overflow horizontal */
   overflow-x: hidden;
+  
+  /* 🎯 MOBILE: Evita zoom e garante layout estável */
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 🚀 FORÇA BACKGROUND AZUL EM TUDO - ELIMINA QUALQUER FAIXA BRANCA */
+html::before, 
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #31518b !important;
+  z-index: -1000;
+  pointer-events: none;
+}
+
+/* 📱 ROOT: Container principal sem padding (edge-to-edge puro) */
+#root {
+  /* ✅ VERSÃO 2.0: Sem padding no root - deixar componentes gerenciarem */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  width: 100%;
+  position: relative;
 }
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 🎯 CLASSES UTILITÁRIAS EDGE-TO-EDGE */
+/* 🎯 CLASSES UTILITÁRIAS EDGE-TO-EDGE APRIMORADAS */
 @layer utilities {
   .safe-area-padding {
     /* Padding completo para todas as áreas seguras */
@@ -54,24 +76,49 @@ html, body, #root {
   }
   
   .safe-top-only {
-    /* Apenas padding superior (para quando não queremos nas laterais) */
+    /* Apenas padding superior - para headers */
     padding-top: env(safe-area-inset-top, 1.5rem);
   }
   
   .safe-bottom-only {
-    /* Apenas padding inferior (para navegação bottom) */
-    padding-bottom: env(safe-area-inset-bottom, 0);
+    /* Apenas padding inferior - para navegação bottom */
+    padding-bottom: env(safe-area-inset-bottom, 5rem);
   }
   
   .edge-to-edge-container {
-    /* Container edge-to-edge completo */
+    /* 🚀 Container edge-to-edge completo com background garantido */
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+    background-color: #31518b;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+  }
+  
+  .page-container {
+    /* 🎯 Container padrão para páginas com safe areas */
     min-height: 100dvh;
     background-color: #31518b;
     padding-top: env(safe-area-inset-top, 1.5rem);
-    padding-left: env(safe-area-inset-left, 0);
-    padding-right: env(safe-area-inset-right, 0);
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    overflow-x: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 5rem);
+    padding-left: env(safe-area-inset-left, 1rem);
+    padding-right: env(safe-area-inset-right, 1rem);
+  }
+  
+  .status-bar-fill {
+    /* 💎 Elemento para preencher área da status bar */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 48px);
+    background-color: #31518b;
+    z-index: 1000;
+    pointer-events: none;
   }
 }
 
@@ -492,3 +539,39 @@ svg {
     padding-bottom: max(env(safe-area-inset-bottom), 0px);
   }
 }
+
+/* EDGE-TO-EDGE CLASSES */
+.edge-to-edge-container {
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  min-height: -webkit-fill-available !important;
+  background-color: #31518b !important;
+  display: flex;
+  flex-direction: column;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 1;
+}
+
+.edge-to-edge-page {
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  min-height: -webkit-fill-available !important;
+  background-color: #31518b !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.safe-area-content {
+  padding-top: env(safe-area-inset-top, 24px);
+  padding-left: env(safe-area-inset-left, 16px);
+  padding-right: env(safe-area-inset-right, 16px);
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+

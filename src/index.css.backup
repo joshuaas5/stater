@@ -1,0 +1,596 @@
+
+/* Import scroll optimizations */
+@import './styles/scroll-optimizations.css';
+/* Import critical performance styles */
+@import './styles/critical-performance.css';
+/* Import anti-flicker fixes */
+@import './styles/anti-flicker.css';
+/* IMPORT NAVBAR FORCE - PRIORIDADE ABSOLUTA */
+@import './styles/navbar-force.css';
+/* IMPORT NAVBAR ULTRA FORCE - MÁXIMA PRIORIDADE */
+@import './styles/navbar-ultra-force.css';
+
+/* ===== CONFIGURAÇÃO GLOBAL EDGE-TO-EDGE DEFINITIVA - VERSÃO 2.0 ===== */
+html, body, #root {
+  /* 🔥 Background azul Stater que se estende por toda a tela */
+  background-color: #31518b !important;
+  background: #31518b !important;
+  
+  /* 📱 Garante que o container principal ocupe toda a altura disponível */
+  min-height: 100vh !important;
+  min-height: 100dvh !important; /* Dynamic viewport height para mobile */
+  min-height: -webkit-fill-available !important; /* iOS Safari fix */
+  
+  /* 💀 Remove margens e padding padrão que podem causar bordas brancas */
+  margin: 0 !important;
+  padding: 0 !important;
+  
+  /* 🚫 Evitar overflow horizontal */
+  overflow-x: hidden;
+  
+  /* 🎯 MOBILE: Evita zoom e garante layout estável */
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 🚀 FORÇA BACKGROUND AZUL EM TUDO - ELIMINA QUALQUER FAIXA BRANCA */
+html::before, 
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #31518b !important;
+  z-index: -1000;
+  pointer-events: none;
+}
+
+/* 📱 ROOT: Container principal sem padding (edge-to-edge puro) */
+#root {
+  /* ✅ VERSÃO 2.0: Sem padding no root - deixar componentes gerenciarem */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  width: 100%;
+  position: relative;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 🎯 CLASSES UTILITÁRIAS EDGE-TO-EDGE APRIMORADAS */
+@layer utilities {
+  .safe-area-padding {
+    /* Padding completo para todas as áreas seguras */
+    padding-top: env(safe-area-inset-top, 1.5rem);
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  
+  .safe-top-only {
+    /* Apenas padding superior - para headers */
+    padding-top: env(safe-area-inset-top, 1.5rem);
+  }
+  
+  .safe-bottom-only {
+    /* Apenas padding inferior - para navegação bottom */
+    padding-bottom: env(safe-area-inset-bottom, 5rem);
+  }
+  
+  .edge-to-edge-container {
+    /* 🚀 Container edge-to-edge completo com background garantido */
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+    background-color: #31518b;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+  }
+  
+  .page-container {
+    /* 🎯 Container padrão para páginas com safe areas */
+    min-height: 100dvh;
+    background-color: #31518b;
+    padding-top: env(safe-area-inset-top, 1.5rem);
+    padding-bottom: env(safe-area-inset-bottom, 5rem);
+    padding-left: env(safe-area-inset-left, 1rem);
+    padding-right: env(safe-area-inset-right, 1rem);
+  }
+  
+  .status-bar-fill {
+    /* 💎 Elemento para preencher área da status bar */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 48px);
+    background-color: #31518b;
+    z-index: 1000;
+    pointer-events: none;
+  }
+}
+
+/* FORÇA NAVBAR SEMPRE VISÍVEL - PRIORIDADE MÁXIMA MANTIDA */
+.navbar-fixed-bottom {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100vw !important;
+  height: 64px !important;
+  z-index: 40 !important; /* Reduzido para permitir modais acima */
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateZ(0) !important; /* Força camada de composição */
+}
+
+/* Garante que nada possa sobrepor a navbar */
+.navbar-fixed-bottom * {
+  pointer-events: auto !important;
+  visibility: visible !important;
+}
+
+/* TOAST NOTIFICATIONS - FORÇA ACIMA DE TUDO */
+[data-state="open"][data-radix-collection-item],
+[data-radix-toast-viewport] {
+  z-index: 2147483650 !important; /* Acima de todos os modais */
+  position: fixed !important;
+}
+
+/* Toast individual sempre visível */
+[role="status"][aria-live][data-state="open"] {
+  z-index: 2147483650 !important;
+  position: fixed !important;
+  pointer-events: auto !important;
+}
+
+/* ANIMAÇÕES CUSTOMIZADAS PARA MODAIS */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.3) translateY(-50px); opacity: 0; }
+  50% { transform: scale(1.1); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes slideInFromTop {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.6); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-bounceIn {
+  animation: bounceIn 0.6s ease-out;
+}
+
+.animate-slideInFromTop {
+  animation: slideInFromTop 0.4s ease-out;
+}
+
+.animate-pulseGlow {
+  animation: pulseGlow 2s infinite;
+}
+
+/* Container de toasts no topo ESQUERDO */
+[data-radix-toast-viewport] {
+  top: 16px !important;
+  left: 16px !important;
+  right: auto !important;
+  bottom: auto !important;
+  z-index: 2147483648 !important;
+}
+
+/* Sonner toast customization - botão X dentro do modal */
+.toaster [data-sonner-toast] {
+  position: relative !important;
+  padding-right: 44px !important; /* Espaço para o botão X */
+}
+
+.toaster button[data-close-button] {
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 6px !important;
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease !important;
+  z-index: 10 !important;
+}
+
+.toaster button[data-close-button]:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+.toaster button[data-close-button] svg {
+  width: 14px !important;
+  height: 14px !important;
+  color: #666 !important;
+}
+
+@layer base {
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;700;900&family=Fredoka+One&display=swap');
+
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 221 83% 53%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+
+    /* Tema claro Galileo */
+    --galileo-background: 0 0% 100%;
+    --galileo-card: 210 20% 98%;
+    --galileo-accent: 221 83% 65%;
+    --galileo-text: 215 25% 27%;
+    --galileo-secondaryText: 217 9% 51%;
+    --galileo-positive: 142 70% 49%;
+    --galileo-negative: 0 83% 70%;
+    --galileo-border: 213 27% 84%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+
+    /* Tema escuro Galileo */
+    --galileo-background: 218 33% 11%;
+    --galileo-card: 215 28% 17%;
+    --galileo-accent: 217 30% 24%;
+    --galileo-text: 220 16% 96%;
+    --galileo-secondaryText: 214 34% 65%;
+    --galileo-positive: 142 70% 49%;
+    --galileo-negative: 0 83% 70%;
+    --galileo-border: 215 25% 24%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-galileo-background text-galileo-text transition-colors duration-300;
+    font-family: 'Plus Jakarta Sans', 'Noto Sans', sans-serif;
+  }
+  
+  /* Estilizando a barra de rolagem para combinar com o tema */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .light ::-webkit-scrollbar {
+    background-color: #f1f5f9;
+  }
+  
+  .dark ::-webkit-scrollbar {
+    background-color: #131C24;
+  }
+  
+  .light ::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+  }
+  
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: #29374C;
+    border-radius: 4px;
+  }
+  
+  .light ::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+  }
+  
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background-color: #8A9DC0;
+  }
+}
+
+@layer components {
+  .input-chat {
+    @apply w-full bg-galileo-accent text-galileo-text p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-galileo-secondaryText;
+  }
+  
+  .card-balance {
+    @apply bg-galileo-card rounded-xl p-4 shadow-md;
+  }
+  
+  .nav-item {
+    @apply flex flex-1 flex-col items-center justify-end gap-1 rounded-full;
+  }
+  
+  .nav-item-active {
+    @apply text-galileo-accent font-medium;
+  }
+  
+  .nav-item-inactive {
+    @apply text-galileo-secondaryText;
+  }
+
+  .finance-card {
+    @apply bg-galileo-card rounded-xl p-4 shadow-md transition-all hover:shadow-lg;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
+  }
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Animações para o login premium */
+  .animate-float {
+    animation: float 20s ease-in-out infinite;
+  }
+
+  .animate-float-delayed {
+    animation: float 20s ease-in-out infinite;
+    animation-delay: -10s;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.8s ease-out forwards;
+  }
+
+  .animate-bounce-in {
+    animation: bounceIn 0.6s ease-out forwards;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-30px) rotate(120deg); }
+    66% { transform: translateY(-20px) rotate(240deg); }
+  }
+
+  @keyframes slideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes bounceIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    70% {
+      transform: scale(0.9);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+/* Regras específicas removidas - páginas devem definir suas próprias cores */
+
+/* CRITICAL PERFORMANCE OPTIMIZATIONS */
+
+/* Disable smooth scrolling globalmente */
+* {
+  scroll-behavior: auto !important;
+}
+
+/* Otimizações para mobile */
+@media (max-width: 768px) {
+  /* Força GPU acceleration */
+  body, #root {
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+  
+  /* Reduz repaints */
+  .card {
+    contain: layout style paint;
+  }
+  
+  /* Desabilita animações desnecessárias em mobile */
+  .animate-pulse {
+    animation: none !important;
+  }
+}
+
+/* GPU acceleration para componentes críticos */
+.dashboard-container {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+/* Otimizações para scroll */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Performance crítica para SVG */
+svg {
+  shape-rendering: optimizeSpeed;
+  transform: translate3d(0, 0, 0);
+}
+
+/* 🔧 CONFIGURAÇÕES ESPECÍFICAS PARA ELEMENTOS FIXOS EDGE-TO-EDGE */
+.navbar-fixed, .header-fixed {
+  /* Para elementos fixos no topo, adicionar o offset da área segura */
+  top: env(safe-area-inset-top, 24px);
+}
+
+.bottom-navigation {
+  /* Para navegação inferior, considerar a área segura de baixo */
+  bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.banner-bottom {
+  /* Para banners inferiores, posicionar acima da navegação + área segura */
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+}
+
+/* 📱 COMPATIBILIDADE COM DISPOSITIVOS COM NOTCH */
+@supports (padding: max(0px)) {
+  .safe-area-aware {
+    padding-top: max(env(safe-area-inset-top), 24px);
+    padding-left: max(env(safe-area-inset-left), 0px);
+    padding-right: max(env(safe-area-inset-right), 0px);
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+}
+
+ 
+ / *   = = = = =   C L A S S E S   E D G E - T O - E D G E   D E F I N I T I V A S   = = = = =   * / 
+ 
+ / *     C O N T A I N E R   P R I N C I P A L   E D G E - T O - E D G E   * / 
+ . e d g e - t o - e d g e - c o n t a i n e r   { 
+     m i n - h e i g h t :   1 0 0 v h   ! i m p o r t a n t ; 
+     m i n - h e i g h t :   1 0 0 d v h   ! i m p o r t a n t ; 
+     m i n - h e i g h t :   - w e b k i t - f i l l - a v a i l a b l e   ! i m p o r t a n t ; 
+     b a c k g r o u n d - c o l o r :   # 3 1 5 1 8 b   ! i m p o r t a n t ; 
+     b a c k g r o u n d :   # 3 1 5 1 8 b   ! i m p o r t a n t ; 
+     d i s p l a y :   f l e x ; 
+     f l e x - d i r e c t i o n :   c o l u m n ; 
+     m a r g i n :   0   ! i m p o r t a n t ; 
+     p a d d i n g :   0   ! i m p o r t a n t ; 
+     f l e x :   1 ; 
+     p o s i t i o n :   r e l a t i v e ; 
+ } 
+ 
+ / *     P � G I N A   E D G E - T O - E D G E   C O M P L E T A   * / 
+ . e d g e - t o - e d g e - p a g e   { 
+     m i n - h e i g h t :   1 0 0 v h   ! i m p o r t a n t ; 
+     m i n - h e i g h t :   1 0 0 d v h   ! i m p o r t a n t ; 
+     m i n - h e i g h t :   - w e b k i t - f i l l - a v a i l a b l e   ! i m p o r t a n t ; 
+     b a c k g r o u n d - c o l o r :   # 3 1 5 1 8 b   ! i m p o r t a n t ; 
+     b a c k g r o u n d :   # 3 1 5 1 8 b   ! i m p o r t a n t ; 
+     m a r g i n :   0   ! i m p o r t a n t ; 
+     p a d d i n g :   0   ! i m p o r t a n t ; 
+     d i s p l a y :   f l e x ; 
+     f l e x - d i r e c t i o n :   c o l u m n ; 
+     p o s i t i o n :   r e l a t i v e ; 
+     o v e r f l o w :   h i d d e n ; 
+ } 
+ 
+ / *     C O N T E � D O   C O M   S A F E   A R E A S   * / 
+ . s a f e - a r e a - c o n t e n t   { 
+     p a d d i n g - t o p :   e n v ( s a f e - a r e a - i n s e t - t o p ,   2 4 p x ) ; 
+     p a d d i n g - l e f t :   e n v ( s a f e - a r e a - i n s e t - l e f t ,   1 6 p x ) ; 
+     p a d d i n g - r i g h t :   e n v ( s a f e - a r e a - i n s e t - r i g h t ,   1 6 p x ) ; 
+     p a d d i n g - b o t t o m :   e n v ( s a f e - a r e a - i n s e t - b o t t o m ,   1 6 p x ) ; 
+     f l e x :   1 ; 
+     d i s p l a y :   f l e x ; 
+     f l e x - d i r e c t i o n :   c o l u m n ; 
+ } 
+ 
+ / *     O V E R R I D E   T A I L W I N D   -   F O R � A   B A C K G R O U N D   A Z U L   * / 
+ . h o m e p a g e - c o n t a i n e r , 
+ . m i n - h - s c r e e n   { 
+     m i n - h e i g h t :   1 0 0 v h   ! i m p o r t a n t ; 
+     m i n - h e i g h t :   1 0 0 d v h   ! i m p o r t a n t ; 
+     m i n - h e i g h t :   - w e b k i t - f i l l - a v a i l a b l e   ! i m p o r t a n t ; 
+     b a c k g r o u n d - c o l o r :   # 3 1 5 1 8 b   ! i m p o r t a n t ; 
+     b a c k g r o u n d :   # 3 1 5 1 8 b   ! i m p o r t a n t ; 
+ }  
+ 

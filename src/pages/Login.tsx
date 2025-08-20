@@ -288,7 +288,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="homepage-container stable-height relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
+    <div className="edge-to-edge-page">
       {/* Partículas flutuantes - otimizadas */}
       <div className="absolute inset-0 overflow-hidden stable-particles">
         {Array.from({ length: 15 }).map((_, i) => (
@@ -309,8 +309,8 @@ const Login: React.FC = () => {
       <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/15 rounded-full blur-3xl stable-blur" />
       <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl stable-blur" />
       
-      {/* Main Content - otimizado */}
-      <div className="relative z-10 stable-height flex items-center justify-center p-4 no-flicker">
+      {/* Main Content - otimizado com safe area */}
+      <div className="relative z-10 safe-area-content flex items-center justify-center no-flicker">
         <div className="w-full max-w-md mx-auto">
           {/* Logo Section - otimizada */}
           <div className="text-center mb-8 no-flicker">

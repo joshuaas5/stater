@@ -860,9 +860,8 @@ const Dashboard: React.FC = () => {
   
   return (
     <div 
-      className="min-h-screen relative overflow-hidden pb-20"
+      className="edge-to-edge-page"
       style={{
-        background: '#31518b',
         fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif',
         backfaceVisibility: 'hidden'
       }}
@@ -885,7 +884,7 @@ const Dashboard: React.FC = () => {
         ))}
       </div>
       
-      <div className="relative z-10">
+      <div className="relative z-10 safe-area-content">
         {/* Premium Header */}
         <div 
           className="text-center pt-4 pb-6 px-4 relative"

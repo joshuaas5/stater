@@ -127,3 +127,24 @@ html, body {
   font-size: 12px;
   font-weight: 500;
 }
+
+/* FORÇAR BORDAS ARREDONDADAS - CORRIGIR PROBLEMAS NO APK */
+button, 
+.button,
+[role="button"],
+input[type="button"],
+input[type="submit"] {
+  border-radius: 8px !important;
+}
+
+/* Switches devem ser completamente redondos */
+.peer[role="switch"],
+[data-state="checked"],
+[data-state="unchecked"] {
+  border-radius: 9999px !important;
+}
+
+/* Elementos específicos do Radix UI */
+[data-radix-collection-item] {
+  border-radius: 8px !important;
+}

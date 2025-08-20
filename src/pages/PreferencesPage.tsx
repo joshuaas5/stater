@@ -169,7 +169,7 @@ const PreferencesPage: React.FC = () => {
           <div className="space-y-4">
             {/* Switch simples para permitir notificações */}
             <div className="flex items-center justify-between">
-              <Label htmlFor="enable-notifications" className="cursor-pointer text-black">Permitir notificações</Label>
+              <Label htmlFor="enable-notifications" className="cursor-pointer text-white">Permitir notificações</Label>
               <Switch 
                 id="enable-notifications" 
                 checked={preferences.enableNotifications}
@@ -240,7 +240,7 @@ const PreferencesPage: React.FC = () => {
             </select>
           </div>
           <div className="flex items-center justify-between">
-            <Label htmlFor="show-cents" className="cursor-pointer text-black">{t('showCents')}</Label>
+            <Label htmlFor="show-cents" className="cursor-pointer text-white">{t('showCents')}</Label>
             <Switch 
               id="show-cents" 
               checked={preferences.showCents}

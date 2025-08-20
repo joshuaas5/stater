@@ -4035,7 +4035,7 @@ return (
               >
                 {savingTransactions ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 loading-spinner" />
                     Salvando...
                   </>
                 ) : (
@@ -4152,7 +4152,7 @@ return (
             <div style={{
               flex: 1,
               padding: '20px 25px',
-              overflowY: 'auto',
+              overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
               gap: '15px'
@@ -4412,7 +4412,7 @@ return (
                               </div>
                               
                               {/* Lista de categorias */}
-                              <div style={{ maxHeight: '140px', overflowY: 'auto' }}>
+                              <div style={{ maxHeight: '140px', overflow: 'hidden' }}>
                                 {getFilteredCategories(index).length > 0 ? (
                                   getFilteredCategories(index).map((category) => (
                                     <button
@@ -4571,7 +4571,7 @@ return (
               >
                 {savingTransactions ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 loading-spinner" />
                     Salvando {editableTransactions.length} Transaç{editableTransactions.length > 1 ? 'ões' : 'ão'}...
                   </>
                 ) : (

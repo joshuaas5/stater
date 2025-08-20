@@ -1745,8 +1745,8 @@ const Dashboard: React.FC = () => {
         }}
       />
       
-      {/* Ad Banner */}
-      <AdBanner position="bottom" />
+      {/* Ad Banner - TEMPORARIAMENTE REMOVIDO */}
+      {/* <AdBanner position="bottom" /> */}
       
       {/* Ad Placeholder */}
       <AdPlaceholder

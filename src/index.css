@@ -53,7 +53,7 @@ html, body {
   padding-top: env(safe-area-inset-top, 24px);
   padding-left: env(safe-area-inset-left, 16px);
   padding-right: env(safe-area-inset-right, 16px);
-  padding-bottom: env(safe-area-inset-bottom, 170px); /* 100px navbar + 50px banner + 20px extra */
+  padding-bottom: 170px !important; /* 100px (navbar) + 50px (banner) + 20px (respiro) */
   flex: 1;
 }
 
@@ -69,7 +69,7 @@ html, body {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  z-index: 999;
+  z-index: 1000 !important; /* Navbar sempre no topo de tudo */
   padding: 0 16px;
 }
 
@@ -192,19 +192,31 @@ a svg {
   flex-shrink: 0;
 }
 
-/* BANNER DE ANÚNCIO */
+/* === REESTRUTURAÇÃO FINAL DO LAYOUT INFERIOR === */
+
+/* 1. GARANTIR ESPAÇO PARA OS ELEMENTOS FIXOS */
+/* Esta regra FORÇA o padding em TODAS as páginas que usam .safe-area-content */
+body .safe-area-content {
+  padding-bottom: 170px !important; /* 100px (navbar) + 50px (banner) + 20px (respiro) */
+}
+
+/* 2. CORRIGIR A ORDEM DAS CAMADAS (Z-INDEX) */
+.navbar-simple {
+  z-index: 1000 !important; /* Navbar sempre no topo de tudo */
+}
+
+/* 3. POSICIONAR O BANNER CORRETAMENTE */
 .ad-banner {
   position: fixed;
-  bottom: 100px; /* Posicionado exatamente acima da navbar */
+  bottom: 100px; /* Exatamente acima da navbar de 100px */
   left: 0;
   right: 0;
   height: 50px;
-  background-color: #f8f9fa;
-  border-top: 1px solid #dee2e6;
+  background-color: #1c1c1e; /* Cor escura para contraste */
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  font-size: 14px;
-  color: #495057;
+  z-index: 999 !important; /* Banner fica ABAIXO da navbar, mas acima do conteúdo */
+  color: white;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }

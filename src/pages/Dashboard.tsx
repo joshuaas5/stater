@@ -887,7 +887,7 @@ const Dashboard: React.FC = () => {
       <div className="relative z-10 safe-area-content">
         {/* Premium Header */}
         <div 
-          className="text-center pt-4 pb-6 px-4 relative"
+          className="text-center pt-4 pb-6 px-6 relative"
           style={{
             backdropFilter: 'blur(10px)'
           }}

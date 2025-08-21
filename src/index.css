@@ -12,6 +12,8 @@ html, body {
   height: 100%;
   background-color: #31518b !important; /* COR UNIFICADA */
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden !important;
+  scroll-behavior: smooth !important;
 }
 
 #root {
@@ -29,12 +31,19 @@ html, body {
 
 /* CLASSES DE PÁGINA UNIFICADAS */
 
-/* Regra ÚNICA para todas as páginas (Dashboard, Login, etc.) */
+/* Regras de Página */
 .edge-to-edge-container,
-.edge-to-edge-page,
 .edge-to-edge-login {
   min-height: 100vh;
-  background-color: #31518b !important; /* APLICA A COR CORRETA EM TUDO */
+  background-color: #31518b !important; /* Azul escuro para login e genérico */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.edge-to-edge-page {
+  min-height: 100vh;
+  background-color: #4a6fa5 !important; /* Azul claro para dashboard, conforme solicitado */
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -91,37 +100,14 @@ html, body {
 }
 
 /* ELIMINAÇÃO COMPLETA DE SCROLL HORIZONTAL */
-html, body {
-  overflow-x: hidden !important;
-  max-width: 100vw !important;
-  box-sizing: border-box;
-  scroll-behavior: smooth !important;
-}
+/* Regras de scroll consolidadas acima */
 
 /* SCROLL SUAVE E RESPONSIVO PARA TODA A APLICAÇÃO */
-* {
-  scroll-behavior: smooth !important;
-}
+/* Aplicado no html, body acima */
 
 /* MELHORAR SCROLL PERFORMANCE NO MOBILE */
 [data-overlayscrollbars] {
   -webkit-overflow-scrolling: touch !important;
-}
-
-/* SCROLL OTIMIZADO PARA MOBILE WEBVIEW */
-.mobile-optimized-scroll {
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  scroll-behavior: smooth !important;
-  transform: translateZ(0) !important;
-  will-change: scroll-position !important;
-}
-
-.main-content {
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  scroll-behavior: smooth !important;
-  height: 100vh !important;
 }
 
 *, *::before, *::after {
@@ -193,11 +179,12 @@ a svg {
 .edge-to-edge-login .safe-area-content {
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Centraliza o conteúdo verticalmente */
-  align-items: center;    /* Centraliza o conteúdo horizontalmente */
-  padding-top: 2rem;      /* Espaçamento superior */
-  padding-bottom: 2rem;   /* Espaçamento inferior */
-  min-height: 100vh;      /* Garante que ocupe a tela toda */
+  justify-content: flex-start; /* Alinha no topo para evitar corte da logo */
+  align-items: center;    
+  padding-top: 2rem;      /* Espaço suficiente no topo */
+  padding-bottom: 2rem;   
+  min-height: 100vh;      
+  overflow-y: auto;       /* Permite scroll quando necessário */
 }
 
 /* Previne que a logo seja espremida ou cortada */

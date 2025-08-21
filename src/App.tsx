@@ -16,6 +16,8 @@ import TermsWrapper from "@/components/terms/TermsWrapper";
 import { useRoutePreloading } from "@/hooks/useRoutePreloading";
 import AppRouter from "@/components/router/AppRouter";
 import { useEffect } from "react";
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Capacitor } from '@capacitor/core';
 // Import the paywall fixes CSS
 import '@/styles/paywall-fixes.css';
 
@@ -30,6 +32,22 @@ initializeBillNotifications();
 // 🚀 Edge-to-Edge Background Hook - SOLUÇÃO DEFINITIVA
 const useEdgeToEdgeBackground = () => {
   useEffect(() => {
+    // ✅ CONFIGURAR STATUS BAR NATIVA (MOBILE)
+    const configureStatusBar = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          // Define a cor de fundo da status bar para o azul claro da dashboard
+          await StatusBar.setBackgroundColor({ color: '#4a6fa5' });
+          // Define o estilo dos ícones/texto da status bar
+          await StatusBar.setStyle({ style: Style.Light });
+        } catch (error) {
+          console.log('StatusBar não disponível:', error);
+        }
+      }
+    };
+    
+    configureStatusBar();
+    
     // ✅ RESET GLOBAL - Remove qualquer margin/padding que impeça edge-to-edge
     document.documentElement.style.cssText = `
       margin: 0;

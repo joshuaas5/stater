@@ -288,7 +288,9 @@ const Login: React.FC = () => {
         await Browser.open({
           url: data.url,
           toolbarColor: '#31518b',
-          presentationStyle: 'fullscreen'
+          presentationStyle: 'fullscreen',
+          showTitle: false,
+          hideUrlBar: true
         });
         
       } else {

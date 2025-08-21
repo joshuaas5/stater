@@ -43,7 +43,7 @@ html, body {
 
 .edge-to-edge-page {
   min-height: 100vh;
-  background-color: #4a6fa5 !important; /* Azul claro para dashboard, conforme solicitado */
+  background-color: #31518b !important; /* CORRIGIDO: Usando o mesmo azul escuro para consistência */
   display: flex;
   flex-direction: column;
   flex: 1;

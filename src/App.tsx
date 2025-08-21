@@ -36,8 +36,8 @@ const useEdgeToEdgeBackground = () => {
     const configureStatusBar = async () => {
       if (Capacitor.isNativePlatform()) {
         try {
-          // Define a cor de fundo da status bar para o azul claro da dashboard
-          await StatusBar.setBackgroundColor({ color: '#4a6fa5' });
+          // Define a cor de fundo da status bar para o azul escuro e unificado
+          await StatusBar.setBackgroundColor({ color: '#31518b' });
           // Define o estilo dos ícones/texto da status bar
           await StatusBar.setStyle({ style: Style.Light });
         } catch (error) {

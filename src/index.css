@@ -10,14 +10,14 @@
 html, body {
   width: 100%;
   height: 100%;
-  background-color: #4a6fa5 !important; /* Azul mais claro e agradável */
+  background-color: #31518b !important; /* COR UNIFICADA */
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 #root {
   width: 100%;
   min-height: 100vh;
-  background-color: #4a6fa5; /* Azul mais claro */
+  background-color: #31518b; /* COR UNIFICADA */
   display: flex;
   flex-direction: column;
 }

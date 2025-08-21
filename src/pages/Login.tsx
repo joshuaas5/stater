@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useStableHeight } from '@/hooks/useStableHeight';
 import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import '@/styles/anti-flicker.css';
 import '@/styles/mobile-login-compact.css';
 import '@/styles/login-improvements.css';
@@ -262,43 +263,56 @@ const Login: React.FC = () => {
     try {
       // � CORREÇÃO DEFINITIVA: Usar deep link correto para mobile
       const isMobile = Capacitor.isNativePlatform();
-      const redirectTo = isMobile 
-        ? 'com.timothy.stater://callback' // Deep link para mobile
-        : `${window.location.origin}/dashboard`; // URL padrão para web
-
-      console.log(`🔐 Iniciando OAuth Google. Mobile: ${isMobile}, Redirect: ${redirectTo}`);
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo,
-          queryParams: {
-            prompt: 'select_account',
-            access_type: 'offline',
-          },
-        },
-      });
       
-      if (error) {
-        console.error('❌ Erro OAuth Google:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao conectar com Google",
-          variant: "destructive",
+      if (isMobile) {
+        // 🔧 SOLUÇÃO: OAuth no WebView interno, não no Chrome externo
+        console.log('🔐 Iniciando OAuth Google no WebView interno...');
+        
+        // Gerar URL de OAuth
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: 'https://tmucbwlhkffrhtexmjze.supabase.co/auth/v1/callback',
+            queryParams: {
+              prompt: 'select_account',
+              access_type: 'offline',
+            },
+          },
         });
-        setIsGoogleLoading(false);
+        
+        if (error) {
+          throw error;
+        }
+        
+        // Abrir OAuth no WebView interno do app
+        await Browser.open({
+          url: data.url,
+          toolbarColor: '#31518b',
+          presentationStyle: 'fullscreen'
+        });
+        
       } else {
-        console.log('✅ OAuth Google iniciado com sucesso');
-        // Para mobile, não resetar loading imediatamente - aguardar deep link
-        if (!isMobile) {
-          setIsGoogleLoading(false);
+        // Web: fluxo normal
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/dashboard`,
+            queryParams: {
+              prompt: 'select_account',
+              access_type: 'offline',
+            },
+          },
+        });
+        
+        if (error) {
+          throw error;
         }
       }
-    } catch (error) {
-      console.error('❌ Erro inesperado no OAuth:', error);
+    } catch (error: any) {
+      console.error('❌ Erro no OAuth Google:', error);
       toast({
         title: "Erro",
-        description: "Erro inesperado",
+        description: error.message || "Erro ao conectar com Google",
         variant: "destructive",
       });
       setIsGoogleLoading(false);

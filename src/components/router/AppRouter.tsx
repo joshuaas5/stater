@@ -1,9 +1,10 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import AuthLoadingScreen from '@/components/auth/AuthLoadingScreen';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import PersistentLayout from '@/components/layout/PersistentLayout';
+import { Capacitor } from '@capacitor/core';
 
 // Importação das páginas
 import HomePage from '@/pages/HomePage';
@@ -27,6 +28,25 @@ import ProfilePage from '@/pages/Profile';
 import SettingsPage from '@/pages/SettingsPage';
 
 /**
+ * Componente para redirecionar mobile para login
+ */
+const MobileRootRedirect: React.FC = () => {
+  const { isAuthenticated } = useAuthGuard();
+  
+  // Se é mobile e não autenticado, vai para login
+  if (Capacitor.isNativePlatform() && !isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Senão, mostra HomePage normal
+  return (
+    <ProtectedRoute requireAuth={false}>
+      <HomePage />
+    </ProtectedRoute>
+  );
+};
+
+/**
  * Componente principal de roteamento com autenticação protegida
  * Elimina o "pisca-pisca" aguardando a verificação de autenticação
  */
@@ -43,11 +63,7 @@ const AppRouter: React.FC = () => {
       {/* Rotas públicas - redirecionam para dashboard se autenticado */}
       <Route 
         path="/" 
-        element={
-          <ProtectedRoute requireAuth={false}>
-            <HomePage />
-          </ProtectedRoute>
-        } 
+        element={<MobileRootRedirect />}
       />
       <Route 
         path="/login" 

@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     
     <!-- � TEMA AZUL COMO DIA 14/08 - FUNCIONAVA PERFEITAMENTE -->
-    <style name="BaseTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+    <style name="BaseTheme" parent="Theme.AppCompat.NoActionBar">
         <!-- 🌟 STATUS BAR TRANSPARENTE PARA EDGE-TO-EDGE -->
         <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
         

@@ -3,6 +3,8 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { saveUser, clearUserData, getCurrentUser } from '@/utils/localStorage';
+import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 
 interface AuthContextType {
   session: Session | null;
@@ -119,9 +121,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       processAuthChange(session);
     });
 
+    // 📱 Listen for deep links (mobile OAuth redirect)
+    let appUrlListener: any = null;
+    if (Capacitor.isNativePlatform()) {
+      appUrlListener = App.addListener('appUrlOpen', async ({ url }) => {
+        console.log('🔗 Deep link recebido:', url);
+        
+        // � CORREÇÃO DEFINITIVA: Processar corretamente os tokens OAuth
+        if (url.includes('callback')) {
+          try {
+            // Extrair parâmetros da URL do deep link
+            const urlParts = url.split('#');
+            if (urlParts.length > 1) {
+              const hashFragment = urlParts[1];
+              const params = new URLSearchParams(hashFragment);
+              
+              const accessToken = params.get('access_token');
+              const refreshToken = params.get('refresh_token');
+              
+              console.log('🔐 Tokens encontrados:', { accessToken: !!accessToken, refreshToken: !!refreshToken });
+              
+              if (accessToken) {
+                // Estabelecer sessão com os tokens recebidos
+                const { data, error } = await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken || ''
+                });
+                
+                if (error) {
+                  console.error('❌ Erro ao estabelecer sessão:', error);
+                } else {
+                  console.log('✅ Sessão OAuth estabelecida com sucesso via deep link!');
+                  processAuthChange(data.session);
+                }
+              }
+            }
+          } catch (error) {
+            console.error('❌ Erro ao processar deep link OAuth:', error);
+          }
+        }
+      });
+    }
+
     return () => {
       console.log('🔐 AuthContext: Cleanup...');
       subscription.unsubscribe();
+      if (appUrlListener) {
+        appUrlListener.remove();
+      }
     };
   }, [processAuthChange]);
 

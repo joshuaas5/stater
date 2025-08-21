@@ -5,31 +5,31 @@ const config: CapacitorConfig = {
   appId: 'com.timothy.stater',
   appName: 'Stater',
   webDir: 'dist',
-  server: {
-    url: "https://c5c7eb29-8378-43cd-a374-c0aaea44ef12.lovableproject.com?forceHideBadge=true",
-    cleartext: true
-  },
   bundledWebRuntime: false,
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2000,
-      backgroundColor: "#ffffffff",
-      androidSplashResourceName: "splash",
-      androidScaleType: "CENTER_CROP"
-    },
-    LocalNotifications: {
-      smallIcon: "ic_stat_icon_config_sample",
-      iconColor: "#488AFF",
-      sound: "beep.wav",
-    },
-    BiometricAuth: {
-      allowDeviceCredentials: true
+      launchShowDuration: 1000,
+      backgroundColor: "#31518b",
+      showSpinner: false
     }
   },
   android: {
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: true
+    webContentsDebuggingEnabled: true,
+    allowNavigation: [
+      'tmucbwlhkffrhtexmjze.supabase.co',
+      'accounts.google.com',
+      'oauth.googleusercontent.com',
+      'googleapis.com',
+      'gstatic.com',
+      'google.com'
+    ],
+    overrideUserAgent: 'StaterApp/1.0.0 Mobile',
+    appendUserAgent: 'StaterApp/1.0.0',
+    backgroundColor: '#31518b',
+    // Forçar que todas as navegações permaneçam no WebView
+    useLegacyBridge: false
   }
 };
 

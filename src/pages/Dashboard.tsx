@@ -889,7 +889,6 @@ const Dashboard: React.FC = () => {
         <div 
           className="text-center pt-4 pb-6 px-4 relative"
           style={{
-            background: '#4a6fa5',
             backdropFilter: 'blur(10px)'
           }}
         >

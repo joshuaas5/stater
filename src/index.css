@@ -186,3 +186,21 @@ a svg {
   background-color: transparent !important;
   background: none !important;
 }
+
+/* === FIX DEFINITIVO PARA PÁGINA DE LOGIN === */
+
+/* Garante que a página de login possa rolar em telas pequenas */
+.edge-to-edge-login .safe-area-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centraliza o conteúdo verticalmente */
+  align-items: center;    /* Centraliza o conteúdo horizontalmente */
+  padding-top: 2rem;      /* Espaçamento superior */
+  padding-bottom: 2rem;   /* Espaçamento inferior */
+  min-height: 100vh;      /* Garante que ocupe a tela toda */
+}
+
+/* Previne que a logo seja espremida ou cortada */
+.stable-logo {
+  flex-shrink: 0;
+}

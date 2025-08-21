@@ -220,3 +220,17 @@ body .safe-area-content {
   color: white;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* === FIX DEFINITIVO PARA INCONSISTÊNCIA DE COR (LIGHT/DARK MODE) === */
+
+/* Define a cor de fundo padrão para todos os modos */
+html, body, #root, .edge-to-edge-page, .edge-to-edge-login {
+  background-color: #31518b !important;
+}
+
+/* Garante que a MESMA cor seja usada quando o Modo Escuro do celular estiver ativo */
+@media (prefers-color-scheme: dark) {
+  html, body, #root, .edge-to-edge-page, .edge-to-edge-login {
+    background-color: #31518b !important;
+  }
+}

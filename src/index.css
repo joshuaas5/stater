@@ -47,7 +47,7 @@ html, body {
 
 /* FORÇAR COR UNIFORME EM TODA A DASHBOARD */
 .edge-to-edge-page,
-.edge-to-edge-page *:not(.bg-white):not(.bg-gradient-to-r):not([style*="background"]):not([style*="Background"]) {
+.edge-to-edge-page *:not(svg):not(.bg-white):not(.bg-gradient-to-r):not([style*="background"]):not([style*="Background"]) {
   background-color: #4a6fa5 !important;
 }
 
@@ -208,4 +208,12 @@ input[type="submit"] {
   animation: mobile-spin 1s linear infinite !important;
   transform-origin: center center;
   will-change: transform;
+}
+
+/* GARANTIA DE ÍCONES SVG COM FUNDO TRANSPARENTE */
+svg.lucide,
+button svg,
+a svg {
+  background-color: transparent !important;
+  background: none !important;
 }

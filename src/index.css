@@ -53,7 +53,7 @@ html, body {
   padding-top: env(safe-area-inset-top, 24px);
   padding-left: env(safe-area-inset-left, 16px);
   padding-right: env(safe-area-inset-right, 16px);
-  padding-bottom: env(safe-area-inset-bottom, 120px); /* 100px navbar + 20px extra */
+  padding-bottom: env(safe-area-inset-bottom, 170px); /* 100px navbar + 50px banner + 20px extra */
   flex: 1;
 }
 
@@ -190,4 +190,21 @@ a svg {
 /* Previne que a logo seja espremida ou cortada */
 .stable-logo {
   flex-shrink: 0;
+}
+
+/* BANNER DE ANÚNCIO */
+.ad-banner {
+  position: fixed;
+  bottom: 100px; /* Posicionado exatamente acima da navbar */
+  left: 0;
+  right: 0;
+  height: 50px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-size: 14px;
+  color: #495057;
 }

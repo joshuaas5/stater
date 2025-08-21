@@ -11,6 +11,11 @@ const config: CapacitorConfig = {
   },
   bundledWebRuntime: false,
   plugins: {
+    WebView: {
+      android: {
+        cache: "DISABLED"
+      }
+    },
     SplashScreen: {
       launchShowDuration: 2000,
       backgroundColor: "#ffffffff",

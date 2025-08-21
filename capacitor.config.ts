@@ -2,7 +2,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.joshua.stater',
+  appId: 'com.timothy.stater',
   appName: 'Stater',
   webDir: 'dist',
   server: {
@@ -11,12 +11,6 @@ const config: CapacitorConfig = {
   },
   bundledWebRuntime: false,
   plugins: {
-    WebView: {
-      backgroundColor: '#31518b',
-      android: {
-        cache: "DISABLED"
-      }
-    },
     SplashScreen: {
       launchShowDuration: 2000,
       backgroundColor: "#ffffffff",

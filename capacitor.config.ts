@@ -12,6 +12,7 @@ const config: CapacitorConfig = {
   bundledWebRuntime: false,
   plugins: {
     WebView: {
+      backgroundColor: '#31518b',
       android: {
         cache: "DISABLED"
       }

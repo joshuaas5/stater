@@ -27,45 +27,14 @@ html, body {
 @tailwind components;  
 @tailwind utilities;
 
-/* CLASSES BÁSICAS */
-.edge-to-edge-container {
-  min-height: 100vh;
-  background-color: #4a6fa5; /* Azul mais claro */
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
+/* CLASSES DE PÁGINA UNIFICADAS */
 
-/* Classe específica para dashboard - SEMPRE cor original */
-.edge-to-edge-page {
-  min-height: 100vh;
-  background-color: #4a6fa5 !important; /* Azul mais claro */
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-/* FORÇAR COR UNIFORME EM TODA A DASHBOARD */
+/* Regra ÚNICA para todas as páginas (Dashboard, Login, etc.) */
+.edge-to-edge-container,
 .edge-to-edge-page,
-.edge-to-edge-page *:not(svg):not(.bg-white):not(.bg-gradient-to-r):not([style*="background"]):not([style*="Background"]) {
-  background-color: #4a6fa5 !important;
-}
-
-/* Preservar backgrounds específicos que devem ser mantidos */
-.edge-to-edge-page [style*="rgba"],
-.edge-to-edge-page [style*="linear-gradient"],
-.edge-to-edge-page [style*="radial-gradient"],
-.edge-to-edge-page .bg-gradient-to-r,
-.edge-to-edge-page .bg-gradient-to-l,
-.edge-to-edge-page .bg-gradient-to-t,
-.edge-to-edge-page .bg-gradient-to-b {
-  background-color: unset !important;
-}
-
-/* Classe específica APENAS para página de login */
 .edge-to-edge-login {
   min-height: 100vh;
-  background: linear-gradient(135deg, #2a4374 0%, #1e3562 50%, #31518b 100%) !important;
+  background-color: #31518b !important; /* APLICA A COR CORRETA EM TUDO */
   display: flex;
   flex-direction: column;
   flex: 1;

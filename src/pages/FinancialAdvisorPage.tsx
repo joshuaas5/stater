@@ -1649,7 +1649,14 @@ LEMBRE-SE:
             return;
           }
 
-          const geminiData = await geminiResponse.json();
+          // Verificar se a resposta é JSON válido antes de fazer parse
+          const responseText = await geminiResponse.text();
+          if (/<\s*!doctype|<\s*html|<\s*body|<\s*head/i.test(responseText)) {
+            console.error('🔥 STATER FIX: Gemini returned HTML instead of JSON:', responseText.substring(0, 200));
+            throw new Error('Gemini API returned HTML page instead of JSON');
+          }
+          
+          const geminiData = JSON.parse(responseText);
           console.log('🔥 STATER FIX: Gemini API direct response:', geminiData);
           
           if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content) {
@@ -1716,7 +1723,14 @@ LEMBRE-SE:
               );
 
               if (geminiResponse.ok) {
-                const geminiData = await geminiResponse.json();
+                // Verificar se a resposta é JSON válido antes de fazer parse
+                const responseText = await geminiResponse.text();
+                if (/<\s*!doctype|<\s*html|<\s*body|<\s*head/i.test(responseText)) {
+                  console.error('🔥 STATER FIX: Gemini fallback returned HTML instead of JSON:', responseText.substring(0, 200));
+                  throw new Error('Gemini fallback API returned HTML page instead of JSON');
+                }
+                
+                const geminiData = JSON.parse(responseText);
                 console.log('🔥 STATER FIX: Fallback successful! Using Gemini direct response');
                 
                 if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content) {
@@ -1770,7 +1784,14 @@ LEMBRE-SE:
             );
 
             if (geminiResponse.ok) {
-              const geminiData = await geminiResponse.json();
+              // Verificar se a resposta é JSON válido antes de fazer parse
+              const responseText = await geminiResponse.text();
+              if (/<\s*!doctype|<\s*html|<\s*body|<\s*head/i.test(responseText)) {
+                console.error('🔥 STATER FIX: Gemini network fallback returned HTML instead of JSON:', responseText.substring(0, 200));
+                throw new Error('Gemini network fallback API returned HTML page instead of JSON');
+              }
+              
+              const geminiData = JSON.parse(responseText);
               console.log('🔥 STATER FIX: Network fallback successful!');
               
               if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content) {
@@ -1906,6 +1927,14 @@ LEMBRE-SE:
       let isTransactionJson = false;
       if (!isConsultaQuery) {
         try {
+          // Se a resposta parecer HTML (normalmente uma página de erro), substituir por aviso amigável
+          const looksLikeHtmlResponse = /<!DOCTYPE|<html[\s>]|<head[\s>]|<body[\s>]/i.test(botResponseText);
+          if (looksLikeHtmlResponse) {
+            console.warn('🔍 [JSON_PARSE] Resposta da IA parece conter HTML, provavelmente uma página de erro.');
+            botResponseText = "⚠️ Recebi uma resposta inesperada da IA. Tente novamente em instantes.";
+            throw new Error('AI response contained HTML markup instead of JSON/text.');
+          }
+
           let jsonStringToParse = botResponseText;
           console.log('🔍 [JSON_PARSE] Iniciando parsing. Resposta original:', botResponseText);
           
@@ -1957,6 +1986,12 @@ LEMBRE-SE:
         
         const sanitizedJsonString = jsonStringToParse.replace(/,\s*([}\]])/g, '$1');
         console.log('🔍 [JSON_PARSE] JSON sanitizado para parsing:', sanitizedJsonString);
+        
+        // Verificar se ainda contém HTML após sanitização
+        if (/<\s*!doctype|<\s*html|<\s*body|<\s*head/i.test(sanitizedJsonString)) {
+          console.error('🔍 [JSON_PARSE] String contém HTML mesmo após sanitização:', sanitizedJsonString.substring(0, 200));
+          throw new Error('Response contains HTML markup instead of JSON');
+        }
         
         const parsed = JSON.parse(sanitizedJsonString);
         console.log('✅ [JSON_PARSE] JSON parseado com sucesso. Tipo:', Array.isArray(parsed) ? 'Array' : 'Object');
@@ -2380,7 +2415,14 @@ LEMBRE-SE:
           }
         ).then(async (geminiResponse) => {
           if (geminiResponse.ok) {
-            const geminiData = await geminiResponse.json();
+            // Verificar se a resposta é JSON válido antes de fazer parse
+            const responseText = await geminiResponse.text();
+            if (/<\s*!doctype|<\s*html|<\s*body|<\s*head/i.test(responseText)) {
+              console.error('🔥 STATER FIX: Gemini catch fallback returned HTML instead of JSON:', responseText.substring(0, 200));
+              throw new Error('Gemini catch fallback API returned HTML page instead of JSON');
+            }
+            
+            const geminiData = JSON.parse(responseText);
             console.log('🔥 STATER FIX: Sucesso no fallback da API Gemini!');
             
             if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content) {

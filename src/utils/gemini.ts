@@ -265,6 +265,16 @@ Se o usuário pedir para registrar, adicionar, anotar, etc., uma receita, entrad
       body: JSON.stringify(requestBody)
     });
     
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      const debugText = await response.text().catch(() => '');
+      console.error('Gemini API returned non-JSON content-type:', contentType);
+      if (debugText) {
+        console.error('Gemini API non-JSON payload preview:', debugText.substring(0, 300));
+      }
+      throw new Error('Unexpected non-JSON response from Gemini API');
+    }
+    
     // Log do status da resposta
     console.log(`Gemini API response status: ${response.status} ${response.statusText}`);
     
@@ -313,6 +323,11 @@ Se o usuário pedir para registrar, adicionar, anotar, etc., uma receita, entrad
       if (textParts && textParts.length > 0) {
         responseText = textParts[0].text.trim();
         console.log('Gemini response text extracted successfully:', responseText.substring(0, 50) + '...');
+
+        if (/<\s*!doctype|<\s*html|<\s*body|<\s*head/i.test(responseText)) {
+          console.warn('Gemini response contained HTML markup. Returning fallback message.');
+          return "⚠️ Recebi uma resposta inesperada da IA. Vamos tentar novamente em instantes.";
+        }
         
         // Calcular tokens usados e registrar (se implementado)
         if (data.usageMetadata) {

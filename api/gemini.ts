@@ -415,6 +415,16 @@ let rawGeminiResponse = '';
 try {
   rawGeminiResponse = await response.text();
   console.log('[GEMINI_API] Raw Gemini response:', rawGeminiResponse);
+  
+  // Verificar se a resposta é HTML antes de tentar fazer parse JSON
+  if (/<\s*!doctype|<\s*html|<\s*body|<\s*head/i.test(rawGeminiResponse)) {
+    console.error('[GEMINI_API] Gemini retornou HTML ao invés de JSON:', rawGeminiResponse.substring(0, 300));
+    return res.status(500).json({ 
+      error: 'Gemini API retornou página HTML ao invés de resposta JSON',
+      details: 'Serviço temporariamente indisponível - tente novamente'
+    });
+  }
+  
   data = JSON.parse(rawGeminiResponse);
 } catch (jsonError) {
   console.error('[GEMINI_API] Erro ao fazer parse do JSON da Gemini:', jsonError, 'Resposta bruta:', rawGeminiResponse);

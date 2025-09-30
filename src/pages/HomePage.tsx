@@ -64,9 +64,9 @@ const HomePage: React.FC = () => {
     }
   };
   return (
-    <div className="homepage-container stable-height relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
+    <div className="homepage-container stable-height relative overflow-y-auto bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
       {/* Partículas flutuantes - reduzidas e otimizadas */}
-      <div className="absolute inset-0 overflow-hidden stable-particles">
+      <div className="absolute inset-0 overflow-hidden stable-particles pointer-events-none">
         {Array.from({ length: 20 }).map((_, i) => (
           <div
             key={i}

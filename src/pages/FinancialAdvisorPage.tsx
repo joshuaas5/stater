@@ -3732,7 +3732,8 @@ return (
           audioLimits={audioLimits}
         />
       </div>      {/* Confirmation Popup - Modal Único com Design Ultra Moderno */}
-      {waitingConfirmation && pendingAction && (
+      {/* 🔥 FIX: Só mostrar este modal SE não houver transações múltiplas para revisar */}
+      {waitingConfirmation && pendingAction && editableTransactions.length === 0 && (
         <>
           {/* Backdrop com efeito de blur e gradiente */}
           <div 

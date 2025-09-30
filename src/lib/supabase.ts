@@ -12,7 +12,16 @@ if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KE
 }
 
 // Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    // Configurações específicas para mobile
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    // Alterado para PKCE para permitir retorno via code + troca segura no app
+    flowType: 'pkce'
+  }
+});
 
 // Guide for customizing Supabase email templates:
 /*

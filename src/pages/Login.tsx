@@ -7,11 +7,14 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useStableHeight } from '@/hooks/useStableHeight';
 import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
+// Using single import for GoogleAuth
+import { useAuth } from '@/contexts/AuthContext';
 import '@/styles/anti-flicker.css';
 import '@/styles/mobile-login-compact.css';
 import '@/styles/login-improvements.css';
 
+// Usar import estático para garantir plugin nativo
+import { GoogleAuth, type User as GoogleAuthUser } from '@codetrix-studio/capacitor-google-auth';
 const Login: React.FC = () => {
   // Hook para altura estável em mobile
   useStableHeight();
@@ -19,6 +22,7 @@ const Login: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signInWithGoogle } = useAuth();
   const [currentView, setCurrentView] = useState<'login' | 'register' | 'forgot'>('login');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -261,62 +265,135 @@ const Login: React.FC = () => {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
-      // � CORREÇÃO DEFINITIVA: Usar deep link correto para mobile
-      const isMobile = Capacitor.isNativePlatform();
-      
-      if (isMobile) {
-        // 🔧 SOLUÇÃO: OAuth no WebView interno, não no Chrome externo
-        console.log('🔐 Iniciando OAuth Google no WebView interno...');
-        
-        // Gerar URL de OAuth
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: 'https://tmucbwlhkffrhtexmjze.supabase.co/auth/v1/callback',
-            queryParams: {
-              prompt: 'select_account',
-              access_type: 'offline',
-            },
-          },
+  const WEB_CLIENT_ID = '1011686437516-r63t3ba5gvjg4m7m7vrvcsb80ccqb25a.apps.googleusercontent.com';
+      const ANDROID_CLIENT_ID = '1011686437516-msfgio4ev9jdu3ck4hj0vb2s4bvvcq8e.apps.googleusercontent.com';
+      const isNative = Capacitor.isNativePlatform();
+
+      // GoogleSignInOptions no Android sempre deve usar o WEB client ID para requestIdToken
+      const clientIdForSignIn = WEB_CLIENT_ID;
+
+      console.log(
+        `🚀 [LOGIN] Iniciando Google Sign-In (clientId=${clientIdForSignIn}, androidClientId=${ANDROID_CLIENT_ID}, native=${isNative})`
+      );
+
+      try {
+        await GoogleAuth.initialize({
+          clientId: clientIdForSignIn,
+          scopes: ['profile', 'email', 'openid'],
+          grantOfflineAccess: false,
         });
-        
-        if (error) {
-          throw error;
-        }
-        
-        // Abrir OAuth no WebView interno do app
-        await Browser.open({
-          url: data.url,
-          toolbarColor: '#31518b',
-          presentationStyle: 'fullscreen',
-          showTitle: false,
-          hideUrlBar: true
-        });
-        
-      } else {
-        // Web: fluxo normal
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/dashboard`,
-            queryParams: {
-              prompt: 'select_account',
-              access_type: 'offline',
-            },
-          },
-        });
-        
-        if (error) {
-          throw error;
-        }
+        console.log('✔️ [LOGIN] GoogleAuth initialized');
+      } catch (initErr) {
+        console.warn('⚠️ [LOGIN] initialize warning:', initErr);
       }
-    } catch (error: any) {
-      console.error('❌ Erro no OAuth Google:', error);
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao conectar com Google",
-        variant: "destructive",
+
+      console.log('🔄 [LOGIN] Chamando GoogleAuth.signIn()');
+  const result: GoogleAuthUser = await GoogleAuth.signIn();
+
+      if (!result) {
+        throw new Error('Resultado vazio do GoogleAuth.signIn');
+      }
+      console.log('✅ [LOGIN] Retorno GoogleAuth:', {
+        hasAuth: !!result.authentication,
+        hasIdToken: !!result.authentication?.idToken,
+  email: result.email,
       });
+
+      const idToken = result.authentication?.idToken;
+      if (!idToken) {
+        console.error('❌ [LOGIN] idToken ausente. Retorno completo:', result);
+        throw new Error('idToken não retornado. Verifique se usou o WEB CLIENT ID correto.');
+      }
+
+      console.log('🔐 [LOGIN] Autenticando no Supabase via idToken...');
+      // Usar signInWithIdToken para criar sessão sem WebView
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: idToken,
+      });
+
+      if (error) {
+        console.error('❌ [LOGIN] Erro signInWithIdToken:', error);
+        throw new Error(error.message);
+      }
+
+      console.log('🎉 [LOGIN] Sessão criada. Usuário:', data.user?.email);
+      navigate('/dashboard');
+      toast({
+        title: 'Login realizado!',
+        description: `Bem-vindo, ${data.user?.email || 'usuário'}!`,
+      });
+  } catch (error: unknown) {
+      const toRecord = (value: unknown): Record<string, unknown> | null => (
+        typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null
+      );
+      const errRecord = toRecord(error);
+      const getProp = (prop: string): unknown => (errRecord && prop in errRecord ? errRecord[prop] : undefined);
+      const firstStringOrNumber = (...values: unknown[]): string | number | undefined =>
+        values.find((value): value is string | number => typeof value === 'string' || typeof value === 'number');
+      const rawErrorCode = firstStringOrNumber(
+        getProp('code'),
+        getProp('status'),
+        getProp('statusCode'),
+        getProp('error'),
+      );
+      const errorCode = rawErrorCode ?? 'desconhecido';
+      const errorMessageCandidate =
+        typeof getProp('message') === 'string' ? (getProp('message') as string)
+          : typeof error === 'string'
+            ? error
+            : undefined;
+      const errorMessage = errorMessageCandidate && errorMessageCandidate.length > 0
+        ? errorMessageCandidate
+        : 'Ocorreu um erro ao autenticar.';
+
+      console.error('❌ [LOGIN] Erro no login Google:', {
+        erroOriginal: error,
+        codigo: errorCode,
+        mensagem: errorMessage,
+      });
+
+      const parseStatus = (value: unknown): number | undefined => {
+        if (typeof value === 'number') return value;
+        if (typeof value === 'string') {
+          const parsed = Number(value);
+          return Number.isNaN(parsed) ? undefined : parsed;
+        }
+        return undefined;
+      };
+      const statusCode = parseStatus(rawErrorCode)
+        ?? parseStatus(getProp('statusCode'))
+        ?? parseStatus(getProp('status'));
+      const developerError = statusCode === 10
+        || String(errorCode) === '10'
+        || /(?:^|\b)10(?:\b|$)/.test(errorMessage)
+        || errorMessage.toLowerCase().includes('developer_error');
+      const hints: string[] = [];
+
+      if (developerError) {
+        hints.push(
+          'Status 10 (DEVELOPER_ERROR) indica que o aplicativo não está autorizado a usar o Sign-In nativo.',
+          'Confirme que o SHA-1 do keystore usado para assinar o APK está cadastrado no projeto do Google Cloud/Firebase.',
+          'Verifique se o packageName com.timothy.stater e o Android Client ID correspondem exatamente ao app instalado.',
+        );
+      } else if (errorMessage.toLowerCase().includes('network') || errorMessage.toLowerCase().includes('internet')) {
+        hints.push('Parece ser um erro de rede. Certifique-se de que o dispositivo esteja conectado à internet.');
+      }
+
+      const hintsText = hints.length ? `\n\n• ${hints.join('\n• ')}` : '';
+
+      toast({
+        title: 'Erro no Login Google',
+        description: `(${String(errorCode)}) ${errorMessage}${hintsText}`,
+        variant: 'destructive'
+      });
+
+      try {
+        console.error('🔍 [LOGIN] Erro GoogleAuth detalhado:', JSON.stringify(error, null, 2));
+      } catch (jsonError) {
+        console.error('🔍 [LOGIN] Erro GoogleAuth (stringify falhou):', jsonError);
+      }
+    } finally {
       setIsGoogleLoading(false);
     }
   };

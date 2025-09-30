@@ -159,11 +159,18 @@ const AuthForm: React.FC = () => {
   };
   
   const handleGoogleSignIn = async () => {
+    console.log('[AuthForm] handleGoogleSignIn - INÍCIO do processo de autenticação Google');
+    console.log('🚨🚨🚨 AUTHFORM EXECUTANDO GOOGLE LOGIN 🚨🚨🚨');
+    alert('🔍 AUTHFORM: Iniciando Google Login');
+    
     try {
       setGoogleAuthInProgress(true);
+      console.log('[AuthForm] handleGoogleSignIn - Chamando signInWithGoogle() do AuthContext...');
       await signInWithGoogle();
+      console.log('[AuthForm] handleGoogleSignIn - signInWithGoogle() executado com sucesso');
       // Não é necessário navegar aqui, pois signInWithGoogle já redireciona para o Google
     } catch (error) {
+      console.log('[AuthForm] handleGoogleSignIn - ERRO capturado:', error);
       setGoogleAuthInProgress(false);
       // Error is handled in the auth context
     }

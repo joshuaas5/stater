@@ -5,6 +5,22 @@ import './styles/mobile-first.css'
 import './styles/paywall-fixes.css'
 import './styles/status-bar-global.css'
 import './styles/stater-ia-keyboard.css'
+import { handleAuthCallback } from './utils/googleAuth'
+
+// Função global para processar callbacks de autenticação (usado pelo MainActivity)
+(window as any).handleAuthCallback = async (url: string) => {
+  console.log('🔄 Callback de autenticação recebido globalmente:', url);
+  try {
+    const user = await handleAuthCallback(url);
+    if (user) {
+      console.log('✅ Usuário autenticado:', user.email);
+      // Recarregar a página para atualizar o estado da aplicação
+      window.location.reload();
+    }
+  } catch (error) {
+    console.error('❌ Erro ao processar callback global:', error);
+  }
+};
 
 // 🔧 CORREÇÃO FINAL: Detectar e remover fragments vazios de forma segura
 const handleUrlFragments = () => {

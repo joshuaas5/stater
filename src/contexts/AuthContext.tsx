@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { saveUser, clearUserData, getCurrentUser } from '@/utils/localStorage';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { signInWithGoogle as hybridGoogleSignIn, initializeGoogleAuth, signOut as signOutGoogle } from '@/utils/googleAuth';
 
 interface AuthContextType {
   session: Session | null;
@@ -93,23 +94,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [isProcessingAuth]);
 
   useEffect(() => {
-    console.log('🔐 AuthContext: Inicializando com correções anti-loop...');
-    
-    // Limpar fragments vazios imediatamente
-    if (window.location.hash === '#' || window.location.hash === '#/') {
-      const cleanUrl = window.location.href.split('#')[0];
-      window.history.replaceState({}, document.title, cleanUrl);
-      console.log('🔧 [AUTH] Fragment vazio removido');
-    }
-    
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔐 AuthContext: Sessão inicial:', session ? '✅ Logado' : '❌ Não logado');
-      processAuthChange(session);
-    }).catch((error: any) => {
-      console.error('❌ Erro ao carregar sessão:', error);
-      setLoading(false);
-    });
+    const initializeAuth = async () => {
+      console.log('🔐 AuthContext: Inicializando...');
+      
+      try {
+        // Limpar fragments vazios imediatamente
+        if (window.location.hash === '#' || window.location.hash === '#/') {
+          const cleanUrl = window.location.href.split('#')[0];
+          window.history.replaceState({}, document.title, cleanUrl);
+          console.log('🔧 [AUTH] Fragment vazio removido');
+        }
+        
+        // Inicializar Google Auth em background (não bloquear)
+        if (Capacitor.isNativePlatform()) {
+          initializeGoogleAuth().catch((error: any) => {
+            console.warn('⚠️ Google Auth falhou, continuando sem ele:', error?.message);
+          });
+        }
+        
+        // Get initial session - sempre executar
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ Erro ao carregar sessão:', error);
+        } else {
+          console.log('🔐 AuthContext: Sessão inicial:', session ? '✅ Logado' : '❌ Não logado');
+        }
+        
+        processAuthChange(session);
+        
+      } catch (error: any) {
+        console.error('❌ Erro crítico na inicialização:', error);
+        // Mesmo com erro, liberar o loading
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
 
     // Listen for auth changes
     const {
@@ -126,6 +147,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (Capacitor.isNativePlatform()) {
       appUrlListener = App.addListener('appUrlOpen', async ({ url }) => {
         console.log('🔗 Deep link recebido:', url);
+        
+        // Ignorar deep links se login nativo está em progresso
+        const nativeLoginInProgress = localStorage.getItem('native_login_in_progress');
+        if (nativeLoginInProgress === 'true') {
+          console.log('⏭️ [AUTH] Ignorando deep link - login nativo em progresso');
+          return;
+        }
+        
+        // ✅ IGNORAR DEEP LINKS POR 3 SEGUNDOS APÓS LOGIN NATIVO COMPLETO
+        const nativeLoginCompleted = localStorage.getItem('native_login_completed');
+        if (nativeLoginCompleted === 'true') {
+          console.log('🚫 [AUTH] Ignorando deep link - login nativo recém completado');
+          // Limpar flag após 3 segundos
+          setTimeout(() => {
+            localStorage.removeItem('native_login_completed');
+          }, 3000);
+          return;
+        }
         
         // � CORREÇÃO DEFINITIVA: Processar corretamente os tokens OAuth
         if (url.includes('callback')) {
@@ -179,6 +218,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Marcar logout manual
       localStorage.setItem('manual_logout', 'true');
       
+      // Logout do Google (se aplicável)
+      await signOutGoogle();
+      
       await supabase.auth.signOut();
       
       // Limpar URL após logout
@@ -201,23 +243,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     try {
+      console.log('[AuthContext] signInWithGoogle - INÍCIO da autenticação Google no contexto');
       console.log('🔐 AuthContext: Iniciando login com Google...');
+      console.log('🚨🚨🚨 AUTHCONTEXT EXECUTANDO GOOGLE LOGIN 🚨🚨🚨');
+      alert('🔍 AUTHCONTEXT: Chamando híbrida');
       
       // Remover flag de logout manual
       localStorage.removeItem('manual_logout');
+      console.log('[AuthContext] signInWithGoogle - Flag manual_logout removida');
       
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}`,
-          queryParams: {
-            prompt: 'select_account'
-          }
-        }
-      });
+      // Usar implementação híbrida (web + mobile)
+      console.log('[AuthContext] signInWithGoogle - Chamando hybridGoogleSignIn() de googleAuth.ts...');
+      await hybridGoogleSignIn();
+      console.log('[AuthContext] signInWithGoogle - hybridGoogleSignIn() executado com sucesso');
       
-      if (error) throw error;
+      // Para web, o redirecionamento já aconteceu
+      // Para mobile, a sessão já foi estabelecida
+      console.log('✅ Login com Google processado');
+      
     } catch (error: any) {
+      console.error('[AuthContext] signInWithGoogle - ERRO capturado:', error);
       console.error('❌ Erro no login com Google:', error);
       toast({
         title: "Erro no login",

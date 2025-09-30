@@ -16,7 +16,6 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     rollupOptions: {
-      external: ["@capacitor/local-notifications"],
       output: {
         manualChunks: mode === 'production' ? {
           // Vendor chunks - major libraries
@@ -26,7 +25,8 @@ export default defineConfig(({ mode }) => ({
           'vendor-supabase': ['@supabase/supabase-js'],
           'vendor-charts': ['recharts'],
           'vendor-form': ['react-hook-form', '@hookform/resolvers', 'zod'],
-          'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge']
+          'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge'],
+          'vendor-capacitor': ['@capacitor/core', '@capacitor/app', '@capacitor/browser', '@capacitor/status-bar']
         } : undefined
       }
     },

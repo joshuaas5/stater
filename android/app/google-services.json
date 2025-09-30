@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1011686437516",
+    "project_id": "fiery-script-458720-r9",
+    "storage_bucket": "fiery-script-458720-r9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1011686437516:android:6373ee289abf5517dd41a9",
+        "android_client_info": {
+          "package_name": "com.timothy.stater"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1011686437516-msfgio4ev9jdu3ck4hj0vb2s4bvvcq8e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.timothy.stater",
+            "certificate_hash": "4ba829f45d4f051bd3daa0bdf74213b9c17989be"
+          }
+        },
+        {
+          "client_id": "1011686437516-r63t3ba5gvjg4m7m7vrvcsb80ccqb25a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXQubALln19EOoqAw8KoUNGP_yeXrhqRw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1011686437516-r63t3ba5gvjg4m7m7vrvcsb80ccqb25a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

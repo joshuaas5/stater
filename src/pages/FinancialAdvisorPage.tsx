@@ -4513,6 +4513,7 @@ return (
   </>
   </FinancialAdvisorGate>
 );
+};
 
 // Helper functions
 function formatTimestamp(timestamp: Date): string {

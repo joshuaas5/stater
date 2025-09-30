@@ -1092,38 +1092,9 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
                 throw new Error(`Erro ao salvar no Supabase: ${supabaseInsert.error.message}`);
               }
 
-              // NOVO: Salvar também no localStorage para aparecer em "últimas transações"
-              const transactionToSave: Transaction = {
-                id: uuidv4(),
-                title: sanitizedTransaction.description,
-                amount: Number(sanitizedTransaction.amount),
-                type: sanitizedTransaction.type as 'income' | 'expense',
-                category: sanitizedTransaction.category || '',
-                date: new Date(),
-                userId: activeUserId
-              };
-
-              // Log para debug
-              console.log('💾 Salvando transação:', JSON.stringify(transactionToSave));
-              console.log('👤 User ID ativo:', activeUserId);
-              
-              // Garantir que o usuário está salvo no localStorage antes de salvar a transação
-              const currentLocalUser = getCurrentUser();
-              console.log('👤 Current local user:', currentLocalUser);
-              if (!currentLocalUser || currentLocalUser.id !== activeUserId) {
-                // Salvar usuário no localStorage se não estiver lá
-                const userToSave = {
-                  id: activeUserId,
-                  email: user.email || '',
-                  username: user.user_metadata?.username || user.email || ''
-                };
-                console.log('💾 Salvando usuário no localStorage:', userToSave);
-                saveUser(userToSave);
-              }
-
-              console.log('🔄 Chamando saveTransactionUtil...');
-              saveTransactionUtil(transactionToSave);
-              console.log('✅ saveTransactionUtil chamado com sucesso');
+              // 🔥 FIX: Não salvar no localStorage - apenas Supabase para evitar duplicação
+              // Dashboard já busca do Supabase, então não precisa do localStorage
+              console.log('✅ Transação salva apenas no Supabase - sem duplicação');
               
               successCount++;
             } catch (err) {
@@ -4089,7 +4060,7 @@ return (
         </>
       )}
 
-      {/* Transaction Review Modal - ULTRA VISÍVEL */}
+      {/* Transaction Review Modal - Using TransactionList Component */}
       {waitingConfirmation && editableTransactions.length > 0 && (
         <div 
           className="modal-overlay"
@@ -4099,12 +4070,176 @@ return (
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.8)', // Backdrop mais sólido
+            background: 'rgba(0, 0, 0, 0.8)',
             backdropFilter: 'blur(10px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 9999, // Z-index muito alto
+            zIndex: 9999,
+            padding: '16px'
+          }}
+          onClick={() => handleSendMessage('não')}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: '16px',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)'
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              padding: '20px 24px',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <h2 style={{
+                margin: 0,
+                fontSize: '20px',
+                fontWeight: '700',
+                color: '#1f2937'
+              }}>
+                📋 Revisar Transações
+              </h2>
+              <button
+                onClick={() => handleSendMessage('não')}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#6b7280',
+                  padding: '4px',
+                  lineHeight: 1
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* TransactionList Component */}
+            <div style={{
+              flex: 1,
+              overflow: 'auto',
+              padding: '20px 24px'
+            }}>
+              <TransactionList
+                transactions={editableTransactions.map(tx => ({
+                  description: tx.description || '',
+                  amount: Math.abs(tx.amount || 0),
+                  date: tx.date || new Date().toISOString().split('T')[0],
+                  category: tx.category || 'outros',
+                  type: tx.type || 'expense',
+                  confidence: 1
+                }))}
+                onUpdate={(index, updatedTransaction) => {
+                  const updated = [...editableTransactions];
+                  updated[index] = {
+                    ...updated[index],
+                    description: updatedTransaction.description,
+                    amount: updatedTransaction.type === 'expense' 
+                      ? -Math.abs(updatedTransaction.amount) 
+                      : Math.abs(updatedTransaction.amount),
+                    date: updatedTransaction.date,
+                    category: updatedTransaction.category,
+                    type: updatedTransaction.type
+                  };
+                  setEditableTransactions(updated);
+                }}
+                onDelete={(index) => {
+                  deleteTransaction(index);
+                }}
+              />
+            </div>
+
+            {/* Footer with action buttons */}
+            <div style={{
+              padding: '16px 24px',
+              borderTop: '1px solid #e5e7eb',
+              display: 'flex',
+              gap: '12px',
+              background: '#f9fafb'
+            }}>
+              <button
+                onClick={() => handleSendMessage('não')}
+                disabled={savingTransactions}
+                style={{
+                  flex: 1,
+                  padding: '12px 20px',
+                  borderRadius: '8px',
+                  border: '2px solid #e5e7eb',
+                  background: 'white',
+                  color: '#374151',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: savingTransactions ? 'not-allowed' : 'pointer',
+                  opacity: savingTransactions ? 0.5 : 1
+                }}
+              >
+                ❌ Cancelar
+              </button>
+              <button
+                onClick={() => handleSendMessage('sim')}
+                disabled={savingTransactions || editableTransactions.length === 0}
+                style={{
+                  flex: 2,
+                  padding: '12px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: savingTransactions || editableTransactions.length === 0 
+                    ? '#9ca3af' 
+                    : '#3b82f6',
+                  color: 'white',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: savingTransactions || editableTransactions.length === 0 
+                    ? 'not-allowed' 
+                    : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                {savingTransactions ? (
+                  <>
+                    <Loader2 className="w-4 h-4 loading-spinner" />
+                    Salvando {editableTransactions.length} transação{editableTransactions.length > 1 ? 'ões' : 'ão'}...
+                  </>
+                ) : (
+                  `✅ Salvar ${editableTransactions.length} transação${editableTransactions.length > 1 ? 'ões' : 'ão'}`
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OLD CUSTOM MODAL - REMOVED AND REPLACED WITH TransactionList */}
+      {false && waitingConfirmation && editableTransactions.length > 0 && (
+        <div 
+          className="modal-overlay-old"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
             padding: '10px'
           }}
         >

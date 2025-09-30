@@ -141,6 +141,78 @@ export const FinancialAdvisorPage: React.FC = () => {
   const [currentTransactionIndex, setCurrentTransactionIndex] = useState(0); // Para navegar entre múltiplas transações
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const openTransactionModal = useCallback((rawTransactions: any[], context: Record<string, any> = {}) => {
+    const transactionsArray = Array.isArray(rawTransactions) ? rawTransactions : [rawTransactions];
+
+    const normalizedTransactions = transactionsArray
+      .map((tx: any, index: number) => {
+        if (!tx) return null;
+
+        const rawType = (tx.type || tx.tipo || tx.transaction_type || '').toString().toLowerCase();
+        const normalizedType = rawType.includes('income') || rawType.includes('entrada') || rawType.includes('receita') ? 'income' : 'expense';
+
+        const rawAmount = tx.amount ?? tx.valor ?? tx.value;
+        const parsedAmount = typeof rawAmount === 'string'
+          ? parseFloat(rawAmount.replace(/,/g, '.'))
+          : Number(rawAmount);
+
+        if (!parsedAmount || Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+          console.warn('[openTransactionModal] Ignorando transação com valor inválido:', tx);
+          return null;
+        }
+
+        const description = (tx.description || tx.descrição || tx.title || tx.titulo || `Transação ${index + 1}`).toString();
+        const category = (tx.category || tx.categoria || 'outros').toString();
+        const date = tx.date || tx.data || new Date().toISOString();
+
+        return {
+          ...tx,
+          type: normalizedType,
+          amount: parsedAmount,
+          description,
+          category,
+          date,
+        };
+      })
+      .filter((tx: any) => !!tx);
+
+    if (normalizedTransactions.length === 0) {
+      console.warn('[openTransactionModal] Nenhuma transação válida para exibir no modal:', rawTransactions);
+      return;
+    }
+
+    setEditableTransactions(normalizedTransactions);
+    setCurrentTransactionIndex(0);
+
+    const firstTransaction = normalizedTransactions[0];
+    setSingleTransactionModal({
+      isOpen: true,
+      transaction: {
+        id: firstTransaction.id || uuidv4(),
+        title: firstTransaction.description || 'Transação',
+        amount: firstTransaction.amount,
+        category: firstTransaction.category || 'outros',
+        type: firstTransaction.type,
+        date: firstTransaction.date ? new Date(firstTransaction.date) : new Date(),
+        userId: firstTransaction.userId || ''
+      }
+    });
+
+    setPendingAction({
+      tipo: 'generic_confirmation',
+      dados: {
+        ...context,
+        ocrTransactions: normalizedTransactions
+      }
+    });
+
+    setWaitingConfirmation(true);
+
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 200);
+  }, [messagesEndRef]);
+
   const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined); // undefined: not yet checked, null: checked and no user, string: user ID
   const [activeTab, setActiveTab] = useState("chat"); // Novo estado para aba ativa
   
@@ -217,212 +289,6 @@ export const FinancialAdvisorPage: React.FC = () => {
     // Forçar ativação do modal customizado com delay garantido
     setTimeout(() => {
       try {
-        // 🔥 FIX: Converter transação de áudio para usar modal TransactionList
-        const singleTransaction = [{
-          type: transactionData.transaction_type === 'income' ? 'income' : 'expense',
-          amount: transactionData.amount,
-          description: transactionData.description,
-          category: transactionData.category || 'outros',
-          date: new Date().toISOString().split('T')[0]
-        }];
-        
-        console.log('✨ [MODAL_FIX] Convertendo transação de áudio para modal TransactionList:', singleTransaction);
-        setEditableTransactions(singleTransaction);
-        setPendingAction({
-          tipo: 'generic_confirmation',
-          dados: {
-            ocrTransactions: singleTransaction,
-            documentType: 'audio',
-            establishment: 'Transação processada via áudio'
-          }
-        });
-        
-        setWaitingConfirmation(true);
-        
-        console.log('🎤 [FORCE_MODAL] Modal customizado ativado com sucesso');
-        
-        // Restaurar funções originais após 3 segundos
-        setTimeout(() => {
-          window.confirm = originalConfirm;
-          window.removeEventListener('beforeunload', preventNativeModal, true);
-          window.removeEventListener('unload', preventNativeModal, true);
-          console.log('🎤 [RESTORE] Funções nativas restauradas');
-        }, 3000);
-        
-      } catch (error) {
-        console.error('🎤 [FORCE_MODAL] Erro ao forçar modal:', error);
-        // Garantir restauração mesmo em caso de erro
-        window.confirm = originalConfirm;
-        window.removeEventListener('beforeunload', preventNativeModal, true);
-        window.removeEventListener('unload', preventNativeModal, true);
-      }
-    }, 150);
-  }, []);
-
-  // Function to cancel ongoing requests
-  // FUNÇÃO REMOVIDA: handleCancelRequest não é mais necessária
-  // const handleCancelRequest = () => {
-  //   if (abortControllerRef.current) {
-  //     abortControllerRef.current.abort();
-  //     console.log("🚫 Request cancelled by user");
-  //     abortControllerRef.current = null;
-  //     setLoading(false);
-  //     setLoadingState('ai-thinking', false);
-  //   }
-  // };
-
-  // Inicializar Web Speech API
-  useEffect(() => {
-    // Verificar se o navegador suporta Web Speech API
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognitionAPI = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-      const recognition = new SpeechRecognitionAPI();
-      
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = 'pt-BR';
-      
-      recognition.onstart = () => {
-        console.log('🎤 Speech recognition started');
-        setIsListening(true);
-      };
-      
-      recognition.onend = () => {
-        console.log('🎤 Speech recognition ended');
-        setIsListening(false);
-      };
-      
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        console.log('🎤 Speech recognized:', transcript);
-        // O transcript será usado pelo ChatInput component
-        setIsListening(false);
-      };
-      
-      recognition.onerror = (event: any) => {
-        console.error('🎤 Speech recognition error:', event.error);
-        setIsListening(false);
-      };
-      
-      setSpeechRecognition(recognition);
-    }
-    
-    console.log(`FinancialAdvisorPage: Loaded messages for user ${currentUserId}`);
-  }, [currentUserId]); // Reload messages when currentUserId changes
-
-  // Salvar mensagens automaticamente sempre que mudarem
-  useEffect(() => {
-    if (messages.length > 0) {
-      saveChatMessages(messages);
-    }
-  }, [messages]);
-
-  useEffect(() => {
-    const loggedIn = isLoggedIn();
-    // console.log('FinancialAdvisorPage: User logged in status on mount (legacy check):', loggedIn); // Legacy check, can be removed if not needed
-    if (currentUserId === null && !loggedIn) { // Redirect if user ID is explicitly null (no session) and legacy check also confirms not logged in
-        console.log('FinancialAdvisorPage: User not logged in (currentUserId is null), redirecting to /login');
-        navigate('/login');
-    }
-  }, [navigate, currentUserId, isLoggedIn]); // Depend on currentUserId as well
-
-  // Carregar status inicial do plano do usuário
-  useEffect(() => {
-    const loadUserPlanStatus = async () => {
-      if (!currentUserId) return;
-      
-      try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error || !user) return;
-
-        // Carregar estatísticas do plano E da jornada
-        const [stats, journeyStatus] = await Promise.all([
-          UserPlanManager.getPlanStats(user.id),
-          UserJourneyManager.getJourneyStatus(user.id)
-        ]);
-        
-        // Atualizar estado com limites atuais
-        setMessageLimit(stats.features.dailyMessages === -1 ? -1 : stats.features.dailyMessages);
-        setMessagesUsedToday(stats.todayUsage.messagesUsed);
-        
-        // Atualizar estado da jornada
-        setCurrentDay(journeyStatus.journey.currentDay);
-        setAdsWatched(journeyStatus.journey.adsWatchedToday);
-        
-        // Definir ads necessários baseado no dia
-        const dayConfig = journeyStatus.dayConfig;
-        if (dayConfig) {
-          setAdsRequired(dayConfig.adsRequired);
-        }
-        
-        console.log(`📊 Status do plano carregado:`, {
-          plano: stats.plan.planType,
-          limiteMsg: stats.features.dailyMessages,
-          usadasHoje: stats.todayUsage.messagesUsed,
-          diaAtual: journeyStatus.journey.currentDay,
-          adsAssistidos: journeyStatus.journey.adsWatchedToday
-        });
-        
-      } catch (error) {
-        console.error('Erro ao carregar status do plano:', error);
-      }
-    };
-
-    loadUserPlanStatus();
-  }, [currentUserId]);
-
-  // Forçar salvamento imediatamente sempre que uma nova mensagem for adicionada
-  useEffect(() => {
-    if (currentUserId && messages.length > 0) {
-      const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
-      
-      const messagesToSave = messages.slice(-20);
-      localStorage.setItem(storageKey, JSON.stringify(
-        messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
-      ));
-      console.log(`🔥 [FORCE SAVE] Salvamento forçado! ${messagesToSave.length} mensagens para ${storageKey}`);
-    }
-  }, [messages.length, currentUserId]); // Dependência apenas no length para evitar loops
-
-  // Persistência do Chat: Salvar mensagens no localStorage
-  useEffect(() => {
-    if (currentUserId === undefined) {
-        // Don't save if user ID isn't determined yet
-        console.log('💬 [CHAT SAVE] User ID não determinado ainda, aguardando...');
-        return;
-    }
-
-    // Sempre salvar se há mais de 1 mensagem ou se a mensagem foi modificada do texto inicial
-    if (messages.length > 1 || (messages.length === 1 && messages[0].text !== INITIAL_SYSTEM_MESSAGE_TEXT)) {
-      const storageKey = currentUserId ? `financialAdvisorChatMessages_${currentUserId}` : 'financialAdvisorChatMessages_guest';
-      
-      const messagesToSave = messages.slice(-20); // Salvar últimas 20 mensagens
-      localStorage.setItem(storageKey, JSON.stringify(
-        messagesToSave.map((msg: ChatMessage) => ({ ...msg, timestamp: msg.timestamp.toISOString() }))
-      ));
-      console.log(`💬 [CHAT SAVE] Salvou ${messagesToSave.length} mensagens para ${storageKey}`);
-      console.log(`💬 [CHAT SAVE] Primeiras 2 mensagens:`, messagesToSave.slice(0, 2).map(m => m.text.substring(0, 50)));
-    } else {
-      console.log('💬 [CHAT SAVE] Apenas mensagem inicial, não salvando');
-    }
-  }, [messages, currentUserId]);
-  
-  useEffect(() => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 50);
-  }, [messages]);
-
-  // useEffect para fechar dropdowns de categoria quando clicar fora
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      
-      // Verificar se o clique foi fora de qualquer dropdown de categoria
-      if (!target.closest('[data-category-dropdown]')) {
-        setCategoryDropdownStates({});
-        setCategorySearchTerms({});
-      }
     };
 
     // Adicionar listener apenas se algum dropdown estiver aberto
@@ -755,19 +621,12 @@ const isAddBillIntent = (msg: string) => {
       date: new Date().toISOString().split('T')[0]
     }];
     
-    console.log('✨ [MODAL_FIX] Convertendo transação via voz para modal TransactionList:', singleTransaction);
-    setEditableTransactions(singleTransaction);
-    setPendingAction({
-      tipo: 'generic_confirmation',
-      dados: {
-        ocrTransactions: singleTransaction,
-        documentType: 'voice',
-        establishment: 'Transação processada via voz'
-      }
+    console.log('✨ [MODAL_FIX] Abrindo TransactionModal bonito para transação via voz:', singleTransaction);
+    openTransactionModal(singleTransaction, {
+      documentType: 'voice',
+      establishment: 'Transação processada via voz'
     });
-    
-    setWaitingConfirmation(true);
-  }, []);
+  }, [openTransactionModal]);
 
   // Função para assistir ad rewarded e ganhar mensagens
   const handleWatchAdReward = async () => {
@@ -2018,16 +1877,10 @@ LEMBRE-SE:
               setOriginalMessageForLearning(message);
               
               const transactionList = [singleTransaction];
-              setEditableTransactions(transactionList);
-              setPendingAction({
-                tipo: 'generic_confirmation',
-                dados: {
-                  ocrTransactions: transactionList,
-                  documentType: 'ai_single',
-                  establishment: `Transação processada pela IA`
-                }
+              openTransactionModal(transactionList, {
+                documentType: 'ai_single',
+                establishment: 'Transação processada pela IA'
               });
-              setWaitingConfirmation(true);
               isTransactionJson = true;
             }
           }
@@ -2060,22 +1913,10 @@ LEMBRE-SE:
             // Salvar mensagem original para aprendizado
             setOriginalMessageForLearning(message);
             
-            // Preparar ação pendente para confirmação no formato do modal de lista
-            setEditableTransactions(transactionList);
-            setPendingAction({
-              tipo: 'generic_confirmation',
-              dados: {
-                ocrTransactions: transactionList,
-                documentType: 'ai_multiple',
-                establishment: `Lista de ${transactionList.length} transação${transactionList.length > 1 ? 'ões' : ''} processada pela IA`
-              }
+            openTransactionModal(transactionList, {
+              documentType: 'ai_multiple',
+              establishment: `Lista de ${transactionList.length} transação${transactionList.length > 1 ? 'ões' : ''} processada pela IA`
             });
-            setWaitingConfirmation(true);
-            
-            // Forçar scroll após definir transações editáveis
-            setTimeout(() => {
-              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-            }, 200);
 
             isTransactionJson = true;
           }
@@ -2093,18 +1934,12 @@ LEMBRE-SE:
               date: parsed.data || new Date().toISOString().split('T')[0]
             }];
             
-            console.log('✨ [MODAL_FIX] Convertendo transação individual para modal TransactionList:', singleTransaction);
+            console.log('✨ [MODAL_FIX] Convertendo transação individual para TransactionModal bonito:', singleTransaction);
             setOriginalMessageForLearning(message);
-            setEditableTransactions(singleTransaction);
-            setPendingAction({
-              tipo: 'generic_confirmation',
-              dados: {
-                ocrTransactions: singleTransaction,
-                documentType: 'ai_single',
-                establishment: 'Transação processada pela IA'
-              }
+            openTransactionModal(singleTransaction, {
+              documentType: 'ai_single',
+              establishment: 'Transação processada pela IA'
             });
-            setWaitingConfirmation(true);
             isTransactionJson = true;
           } else if (parsed.action === "add_transaction" && parsed.transaction_type && parsed.description && parsed.amount) {
              // 🔥 FIX: Converter transação individual para array e usar modal TransactionList
@@ -2117,18 +1952,12 @@ LEMBRE-SE:
                date: date || new Date().toISOString().split('T')[0]
              }];
              
-             console.log('✨ [MODAL_FIX] Convertendo transação add_transaction para modal TransactionList:', singleTransaction);
+             console.log('✨ [MODAL_FIX] Convertendo transação add_transaction para TransactionModal bonito:', singleTransaction);
              setOriginalMessageForLearning(message);
-             setEditableTransactions(singleTransaction);
-             setPendingAction({
-               tipo: 'generic_confirmation',
-               dados: {
-                 ocrTransactions: singleTransaction,
-                 documentType: 'ai_single',
-                 establishment: 'Transação processada pela IA'
-               }
+             openTransactionModal(singleTransaction, {
+               documentType: 'ai_single',
+               establishment: 'Transação processada pela IA'
              });
-             setWaitingConfirmation(true);
              isTransactionJson = true;
           }
         }      
@@ -2179,18 +2008,12 @@ LEMBRE-SE:
             date: new Date().toISOString().split('T')[0]
           }];
           
-          console.log('✨ [MODAL_FIX] Convertendo transação fallback para modal TransactionList:', singleTransaction);
+          console.log('✨ [MODAL_FIX] Abrindo TransactionModal bonito para transação simples:', singleTransaction);
           setOriginalMessageForLearning(message);
-          setEditableTransactions(singleTransaction);
-          setPendingAction({
-            tipo: 'generic_confirmation',
-            dados: {
-              ocrTransactions: singleTransaction,
-              documentType: 'ai_simple',
-              establishment: 'Transação simples processada pela IA'
-            }
+          openTransactionModal(singleTransaction, {
+            documentType: 'ai_simple',
+            establishment: 'Transação simples processada pela IA'
           });
-          setWaitingConfirmation(true);
           setLoadingState('ai-thinking', false);
           return;
         }
@@ -2224,22 +2047,10 @@ LEMBRE-SE:
             avatarUrl: IA_AVATAR
           }]);
 
-          // Preparar ação pendente para confirmação (igual ao OCR)
-          setEditableTransactions(aiTransactionList);
-          setPendingAction({
-            tipo: 'generic_confirmation',
-            dados: {
-              ocrTransactions: [], // 🔥 FIX: Não duplicar em duas fontes - usar apenas editableTransactions
-              documentType: 'ai_text_list',
-              establishment: 'Lista processada pela IA (texto livre)'
-            }
+          openTransactionModal(aiTransactionList, {
+            documentType: 'ai_text_list',
+            establishment: 'Lista processada pela IA (texto livre)'
           });
-          setWaitingConfirmation(true);
-          
-          // Forçar scroll após definir transações editáveis
-          setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-          }, 200);
 
           setLoadingState('ai-thinking', false);
           return;
@@ -2315,7 +2126,11 @@ LEMBRE-SE:
               resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
               resultMessage += `   📁 Categoria: ${transaction.category}\n`;
               resultMessage += `   📅 Data: Hoje\n\n`;
-            }            // Adicionar mensagem com resultados
+            }
+
+            resultMessage += `✨ Abri o mesmo modal da dashboard para você revisar, editar e confirmar essas transações.`;
+
+            // Adicionar mensagem com resultados
             setMessages(prev => [...prev, {
               id: uuidv4(),
               text: resultMessage,
@@ -2324,20 +2139,14 @@ LEMBRE-SE:
               avatarUrl: IA_AVATAR
             }]);
 
-            // Preparar ação pendente para confirmação (igual ao OCR)            console.log('🔍 Lista de transações detectada:', detectedTransactionList);
-            setEditableTransactions(detectedTransactionList);
-            setPendingAction({
-              tipo: 'generic_confirmation',
-              dados: {
-                ocrTransactions: [], // 🔥 FIX: Não duplicar em duas fontes - usar apenas editableTransactions
-                documentType: 'text_list',
-                establishment: 'Lista de transações'
-              }
+            console.log('🔍 Lista de transações detectada:', detectedTransactionList);
+            setOriginalMessageForLearning(message);
+            openTransactionModal(detectedTransactionList, {
+              documentType: 'chat_text_list',
+              establishment: 'Lista de transações identificada no chat'
             });
-            console.log('📝 PendingAction definida para lista de texto');
-            setWaitingConfirmation(true);
-            
-            // Forçar scroll após definir transações editáveis
+
+            // Forçar scroll para garantir que mensagem de confirmação seja visível
             setTimeout(() => {
               messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
             }, 200);
@@ -2348,13 +2157,24 @@ LEMBRE-SE:
             if (detectedTransaction) {
               // Se detectamos uma transação, criar confirmação
               const transactionTypeWord = detectedTransaction.tipo === 'income' ? 'receita 🤑' : 'despesa 💸';
-              const confirmationText = `📝 Detectei que você mencionou uma ${transactionTypeWord} de R$${detectedTransaction.dados.amount.toFixed(2)}${detectedTransaction.dados.description ? ` - ${detectedTransaction.dados.description}` : ''}.\n\nVocê confirma o registro desta transação? (sim/não)`;
-              
-              setPendingAction(detectedTransaction);
-              setWaitingConfirmation(true);
+              const confirmationText = `📝 Detectei que você mencionou uma ${transactionTypeWord} de R$${detectedTransaction.dados.amount.toFixed(2)}${detectedTransaction.dados.description ? ` - ${detectedTransaction.dados.description}` : ''}.\n\nAbri o mesmo modal da dashboard para você revisar os detalhes e confirmar.`;
               
               const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
               setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
+
+              setOriginalMessageForLearning(message);
+              openTransactionModal([
+                {
+                  type: detectedTransaction.tipo,
+                  amount: detectedTransaction.dados.amount,
+                  description: detectedTransaction.dados.description ?? 'Transação detectada',
+                  category: detectedTransaction.dados.category ?? 'outros',
+                  date: detectedTransaction.dados.date ?? new Date().toISOString().split('T')[0]
+                }
+              ], {
+                documentType: 'chat_single',
+                establishment: 'Transação mencionada no chat'
+              });
             } else {
               // Resposta normal se não detectou transação - VERIFICAR SE NÃO É JSON
               if (!isJsonString(botResponseText)) {
@@ -3876,335 +3696,7 @@ return (
           isProcessingAudio={isLoadingState('audio-processing')}
           audioLimits={audioLimits}
         />
-      </div>      {/* Confirmation Popup - DESABILITADO - Todas as transações agora usam TransactionList */}
-      {/* 🔥 FIX: Modal simples desabilitado - TODAS as transações usam modal TransactionList */}
-      {false && waitingConfirmation && pendingAction && editableTransactions.length === 0 && (
-        <>
-          {/* Backdrop com efeito de blur e gradiente */}
-          <div 
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'linear-gradient(45deg, rgba(0, 0, 0, 0.7), rgba(59, 130, 246, 0.2))',
-              backdropFilter: 'blur(15px)',
-              WebkitBackdropFilter: 'blur(15px)',
-              zIndex: 998,
-              animation: 'backdropFadeIn 0.3s ease-out'
-            }}
-            onClick={() => handleSendMessage('não')}
-          />
-          
-          <div 
-            className="confirmation-popup"
-            style={{
-              position: 'fixed',
-              bottom: '100px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9))',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-              borderRadius: '24px',
-              padding: '28px',
-              maxWidth: '420px',
-              width: '90%',
-              color: '#1e293b',
-              boxShadow: `
-                0 25px 50px rgba(0, 0, 0, 0.25), 
-                0 0 0 1px rgba(255, 255, 255, 0.3),
-                0 0 100px ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}
-              `,
-              border: `2px solid ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
-              zIndex: 999,
-              animation: 'modalBounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              textAlign: 'center',
-              overflow: 'hidden'
-            }}
-          >
-            {/* Efeito de partículas flutuantes */}
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: `
-                radial-gradient(circle at 20% 20%, ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'} 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)'} 0%, transparent 40%)
-              `,
-              animation: 'float 6s ease-in-out infinite',
-              pointerEvents: 'none'
-            }} />
-
-            {/* Header com ícone pulsante */}
-            <div style={{
-              marginBottom: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              position: 'relative'
-            }}>
-              <div style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '50%',
-                background: pendingAction.tipo === 'income' 
-                  ? 'linear-gradient(135deg, #10b981, #059669, #047857)'
-                  : 'linear-gradient(135deg, #ef4444, #dc2626, #b91c1c)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '28px',
-                boxShadow: `
-                  0 8px 25px ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'},
-                  0 0 0 4px rgba(255, 255, 255, 0.3)
-                `,
-                animation: 'iconPulse 2s ease-in-out infinite',
-                position: 'relative'
-              }}>
-                {pendingAction.tipo === 'income' ? '💰' : '💸'}
-                
-                {/* Círculos de pulso */}
-                <div style={{
-                  position: 'absolute',
-                  top: '-4px',
-                  left: '-4px',
-                  right: '-4px',
-                  bottom: '-4px',
-                  border: `2px solid ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
-                  borderRadius: '50%',
-                  animation: 'ringPulse 2s ease-in-out infinite'
-                }} />
-              </div>
-            </div>
-
-            {/* Badge do tipo de transação */}
-            <div style={{
-              background: pendingAction.tipo === 'income' 
-                ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2))'
-                : 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2))',
-              padding: '10px 20px',
-              borderRadius: '16px',
-              fontSize: '15px',
-              fontWeight: '800',
-              color: pendingAction.tipo === 'income' ? '#059669' : '#dc2626',
-              marginBottom: '20px',
-              border: `2px solid ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
-              backdropFilter: 'blur(10px)',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              boxShadow: `0 4px 15px ${pendingAction.tipo === 'income' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
-              animation: 'badgeGlow 3s ease-in-out infinite'
-            }}>
-              {pendingAction.tipo === 'income' ? '📈 ENTRADA' : '📉 SAÍDA'}
-            </div>
-
-            {/* Valor principal com destaque especial */}
-            <div style={{ marginBottom: '20px', position: 'relative' }}>
-              <p style={{
-                fontSize: '17px',
-                fontWeight: '600',
-                margin: '0 0 12px 0',
-                lineHeight: '1.4',
-                color: '#475569',
-                opacity: 0.9
-              }}>
-                💫 Confirmar transação no valor de
-              </p>
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.6))',
-                borderRadius: '20px',
-                padding: '16px',
-                border: '2px solid rgba(255, 255, 255, 0.5)',
-                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <p style={{
-                  fontSize: '32px',
-                  fontWeight: '900',
-                  margin: '0',
-                  color: pendingAction.tipo === 'income' ? '#059669' : '#dc2626',
-                  textShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-                  animation: 'valueGlow 2s ease-in-out infinite'
-                }}>
-                  R$ {pendingAction.dados.amount?.toFixed(2) || '0,00'}
-                </p>
-              </div>
-            </div>
-
-            {/* Descrição com design aprimorado */}
-            {pendingAction.dados.description && (
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.7))',
-                backdropFilter: 'blur(15px)',
-                borderRadius: '16px',
-                padding: '16px',
-                marginBottom: '18px',
-                border: '2px solid rgba(255, 255, 255, 0.4)',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
-              }}>
-                <p style={{
-                  fontSize: '14px',
-                  color: '#64748b',
-                  margin: '0 0 6px 0',
-                  fontWeight: '700',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  📝 Descrição:
-                </p>
-                <p style={{
-                  fontSize: '16px',
-                  color: '#334155',
-                  margin: '0',
-                  fontWeight: '600',
-                  lineHeight: '1.4'
-                }}>
-                  {pendingAction.dados.description}
-                </p>
-              </div>
-            )}
-
-            {/* Categoria com design aprimorado */}
-            {pendingAction.dados.category && (
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.7))',
-                backdropFilter: 'blur(15px)',
-                borderRadius: '16px',
-                padding: '16px',
-                marginBottom: '24px',
-                border: '2px solid rgba(255, 255, 255, 0.4)',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
-              }}>
-                <p style={{
-                  fontSize: '14px',
-                  color: '#64748b',
-                  margin: '0 0 6px 0',
-                  fontWeight: '700',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  🏷️ Categoria:
-                </p>
-                <p style={{
-                  fontSize: '16px',
-                  color: '#334155',
-                  margin: '0',
-                  fontWeight: '600'
-                }}>
-                  {pendingAction.dados.category}
-                </p>
-              </div>
-            )}
-
-            {/* Botões de ação com design ultra moderno */}
-            <div style={{
-              display: 'flex',
-              gap: '16px',
-              justifyContent: 'center'
-            }}>
-              <button
-                onClick={() => handleSendMessage('não')}
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85))',
-                  color: '#dc2626',
-                  border: '3px solid #dc2626',
-                  borderRadius: '16px',
-                  padding: '14px 24px',
-                  fontWeight: '800',
-                  fontSize: '15px',
-                  cursor: 'pointer',
-                  transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  flex: 1,
-                  justifyContent: 'center',
-                  backdropFilter: 'blur(15px)',
-                  boxShadow: '0 6px 20px rgba(220, 38, 38, 0.3)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-3px) scale(1.05)';
-                  e.currentTarget.style.boxShadow = '0 12px 35px rgba(220, 38, 38, 0.4)';
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
-                  e.currentTarget.style.color = 'white';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(220, 38, 38, 0.3)';
-                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85))';
-                  e.currentTarget.style.color = '#dc2626';
-                }}
-              >
-                ❌ Cancelar
-              </button>
-              
-              <button
-                onClick={() => handleSendMessage('sim')}
-                disabled={savingTransactions}
-                style={{
-                  background: savingTransactions
-                    ? 'linear-gradient(135deg, #9ca3af, #6b7280)'
-                    : 'linear-gradient(135deg, #3b82f6, #1d4ed8, #1e40af)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '16px',
-                  padding: '14px 24px',
-                  fontWeight: '800',
-                  fontSize: '15px',
-                  cursor: savingTransactions ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  flex: 1,
-                  justifyContent: 'center',
-                  boxShadow: savingTransactions 
-                    ? 'none' 
-                    : '0 8px 30px rgba(59, 130, 246, 0.5)',
-                  opacity: savingTransactions ? 0.7 : 1,
-                  backdropFilter: 'blur(15px)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-                onMouseEnter={(e) => {
-                  if (!savingTransactions) {
-                    e.currentTarget.style.transform = 'translateY(-3px) scale(1.05)';
-                    e.currentTarget.style.boxShadow = '0 15px 45px rgba(59, 130, 246, 0.6)';
-                    e.currentTarget.style.background = 'linear-gradient(135deg, #1d4ed8, #1e40af, #1e3a8a)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!savingTransactions) {
-                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                    e.currentTarget.style.boxShadow = '0 8px 30px rgba(59, 130, 246, 0.5)';
-                    e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6, #1d4ed8, #1e40af)';
-                  }
-                }}
-              >
-                {savingTransactions ? (
-                  <>
-                    <Loader2 className="w-4 h-4 loading-spinner" />
-                    Salvando...
-                  </>
-                ) : (
-                  '✅ Confirmar'
-                )}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+      </div>
 
       {/* ✨ MODAL BONITO DA DASHBOARD - Para TODAS as transações (1 ou múltiplas) */}
       {singleTransactionModal.isOpen && singleTransactionModal.transaction && (
@@ -5070,7 +4562,6 @@ function formatMessageContent(content: string): React.ReactNode {
   
   return processText(content);
 }
-};
 
 // Adicionar CSS para animações do modal
 const modalStyles = `

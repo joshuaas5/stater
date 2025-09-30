@@ -2,7 +2,6 @@
 import { useNavigate } from 'react-router-dom';
 import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
-import { AITransactionReviewModal } from '@/components/modals/AITransactionReviewModal';
 import { TransactionModal } from '@/components/modals/TransactionModal';
 import { isLoggedIn, saveTransaction as saveTransactionUtil, getCurrentUser, saveUser } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
@@ -139,6 +138,7 @@ export const FinancialAdvisorPage: React.FC = () => {
     isOpen: boolean;
     transaction: Transaction | null;
   }>({ isOpen: false, transaction: null });
+  const [currentTransactionIndex, setCurrentTransactionIndex] = useState(0); // Para navegar entre múltiplas transações
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined); // undefined: not yet checked, null: checked and no user, string: user ID
@@ -3419,54 +3419,43 @@ const handleImageUpload = async (imageBase64: string) => {
     console.log('📷 OCR processado:', transactions.length, 'transações');
     console.log('🔍 DEBUG - Estados antes de definir modal:');
     console.log('  - editableTransactions length será:', transactions.length);
-    console.log('  - waitingConfirmation será:', true);
     
-    // 🎯 NOVA LÓGICA: Se for 1 transação, abrir TransactionModal bonito direto
-    // Se forem múltiplas, usar AITransactionReviewModal (lista)
-    if (transactions.length === 1) {
-      console.log('✨ [SINGLE_TRANSACTION] Abrindo modal bonito da Dashboard para 1 transação');
-      
-      const tx = transactions[0];
-      const transactionForModal: Transaction = {
-        id: uuidv4(),
-        title: tx.description,
-        amount: tx.amount,
-        category: tx.category || 'outros',
-        type: tx.type,
-        date: tx.date ? new Date(tx.date) : new Date(),
-        userId: ''
-      };
-      
-      setSingleTransactionModal({
-        isOpen: true,
-        transaction: transactionForModal
-      });
-      
-      setPendingAction({
-        tipo: 'generic_confirmation',
-        dados: {
-          ocrTransactions: [tx],
-          documentType: ocrData.documentType,
-          establishment: ocrData.summary.establishment
-        }
-      });
-    } else {
-      console.log('📋 [MULTIPLE_TRANSACTIONS] Abrindo modal de lista para múltiplas transações');
-      
-      setEditableTransactions(transactions);
-      setPendingAction({
-        tipo: 'generic_confirmation',
-        dados: {
-          ocrTransactions: [],
-          documentType: ocrData.documentType,
-          establishment: ocrData.summary.establishment
-        }
-      });
-      setWaitingConfirmation(true);
-    }
+    // 🎯 NOVA ESTRATÉGIA SIMPLIFICADA: SEMPRE usar TransactionModal bonito da Dashboard
+    // Se múltiplas transações, mostra uma de cada vez com navegação
+    console.log('✨ [UNIFIED_MODAL] Usando TransactionModal bonito para todas as transações');
+    
+    // Armazenar todas as transações para navegação
+    setEditableTransactions(transactions);
+    
+    // Abrir modal para a PRIMEIRA transação
+    setCurrentTransactionIndex(0);
+    const firstTx = transactions[0];
+    const transactionForModal: Transaction = {
+      id: uuidv4(),
+      title: firstTx.description,
+      amount: firstTx.amount,
+      category: firstTx.category || 'outros',
+      type: firstTx.type,
+      date: firstTx.date ? new Date(firstTx.date) : new Date(),
+      userId: ''
+    };
+    
+    setSingleTransactionModal({
+      isOpen: true,
+      transaction: transactionForModal
+    });
+    
+    setPendingAction({
+      tipo: 'generic_confirmation',
+      dados: {
+        ocrTransactions: [],
+        documentType: ocrData.documentType,
+        establishment: ocrData.summary.establishment
+      }
+    });
     
     // Log após definir estados
-    console.log('✅ Estados definidos - Modal deveria aparecer agora');
+    console.log('✅ Estados definidos - Modal bonito deveria aparecer agora');
     
     // Forçar scroll após definir transações editáveis para OCR
     setTimeout(() => {
@@ -4186,52 +4175,93 @@ return (
         </>
       )}
 
-      {/* TransactionModal para TRANSAÇÃO ÚNICA - Modal bonito da Dashboard */}
+      {/* ✨ MODAL BONITO DA DASHBOARD - Para TODAS as transações (1 ou múltiplas) */}
       {singleTransactionModal.isOpen && singleTransactionModal.transaction && (
-        <TransactionModal
-          isOpen={singleTransactionModal.isOpen}
-          onClose={() => {
-            setSingleTransactionModal({ isOpen: false, transaction: null });
-            handleSendMessage('não');
-          }}
-          transaction={singleTransactionModal.transaction}
-          type={singleTransactionModal.transaction.type}
-          onSave={async (transactionData) => {
-            console.log('💾 Salvando transação única:', transactionData);
-            
-            // Atualizar a transação no pendingAction para que handleSendMessage('sim') salve corretamente
-            if (pendingAction?.dados.ocrTransactions?.[0]) {
-              pendingAction.dados.ocrTransactions[0] = {
-                ...pendingAction.dados.ocrTransactions[0],
-                description: transactionData.title || pendingAction.dados.ocrTransactions[0].description,
-                amount: parseFloat(transactionData.amount?.toString() || '0') || pendingAction.dados.ocrTransactions[0].amount,
-                category: transactionData.category || pendingAction.dados.ocrTransactions[0].category
+        <div className="relative">
+          <TransactionModal
+            isOpen={singleTransactionModal.isOpen}
+            onClose={() => {
+              // Cancelar todas as transações
+              setSingleTransactionModal({ isOpen: false, transaction: null });
+              setEditableTransactions([]);
+              setCurrentTransactionIndex(0);
+              handleSendMessage('não');
+            }}
+            transaction={singleTransactionModal.transaction}
+            type={singleTransactionModal.transaction.type}
+            onSave={async (transactionData) => {
+              console.log('💾 Salvando transação:', transactionData);
+              
+              // Atualizar a transação atual no array editableTransactions
+              const updatedTransactions = [...editableTransactions];
+              updatedTransactions[currentTransactionIndex] = {
+                ...updatedTransactions[currentTransactionIndex],
+                description: transactionData.title || updatedTransactions[currentTransactionIndex].description,
+                amount: parseFloat(transactionData.amount?.toString() || '0') || updatedTransactions[currentTransactionIndex].amount,
+                category: transactionData.category || updatedTransactions[currentTransactionIndex].category
               };
-            }
-            
-            // Fechar modal
-            setSingleTransactionModal({ isOpen: false, transaction: null });
-            
-            // Confirmar salvamento
-            handleSendMessage('sim');
-          }}
-          categories={singleTransactionModal.transaction.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES}
-        />
+              setEditableTransactions(updatedTransactions);
+              
+              // Se houver mais transações, ir para a próxima
+              if (currentTransactionIndex < editableTransactions.length - 1) {
+                const nextIndex = currentTransactionIndex + 1;
+                setCurrentTransactionIndex(nextIndex);
+                
+                const nextTx = updatedTransactions[nextIndex];
+                setSingleTransactionModal({
+                  isOpen: true,
+                  transaction: {
+                    id: uuidv4(),
+                    title: nextTx.description,
+                    amount: nextTx.amount,
+                    category: nextTx.category || 'outros',
+                    type: nextTx.type,
+                    date: nextTx.date ? new Date(nextTx.date) : new Date(),
+                    userId: ''
+                  }
+                });
+              } else {
+                // Última transação - confirmar salvamento de todas
+                console.log('✅ Todas as transações revisadas, salvando...');
+                setSingleTransactionModal({ isOpen: false, transaction: null });
+                setCurrentTransactionIndex(0);
+                handleSendMessage('sim');
+              }
+            }}
+            categories={singleTransactionModal.transaction.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES}
+          />
+          
+          {/* Indicador de progresso quando há múltiplas transações */}
+          {editableTransactions.length > 1 && (
+            <div 
+              className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-[60] bg-white rounded-full px-6 py-3 shadow-2xl border-2 border-blue-500"
+              style={{
+                animation: 'slideUp 0.3s ease-out'
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-semibold text-gray-700">
+                  Transação {currentTransactionIndex + 1} de {editableTransactions.length}
+                </span>
+                <div className="flex gap-1">
+                  {editableTransactions.map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        idx === currentTransactionIndex 
+                          ? 'bg-blue-600 w-6' 
+                          : idx < currentTransactionIndex 
+                          ? 'bg-green-500' 
+                          : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       )}
-
-      {/* AI Transaction Review Modal para MÚLTIPLAS TRANSAÇÕES */}
-      <AITransactionReviewModal
-        isOpen={waitingConfirmation && editableTransactions.length > 0}
-        onClose={() => handleSendMessage('não')}
-        transactions={editableTransactions}
-        onConfirm={(updatedTransactions) => {
-          // Atualizar as transações editadas
-          setEditableTransactions(updatedTransactions);
-          // Confirmar salvamento
-          handleSendMessage('sim');
-        }}
-        isLoading={savingTransactions}
-      />
 
       {/* OLD CUSTOM MODAL - REMOVED AND REPLACED WITH TransactionList */}
       {false && waitingConfirmation && editableTransactions.length > 0 && (

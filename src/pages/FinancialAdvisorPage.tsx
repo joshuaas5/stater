@@ -212,13 +212,23 @@ export const FinancialAdvisorPage: React.FC = () => {
     // Forçar ativação do modal customizado com delay garantido
     setTimeout(() => {
       try {
+        // 🔥 FIX: Converter transação de áudio para usar modal TransactionList
+        const singleTransaction = [{
+          type: transactionData.transaction_type === 'income' ? 'income' : 'expense',
+          amount: transactionData.amount,
+          description: transactionData.description,
+          category: transactionData.category || 'outros',
+          date: new Date().toISOString().split('T')[0]
+        }];
+        
+        console.log('✨ [MODAL_FIX] Convertendo transação de áudio para modal TransactionList:', singleTransaction);
+        setEditableTransactions(singleTransaction);
         setPendingAction({
-          tipo: transactionData.transaction_type || 'expense',
+          tipo: 'generic_confirmation',
           dados: {
-            amount: transactionData.amount,
-            description: transactionData.description,
-            category: transactionData.category || 'Outros',
-            date: new Date().toISOString().split('T')[0]
+            ocrTransactions: singleTransaction,
+            documentType: 'audio',
+            establishment: 'Transação processada via áudio'
           }
         });
         
@@ -731,13 +741,23 @@ const isAddBillIntent = (msg: string) => {
     
     setMessages(prev => [...prev, assistantMessage]);
 
-    // Configurar ação pendente para confirmação
+    // 🔥 FIX: Converter transação via voz para usar modal TransactionList
+    const singleTransaction = [{
+      type: transactionData.type === 'income' ? 'income' : 'expense',
+      amount: transactionData.amount,
+      description: transactionData.description || 'Transação via voz',
+      category: transactionData.category || 'outros',
+      date: new Date().toISOString().split('T')[0]
+    }];
+    
+    console.log('✨ [MODAL_FIX] Convertendo transação via voz para modal TransactionList:', singleTransaction);
+    setEditableTransactions(singleTransaction);
     setPendingAction({
-      tipo: transactionData.type === 'income' ? 'income' : 'expense',
+      tipo: 'generic_confirmation',
       dados: {
-        amount: transactionData.amount,
-        description: transactionData.description || `Transação via voz`,
-        category: transactionData.category || 'Outros'
+        ocrTransactions: singleTransaction,
+        documentType: 'voice',
+        establishment: 'Transação processada via voz'
       }
     });
     
@@ -2052,27 +2072,54 @@ LEMBRE-SE:
 
             isTransactionJson = true;
           }
-          // Transação individual (formato existente)
+          // Transação individual (formato existente) - CONVERTIDO PARA USAR MODAL TRANSACTIONLIST
           else if ((parsed.tipo === 'receita' || parsed.tipo === 'despesa') &&
               parsed.hasOwnProperty('descrição') &&
               parsed.hasOwnProperty('valor')
           ) {
+            // 🔥 FIX: Converter transação individual para array e usar modal TransactionList
+            const singleTransaction = [{
+              type: parsed.tipo === 'receita' ? 'income' : 'expense',
+              amount: parseFloat(parsed.valor),
+              description: parsed.descrição,
+              category: parsed.categoria || 'outros',
+              date: parsed.data || new Date().toISOString().split('T')[0]
+            }];
+            
+            console.log('✨ [MODAL_FIX] Convertendo transação individual para modal TransactionList:', singleTransaction);
+            setOriginalMessageForLearning(message);
+            setEditableTransactions(singleTransaction);
             setPendingAction({
-              tipo: parsed.tipo === 'receita' ? 'income' : 'expense',
+              tipo: 'generic_confirmation',
               dados: {
-                description: parsed.descrição,
-                amount: parseFloat(parsed.valor),
-                category: parsed.categoria || null,
-                date: parsed.data || null
+                ocrTransactions: singleTransaction,
+                documentType: 'ai_single',
+                establishment: 'Transação processada pela IA'
               }
             });
             setWaitingConfirmation(true);
             isTransactionJson = true;
           } else if (parsed.action === "add_transaction" && parsed.transaction_type && parsed.description && parsed.amount) {
+             // 🔥 FIX: Converter transação individual para array e usar modal TransactionList
              const { transaction_type, description, amount, category, date } = parsed as GeminiTransactionIntent;
+             const singleTransaction = [{
+               type: transaction_type === 'income' ? 'income' : 'expense',
+               amount: amount,
+               description: description,
+               category: category || 'outros',
+               date: date || new Date().toISOString().split('T')[0]
+             }];
+             
+             console.log('✨ [MODAL_FIX] Convertendo transação add_transaction para modal TransactionList:', singleTransaction);
+             setOriginalMessageForLearning(message);
+             setEditableTransactions(singleTransaction);
              setPendingAction({
-               tipo: transaction_type === "income" ? "income" : "expense",
-               dados: { description, amount, category: category || null, date: date || null }
+               tipo: 'generic_confirmation',
+               dados: {
+                 ocrTransactions: singleTransaction,
+                 documentType: 'ai_single',
+                 establishment: 'Transação processada pela IA'
+               }
              });
              setWaitingConfirmation(true);
              isTransactionJson = true;
@@ -2116,14 +2163,24 @@ LEMBRE-SE:
           
           console.log('🤖 [FALLBACK] Criando transação simples:', { amount, type: transactionType, description });
           
-          // Ativar modal diretamente
+          // 🔥 FIX: Converter transação simples para usar modal TransactionList
+          const singleTransaction = [{
+            type: transactionType,
+            amount: amount,
+            description: description,
+            category: 'outros',
+            date: new Date().toISOString().split('T')[0]
+          }];
+          
+          console.log('✨ [MODAL_FIX] Convertendo transação fallback para modal TransactionList:', singleTransaction);
+          setOriginalMessageForLearning(message);
+          setEditableTransactions(singleTransaction);
           setPendingAction({
-            tipo: transactionType,
+            tipo: 'generic_confirmation',
             dados: {
-              amount,
-              description,
-              category: 'Outros',
-              date: new Date().toISOString().split('T')[0]
+              ocrTransactions: singleTransaction,
+              documentType: 'ai_simple',
+              establishment: 'Transação simples processada pela IA'
             }
           });
           setWaitingConfirmation(true);
@@ -3731,9 +3788,9 @@ return (
           isProcessingAudio={isLoadingState('audio-processing')}
           audioLimits={audioLimits}
         />
-      </div>      {/* Confirmation Popup - Modal Único com Design Ultra Moderno */}
-      {/* 🔥 FIX: Só mostrar este modal SE não houver transações múltiplas para revisar */}
-      {waitingConfirmation && pendingAction && editableTransactions.length === 0 && (
+      </div>      {/* Confirmation Popup - DESABILITADO - Todas as transações agora usam TransactionList */}
+      {/* 🔥 FIX: Modal simples desabilitado - TODAS as transações usam modal TransactionList */}
+      {false && waitingConfirmation && pendingAction && editableTransactions.length === 0 && (
         <>
           {/* Backdrop com efeito de blur e gradiente */}
           <div 

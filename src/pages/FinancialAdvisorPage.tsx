@@ -3211,19 +3211,50 @@ const handleImageUpload = async (imageBase64: string) => {
       console.log('📤 Enviando imagem/PDF para API');
     }
     
-    const response = await fetch('/api/gemini-ocr', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody),
-      signal: abortControllerRef.current.signal
-    });
+    let response;
+    let responseText;
+    
+    try {
+      console.log('🚀 Iniciando fetch para /api/gemini-ocr...');
+      response = await fetch('/api/gemini-ocr', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody),
+        signal: abortControllerRef.current.signal
+      });
       clearTimeout(timeoutId);
+      console.log('✅ Fetch concluído, status:', response.status);
 
-    // 🔒 PROTEÇÃO: Detectar HTML antes de tentar parsear JSON
-    const responseText = await response.text();
-    console.log('📥 Resposta recebida (primeiros 200 chars):', responseText.substring(0, 200));
+      // 🔒 PROTEÇÃO: Detectar HTML antes de tentar parsear JSON
+      responseText = await response.text();
+      console.log('📥 Resposta recebida (primeiros 200 chars):', responseText.substring(0, 200));
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      console.error('❌ [FETCH_ERROR] Erro ao fazer fetch:', fetchError);
+      
+      // Se for erro de rede ou timeout
+      if (fetchError.name === 'AbortError') {
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          text: "⏱️ **Tempo esgotado**\n\nO processamento demorou muito tempo.\n\n💡 **Tente:**\n• Usar imagens menores\n• Aguardar alguns minutos\n• Tirar foto com menos páginas",
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }]);
+      } else {
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          text: `❌ **Erro de Conexão**\n\n${fetchError.message}\n\n💡 Verifique sua conexão e tente novamente.`,
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }]);
+      }
+      setLoadingState('ai-thinking', false);
+      return;
+    }
     
     // Verificar se é HTML (página de erro)
     if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {

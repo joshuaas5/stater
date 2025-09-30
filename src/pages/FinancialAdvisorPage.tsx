@@ -3214,8 +3214,31 @@ const handleImageUpload = async (imageBase64: string) => {
     });
       clearTimeout(timeoutId);
 
+    // 🔒 PROTEÇÃO: Detectar HTML antes de tentar parsear JSON
+    const responseText = await response.text();
+    console.log('📥 Resposta recebida (primeiros 200 chars):', responseText.substring(0, 200));
+    
+    // Verificar se é HTML (página de erro)
+    if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
+      console.error('❌ [DOCTYPE_ERROR] Servidor retornou HTML ao invés de JSON');
+      setMessages(prev => [...prev, {
+        id: uuidv4(),
+        text: "❌ **Erro de Servidor**\n\nO servidor retornou uma resposta inválida (HTML ao invés de JSON).\n\n💡 **Possíveis causas:**\n• Servidor sobrecarregado\n• Timeout na requisição\n• Problema temporário de rede\n\n🔄 **Tente:**\n• Aguarde alguns minutos e tente novamente\n• Use imagens menores (menos de 5MB)\n• Tente em outro horário",
+        sender: 'system',
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
+      }]);
+      setLoadingState('ai-thinking', false);
+      return;
+    }
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+      let errorData;
+      try {
+        errorData = JSON.parse(responseText);
+      } catch {
+        errorData = { error: 'Erro desconhecido' };
+      }
       console.error('Erro da API OCR:', errorData);
       
       // Verificar se é erro de abort (timeout do cliente)
@@ -3298,7 +3321,14 @@ const handleImageUpload = async (imageBase64: string) => {
       throw new Error(errorData.error || `Erro HTTP ${response.status}`);
     }
 
-    const result = await response.json();
+    // Parse da resposta de sucesso
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseErr) {
+      console.error('❌ Erro ao parsear JSON de sucesso:', parseErr);
+      throw new Error('Resposta inválida do servidor');
+    }
     console.log('Resultado da API OCR:', result);
     
     // VALIDAÇÃO MELHORADA: Verificar múltiplas condições

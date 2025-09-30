@@ -444,12 +444,27 @@ export async function fetchGeminiAudio(
       body: JSON.stringify(requestBody)
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+    // 🔒 PROTEÇÃO: Detectar HTML antes de tentar parsear JSON
+    const responseText = await response.text();
+    console.log('📥 Resposta do Gemini (primeiros 200 chars):', responseText.substring(0, 200));
+    
+    // Verificar se é HTML (página de erro)
+    if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
+      console.error('❌ [DOCTYPE_ERROR] Gemini API retornou HTML ao invés de JSON');
+      throw new Error('Servidor retornou resposta inválida (HTML). Tente novamente em alguns minutos.');
     }
 
-    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status} - ${responseText.substring(0, 200)}`);
+    }
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseErr) {
+      console.error('❌ Erro ao parsear resposta do Gemini:', parseErr);
+      throw new Error('Resposta inválida do servidor Gemini');
+    }
     let aiMessage = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não consegui processar o áudio.';
 
     // CORREÇÃO: Se a resposta parece ser JSON bruto, extrair apenas a parte amigável

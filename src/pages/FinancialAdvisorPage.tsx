@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
 import { AITransactionReviewModal } from '@/components/modals/AITransactionReviewModal';
+import { TransactionModal } from '@/components/modals/TransactionModal';
 import { isLoggedIn, saveTransaction as saveTransactionUtil, getCurrentUser, saveUser } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
-import { ChatMessage, Transaction, EXPENSE_CATEGORIES } from '@/types';
+import { ChatMessage, Transaction, EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '@/hooks/use-translation';
 import { fetchGeminiFlashLite, GeminiTransactionIntent } from '@/utils/gemini';
@@ -134,6 +135,10 @@ export const FinancialAdvisorPage: React.FC = () => {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [waitingConfirmation, setWaitingConfirmation] = useState(false);
   const [editableTransactions, setEditableTransactions] = useState<any[]>([]);
+  const [singleTransactionModal, setSingleTransactionModal] = useState<{
+    isOpen: boolean;
+    transaction: Transaction | null;
+  }>({ isOpen: false, transaction: null });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined); // undefined: not yet checked, null: checked and no user, string: user ID
@@ -1027,9 +1032,11 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
       setSavingTransactions(true); // Ativar loading específico para salvamento
       setError("");
       try {        // Processar transações (OCR, texto, IA)
-        if (pendingAction.tipo === 'generic_confirmation' && editableTransactions.length > 0) {
-          // 🔥 FIX: Usar APENAS editableTransactions para evitar duplicação
-          const transactionsToProcess = editableTransactions;
+        if (pendingAction.tipo === 'generic_confirmation') {
+          // 🔥 FIX: Usar editableTransactions OU ocrTransactions se houver transação única
+          const transactionsToProcess = editableTransactions.length > 0 
+            ? editableTransactions 
+            : (pendingAction.dados.ocrTransactions || []);
           let successCount = 0;
           let errorCount = 0;
           
@@ -3413,19 +3420,50 @@ const handleImageUpload = async (imageBase64: string) => {
     console.log('🔍 DEBUG - Estados antes de definir modal:');
     console.log('  - editableTransactions length será:', transactions.length);
     console.log('  - waitingConfirmation será:', true);
-    console.log('  - pendingAction será definido');
     
-    setEditableTransactions(transactions); // Armazenar transações editáveis
-    setPendingAction({
-      tipo: 'generic_confirmation',
-      dados: {
-        ocrTransactions: [], // 🔥 FIX: Não duplicar em duas fontes - usar apenas editableTransactions
-        documentType: ocrData.documentType,
-        establishment: ocrData.summary.establishment
-      }
-    });
-    console.log('📝 PendingAction definida para OCR');
-    setWaitingConfirmation(true);
+    // 🎯 NOVA LÓGICA: Se for 1 transação, abrir TransactionModal bonito direto
+    // Se forem múltiplas, usar AITransactionReviewModal (lista)
+    if (transactions.length === 1) {
+      console.log('✨ [SINGLE_TRANSACTION] Abrindo modal bonito da Dashboard para 1 transação');
+      
+      const tx = transactions[0];
+      const transactionForModal: Transaction = {
+        id: uuidv4(),
+        title: tx.description,
+        amount: tx.amount,
+        category: tx.category || 'outros',
+        type: tx.type,
+        date: tx.date ? new Date(tx.date) : new Date(),
+        userId: ''
+      };
+      
+      setSingleTransactionModal({
+        isOpen: true,
+        transaction: transactionForModal
+      });
+      
+      setPendingAction({
+        tipo: 'generic_confirmation',
+        dados: {
+          ocrTransactions: [tx],
+          documentType: ocrData.documentType,
+          establishment: ocrData.summary.establishment
+        }
+      });
+    } else {
+      console.log('📋 [MULTIPLE_TRANSACTIONS] Abrindo modal de lista para múltiplas transações');
+      
+      setEditableTransactions(transactions);
+      setPendingAction({
+        tipo: 'generic_confirmation',
+        dados: {
+          ocrTransactions: [],
+          documentType: ocrData.documentType,
+          establishment: ocrData.summary.establishment
+        }
+      });
+      setWaitingConfirmation(true);
+    }
     
     // Log após definir estados
     console.log('✅ Estados definidos - Modal deveria aparecer agora');
@@ -4148,7 +4186,40 @@ return (
         </>
       )}
 
-      {/* AI Transaction Review Modal - Usando o mesmo modal bonito da Dashboard */}
+      {/* TransactionModal para TRANSAÇÃO ÚNICA - Modal bonito da Dashboard */}
+      {singleTransactionModal.isOpen && singleTransactionModal.transaction && (
+        <TransactionModal
+          isOpen={singleTransactionModal.isOpen}
+          onClose={() => {
+            setSingleTransactionModal({ isOpen: false, transaction: null });
+            handleSendMessage('não');
+          }}
+          transaction={singleTransactionModal.transaction}
+          type={singleTransactionModal.transaction.type}
+          onSave={async (transactionData) => {
+            console.log('💾 Salvando transação única:', transactionData);
+            
+            // Atualizar a transação no pendingAction para que handleSendMessage('sim') salve corretamente
+            if (pendingAction?.dados.ocrTransactions?.[0]) {
+              pendingAction.dados.ocrTransactions[0] = {
+                ...pendingAction.dados.ocrTransactions[0],
+                description: transactionData.title || pendingAction.dados.ocrTransactions[0].description,
+                amount: parseFloat(transactionData.amount?.toString() || '0') || pendingAction.dados.ocrTransactions[0].amount,
+                category: transactionData.category || pendingAction.dados.ocrTransactions[0].category
+              };
+            }
+            
+            // Fechar modal
+            setSingleTransactionModal({ isOpen: false, transaction: null });
+            
+            // Confirmar salvamento
+            handleSendMessage('sim');
+          }}
+          categories={singleTransactionModal.transaction.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES}
+        />
+      )}
+
+      {/* AI Transaction Review Modal para MÚLTIPLAS TRANSAÇÕES */}
       <AITransactionReviewModal
         isOpen={waitingConfirmation && editableTransactions.length > 0}
         onClose={() => handleSendMessage('não')}

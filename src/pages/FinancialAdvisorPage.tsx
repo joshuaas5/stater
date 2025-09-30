@@ -289,9 +289,39 @@ export const FinancialAdvisorPage: React.FC = () => {
     // Forçar ativação do modal customizado com delay garantido
     setTimeout(() => {
       try {
+        console.log('🎤 [FORCE_MODAL] Ativando modal customizado');
+        // Modal será ativado via openTransactionModal
+      } catch (error) {
+        console.error('🎤 [FORCE_MODAL] Erro ao forçar modal:', error);
+      } finally {
+        // Restaurar confirm original após delay
+        setTimeout(() => {
+          window.confirm = originalConfirm;
+          window.removeEventListener('beforeunload', preventNativeModal, true);
+          window.removeEventListener('unload', preventNativeModal, true);
+        }, 1000);
+      }
+    }, 100);
+  }, []);
+
+  // Novo useEffect para scroll quando transações editáveis mudarem
+  useEffect(() => {
+    if (editableTransactions.length > 0) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [editableTransactions, waitingConfirmation]);
+
+  // useEffect para fechar dropdowns ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('[data-category-dropdown]')) {
+        setCategoryDropdownStates({});
+      }
     };
 
-    // Adicionar listener apenas se algum dropdown estiver aberto
     const hasOpenDropdown = Object.values(categoryDropdownStates).some(Boolean);
     if (hasOpenDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
@@ -302,14 +332,7 @@ export const FinancialAdvisorPage: React.FC = () => {
     };
   }, [categoryDropdownStates]);
 
-  // Novo useEffect para scroll quando transações editáveis mudarem
-  useEffect(() => {
-    if (editableTransactions.length > 0) {
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
-    }
-  }, [editableTransactions, waitingConfirmation]);const handleSuggestionClick = (suggestion: string) => {
+  const handleSuggestionClick = (suggestion: string) => {
     // Para botões de registro de transação, fazer a IA perguntar pelos detalhes
     if (suggestion === 'Registrar Despesa' || suggestion === 'Registrar Receita') {
       const transactionType = suggestion === 'Registrar Despesa' ? 'despesa' : 'receita';

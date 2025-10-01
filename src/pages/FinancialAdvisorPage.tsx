@@ -2990,6 +2990,9 @@ const handleImageUpload = async (imageBase64: string) => {
     // Detectar tipo de arquivo
     const isPdf = !isTextFile && imageBase64.startsWith('data:application/pdf');
     
+    // 🔓 TEMPORÁRIO: PAYWALL REMOVIDO PARA TESTES
+    // ⚠️ TODO: Reativar paywall para produção
+    /*
     // � NOVA ESTRATÉGIA: Para PDFs, imagens e mídias - PAYWALL IMEDIATO para usuários FREE
     if (isPdf || !isTextFile) {
       // Verificar se o usuário é premium
@@ -3015,6 +3018,9 @@ const handleImageUpload = async (imageBase64: string) => {
       
       console.log(`✅ [MEDIA_PREMIUM] Usuário premium - ${isPdf ? 'PDF' : 'imagem'} permitido`);
     }
+    */
+    
+    console.log('🔓 [PAYWALL_DISABLED] Paywall temporariamente desabilitado para testes');
     
     //  DEBUG: Log detalhado para entender o que está acontecendo
     console.log('🔍 [DEBUG_DETECTION]', {
@@ -3084,6 +3090,12 @@ const handleImageUpload = async (imageBase64: string) => {
       };
       console.log('📤 Enviando imagem/PDF para API');
     }
+    
+    console.log('🎬 [PRE_FETCH] ============================================');
+    console.log('🎬 [PRE_FETCH] CHEGOU NA ETAPA DE FETCH!');
+    console.log('🎬 [PRE_FETCH] Paywall foi pulado com sucesso');
+    console.log('🎬 [PRE_FETCH] Preparando request body...');
+    console.log('🎬 [PRE_FETCH] ============================================');
     
     let response;
     let responseText;

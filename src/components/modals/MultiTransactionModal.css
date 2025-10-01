@@ -5,8 +5,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -85,7 +84,7 @@
 }
 
 .close-button:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
   color: #fff;
 }
 
@@ -94,7 +93,7 @@
   display: flex;
   gap: 16px;
   padding: 16px 24px;
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -148,8 +147,8 @@
 
 /* Transaction Item */
 .transaction-item {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 12px;
@@ -157,13 +156,13 @@
 }
 
 .transaction-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .transaction-item.editing {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: transparent;
+  border-color: rgba(59, 130, 246, 0.6);
 }
 
 /* Transaction Header */
@@ -178,9 +177,10 @@
   font-size: 14px;
   font-weight: 700;
   color: #94a3b8;
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
   padding: 4px 12px;
   border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .transaction-actions {
@@ -202,8 +202,8 @@
 }
 
 .action-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.5);
   color: #fff;
 }
 
@@ -213,7 +213,7 @@
 }
 
 .action-btn.save:hover {
-  background: rgba(16, 185, 129, 0.2);
+  background: transparent;
   border-color: #10b981;
 }
 
@@ -223,7 +223,7 @@
 }
 
 .action-btn.edit:hover {
-  background: rgba(59, 130, 246, 0.2);
+  background: transparent;
   border-color: #3b82f6;
 }
 
@@ -233,7 +233,7 @@
 }
 
 .action-btn.delete:hover {
-  background: rgba(239, 68, 68, 0.2);
+  background: transparent;
   border-color: #ef4444;
 }
 
@@ -265,9 +265,9 @@
   color: #fff;
   font-weight: 500;
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .field-value.amount {
@@ -284,16 +284,16 @@
 }
 
 .field-value.category {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: transparent;
+  border-color: rgba(59, 130, 246, 0.5);
   color: #60a5fa;
 }
 
 /* Input Fields */
 .field-group input,
 .category-button {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: #fff;
   padding: 10px 12px;
   border-radius: 8px;
@@ -305,7 +305,7 @@
 .field-group input:focus {
   outline: none;
   border-color: #3b82f6;
-  background: rgba(59, 130, 246, 0.1);
+  background: transparent;
 }
 
 /* Category Dropdown */
@@ -322,8 +322,8 @@
 }
 
 .category-button:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .category-options {
@@ -349,11 +349,13 @@
 }
 
 .category-option:hover {
-  background: rgba(59, 130, 246, 0.2);
+  background: transparent;
+  border-left: 3px solid #3b82f6;
 }
 
 .category-option.selected {
-  background: rgba(59, 130, 246, 0.3);
+  background: transparent;
+  border-left: 3px solid #60a5fa;
   color: #60a5fa;
   font-weight: 600;
 }
@@ -383,13 +385,14 @@
 }
 
 .btn-cancel {
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
   color: #94a3b8;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .btn-cancel:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.5);
   color: #fff;
 }
 

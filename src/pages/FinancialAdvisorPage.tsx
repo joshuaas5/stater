@@ -3089,18 +3089,30 @@ const handleImageUpload = async (imageBase64: string) => {
     let responseText;
     
     try {
-      // 🔧 CORREÇÃO: Usar URL completa do Vercel em produção e desenvolvimento
+      // 🔧 CORREÇÃO CRÍTICA: Detectar Capacitor corretamente
       const isDev = import.meta.env.DEV;
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       
-      // Em desenvolvimento local, usar API do Vercel diretamente
-      const apiUrl = (isDev || isLocalhost) 
+      // 📱 NO CAPACITOR (app mobile): window.location.protocol === 'capacitor:' ou 'ionic:'
+      const isCapacitor = window.location.protocol === 'capacitor:' || 
+                          window.location.protocol === 'ionic:' ||
+                          window.location.hostname === 'localhost' && (window as any).Capacitor;
+      
+      // 🎯 REGRA: Se for Capacitor OU dev local, usar URL completa do Vercel
+      const apiUrl = (isDev || isLocalhost || isCapacitor) 
         ? 'https://ictus-app.vercel.app/api/gemini-ocr'
         : '/api/gemini-ocr';
       
       console.log('🚀 [STEP_1] Iniciando fetch para API OCR');
       console.log('🌐 [STEP_1] URL da API:', apiUrl);
-      console.log('🔧 [STEP_1] Ambiente:', import.meta.env.MODE, '| isDev:', isDev, '| isLocalhost:', isLocalhost);
+      console.log('🔧 [STEP_1] Detecção de ambiente:');
+      console.log('  - import.meta.env.MODE:', import.meta.env.MODE);
+      console.log('  - isDev:', isDev);
+      console.log('  - isLocalhost:', isLocalhost);
+      console.log('  - isCapacitor:', isCapacitor);
+      console.log('  - window.location.protocol:', window.location.protocol);
+      console.log('  - window.location.hostname:', window.location.hostname);
+      console.log('  - Capacitor global:', !!(window as any).Capacitor);
       console.log('📦 [STEP_1] Request body keys:', Object.keys(requestBody));
       console.log('📦 [STEP_1] Body size (bytes):', JSON.stringify(requestBody).length);
       

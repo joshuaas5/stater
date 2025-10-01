@@ -31,11 +31,18 @@ const config: CapacitorConfig = {
     }
   },
   server: {
-    androidScheme: 'https'                 // Esquema seguro
+    androidScheme: 'https',                 // Esquema seguro
+    cleartext: true,                        // Permitir HTTP para dev
+    allowNavigation: ['*']                  // Permitir navegação para atualização
   },
   android: {
     allowMixedContent: true,
-    backgroundColor: '#31518b'
+    backgroundColor: '#31518b',
+    webContentsDebuggingEnabled: true      // Habilitar debug no Chrome
+  },
+  ios: {
+    backgroundColor: '#31518b',
+    contentInset: 'automatic'
   }
 };
 

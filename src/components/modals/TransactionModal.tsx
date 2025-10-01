@@ -312,13 +312,13 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                   border: '1px solid rgba(255, 255, 255, 0.2)'
                 }}
               >
-                <DollarSign className="h-6 w-6 text-white drop-shadow-lg" />
+                <DollarSign className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white drop-shadow-lg" style={{ textDecoration: 'none' }}>
+                <h2 className="text-xl font-bold text-white" style={{ textDecoration: 'none' }}>
                   {isEditing ? 'Editar' : 'Nova'} {isIncome ? 'Entrada' : 'Saída'}
                 </h2>
-                <p className="text-white/80 text-sm font-medium drop-shadow" style={{ textDecoration: 'none' }}>
+                <p className="text-white/80 text-sm font-medium" style={{ textDecoration: 'none' }}>
                   {isIncome ? 'Receita financeira' : 'Despesa ou gasto'}
                 </p>
               </div>
@@ -339,7 +339,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                 e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
               }}
             >
-              <X className="h-5 w-5 text-white drop-shadow" />
+              <X className="h-5 w-5 text-white" />
             </button>
           </div>
         </div>

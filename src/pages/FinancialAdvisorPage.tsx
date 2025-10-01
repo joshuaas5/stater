@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
 import { TransactionModal } from '@/components/modals/TransactionModal';
+import { MultiTransactionModal } from '@/components/modals/MultiTransactionModal';
 import { isLoggedIn, saveTransaction as saveTransactionUtil, getCurrentUser, saveUser } from '@/utils/localStorage';
 import { Button } from '@/components/ui/button';
 import { ChatMessage, Transaction, EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/types';
@@ -139,6 +140,13 @@ export const FinancialAdvisorPage: React.FC = () => {
     transaction: Transaction | null;
   }>({ isOpen: false, transaction: null });
   const [currentTransactionIndex, setCurrentTransactionIndex] = useState(0); // Para navegar entre múltiplas transações
+  
+  // 🆕 NOVO: Estado para MultiTransactionModal
+  const [multiTransactionModal, setMultiTransactionModal] = useState<{
+    isOpen: boolean;
+    transactions: any[];
+    documentInfo?: { documentType?: string; establishment?: string };
+  }>({ isOpen: false, transactions: [], documentInfo: {} });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const openTransactionModal = useCallback((rawTransactions: any[], context: Record<string, any> = {}) => {
@@ -186,6 +194,21 @@ export const FinancialAdvisorPage: React.FC = () => {
       return;
     }
 
+    // 🆕 NOVO: Se houver MÚLTIPLAS transações, usar MultiTransactionModal
+    if (normalizedTransactions.length > 1) {
+      console.log('📋 [MULTI_MODAL] Abrindo modal de lista com', normalizedTransactions.length, 'transações');
+      setMultiTransactionModal({
+        isOpen: true,
+        transactions: normalizedTransactions,
+        documentInfo: {
+          documentType: context.documentType,
+          establishment: context.establishment
+        }
+      });
+      return;
+    }
+
+    // Se for apenas 1 transação, usar modal antigo
     setEditableTransactions(normalizedTransactions);
     setCurrentTransactionIndex(0);
 
@@ -3066,12 +3089,20 @@ const handleImageUpload = async (imageBase64: string) => {
     let responseText;
     
     try {
-      const apiUrl = '/api/gemini-ocr';
+      // 🔧 CORREÇÃO: Usar URL completa do Vercel em produção e desenvolvimento
+      const isDev = import.meta.env.DEV;
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      
+      // Em desenvolvimento local, usar API do Vercel diretamente
+      const apiUrl = (isDev || isLocalhost) 
+        ? 'https://ictus-app.vercel.app/api/gemini-ocr'
+        : '/api/gemini-ocr';
+      
       console.log('🚀 [STEP_1] Iniciando fetch para API OCR');
-      console.log('🌐 [STEP_1] URL completa:', window.location.origin + apiUrl);
+      console.log('🌐 [STEP_1] URL da API:', apiUrl);
+      console.log('🔧 [STEP_1] Ambiente:', import.meta.env.MODE, '| isDev:', isDev, '| isLocalhost:', isLocalhost);
       console.log('📦 [STEP_1] Request body keys:', Object.keys(requestBody));
       console.log('📦 [STEP_1] Body size (bytes):', JSON.stringify(requestBody).length);
-      console.log('🔧 [STEP_1] Ambiente:', import.meta.env.MODE);
       
       response = await fetch(apiUrl, {
         method: 'POST',
@@ -3843,6 +3874,96 @@ return (
           )}
         </div>
       )}
+
+      {/* 🆕 MULTI TRANSACTION MODAL - Lista editável de múltiplas transações */}
+      <MultiTransactionModal
+        isOpen={multiTransactionModal.isOpen}
+        onClose={() => {
+          console.log('🚫 [MULTI_MODAL] Usuário cancelou - fechando modal');
+          setMultiTransactionModal({ isOpen: false, transactions: [], documentInfo: {} });
+        }}
+        transactions={multiTransactionModal.transactions}
+        documentInfo={multiTransactionModal.documentInfo}
+        onSaveAll={async (transactions) => {
+          console.log('💾 [MULTI_MODAL] Salvando', transactions.length, 'transações');
+          
+          try {
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError || !user) {
+              throw new Error("Usuário não autenticado");
+            }
+
+            setSavingTransactions(true);
+
+            // Salvar cada transação no Supabase
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const tx of transactions) {
+              try {
+                const transactionToSave = {
+                  id: tx.id || uuidv4(),
+                  title: tx.description,
+                  amount: tx.amount,
+                  category: tx.category,
+                  type: tx.type,
+                  date: new Date(tx.date),
+                  userId: user.id,
+                  isRecurring: false
+                };
+
+                const { error: saveError } = await supabase
+                  .from('transactions')
+                  .insert([transactionToSave]);
+
+                if (saveError) {
+                  console.error('❌ Erro ao salvar transação:', saveError);
+                  errorCount++;
+                } else {
+                  successCount++;
+                }
+              } catch (txError) {
+                console.error('❌ Erro ao processar transação:', txError);
+                errorCount++;
+              }
+            }
+
+            // Mensagem de feedback
+            const successMessage = successCount > 0 
+              ? `✅ ${successCount} ${successCount === 1 ? 'transação salva' : 'transações salvas'} com sucesso!`
+              : '';
+            
+            const errorMessage = errorCount > 0
+              ? `⚠️ ${errorCount} ${errorCount === 1 ? 'transação falhou' : 'transações falharam'}.`
+              : '';
+
+            const feedbackText = [successMessage, errorMessage].filter(Boolean).join('\n');
+
+            setMessages(prev => [...prev, {
+              id: uuidv4(),
+              text: feedbackText,
+              sender: 'system',
+              timestamp: new Date(),
+              avatarUrl: IA_AVATAR
+            }]);
+
+            // Fechar modal
+            setMultiTransactionModal({ isOpen: false, transactions: [], documentInfo: {} });
+
+          } catch (error: any) {
+            console.error('❌ Erro ao salvar transações:', error);
+            setMessages(prev => [...prev, {
+              id: uuidv4(),
+              text: `❌ Erro ao salvar transações: ${error.message}`,
+              sender: 'system',
+              timestamp: new Date(),
+              avatarUrl: IA_AVATAR
+            }]);
+          } finally {
+            setSavingTransactions(false);
+          }
+        }}
+      />
 
       {/* CSS Animations */}
       <style dangerouslySetInnerHTML={{

@@ -3081,6 +3081,20 @@ const handleImageUpload = async (imageBase64: string) => {
       // 🔒 PROTEÇÃO: Detectar HTML antes de tentar parsear JSON
       responseText = await response.text();
       console.log('📥 Resposta recebida (primeiros 200 chars):', responseText.substring(0, 200));
+      
+      // VERIFICAÇÃO IMEDIATA: Detectar HTML antes de qualquer processamento
+      if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html') || responseText.includes('</html>')) {
+        console.error('❌ [HTML_RESPONSE] Servidor retornou HTML ao invés de JSON');
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          text: "❌ **Erro de Servidor**\n\nO servidor retornou uma resposta inválida (HTML ao invés de JSON).\n\n💡 **Possíveis causas:**\n• Servidor sobrecarregado\n• Timeout na requisição\n• Problema temporário de rede\n\n🔄 **Tente:**\n• Aguarde alguns minutos e tente novamente\n• Use imagens menores (menos de 5MB)\n• Tente em outro horário",
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }]);
+        setLoadingState('ai-thinking', false);
+        return;
+      }
     } catch (fetchError: any) {
       clearTimeout(timeoutId);
       console.error('❌ [FETCH_ERROR] Erro ao fazer fetch:', fetchError);
@@ -3107,20 +3121,6 @@ const handleImageUpload = async (imageBase64: string) => {
       return;
     }
     
-    // Verificar se é HTML (página de erro)
-    if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
-      console.error('❌ [DOCTYPE_ERROR] Servidor retornou HTML ao invés de JSON');
-      setMessages(prev => [...prev, {
-        id: uuidv4(),
-        text: "❌ **Erro de Servidor**\n\nO servidor retornou uma resposta inválida (HTML ao invés de JSON).\n\n💡 **Possíveis causas:**\n• Servidor sobrecarregado\n• Timeout na requisição\n• Problema temporário de rede\n\n🔄 **Tente:**\n• Aguarde alguns minutos e tente novamente\n• Use imagens menores (menos de 5MB)\n• Tente em outro horário",
-        sender: 'system',
-        timestamp: new Date(),
-        avatarUrl: IA_AVATAR
-      }]);
-      setLoadingState('ai-thinking', false);
-      return;
-    }
-
     if (!response.ok) {
       let errorData;
       try {
@@ -3940,6 +3940,11 @@ return (
             .header {
               padding: 10px 12px !important;
               height: 55px !important;
+              position: fixed !important;
+              top: 0 !important;
+              left: 0 !important;
+              right: 0 !important;
+              z-index: 1001 !important;
             }
             .header h1 {
               font-size: 18px !important;

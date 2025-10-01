@@ -521,8 +521,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           <div 
             className="space-y-3 p-4 rounded-xl border"
             style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
+              background: 'transparent',
               borderColor: 'rgba(255, 255, 255, 0.2)'
             }}
           >
@@ -530,8 +529,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               <div 
                 className="p-2 rounded-lg"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(10px)'
+                  background: 'transparent'
                 }}
               >
                 <Repeat className="h-4 w-4 text-white" />

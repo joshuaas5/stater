@@ -229,13 +229,25 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     };
 
     if (isOpen) {
+      console.log('🔍 [TransactionModal] Modal aberto - aplicando estilos de body');
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+      console.log('🔍 [TransactionModal] Body styles aplicados:', {
+        overflow: document.body.style.overflow,
+        position: document.body.style.position
+      });
     }
 
     return () => {
+      console.log('🔍 [TransactionModal] Modal fechado - removendo estilos');
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
+      document.body.style.position = 'unset';
+      document.body.style.width = 'unset';
+      document.body.style.height = 'unset';
     };
   }, [isOpen, onClose]);
 
@@ -244,11 +256,32 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   const hasErrors = Object.keys(errors).length > 0 || Object.values(errors).some(err => !!err);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 transaction-modal">
+    <div 
+      className="fixed inset-0 flex items-center justify-center p-4 transaction-modal"
+      style={{
+        zIndex: 9999,
+        transform: 'translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
+        pointerEvents: 'auto',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0
+      }}
+    >
       {/* Backdrop with blur */}
       <div 
         className="absolute inset-0 backdrop-blur-md transition-opacity duration-300 transaction-modal-backdrop"
-        style={{ background: 'rgba(49, 81, 139, 0.8)' }}
+        style={{ 
+          background: 'rgba(49, 81, 139, 0.8)',
+          pointerEvents: 'auto',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0
+        }}
         onClick={onClose}
       />
       
@@ -256,9 +289,14 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       <div 
         className="relative w-full max-w-sm rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 max-h-[85vh] overflow-hidden transaction-modal-content"
         style={{
-          background: '#31518b', // Fundo azul sólido igual ao background do site para melhor legibilidade
+          background: '#31518b',
           border: '1px solid rgba(255, 255, 255, 0.18)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+          pointerEvents: 'auto',
+          zIndex: 10000,
+          position: 'relative',
+          transform: 'translateZ(0)',
+          WebkitTransform: 'translateZ(0)'
         }}
       >
         {/* Header */}

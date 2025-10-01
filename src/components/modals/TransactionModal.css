@@ -1,11 +1,25 @@
 /* Estilos para o TransactionModal */
+.transaction-modal {
+  z-index: 9999 !important;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  pointer-events: auto !important;
+}
+
 .transaction-modal-backdrop {
   animation: fadeIn 0.3s ease-out;
+  pointer-events: auto !important;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .transaction-modal-content {
   animation: slideInUp 0.3s ease-out;
   transform-origin: center bottom;
+  pointer-events: auto !important;
+  z-index: 10000 !important;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 @keyframes fadeIn {
@@ -77,11 +91,27 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+/* Safe area para iOS/Android */
+.transaction-modal {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
 /* Estilos responsivos */
 @media (max-width: 640px) {
   .transaction-modal-content {
     margin: 1rem;
     max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem); /* Dynamic viewport height para mobile */
+  }
+  
+  .transaction-modal {
+    /* Forçar visibilidade no Capacitor */
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 }
 

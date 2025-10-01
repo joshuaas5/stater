@@ -3302,50 +3302,24 @@ const handleImageUpload = async (imageBase64: string) => {
     console.log('🔍 DEBUG - Estados antes de definir modal:');
     console.log('  - editableTransactions length será:', transactions.length);
     
-    // 🎯 NOVA ESTRATÉGIA SIMPLIFICADA: SEMPRE usar TransactionModal bonito da Dashboard
-    // Se múltiplas transações, mostra uma de cada vez com navegação
-    console.log('✨ [UNIFIED_MODAL] Usando TransactionModal bonito para todas as transações');
+    // 🎯 ESTRATÉGIA CORRIGIDA: Usar openTransactionModal para suportar TODAS as transações
+    console.log('✨ [UNIFIED_MODAL] Abrindo modal com todas as', transactions.length, 'transações detectadas');
     
-    // Armazenar todas as transações para navegação
-    setEditableTransactions(transactions);
+    // Preparar transações no formato esperado
+    const formattedTransactions = transactions.map((tx: any) => ({
+      type: tx.type,
+      amount: tx.amount,
+      description: tx.description,
+      category: tx.category || 'outros',
+      date: tx.date || new Date().toISOString().split('T')[0]
+    }));
     
-    // Abrir modal para a PRIMEIRA transação
-    setCurrentTransactionIndex(0);
-    const firstTx = transactions[0];
-    const transactionForModal: Transaction = {
-      id: uuidv4(),
-      title: firstTx.description,
-      amount: firstTx.amount,
-      category: firstTx.category || 'outros',
-      type: firstTx.type,
-      date: firstTx.date ? new Date(firstTx.date) : new Date(),
-      userId: ''
-    };
-    
-    setSingleTransactionModal({
-      isOpen: true,
-      transaction: transactionForModal
-    });
-    
-    setPendingAction({
-      tipo: 'generic_confirmation',
-      dados: {
-        ocrTransactions: [],
-        documentType: ocrData.documentType,
-        establishment: ocrData.summary.establishment
-      }
-    });
-    
-    // Log após definir estados
-    console.log('✅ Estados definidos - Modal bonito deveria aparecer agora');
-    
-    // Forçar scroll após definir transações editáveis para OCR
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      console.log('🔍 DEBUG - Estados atuais após timeout:');
-      console.log('  - editableTransactions:', transactions.length);
-      console.log('  - waitingConfirmation: true');
-    }, 200);  } catch (err: any) {
+    // Usar openTransactionModal que já tem lógica de navegação entre múltiplas transações
+    openTransactionModal(formattedTransactions, {
+      documentType: ocrData.documentType,
+      establishment: ocrData.summary.establishment,
+      ocrTransactions: transactions
+    });  } catch (err: any) {
     console.error('Erro ao processar imagem:', err);
     console.error('Erro completo:', err.stack);
     

@@ -3066,9 +3066,14 @@ const handleImageUpload = async (imageBase64: string) => {
     let responseText;
     
     try {
-      console.log('🚀 [STEP_1] Iniciando fetch para /api/gemini-ocr...');
+      const apiUrl = '/api/gemini-ocr';
+      console.log('🚀 [STEP_1] Iniciando fetch para API OCR');
+      console.log('🌐 [STEP_1] URL completa:', window.location.origin + apiUrl);
       console.log('📦 [STEP_1] Request body keys:', Object.keys(requestBody));
-      response = await fetch('/api/gemini-ocr', {
+      console.log('📦 [STEP_1] Body size (bytes):', JSON.stringify(requestBody).length);
+      console.log('🔧 [STEP_1] Ambiente:', import.meta.env.MODE);
+      
+      response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -3348,6 +3353,11 @@ const handleImageUpload = async (imageBase64: string) => {
       category: tx.category || 'outros',
       date: tx.date || new Date().toISOString().split('T')[0]
     }));
+    
+    console.log('🔥 [CRÍTICO] ANTES DE ABRIR MODAL:');
+    console.log('  - transactions originais do Gemini:', transactions.length);
+    console.log('  - formattedTransactions preparadas:', formattedTransactions.length);
+    console.log('  - Transações formatadas:', JSON.stringify(formattedTransactions, null, 2));
     
     // Usar openTransactionModal que já tem lógica de navegação entre múltiplas transações
     openTransactionModal(formattedTransactions, {

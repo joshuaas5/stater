@@ -629,6 +629,9 @@ PROCURE ESPECIFICAMENTE POR:
 7. 📍 FATURAS de cartão de crédito
 8. 📍 EXTRATOS bancários
 9. 📍 COMPROVANTES de pagamento
+10. 🧾 **NOTAS FISCAIS**: Se houver MÚLTIPLOS ITENS/PRODUTOS em uma nota, crie UMA TRANSAÇÃO SEPARADA para CADA ITEM
+11. 🛒 **CUPONS FISCAIS**: Extraia TODOS os produtos listados, cada um como transação individual
+12. 🏪 **RECIBOS DE COMPRA**: Se houver lista de produtos, extraia item por item
 
 🏛️ PADRÕES DE BANCOS BRASILEIROS:
 
@@ -689,6 +692,14 @@ PARA COMPROVANTES:
 - Capture data, valor e descrição/beneficiário
 - Determine se é entrada ou saída pelo contexto
 
+PARA NOTAS FISCAIS COM MÚLTIPLOS ITENS:
+- 🎯 **CRÍTICO**: Se a nota fiscal contém VÁRIOS PRODUTOS (ex: arroz, feijão, macarrão), crie UMA TRANSAÇÃO PARA CADA PRODUTO
+- 📋 Exemplo: Nota do supermercado com 5 itens = 5 transações separadas
+- 💡 Use o valor individual de cada item, NÃO o total da nota
+- 🏷️ Descrição deve ser específica: "Arroz Tipo 1 5kg", "Feijão Preto 1kg", etc.
+- 📅 Todos os itens da mesma nota terão a mesma data
+- 🏪 Use o nome do estabelecimento + nome do produto na descrição
+
 ⚠️ REGRAS CRÍTICAS:
 
 1. **SEMPRE** procure por padrões como:
@@ -708,7 +719,7 @@ PARA COMPROVANTES:
 FORMATO DE SAÍDA OBRIGATÓRIO (JSON PURO):
 
 {
-  "documentType": "fatura_cartao" ou "extrato_bancario" ou "comprovante_pix",
+  "documentType": "fatura_cartao" ou "extrato_bancario" ou "comprovante_pix" ou "nota_fiscal",
   "confidence": 0.95,
   "summary": {
     "totalAmount": [soma total de todas as transações],
@@ -726,6 +737,23 @@ FORMATO DE SAÍDA OBRIGATÓRIO (JSON PURO):
       "date": "2024-12-15",
       "confidence": 0.95
     }
+  ]
+}
+
+📋 EXEMPLO PARA NOTA FISCAL COM 3 ITENS:
+Se a nota fiscal tem:
+- Arroz Tipo 1 (5kg) - R$ 24,90
+- Feijão Preto (1kg) - R$ 8,50
+- Macarrão Parafuso (500g) - R$ 4,20
+TOTAL: R$ 37,60
+
+DEVE RETORNAR 3 TRANSAÇÕES:
+{
+  "documentType": "nota_fiscal",
+  "transactions": [
+    {"description": "Supermercado Extra - Arroz Tipo 1 5kg", "amount": 24.90, "type": "expense", "category": "Supermercado", "date": "2024-10-01"},
+    {"description": "Supermercado Extra - Feijão Preto 1kg", "amount": 8.50, "type": "expense", "category": "Supermercado", "date": "2024-10-01"},
+    {"description": "Supermercado Extra - Macarrão Parafuso 500g", "amount": 4.20, "type": "expense", "category": "Supermercado", "date": "2024-10-01"}
   ]
 }
 

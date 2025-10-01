@@ -7,6 +7,14 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      '/api': {
+        target: 'https://ictus-app.vercel.app',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path
+      }
+    }
   },
   plugins: [react()],
   resolve: {

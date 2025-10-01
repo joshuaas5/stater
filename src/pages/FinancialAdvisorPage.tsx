@@ -142,6 +142,9 @@ export const FinancialAdvisorPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const openTransactionModal = useCallback((rawTransactions: any[], context: Record<string, any> = {}) => {
+    console.log('🔍 [openTransactionModal] CHAMADO - rawTransactions:', rawTransactions);
+    console.log('🔍 [openTransactionModal] Plataforma:', navigator.userAgent.includes('Mobile') ? 'MOBILE' : 'WEB');
+    
     const transactionsArray = Array.isArray(rawTransactions) ? rawTransactions : [rawTransactions];
 
     const normalizedTransactions = transactionsArray
@@ -176,6 +179,8 @@ export const FinancialAdvisorPage: React.FC = () => {
       })
       .filter((tx: any) => !!tx);
 
+    console.log('🔍 [openTransactionModal] Transações normalizadas:', normalizedTransactions);
+
     if (normalizedTransactions.length === 0) {
       console.warn('[openTransactionModal] Nenhuma transação válida para exibir no modal:', rawTransactions);
       return;
@@ -185,7 +190,7 @@ export const FinancialAdvisorPage: React.FC = () => {
     setCurrentTransactionIndex(0);
 
     const firstTransaction = normalizedTransactions[0];
-    setSingleTransactionModal({
+    const modalData = {
       isOpen: true,
       transaction: {
         id: firstTransaction.id || uuidv4(),
@@ -196,7 +201,10 @@ export const FinancialAdvisorPage: React.FC = () => {
         date: firstTransaction.date ? new Date(firstTransaction.date) : new Date(),
         userId: firstTransaction.userId || ''
       }
-    });
+    };
+    
+    console.log('🔍 [openTransactionModal] Abrindo modal com dados:', modalData);
+    setSingleTransactionModal(modalData);
 
     setPendingAction({
       tipo: 'generic_confirmation',
@@ -3722,6 +3730,12 @@ return (
       </div>
 
       {/* ✨ MODAL BONITO DA DASHBOARD - Para TODAS as transações (1 ou múltiplas) */}
+      {(() => {
+        console.log('🔍 [RENDER] singleTransactionModal:', singleTransactionModal);
+        console.log('🔍 [RENDER] isOpen:', singleTransactionModal.isOpen);
+        console.log('🔍 [RENDER] transaction:', singleTransactionModal.transaction);
+        return null;
+      })()}
       {singleTransactionModal.isOpen && singleTransactionModal.transaction && (
         <div className="relative">
           <TransactionModal

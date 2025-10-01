@@ -291,13 +291,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         <div 
           className="px-5 py-4 border-b relative overflow-hidden"
           style={{
-            background: 'rgba(255, 255, 255, 0.08)',
-            backdropFilter: 'blur(40px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+            background: 'transparent',
             borderColor: 'rgba(255, 255, 255, 0.18)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
-            border: '1px solid rgba(255, 255, 255, 0.18)',
-            borderRadius: '0'
+            border: 'none',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.18)'
           }}
         >
           <div className="relative flex items-center justify-between">

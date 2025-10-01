@@ -3066,7 +3066,8 @@ const handleImageUpload = async (imageBase64: string) => {
     let responseText;
     
     try {
-      console.log('🚀 Iniciando fetch para /api/gemini-ocr...');
+      console.log('🚀 [STEP_1] Iniciando fetch para /api/gemini-ocr...');
+      console.log('📦 [STEP_1] Request body keys:', Object.keys(requestBody));
       response = await fetch('/api/gemini-ocr', {
         method: 'POST',
         headers: {
@@ -3076,18 +3077,34 @@ const handleImageUpload = async (imageBase64: string) => {
         signal: abortControllerRef.current.signal
       });
       clearTimeout(timeoutId);
-      console.log('✅ Fetch concluído, status:', response.status);
+      console.log('✅ [STEP_2] Fetch concluído, status:', response.status);
+      console.log('✅ [STEP_2] Response headers:', {
+        contentType: response.headers.get('content-type'),
+        contentLength: response.headers.get('content-length')
+      });
 
       // 🔒 PROTEÇÃO: Detectar HTML antes de tentar parsear JSON
       responseText = await response.text();
-      console.log('📥 Resposta recebida (primeiros 200 chars):', responseText.substring(0, 200));
+      console.log('📥 [STEP_3] Resposta recebida, tamanho:', responseText.length);
+      console.log('📥 [STEP_3] Primeiros 300 chars:', responseText.substring(0, 300));
+      console.log('📥 [STEP_3] Últimos 100 chars:', responseText.substring(Math.max(0, responseText.length - 100)));
       
       // VERIFICAÇÃO IMEDIATA: Detectar HTML antes de qualquer processamento
-      if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html') || responseText.includes('</html>')) {
+      const trimmedResponse = responseText.trim();
+      const isHtml = trimmedResponse.startsWith('<!DOCTYPE') || 
+                     trimmedResponse.startsWith('<html') || 
+                     trimmedResponse.startsWith('<!doctype') ||
+                     trimmedResponse.includes('</html>') ||
+                     trimmedResponse.includes('<head>') ||
+                     trimmedResponse.includes('<body>') ||
+                     (trimmedResponse.startsWith('<') && !trimmedResponse.startsWith('{'));
+      
+      if (isHtml) {
         console.error('❌ [HTML_RESPONSE] Servidor retornou HTML ao invés de JSON');
+        console.error('🔍 Resposta HTML detectada:', trimmedResponse.substring(0, 500));
         setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: "❌ **Erro de Servidor**\n\nO servidor retornou uma resposta inválida (HTML ao invés de JSON).\n\n💡 **Possíveis causas:**\n• Servidor sobrecarregado\n• Timeout na requisição\n• Problema temporário de rede\n\n🔄 **Tente:**\n• Aguarde alguns minutos e tente novamente\n• Use imagens menores (menos de 5MB)\n• Tente em outro horário",
+          text: "❌ **Erro de Servidor**\n\nO servidor retornou uma resposta inválida (HTML ao invés de JSON).\n\n💡 **Possíveis causas:**\n• Servidor sobrecarregado\n• Timeout na requisição\n• Problema temporário de rede\n• Erro interno do servidor\n\n🔄 **Tente:**\n• Aguarde alguns minutos e tente novamente\n• Use imagens menores (menos de 5MB)\n• Tire foto com melhor iluminação\n• Tente em outro horário",
           sender: 'system',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
@@ -3211,11 +3228,29 @@ const handleImageUpload = async (imageBase64: string) => {
     }
 
     // Parse da resposta de sucesso
+    console.log('🔄 [STEP_4] Tentando parsear resposta como JSON...');
     let result;
     try {
       result = JSON.parse(responseText);
+      console.log('✅ [STEP_4] JSON parseado com sucesso');
+      console.log('📊 [STEP_4] Result keys:', Object.keys(result));
     } catch (parseErr) {
       console.error('❌ Erro ao parsear JSON de sucesso:', parseErr);
+      console.error('🔍 Resposta que falhou ao parsear:', responseText.substring(0, 500));
+      
+      // Verificar se é HTML que passou pela primeira verificação
+      if (responseText.includes('<') && responseText.includes('>')) {
+        setMessages(prev => [...prev, {
+          id: uuidv4(),
+          text: "❌ **Erro de Servidor**\n\nO servidor retornou HTML ao invés de JSON.\n\n💡 **Soluções:**\n• Aguarde 2-3 minutos e tente novamente\n• Use imagens menores (menos de 5MB)\n• Tire foto com melhor qualidade\n• Evite horários de pico",
+          sender: 'system',
+          timestamp: new Date(),
+          avatarUrl: IA_AVATAR
+        }]);
+        setLoadingState('ai-thinking', false);
+        return;
+      }
+      
       throw new Error('Resposta inválida do servidor');
     }
     console.log('Resultado da API OCR:', result);
@@ -3320,8 +3355,10 @@ const handleImageUpload = async (imageBase64: string) => {
       establishment: ocrData.summary.establishment,
       ocrTransactions: transactions
     });  } catch (err: any) {
-    console.error('Erro ao processar imagem:', err);
-    console.error('Erro completo:', err.stack);
+    console.error('❌ [CATCH_ERROR] Erro ao processar imagem:', err);
+    console.error('❌ [CATCH_ERROR] Erro completo:', err.stack);
+    console.error('❌ [CATCH_ERROR] Tipo do erro:', typeof err);
+    console.error('❌ [CATCH_ERROR] Nome do erro:', err.name);
     
     let errorMessage = 'Erro desconhecido';
     if (err.message) {

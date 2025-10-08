@@ -32,86 +32,48 @@ initializeBillNotifications();
 // 🚀 Edge-to-Edge Background Hook - SOLUÇÃO DEFINITIVA
 const useEdgeToEdgeBackground = () => {
   useEffect(() => {
-    // ✅ CONFIGURAR STATUS BAR NATIVA (MOBILE)
-    const configureStatusBar = async () => {
+    const setEdgeToEdge = async () => {
       if (Capacitor.isNativePlatform()) {
         try {
-          // Define a cor de fundo da status bar para o azul escuro e unificado
-          await StatusBar.setBackgroundColor({ color: '#31518b' });
-          // Define o estilo dos ícones/texto da status bar
-          await StatusBar.setStyle({ style: Style.Light });
+          // Oculta a status bar para uma experiência de tela cheia completa
+          await StatusBar.hide();
+          console.log('✅ Status bar oculta para modo tela cheia.');
         } catch (error) {
-          console.log('StatusBar não disponível:', error);
+          console.warn('⚠️ StatusBar plugin não disponível, fallback para CSS.', error);
+          // Fallback para CSS se o plugin falhar
+          applyCssFallback();
         }
+      } else {
+        // Aplica o fallback em web
+        applyCssFallback();
       }
     };
-    
-    configureStatusBar();
-    
-    // ✅ RESET GLOBAL - Remove qualquer margin/padding que impeça edge-to-edge
-    document.documentElement.style.cssText = `
-      margin: 0;
-      padding: 0;
-      background-color: #31518b !important;
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
-      overflow-x: hidden;
-    `;
-    
-    document.body.style.cssText = `
-      margin: 0;
-      padding: 0;
-      background-color: #31518b !important;
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
-      overflow-x: hidden;
-    `;
 
-    // ✅ APLICA NO #root TAMBÉM
-    const rootElement = document.getElementById('root');
-    if (rootElement) {
-      rootElement.style.cssText = `
+    const applyCssFallback = () => {
+      console.log('🎨 Aplicando fallback de CSS para edge-to-edge.');
+      // Garante que o corpo e o root preencham a tela
+      const styles = `
         margin: 0;
         padding: 0;
         background-color: #31518b !important;
         min-height: 100vh;
         min-height: -webkit-fill-available;
-        display: flex;
-        flex-direction: column;
+        width: 100vw;
+        overflow-x: hidden;
       `;
-    }
-    
-    // ✅ ELEMENTO PARA COBRIR STATUS BAR - POSIÇÃO ABSOLUTA NO TOPO
-    let statusBarFill = document.querySelector('.edge-to-edge-status-fill');
-    if (!statusBarFill) {
-      statusBarFill = document.createElement('div');
-      statusBarFill.className = 'edge-to-edge-status-fill';
-      statusBarFill.style.cssText = `
-        position: fixed;
-        z-index: 9999;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: env(safe-area-inset-top, 24px);
-        background-color: #31518b;
-        pointer-events: none;
-      `;
-      document.body.appendChild(statusBarFill);
-    }
-    
-    // ✅ META TAGS PARA PWA EDGE-TO-EDGE
-    const viewport = document.querySelector('meta[name="viewport"]');
-    if (viewport) {
-      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no');
-    }
-    
-    // Cleanup
-    return () => {
-      const existingFill = document.querySelector('.edge-to-edge-status-fill');
-      if (existingFill && existingFill.parentElement) {
-        existingFill.parentElement.removeChild(existingFill);
+      document.documentElement.style.cssText = styles;
+      document.body.style.cssText = styles;
+
+      const rootElement = document.getElementById('root');
+      if (rootElement) {
+        rootElement.style.cssText = styles + `
+          display: flex;
+          flex-direction: column;
+        `;
       }
     };
+    
+    setEdgeToEdge();
   }, []);
 };
 

@@ -1,4 +1,4 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { supabase } from '../lib/supabase';
 
 /**
@@ -80,172 +80,134 @@ export const signInWithGoogle = async () => {
     
     if (Capacitor.isNativePlatform()) {
       console.log('📱 Mobile: Verificando sessão existente...');
-      
-      // Verificar se já há sessão ativa
+
       const { data: existingSession } = await supabase.auth.getSession();
       if (existingSession?.session) {
         console.log('✅ Sessão já ativa, não precisa fazer login');
         return { data: existingSession, error: null };
       }
-      
-      console.log('📱 Construindo URL OAuth diretamente...');
-      
+
       const { Browser } = await import('@capacitor/browser');
       const { App } = await import('@capacitor/app');
-      
-      // Limpar listeners anteriores
+
       await Browser.removeAllListeners();
-      
-      return new Promise(async (resolve, reject) => {
-        let authCompleted = false;
-        
-        // Listener para deep links
-        const appListener = await App.addListener('appUrlOpen', async (event) => {
-          if (authCompleted) return;
-          authCompleted = true;
-          
-          console.log('🔗 Deep link capturado:', event.url);
-          appListener.remove();
-          
-          try {
-            await Browser.close();
-            const user = await handleAuthCallback(event.url);
-            if (user) {
-              console.log('✅ Login finalizado com sucesso:', user.email);
-              window.location.reload();
-              resolve({ data: { user }, error: null });
-            } else {
-              console.warn('⚠️ Callback processado mas sem usuário');
-              reject(new Error('Falha na autenticação'));
-            }
-          } catch (error) {
-            console.error('❌ Erro no callback:', error);
-            reject(error);
+
+      const waitForSession = async (attempts = 12, delay = 500) => {
+        for (let i = 0; i < attempts; i++) {
+          const { data } = await supabase.auth.getSession();
+          if (data?.session) {
+            return data;
           }
-        });
-        
-        // Listener para browser fechado
-        const browserListener = await Browser.addListener('browserFinished', async () => {
-          if (authCompleted) return;
-          
-          console.log('🔄 Browser fechado, verificando sessão...');
-          browserListener.remove();
-          
-          setTimeout(async () => {
-            if (authCompleted) return;
-            
-            const { data: sessionData } = await supabase.auth.getSession();
-            if (sessionData?.session) {
-              authCompleted = true;
-              console.log('✅ Sessão encontrada após browser fechar');
-              appListener.remove();
-              window.location.reload();
-              resolve({ data: sessionData, error: null });
-            } else {
-              authCompleted = true;
-              console.warn('⚠️ Browser fechado sem autenticação');
-              appListener.remove();
-              reject(new Error('Login cancelado ou falhou'));
-            }
-          }, 1500);
-        });
-        
-        try {
-          // ABORDAGEM CORRIGIDA: Usar signInWithOAuth do Supabase mas com controle total
-          console.log('🔧 Obtendo URL OAuth oficial do Supabase...');
-          
-          // Detectar plataforma e configurar redirect correto
-          const isNative = Capacitor.isNativePlatform();
-          const redirectUrl = isNative ? 'com.timothy.stater://auth/callback' : window.location.origin + '/auth/callback';
+          await new Promise((resolveDelay) => setTimeout(resolveDelay, delay));
+        }
+        return null;
+      };
 
-          console.log('🔧 Plataforma detectada:', isNative ? 'Native' : 'Web');
-          console.log('🎯 Redirect URL configurado:', redirectUrl);
+      const buildOAuthUrl = async () => {
+        const redirectUrl = 'com.timothy.stater://auth/callback';
+        console.log('🔧 Chamando signInWithOAuth com redirectTo:', redirectUrl);
 
-          // Obter URL OAuth OFICIAL do Supabase com configurações corretas
-          console.log('🔧 Chamando signInWithOAuth com redirectTo:', redirectUrl);
-          const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              skipBrowserRedirect: true, // IMPORTANTE: não abrir browser automaticamente
-              redirectTo: redirectUrl, // Deep link correto baseado na plataforma
-              queryParams: {
-                access_type: 'offline',
-                prompt: 'consent'
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            skipBrowserRedirect: true,
+            redirectTo: redirectUrl,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
+          },
+        });
+
+        if (error) {
+          console.error('❌ Erro ao obter URL OAuth:', error);
+          throw error;
+        }
+
+        if (!data?.url) {
+          console.error('❌ URL OAuth não retornada pelo Supabase');
+          throw new Error('URL OAuth não disponível');
+        }
+
+        console.log('🌐 URL OAuth retornada pelo Supabase:', data.url);
+        const urlObjCheck = new URL(data.url);
+        console.log('📋 Redirect retornado pelo Supabase:', urlObjCheck.searchParams.get('redirect_to'));
+
+        const finalUrl = forceDeepLinkUrl(data.url);
+        if (finalUrl !== data.url) {
+          console.warn('⚠️ URL OAuth foi corrigida para usar deep link', {
+            original: data.url,
+            corrigida: finalUrl,
+          });
+        } else {
+          console.log('✅ URL OAuth já estava correta');
+        }
+
+        return finalUrl;
+      };
+
+      const finalUrl = await buildOAuthUrl();
+      const GoogleAuthInterceptor = (await import('./GoogleAuthInterceptor')).default;
+      let deepLinkListener: PluginListenerHandle | null = null;
+
+      try {
+        // Prepara a promessa para aguardar o deep link
+        const sessionPromise = new Promise<any>((resolve, reject) => {
+          deepLinkListener = App.addListener('appUrlOpen', async (data) => {
+            console.log('📬 [2] Deep link recebido:', data.url);
+            if (data.url.includes('access_token') && data.url.includes('refresh_token')) {
+              console.log('✨ [3] URL contém tokens, tentando estabelecer sessão...');
+
+              const hash = data.url.split('#')[1];
+              if (hash) {
+                const params = new URLSearchParams(hash);
+                const accessToken = params.get('access_token');
+                const refreshToken = params.get('refresh_token');
+
+                if (accessToken && refreshToken) {
+                  console.log('🔧 [4] Configurando sessão manualmente com tokens recebidos.');
+                  const { error: sessionError } = await supabase.auth.setSession({
+                    access_token: accessToken,
+                    refresh_token: refreshToken,
+                  });
+
+                  if (sessionError) {
+                    console.error('❌ [5] Erro ao configurar sessão com tokens:', sessionError);
+                    reject(sessionError);
+                  } else {
+                    console.log('✅ [5] Sessão configurada com sucesso via deep link!');
+                    const { data: sessionData } = await supabase.auth.getSession();
+                    resolve(sessionData);
+                  }
+                }
               }
             }
           });
+        });
 
-          if (error) {
-            console.error('❌ Erro ao obter URL OAuth:', error);
-            throw error;
-          }
+        console.log('🚀 [1] Invocando interceptor nativo com a URL...');
+        await GoogleAuthInterceptor.openAuthUrl({ url: finalUrl });
 
-          if (!data?.url) {
-            console.error('❌ URL OAuth não retornada pelo Supabase');
-            throw new Error('URL OAuth não disponível');
-          }
+        // Aguarda a sessão ser estabelecida pelo listener ou um timeout
+        const sessionData = await Promise.race([
+          sessionPromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout de 20s esperando pelo login')), 20000))
+        ]);
 
-          console.log('🌐 URL OAuth retornada pelo Supabase:', data.url);
-
-          // VERIFICAÇÃO: Verificar se o Supabase respeitou nosso redirectTo
-          const urlObjCheck = new URL(data.url);
-          const actualRedirectTo = urlObjCheck.searchParams.get('redirect_to');
-          console.log('📋 Redirect retornado pelo Supabase:', actualRedirectTo);
-          console.log('🎯 Redirect esperado:', redirectUrl);
-
-          if (actualRedirectTo !== redirectUrl) {
-            console.warn('⚠️ Supabase ignorou redirectTo! Usando valor padrão');
-            console.log('🔧 Aplicando correção manual...');
-          }          // Analisar e corrigir URL se necessário
-          const urlObj = new URL(data.url);
-          const currentRedirectTo = urlObj.searchParams.get('redirect_to');
-          console.log('📋 Redirect atual na URL:', currentRedirectTo);
-          
-          // Usar função para forçar deep link em plataformas nativas
-          console.log('🔧 Chamando forceDeepLinkUrl()...');
-          const finalUrl = forceDeepLinkUrl(data.url);
-          console.log('✅ forceDeepLinkUrl() retornou:', finalUrl);
-          
-          if (finalUrl !== data.url) {
-            console.warn('⚠️ URL OAuth foi corrigida para usar deep link');
-            console.log('🔄 Diferença:', {
-              original: data.url,
-              corrigida: finalUrl
-            });
-          } else {
-            console.log('✅ URL OAuth já estava correta');
-          }
-          
-          // USAR CUSTOM CHROME TABS INTERNO (SOLUÇÃO DEFINITIVA)
-          console.log('� Abrindo OAuth com Custom Chrome Tabs interno...');
-          
-          // Configurações otimizadas para Custom Chrome Tabs
-          await Browser.open({
-            url: finalUrl,
-            presentationStyle: 'fullscreen',
-            toolbarColor: '#31518b'
-          });
-          
-          console.log('✅ Custom Chrome Tabs aberto com configurações otimizadas');          // Timeout de segurança
-          setTimeout(() => {
-            if (!authCompleted) {
-              authCompleted = true;
-              console.warn('⏰ Timeout no login Google');
-              appListener.remove();
-              browserListener.remove();
-              Browser.close();
-              reject(new Error('Timeout no login'));
-            }
-          }, 120000);
-          
-        } catch (error) {
-          console.error('❌ Erro ao abrir browser:', error);
-          appListener.remove();
-          browserListener.remove();
-          reject(error);
+        if (sessionData) {
+          console.log('✅ [6] Sessão obtida com sucesso!');
+          return { data: sessionData, error: null };
+        } else {
+          // Este caso não deve acontecer devido ao Promise.race rejeitar no timeout
+          throw new Error('Login não concluído.');
         }
-      });
-      
+      } finally {
+        // Garante que o listener seja removido em todos os cenários
+        if (deepLinkListener) {
+          console.log('🧹 Limpando listener de deep link.');
+          deepLinkListener.remove();
+        }
+      }
     } else {
       // SOLUÇÃO WEB: OAuth nativo
       console.log('🌐 Usando OAuth nativo para web');

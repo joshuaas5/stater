@@ -5,12 +5,14 @@ import './styles/mobile-first.css'
 import './styles/paywall-fixes.css'
 import './styles/status-bar-global.css'
 import './styles/stater-ia-keyboard.css'
-import { handleAuthCallback } from './utils/googleAuth'
 
+// 🔧 CORREÇÃO CRÍTICA: Importação dinâmica para evitar tela azul no APK
 // Função global para processar callbacks de autenticação (usado pelo MainActivity)
 (window as any).handleAuthCallback = async (url: string) => {
   console.log('🔄 Callback de autenticação recebido globalmente:', url);
   try {
+    // Importação dinâmica para não travar o app no load inicial
+    const { handleAuthCallback } = await import('./utils/googleAuth');
     const user = await handleAuthCallback(url);
     if (user) {
       console.log('✅ Usuário autenticado:', user.email);

@@ -5,7 +5,9 @@ import { useToast } from '@/hooks/use-toast';
 import { saveUser, clearUserData, getCurrentUser } from '@/utils/localStorage';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
-import { signInWithGoogle as hybridGoogleSignIn, initializeGoogleAuth, signOut as signOutGoogle } from '@/utils/googleAuth';
+
+// 🔧 CORREÇÃO CRÍTICA: Importação dinâmica do googleAuth para evitar tela azul
+// Não importar estaticamente para evitar execução de código no load inicial
 
 interface AuthContextType {
   session: Session | null;
@@ -244,6 +246,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Remover flag de logout manual
       localStorage.removeItem('manual_logout');
+      
+      // 🔧 CORREÇÃO: Importação dinâmica para evitar tela azul no APK
+      const { signInWithGoogle: hybridGoogleSignIn } = await import('@/utils/googleAuth');
       
       // Usar implementação híbrida (web + mobile)
       await hybridGoogleSignIn();

@@ -105,12 +105,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('🔧 [AUTH] Fragment vazio removido');
         }
         
-        // Inicializar Google Auth em background (não bloquear)
-        if (Capacitor.isNativePlatform()) {
-          initializeGoogleAuth().catch((error: any) => {
-            console.warn('⚠️ Google Auth falhou, continuando sem ele:', error?.message);
-          });
-        }
+        // 🔧 CORREÇÃO: NÃO inicializar Google Auth automaticamente
+        // Causa erro "message port closed" e tela azul
+        // Google Auth só deve ser inicializado quando usuário clicar no botão
+        console.log('✅ [AUTH] Google Auth será inicializado sob demanda (não automaticamente)');
         
         // Get initial session - sempre executar
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -243,32 +241,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     try {
-      console.log('[AuthContext] signInWithGoogle - INÍCIO da autenticação Google no contexto');
-      console.log('🔐 AuthContext: Iniciando login com Google...');
-      console.log('🚨🚨🚨 AUTHCONTEXT EXECUTANDO GOOGLE LOGIN 🚨🚨🚨');
-      alert('🔍 AUTHCONTEXT: Chamando híbrida');
+      console.log('[AUTH] Iniciando login com Google');
       
       // Remover flag de logout manual
       localStorage.removeItem('manual_logout');
-      console.log('[AuthContext] signInWithGoogle - Flag manual_logout removida');
       
       // Usar implementação híbrida (web + mobile)
-      console.log('[AuthContext] signInWithGoogle - Chamando hybridGoogleSignIn() de googleAuth.ts...');
       await hybridGoogleSignIn();
-      console.log('[AuthContext] signInWithGoogle - hybridGoogleSignIn() executado com sucesso');
-      
-      // Para web, o redirecionamento já aconteceu
-      // Para mobile, a sessão já foi estabelecida
-      console.log('✅ Login com Google processado');
+      console.log('[AUTH] Login com Google processado');
       
     } catch (error: any) {
-      console.error('[AuthContext] signInWithGoogle - ERRO capturado:', error);
-      console.error('❌ Erro no login com Google:', error);
-      toast({
-        title: "Erro no login",
-        description: error.message || "Erro ao conectar com Google",
-        variant: "destructive",
-      });
+      console.error('[AUTH] Erro no login Google:', error);
+      
+      // 🔧 CORREÇÃO: NÃO quebrar app se Google falhar
+      // Apenas mostrar mensagem amigável
+      if (error?.message !== 'popup_closed_by_user') {
+        toast({
+          title: "Erro no login",
+          description: "Não foi possível conectar com Google. Tente fazer login com email.",
+          variant: "destructive",
+        });
+      }
     }
   };
 

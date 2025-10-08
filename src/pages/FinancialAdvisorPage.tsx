@@ -2958,10 +2958,7 @@ const handleTabChange = (tabValue: string) => {
 const handleImageUpload = async (imageBase64: string) => {
   if (!imageBase64) return;
 
-  console.log('🚨🚨🚨 [INICIO_UPLOAD] ================================');
-  console.log('🚨🚨🚨 [INICIO_UPLOAD] handleImageUpload FOI CHAMADA!');
-  console.log('🚨🚨🚨 [INICIO_UPLOAD] Timestamp:', new Date().toISOString());
-  console.log('🚨🚨🚨 [INICIO_UPLOAD] ================================');
+  console.log('[OCR] Upload iniciado');
 
   setLoadingState('ai-thinking', true);
   setError("");
@@ -2978,8 +2975,6 @@ const handleImageUpload = async (imageBase64: string) => {
     if (sessionError || !sessionData?.session) {
       throw new Error("Erro ao obter sessão");
     }
-
-    console.log('✅ [CHECKPOINT_1] Usuário autenticado:', user?.id);
     
     // Detectar se é arquivo de texto/planilha ou imagem/PDF
     let isTextFile = false;
@@ -2988,15 +2983,13 @@ const handleImageUpload = async (imageBase64: string) => {
     try {
       fileData = JSON.parse(imageBase64);
       isTextFile = true;
-      console.log('📄 [CHECKPOINT_2] Arquivo de texto/planilha detectado:', fileData.fileName, fileData.fileType);
+      console.log('[OCR] Arquivo de texto detectado');
     } catch {
-      // Não é JSON, continuar como imagem/PDF
-      console.log('🖼️ [CHECKPOINT_2] Arquivo de imagem/PDF detectado');
+      console.log('[OCR] Arquivo de imagem detectado');
     }    
     
     // Detectar tipo de arquivo
     const isPdf = !isTextFile && imageBase64.startsWith('data:application/pdf');
-    console.log('📋 [CHECKPOINT_3] isPdf:', isPdf, '| isTextFile:', isTextFile);
     
     // 🔓 TEMPORÁRIO: PAYWALL REMOVIDO PARA TESTES
     // ⚠️ TODO: Reativar paywall para produção
@@ -3159,8 +3152,6 @@ const handleImageUpload = async (imageBase64: string) => {
       
       // VERIFICAÇÃO IMEDIATA: Detectar HTML antes de qualquer processamento
       const trimmedResponse = responseText.trim();
-      console.log('🔍 [HTML_CHECK] Verificando se resposta é HTML...');
-      console.log('🔍 [HTML_CHECK] Primeiros 50 chars:', trimmedResponse.substring(0, 50));
       
       const isHtml = trimmedResponse.startsWith('<!DOCTYPE') || 
                      trimmedResponse.startsWith('<html') || 
@@ -3170,14 +3161,8 @@ const handleImageUpload = async (imageBase64: string) => {
                      trimmedResponse.includes('<body>') ||
                      (trimmedResponse.startsWith('<') && !trimmedResponse.startsWith('{'));
       
-      console.log('🔍 [HTML_CHECK] isHtml:', isHtml);
-      
       if (isHtml) {
-        console.error('❌ [HTML_RESPONSE] Servidor retornou HTML ao invés de JSON');
-        console.error('🔍 [HTML_RESPONSE] URL da requisição:', apiUrl);
-        console.error('🔍 [HTML_RESPONSE] Status da resposta:', response.status);
-        console.error('🔍 [HTML_RESPONSE] Content-Type:', response.headers.get('content-type'));
-        console.error('🔍 [HTML_RESPONSE] Resposta HTML detectada (primeiros 500):', trimmedResponse.substring(0, 500));
+        console.error('[OCR] Erro: Servidor retornou HTML');
         setMessages(prev => [...prev, {
           id: uuidv4(),
           text: "❌ **Erro de Servidor**\n\nO servidor retornou uma resposta inválida (HTML ao invés de JSON).\n\n💡 **Possíveis causas:**\n• Servidor sobrecarregado\n• Timeout na requisição\n• Problema temporário de rede\n• Erro interno do servidor\n\n🔄 **Tente:**\n• Aguarde alguns minutos e tente novamente\n• Use imagens menores (menos de 5MB)\n• Tire foto com melhor iluminação\n• Tente em outro horário",

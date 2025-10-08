@@ -76,14 +76,7 @@ export const initializeGoogleAuth = async () => {
  */
 export const signInWithGoogle = async () => {
   try {
-    console.log('===============================');
-    console.log('🚀 [HÍBRIDO] INÍCIO SIGNWITHGOOGLE');
-    console.log('===============================');
-    console.log('🚀 Iniciando login com Google (versão direta)...');
-    
-    // Log de debug para detectar se esta função está sendo executada
-    window.alert('FUNÇÃO HÍBRIDA EXECUTADA - signInWithGoogle() do googleAuth.ts');
-    console.log('ALERTA MOSTRADO - Se você viu o alerta, a função correta está executando');
+    console.log('[GoogleAuth] Iniciando login com Google');
     
     if (Capacitor.isNativePlatform()) {
       console.log('📱 Mobile: Verificando sessão existente...');

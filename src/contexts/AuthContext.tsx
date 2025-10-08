@@ -262,6 +262,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           variant: "destructive",
         });
       }
+
+      throw error;
     }
   };
 

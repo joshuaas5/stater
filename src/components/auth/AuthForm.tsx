@@ -159,20 +159,22 @@ const AuthForm: React.FC = () => {
   };
   
   const handleGoogleSignIn = async () => {
-    console.log('[AuthForm] handleGoogleSignIn - INÍCIO do processo de autenticação Google');
-    console.log('🚨🚨🚨 AUTHFORM EXECUTANDO GOOGLE LOGIN 🚨🚨🚨');
-    alert('🔍 AUTHFORM: Iniciando Google Login');
-    
     try {
       setGoogleAuthInProgress(true);
-      console.log('[AuthForm] handleGoogleSignIn - Chamando signInWithGoogle() do AuthContext...');
       await signInWithGoogle();
-      console.log('[AuthForm] handleGoogleSignIn - signInWithGoogle() executado com sucesso');
-      // Não é necessário navegar aqui, pois signInWithGoogle já redireciona para o Google
-    } catch (error) {
+    } catch (error: any) {
       console.log('[AuthForm] handleGoogleSignIn - ERRO capturado:', error);
+
+      const normalizedError = typeof error === 'string' ? error : error?.message || error?.error;
+      if (normalizedError === 'popup_closed_by_user') {
+        toast({
+          title: 'Login cancelado',
+          description: 'O popup foi fechado antes da autenticação. Verifique bloqueadores de pop-up e tente novamente.',
+          variant: 'destructive',
+        });
+      }
+    } finally {
       setGoogleAuthInProgress(false);
-      // Error is handled in the auth context
     }
   };
   

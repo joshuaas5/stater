@@ -7,14 +7,11 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useStableHeight } from '@/hooks/useStableHeight';
 import { Capacitor } from '@capacitor/core';
-// Using single import for GoogleAuth
 import { useAuth } from '@/contexts/AuthContext';
 import '@/styles/anti-flicker.css';
 import '@/styles/mobile-login-compact.css';
 import '@/styles/login-improvements.css';
 
-// Usar import estático para garantir plugin nativo
-import { GoogleAuth, type User as GoogleAuthUser } from '@codetrix-studio/capacitor-google-auth';
 const Login: React.FC = () => {
   // Hook para altura estável em mobile
   useStableHeight();
@@ -265,65 +262,26 @@ const Login: React.FC = () => {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
-  const WEB_CLIENT_ID = '1011686437516-r63t3ba5gvjg4m7m7vrvcsb80ccqb25a.apps.googleusercontent.com';
-      const ANDROID_CLIENT_ID = '1011686437516-msfgio4ev9jdu3ck4hj0vb2s4bvvcq8e.apps.googleusercontent.com';
-      const isNative = Capacitor.isNativePlatform();
+      console.log('[LOGIN] Iniciando fluxo de autenticação Google');
 
-      // GoogleSignInOptions no Android sempre deve usar o WEB client ID para requestIdToken
-      const clientIdForSignIn = WEB_CLIENT_ID;
+      await signInWithGoogle();
 
-      console.log(
-        `🚀 [LOGIN] Iniciando Google Sign-In (clientId=${clientIdForSignIn}, androidClientId=${ANDROID_CLIENT_ID}, native=${isNative})`
-      );
-
-      try {
-        await GoogleAuth.initialize({
-          clientId: clientIdForSignIn,
-          scopes: ['profile', 'email', 'openid'],
-          grantOfflineAccess: false,
-        });
-        console.log('✔️ [LOGIN] GoogleAuth initialized');
-      } catch (initErr) {
-        console.warn('⚠️ [LOGIN] initialize warning:', initErr);
+      // Em plataformas web o Supabase fará redirect automaticamente
+      // Em plataformas nativas o AuthContext cuidará do estado/logs
+      if (Capacitor.isNativePlatform()) {
+        // Aguardar alguns instantes para o deep link retornar
+        setTimeout(async () => {
+          const { data } = await supabase.auth.getSession();
+          if (data.session) {
+            navigate('/dashboard', { replace: true });
+            toast({
+              title: 'Login realizado!',
+              description: `Bem-vindo, ${data.user?.email || 'usuário'}!`,
+            });
+          }
+        }, 1200);
       }
-
-      console.log('🔄 [LOGIN] Chamando GoogleAuth.signIn()');
-  const result: GoogleAuthUser = await GoogleAuth.signIn();
-
-      if (!result) {
-        throw new Error('Resultado vazio do GoogleAuth.signIn');
-      }
-      console.log('✅ [LOGIN] Retorno GoogleAuth:', {
-        hasAuth: !!result.authentication,
-        hasIdToken: !!result.authentication?.idToken,
-  email: result.email,
-      });
-
-      const idToken = result.authentication?.idToken;
-      if (!idToken) {
-        console.error('❌ [LOGIN] idToken ausente. Retorno completo:', result);
-        throw new Error('idToken não retornado. Verifique se usou o WEB CLIENT ID correto.');
-      }
-
-      console.log('🔐 [LOGIN] Autenticando no Supabase via idToken...');
-      // Usar signInWithIdToken para criar sessão sem WebView
-      const { data, error } = await supabase.auth.signInWithIdToken({
-        provider: 'google',
-        token: idToken,
-      });
-
-      if (error) {
-        console.error('❌ [LOGIN] Erro signInWithIdToken:', error);
-        throw new Error(error.message);
-      }
-
-      console.log('🎉 [LOGIN] Sessão criada. Usuário:', data.user?.email);
-      navigate('/dashboard');
-      toast({
-        title: 'Login realizado!',
-        description: `Bem-vindo, ${data.user?.email || 'usuário'}!`,
-      });
-  } catch (error: unknown) {
+    } catch (error: unknown) {
       const toRecord = (value: unknown): Record<string, unknown> | null => (
         typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null
       );
@@ -352,6 +310,15 @@ const Login: React.FC = () => {
         codigo: errorCode,
         mensagem: errorMessage,
       });
+
+      if (String(errorCode) === 'popup_closed_by_user') {
+        toast({
+          title: 'Login cancelado',
+          description: 'O popup de autenticação foi fechado antes de concluir o login. Se estiver no computador, verifique se pop-ups/third-party cookies estão liberados.',
+          variant: 'destructive',
+        });
+        return;
+      }
 
       const parseStatus = (value: unknown): number | undefined => {
         if (typeof value === 'number') return value;

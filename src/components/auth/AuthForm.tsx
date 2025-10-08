@@ -159,9 +159,16 @@ const AuthForm: React.FC = () => {
   };
   
   const handleGoogleSignIn = async () => {
+    setGoogleAuthInProgress(true);
+
     try {
-      setGoogleAuthInProgress(true);
       await signInWithGoogle();
+
+      // Garantir que o usuário veja o feedback de carregamento por um curto período,
+      // mesmo quando o Supabase resolve a Promise imediatamente (caso de pop-up/web).
+      setTimeout(() => {
+        setGoogleAuthInProgress(false);
+      }, 1200);
     } catch (error: any) {
       console.log('[AuthForm] handleGoogleSignIn - ERRO capturado:', error);
 
@@ -173,11 +180,16 @@ const AuthForm: React.FC = () => {
           variant: 'destructive',
         });
       }
-    } finally {
       setGoogleAuthInProgress(false);
     }
+
+    // Segurança adicional: se o fluxo não redirecionar (ex.: popup bloqueado e sem erro detectado),
+    // garantir que o estado volte ao normal após alguns segundos.
+    setTimeout(() => {
+      setGoogleAuthInProgress(false);
+    }, 8000);
   };
-  
+
   const handleBiometricSignIn = async () => {
     try {
       const success = await signInWithBiometrics();

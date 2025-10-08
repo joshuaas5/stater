@@ -160,17 +160,30 @@ const AuthForm: React.FC = () => {
   
   const handleGoogleSignIn = async () => {
     setGoogleAuthInProgress(true);
+    let timeoutId: NodeJS.Timeout | null = null;
 
     try {
+      // Timeout de segurança: liberar loading após 30s caso não haja resposta
+      timeoutId = setTimeout(() => {
+        console.warn('⏰ [AuthForm] Timeout no login Google - liberando loading');
+        setGoogleAuthInProgress(false);
+      }, 30000);
+
       await signInWithGoogle();
 
-      // Garantir que o usuário veja o feedback de carregamento por um curto período,
-      // mesmo quando o Supabase resolve a Promise imediatamente (caso de pop-up/web).
-      setTimeout(() => {
-        setGoogleAuthInProgress(false);
-      }, 1200);
+      // Se chegou aqui, cancelar timeout e manter loading até redirect/callback
+      if (timeoutId) clearTimeout(timeoutId);
+      
+      // No mobile, a Promise só resolve após callback, então não limpar ainda
+      // No web, o redirect acontece automaticamente
+      console.log('✅ [AuthForm] Login Google processado - aguardando redirect');
+      
     } catch (error: any) {
+      // Limpar timeout em caso de erro
+      if (timeoutId) clearTimeout(timeoutId);
+      
       console.log('[AuthForm] handleGoogleSignIn - ERRO capturado:', error);
+      setGoogleAuthInProgress(false);
 
       const normalizedError = typeof error === 'string' ? error : error?.message || error?.error;
       if (normalizedError === 'popup_closed_by_user') {
@@ -179,15 +192,15 @@ const AuthForm: React.FC = () => {
           description: 'O popup foi fechado antes da autenticação. Verifique bloqueadores de pop-up e tente novamente.',
           variant: 'destructive',
         });
+      } else if (normalizedError !== 'Login cancelado ou falhou') {
+        // Não mostrar toast para cancelamento silencioso
+        toast({
+          title: 'Erro no login',
+          description: 'Não foi possível conectar com Google. Tente novamente.',
+          variant: 'destructive',
+        });
       }
-      setGoogleAuthInProgress(false);
     }
-
-    // Segurança adicional: se o fluxo não redirecionar (ex.: popup bloqueado e sem erro detectado),
-    // garantir que o estado volte ao normal após alguns segundos.
-    setTimeout(() => {
-      setGoogleAuthInProgress(false);
-    }, 8000);
   };
 
   const handleBiometricSignIn = async () => {

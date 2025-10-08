@@ -216,9 +216,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Marcar logout manual
       localStorage.setItem('manual_logout', 'true');
       
-      // Logout do Google (se aplicável)
-      await signOutGoogle();
-      
+      // 🔧 CORREÇÃO: Fazer logout direto do Supabase (não chamar signOutGoogle que já chama signOut)
+      // Isso evita loop/deadlock
       await supabase.auth.signOut();
       
       // Limpar URL após logout

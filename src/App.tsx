@@ -15,6 +15,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import TermsWrapper from "@/components/terms/TermsWrapper";
 import { useRoutePreloading } from "@/hooks/useRoutePreloading";
 import AppRouter from "@/components/router/AppRouter";
+import CookieConsent from "@/components/CookieConsent";
 import { useEffect } from "react";
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
@@ -116,6 +117,7 @@ const App = () => (
                         <Toaster />
                         <Sonner />
                         <NotificationToastManager />
+                        <CookieConsent />
                         <AppRouter />
                       </TooltipProvider>
                     </ToastProvider>

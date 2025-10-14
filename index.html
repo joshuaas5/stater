@@ -28,6 +28,25 @@
     <meta name="msapplication-TileColor" content="#31518b">
     <meta name="msapplication-navbutton-color" content="#31518b">
     
+    <!-- 🍪 GOOGLE CONSENT MODE V2 (GDPR/LGPD) -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      
+      // Default consent - NEGADO até usuário aceitar
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'analytics_storage': 'denied',
+        'wait_for_update': 500
+      });
+      
+      // Configurar região para EEE, UK, Suíça (GDPR)
+      gtag('set', 'ads_data_redaction', true);
+      gtag('set', 'url_passthrough', true);
+    </script>
+    
     <!-- ✅ GOOGLE ADSENSE - Verificação e Monetização -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4642150915962893"
          crossorigin="anonymous"></script>

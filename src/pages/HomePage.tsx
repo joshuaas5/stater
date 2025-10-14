@@ -429,53 +429,6 @@ const HomePage: React.FC = () => {
               Suporte
             </a>
           </div>
-          
-          {/* Seção de Teste Superwall (Desenvolvimento) */}
-          <div className="mb-8">
-            <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
-              <h3 className="text-xl font-bold text-white mb-4 text-center">
-                🚀 Paywalls Profissionais Stater - {detectPlatform().toUpperCase()}
-              </h3>
-              <div className="text-center mb-4">
-                <span className="text-white/80 text-sm">
-                  Sistema: <strong className="text-green-300">Professional Stater System</strong>
-                  {detectPlatform() === 'web' ? ' (Standalone)' : ' (Híbrido)'}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <button 
-                  onClick={() => testSuperwall('onboarding')}
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 text-sm"
-                >
-                  🚀 Onboarding
-                </button>
-                
-                <button 
-                  onClick={() => testSuperwall('super_promo')}
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 text-sm"
-                >
-                  🔥 Super Promo
-                </button>
-                
-                <button 
-                  onClick={() => testSuperwall('limit_reached')}
-                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 text-sm"
-                >
-                  ⚠️ Limite
-                </button>
-                
-                <button 
-                  onClick={() => testSuperwall('premium_upgrade')}
-                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 text-sm"
-                >
-                  👑 Premium
-                </button>
-              </div>
-              <p className="text-white/60 text-xs text-center mt-3">
-                * Sistema Stater Profissional com copy CMO-level | 4 paywalls com conversão máxima
-              </p>
-            </div>
-          </div>
 
           {/* Informações finais */}
           <div className="text-white/80 space-y-2">

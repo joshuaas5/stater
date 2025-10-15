@@ -60,7 +60,10 @@ serve(async (req) => {
     console.log('✅ Checkout session criada:', session.id);
 
     return new Response(
-      JSON.stringify({ sessionId: session.id }),
+      JSON.stringify({ 
+        sessionId: session.id,
+        url: session.url // URL completa para redirecionar
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,

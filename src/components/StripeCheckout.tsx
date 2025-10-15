@@ -54,27 +54,15 @@ export default function StripeCheckout({ plan, onSuccess, onCancel }: StripeChec
         throw error;
       }
 
-      if (!data?.sessionId) {
-        throw new Error('Session ID não retornado pela API');
+      if (!data?.url) {
+        throw new Error('URL de checkout não retornada pela API');
       }
 
       console.log('✅ Sessão criada:', data.sessionId);
 
-      // 2. Carregar Stripe.js
-      const stripe = await getStripe();
-      if (!stripe) {
-        throw new Error('Falha ao carregar Stripe.js');
-      }
-
-      // 3. Redirecionar para Stripe Checkout
-      const { error: redirectError } = await stripe.redirectToCheckout({
-        sessionId: data.sessionId,
-      });
-
-      if (redirectError) {
-        console.error('❌ Erro ao redirecionar:', redirectError);
-        throw redirectError;
-      }
+      // 2. Redirecionar para Stripe Checkout (API moderna)
+      console.log('🔄 Redirecionando para:', data.url);
+      window.location.href = data.url;
 
     } catch (err: any) {
       console.error('❌ Erro no checkout:', err);

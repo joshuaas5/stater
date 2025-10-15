@@ -153,9 +153,8 @@ export default function StripeCheckout({ plan, onSuccess, onCancel }: StripeChec
 
         {/* Informações adicionais */}
         <div className="text-center text-xs text-gray-500 space-y-1">
-          <p>✅ Pagamento seguro processado pelo Stripe</p>
-          <p>✅ Cancele a qualquer momento</p>
-          <p>✅ Seus dados estão protegidos</p>
+          <p>✅ Pagamento 100% seguro via Stripe</p>
+          <p>✅ Cancele quando quiser, sem burocracia</p>
         </div>
       </CardContent>
     </Card>

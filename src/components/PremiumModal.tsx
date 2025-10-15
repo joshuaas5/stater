@@ -22,9 +22,9 @@ export default function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
   const benefits = [
     'Transações ilimitadas',
     'Análise financeira com IA avançada',
-    'Telegram Bot sem limites',
+    'Telegram Bot - 5.000 análises/mês',
     'Relatórios personalizados',
-    'OCR ilimitado de documentos',
+    'OCR - 1.000 documentos/mês',
     'Suporte prioritário 24/7',
     'Backup automático na nuvem',
     'Acesso antecipado a novos recursos',
@@ -151,9 +151,9 @@ export default function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
 
               {/* Garantias */}
               <div className="mt-4 space-y-2 text-sm text-center text-gray-600 dark:text-gray-400">
+                <p>✅ Pagamento seguro via Stripe</p>
                 <p>✅ Cancele quando quiser</p>
                 <p>✅ Garantia de 7 dias ou seu dinheiro de volta</p>
-                <p>✅ Pagamento seguro via Stripe</p>
               </div>
             </div>
           </div>

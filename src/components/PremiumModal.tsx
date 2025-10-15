@@ -76,23 +76,16 @@ export default function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
               ))}
             </div>
 
-            {/* Social Proof */}
-            <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+            {/* Aviso de Garantia */}
+            <div className="mt-8 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
               <div className="flex items-center gap-2 mb-2">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 border-2 border-white dark:border-gray-900"
-                    />
-                  ))}
-                </div>
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  +1.234 usuários Premium
+                <span className="text-2xl">✅</span>
+                <span className="text-sm font-semibold text-green-700 dark:text-green-300">
+                  Garantia de 7 dias
                 </span>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                "O melhor investimento que fiz na minha organização financeira!"
+              <p className="text-sm text-green-600 dark:text-green-400">
+                Cancele quando quiser. Reembolso total em até 7 dias sem perguntas.
               </p>
             </div>
           </div>

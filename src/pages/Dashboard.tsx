@@ -40,7 +40,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useScrollOptimization } from '@/hooks/useScrollOptimization';
 import VirtualizedTransactionList from '@/components/virtualized/VirtualizedTransactionList';
 import { TransactionModal } from '@/components/modals/TransactionModal';
-import { PaywallModal } from '@/components/ui/PaywallModal';
+import PremiumModal from '@/components/PremiumModal';
 import { AdBanner } from '@/components/monetization/AdBanner';
 import { AdPlaceholder } from '@/components/ads/AdPlaceholder';
 
@@ -1768,20 +1768,10 @@ const Dashboard: React.FC = () => {
         duration={8}
       />
       
-      {/* Paywall Modal */}
-      <PaywallModal
+      {/* Premium Modal com Stripe */}
+      <PremiumModal
         isOpen={showPaywallModal}
         onClose={() => setShowPaywallModal(false)}
-        onUpgrade={(planType) => {
-          console.log('✅ [PREMIUM] Upgrade realizado:', planType);
-          setShowPaywallModal(false);
-          toast({
-            title: '🎉 Upgrade realizado!',
-            description: `Bem-vindo ao plano ${planType}!`
-          });
-        }}
-        trigger="manual"
-        userId={user?.id || ''}
       />
       
       </div>

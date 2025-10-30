@@ -44,12 +44,8 @@ const RootRedirect: React.FC = () => {
     return <Navigate to="/login" replace />;
   }
   
-  // Se não está autenticado e é web, mostra HomePage (landing page)
-  return (
-    <ProtectedRoute requireAuth={false}>
-      <HomePage />
-    </ProtectedRoute>
-  );
+  // Se não está autenticado e é web, mostra a DEMO (para Google AdSense)
+  return <Navigate to="/demo" replace />;
 };
 
 /**

@@ -1,4 +1,4 @@
-import React from 'react';
+ja liimport React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import AuthLoadingScreen from '@/components/auth/AuthLoadingScreen';
@@ -34,17 +34,23 @@ import SettingsPage from '@/pages/SettingsPage';
 const RootRedirect: React.FC = () => {
   const { isAuthenticated } = useAuthGuard();
   
+  console.log('🔍 RootRedirect - isAuthenticated:', isAuthenticated);
+  console.log('🔍 RootRedirect - isNativePlatform:', Capacitor.isNativePlatform());
+  
   // Se está autenticado, vai direto para o dashboard
   if (isAuthenticated) {
+    console.log('✅ Redirecionando para /dashboard (usuário logado)');
     return <Navigate to="/dashboard" replace />;
   }
   
   // Se é mobile e não autenticado, vai para login
   if (Capacitor.isNativePlatform() && !isAuthenticated) {
+    console.log('📱 Redirecionando para /login (mobile não logado)');
     return <Navigate to="/login" replace />;
   }
   
   // Se não está autenticado e é web, mostra a DEMO (para Google AdSense)
+  console.log('🎯 Redirecionando para /demo (web não logado)');
   return <Navigate to="/demo" replace />;
 };
 

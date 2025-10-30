@@ -68,6 +68,14 @@ const AppRouter: React.FC = () => {
         element={<RootRedirect />}
       />
       <Route 
+        path="/home" 
+        element={
+          <ProtectedRoute requireAuth={false}>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route 
         path="/demo" 
         element={<DemoPage />}
       />

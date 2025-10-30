@@ -8,6 +8,7 @@ import { Capacitor } from '@capacitor/core';
 
 // Importação das páginas
 import HomePage from '@/pages/HomePage';
+import DemoPage from '@/pages/DemoPage';
 import Dashboard from '@/pages/Dashboard';
 import FinancialAdvisorPage from '@/pages/FinancialAdvisorPage';
 import FinancialAnalysisPage from '@/pages/FinancialAnalysisPage';
@@ -64,6 +65,10 @@ const AppRouter: React.FC = () => {
       <Route 
         path="/" 
         element={<MobileRootRedirect />}
+      />
+      <Route 
+        path="/demo" 
+        element={<DemoPage />}
       />
       <Route 
         path="/login" 

@@ -1,5 +1,20 @@
+# Stater - Controle Financeiro Inteligente
+# Permitir que o GoogleBot indexe o site
+
+User-agent: *
+Allow: /
+Allow: /demo
+Allow: /terms
+Allow: /privacy
+
+# GoogleBot pode indexar páginas de demonstração
 User-agent: Googlebot
 Allow: /
+Allow: /demo
+
+# AdsBot precisa ver onde os ads aparecem
+User-agent: AdsBot-Google
+Allow: /demo
 
 User-agent: Bingbot
 Allow: /
@@ -10,5 +25,22 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+# Não indexar APIs e áreas privadas
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /login
+Disallow: /transactions
+Disallow: /bills
+Disallow: /charts
+Disallow: /financial-advisor
+Disallow: /analise-financeira
+Disallow: /export
+Disallow: /notifications
+Disallow: /preferences
+Disallow: /security
+Disallow: /telegram
+Disallow: /profile
+Disallow: /settings
+
+# Sitemap
+Sitemap: https://stater.app/sitemap.xml

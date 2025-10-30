@@ -29,17 +29,22 @@ import ProfilePage from '@/pages/Profile';
 import SettingsPage from '@/pages/SettingsPage';
 
 /**
- * Componente para redirecionar mobile para login
+ * Componente para redirecionar raiz baseado em autenticação
  */
-const MobileRootRedirect: React.FC = () => {
+const RootRedirect: React.FC = () => {
   const { isAuthenticated } = useAuthGuard();
+  
+  // Se está autenticado, vai direto para o dashboard
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
   
   // Se é mobile e não autenticado, vai para login
   if (Capacitor.isNativePlatform() && !isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
   
-  // Senão, mostra HomePage normal
+  // Se não está autenticado e é web, mostra HomePage (landing page)
   return (
     <ProtectedRoute requireAuth={false}>
       <HomePage />
@@ -64,7 +69,7 @@ const AppRouter: React.FC = () => {
       {/* Rotas públicas - redirecionam para dashboard se autenticado */}
       <Route 
         path="/" 
-        element={<MobileRootRedirect />}
+        element={<RootRedirect />}
       />
       <Route 
         path="/demo" 

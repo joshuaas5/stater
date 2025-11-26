@@ -112,7 +112,7 @@ export default function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
                     )}
                   </div>
                   <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    R$ 19,90
+                    R$ 14,90
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     por mês

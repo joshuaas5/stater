@@ -105,7 +105,7 @@ const Transactions: React.FC = () => {
         console.log('📊 [LIMITE] Limite atingido, abrindo paywall');
         toast({
           title: 'Limite diário atingido',
-          description: 'Você atingiu o limite de transações para hoje. Teste grátis por 3 dias, depois R$ 19,90/mês para transações ilimitadas!',
+          description: 'Você atingiu o limite de transações. Assine o PRO por R$ 14,90/mês para transações ilimitadas!',
         });
         openPaywall('transactions');
         return;

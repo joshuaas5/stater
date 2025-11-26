@@ -463,7 +463,7 @@ const isAddBillIntent = (msg: string) => {
       console.log('❌ [AUDIO_PREMIUM_REQUIRED] Áudio requer premium - mostrando paywall imediato');
       setMessages(prev => [...prev, {
         id: uuidv4(),
-        text: `🎙️ **Recurso Premium Necessário**\n\n❌ Áudios estão disponíveis apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• 🎙️ Envie áudios sempre que precisar\n• 📊 Análise de PDFs e imagens\n• 📋 Relatórios em diversos formatos\n• 🚫 Livre de anúncios\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
+        text: `🎙️ **Recurso PRO Necessário**\n\n❌ Áudios estão disponíveis apenas para usuários PRO.\n\n✨ **Assine o Stater PRO** por apenas R$ 14,90/mês:\n• 🎙️ Envie áudios sempre que precisar\n• 📊 Análise de PDFs e imagens\n• 📋 Relatórios em diversos formatos\n• 🚫 Livre de anúncios\n• E muito mais!\n\n⬆️ Faça upgrade para continuar!`,
         sender: 'assistant',
         timestamp: new Date(),
         avatarUrl: IA_AVATAR
@@ -812,7 +812,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
                 console.log('🚫 [PAYWALL] Sem mensagens restantes e reward ad não assistido');
                 setMessages(prev => [...prev, {
                   id: uuidv4(),
-                  text: `🚫 **Você atingiu seus limites**\n\nPara continuar usando o Stater:\n\n✨ **Stater Premium:**\n• 🤖 Não se preocupe mais com limites de mensagens\n• 📊 Análise de PDFs e imagens\n• 🎙️ Envie áudios sempre que precisar\n• 🚫 Livre de anúncios\n• 📋 Relatórios em diversos formatos\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**`,
+                  text: `🚫 **Você atingiu seus limites**\n\nPara continuar usando o Stater:\n\n✨ **Stater PRO** por apenas R$ 14,90/mês:\n• 🤖 Não se preocupe mais com limites de mensagens\n• 📊 Análise de PDFs e imagens\n• 🎙️ Envie áudios sempre que precisar\n• 🚫 Livre de anúncios\n• 📋 Relatórios em diversos formatos\n• E muito mais!`,
                   sender: 'assistant',
                   timestamp: new Date(),
                   avatarUrl: IA_AVATAR
@@ -3006,7 +3006,7 @@ const handleImageUpload = async (imageBase64: string) => {
         const mediaType = isPdf ? '📑 PDFs' : '🖼️ Imagens';
         setMessages(prev => [...prev, {
           id: uuidv4(),
-          text: `${mediaType} **Recurso Premium Necessário**\n\n❌ Análise de ${isPdf ? 'PDFs' : 'imagens'} está disponível apenas para usuários premium.\n\n✨ **Assine o Stater Premium** e tenha:\n• ${isPdf ? '📑 PDFs sem preocupação com limite' : '🖼️ Imagens sem preocupação com limite'}\n• 🎙️ Envie áudios sempre que precisar\n• 🤖 Não se preocupe mais com limites de mensagens\n• 📋 Relatórios em diversos formatos\n• 🚫 Livre de anúncios\n• E muito mais!\n\n🎁 **Teste GRÁTIS por 3 dias!**\n💰 **Depois apenas R$ 19,90/mês**\n\n⬆️ Faça upgrade para continuar!`,
+          text: `${mediaType} **Recurso PRO Necessário**\n\n❌ Análise de ${isPdf ? 'PDFs' : 'imagens'} está disponível apenas para usuários PRO.\n\n✨ **Assine o Stater PRO** por apenas R$ 14,90/mês:\n• ${isPdf ? '📑 PDFs sem preocupação com limite' : '🖼️ Imagens sem preocupação com limite'}\n• 🎙️ Envie áudios sempre que precisar\n• 🤖 Não se preocupe mais com limites de mensagens\n• 📋 Relatórios em diversos formatos\n• 🚫 Livre de anúncios\n• E muito mais!\n\n⬆️ Faça upgrade para continuar!`,
           sender: 'assistant',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR

@@ -103,7 +103,7 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
               className="bg-green-500 hover:bg-green-400 text-white font-semibold py-2 sm:py-3 px-2 sm:px-4 rounded-xl shadow-lg text-sm transition-all duration-200"
             >
               💎 MENSAL<br/>
-              <span className="text-base sm:text-lg font-bold">R$ 19,90</span>
+              <span className="text-base sm:text-lg font-bold">R$ 14,90</span>
             </button>
             <button 
               onClick={() => handleSubscribe('weekly')}
@@ -162,7 +162,7 @@ const StaterPaywall: React.FC<StaterPaywallProps> = ({ onClose, onSubscribe }) =
           <div className="bg-green-500 rounded-2xl p-4 text-center">
             <div className="text-white font-bold">💎 MELHOR OFERTA: MENSAL</div>
             <div className="text-green-100 text-sm mt-1">
-              Economize com o plano mensal por apenas R$ 19,90
+              Assine o plano PRO por apenas R$ 14,90/mês
             </div>
           </div>
         </div>

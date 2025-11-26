@@ -252,14 +252,14 @@ export default function DemoPage() {
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <Card className="p-6 bg-white shadow-xl">
             <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">Plano Gratuito</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">Plano FREE</h3>
               <p className="text-4xl font-bold text-blue-600">R$ 0</p>
               <p className="text-gray-500">para sempre</p>
             </div>
             <ul className="space-y-3">
               <li className="flex items-center gap-2">
                 <span className="text-green-600">✓</span>
-                <span>Transações ilimitadas</span>
+                <span>5 mensagens com IA/dia</span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-green-600">✓</span>
@@ -270,12 +270,12 @@ export default function DemoPage() {
                 <span>Gráficos básicos</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-green-600">✓</span>
-                <span>50 comandos de voz/mês</span>
+                <span className="text-red-500">✗</span>
+                <span className="text-gray-400">OCR de fotos</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-green-600">✓</span>
-                <span>10 OCRs/mês</span>
+                <span className="text-red-500">✗</span>
+                <span className="text-gray-400">Leitura de PDFs</span>
               </li>
             </ul>
           </Card>
@@ -285,26 +285,26 @@ export default function DemoPage() {
               <div className="inline-block bg-yellow-400 text-gray-900 px-3 py-1 rounded-full text-sm font-bold mb-3">
                 MAIS POPULAR
               </div>
-              <h3 className="text-2xl font-bold mb-2">Plano Premium</h3>
-              <p className="text-4xl font-bold">R$ 9,90</p>
+              <h3 className="text-2xl font-bold mb-2">Plano PRO</h3>
+              <p className="text-4xl font-bold">R$ 14,90</p>
               <p className="text-purple-200">por mês</p>
             </div>
             <ul className="space-y-3">
               <li className="flex items-center gap-2">
                 <span className="text-yellow-300">✓</span>
-                <span>Tudo do plano gratuito</span>
+                <span>50 mensagens IA/dia</span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-yellow-300">✓</span>
-                <span>Comandos de voz ilimitados</span>
+                <span>100 análises de fotos/semana</span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-yellow-300">✓</span>
-                <span>OCR ilimitado</span>
+                <span>30 leituras de PDFs/semana</span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-yellow-300">✓</span>
-                <span>Chat com IA ilimitado</span>
+                <span>Bot do Telegram</span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-yellow-300">✓</span>

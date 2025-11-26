@@ -166,7 +166,7 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {}, onSubscribe }: State
               className="bg-green-500 hover:bg-green-400 text-white font-semibold py-2 px-2 rounded-lg shadow-lg text-xs"
             >
               💎 MENSAL<br/>
-              <span className="text-base font-bold">R$ 19,90</span>
+              <span className="text-base font-bold">R$ 14,90</span>
             </button>
             <button 
               onClick={() => onSubscribe && onSubscribe('weekly')}
@@ -225,7 +225,7 @@ const StaterPaywall = ({ isOpen = true, onClose = () => {}, onSubscribe }: State
           <div className="bg-green-500 rounded-xl p-2.5 text-center">
             <div className="text-white font-bold text-sm">💎 MELHOR OFERTA: MENSAL</div>
             <div className="text-green-100 text-xs mt-1">
-              Economize com o plano mensal por apenas R$ 19,90
+              Assine o plano PRO por apenas R$ 14,90/mês
             </div>
           </div>
         </div>

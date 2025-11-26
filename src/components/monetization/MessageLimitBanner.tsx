@@ -147,7 +147,7 @@ export const MessageLimitBanner: React.FC<MessageLimitBannerProps> = ({
                     <span className="font-medium text-gray-900">Upgrade para Premium</span>
                   </div>
                   <p className="text-sm text-gray-600 mb-3">
-                    Mensagens ilimitadas com <strong>teste grátis de 3 dias, depois R$ 19,90/mês</strong>
+                    Mensagens ilimitadas com <strong>PRO por R$ 14,90/mês</strong>
                   </p>
                   <Button 
                     onClick={onUpgrade}

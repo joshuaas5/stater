@@ -195,21 +195,12 @@ const HomePage: React.FC = () => {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                <Link to="/demo">
-                  <Button 
-                    size="lg" 
-                    variant="outline"
-                    className="bg-white/10 border-white/30 text-white backdrop-blur-sm mobile-no-hover desktop-hover smooth-transition text-lg px-8 py-6 shadow-xl"
-                  >
-                    👁️ Ver Demonstração
-                  </Button>
-                </Link>
                 <Link to="/register">
                   <Button 
                     size="lg" 
                     className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-10 py-4 text-lg shadow-2xl mobile-no-hover desktop-hover-scale desktop-hover-shadow smooth-transition"
                   >
-                    Começar Agora
+                    🚀 Começar Agora - É Grátis
                   </Button>
                 </Link>
                 <Link to="/login">

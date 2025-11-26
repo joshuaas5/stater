@@ -8,7 +8,6 @@ import { Capacitor } from '@capacitor/core';
 
 // Importação das páginas
 import HomePage from '@/pages/HomePage';
-import DemoPage from '@/pages/DemoPage';
 import Dashboard from '@/pages/Dashboard';
 import FinancialAdvisorPage from '@/pages/FinancialAdvisorPage';
 import FinancialAnalysisPage from '@/pages/FinancialAnalysisPage';
@@ -49,9 +48,9 @@ const RootRedirect: React.FC = () => {
     return <Navigate to="/login" replace />;
   }
   
-  // Se não está autenticado e é web, mostra a DEMO (para Google AdSense)
-  console.log('🎯 Redirecionando para /demo (web não logado)');
-  return <Navigate to="/demo" replace />;
+  // Se não está autenticado e é web, mostra a HomePage
+  console.log('🏠 Mostrando HomePage (web não logado)');
+  return <HomePage />;
 };
 
 /**
@@ -83,7 +82,7 @@ const AppRouter: React.FC = () => {
       />
       <Route 
         path="/demo" 
-        element={<DemoPage />}
+        element={<Navigate to="/" replace />}
       />
       <Route 
         path="/login" 

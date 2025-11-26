@@ -49,24 +49,34 @@ serve(async (req) => {
           break;
         }
 
-        console.log(`✅ Ativando PREMIUM para usuário: ${userId}`);
+        console.log(`✅ Ativando PRO para usuário: ${userId}`);
 
-        // Ativar plano premium
+        // Calcular data de expiração (30 dias)
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
+
+        // Ativar plano PRO na tabela user_plans
         const { error } = await supabase
-          .from('users')
-          .update({
-            plan_type: 'premium',
-            subscription_status: 'active',
-            subscription_id: session.subscription,
-            stripe_customer_id: session.customer,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', userId);
+          .from('user_plans')
+          .upsert({
+            user_id: userId,
+            plan_type: 'pro',
+            is_active: true,
+            start_date: now.toISOString(),
+            expires_at: expiresAt.toISOString(),
+            is_on_trial: false,
+            payment_status: 'active',
+            purchase_token: session.subscription,
+            product_id: 'stater_pro_1490',
+            updated_at: now.toISOString(),
+          }, {
+            onConflict: 'user_id'
+          });
 
         if (error) {
-          console.error('❌ Erro ao atualizar usuário:', error);
+          console.error('❌ Erro ao atualizar user_plans:', error);
         } else {
-          console.log(`✅ Usuário ${userId} agora é PREMIUM`);
+          console.log(`✅ Usuário ${userId} agora é PRO`);
         }
         break;
       }
@@ -86,13 +96,14 @@ serve(async (req) => {
         // Se foi cancelada
         if (subscription.status === 'canceled') {
           const { error } = await supabase
-            .from('users')
+            .from('user_plans')
             .update({
               plan_type: 'free',
-              subscription_status: 'canceled',
+              is_active: true,
+              payment_status: 'cancelled',
               updated_at: new Date().toISOString(),
             })
-            .eq('subscription_id', subscription.id);
+            .eq('purchase_token', subscription.id);
 
           if (error) {
             console.error('❌ Erro ao cancelar assinatura:', error);
@@ -107,15 +118,16 @@ serve(async (req) => {
         
         console.log(`❌ Assinatura cancelada: ${subscription.id}`);
 
-        // Cancelar no banco de dados
+        // Cancelar no banco de dados - voltar para FREE
         const { error } = await supabase
-          .from('users')
+          .from('user_plans')
           .update({
             plan_type: 'free',
-            subscription_status: 'canceled',
+            is_active: true,
+            payment_status: 'cancelled',
             updated_at: new Date().toISOString(),
           })
-          .eq('subscription_id', subscription.id);
+          .eq('purchase_token', subscription.id);
 
         if (error) {
           console.error('❌ Erro ao cancelar:', error);
@@ -125,20 +137,22 @@ serve(async (req) => {
         break;
       }
 
-      // Pagamento bem-sucedido
+      // Pagamento bem-sucedido (renovação)
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object;
         console.log(`✅ Pagamento recebido: ${invoice.id}`);
 
-        // Garantir que assinatura está ativa
+        // Renovar assinatura por mais 30 dias
         if (invoice.subscription) {
+          const expiresAt = new Date(Date.now() + (30 * 24 * 60 * 60 * 1000));
           await supabase
-            .from('users')
+            .from('user_plans')
             .update({
-              subscription_status: 'active',
+              payment_status: 'active',
+              expires_at: expiresAt.toISOString(),
               updated_at: new Date().toISOString(),
             })
-            .eq('subscription_id', invoice.subscription);
+            .eq('purchase_token', invoice.subscription);
         }
         break;
       }
@@ -152,12 +166,12 @@ serve(async (req) => {
         // Marcar como falha de pagamento
         if (invoice.subscription) {
           await supabase
-            .from('users')
+            .from('user_plans')
             .update({
-              subscription_status: 'past_due',
+              payment_status: 'failed',
               updated_at: new Date().toISOString(),
             })
-            .eq('subscription_id', invoice.subscription);
+            .eq('purchase_token', invoice.subscription);
         }
         break;
       }

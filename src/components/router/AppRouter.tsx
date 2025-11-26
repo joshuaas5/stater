@@ -1,4 +1,4 @@
-ja liimport React from 'react';
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import AuthLoadingScreen from '@/components/auth/AuthLoadingScreen';

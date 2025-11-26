@@ -22,7 +22,7 @@ interface PaywallModalProps {
 
 // Preço do plano PRO
 const PRO_PRICE = 'R$ 14,90';
-const PRO_PRICE_ID = 'price_stater_pro_monthly'; // Substituir pelo ID real do Stripe
+const PRO_PRICE_ID = 'price_1SXpCw2HBVUtKi5tQOUjW5py'; // Stripe Price ID - Produção
 
 export function PaywallModal({ isOpen, onClose, onUpgrade, trigger, userId }: PaywallModalProps) {
   const [loading, setLoading] = useState(false);

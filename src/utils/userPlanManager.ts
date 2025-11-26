@@ -13,8 +13,8 @@ const BETA_USER_FEATURES: PlanFeatures = {
   // Acesso ilimitado total
   dailyMessages: -1,          // Mensagens ilimitadas
   dailyAudioMinutes: -1,      // Áudio ilimitado
-  weeklyImageScans: -1,       // 🔥 NOVO: Imagens ilimitadas
-  weeklyPdfScans: -1,         // 🔥 NOVO: PDFs ilimitados
+  weeklyImageScans: -1,       // Imagens ilimitadas
+  weeklyPdfScans: -1,         // PDFs ilimitados
   monthlyExports: -1,         // Exports ilimitados
   
   // Todas funcionalidades liberadas
@@ -30,79 +30,44 @@ const BETA_USER_FEATURES: PlanFeatures = {
   showBanner: false           // Sem banner
 };
 
-// Configuração dos limites e recursos por plano
+// ====== MODELO NETFLIX: APENAS 2 PLANOS ======
+// FREE: Limitado para criar necessidade
+// PRO: R$ 14,90/mês - Tudo liberado
+
 export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
   [PlanType.FREE]: {
-    // Jornada progressiva de 3 dias
-    dailyMessages: 3,           // 15 mensagens totais via jornada (1-5 mensagens + ads)
-    dailyAudioMinutes: 3,       // 🔥 NOVO: 3 áudios para usuários FREE
-    weeklyImageScans: 1,        // 🔥 NOVO: 1 imagem/OCR por semana para usuários FREE  
-    weeklyPdfScans: 1,          // 🔥 NOVO: 1 PDF por semana para usuários FREE
-    monthlyExports: 0,          // Exports: Bloqueado
+    // Limites restritivos para incentivar upgrade
+    dailyMessages: 5,           // 5 mensagens IA por dia (hard limit)
+    dailyAudioMinutes: 0,       // Áudio: BLOQUEADO no FREE
+    weeklyImageScans: 0,        // OCR: BLOQUEADO no FREE
+    weeklyPdfScans: 0,          // PDF: BLOQUEADO no FREE
+    monthlyExports: 0,          // Exports: BLOQUEADO
     
     // Funcionalidades bloqueadas
-    telegramBot: false,         // Telegram: Bloqueado
-    exportReports: false,       // Relatórios: Bloqueados
-    ocrScanning: true,          // 🔥 MUDANÇA: OCR liberado com limite de 1/semana
-    pdfProcessing: true,        // 🔥 MUDANÇA: PDF liberado com limite de 1/semana
-    advancedAnalytics: false,   // Analytics avançado: Bloqueado
+    telegramBot: false,         // Telegram: BLOQUEADO
+    exportReports: false,       // Relatórios: BLOQUEADOS
+    ocrScanning: false,         // OCR: BLOQUEADO
+    pdfProcessing: false,       // PDF: BLOQUEADO
+    advancedAnalytics: false,   // Analytics: BLOQUEADO
     
-    // Monetização ativa
-    adsRequired: true,          // Anúncios obrigatórios
-    showBanner: true            // Banner de upgrade
-  },
-  [PlanType.WEEKLY]: {
-    // SEMANAL - R$ 8,90 - EXATAMENTE COMO DEFINIDO
-    dailyMessages: 10,          // 10 mensagens de texto/dia
-    dailyAudioMinutes: 3,       // 3 análises de áudio/dia
-    weeklyImageScans: 20,       // 20 análises de fotos/semana
-    weeklyPdfScans: 10,         // 10 leituras de PDFs/semana
-    monthlyExports: 0,          // Sem exports
-    
-    // Funcionalidades liberadas
-    telegramBot: true,          // Bot Telegram integrado (limites compartilhados)
-    exportReports: false,       // Relatórios: Ainda bloqueados
-    ocrScanning: true,          // OCR: Liberado
-    pdfProcessing: true,        // PDF: Liberado no semanal
-    advancedAnalytics: false,   // Analytics avançado: Ainda bloqueado
-    
-    // 100% livre de anúncios
-    adsRequired: false,         // Sem anúncios
-    showBanner: false           // Sem banner
-  },
-  [PlanType.MONTHLY]: {
-    // MENSAL - R$ 19,90 - EXATAMENTE COMO DEFINIDO
-    dailyMessages: 20,          // 20 mensagens de texto/dia
-    dailyAudioMinutes: 10,      // 10 análises de áudio/dia
-    weeklyImageScans: 50,       // 50 análises de fotos/semana
-    weeklyPdfScans: 25,         // 25 leituras de PDFs/semana
-    monthlyExports: -1,         // Exports ilimitados (PDF, XLSX, OFX, CSV)
-    
-    // Funcionalidades do semanal + relatórios
-    telegramBot: true,          // Telegram: Liberado
-    exportReports: true,        // Exportar relatórios liberado
-    ocrScanning: true,          // OCR: Liberado
-    pdfProcessing: true,        // PDF: Liberado
-    advancedAnalytics: true,    // Análises financeiras avançadas
-    
-    // Premium sem anúncios
-    adsRequired: false,         // Sem anúncios
-    showBanner: false           // Sem banner
+    // Monetização
+    adsRequired: false,         // Sem ads (simplificar)
+    showBanner: true            // Mostrar banner de upgrade
   },
   [PlanType.PRO]: {
-    // PRO - R$ 29,90 - EXATAMENTE COMO DEFINIDO
-    dailyMessages: 30,          // 30 mensagens de texto/dia
-    dailyAudioMinutes: 15,      // 15 análises de áudio/dia
-    weeklyImageScans: -1,       // Análises de fotos ilimitadas
-    weeklyPdfScans: -1,         // Leituras de PDFs ilimitadas
+    // PRO - R$ 14,90/mês - TUDO LIBERADO
+    dailyMessages: 50,          // 50 mensagens de texto/dia
+    dailyAudioMinutes: 30,      // 30 minutos de áudio/dia
+    weeklyImageScans: 100,      // 100 análises de fotos/semana
+    weeklyPdfScans: 30,         // 30 leituras de PDFs/semana
     monthlyExports: -1,         // Exports ilimitados
     
-    // Todas funcionalidades + PDFs
+    // Todas funcionalidades liberadas
     telegramBot: true,          // Telegram: Liberado
     exportReports: true,        // Relatórios: Liberados
-    ocrScanning: true,          // OCR avançado para documentos
-    pdfProcessing: true,        // Leitura e análise de PDFs
-    advancedAnalytics: true,    // Insights de despesas por categoria
+    ocrScanning: true,          // OCR: Liberado
+    pdfProcessing: true,        // PDF: Liberado
+    advancedAnalytics: true,    // Analytics: Liberado
     prioritySupport: true,      // Suporte prioritário
     
     // Experiência premium
@@ -767,20 +732,11 @@ export class UserPlanManager {
       if (isOnTrial && trialDays) {
         // Teste grátis
         trialEndsAt = new Date(now.getTime() + (trialDays * 24 * 60 * 60 * 1000));
-        
-        // Após o trial, vira assinatura normal
-        if (planType === PlanType.WEEKLY) {
-          expiresAt = new Date(trialEndsAt.getTime() + (7 * 24 * 60 * 60 * 1000));
-        } else {
-          expiresAt = new Date(trialEndsAt.getTime() + (30 * 24 * 60 * 60 * 1000));
-        }
+        // Após o trial, assinatura mensal de 30 dias
+        expiresAt = new Date(trialEndsAt.getTime() + (30 * 24 * 60 * 60 * 1000));
       } else {
-        // Assinatura normal
-        if (planType === PlanType.WEEKLY) {
-          expiresAt = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
-        } else {
-          expiresAt = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
-        }
+        // Assinatura mensal padrão (30 dias)
+        expiresAt = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
       }
       
       const plan: UserPlan = {

@@ -319,10 +319,14 @@ export const EXPENSE_CATEGORIES = [
 
 export enum PlanType {
   FREE = 'free',
-  WEEKLY = 'weekly',
-  MONTHLY = 'monthly', 
   PRO = 'pro'
 }
+
+// Manter aliases para compatibilidade com código legado
+export const PlanTypeAliases = {
+  WEEKLY: PlanType.PRO,
+  MONTHLY: PlanType.PRO
+} as const;
 
 export interface UserPlan {
   userId: string;

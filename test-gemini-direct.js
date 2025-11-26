@@ -1,5 +1,5 @@
 // Teste direto da API do Gemini
-const GEMINI_API_KEY = 'AIzaSyDTTPO0otruHVzh7bXsi7MCyG674P03758';
+const GEMINI_API_KEY = 'AIzaSyAv148Q8JIewlkbYbcoOK1pAHCZcDMZa3k';
 
 async function testGeminiDirect() {
     console.log('Testando API do Gemini diretamente...');

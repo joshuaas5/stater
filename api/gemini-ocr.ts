@@ -1,5 +1,5 @@
 // API OCR funcional - baseada no teste que funcionou
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyDTTPO0otruHVzh7bXsi7MCyG674P03758";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyAv148Q8JIewlkbYbcoOK1pAHCZcDMZa3k";
 
 // Categorias exatas do sistema (importadas do frontend)
 const INCOME_CATEGORIES = [

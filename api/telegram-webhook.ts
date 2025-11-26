@@ -9,7 +9,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const supabaseAdmin = supabase; // Usando o mesmo client para simplicidade
 
 // Configuração da API Gemini
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyDTTPO0otruHVzh7bXsi7MCyG674P03758";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyAv148Q8JIewlkbYbcoOK1pAHCZcDMZa3k";
 const GEMINI_MODEL_NAME = 'gemini-2.5-flash-lite';
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 const GEMINI_ENDPOINT = `${GEMINI_API_BASE}/models/${GEMINI_MODEL_NAME}:generateContent`;

@@ -1,30 +1,16 @@
 import { PlanType } from '@/types';
 
-// Configuração dos produtos do Google Play Billing
+// ====== MODELO NETFLIX: APENAS PRO ======
+// Google Play Billing desativado - usando apenas Stripe web
+
 export const PLAY_STORE_PRODUCTS = {
-  [PlanType.WEEKLY]: {
-    productId: 'stater_weekly_890',
-    title: 'Stater Weekly',
-    description: 'Plano semanal com 10 mensagens/dia e recursos básicos',
-    price: 'R$ 8,90',
-    period: '7 dias',
-    trialPeriod: '3 dias'
-  },
-  [PlanType.MONTHLY]: {
-    productId: 'stater_monthly_1990',
-    title: 'Stater Monthly',
-    description: 'Plano mensal com 20 mensagens/dia e exports ilimitados',
-    price: 'R$ 19,90',
-    period: '30 dias',
-    trialPeriod: '7 dias'
-  },
   [PlanType.PRO]: {
-    productId: 'stater_pro_2990',
+    productId: 'stater_pro_1490',
     title: 'Stater Pro',
-    description: 'Plano profissional com recursos completos e PDFs',
-    price: 'R$ 29,90',
+    description: 'Plano completo com IA, OCR, PDF e Telegram',
+    price: 'R$ 14,90',
     period: '30 dias',
-    trialPeriod: '7 dias'
+    trialPeriod: undefined
   }
 };
 

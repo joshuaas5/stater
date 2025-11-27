@@ -40,7 +40,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useScrollOptimization } from '@/hooks/useScrollOptimization';
 import VirtualizedTransactionList from '@/components/virtualized/VirtualizedTransactionList';
 import { TransactionModal } from '@/components/modals/TransactionModal';
-import PremiumModal from '@/components/PremiumModal';
+import PremiumModal, { ProStatusModal } from '@/components/PremiumModal';
 import { AdBanner } from '@/components/monetization/AdBanner';
 import { AdPlaceholder } from '@/components/ads/AdPlaceholder';
 
@@ -88,6 +88,10 @@ const Dashboard: React.FC = () => {
   
   // Estados para PaywallModal
   const [showPaywallModal, setShowPaywallModal] = useState(false);
+  
+  // Estado para verificar se usuário é PRO
+  const [isProUser, setIsProUser] = useState(false);
+  const [showProStatusModal, setShowProStatusModal] = useState(false);
   
   // Estado para controlar visibilidade do botão do olho
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
@@ -275,7 +279,19 @@ const Dashboard: React.FC = () => {
         // 4. Sincronização removida para evitar loops - a sincronização é feita automaticamente pelo saveTransaction
         console.log('🔧 [Dashboard] Inicialização completa - sincronização automática ativa');
         
-        // 5. Configurar lembretes (background)
+        // 5. Verificar plano do usuário (PRO ou FREE)
+        if (mounted && user?.id) {
+          try {
+            const userPlan = await UserPlanManager.getUserPlan(user.id);
+            const isPro = userPlan.planType !== PlanType.FREE;
+            setIsProUser(isPro);
+            console.log('💎 [PLAN] Plano do usuário:', userPlan.planType, 'isPro:', isPro);
+          } catch (err) {
+            console.error('❌ [PLAN] Erro ao verificar plano:', err);
+          }
+        }
+        
+        // 6. Configurar lembretes (background)
         if (mounted) {
           import('@/utils/localStorage').then(({ getBills }) => {
             import('@/services/NotificationService').then(({ NotificationService }) => {
@@ -908,19 +924,28 @@ const Dashboard: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-3">
-              {/* Botão Stater Premium */}
+              {/* Botão Stater Premium / PRO Status */}
               <button
                 onClick={() => {
-                  console.log('🎯 [PREMIUM] Usuário clicou em Premium');
-                  setShowPaywallModal(true);
+                  console.log('🎯 [PREMIUM] Usuário clicou em Premium, isProUser:', isProUser);
+                  if (isProUser) {
+                    setShowProStatusModal(true);
+                  } else {
+                    setShowPaywallModal(true);
+                  }
                 }}
-                className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-4 py-2 rounded-full font-bold text-sm hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2 pulse"
+                className={isProUser 
+                  ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full font-bold text-sm hover:from-purple-600 hover:to-pink-600 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2"
+                  : "bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-4 py-2 rounded-full font-bold text-sm hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2 pulse"
+                }
                 style={{
-                  boxShadow: '0 4px 15px rgba(251, 191, 36, 0.4)'
+                  boxShadow: isProUser 
+                    ? '0 4px 15px rgba(139, 92, 246, 0.5)' 
+                    : '0 4px 15px rgba(251, 191, 36, 0.4)'
                 }}
               >
-                <Star className="h-4 w-4" />
-                Premium
+                <Star className="h-4 w-4" fill={isProUser ? "currentColor" : "none"} />
+                {isProUser ? 'PRO' : 'Premium'}
               </button>
               
               {/* Notification Icon */}
@@ -1772,6 +1797,12 @@ const Dashboard: React.FC = () => {
       <PremiumModal
         isOpen={showPaywallModal}
         onClose={() => setShowPaywallModal(false)}
+      />
+      
+      {/* Modal de Status PRO para assinantes */}
+      <ProStatusModal
+        isOpen={showProStatusModal}
+        onClose={() => setShowProStatusModal(false)}
       />
       
       </div>

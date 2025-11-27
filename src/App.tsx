@@ -46,9 +46,11 @@ const useEdgeToEdgeBackground = () => {
     const setEdgeToEdge = async () => {
       if (Capacitor.isNativePlatform()) {
         try {
+          // Configura overlay primeiro para garantir que o conteúdo fique atrás da barra se ela aparecer
+          await StatusBar.setOverlaysWebView({ overlay: true });
           // Oculta a status bar para uma experiência de tela cheia completa
           await StatusBar.hide();
-          console.log('✅ Status bar oculta para modo tela cheia.');
+          console.log('✅ Status bar configurada (overlay + hide) para modo tela cheia.');
         } catch (error) {
           console.warn('⚠️ StatusBar plugin não disponível, fallback para CSS.', error);
           // Fallback para CSS se o plugin falhar

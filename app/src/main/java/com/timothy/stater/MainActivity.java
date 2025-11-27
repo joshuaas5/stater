@@ -1267,7 +1267,8 @@ public class MainActivity extends Activity {
             "   background-color: #31518b !important; " +
             "} " +
             
-            // 💎 EDGE-TO-EDGE: HEADER COM PADDING PARA STATUS BAR
+            // 💎 EDGE-TO-EDGE: HEADER COM PADDING PARA STATUS BAR - REMOVIDO PARA NÃO QUEBRAR LAYOUT REACT
+            /*
             "header, .header, .app-bar, div[class*='Header'], div[class*='AppBar'], " +
             ".login-header, .auth-header, .top-bar, .navbar-top { " +
             "   padding-top: env(safe-area-inset-top, 48px) !important; " +
@@ -1277,8 +1278,10 @@ public class MainActivity extends Activity {
             "   position: relative !important; " +
             "   z-index: 1000 !important; " +
             "} " +
+            */
             
-            // 🎨 CONTEÚDO PRINCIPAL COM SAFE AREAS
+            // 🎨 CONTEÚDO PRINCIPAL COM SAFE AREAS - REMOVIDO PARA NÃO QUEBRAR LAYOUT REACT
+            /*
             "main, .main, .content, div[class*='Content'], div[class*='Body'], " +
             "div[class*='container'], div[class*='wrapper'], #root, .app { " +
             "   background-color: #31518b !important; " +
@@ -1287,6 +1290,7 @@ public class MainActivity extends Activity {
             "   padding-right: env(safe-area-inset-right, 0px) !important; " +
             "   padding-bottom: env(safe-area-inset-bottom, 85px) !important; " +
             "} " +
+            */
             
             // 🔥 ELIMINAR QUALQUER FUNDO BRANCO RESIDUAL
             "* { " +

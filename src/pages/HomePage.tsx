@@ -5,7 +5,7 @@ import { Mic, Camera, PieChart, Bell, Sparkles, Check, ArrowRight, Shield, Zap, 
 
 const HomePage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#31518b] via-[#1e3a5f] to-[#0f172a] text-white overflow-x-hidden font-sans selection:bg-blue-500/30">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-[#31518b] via-[#1e3a5f] to-[#0f172a] text-white overflow-x-hidden font-sans selection:bg-blue-500/30">
       
       {/* ========== BACKGROUND EFFECTS ========== */}
       <div className="fixed inset-0 z-0 pointer-events-none">

@@ -248,7 +248,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('manual_logout');
       
       // 🔧 CORREÇÃO: Importação dinâmica para evitar tela azul no APK
-      const { signInWithGoogle: hybridGoogleSignIn } = await import('@/utils/googleAuth');
+      let hybridGoogleSignIn;
+      try {
+        const module = await import('@/utils/googleAuth');
+        hybridGoogleSignIn = module.signInWithGoogle;
+      } catch (importError: any) {
+        console.error('[AUTH] Falha ao carregar módulo GoogleAuth:', importError);
+        // Se for erro de chunk (versão antiga em cache), recarrega a página
+        if (importError.message?.includes('failed to fetch dynamically imported module') || 
+            importError.message?.includes('Importing a module script failed')) {
+          console.log('[AUTH] Erro de chunk detectado. Recarregando página para atualizar cache...');
+          window.location.reload();
+          return;
+        }
+        throw importError;
+      }
       
       // Usar implementação híbrida (web + mobile)
       await hybridGoogleSignIn();

@@ -95,7 +95,7 @@ const HomePage: React.FC = () => {
               </div>
 
               {/* Card 2: Lembretes (Destaque) */}
-              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 text-left shadow-2xl transform scale-105 z-10">
+              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 text-left shadow-2xl relative transform hover:-translate-y-2 transition-transform duration-300">
                 <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">
                   NOVO
                 </div>

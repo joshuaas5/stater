@@ -1313,30 +1313,36 @@ public class MainActivity extends Activity {
             "   filter: drop-shadow(0 4px 12px rgba(255,255,255,0.1)) !important; " +
             "} " +
             
-            // 🚫 ANTI-FAIXA BRANCA ESPECÍFICA - PÁGINAS PROBLEMÁTICAS
+            // 🚫 ANTI-FAIXA BRANCA - DESATIVADO PARA NÃO QUEBRAR LAYOUT REACT
+            /*
             ".login-page, .dashboard-page, [class*='login'], [class*='dashboard'], " +
             "[class*='financial'], [class*='analise'], [class*='settings'], [class*='config'], " +
             ".page-wrapper, .container-fluid, .MuiContainer-root, .page-content { " +
             "   background: var(--stater-blue) !important; " +
-            "   margin-top: -25px !important; " + // PUXAR MAIS PARA CIMA
+            "   margin-top: -25px !important; " +
             "   padding-top: 0 !important; " +
             "   border-top: none !important; " +
             "   position: relative !important; " +
-            "   top: -10px !important; " + // POSIÇÃO NEGATIVA PARA SUBIR
+            "   top: -10px !important; " +
             "} " +
+            */
             
-            // 🔥 OVERRIDE RADICAL PARA ELIMINAR QUALQUER BRANCO
+            // 🔥 OVERRIDE RADICAL - DESATIVADO
+            /*
             ".MuiPaper-root, .paper, .card, .panel, .section { " +
             "   background: transparent !important; " +
             "   margin-top: -10px !important; " +
             "} " +
+            */
             
-            // 💀 MORTE À FAIXA BRANCA - CSS ASSASSINO
+            // 💀 MORTE À FAIXA BRANCA - DESATIVADO
+            /*
             "body > *, #root > *, .app > * { " +
             "   margin-top: 0 !important; " +
             "   padding-top: 0 !important; " +
             "   border-top: none !important; " +
             "} " +
+            */
             
             // 📱 HEADER LOGIN - ESPAÇAMENTO OTIMIZADO PARA EDGE-TO-EDGE
             ".login-header, [class*='login'] header, .auth-header, .page-header { " +

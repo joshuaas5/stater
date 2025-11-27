@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { saveUser, getCurrentUser } from '@/utils/localStorage';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -222,55 +221,57 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           }}
         >
           <div className="space-y-3">
-            <label 
-              htmlFor="terms"
-              className="flex items-start space-x-3 p-4 rounded-lg cursor-pointer active:scale-[0.98] transition-all"
+            <div 
+              onClick={() => setTermsAccepted(!termsAccepted)}
+              className="flex items-start space-x-4 p-4 rounded-lg cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all"
               style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                border: '2px solid rgba(255, 255, 255, 0.4)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                background: termsAccepted ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                border: termsAccepted ? '2px solid #22c55e' : '2px solid rgba(255, 255, 255, 0.3)',
               }}
             >
-              <Checkbox 
-                id="terms" 
-                checked={termsAccepted}
-                onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-                className="mt-0.5 h-6 w-6 flex-shrink-0 border-2"
-                style={{ 
-                  borderColor: '#ffffff',
-                  backgroundColor: termsAccepted ? '#22c55e' : 'rgba(255,255,255,0.2)',
-                  borderRadius: '4px'
+              <div 
+                className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center mt-0.5"
+                style={{
+                  backgroundColor: termsAccepted ? '#22c55e' : 'transparent',
+                  border: termsAccepted ? '2px solid #22c55e' : '2px solid #ffffff',
                 }}
-              />
-              <span className="text-base font-semibold leading-6 text-white select-none">
+              >
+                {termsAccepted && (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-base font-medium leading-6 text-white select-none">
                 Li e aceito os Termos de Uso e Política de Privacidade do Stater
               </span>
-            </label>
+            </div>
 
-            <label 
-              htmlFor="data"
-              className="flex items-start space-x-3 p-4 rounded-lg cursor-pointer active:scale-[0.98] transition-all"
+            <div 
+              onClick={() => setDataProcessingAccepted(!dataProcessingAccepted)}
+              className="flex items-start space-x-4 p-4 rounded-lg cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all"
               style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                border: '2px solid rgba(255, 255, 255, 0.4)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                background: dataProcessingAccepted ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                border: dataProcessingAccepted ? '2px solid #22c55e' : '2px solid rgba(255, 255, 255, 0.3)',
               }}
             >
-              <Checkbox 
-                id="data" 
-                checked={dataProcessingAccepted}
-                onCheckedChange={(checked) => setDataProcessingAccepted(checked === true)}
-                className="mt-0.5 h-6 w-6 flex-shrink-0 border-2"
-                style={{ 
-                  borderColor: '#ffffff',
-                  backgroundColor: dataProcessingAccepted ? '#22c55e' : 'rgba(255,255,255,0.2)',
-                  borderRadius: '4px'
+              <div 
+                className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center mt-0.5"
+                style={{
+                  backgroundColor: dataProcessingAccepted ? '#22c55e' : 'transparent',
+                  border: dataProcessingAccepted ? '2px solid #22c55e' : '2px solid #ffffff',
                 }}
-              />
-              <span className="text-base font-semibold leading-6 text-white select-none">
+              >
+                {dataProcessingAccepted && (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-base font-medium leading-6 text-white select-none">
                 Autorizo o tratamento dos meus dados pessoais conforme descrito acima (LGPD)
               </span>
-            </label>
+            </div>
           </div>
 
           <div 

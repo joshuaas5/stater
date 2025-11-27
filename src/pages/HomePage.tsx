@@ -64,10 +64,10 @@ const HomePage: React.FC = () => {
     }
   };
   return (
-    <div className="homepage-container stable-height relative overflow-y-auto bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
-      {/* Partículas flutuantes - reduzidas e otimizadas */}
-      <div className="absolute inset-0 overflow-hidden stable-particles pointer-events-none">
-        {Array.from({ length: 20 }).map((_, i) => (
+    <div className="homepage-container stable-height relative overflow-y-auto overflow-x-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
+      {/* Partículas flutuantes - desabilitadas em mobile para performance */}
+      <div className="absolute inset-0 overflow-hidden stable-particles pointer-events-none hidden md:block">
+        {Array.from({ length: 15 }).map((_, i) => (
           <div
             key={i}
             className="absolute w-1 h-1 bg-white/15 rounded-full no-flicker"
@@ -80,23 +80,23 @@ const HomePage: React.FC = () => {
         ))}
       </div>
       
-      {/* Background Effects - otimizados */}
+      {/* Background Effects - otimizados e menores em mobile */}
       <div className="absolute inset-0 bg-black/10 no-flicker" />
-      <div className="absolute top-10 left-10 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl stable-blur" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl stable-blur" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/8 rounded-full blur-3xl stable-blur" />
+      <div className="absolute top-10 left-10 w-48 md:w-96 h-48 md:h-96 bg-blue-500/15 rounded-full blur-3xl stable-blur" />
+      <div className="absolute bottom-10 right-10 w-40 md:w-80 h-40 md:h-80 bg-blue-600/10 rounded-full blur-3xl stable-blur" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 md:w-64 h-32 md:h-64 bg-indigo-500/8 rounded-full blur-3xl stable-blur" />
       
       {/* Header */}
-      <header className="relative z-10 w-full py-6 px-4 no-flicker">
+      <header className="relative z-10 w-full py-3 md:py-6 px-3 md:px-4 no-flicker">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link to="/" className="flex items-center space-x-3 desktop-hover smooth-transition mobile-no-hover">
+          <Link to="/" className="flex items-center space-x-2 md:space-x-3 desktop-hover smooth-transition mobile-no-hover">
             <img 
               src="/stater-logo-192.png" 
               alt="Stater Logo" 
-              className="h-12 w-12 object-contain stable-logo"
+              className="h-8 w-8 md:h-12 md:w-12 object-contain stable-logo"
             />
             <h1 
-              className="text-2xl font-bold text-white stable-text-shadow"
+              className="text-lg md:text-2xl font-bold text-white stable-text-shadow"
               style={{
                 fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
                 textShadow: 'rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px',
@@ -105,16 +105,16 @@ const HomePage: React.FC = () => {
               STATER
             </h1>
           </Link>
-          <div className="flex space-x-4">
+          <div className="flex space-x-2 md:space-x-4">
             <Link to="/register">
-              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg mobile-no-hover desktop-hover-shadow smooth-transition">
+              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg mobile-no-hover desktop-hover-shadow smooth-transition text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2">
                 Cadastrar
               </Button>
             </Link>
             <Link to="/login">
               <Button 
                 variant="outline" 
-                className="bg-white/5 border-white/20 text-white backdrop-blur-sm mobile-no-hover desktop-hover smooth-transition"
+                className="bg-white/5 border-white/20 text-white backdrop-blur-sm mobile-no-hover desktop-hover smooth-transition text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2"
               >
                 Entrar
               </Button>
@@ -125,89 +125,89 @@ const HomePage: React.FC = () => {
 
       {/* Hero Section */}
       <main className="relative z-10 w-full no-flicker">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="text-center mb-20">
+        <div className="max-w-7xl mx-auto px-3 md:px-4 py-6 md:py-12">
+          <div className="text-center mb-10 md:mb-20">
             {/* Logo Principal - optimizado */}
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-4 md:mb-8">
               <div className="relative no-flicker">
                 <img 
                   src="/stater-logo-512.png" 
                   alt="Stater - Assistente Financeiro IA" 
-                  className="h-32 w-32 md:h-40 md:w-40 object-contain stable-logo"
+                  className="h-20 w-20 md:h-40 md:w-40 object-contain stable-logo"
                 />
                 {/* Glow effect - simplificado */}
-                <div className="absolute inset-0 h-32 w-32 md:h-40 md:w-40 bg-blue-500/20 rounded-full blur-2xl stable-blur"></div>
+                <div className="absolute inset-0 h-20 w-20 md:h-40 md:w-40 bg-blue-500/20 rounded-full blur-2xl stable-blur"></div>
               </div>
             </div>
             
             {/* Título com fonte especial - otimizado */}
-            <div className="mb-8">
+            <div className="mb-4 md:mb-8">
               <h1 
-                className="text-5xl md:text-7xl font-bold text-white mb-4 uppercase tracking-wide stable-text-shadow no-flicker"
+                className="text-3xl md:text-7xl font-bold text-white mb-2 md:mb-4 uppercase tracking-wide stable-text-shadow no-flicker"
                 style={{
                   fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
                   letterSpacing: '2px',
-                  textShadow: 'rgb(59, 130, 246) 3px 3px 0px, rgb(29, 78, 216) 6px 6px 0px',
+                  textShadow: 'rgb(59, 130, 246) 2px 2px 0px, rgb(29, 78, 216) 4px 4px 0px',
                 }}
               >
                 STATER
               </h1>
-              <p className="text-blue-200 text-xl md:text-2xl font-medium mb-2 no-flicker">
+              <p className="text-blue-200 text-base md:text-2xl font-medium mb-2 no-flicker">
                 Assistente Financeiro Inteligente
               </p>
             </div>
             
             <div>
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-8 leading-tight">
+              <h2 className="text-xl md:text-5xl font-bold text-white mb-4 md:mb-8 leading-tight">
                 Você gasta horas por semana
-                <span className="text-blue-300 block mt-2">organizando finanças?</span>
+                <span className="text-blue-300 block mt-1 md:mt-2">organizando finanças?</span>
               </h2>
-              <p className="text-xl text-blue-100 mb-6 max-w-4xl mx-auto leading-relaxed">
+              <p className="text-sm md:text-xl text-blue-100 mb-4 md:mb-6 max-w-4xl mx-auto leading-relaxed px-2">
                 Imagine se você pudesse simplesmente enviar uma <strong>foto de uma nota fiscal</strong> ou gravar um 
                 <strong> áudio dizendo quanto gastou no mercado</strong> e tudo fosse organizado automaticamente.
               </p>
-              <p className="text-lg text-blue-200 mb-8 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-xs md:text-lg text-blue-200 mb-4 md:mb-8 max-w-3xl mx-auto leading-relaxed px-2">
                 O Stater usa <strong>inteligência artificial</strong> para transformar suas informações em 
                 <strong> relatórios completos</strong>, gráficos interativos e insights que ajudam você a 
                 <strong> acompanhar e controlar suas finanças</strong> de forma inteligente.
               </p>
               
               {/* Principais funcionalidades - otimizadas */}
-              <div className="grid md:grid-cols-2 gap-6 mb-10 max-w-4xl mx-auto">
-                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10 no-flicker">
-                  <h3 className="text-lg font-bold text-white mb-3">🎙️ Comando de Voz</h3>
-                  <p className="text-blue-100 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 mb-6 md:mb-10 max-w-4xl mx-auto">
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 text-left border border-white/10 no-flicker">
+                  <h3 className="text-sm md:text-lg font-bold text-white mb-2 md:mb-3">🎙️ Comando de Voz</h3>
+                  <p className="text-blue-100 text-xs md:text-sm">
                     Fale naturalmente: <strong>"Gastei 200 reais abastecendo o carro"</strong> - nossa IA 
                     ouve, identifica a categoria e organiza automaticamente.
                   </p>
                 </div>
-                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10 no-flicker">
-                  <h3 className="text-lg font-bold text-white mb-3">📄 Leitura Inteligente</h3>
-                  <p className="text-blue-100 text-sm">
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 text-left border border-white/10 no-flicker">
+                  <h3 className="text-sm md:text-lg font-bold text-white mb-2 md:mb-3">📄 Leitura Inteligente</h3>
+                  <p className="text-blue-100 text-xs md:text-sm">
                     Fotografe qualquer <strong>nota fiscal</strong>, <strong>extrato</strong> ou 
                     <strong> comprovante</strong>. A IA digitaliza e organiza tudo em segundos.
                   </p>
                 </div>
               </div>
               
-              <p className="text-2xl text-blue-200 font-bold mb-10 no-flicker">
+              <p className="text-lg md:text-2xl text-blue-200 font-bold mb-6 md:mb-10 no-flicker">
                 Inteligência financeira ao seu alcance.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                <Link to="/register">
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-6 justify-center px-4">
+                <Link to="/register" className="w-full sm:w-auto">
                   <Button 
                     size="lg" 
-                    className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-10 py-4 text-lg shadow-2xl mobile-no-hover desktop-hover-scale desktop-hover-shadow smooth-transition"
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 md:px-10 py-3 md:py-4 text-sm md:text-lg shadow-2xl mobile-no-hover desktop-hover-scale desktop-hover-shadow smooth-transition"
                   >
                     🚀 Começar Agora - É Grátis
                   </Button>
                 </Link>
-                <Link to="/login">
+                <Link to="/login" className="w-full sm:w-auto">
                   <Button 
                     size="lg" 
                     variant="outline" 
-                    className="bg-white/5 border-white/20 text-white backdrop-blur-sm px-10 py-4 text-lg shadow-lg mobile-no-hover desktop-hover-scale desktop-hover-shadow smooth-transition"
+                    className="w-full sm:w-auto bg-white/5 border-white/20 text-white backdrop-blur-sm px-6 md:px-10 py-3 md:py-4 text-sm md:text-lg shadow-lg mobile-no-hover desktop-hover-scale desktop-hover-shadow smooth-transition"
                   >
                     Já tenho uma conta
                   </Button>
@@ -216,69 +216,69 @@ const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Prova Social - otimizada */}
-          <div className="mb-20">
-            <div className="bg-white/10 rounded-3xl shadow-2xl border border-white/20 p-12 stable-backdrop no-flicker">
-              <h3 className="text-3xl md:text-4xl font-bold text-white mb-8 text-center stable-text-shadow">
+          {/* Prova Social - otimizada para mobile */}
+          <div className="mb-10 md:mb-20">
+            <div className="bg-white/10 rounded-2xl md:rounded-3xl shadow-2xl border border-white/20 p-4 md:p-12 stable-backdrop no-flicker">
+              <h3 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-8 text-center stable-text-shadow">
                 Transforme sua relação com o dinheiro
               </h3>
-              <div className="grid md:grid-cols-2 gap-12">
-                <div className="space-y-6">
-                  <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500/20 to-red-600/30 rounded-2xl border border-red-400/30 mb-4 stable-backdrop no-flicker">
-                      <div className="w-12 h-12 bg-red-500/40 rounded-lg flex items-center justify-center">
-                        <div className="w-6 h-6 border-2 border-red-300 rounded-full border-dashed animate-spin"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
+                <div className="space-y-4 md:space-y-6">
+                  <div className="text-center mb-3 md:mb-6">
+                    <div className="inline-flex items-center justify-center w-14 h-14 md:w-20 md:h-20 bg-gradient-to-br from-red-500/20 to-red-600/30 rounded-xl md:rounded-2xl border border-red-400/30 mb-2 md:mb-4 stable-backdrop no-flicker">
+                      <div className="w-8 h-8 md:w-12 md:h-12 bg-red-500/40 rounded-lg flex items-center justify-center">
+                        <div className="w-4 h-4 md:w-6 md:h-6 border-2 border-red-300 rounded-full border-dashed animate-spin"></div>
                       </div>
                     </div>
-                    <h4 className="text-xl font-bold text-red-300 stable-text-shadow">Situação Atual</h4>
+                    <h4 className="text-base md:text-xl font-bold text-red-300 stable-text-shadow">Situação Atual</h4>
                   </div>
-                  <div className="space-y-4">
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 stable-backdrop no-flicker">
-                      <p className="text-red-100 text-center leading-relaxed">
+                  <div className="space-y-2 md:space-y-4">
+                    <div className="bg-red-900/10 border border-red-400/20 rounded-xl md:rounded-2xl p-3 md:p-6 stable-backdrop no-flicker">
+                      <p className="text-red-100 text-center leading-relaxed text-xs md:text-base">
                         <strong>"Eu esquecia de anotar os gastos"</strong><br/>
-                        <span className="text-red-200 text-sm">No final do mês não sabia onde tinha gasto meu dinheiro</span>
+                        <span className="text-red-200 text-[10px] md:text-sm">No final do mês não sabia onde tinha gasto meu dinheiro</span>
                       </p>
                     </div>
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 stable-backdrop no-flicker">
-                      <p className="text-red-100 text-center leading-relaxed">
+                    <div className="bg-red-900/10 border border-red-400/20 rounded-xl md:rounded-2xl p-3 md:p-6 stable-backdrop no-flicker">
+                      <p className="text-red-100 text-center leading-relaxed text-xs md:text-base">
                         <strong>"Horas organizando planilhas"</strong><br/>
-                        <span className="text-red-200 text-sm">Tempo perdido que poderia estar aproveitando a vida</span>
+                        <span className="text-red-200 text-[10px] md:text-sm">Tempo perdido que poderia estar aproveitando a vida</span>
                       </p>
                     </div>
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-2xl p-6 stable-backdrop no-flicker">
-                      <p className="text-red-100 text-center leading-relaxed">
+                    <div className="bg-red-900/10 border border-red-400/20 rounded-xl md:rounded-2xl p-3 md:p-6 stable-backdrop no-flicker">
+                      <p className="text-red-100 text-center leading-relaxed text-xs md:text-base">
                         <strong>"Descobria os gastos excessivos tarde demais"</strong><br/>
-                        <span className="text-red-200 text-sm">Dinheiro que já tinha ido embora</span>
+                        <span className="text-red-200 text-[10px] md:text-sm">Dinheiro que já tinha ido embora</span>
                       </p>
                     </div>
                   </div>
                 </div>
-                <div className="space-y-6">
-                  <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500/20 to-emerald-600/30 rounded-2xl border border-green-400/30 mb-4 backdrop-blur-sm">
-                      <div className="w-12 h-12 bg-green-500/40 rounded-lg flex items-center justify-center">
-                        <div className="w-6 h-6 bg-green-400 rounded-full shadow-lg shadow-green-400/50"></div>
+                <div className="space-y-4 md:space-y-6">
+                  <div className="text-center mb-3 md:mb-6">
+                    <div className="inline-flex items-center justify-center w-14 h-14 md:w-20 md:h-20 bg-gradient-to-br from-green-500/20 to-emerald-600/30 rounded-xl md:rounded-2xl border border-green-400/30 mb-2 md:mb-4 backdrop-blur-sm">
+                      <div className="w-8 h-8 md:w-12 md:h-12 bg-green-500/40 rounded-lg flex items-center justify-center">
+                        <div className="w-4 h-4 md:w-6 md:h-6 bg-green-400 rounded-full shadow-lg shadow-green-400/50"></div>
                       </div>
                     </div>
-                    <h4 className="text-xl font-bold text-green-300">Com o Stater</h4>
+                    <h4 className="text-base md:text-xl font-bold text-green-300">Com o Stater</h4>
                   </div>
-                  <div className="space-y-4">
-                    <div className="bg-green-900/10 border border-green-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-green-100 text-center leading-relaxed">
+                  <div className="space-y-2 md:space-y-4">
+                    <div className="bg-green-900/10 border border-green-400/20 rounded-xl md:rounded-2xl p-3 md:p-6 backdrop-blur-sm">
+                      <p className="text-green-100 text-center leading-relaxed text-xs md:text-base">
                         <strong>"Falo no celular e pronto"</strong><br/>
-                        <span className="text-green-200 text-sm">Tudo organizado automaticamente, sem esforço</span>
+                        <span className="text-green-200 text-[10px] md:text-sm">Tudo organizado automaticamente, sem esforço</span>
                       </p>
                     </div>
-                    <div className="bg-green-900/10 border border-green-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-green-100 text-center leading-relaxed">
+                    <div className="bg-green-900/10 border border-green-400/20 rounded-xl md:rounded-2xl p-3 md:p-6 backdrop-blur-sm">
+                      <p className="text-green-100 text-center leading-relaxed text-xs md:text-base">
                         <strong>"Economizo horas toda semana"</strong><br/>
-                        <span className="text-green-200 text-sm">Tempo que agora uso para o que realmente importa</span>
+                        <span className="text-green-200 text-[10px] md:text-sm">Tempo que agora uso para o que realmente importa</span>
                       </p>
                     </div>
-                    <div className="bg-green-900/10 border border-green-400/20 rounded-2xl p-6 backdrop-blur-sm">
-                      <p className="text-green-100 text-center leading-relaxed">
+                    <div className="bg-green-900/10 border border-green-400/20 rounded-xl md:rounded-2xl p-3 md:p-6 backdrop-blur-sm">
+                      <p className="text-green-100 text-center leading-relaxed text-xs md:text-base">
                         <strong>"Alertas em tempo real me salvaram R$ 500"</strong><br/>
-                        <span className="text-green-200 text-sm">Controle inteligente que protege meu dinheiro</span>
+                        <span className="text-green-200 text-[10px] md:text-sm">Controle inteligente que protege meu dinheiro</span>
                       </p>
                     </div>
                   </div>
@@ -288,31 +288,31 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Como funciona */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl p-8 mb-20">
-            <h3 className="text-2xl font-bold text-white mb-6 text-center">
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl md:rounded-3xl border border-white/20 shadow-2xl p-4 md:p-8 mb-10 md:mb-20">
+            <h3 className="text-lg md:text-2xl font-bold text-white mb-4 md:mb-6 text-center">
               Como usar o Stater
             </h3>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="flex items-start space-x-4">
-                <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center border border-blue-400/30">
-                  <MessageCircle className="h-8 w-8 text-blue-300" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+              <div className="flex items-start space-x-3 md:space-x-4">
+                <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-12 h-12 md:w-16 md:h-16 flex items-center justify-center border border-blue-400/30 flex-shrink-0">
+                  <MessageCircle className="h-6 w-6 md:h-8 md:w-8 text-blue-300" />
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold text-white mb-3">Telegram</h4>
-                  <p className="text-blue-100 leading-relaxed">
+                  <h4 className="text-base md:text-xl font-bold text-white mb-1 md:mb-3">Telegram</h4>
+                  <p className="text-blue-100 leading-relaxed text-xs md:text-base">
                     Use o <strong>Telegram agora mesmo</strong> para enviar mensagens ou áudios. 
                     Funciona como conversar com um amigo.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start space-x-4">
-                <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-16 h-16 flex items-center justify-center border border-blue-400/30">
-                  <Smartphone className="h-8 w-8 text-blue-300" />
+              <div className="flex items-start space-x-3 md:space-x-4">
+                <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-12 h-12 md:w-16 md:h-16 flex items-center justify-center border border-blue-400/30 flex-shrink-0">
+                  <Smartphone className="h-6 w-6 md:h-8 md:w-8 text-blue-300" />
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold text-white mb-3">App Completo</h4>
-                  <p className="text-blue-100 leading-relaxed">
+                  <h4 className="text-base md:text-xl font-bold text-white mb-1 md:mb-3">App Completo</h4>
+                  <p className="text-blue-100 leading-relaxed text-xs md:text-base">
                     Relatórios completos, gráficos interativos e insights poderosos. 
                     <strong>Tudo sincronizado</strong> em tempo real.
                   </p>
@@ -322,19 +322,19 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Seção de Privacidade */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl p-8 mb-20 text-center">
-            <div className="flex justify-center mb-6">
-              <div className="bg-green-500/20 backdrop-blur-sm rounded-full w-20 h-20 flex items-center justify-center border border-green-400/30">
-                <Shield className="h-10 w-10 text-green-300" />
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl md:rounded-3xl border border-white/20 shadow-2xl p-4 md:p-8 mb-10 md:mb-20 text-center">
+            <div className="flex justify-center mb-4 md:mb-6">
+              <div className="bg-green-500/20 backdrop-blur-sm rounded-full w-14 h-14 md:w-20 md:h-20 flex items-center justify-center border border-green-400/30">
+                <Shield className="h-7 w-7 md:h-10 md:w-10 text-green-300" />
               </div>
             </div>
-            <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h3 className="text-xl md:text-4xl font-bold text-white mb-3 md:mb-4">
               Sua Privacidade é Nossa Prioridade
             </h3>
-            <p className="text-blue-100 text-lg mb-6 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-blue-100 text-sm md:text-lg mb-4 md:mb-6 max-w-3xl mx-auto leading-relaxed px-2">
               No Stater, a segurança dos seus dados é fundamental. Seus dados são seus! Nunca iremos pedir para conectar sua conta bancária, pois priorizamos sua segurança.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 text-green-300">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-8 text-green-300 text-sm md:text-base">
               <div className="flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-database-zap"><path d="M4 6c0-1.66 4-3 8-3s8 1.34 8 3"/><path d="M4 6v6c0 1.66 4 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 4 3 8 3s8-1.34 8-3v-6"/><path d="m19 15-3 6h5l-3 6"/></svg>
                 <span>Seus Dados, Suas Regras</span>
@@ -347,57 +347,61 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Call to Action Final */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-12 text-center">
-            <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl md:rounded-3xl shadow-2xl border border-white/20 p-6 md:p-12 text-center">
+            <h3 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6">
               Comece usando agora
             </h3>
-            <p className="text-blue-100 text-lg mb-6 max-w-3xl mx-auto">
+            <p className="text-blue-100 text-sm md:text-lg mb-4 md:mb-6 max-w-3xl mx-auto px-2">
               Transforme sua vida financeira em poucos minutos. O Stater está disponível 
               agora e <strong>oferece recursos que vão mudar sua vida</strong>.
             </p>
-            <p className="text-blue-200 text-xl font-bold mb-8 max-w-2xl mx-auto">
+            <p className="text-blue-200 text-base md:text-xl font-bold mb-6 md:mb-8 max-w-2xl mx-auto">
               Transforme sua relação com o dinheiro usando inteligência artificial.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/register">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4">
+              <Link to="/register" className="w-full sm:w-auto">
                 <Button 
                   size="lg" 
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-12 py-4 text-lg shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
+                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 md:px-12 py-3 md:py-4 text-sm md:text-lg shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
                 >
                   Começar agora
                 </Button>
               </Link>
-              <Link to="/login">
+              <Link to="/login" className="w-full sm:w-auto">
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="bg-white/5 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm px-12 py-4 text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  className="w-full sm:w-auto bg-white/5 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm px-8 md:px-12 py-3 md:py-4 text-sm md:text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                 >
                   Já tenho conta
                 </Button>
               </Link>
             </div>
 
-            <div className="mt-8 text-blue-300 text-sm">
-              ✅ Recursos gratuitos &nbsp;&nbsp; ✅ Instalação simples &nbsp;&nbsp; ✅ Dados seguros
+            <div className="mt-6 md:mt-8 text-blue-300 text-xs md:text-sm flex flex-col sm:flex-row justify-center gap-2 sm:gap-0">
+              <span>✅ Recursos gratuitos</span>
+              <span className="hidden sm:inline">&nbsp;&nbsp;</span>
+              <span>✅ Instalação simples</span>
+              <span className="hidden sm:inline">&nbsp;&nbsp;</span>
+              <span>✅ Dados seguros</span>
             </div>
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 w-full py-12 px-4 border-t border-white/10 bg-black/20">
+      <footer className="relative z-10 w-full py-8 md:py-12 px-4 border-t border-white/10 bg-black/20">
         <div className="max-w-4xl mx-auto text-center">
           {/* Logo e Nome */}
-          <div className="flex items-center justify-center space-x-3 mb-8">
+          <div className="flex items-center justify-center space-x-2 md:space-x-3 mb-6 md:mb-8">
             <img 
               src="/stater-logo-192.png" 
               alt="Stater Logo" 
-              className="h-12 w-12 object-contain drop-shadow-lg"
+              className="h-8 w-8 md:h-12 md:w-12 object-contain drop-shadow-lg"
             />
             <span 
-              className="text-2xl font-bold text-white"
+              className="text-lg md:text-2xl font-bold text-white"
               style={{
                 fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
                 textShadow: 'rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
@@ -409,32 +413,32 @@ const HomePage: React.FC = () => {
           </div>
           
           {/* Links de navegação */}
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 mb-8">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-8 mb-6 md:mb-8">
             <Link 
               to="/terms" 
-              className="text-blue-300 hover:text-blue-200 transition-colors text-sm font-medium"
+              className="text-blue-300 hover:text-blue-200 transition-colors text-xs md:text-sm font-medium"
             >
               Termos de Uso
             </Link>
             <Link 
               to="/privacy" 
-              className="text-blue-300 hover:text-blue-200 transition-colors text-sm font-medium"
+              className="text-blue-300 hover:text-blue-200 transition-colors text-xs md:text-sm font-medium"
             >
               Política de Privacidade
             </Link>
             <a 
               href="mailto:staterbills@gmail.com?subject=Suporte%20Stater&body=Olá,%20preciso%20de%20ajuda%20com..." 
-              className="text-blue-300 hover:text-blue-200 transition-colors text-sm font-medium"
+              className="text-blue-300 hover:text-blue-200 transition-colors text-xs md:text-sm font-medium"
             >
               Suporte
             </a>
           </div>
 
           {/* Informações finais */}
-          <div className="text-white/80 space-y-2">
-            <p className="text-sm">Stater - Todos os Direitos Reservados</p>
-            <p className="text-xs">2025</p>
-            <p className="text-xs text-blue-200 font-medium">
+          <div className="text-white/80 space-y-1 md:space-y-2">
+            <p className="text-xs md:text-sm">Stater - Todos os Direitos Reservados</p>
+            <p className="text-[10px] md:text-xs">2025</p>
+            <p className="text-[10px] md:text-xs text-blue-200 font-medium">
               Inteligência para prosperar
             </p>
           </div>

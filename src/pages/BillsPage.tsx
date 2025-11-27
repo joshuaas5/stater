@@ -1,18 +1,13 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import { AdBanner } from '@/components/monetization/AdBanner';
 import { Bill, CardItem, EXPENSE_CATEGORIES, PlanType } from '@/types';
 import { getBills, isLoggedIn, markBillAsPaid, saveBill, updateBill, deleteBill } from '@/utils/localStorage';
 import { formatCurrency, getOverdueBills, getBillsDueInNextDays } from '@/utils/dataProcessing';
 import { useToast } from '@/hooks/use-toast';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { AdManager } from '@/utils/adManager';
-import { AdCooldownManager } from '@/utils/adCooldownManager';
-import { AdModal, useAdModal } from '@/components/ui/AdModal';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
-import { AdCooldownStatus } from '@/components/monetization/AdCooldownStatus';
-import ContextualAdModal from '@/components/monetization/ContextualAdModal';
 import { 
   CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
   Edit, MoreVertical, Trash, Calendar
@@ -90,8 +85,6 @@ const BillsPage: React.FC = () => {
   // Estados de monetização
   const [userId, setUserId] = useState<string | null>(null);
   const [userPlan, setUserPlan] = useState<any>(null);
-  const [showContextualAd, setShowContextualAd] = useState<{ show: boolean; action: 'bills' | 'transactions' }>({ show: false, action: 'bills' });
-  const { isOpen: adModalOpen, adType, showAd, closeAd } = useAdModal();
   const { isOpen: paywallOpen, trigger: paywallTrigger, openPaywall, closePaywall } = usePaywallModal();
   
   const navigate = useNavigate();
@@ -294,25 +287,6 @@ const BillsPage: React.FC = () => {
       isPaid: false,
     });
     setShowEditBillModal(true); // Alterado de setShowAddBillModal para setShowEditBillModal
-  };
-
-  // Handlers para monetização
-  const handleAdReward = async (success: boolean, reward?: string) => {
-    if (success) {
-      toast({
-        title: '🎉 Anúncio assistido!',
-        description: reward || 'Continue adicionando suas contas',
-      });
-      
-      // Navegar para a página de adicionar conta após o anúncio
-      navigate('/add-bill');
-    } else {
-      toast({
-        title: 'Anúncio não concluído',
-        description: 'Assista até o fim para continuar sem limites',
-        variant: 'destructive'
-      });
-    }
   };
 
   const handleUpgrade = async (planType: PlanType) => {
@@ -898,15 +872,6 @@ const BillsPage: React.FC = () => {
         </Dialog>
       )}
 
-      {/* Modal de Anúncio */}
-      <AdModal
-        isOpen={adModalOpen}
-        onClose={closeAd}
-        onReward={handleAdReward}
-        type={adType}
-        userId={userId || ''}
-      />
-
       {/* Modal de Paywall */}
       <PaywallModal
         isOpen={paywallOpen}
@@ -915,31 +880,6 @@ const BillsPage: React.FC = () => {
         trigger={paywallTrigger}
         userId={userId || ''}
       />
-
-      {/* Modal de Anúncio Contextual - TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES */}
-      {false && (
-      <ContextualAdModal
-        isOpen={showContextualAd.show}
-        onClose={() => setShowContextualAd({ show: false, action: 'bills' })}
-        onWatchAd={async () => {
-          try {
-            if (!userId) return;
-            await AdCooldownManager.watchAdForActions(userId, 'bills');
-            setShowContextualAd({ show: false, action: 'bills' });
-            // Tentar adicionar conta novamente
-            handleAddBill();
-          } catch (error) {
-            console.error('Erro ao assistir anúncio:', error);
-          }
-        }}
-        action={showContextualAd.action}
-        actionsWillGrant={3}
-        cooldownMinutes={30}
-      />
-      )}
-
-      {/* Banner de Publicidade - TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES */}
-      <AdBanner position="bottom" />
       
       {/* O NavBar foi movido para o PersistentLayout.tsx */}
     </div>

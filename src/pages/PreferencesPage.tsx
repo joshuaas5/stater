@@ -5,7 +5,8 @@ import { isLoggedIn, getUserPreferences, saveUserPreferences, saveSupabaseUserPr
 import { clearAllNotifications } from '@/utils/clearAllNotifications';
 import { 
   Sun, Moon, Bell, Languages, DollarSign, 
-  Calendar, Paintbrush, Save, UserCircle2, Trash2, MessageCircle, Crown, XCircle, Mail, Loader2
+  Calendar, Paintbrush, Save, UserCircle2, Trash2, MessageCircle, Crown, XCircle, Mail, Loader2,
+  BellRing, Smartphone
 } from 'lucide-react';
 import { CURRENCIES, suggestCurrencyByCountry } from '@/utils/currencies';
 import { getCurrentUser } from '@/utils/localStorage';
@@ -19,6 +20,12 @@ import { useTranslation } from '@/hooks/use-translation';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { PlanType } from '@/types';
+import { 
+  requestNotificationPermission, 
+  getNotificationPermissionStatus,
+  isPushSupported,
+  rescheduleAllBillNotifications 
+} from '@/utils/pushNotifications';
 
 const PreferencesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -269,9 +276,72 @@ Obrigado!`);
           </h2>
           
           <div className="space-y-4">
-            {/* Switch simples para permitir notificações */}
+            {/* Switch para permitir notificações push */}
             <div className="flex items-center justify-between">
-              <Label htmlFor="enable-notifications" className="cursor-pointer text-white">Permitir notificações</Label>
+              <div className="flex items-center gap-2">
+                <Smartphone size={16} className="text-white/70" />
+                <Label htmlFor="enable-push" className="cursor-pointer text-white">
+                  Notificações Push
+                </Label>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-white/30 text-white hover:bg-white/20"
+                onClick={async () => {
+                  try {
+                    const supported = isPushSupported();
+                    if (!supported) {
+                      toast({
+                        title: 'Não suportado',
+                        description: 'Seu dispositivo não suporta notificações push',
+                        variant: 'destructive'
+                      });
+                      return;
+                    }
+                    
+                    const status = await getNotificationPermissionStatus();
+                    if (status === 'granted') {
+                      toast({
+                        title: '✅ Já ativado!',
+                        description: 'Notificações push já estão ativas'
+                      });
+                      return;
+                    }
+                    
+                    const granted = await requestNotificationPermission();
+                    if (granted) {
+                      await rescheduleAllBillNotifications();
+                      toast({
+                        title: '🔔 Ativado!',
+                        description: 'Você receberá lembretes de suas contas'
+                      });
+                    } else {
+                      toast({
+                        title: 'Permissão negada',
+                        description: 'Ative nas configurações do navegador/app',
+                        variant: 'destructive'
+                      });
+                    }
+                  } catch (error) {
+                    console.error('Erro:', error);
+                    toast({
+                      title: 'Erro',
+                      description: 'Não foi possível ativar notificações',
+                      variant: 'destructive'
+                    });
+                  }
+                }}
+              >
+                <BellRing size={14} className="mr-1" /> Ativar
+              </Button>
+            </div>
+            
+            {/* Switch simples para permitir notificações in-app */}
+            <div className="flex items-center justify-between">
+              <Label htmlFor="enable-notifications" className="cursor-pointer text-white">
+                Notificações no app
+              </Label>
               <Switch 
                 id="enable-notifications" 
                 checked={preferences.enableNotifications}

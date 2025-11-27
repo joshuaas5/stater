@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/header/PageHeader';
-import { AdBanner } from '@/components/monetization/AdBanner';
+
 import TransactionItem from '@/components/transactions/TransactionItem';
 import { Transaction, INCOME_CATEGORIES, EXPENSE_CATEGORIES, PlanType } from '@/types';
 import { getTransactions, isLoggedIn, getCurrentUser } from '@/utils/localStorage';
@@ -18,12 +18,8 @@ import { Edit, Trash2, Filter, CalendarRange } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { AdManager } from '@/utils/adManager';
-import { AdCooldownManager } from '@/utils/adCooldownManager';
 import { TransactionCounter } from '@/utils/transactionCounter';
-import { AdModal, useAdModal } from '@/components/ui/AdModal';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
-import { AdCooldownStatus } from '@/components/monetization/AdCooldownStatus';
-import ContextualAdModal from '@/components/monetization/ContextualAdModal';
 
 const Transactions: React.FC = () => {
   // ...
@@ -216,7 +212,6 @@ const Transactions: React.FC = () => {
   const [userPlan, setUserPlan] = useState<any>(null);
   const [pendingCloneTransaction, setPendingCloneTransaction] = useState<Transaction | null>(null);
   const [showContextualAd, setShowContextualAd] = useState<{ show: boolean; action: 'bills' | 'transactions' }>({ show: false, action: 'transactions' });
-  const { isOpen: adModalOpen, adType, showAd, closeAd } = useAdModal();
   const { isOpen: paywallOpen, trigger: paywallTrigger, openPaywall, closePaywall } = usePaywallModal();
   
   useEffect(() => {
@@ -275,35 +270,6 @@ const Transactions: React.FC = () => {
       window.removeEventListener('transactionsUpdated', handleTransactionsUpdated);
     };
   }, []);
-
-  // Handlers para monetização
-  const handleAdReward = async (success: boolean, reward?: string) => {
-    if (success) {
-      toast({
-        title: '🎉 Anúncio assistido!',
-        description: reward || 'Continue adicionando suas transações',
-      });
-      
-      // Se havia uma transação pendente para clonar, fazer isso agora
-      if (pendingCloneTransaction) {
-        const cloned = {
-          ...pendingCloneTransaction,
-          id: `${pendingCloneTransaction.id}_clone_${Date.now()}`,
-          date: new Date(),
-        };
-        setNewTransaction(cloned);
-        setIsAddDialogOpen(true);
-        setPendingCloneTransaction(null);
-      }
-    } else {
-      toast({
-        title: 'Anúncio não concluído',
-        description: 'Assista até o fim para continuar sem limites',
-        variant: 'destructive'
-      });
-      setPendingCloneTransaction(null);
-    }
-  };
 
   const handleUpgrade = async (planType: PlanType) => {
     try {
@@ -800,15 +766,6 @@ const Transactions: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Modal de Anúncio */}
-      <AdModal
-        isOpen={adModalOpen}
-        onClose={closeAd}
-        onReward={handleAdReward}
-        type={adType}
-        userId={userId || ''}
-      />
-
       {/* Modal de Paywall */}
       <PaywallModal
         isOpen={paywallOpen}
@@ -817,34 +774,6 @@ const Transactions: React.FC = () => {
         trigger={paywallTrigger}
         userId={userId || ''}
       />
-
-      {/* Modal de Anúncio Contextual - TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES */}
-      {false && (
-      <ContextualAdModal
-        isOpen={showContextualAd.show}
-        onClose={() => setShowContextualAd({ show: false, action: 'transactions' })}
-        onWatchAd={async () => {
-          try {
-            if (!userId) return;
-            await AdCooldownManager.watchAdForActions(userId, 'transactions');
-            setShowContextualAd({ show: false, action: 'transactions' });
-            // Tentar clonar transação novamente
-            if (pendingCloneTransaction) {
-              handleCloneTransaction(pendingCloneTransaction);
-              setPendingCloneTransaction(null);
-            }
-          } catch (error) {
-            console.error('Erro ao assistir anúncio:', error);
-          }
-        }}
-        action={showContextualAd.action}
-        actionsWillGrant={5}
-        cooldownMinutes={20}
-      />
-      )}
-
-      {/* Banner de Publicidade - TEMPORARIAMENTE DESABILITADO PARA INVESTIDORES */}
-      <AdBanner position="bottom" />
       
       {/* O NavBar foi movido para o PersistentLayout.tsx */}
     </div>

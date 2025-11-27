@@ -11,6 +11,7 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotificationToastManager from "@/components/notifications/NotificationToastManager";
 import { startRecurringProcessor } from "@/utils/recurringProcessor";
 import { initializeBillNotifications } from "@/utils/billNotifications";
+import { initializePushNotifications } from "@/utils/pushNotifications";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import TermsWrapper from "@/components/terms/TermsWrapper";
 import { useRoutePreloading } from "@/hooks/useRoutePreloading";
@@ -27,8 +28,17 @@ const queryClient = new QueryClient();
 // PROCESSADOR AUTOMÁTICO REMOVIDO - Sistema manual apenas para evitar notificações indesejadas
 // startRecurringProcessor();
 
-// Inicializar sistema de notificações de contas
+// Inicializar sistema de notificações de contas (in-app)
 initializeBillNotifications();
+
+// Inicializar sistema de push notifications (após 2 segundos para não atrasar o carregamento)
+setTimeout(() => {
+  initializePushNotifications().then(success => {
+    if (success) {
+      console.log('🔔 Push notifications inicializadas com sucesso');
+    }
+  }).catch(console.error);
+}, 2000);
 
 // 🚀 Edge-to-Edge Background Hook - SOLUÇÃO DEFINITIVA
 const useEdgeToEdgeBackground = () => {

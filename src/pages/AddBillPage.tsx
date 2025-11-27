@@ -8,7 +8,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { AdBanner } from '@/components/monetization/AdBanner';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Bill, CardItem, EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/types';
 import { getCurrentUser, saveBill } from '@/utils/localStorage';
@@ -18,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { BillCounter } from '@/utils/billCounter';
 import { AdManager } from '@/utils/adManager';
+import { scheduleBillNotifications } from '@/utils/pushNotifications';
 
 const formSchema = z.object({
   title: z.string().min(2, { message: "Título deve ter pelo menos 2 caracteres." }),
@@ -202,7 +202,13 @@ const AddBillPage: React.FC = () => {
         };
         billsToSave.push(billInstallment);
       }
-      billsToSave.forEach(b => saveBill(b));
+      billsToSave.forEach(b => {
+        saveBill(b);
+        // Agendar notificações push para cada parcela
+        if (b.notificationsEnabled) {
+          scheduleBillNotifications(b).catch(console.error);
+        }
+      });
       billsAdded = billsToSave.length;
     } else {
       const newBill: Bill = {
@@ -224,6 +230,11 @@ const AddBillPage: React.FC = () => {
       };
       saveBill(newBill);
       billsAdded = 1;
+      
+      // Agendar notificações push para a conta
+      if (newBill.notificationsEnabled) {
+        scheduleBillNotifications(newBill).catch(console.error);
+      }
     }
     
     // 🎯 NOVA ESTRATÉGIA: Sistema de contador de bills para reward ads
@@ -643,9 +654,6 @@ const AddBillPage: React.FC = () => {
           </Form>
         </div>
       </div>
-      
-      {/* Banner de Publicidade */}
-      <AdBanner position="bottom" />
       
       {/* O NavBar foi movido para o PersistentLayout.tsx */}
     </div>

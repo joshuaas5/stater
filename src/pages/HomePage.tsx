@@ -1,449 +1,318 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Shield, Smartphone, Users, BarChart3, Zap, MessageCircle, Camera, Mic, Brain, Bell } from 'lucide-react';
-import { SuperwallPlugin } from '@/plugins/superwall';
-import { StaterPaywallModern } from '../plugins/superwall-modern';
-import { useStableHeight } from '@/hooks/useStableHeight';
-import '@/styles/anti-flicker.css';
+import { Mic, Camera, PieChart, Bell, Sparkles, Check, ArrowRight, Shield, Zap } from 'lucide-react';
 
 const HomePage: React.FC = () => {
-  // Hook para corrigir altura em mobile
-  useStableHeight();
-  
-  const detectPlatform = () => {
-    if (typeof window === 'undefined') return 'server';
-    if (window.navigator.userAgent.includes('iPhone') || window.navigator.userAgent.includes('iPad')) return 'ios';
-    if (window.navigator.userAgent.includes('Android')) return 'android';
-    return 'web';
-  };
-
-  const testSuperwall = async (paywallName: string) => {
-    const platform = detectPlatform();
-    
-    try {
-      console.log(`🧪 Testando paywall moderno: ${paywallName} na plataforma: ${platform}`);
-      
-      if (platform === 'web') {
-        // Usar sistema moderno Stater
-        await StaterPaywallModern.setUserAttributes({
-          user_id: 'web_user_' + Date.now(),
-          platform: 'web',
-          plan: 'free',
-          usage: 'high',
-          experiment: 'modern_paywalls_v1',
-          paywall_trigger: paywallName
-        });
-        
-        // Apresentar paywall moderno
-        await StaterPaywallModern.presentPaywall(paywallName, {
-          source: 'homepage_test',
-          experiment: 'modern_system'
-        });
-        
-      } else {
-        // Usar versão nativa (Android/iOS)
-        await SuperwallPlugin.setUserAttributes({
-          attributes: {
-            user_id: 'mobile_user_' + Date.now(),
-            platform: platform,
-            plan: 'free',
-            usage: 'high',
-            experiment: 'professional_native_v1',
-            paywall_trigger: paywallName
-          }
-        });
-        await SuperwallPlugin.presentPaywall({ name: paywallName });
-      }
-      
-      console.log(`✅ Paywall profissional ${paywallName} apresentado com sucesso na ${platform}`);
-      
-    } catch (error) {
-      console.error(`❌ Erro ao apresentar paywall ${paywallName}:`, error);
-      alert(`Erro: ${error}`);
-    }
-  };
   return (
-    <div className="homepage-container stable-height relative overflow-y-auto overflow-x-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
-      {/* Partículas flutuantes - desabilitadas em mobile para performance */}
-      <div className="absolute inset-0 overflow-hidden stable-particles pointer-events-none hidden md:block">
-        {Array.from({ length: 15 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-white/15 rounded-full no-flicker"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 2}s`,
-            }}
-          />
-        ))}
-      </div>
+    <div className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
       
-      {/* Background Effects - otimizados e menores em mobile */}
-      <div className="absolute inset-0 bg-black/10 no-flicker" />
-      <div className="absolute top-10 left-10 w-48 md:w-96 h-48 md:h-96 bg-blue-500/15 rounded-full blur-3xl stable-blur" />
-      <div className="absolute bottom-10 right-10 w-40 md:w-80 h-40 md:h-80 bg-blue-600/10 rounded-full blur-3xl stable-blur" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 md:w-64 h-32 md:h-64 bg-indigo-500/8 rounded-full blur-3xl stable-blur" />
-      
-      {/* Header */}
-      <header className="relative z-10 w-full py-3 md:py-6 px-3 md:px-4 no-flicker">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link to="/" className="flex items-center space-x-2 md:space-x-3 desktop-hover smooth-transition mobile-no-hover">
-            <img 
-              src="/stater-logo-192.png" 
-              alt="Stater Logo" 
-              className="h-8 w-8 md:h-12 md:w-12 object-contain stable-logo"
-            />
-            <h1 
-              className="text-lg md:text-2xl font-bold text-white stable-text-shadow"
-              style={{
-                fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                textShadow: 'rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px',
-              }}
-            >
-              STATER
-            </h1>
+      {/* ========== HEADER FIXO ========== */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/stater-logo-96.png" alt="Stater" className="w-7 h-7" />
+            <span className="font-bold text-base">Stater</span>
           </Link>
-          <div className="flex space-x-2 md:space-x-4">
-            <Link to="/register">
-              <Button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg mobile-no-hover desktop-hover-shadow smooth-transition text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2">
-                Cadastrar
+          <div className="flex items-center gap-2">
+            <Link to="/login">
+              <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/5 text-xs h-8 px-3">
+                Entrar
               </Button>
             </Link>
-            <Link to="/login">
-              <Button 
-                variant="outline" 
-                className="bg-white/5 border-white/20 text-white backdrop-blur-sm mobile-no-hover desktop-hover smooth-transition text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2"
-              >
-                Entrar
+            <Link to="/register">
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 px-4">
+                Criar conta
               </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="relative z-10 w-full no-flicker">
-        <div className="max-w-7xl mx-auto px-3 md:px-4 py-6 md:py-12">
-          <div className="text-center mb-10 md:mb-20">
-            {/* Logo Principal - optimizado */}
-            <div className="flex justify-center mb-4 md:mb-8">
-              <div className="relative no-flicker">
-                <img 
-                  src="/stater-logo-512.png" 
-                  alt="Stater - Assistente Financeiro IA" 
-                  className="h-20 w-20 md:h-40 md:w-40 object-contain stable-logo"
-                />
-                {/* Glow effect - simplificado */}
-                <div className="absolute inset-0 h-20 w-20 md:h-40 md:w-40 bg-blue-500/20 rounded-full blur-2xl stable-blur"></div>
-              </div>
-            </div>
-            
-            {/* Título com fonte especial - otimizado */}
-            <div className="mb-4 md:mb-8">
-              <h1 
-                className="text-3xl md:text-7xl font-bold text-white mb-2 md:mb-4 uppercase tracking-wide stable-text-shadow no-flicker"
-                style={{
-                  fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                  letterSpacing: '2px',
-                  textShadow: 'rgb(59, 130, 246) 2px 2px 0px, rgb(29, 78, 216) 4px 4px 0px',
-                }}
-              >
-                STATER
-              </h1>
-              <p className="text-blue-200 text-base md:text-2xl font-medium mb-2 no-flicker">
-                Assistente Financeiro Inteligente
-              </p>
-            </div>
-            
-            <div>
-              <h2 className="text-xl md:text-5xl font-bold text-white mb-4 md:mb-8 leading-tight">
-                Você gasta horas por semana
-                <span className="text-blue-300 block mt-1 md:mt-2">organizando finanças?</span>
-              </h2>
-              <p className="text-sm md:text-xl text-blue-100 mb-4 md:mb-6 max-w-4xl mx-auto leading-relaxed px-2">
-                Imagine se você pudesse simplesmente enviar uma <strong>foto de uma nota fiscal</strong> ou gravar um 
-                <strong> áudio dizendo quanto gastou no mercado</strong> e tudo fosse organizado automaticamente.
-              </p>
-              <p className="text-xs md:text-lg text-blue-200 mb-4 md:mb-8 max-w-3xl mx-auto leading-relaxed px-2">
-                O Stater usa <strong>inteligência artificial</strong> para transformar suas informações em 
-                <strong> relatórios completos</strong>, gráficos interativos e insights que ajudam você a 
-                <strong> acompanhar e controlar suas finanças</strong> de forma inteligente.
-              </p>
-              
-              {/* Principais funcionalidades - otimizadas */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 mb-6 md:mb-10 max-w-4xl mx-auto">
-                <div className="bg-white/5 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 text-left border border-white/10 no-flicker">
-                  <h3 className="text-sm md:text-lg font-bold text-white mb-2 md:mb-3">🎙️ Comando de Voz</h3>
-                  <p className="text-blue-100 text-xs md:text-sm">
-                    Fale naturalmente: <strong>"Gastei 200 reais abastecendo o carro"</strong> - nossa IA 
-                    ouve, identifica a categoria e organiza automaticamente.
-                  </p>
-                </div>
-                <div className="bg-white/5 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 text-left border border-white/10 no-flicker">
-                  <h3 className="text-sm md:text-lg font-bold text-white mb-2 md:mb-3">📄 Leitura Inteligente</h3>
-                  <p className="text-blue-100 text-xs md:text-sm">
-                    Fotografe qualquer <strong>nota fiscal</strong>, <strong>extrato</strong> ou 
-                    <strong> comprovante</strong>. A IA digitaliza e organiza tudo em segundos.
-                  </p>
-                </div>
-              </div>
-              
-              <p className="text-lg md:text-2xl text-blue-200 font-bold mb-6 md:mb-10 no-flicker">
-                Inteligência financeira ao seu alcance.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-3 md:gap-6 justify-center px-4">
-                <Link to="/register" className="w-full sm:w-auto">
-                  <Button 
-                    size="lg" 
-                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 md:px-10 py-3 md:py-4 text-sm md:text-lg shadow-2xl mobile-no-hover desktop-hover-scale desktop-hover-shadow smooth-transition"
-                  >
-                    🚀 Começar Agora - É Grátis
-                  </Button>
-                </Link>
-                <Link to="/login" className="w-full sm:w-auto">
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    className="w-full sm:w-auto bg-white/5 border-white/20 text-white backdrop-blur-sm px-6 md:px-10 py-3 md:py-4 text-sm md:text-lg shadow-lg mobile-no-hover desktop-hover-scale desktop-hover-shadow smooth-transition"
-                  >
-                    Já tenho uma conta
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Prova Social - otimizada para mobile */}
-          <div className="mb-10 md:mb-20">
-            <div className="bg-white/10 rounded-2xl md:rounded-3xl shadow-2xl border border-white/20 p-4 md:p-12 stable-backdrop no-flicker">
-              <h3 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-8 text-center stable-text-shadow">
-                Transforme sua relação com o dinheiro
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
-                <div className="space-y-4 md:space-y-6">
-                  <div className="text-center mb-3 md:mb-6">
-                    <div className="inline-flex items-center justify-center w-14 h-14 md:w-20 md:h-20 bg-gradient-to-br from-red-500/20 to-red-600/30 rounded-xl md:rounded-2xl border border-red-400/30 mb-2 md:mb-4 stable-backdrop no-flicker">
-                      <div className="w-8 h-8 md:w-12 md:h-12 bg-red-500/40 rounded-lg flex items-center justify-center">
-                        <div className="w-4 h-4 md:w-6 md:h-6 border-2 border-red-300 rounded-full border-dashed animate-spin"></div>
-                      </div>
-                    </div>
-                    <h4 className="text-base md:text-xl font-bold text-red-300 stable-text-shadow">Situação Atual</h4>
-                  </div>
-                  <div className="space-y-2 md:space-y-4">
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-xl md:rounded-2xl p-3 md:p-6 stable-backdrop no-flicker">
-                      <p className="text-red-100 text-center leading-relaxed text-xs md:text-base">
-                        <strong>"Eu esquecia de anotar os gastos"</strong><br/>
-                        <span className="text-red-200 text-[10px] md:text-sm">No final do mês não sabia onde tinha gasto meu dinheiro</span>
-                      </p>
-                    </div>
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-xl md:rounded-2xl p-3 md:p-6 stable-backdrop no-flicker">
-                      <p className="text-red-100 text-center leading-relaxed text-xs md:text-base">
-                        <strong>"Horas organizando planilhas"</strong><br/>
-                        <span className="text-red-200 text-[10px] md:text-sm">Tempo perdido que poderia estar aproveitando a vida</span>
-                      </p>
-                    </div>
-                    <div className="bg-red-900/10 border border-red-400/20 rounded-xl md:rounded-2xl p-3 md:p-6 stable-backdrop no-flicker">
-                      <p className="text-red-100 text-center leading-relaxed text-xs md:text-base">
-                        <strong>"Descobria os gastos excessivos tarde demais"</strong><br/>
-                        <span className="text-red-200 text-[10px] md:text-sm">Dinheiro que já tinha ido embora</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-4 md:space-y-6">
-                  <div className="text-center mb-3 md:mb-6">
-                    <div className="inline-flex items-center justify-center w-14 h-14 md:w-20 md:h-20 bg-gradient-to-br from-green-500/20 to-emerald-600/30 rounded-xl md:rounded-2xl border border-green-400/30 mb-2 md:mb-4 backdrop-blur-sm">
-                      <div className="w-8 h-8 md:w-12 md:h-12 bg-green-500/40 rounded-lg flex items-center justify-center">
-                        <div className="w-4 h-4 md:w-6 md:h-6 bg-green-400 rounded-full shadow-lg shadow-green-400/50"></div>
-                      </div>
-                    </div>
-                    <h4 className="text-base md:text-xl font-bold text-green-300">Com o Stater</h4>
-                  </div>
-                  <div className="space-y-2 md:space-y-4">
-                    <div className="bg-green-900/10 border border-green-400/20 rounded-xl md:rounded-2xl p-3 md:p-6 backdrop-blur-sm">
-                      <p className="text-green-100 text-center leading-relaxed text-xs md:text-base">
-                        <strong>"Falo no celular e pronto"</strong><br/>
-                        <span className="text-green-200 text-[10px] md:text-sm">Tudo organizado automaticamente, sem esforço</span>
-                      </p>
-                    </div>
-                    <div className="bg-green-900/10 border border-green-400/20 rounded-xl md:rounded-2xl p-3 md:p-6 backdrop-blur-sm">
-                      <p className="text-green-100 text-center leading-relaxed text-xs md:text-base">
-                        <strong>"Economizo horas toda semana"</strong><br/>
-                        <span className="text-green-200 text-[10px] md:text-sm">Tempo que agora uso para o que realmente importa</span>
-                      </p>
-                    </div>
-                    <div className="bg-green-900/10 border border-green-400/20 rounded-xl md:rounded-2xl p-3 md:p-6 backdrop-blur-sm">
-                      <p className="text-green-100 text-center leading-relaxed text-xs md:text-base">
-                        <strong>"Alertas em tempo real me salvaram R$ 500"</strong><br/>
-                        <span className="text-green-200 text-[10px] md:text-sm">Controle inteligente que protege meu dinheiro</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Como funciona */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-2xl md:rounded-3xl border border-white/20 shadow-2xl p-4 md:p-8 mb-10 md:mb-20">
-            <h3 className="text-lg md:text-2xl font-bold text-white mb-4 md:mb-6 text-center">
-              Como usar o Stater
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
-              <div className="flex items-start space-x-3 md:space-x-4">
-                <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-12 h-12 md:w-16 md:h-16 flex items-center justify-center border border-blue-400/30 flex-shrink-0">
-                  <MessageCircle className="h-6 w-6 md:h-8 md:w-8 text-blue-300" />
-                </div>
-                <div>
-                  <h4 className="text-base md:text-xl font-bold text-white mb-1 md:mb-3">Telegram</h4>
-                  <p className="text-blue-100 leading-relaxed text-xs md:text-base">
-                    Use o <strong>Telegram agora mesmo</strong> para enviar mensagens ou áudios. 
-                    Funciona como conversar com um amigo.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3 md:space-x-4">
-                <div className="bg-blue-500/20 backdrop-blur-sm rounded-full w-12 h-12 md:w-16 md:h-16 flex items-center justify-center border border-blue-400/30 flex-shrink-0">
-                  <Smartphone className="h-6 w-6 md:h-8 md:w-8 text-blue-300" />
-                </div>
-                <div>
-                  <h4 className="text-base md:text-xl font-bold text-white mb-1 md:mb-3">App Completo</h4>
-                  <p className="text-blue-100 leading-relaxed text-xs md:text-base">
-                    Relatórios completos, gráficos interativos e insights poderosos. 
-                    <strong>Tudo sincronizado</strong> em tempo real.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Seção de Privacidade */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-2xl md:rounded-3xl border border-white/20 shadow-2xl p-4 md:p-8 mb-10 md:mb-20 text-center">
-            <div className="flex justify-center mb-4 md:mb-6">
-              <div className="bg-green-500/20 backdrop-blur-sm rounded-full w-14 h-14 md:w-20 md:h-20 flex items-center justify-center border border-green-400/30">
-                <Shield className="h-7 w-7 md:h-10 md:w-10 text-green-300" />
-              </div>
-            </div>
-            <h3 className="text-xl md:text-4xl font-bold text-white mb-3 md:mb-4">
-              Sua Privacidade é Nossa Prioridade
-            </h3>
-            <p className="text-blue-100 text-sm md:text-lg mb-4 md:mb-6 max-w-3xl mx-auto leading-relaxed px-2">
-              No Stater, a segurança dos seus dados é fundamental. Seus dados são seus! Nunca iremos pedir para conectar sua conta bancária, pois priorizamos sua segurança.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-8 text-green-300 text-sm md:text-base">
-              <div className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-database-zap"><path d="M4 6c0-1.66 4-3 8-3s8 1.34 8 3"/><path d="M4 6v6c0 1.66 4 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 4 3 8 3s8-1.34 8-3v-6"/><path d="m19 15-3 6h5l-3 6"/></svg>
-                <span>Seus Dados, Suas Regras</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-credit-card-off"><path d="M2 2l20 20"/><path d="M7 7h.01"/><path d="M7 11h5"/><path d="M21 16.5c0-1-1-2-2-2s-2 .5-2 1.5c0 .42.14.8.39 1.11"/><path d="M3 10h13"/><path d="M21 8c-1.5 0-2.7.6-3.5 1.5"/><path d="M16 3h-8a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11c.4 0 .8-.1 1.1-.2"/></svg>
-                <span>Sem Conexão Bancária</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Call to Action Final */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-2xl md:rounded-3xl shadow-2xl border border-white/20 p-6 md:p-12 text-center">
-            <h3 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6">
-              Comece usando agora
-            </h3>
-            <p className="text-blue-100 text-sm md:text-lg mb-4 md:mb-6 max-w-3xl mx-auto px-2">
-              Transforme sua vida financeira em poucos minutos. O Stater está disponível 
-              agora e <strong>oferece recursos que vão mudar sua vida</strong>.
-            </p>
-            <p className="text-blue-200 text-base md:text-xl font-bold mb-6 md:mb-8 max-w-2xl mx-auto">
-              Transforme sua relação com o dinheiro usando inteligência artificial.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4">
-              <Link to="/register" className="w-full sm:w-auto">
-                <Button 
-                  size="lg" 
-                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 md:px-12 py-3 md:py-4 text-sm md:text-lg shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
-                >
-                  Começar agora
-                </Button>
-              </Link>
-              <Link to="/login" className="w-full sm:w-auto">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="w-full sm:w-auto bg-white/5 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm px-8 md:px-12 py-3 md:py-4 text-sm md:text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-                >
-                  Já tenho conta
-                </Button>
-              </Link>
-            </div>
-
-            <div className="mt-6 md:mt-8 text-blue-300 text-xs md:text-sm flex flex-col sm:flex-row justify-center gap-2 sm:gap-0">
-              <span>✅ Recursos gratuitos</span>
-              <span className="hidden sm:inline">&nbsp;&nbsp;</span>
-              <span>✅ Instalação simples</span>
-              <span className="hidden sm:inline">&nbsp;&nbsp;</span>
-              <span>✅ Dados seguros</span>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="relative z-10 w-full py-8 md:py-12 px-4 border-t border-white/10 bg-black/20">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Logo e Nome */}
-          <div className="flex items-center justify-center space-x-2 md:space-x-3 mb-6 md:mb-8">
-            <img 
-              src="/stater-logo-192.png" 
-              alt="Stater Logo" 
-              className="h-8 w-8 md:h-12 md:w-12 object-contain drop-shadow-lg"
-            />
-            <span 
-              className="text-lg md:text-2xl font-bold text-white"
-              style={{
-                fontFamily: '"Fredoka One", "Comic Sans MS", Poppins, sans-serif',
-                textShadow: 'rgb(59, 130, 246) 1px 1px 0px, rgb(29, 78, 216) 2px 2px 0px, rgba(59, 130, 246, 0.5) 0px 0px 10px',
-                filter: 'drop-shadow(rgba(0, 0, 0, 0.3) 0px 2px 4px)'
-              }}
-            >
-              STATER
-            </span>
+      {/* ========== HERO ========== */}
+      <section className="pt-24 pb-10 px-4">
+        <div className="max-w-lg mx-auto text-center">
+          
+          {/* Badge Gratuito */}
+          <div className="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1 mb-5">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-emerald-400 text-xs font-semibold">100% Gratuito</span>
           </div>
           
-          {/* Links de navegação */}
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-8 mb-6 md:mb-8">
-            <Link 
-              to="/terms" 
-              className="text-blue-300 hover:text-blue-200 transition-colors text-xs md:text-sm font-medium"
-            >
-              Termos de Uso
-            </Link>
-            <Link 
-              to="/privacy" 
-              className="text-blue-300 hover:text-blue-200 transition-colors text-xs md:text-sm font-medium"
-            >
-              Política de Privacidade
-            </Link>
-            <a 
-              href="mailto:staterbills@gmail.com?subject=Suporte%20Stater&body=Olá,%20preciso%20de%20ajuda%20com..." 
-              className="text-blue-300 hover:text-blue-200 transition-colors text-xs md:text-sm font-medium"
-            >
-              Suporte
-            </a>
-          </div>
-
-          {/* Informações finais */}
-          <div className="text-white/80 space-y-1 md:space-y-2">
-            <p className="text-xs md:text-sm">Stater - Todos os Direitos Reservados</p>
-            <p className="text-[10px] md:text-xs">2025</p>
-            <p className="text-[10px] md:text-xs text-blue-200 font-medium">
-              Inteligência para prosperar
-            </p>
+          {/* Headline Principal */}
+          <h1 className="text-2xl sm:text-3xl font-bold leading-tight mb-3">
+            Controle suas finanças
+            <span className="block text-blue-400 mt-1">falando ou tirando foto</span>
+          </h1>
+          
+          {/* Subheadline */}
+          <p className="text-sm text-white/50 mb-6 leading-relaxed max-w-sm mx-auto">
+            Registre gastos por <span className="text-white/80">voz</span>, <span className="text-white/80">foto de nota fiscal</span> ou texto. 
+            A inteligência artificial organiza tudo pra você.
+          </p>
+          
+          {/* CTA Principal */}
+          <Link to="/register" className="block mb-5">
+            <Button size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold h-12 px-8 text-sm rounded-xl shadow-lg shadow-blue-600/20">
+              Começar grátis
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+          
+          {/* Trust */}
+          <div className="flex items-center justify-center gap-4 text-[11px] text-white/40">
+            <span className="flex items-center gap-1">
+              <Check className="w-3 h-3 text-emerald-400" />
+              Sem cartão
+            </span>
+            <span className="flex items-center gap-1">
+              <Check className="w-3 h-3 text-emerald-400" />
+              Pronto em 30s
+            </span>
           </div>
         </div>
+      </section>
+
+      {/* ========== FEATURES ========== */}
+      <section className="py-10 px-4">
+        <div className="max-w-lg mx-auto">
+          
+          <p className="text-center text-xs text-white/40 uppercase tracking-wider mb-6">
+            O que o Stater faz por você
+          </p>
+          
+          <div className="space-y-3">
+            
+            {/* Feature 1 */}
+            <div className="flex items-start gap-4 bg-white/[0.03] border border-white/5 rounded-xl p-4">
+              <div className="w-10 h-10 bg-blue-500/15 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Mic className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-white mb-0.5">Registro por Voz</h3>
+                <p className="text-xs text-white/40 leading-relaxed">
+                  Diga "gastei 50 no mercado" e pronto. A IA entende e categoriza.
+                </p>
+              </div>
+            </div>
+            
+            {/* Feature 2 */}
+            <div className="flex items-start gap-4 bg-white/[0.03] border border-white/5 rounded-xl p-4">
+              <div className="w-10 h-10 bg-purple-500/15 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Camera className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-white mb-0.5">Foto de Nota Fiscal</h3>
+                <p className="text-xs text-white/40 leading-relaxed">
+                  Fotografe qualquer recibo. Extraímos valor, data e categoria automaticamente.
+                </p>
+              </div>
+            </div>
+            
+            {/* Feature 3 */}
+            <div className="flex items-start gap-4 bg-white/[0.03] border border-white/5 rounded-xl p-4">
+              <div className="w-10 h-10 bg-emerald-500/15 rounded-lg flex items-center justify-center flex-shrink-0">
+                <PieChart className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-white mb-0.5">Relatórios Visuais</h3>
+                <p className="text-xs text-white/40 leading-relaxed">
+                  Gráficos que mostram para onde seu dinheiro está indo.
+                </p>
+              </div>
+            </div>
+            
+            {/* Feature 4 */}
+            <div className="flex items-start gap-4 bg-white/[0.03] border border-white/5 rounded-xl p-4">
+              <div className="w-10 h-10 bg-amber-500/15 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Bell className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-white mb-0.5">Lembretes de Contas</h3>
+                <p className="text-xs text-white/40 leading-relaxed">
+                  Cadastre suas contas e receba alertas antes do vencimento.
+                </p>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </section>
+
+      {/* ========== COMO FUNCIONA ========== */}
+      <section className="py-10 px-4 bg-white/[0.02]">
+        <div className="max-w-lg mx-auto">
+          
+          <h2 className="text-lg font-bold text-center mb-6">
+            Simples de usar
+          </h2>
+          
+          <div className="space-y-3">
+            
+            <div className="flex items-center gap-3 bg-[#0a0a0f] rounded-xl p-4">
+              <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">
+                1
+              </div>
+              <p className="text-sm text-white/70">
+                <span className="text-white font-medium">Registre</span> — por voz, foto ou digitando
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3 bg-[#0a0a0f] rounded-xl p-4">
+              <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">
+                2
+              </div>
+              <p className="text-sm text-white/70">
+                <span className="text-white font-medium">IA organiza</span> — categoria, data, valor
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3 bg-[#0a0a0f] rounded-xl p-4">
+              <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">
+                3
+              </div>
+              <p className="text-sm text-white/70">
+                <span className="text-white font-medium">Visualize</span> — gráficos e relatórios prontos
+              </p>
+            </div>
+            
+          </div>
+        </div>
+      </section>
+
+      {/* ========== TELEGRAM ========== */}
+      <section className="py-10 px-4">
+        <div className="max-w-lg mx-auto">
+          <div className="bg-gradient-to-br from-[#0088cc]/10 to-transparent border border-[#0088cc]/20 rounded-2xl p-5 text-center">
+            <div className="w-12 h-12 bg-[#0088cc]/15 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <img src="/telegram-logo.svg" alt="Telegram" className="w-6 h-6" />
+            </div>
+            <h3 className="font-semibold text-sm text-white mb-1.5">
+              Use pelo Telegram
+            </h3>
+            <p className="text-xs text-white/50 mb-3 max-w-xs mx-auto">
+              Envie mensagens ou áudios direto pelo Telegram. Tudo sincroniza com o app automaticamente.
+            </p>
+            <span className="inline-flex items-center gap-1 text-[11px] text-[#0088cc] font-medium">
+              <Zap className="w-3 h-3" />
+              Conecta em segundos
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ========== PREÇO / GRATUITO ========== */}
+      <section className="py-10 px-4 bg-white/[0.02]">
+        <div className="max-w-sm mx-auto text-center">
+          
+          <h2 className="text-lg font-bold mb-2">
+            Gratuito. Sempre.
+          </h2>
+          <p className="text-xs text-white/40 mb-5">
+            Sem período de teste. Sem pegadinhas.
+          </p>
+          
+          <div className="bg-[#0a0a0f] border border-white/10 rounded-2xl p-5">
+            
+            <div className="text-2xl font-bold text-white mb-0.5">R$ 0</div>
+            <div className="text-[10px] text-white/30 mb-4">para sempre</div>
+            
+            <ul className="space-y-2.5 text-left mb-5">
+              <li className="flex items-center gap-2.5 text-xs">
+                <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                <span className="text-white/60">Registro por voz ilimitado</span>
+              </li>
+              <li className="flex items-center gap-2.5 text-xs">
+                <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                <span className="text-white/60">Leitura de notas fiscais</span>
+              </li>
+              <li className="flex items-center gap-2.5 text-xs">
+                <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                <span className="text-white/60">Gráficos e relatórios</span>
+              </li>
+              <li className="flex items-center gap-2.5 text-xs">
+                <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                <span className="text-white/60">Lembretes por email</span>
+              </li>
+              <li className="flex items-center gap-2.5 text-xs">
+                <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                <span className="text-white/60">Integração Telegram</span>
+              </li>
+            </ul>
+            
+            <Link to="/register" className="block">
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-11 rounded-xl text-sm">
+                Criar conta gratuita
+              </Button>
+            </Link>
+            
+          </div>
+        </div>
+      </section>
+
+      {/* ========== SEGURANÇA ========== */}
+      <section className="py-10 px-4">
+        <div className="max-w-lg mx-auto">
+          <div className="flex items-start gap-3 bg-emerald-500/5 border border-emerald-500/15 rounded-xl p-4">
+            <div className="w-9 h-9 bg-emerald-500/15 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Shield className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-white mb-0.5">Seus dados são seus</h3>
+              <p className="text-xs text-white/40 leading-relaxed">
+                Não pedimos acesso bancário. Não vendemos seus dados. Simples assim.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========== CTA FINAL ========== */}
+      <section className="py-14 px-4">
+        <div className="max-w-sm mx-auto text-center">
+          <h2 className="text-xl font-bold mb-3">
+            Pronto para organizar suas finanças?
+          </h2>
+          <p className="text-xs text-white/40 mb-5">
+            Crie sua conta em menos de 30 segundos.
+          </p>
+          <Link to="/register">
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-12 px-10 text-sm rounded-xl shadow-lg shadow-blue-600/20">
+              Começar grátis
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+
+      {/* ========== FOOTER ========== */}
+      <footer className="py-8 px-4 border-t border-white/5">
+        <div className="max-w-lg mx-auto">
+          
+          <div className="flex items-center justify-center gap-2 mb-5">
+            <img src="/stater-logo-96.png" alt="Stater" className="w-5 h-5" />
+            <span className="font-semibold text-sm">Stater</span>
+          </div>
+          
+          <div className="flex flex-wrap items-center justify-center gap-4 mb-5 text-xs">
+            <Link to="/terms" className="text-white/30 hover:text-white/60 transition-colors">
+              Termos
+            </Link>
+            <Link to="/privacy" className="text-white/30 hover:text-white/60 transition-colors">
+              Privacidade
+            </Link>
+            <a href="mailto:staterbills@gmail.com" className="text-white/30 hover:text-white/60 transition-colors">
+              Contato
+            </a>
+          </div>
+          
+          <p className="text-center text-[10px] text-white/20">
+            © 2025 Stater. Todos os direitos reservados.
+          </p>
+          
+        </div>
       </footer>
+      
     </div>
   );
 };

@@ -87,46 +87,36 @@ export default function CookieConsent() {
 
   return (
     <>
-      {/* Banner Principal */}
+      {/* Banner Principal - Compacto e delicado */}
       {!showDetails && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 shadow-2xl border-t-2 border-theme-blue-500">
-          <div className="max-w-7xl mx-auto p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  🍪 Este site usa cookies
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Usamos cookies e tecnologias semelhantes para melhorar sua experiência, 
-                  personalizar anúncios e analisar o tráfego. Ao continuar navegando, 
-                  você concorda com nossa{' '}
-                  <a href="/privacy" className="text-theme-blue-500 hover:underline">
-                    Política de Privacidade
-                  </a>
-                  .
-                </p>
-              </div>
+        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-sm z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="p-3">
+            <p className="text-xs text-gray-600 dark:text-gray-300 mb-3">
+              🍪 Usamos cookies para melhorar sua experiência.{' '}
+              <a href="/privacy" className="text-theme-blue-500 hover:underline">
+                Saiba mais
+              </a>
+            </p>
 
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <button
-                  onClick={handleCustomize}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Personalizar
-                </button>
-                <button
-                  onClick={handleRejectAll}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Rejeitar Todos
-                </button>
-                <button
-                  onClick={handleAcceptAll}
-                  className="px-6 py-2 text-sm font-medium text-white bg-theme-blue-500 rounded-lg hover:bg-theme-blue-600 transition-colors"
-                >
-                  Aceitar Todos
-                </button>
-              </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleCustomize}
+                className="px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+              >
+                Personalizar
+              </button>
+              <button
+                onClick={handleRejectAll}
+                className="px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+              >
+                Rejeitar
+              </button>
+              <button
+                onClick={handleAcceptAll}
+                className="ml-auto px-3 py-1.5 text-xs font-medium text-white bg-theme-blue-500 rounded-lg hover:bg-theme-blue-600 transition-colors"
+              >
+                Aceitar
+              </button>
             </div>
           </div>
         </div>

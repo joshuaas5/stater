@@ -1,32 +1,30 @@
 /* 🌐 STATUS BAR GLOBAL - Aplicado em TODO o app */
 
-/* ✅ CONFIGURAÇÃO UNIVERSAL PARA STATUS BAR AZUL - VIEWPORT CORRETO */
+/* ✅ CONFIGURAÇÃO UNIVERSAL - SEM OFFSET NO TOPO */
 :root {
-  --status-bar-height: 24px; /* Altura padrão da status bar */
-  --app-content-height: calc(100vh - var(--status-bar-height));
+  --status-bar-height: 0px; /* REMOVIDO: Não forçar mais offset no topo */
+  --app-content-height: 100vh;
 }
 
-/* ✅ GARANTIR QUE TODO CONTEÚDO COMECE ABAIXO DA STATUS BAR */
+/* ✅ GARANTIR QUE TODO CONTEÚDO COMECE DO TOPO */
 html, body {
   margin: 0 !important;
   padding: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  overflow: hidden !important;
-  background-color: #31518b !important; /* Cor da status bar */
+  width: 100% !important;
+  height: 100% !important;
+  overflow-x: hidden !important;
+  background-color: #31518b !important;
   box-sizing: border-box !important;
 }
 
-/* ✅ ROOT CONTAINER - posicionamento correto sempre SEM SCROLL VISÍVEL */
+/* ✅ ROOT CONTAINER - SEM POSITION FIXED para não criar faixa */
 #root {
-  position: fixed !important;
-  top: var(--status-bar-height) !important;
+  position: relative !important;
+  top: 0 !important;
   left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important; /* Garantir largura total */
-  height: var(--app-content-height) !important;
-  overflow-y: auto !important; /* VOLTAR PARA AUTO para mostrar conteúdo */
+  width: 100% !important;
+  min-height: 100vh !important;
+  overflow-y: auto !important;
   overflow-x: hidden !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -71,18 +69,18 @@ html, body {
 .subscription-modal,
 .dialog-overlay {
   position: fixed !important;
-  top: var(--status-bar-height) !important;
+  top: 0 !important;
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
-  height: var(--app-content-height) !important;
+  height: 100vh !important;
   z-index: 1000 !important;
 }
 
 /* ✅ MOBILE SPECIFIC - ajustes para dispositivos móveis */
 @media (max-width: 768px) {
   :root {
-    --status-bar-height: 28px; /* Um pouco maior em mobile */
+    --status-bar-height: 0px; /* REMOVIDO: Sem offset em mobile também */
   }
 
   /* Garantir que listas e scrolls funcionem corretamente */
@@ -115,33 +113,33 @@ html, body {
 /* ✅ TELAS PEQUENAS - ajuste fino */
 @media (max-width: 375px) {
   :root {
-    --status-bar-height: 26px;
+    --status-bar-height: 0px; /* REMOVIDO */
   }
 }
 
 /* ✅ ALTURA LIMITADA - otimizações */
 @media (max-height: 700px) {
   :root {
-    --status-bar-height: 22px; /* Menor para aproveitar espaço */
+    --status-bar-height: 0px; /* REMOVIDO */
   }
 }
 
 /* ✅ DESKTOP - sem status bar, mas manter estrutura */
 @media (min-width: 769px) {
   :root {
-    --status-bar-height: 0px; /* Sem status bar no desktop */
+    --status-bar-height: 0px;
     --app-content-height: 100vh;
   }
   
   html, body {
-    width: 100vw !important;
+    width: 100% !important;
     box-sizing: border-box !important;
   }
   
   #root {
-    top: 0 !important; /* No desktop começa do topo */
-    height: 100vh !important;
-    width: 100vw !important;
+    top: 0 !important;
+    min-height: 100vh !important;
+    width: 100% !important;
     box-sizing: border-box !important;
   }
 }

@@ -78,8 +78,8 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
               ${message.sender === 'user'
                 ? 'bg-primary text-primary-foreground shadow-md rounded-br-none'
                 : message.sender === 'system'
-                ? 'bg-white text-gray-800 shadow-md border border-gray-200 rounded-bl-none'
-                : 'bg-card text-card-foreground shadow-md border border-border rounded-bl-none'
+                ? 'bg-[#1e3a5f] text-white shadow-md border border-white/20 rounded-bl-none'
+                : 'bg-[#1e3a5f] text-white shadow-md border border-white/20 rounded-bl-none'
               }
             `}
           >

@@ -10,7 +10,7 @@ import { AdManager } from '@/utils/adManager';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
 import { 
   CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
-  Edit, MoreVertical, Trash, Calendar, Mail, X
+  Edit, MoreVertical, Trash, Calendar, Mail, X, Send, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -90,6 +90,7 @@ const BillsPage: React.FC = () => {
   // Estado para notificações por email
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState<boolean>(true);
   const [loadingEmailPref, setLoadingEmailPref] = useState<boolean>(false);
+  const [sendingEmailReport, setSendingEmailReport] = useState<boolean>(false);
   
   const navigate = useNavigate();
   
@@ -192,6 +193,95 @@ const BillsPage: React.FC = () => {
       console.error('Erro ao salvar preferência de email:', error);
     } finally {
       setLoadingEmailPref(false);
+    }
+  };
+  
+  // Função para enviar relatório de contas por email
+  const sendBillsReportEmail = async () => {
+    if (!userId || sendingEmailReport) return;
+    
+    setSendingEmailReport(true);
+    
+    try {
+      const { supabase } = await import('@/lib/supabase');
+      
+      // Buscar dados do usuário
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user?.email) {
+        throw new Error('Não foi possível obter seu email');
+      }
+      
+      // Pegar contas a vencer nos próximos 7 dias (não pagas)
+      const today = new Date();
+      const in7Days = new Date(today);
+      in7Days.setDate(in7Days.getDate() + 7);
+      
+      const billsDueIn7Days = bills.filter(bill => {
+        if (bill.isPaid) return false;
+        const dueDate = new Date(bill.dueDate);
+        return dueDate >= today && dueDate <= in7Days;
+      });
+      
+      // Pegar contas vencidas (não pagas)
+      const overdueList = bills.filter(bill => {
+        if (bill.isPaid) return false;
+        const dueDate = new Date(bill.dueDate);
+        return dueDate < today;
+      });
+      
+      // Calcular total
+      const totalDue = billsDueIn7Days.reduce((sum, b) => sum + b.amount, 0);
+      const totalOverdue = overdueList.reduce((sum, b) => sum + b.amount, 0);
+      
+      // Chamar edge function para enviar email
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: {
+          to: user.email,
+          type: 'bills_report',
+          data: {
+            userName: user.user_metadata?.name || user.email.split('@')[0],
+            billsDueIn7Days: billsDueIn7Days.map(b => ({
+              title: b.title,
+              amount: b.amount,
+              dueDate: new Date(b.dueDate).toLocaleDateString('pt-BR'),
+              category: b.category
+            })),
+            overdueBills: overdueList.map(b => ({
+              title: b.title,
+              amount: b.amount,
+              dueDate: new Date(b.dueDate).toLocaleDateString('pt-BR'),
+              category: b.category
+            })),
+            totalDue,
+            totalOverdue,
+            reportDate: new Date().toLocaleDateString('pt-BR', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })
+          }
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: '📧 Email enviado!',
+        description: `Relatório enviado para ${user.email}`,
+      });
+      
+    } catch (error: any) {
+      console.error('Erro ao enviar email:', error);
+      toast({
+        title: 'Erro ao enviar',
+        description: error.message || 'Não foi possível enviar o relatório. Tente novamente.',
+        variant: 'destructive'
+      });
+    } finally {
+      setSendingEmailReport(false);
     }
   };
   
@@ -526,7 +616,21 @@ const BillsPage: React.FC = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
-            <div className="flex gap-2 flex-1 sm:flex-none">
+            <div className="flex gap-2 flex-1 sm:flex-none flex-wrap">
+              <Button 
+                onClick={sendBillsReportEmail}
+                disabled={sendingEmailReport}
+                variant="outline"
+                className="flex-1 sm:flex-none bg-emerald-600/20 hover:bg-emerald-600/30 text-white font-semibold border-emerald-400/50 hover:border-emerald-400/70 backdrop-blur-sm transition-all duration-200 text-xs sm:text-sm disabled:opacity-50"
+                style={{ color: '#ffffff !important' }}
+              >
+                {sendingEmailReport ? (
+                  <Loader2 size={16} className="mr-1 sm:mr-2 text-white animate-spin" />
+                ) : (
+                  <Send size={16} className="mr-1 sm:mr-2 text-white" />
+                )}
+                {sendingEmailReport ? 'Enviando...' : 'Enviar Email'}
+              </Button>
               <Button 
                 onClick={() => navigate('/export')} 
                 variant="outline"

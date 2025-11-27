@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { saveUser, getCurrentUser } from '@/utils/localStorage';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -15,37 +12,48 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [dataProcessingAccepted, setDataProcessingAccepted] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
-  const [acceptComplete, setAcceptComplete] = useState(false);
   const { toast } = useToast();
 
   const allAccepted = termsAccepted && dataProcessingAccepted;
-  
-  // Reset state when modal opens or closes
+
+  // Reset quando modal abre
   useEffect(() => {
     if (isOpen) {
-      setAcceptComplete(false);
+      setTermsAccepted(false);
+      setDataProcessingAccepted(false);
+      setIsAccepting(false);
     }
   }, [isOpen]);
 
+  // Bloquear scroll do body quando modal aberto
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   const handleAccept = async () => {
-    if (!allAccepted) return;
+    if (!allAccepted || isAccepting) return;
     
     try {
       setIsAccepting(true);
       console.log('✅ [TERMS MODAL] Aceitando termos...');
       
-      // Notificar usuário imediatamente que está sendo processado
       toast({
         title: "Salvando seus termos",
         description: "Por favor, aguarde um momento..."
       });
       
       await onAccept();
-      setAcceptComplete(true);
       
       toast({
         title: "Termos aceitos com sucesso",
-        description: "Bem-vindo ao Stater! Você está sendo redirecionado..."
+        description: "Bem-vindo ao Stater!"
       });
     } catch (error) {
       console.error('❌ [TERMS MODAL] Erro ao aceitar termos:', error);
@@ -58,277 +66,287 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen && !acceptComplete} onOpenChange={() => {}}>
-      <DialogContent 
-        hideClose
-        className="w-full h-full max-w-none max-h-none p-0 m-0 flex flex-col fixed inset-0 overflow-hidden"
-        style={{ 
-          background: '#1e3a6e',
-          border: 'none',
-          borderRadius: '0',
-          color: '#ffffff',
-          fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif',
-          zIndex: 9999,
-          left: 0,
-          top: 0,
-          transform: 'none',
-          width: '100vw',
-          height: '100vh',
-          pointerEvents: 'auto'
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 999999,
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#1e3a6e',
+        color: '#ffffff',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
+      {/* Header */}
+      <div 
+        style={{
+          padding: '16px',
+          paddingTop: 'max(16px, env(safe-area-inset-top))',
+          background: '#2a4a7a',
+          borderBottom: '1px solid rgba(255,255,255,0.2)',
+          flexShrink: 0,
         }}
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-        onPointerDownOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader 
-          className="p-4 pb-2 flex-shrink-0 border-b border-white/30 safe-top"
-          style={{
-            background: '#2a4a7a',
-            paddingTop: 'max(16px, env(safe-area-inset-top))'
-          }}
-        >
-          <DialogTitle 
-            className="text-base md:text-xl font-bold text-center text-white px-2 py-1 rounded-sm" 
-            style={{ 
-              color: '#ffffff',
-              textShadow: '0 2px 10px rgba(0,0,0,0.3)',
-              fontWeight: 600,
-              fontSize: '18px',
-              lineHeight: '1.3'
-            }}
-          >
-            Termos de Uso e Política de Privacidade
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div 
-          className="flex-1 overflow-y-auto px-4 md:px-6 touch-pan-y"
-          style={{
-            WebkitOverflowScrolling: 'touch',
-            scrollBehavior: 'smooth',
-            overscrollBehavior: 'contain'
-          }}
-        >
-          <div className="space-y-4 text-sm text-white py-4">
-            <div className="text-center text-white/60 text-xs">
-              ÚLTIMA ATUALIZAÇÃO: 27 de junho de 2025
-            </div>
+        <h1 style={{ 
+          fontSize: '18px', 
+          fontWeight: 600, 
+          textAlign: 'center',
+          margin: 0,
+          color: '#ffffff'
+        }}>
+          Termos de Uso e Política de Privacidade
+        </h1>
+      </div>
 
-            <section>
-              <h3 className="font-bold text-lg mb-2 text-white" style={{ fontWeight: 600 }}>1. SOBRE O APLICATIVO</h3>
-              <p className="mb-2 text-white/90">1.1. O Stater é um aplicativo de assistente financeiro inteligente que utiliza Inteligência Artificial para ajudar usuários a gerenciar suas finanças pessoais.</p>
-              <p className="text-white/90">1.2. O aplicativo oferece funcionalidades como análise de extratos, chat com IA, controle de gastos, relatórios financeiros e integração com bot do Telegram.</p>
-            </section>
+      {/* Conteúdo scrollável */}
+      <div 
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '16px',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
+        <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: '12px', marginBottom: '16px' }}>
+          ÚLTIMA ATUALIZAÇÃO: 27 de junho de 2025
+        </p>
 
-            <section>
-              <h3 className="font-bold text-lg mb-2 text-white" style={{ fontWeight: 600 }}>2. ACEITAÇÃO DOS TERMOS</h3>
-              <p className="mb-2 text-white/90">2.1. Ao criar uma conta no Stater, você concorda integralmente com estes Termos de Uso e Política de Privacidade.</p>
-              <p className="text-white/90">2.2. O uso continuado do aplicativo implica na aceitação de eventuais atualizações destes termos.</p>
-            </section>
+        <div style={{ marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>1. SOBRE O APLICATIVO</h3>
+          <p style={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.5, marginBottom: '8px' }}>
+            1.1. O Stater é um aplicativo de assistente financeiro inteligente que utiliza Inteligência Artificial para ajudar usuários a gerenciar suas finanças pessoais.
+          </p>
+          <p style={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>
+            1.2. O aplicativo oferece funcionalidades como análise de extratos, chat com IA, controle de gastos, relatórios financeiros e integração com bot do Telegram.
+          </p>
+        </div>
 
-            <section>
-              <h3 className="font-bold text-lg mb-2 text-white" style={{ fontWeight: 600 }}>3. FUNCIONALIDADES GRATUITAS E PAGAS</h3>
-              <p className="mb-2 text-white/90">3.1. O Stater oferece funcionalidades básicas gratuitas e recursos premium pagos.</p>
-              
-              <div 
-                className="p-4 rounded-lg mb-2"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(10px)'
-                }}
-              >
-                <p className="font-semibold text-white mb-2" style={{ fontWeight: 600 }}>3.2. PAGAMENTOS VIA GOOGLE PLAY:</p>
-                <ul className="list-disc list-inside space-y-1 text-white/90">
-                  <li>Todos os pagamentos de funcionalidades premium são processados exclusivamente através do Google Play Billing</li>
-                  <li>A Google é responsável por toda a parte de cobrança, faturamento e processamento de pagamentos</li>
-                  <li>Devoluções, estornos, contestações e questões de pagamento devem ser direcionadas diretamente à Google Play Store</li>
-                  <li>O Stater não tem acesso direto aos dados de pagamento dos usuários</li>
-                  <li>As políticas de reembolso seguem os termos e condições da Google Play Store</li>
-                  <li>Para cancelar assinaturas, o usuário deve acessar sua conta Google Play</li>
-                </ul>
-              </div>
-              
-              <p className="text-white/90">3.3. O Stater não armazena dados de cartão de crédito ou informações financeiras de pagamento.</p>
-            </section>
+        <div style={{ marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>2. ACEITAÇÃO DOS TERMOS</h3>
+          <p style={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.5, marginBottom: '8px' }}>
+            2.1. Ao criar uma conta no Stater, você concorda integralmente com estes Termos de Uso e Política de Privacidade.
+          </p>
+          <p style={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>
+            2.2. O uso continuado do aplicativo implica na aceitação de eventuais atualizações destes termos.
+          </p>
+        </div>
 
-            <section>
-              <h3 className="font-bold text-lg mb-2 text-white" style={{ fontWeight: 600 }}>4. COLETA E TRATAMENTO DE DADOS (LGPD)</h3>
-              <div 
-                className="p-4 rounded-lg"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(10px)'
-                }}
-              >
-                <p className="font-semibold mb-2 text-white" style={{ fontWeight: 600 }}>4.1. DADOS COLETADOS:</p>
-                <ul className="list-disc list-inside space-y-1 text-white/90">
-                  <li>Informações de cadastro (nome, email)</li>
-                  <li>Dados financeiros inseridos pelo usuário</li>
-                  <li>Conversas com a IA</li>
-                  <li>Dados de uso do aplicativo</li>
-                  <li>Informações do Telegram (quando conectado)</li>
-                </ul>
-              </div>
-            </section>
-
-            <section>
-              <h3 className="font-bold text-lg mb-2 text-white" style={{ fontWeight: 600 }}>5. SEUS DIREITOS (LGPD)</h3>
-              <p className="mb-2 text-white/90">Você tem direito a:</p>
-              <ul className="list-disc list-inside space-y-1 text-white/90">
-                <li>Confirmação da existência de tratamento</li>
-                <li>Acesso aos dados</li>
-                <li>Correção de dados incompletos/incorretos</li>
-                <li>Anonimização, bloqueio ou eliminação</li>
-                <li>Portabilidade dos dados</li>
-                <li>Eliminação dos dados</li>
-                <li>Revogação do consentimento</li>
-              </ul>
-            </section>
-
-            <section 
-              className="p-4 rounded-lg"
-              style={{
-                background: 'rgba(245, 158, 11, 0.2)',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
-                backdropFilter: 'blur(10px)'
-              }}
-            >
-              <h3 className="font-bold text-lg mb-2 text-yellow-200" style={{ fontWeight: 600 }}>📧 CONTATO E ENCARREGADO DE DADOS</h3>
-              <p className="text-yellow-100">Para exercer seus direitos, dúvidas ou solicitações relacionadas aos dados:</p>
-              <p className="font-bold text-yellow-200" style={{ fontWeight: 600 }}>Email: staterbills@gmail.com</p>
-              <p className="text-sm text-yellow-100/80">Assunto: [LGPD] + sua solicitação</p>
-            </section>
-
-            <section>
-              <h3 className="font-bold text-lg mb-2 text-white" style={{ fontWeight: 600 }}>6. SEGURANÇA DOS DADOS</h3>
-              <p className="text-white/90">Implementamos medidas técnicas e organizacionais para proteger seus dados, utilizando criptografia e armazenamento seguro.</p>
-            </section>
-
-            <section>
-              <h3 className="font-bold text-lg mb-2 text-white" style={{ fontWeight: 600 }}>7. LEI APLICÁVEL</h3>
-              <p className="text-white/90">Estes termos são regidos pela legislação brasileira (LGPD - Lei nº 13.709/2018).</p>
-            </section>
+        <div style={{ marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>3. FUNCIONALIDADES GRATUITAS E PAGAS</h3>
+          <p style={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.5, marginBottom: '8px' }}>
+            3.1. O Stater oferece funcionalidades básicas gratuitas e recursos premium pagos.
+          </p>
+          <div style={{ 
+            background: 'rgba(255,255,255,0.1)', 
+            border: '1px solid rgba(255,255,255,0.2)', 
+            borderRadius: '8px', 
+            padding: '12px',
+            marginBottom: '8px'
+          }}>
+            <p style={{ fontWeight: 600, marginBottom: '8px' }}>3.2. PAGAMENTOS:</p>
+            <ul style={{ paddingLeft: '20px', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6 }}>
+              <li>Pagamentos processados via Stripe ou Google Play</li>
+              <li>O Stater não armazena dados de cartão de crédito</li>
+              <li>Para cancelar assinaturas, acesse sua conta</li>
+            </ul>
           </div>
         </div>
 
-        <div 
-          className="p-4 pt-2 border-t border-white/30 space-y-4 flex-shrink-0"
-          style={{
-            background: '#2a4a7a'
-          }}
-        >
-          <div className="space-y-3">
-            <div 
-              onClick={() => setTermsAccepted(!termsAccepted)}
-              className="flex items-start space-x-4 p-4 rounded-lg cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all"
-              style={{
-                background: termsAccepted ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                border: termsAccepted ? '2px solid #22c55e' : '2px solid rgba(255, 255, 255, 0.3)',
-              }}
-            >
-              <div 
-                className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center mt-0.5"
-                style={{
-                  backgroundColor: termsAccepted ? '#22c55e' : 'transparent',
-                  border: termsAccepted ? '2px solid #22c55e' : '2px solid #ffffff',
-                }}
-              >
-                {termsAccepted && (
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </div>
-              <span className="text-base font-medium leading-6 text-white select-none">
-                Li e aceito os Termos de Uso e Política de Privacidade do Stater
-              </span>
-            </div>
-
-            <div 
-              onClick={() => setDataProcessingAccepted(!dataProcessingAccepted)}
-              className="flex items-start space-x-4 p-4 rounded-lg cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all"
-              style={{
-                background: dataProcessingAccepted ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                border: dataProcessingAccepted ? '2px solid #22c55e' : '2px solid rgba(255, 255, 255, 0.3)',
-              }}
-            >
-              <div 
-                className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center mt-0.5"
-                style={{
-                  backgroundColor: dataProcessingAccepted ? '#22c55e' : 'transparent',
-                  border: dataProcessingAccepted ? '2px solid #22c55e' : '2px solid #ffffff',
-                }}
-              >
-                {dataProcessingAccepted && (
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </div>
-              <span className="text-base font-medium leading-6 text-white select-none">
-                Autorizo o tratamento dos meus dados pessoais conforme descrito acima (LGPD)
-              </span>
-            </div>
-          </div>
-
-          <div 
-            className="flex flex-col gap-3 pt-2 safe-bottom"
-            style={{
-              paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
-              pointerEvents: 'auto'
-            }}
-          >
-            <Button 
-              onClick={handleAccept}
-              disabled={!allAccepted || isAccepting}
-              className="w-full font-bold order-1"
-              style={{ 
-                backgroundColor: !allAccepted || isAccepting ? 'rgba(255, 255, 255, 0.3)' : '#22c55e',
-                color: '#ffffff',
-                border: '2px solid rgba(255, 255, 255, 0.5)',
-                fontWeight: 700,
-                padding: '16px 24px',
-                fontSize: '18px',
-                minHeight: '56px',
-                borderRadius: '12px',
-                boxShadow: allAccepted ? '0 4px 12px rgba(34, 197, 94, 0.4)' : 'none',
-                pointerEvents: 'auto',
-                touchAction: 'manipulation'
-              }}
-            >
-              {isAccepting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-              {isAccepting 
-                ? 'Salvando...' 
-                : allAccepted 
-                  ? '✓ Aceitar e Continuar' 
-                  : 'Aceite ambos os termos'
-              }
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={onClose}
-              className="w-full order-2"
-              disabled={isAccepting}
-              style={{
-                border: '2px solid rgba(255, 255, 255, 0.5)',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                color: '#ffffff',
-                fontSize: '16px',
-                fontWeight: 600,
-                minHeight: '48px',
-                borderRadius: '12px',
-                pointerEvents: 'auto',
-                touchAction: 'manipulation'
-              }}
-            >
-              Cancelar
-            </Button>
+        <div style={{ marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>4. COLETA DE DADOS (LGPD)</h3>
+          <div style={{ 
+            background: 'rgba(255,255,255,0.1)', 
+            border: '1px solid rgba(255,255,255,0.2)', 
+            borderRadius: '8px', 
+            padding: '12px' 
+          }}>
+            <p style={{ fontWeight: 600, marginBottom: '8px' }}>Dados coletados:</p>
+            <ul style={{ paddingLeft: '20px', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6 }}>
+              <li>Informações de cadastro (nome, email)</li>
+              <li>Dados financeiros inseridos pelo usuário</li>
+              <li>Conversas com a IA</li>
+              <li>Dados de uso do aplicativo</li>
+            </ul>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        <div style={{ marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>5. SEUS DIREITOS</h3>
+          <ul style={{ paddingLeft: '20px', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6 }}>
+            <li>Acesso aos dados</li>
+            <li>Correção de dados incorretos</li>
+            <li>Eliminação dos dados</li>
+            <li>Portabilidade dos dados</li>
+            <li>Revogação do consentimento</li>
+          </ul>
+        </div>
+
+        <div style={{ 
+          background: 'rgba(245, 158, 11, 0.2)', 
+          border: '1px solid rgba(245, 158, 11, 0.4)', 
+          borderRadius: '8px', 
+          padding: '12px',
+          marginBottom: '20px'
+        }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px', color: '#fef08a' }}>📧 CONTATO</h3>
+          <p style={{ color: '#fef9c3' }}>Email: staterbills@gmail.com</p>
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>6. LEI APLICÁVEL</h3>
+          <p style={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>
+            Estes termos são regidos pela legislação brasileira (LGPD - Lei nº 13.709/2018).
+          </p>
+        </div>
+      </div>
+
+      {/* Footer com checkboxes e botões */}
+      <div 
+        style={{
+          padding: '16px',
+          paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
+          background: '#2a4a7a',
+          borderTop: '1px solid rgba(255,255,255,0.2)',
+          flexShrink: 0,
+        }}
+      >
+        {/* Checkbox 1 */}
+        <button
+          type="button"
+          onClick={() => setTermsAccepted(!termsAccepted)}
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '12px',
+            width: '100%',
+            padding: '14px',
+            marginBottom: '12px',
+            background: termsAccepted ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255,255,255,0.1)',
+            border: termsAccepted ? '2px solid #22c55e' : '2px solid rgba(255,255,255,0.3)',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            textAlign: 'left',
+            color: '#ffffff',
+          }}
+        >
+          <div style={{
+            width: '24px',
+            height: '24px',
+            borderRadius: '4px',
+            border: termsAccepted ? '2px solid #22c55e' : '2px solid #ffffff',
+            background: termsAccepted ? '#22c55e' : 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            {termsAccepted && (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </div>
+          <span style={{ fontSize: '14px', lineHeight: 1.4 }}>
+            Li e aceito os Termos de Uso e Política de Privacidade do Stater
+          </span>
+        </button>
+
+        {/* Checkbox 2 */}
+        <button
+          type="button"
+          onClick={() => setDataProcessingAccepted(!dataProcessingAccepted)}
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '12px',
+            width: '100%',
+            padding: '14px',
+            marginBottom: '16px',
+            background: dataProcessingAccepted ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255,255,255,0.1)',
+            border: dataProcessingAccepted ? '2px solid #22c55e' : '2px solid rgba(255,255,255,0.3)',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            textAlign: 'left',
+            color: '#ffffff',
+          }}
+        >
+          <div style={{
+            width: '24px',
+            height: '24px',
+            borderRadius: '4px',
+            border: dataProcessingAccepted ? '2px solid #22c55e' : '2px solid #ffffff',
+            background: dataProcessingAccepted ? '#22c55e' : 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            {dataProcessingAccepted && (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </div>
+          <span style={{ fontSize: '14px', lineHeight: 1.4 }}>
+            Autorizo o tratamento dos meus dados pessoais conforme descrito acima (LGPD)
+          </span>
+        </button>
+
+        {/* Botão Aceitar */}
+        <button
+          type="button"
+          onClick={handleAccept}
+          disabled={!allAccepted || isAccepting}
+          style={{
+            width: '100%',
+            padding: '16px',
+            marginBottom: '10px',
+            background: allAccepted && !isAccepting ? '#22c55e' : 'rgba(255,255,255,0.2)',
+            border: 'none',
+            borderRadius: '12px',
+            color: '#ffffff',
+            fontSize: '16px',
+            fontWeight: 600,
+            cursor: allAccepted && !isAccepting ? 'pointer' : 'not-allowed',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+          }}
+        >
+          {isAccepting && <Loader2 className="h-5 w-5 animate-spin" />}
+          {isAccepting ? 'Salvando...' : allAccepted ? '✓ Aceitar e Continuar' : 'Aceite ambos os termos'}
+        </button>
+
+        {/* Botão Cancelar */}
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={isAccepting}
+          style={{
+            width: '100%',
+            padding: '14px',
+            background: 'transparent',
+            border: '2px solid rgba(255,255,255,0.3)',
+            borderRadius: '12px',
+            color: '#ffffff',
+            fontSize: '14px',
+            fontWeight: 500,
+            cursor: isAccepting ? 'not-allowed' : 'pointer',
+          }}
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
   );
 };

@@ -10,7 +10,7 @@ import { AdManager } from '@/utils/adManager';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
 import { 
   CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
-  Edit, MoreVertical, Trash, Calendar, Mail, Bell, X
+  Edit, MoreVertical, Trash, Calendar, Mail, X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -562,27 +562,15 @@ const BillsPage: React.FC = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-                      ✨ Novo
+                      ✨ Ativo
                     </span>
                   </div>
                   <h3 className="text-white font-bold text-base leading-tight mb-1">
-                    Receba lembretes por e-mail
+                    Lembretes por e-mail ativados!
                   </h3>
                   <p className="text-white/70 text-sm leading-snug">
-                    Nunca mais esqueça de pagar uma conta! Enviamos um e-mail diário com suas contas próximas do vencimento.
+                    Toda semana você receberá um resumo das suas contas a vencer nos próximos 7 dias. Basta criar contas com a opção "Notificar" ativada.
                   </p>
-                  
-                  <button
-                    onClick={() => navigate('/profile')}
-                    className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all duration-200 hover:scale-105"
-                    style={{
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                      boxShadow: '0 2px 10px rgba(16, 185, 129, 0.3)',
-                    }}
-                  >
-                    <Bell size={16} />
-                    Ativar Notificações
-                  </button>
                 </div>
               </div>
             </div>

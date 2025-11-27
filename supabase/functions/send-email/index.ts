@@ -27,6 +27,7 @@ interface EmailRequest {
     pendingBills?: number;
     upcomingBills?: { name: string; amount: number; dueDate: string }[];
     bills?: BillForEmail[];
+    overdueBills?: BillForEmail[]; // Contas vencidas
   };
 }
 
@@ -71,7 +72,8 @@ serve(async (req) => {
         case 'bills-digest':
           emailHtml = billsDigestTemplate(
             data?.userName || '',
-            data?.bills || data?.upcomingBills || []
+            data?.bills || data?.upcomingBills || [],
+            data?.overdueBills || [] // Contas vencidas
           );
           break;
         case 'welcome':

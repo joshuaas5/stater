@@ -100,31 +100,33 @@ export interface BillForEmail {
 }
 
 // ============================================
-// TEMPLATE PRINCIPAL: RESUMO DE CONTAS A VENCER
-// Um único email com todas as contas organizadas por urgência
+// TEMPLATE PRINCIPAL: RESUMO SEMANAL DE CONTAS
+// Enviado 1x por semana com contas a vencer nos próximos 7 dias + vencidas
 // ============================================
 export const billsDigestTemplate = (
   userName: string,
-  bills: BillForEmail[]
+  bills: BillForEmail[],
+  overdueBills: BillForEmail[] = [] // Contas já vencidas (não pagas)
 ) => {
   const firstName = userName ? userName.split(' ')[0] : '';
   
-  // Separar contas por urgência
+  // Separar contas A VENCER por urgência (0 a 7 dias)
   const today: BillForEmail[] = [];
   const tomorrow: BillForEmail[] = [];
   const thisWeek: BillForEmail[] = [];
-  const later: BillForEmail[] = [];
   
   bills.forEach(bill => {
     const days = getDaysUntil(bill.dueDate);
-    if (days <= 0) today.push(bill);
+    if (days === 0) today.push(bill);
     else if (days === 1) tomorrow.push(bill);
-    else if (days <= 7) thisWeek.push(bill);
-    else later.push(bill);
+    else if (days >= 2 && days <= 7) thisWeek.push(bill);
+    // Ignora contas com mais de 7 dias (não serão mostradas)
   });
 
-  // Calcular total
-  const totalAmount = bills.reduce((sum, b) => sum + b.amount, 0);
+  // Calcular totais
+  const upcomingBills = [...today, ...tomorrow, ...thisWeek];
+  const totalUpcoming = upcomingBills.reduce((sum, b) => sum + b.amount, 0);
+  const totalOverdue = overdueBills.reduce((sum, b) => sum + b.amount, 0);
   const urgentCount = today.length + tomorrow.length;
 
   // Gerar seção de contas
@@ -172,18 +174,23 @@ export const billsDigestTemplate = (
 
   // Mensagem de saudação baseada na urgência
   let greetingEmoji = '📊';
-  let greetingText = 'Confira suas contas a vencer';
+  let greetingText = 'Resumo semanal das suas contas';
   
-  if (today.length > 0) {
+  if (overdueBills.length > 0) {
+    greetingEmoji = '🔴';
+    greetingText = `Atenção! ${overdueBills.length} conta${overdueBills.length > 1 ? 's' : ''} vencida${overdueBills.length > 1 ? 's' : ''}`;
+  } else if (today.length > 0) {
     greetingEmoji = '🚨';
     greetingText = `Você tem ${today.length} conta${today.length > 1 ? 's' : ''} vencendo hoje!`;
   } else if (tomorrow.length > 0) {
     greetingEmoji = '⚠️';
-    greetingText = `Atenção! ${tomorrow.length} conta${tomorrow.length > 1 ? 's' : ''} vence${tomorrow.length > 1 ? 'm' : ''} amanhã`;
+    greetingText = `${tomorrow.length} conta${tomorrow.length > 1 ? 's' : ''} vence${tomorrow.length > 1 ? 'm' : ''} amanhã`;
   } else if (thisWeek.length > 0) {
     greetingEmoji = '📅';
-    greetingText = 'Suas contas desta semana';
+    greetingText = 'Suas contas da semana';
   }
+
+  const totalGeral = totalUpcoming + totalOverdue;
 
   const content = `
     <!-- CARD PRINCIPAL -->
@@ -210,22 +217,25 @@ export const billsDigestTemplate = (
                 <table width="100%" cellpadding="0" cellspacing="0" border="0">
                   <tr>
                     <td width="50%">
-                      <p style="margin: 0 0 2px; font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px;">Total a pagar</p>
-                      <p style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff;">${formatCurrency(totalAmount)}</p>
+                      <p style="margin: 0 0 2px; font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px;">Total geral</p>
+                      <p style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff;">${formatCurrency(totalGeral)}</p>
                     </td>
                     <td width="50%" style="text-align: right;">
                       <p style="margin: 0 0 2px; font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px;">Contas</p>
-                      <p style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff;">${bills.length}</p>
+                      <p style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff;">${upcomingBills.length + overdueBills.length}</p>
                     </td>
                   </tr>
                 </table>
-                ${urgentCount > 0 ? `
+                ${(urgentCount > 0 || overdueBills.length > 0) ? `
                 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
                   <tr>
                     <td>
-                      <span style="display: inline-block; background-color: rgba(239,68,68,0.2); color: #fca5a5; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">
+                      ${overdueBills.length > 0 ? `<span style="display: inline-block; background-color: rgba(239,68,68,0.3); color: #fca5a5; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-right: 8px;">
+                        🔴 ${overdueBills.length} vencida${overdueBills.length > 1 ? 's' : ''}
+                      </span>` : ''}
+                      ${urgentCount > 0 ? `<span style="display: inline-block; background-color: rgba(251,191,36,0.2); color: #fcd34d; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">
                         ⚡ ${urgentCount} urgente${urgentCount > 1 ? 's' : ''}
-                      </span>
+                      </span>` : ''}
                     </td>
                   </tr>
                 </table>
@@ -239,10 +249,10 @@ export const billsDigestTemplate = (
       <!-- LISTA DE CONTAS POR URGÊNCIA -->
       <tr>
         <td style="padding: 0 24px 24px;">
+          ${generateBillSection('Contas vencidas', '🔴', '#f87171', '#2d1a1a', overdueBills)}
           ${generateBillSection('Vence hoje', '🚨', '#fca5a5', '#2a1a1a', today)}
           ${generateBillSection('Vence amanhã', '⚠️', '#fdba74', '#2a2214', tomorrow)}
-          ${generateBillSection('Esta semana', '📅', '#93c5fd', '#1a1f2a', thisWeek)}
-          ${generateBillSection('Próximas', '📋', '#a1a1aa', '#1a1a1f', later)}
+          ${generateBillSection('Próximos 7 dias', '📅', '#93c5fd', '#1a1f2a', thisWeek)}
         </td>
       </tr>
       
@@ -258,9 +268,9 @@ export const billsDigestTemplate = (
     </table>
   `;
 
-  const previewText = urgentCount > 0 
-    ? `🚨 ${urgentCount} conta${urgentCount > 1 ? 's' : ''} urgente${urgentCount > 1 ? 's' : ''} - Total: ${formatCurrency(totalAmount)}`
-    : `📊 ${bills.length} contas a vencer - Total: ${formatCurrency(totalAmount)}`;
+  const previewText = overdueBills.length > 0 
+    ? `🔴 ${overdueBills.length} vencida${overdueBills.length > 1 ? 's' : ''} + ${upcomingBills.length} a vencer - Total: ${formatCurrency(totalGeral)}`
+    : `📊 ${upcomingBills.length} contas a vencer - Total: ${formatCurrency(totalUpcoming)}`;
 
   return baseTemplate(content, previewText);
 };

@@ -225,7 +225,7 @@ export function PaywallModal({ isOpen, onClose, trigger, userId }: PaywallModalP
                 
                 <div className="flex items-baseline justify-center gap-1 mt-3">
                   <span className="text-lg text-white/50 font-medium">R$</span>
-                  <span className="text-5xl font-extrabold text-white tracking-tight">14</span>
+                  <span className="text-5xl font-extrabold text-white tracking-tight">19</span>
                   <span className="text-2xl font-bold text-white">,90</span>
                   <span className="text-white/50 ml-1">/mês</span>
                 </div>

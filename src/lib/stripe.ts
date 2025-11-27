@@ -29,14 +29,24 @@ export const getStripe = () => {
 
 /**
  * ID do preço PRO configurado no Stripe Dashboard (Produção)
- * Price ID: price_1SXpCw2HBVUtKi5tQOUjW5py - R$ 14,90/mês
+ * 
+ * ATENÇÃO: O preço de R$ 14,90 precisa ser criado no Stripe Dashboard!
+ * Por enquanto usando o mensal de R$ 19,90 que já existe.
+ * 
+ * Para criar o preço de R$ 14,90:
+ * 1. Acesse https://dashboard.stripe.com/products
+ * 2. Crie um produto "Stater PRO" 
+ * 3. Adicione um preço de R$ 14,90/mês recorrente
+ * 4. Copie o Price ID (price_xxx) e substitua abaixo
+ * 
+ * Price ID atual (Mensal R$ 19,90): price_1SIZz12HBVUtKi5tFtu75oX4
  */
-export const STRIPE_PRICE_PRO = 'price_1SXpCw2HBVUtKi5tQOUjW5py';
+export const STRIPE_PRICE_PRO = 'price_1SIZz12HBVUtKi5tFtu75oX4';
 
 /**
- * Preço em reais (para display)
+ * Preço em reais (para display) - ATUALIZAR quando criar preço de R$ 14,90
  */
-export const PRO_PRICE_BRL = 14.90;
+export const PRO_PRICE_BRL = 19.90; // Temporário até criar preço de 14,90
 
 /**
  * Descrição do plano

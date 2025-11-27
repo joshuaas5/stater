@@ -48,6 +48,9 @@ serve(async (req) => {
       throw new Error(`Preço não encontrado no Stripe: ${priceId}. Erro: ${priceError.message}`);
     }
 
+    // URL base do app
+    const appUrl = successUrl?.split('/dashboard')[0] || req.headers.get('origin') || 'https://stater.app';
+
     // Criar Checkout Session
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -60,8 +63,8 @@ serve(async (req) => {
       ],
       customer_email: userEmail,
       client_reference_id: userId, // Vincular ao usuário Supabase
-      success_url: successUrl || `${req.headers.get('origin')}/dashboard?payment=success`,
-      cancel_url: cancelUrl || `${req.headers.get('origin')}/dashboard?payment=canceled`,
+      success_url: successUrl || `${appUrl}/dashboard?payment=success`,
+      cancel_url: cancelUrl || `${appUrl}/dashboard?payment=canceled`,
       metadata: {
         userId: userId,
         timestamp: new Date().toISOString(),

@@ -1,32 +1,32 @@
-/* Otimizações de performance para NavBar */
+/* Otimizações de performance para NavBar - COMPACTO para mobile */
 .navbar-optimized {
   position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
   right: 0 !important;
   width: 100% !important;
-  height: 95px; /* Aumentando a altura para ficar mais bonita */
+  height: 64px; /* Altura compacta para mobile */
   z-index: 999;
-  background: #31518b; /* Background simples e sólido */
+  background: #31518b;
   backdrop-filter: blur(5px);
   border-top: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
   box-sizing: border-box;
   display: flex;
   overscroll-behavior: none;
-  /* CRÍTICO: Forçar posição fixa com transform correto */
   transform: translateZ(0) !important;
   will-change: transform;
-  /* Garantir que não seja removido por outros elementos */
   contain: layout;
+  /* Safe area para iPhones com notch */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .navbar-content {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  height: 95px; /* Atualizando para nova altura */
-  padding: 0.9rem 0.6rem; /* Padding ligeiramente maior */
+  height: 64px;
+  padding: 0.4rem 0.3rem;
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
@@ -37,32 +37,36 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 76px; /* Tamanho original */
-  padding: 0.5rem 0.7rem; /* Padding original */
-  border-radius: 0.875rem; /* Arredondamento original */
-  transition: background-color 0.2s ease; /* Transição simples */
+  min-width: 56px;
+  padding: 0.3rem 0.4rem;
+  border-radius: 0.75rem;
+  transition: background-color 0.2s ease;
   background-color: transparent;
   border: none;
   cursor: pointer;
+  gap: 2px;
 }
 
 .navbar-button:hover {
-  background-color: rgba(255, 255, 255, 0.1); /* Hover simples */
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .navbar-button-active {
-  background-color: rgba(255, 255, 255, 0.2);
-  /* Borda em CSS em vez de estilo inline */
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .navbar-icon-container {
-  margin-bottom: 0.3rem;
+  margin-bottom: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .navbar-icon {
   color: white;
+  width: 20px;
+  height: 20px;
 }
 
 .navbar-icon-active {
@@ -70,31 +74,29 @@
 }
 
 .navbar-label {
-  font-size: 0.82rem;
+  font-size: 0.65rem;
   color: white;
   font-weight: 500;
-  opacity: 0.9;
+  opacity: 0.85;
+  line-height: 1;
 }
 
 .navbar-label-active {
   opacity: 1;
+  font-weight: 600;
 }
 
 .navbar-indicator {
-  width: 1.5rem;
-  height: 0.125rem;
-  background-color: white;
-  border-radius: 9999px;
-  margin-top: 0.25rem;
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+  display: none; /* Remover indicador extra para economizar espaço */
 }
 
 .navbar-logo-text {
-  font-size: 0.82rem;
+  font-size: 0.6rem;
   font-weight: 700;
   color: white;
   font-family: 'Fredoka One', 'Comic Sans MS', Poppins, sans-serif;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  line-height: 1;
 }
 
 /* Otimizações específicas para mobile - ULTRA-PERFORMANCE */

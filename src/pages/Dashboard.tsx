@@ -279,13 +279,49 @@ const Dashboard: React.FC = () => {
         // 4. Sincronização removida para evitar loops - a sincronização é feita automaticamente pelo saveTransaction
         console.log('🔧 [Dashboard] Inicialização completa - sincronização automática ativa');
         
-        // 5. Verificar plano do usuário (PRO ou FREE)
-        if (mounted && user?.id) {
+        // 5. Verificar plano do usuário (PRO ou FREE) - COM SINCRONIZAÇÃO STRIPE
+        if (mounted && user?.id && user?.email) {
           try {
+            // Primeiro verificar no banco de dados local
             const userPlan = await UserPlanManager.getUserPlan(user.id);
-            const isPro = userPlan.planType !== PlanType.FREE;
+            let isPro = userPlan.planType !== PlanType.FREE;
+            
+            // Se não é PRO no banco, verificar no Stripe (caso o webhook tenha falhado)
+            if (!isPro) {
+              console.log('🔍 [PLAN] Verificando status no Stripe...');
+              try {
+                const response = await fetch(
+                  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-subscription`,
+                  {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                    },
+                    body: JSON.stringify({
+                      userId: user.id,
+                      userEmail: user.email,
+                    }),
+                  }
+                );
+                
+                if (response.ok) {
+                  const data = await response.json();
+                  console.log('🔍 [PLAN] Resultado Stripe:', data);
+                  
+                  if (data.isPro) {
+                    isPro = true;
+                    console.log('✅ [PLAN] Assinatura ativa no Stripe! Sincronizado.');
+                    // A Edge Function já atualiza o banco de dados
+                  }
+                }
+              } catch (stripeError) {
+                console.warn('⚠️ [PLAN] Erro ao verificar Stripe (offline?):', stripeError);
+              }
+            }
+            
             setIsProUser(isPro);
-            console.log('💎 [PLAN] Plano do usuário:', userPlan.planType, 'isPro:', isPro);
+            console.log('💎 [PLAN] Plano do usuário:', isPro ? 'PRO' : 'FREE');
           } catch (err) {
             console.error('❌ [PLAN] Erro ao verificar plano:', err);
           }

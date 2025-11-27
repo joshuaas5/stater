@@ -29,7 +29,7 @@ import { UserPlanManager } from '@/utils/userPlanManager';
 import { AdManager } from '@/utils/adManager';
 import { RecurringTransactionLimitManager } from '@/utils/recurringTransactionLimit';
 import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
-import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star, Trash } from 'lucide-react';
+import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star, Trash, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from "@/components/ui/input";
@@ -924,28 +924,59 @@ const Dashboard: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-3">
-              {/* Botão Stater Premium / PRO Status */}
+              {/* Botão PRO - Design premium consistente com paywall */}
               <button
                 onClick={() => {
-                  console.log('🎯 [PREMIUM] Usuário clicou em Premium, isProUser:', isProUser);
+                  console.log('🎯 [PRO] Usuário clicou no botão PRO, isProUser:', isProUser);
                   if (isProUser) {
                     setShowProStatusModal(true);
                   } else {
                     setShowPaywallModal(true);
                   }
                 }}
-                className={isProUser 
-                  ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full font-bold text-sm hover:from-purple-600 hover:to-pink-600 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2"
-                  : "bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-4 py-2 rounded-full font-bold text-sm hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2 pulse"
-                }
                 style={{
+                  background: isProUser 
+                    ? 'linear-gradient(135deg, #10b981 0%, #34d399 100%)'
+                    : 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                  padding: '8px 16px',
+                  borderRadius: '100px',
+                  border: isProUser 
+                    ? '1px solid rgba(16, 185, 129, 0.3)'
+                    : '1px solid rgba(139, 92, 246, 0.3)',
                   boxShadow: isProUser 
-                    ? '0 4px 15px rgba(139, 92, 246, 0.5)' 
-                    : '0 4px 15px rgba(251, 191, 36, 0.4)'
+                    ? '0 4px 20px rgba(16, 185, 129, 0.4)'
+                    : '0 4px 20px rgba(139, 92, 246, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  transform: 'scale(1)',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = isProUser 
+                    ? '0 6px 25px rgba(16, 185, 129, 0.5)'
+                    : '0 6px 25px rgba(139, 92, 246, 0.5)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = isProUser 
+                    ? '0 4px 20px rgba(16, 185, 129, 0.4)'
+                    : '0 4px 20px rgba(139, 92, 246, 0.4)';
                 }}
               >
-                <Star className="h-4 w-4" fill={isProUser ? "currentColor" : "none"} />
-                {isProUser ? 'PRO' : 'Premium'}
+                {isProUser ? (
+                  <>
+                    <span style={{ fontSize: '14px' }}>✓</span>
+                    <span style={{ color: '#fff', fontWeight: 700, fontSize: '13px', letterSpacing: '0.5px' }}>PRO</span>
+                  </>
+                ) : (
+                  <>
+                    <Crown style={{ width: '14px', height: '14px', color: '#fff' }} />
+                    <span style={{ color: '#fff', fontWeight: 700, fontSize: '13px', letterSpacing: '0.5px' }}>PRO</span>
+                  </>
+                )}
               </button>
               
               {/* Notification Icon */}

@@ -32,7 +32,7 @@ input, select, textarea {
 }
 
 .safe-area-padding-top {
-  padding-top: env(safe-area-inset-top);
+  padding-top: 0; /* REMOVIDO para não criar faixa no topo do site */
 }
 
 .safe-area-padding-bottom {

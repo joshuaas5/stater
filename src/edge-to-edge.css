@@ -32,7 +32,7 @@
 
 /* Conteúdo com safe areas */
 .safe-area-content {
-  padding-top: env(safe-area-inset-top, 24px);
+  padding-top: 0; /* REMOVIDO - Não criar faixa no topo */
   padding-left: env(safe-area-inset-left, 16px);
   padding-right: env(safe-area-inset-right, 16px);
   padding-bottom: env(safe-area-inset-bottom, 16px);

@@ -7,7 +7,9 @@ import { formatCurrency, getOverdueBills, getBillsDueInNextDays } from '@/utils/
 import { useToast } from '@/hooks/use-toast';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { AdManager } from '@/utils/adManager';
+import { AdCooldownManager } from '@/utils/adCooldownManager';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
+import { AdCooldownStatus } from '@/components/monetization/AdCooldownStatus';
 import { 
   CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
   Edit, MoreVertical, Trash, Calendar, Mail, X, Send, Loader2

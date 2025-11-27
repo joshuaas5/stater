@@ -17,7 +17,7 @@ export const baseTemplate = (content: string, previewText: string = '') => `
   <title>Stater</title>
   <style>
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; background-color: #0a0a0f; }
+    body { margin: 0; padding: 0; background-color: #31518b; }
     @media (max-width: 600px) {
       .container { width: 100% !important; padding: 16px !important; }
       .card { padding: 20px !important; }
@@ -25,11 +25,11 @@ export const baseTemplate = (content: string, previewText: string = '') => `
     }
   </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #0a0a0f; font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased;">
+<body style="margin: 0; padding: 0; background-color: #31518b; font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased;">
   
   <div style="display: none; max-height: 0; overflow: hidden;">${previewText}</div>
 
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #0a0a0f;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #31518b;">
     <tr>
       <td align="center" style="padding: 24px 12px;">
         
@@ -38,8 +38,8 @@ export const baseTemplate = (content: string, previewText: string = '') => `
           <!-- HEADER -->
           <tr>
             <td style="padding: 8px 0 28px; text-align: center;">
-              <img src="${STATER_LOGO_URL}" alt="Stater" width="36" height="36" style="display: inline-block; vertical-align: middle; border-radius: 10px;" />
-              <span style="display: inline-block; vertical-align: middle; margin-left: 10px; font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: -0.3px;">Stater</span>
+              <img src="${STATER_LOGO_URL}" alt="Stater" width="64" height="64" style="display: inline-block; vertical-align: middle; border-radius: 14px;" />
+              <span style="display: inline-block; vertical-align: middle; margin-left: 12px; font-size: 24px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">Stater</span>
             </td>
           </tr>
           
@@ -211,35 +211,38 @@ export const billsDigestTemplate = (
       <!-- RESUMO RÁPIDO -->
       <tr>
         <td style="padding: 0 24px 24px;">
-          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #31518b 0%, #1e3a5f 100%); border-radius: 16px;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: rgba(255,255,255,0.1); border-radius: 16px;">
             <tr>
               <td style="padding: 20px;">
-                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td width="50%">
-                      <p style="margin: 0 0 2px; font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px;">Total geral</p>
-                      <p style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff;">${formatCurrency(totalGeral)}</p>
-                    </td>
-                    <td width="50%" style="text-align: right;">
-                      <p style="margin: 0 0 2px; font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px;">Contas</p>
-                      <p style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff;">${upcomingBills.length + overdueBills.length}</p>
-                    </td>
-                  </tr>
-                </table>
-                ${(urgentCount > 0 || overdueBills.length > 0) ? `
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                
+                ${overdueBills.length > 0 ? `
+                <!-- SEPARADO: VENCIDO -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                   <tr>
                     <td>
-                      ${overdueBills.length > 0 ? `<span style="display: inline-block; background-color: rgba(239,68,68,0.3); color: #fca5a5; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-right: 8px;">
-                        🔴 ${overdueBills.length} vencida${overdueBills.length > 1 ? 's' : ''}
-                      </span>` : ''}
-                      ${urgentCount > 0 ? `<span style="display: inline-block; background-color: rgba(251,191,36,0.2); color: #fcd34d; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">
-                        ⚡ ${urgentCount} urgente${urgentCount > 1 ? 's' : ''}
-                      </span>` : ''}
+                      <p style="margin: 0 0 4px; font-size: 11px; color: #fca5a5; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">🔴 Total Vencido</p>
+                      <p style="margin: 0; font-size: 22px; font-weight: 800; color: #fca5a5;">${formatCurrency(totalOverdue)}</p>
+                    </td>
+                    <td style="text-align: right; vertical-align: bottom;">
+                      <span style="font-size: 12px; color: #fca5a5; font-weight: 600;">${overdueBills.length} conta${overdueBills.length > 1 ? 's' : ''}</span>
                     </td>
                   </tr>
                 </table>
                 ` : ''}
+                
+                <!-- A VENCER -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td>
+                      <p style="margin: 0 0 4px; font-size: 11px; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Próximos 7 dias</p>
+                      <p style="margin: 0; font-size: 22px; font-weight: 800; color: #ffffff;">${formatCurrency(totalUpcoming)}</p>
+                    </td>
+                    <td style="text-align: right; vertical-align: bottom;">
+                      <span style="font-size: 12px; color: #ffffff; font-weight: 600;">${upcomingBills.length} conta${upcomingBills.length > 1 ? 's' : ''}</span>
+                    </td>
+                  </tr>
+                </table>
+
               </td>
             </tr>
           </table>

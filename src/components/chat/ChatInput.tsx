@@ -80,20 +80,43 @@ const ChatInput: React.FC<ChatInputProps> = ({
     const fileName = file.name.toLowerCase();
     const isOFX = fileName.endsWith('.ofx') || fileName.endsWith('.qfx');
     
-    // Se for OFX/QFX, usar callback específico
-    if (isOFX && onFileUpload) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const content = reader.result as string;
-        onFileUpload(file, content);
-      };
-      reader.readAsText(file, 'ISO-8859-1'); // OFX usa este encoding
+    console.log('📂 [ChatInput] Arquivo selecionado:', fileName);
+    console.log('📂 [ChatInput] É OFX?', isOFX);
+    console.log('📂 [ChatInput] onFileUpload disponível?', !!onFileUpload);
+    
+    // Se for OFX/QFX, usar callback específico para processar como texto
+    if (isOFX) {
+      if (onFileUpload) {
+        console.log('📂 [ChatInput] Processando como OFX...');
+        const reader = new FileReader();
+        reader.onload = () => {
+          const content = reader.result as string;
+          console.log('📂 [ChatInput] OFX carregado, tamanho:', content.length);
+          onFileUpload(file, content);
+        };
+        reader.onerror = () => {
+          console.error('❌ [ChatInput] Erro ao ler OFX');
+          toast({
+            title: "Erro ao ler arquivo",
+            description: "Não foi possível ler o arquivo OFX",
+            variant: "destructive"
+          });
+        };
+        reader.readAsText(file, 'ISO-8859-1'); // OFX usa este encoding
+      } else {
+        toast({
+          title: "Funcionalidade indisponível",
+          description: "Importação de OFX não está disponível nesta página",
+          variant: "destructive"
+        });
+      }
       e.target.value = '';
       return;
     }
     
     // Para imagens e outros arquivos, usar o callback de imagem
     if (onImageUpload) {
+      console.log('📂 [ChatInput] Processando como imagem/documento...');
       const reader = new FileReader();
       reader.onload = () => {
         const base64String = reader.result as string;

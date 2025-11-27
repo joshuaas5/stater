@@ -33,7 +33,7 @@ interface EmailRequest {
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 // Domínio próprio verificado no Resend
-const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'Stater <noreply@stater.app>';
+const FROM_EMAIL = 'Stater <noreply@stater.app>';
 
 serve(async (req) => {
   // Handle CORS preflight

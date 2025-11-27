@@ -10,7 +10,7 @@ import { AdManager } from '@/utils/adManager';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
 import { 
   CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
-  Edit, MoreVertical, Trash, Calendar
+  Edit, MoreVertical, Trash, Calendar, Mail, Bell, X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -349,6 +349,16 @@ const BillsPage: React.FC = () => {
 
   const [showEditBillModal, setShowEditBillModal] = useState(false);
   const [editBill, setEditBill] = useState<Bill | null>(null);
+  const [showEmailBanner, setShowEmailBanner] = useState(() => {
+    // Verificar se o usuário já fechou o banner antes
+    const dismissed = localStorage.getItem('email-notification-banner-dismissed');
+    return dismissed !== 'true';
+  });
+
+  const handleDismissEmailBanner = () => {
+    setShowEmailBanner(false);
+    localStorage.setItem('email-notification-banner-dismissed', 'true');
+  };
 
   return (
     <div className="flex flex-col min-h-screen pb-32" style={{ background: '#31518b' }}>
@@ -501,6 +511,84 @@ const BillsPage: React.FC = () => {
           Todas
         </button>
       </div>
+
+      {/* Banner de Notificações por Email */}
+      {showEmailBanner && (
+        <div className="mx-4 mt-4">
+          <div 
+            className="relative overflow-hidden rounded-2xl border border-emerald-400/30"
+            style={{
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(59, 130, 246, 0.15) 50%, rgba(139, 92, 246, 0.15) 100%)',
+              backdropFilter: 'blur(20px)',
+            }}
+          >
+            {/* Efeito de brilho animado */}
+            <div 
+              className="absolute inset-0 opacity-30"
+              style={{
+                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
+                animation: 'shimmer 3s infinite',
+              }}
+            />
+            
+            {/* Botão de fechar */}
+            <button
+              onClick={handleDismissEmailBanner}
+              className="absolute top-2 right-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
+              aria-label="Fechar"
+            >
+              <X size={14} className="text-white/70" />
+            </button>
+            
+            <div className="relative p-4">
+              <div className="flex items-start gap-4">
+                {/* Ícone animado */}
+                <div 
+                  className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)',
+                    boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)',
+                  }}
+                >
+                  <div className="relative">
+                    <Mail size={22} className="text-white" />
+                    <div 
+                      className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-500 border-2 border-white"
+                      style={{ animation: 'pulse 2s infinite' }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                      ✨ Novo
+                    </span>
+                  </div>
+                  <h3 className="text-white font-bold text-base leading-tight mb-1">
+                    Receba lembretes por e-mail
+                  </h3>
+                  <p className="text-white/70 text-sm leading-snug">
+                    Nunca mais esqueça de pagar uma conta! Enviamos um e-mail diário com suas contas próximas do vencimento.
+                  </p>
+                  
+                  <button
+                    onClick={() => navigate('/profile')}
+                    className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all duration-200 hover:scale-105"
+                    style={{
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      boxShadow: '0 2px 10px rgba(16, 185, 129, 0.3)',
+                    }}
+                  >
+                    <Bell size={16} />
+                    Ativar Notificações
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="mt-4 pb-16" style={{ background: '#31518b' }}>
         {getBillsToDisplay().length > 0 ? (

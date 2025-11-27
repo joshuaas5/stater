@@ -21,7 +21,10 @@ const HomePage: React.FC = () => {
               <div className="absolute inset-0 bg-blue-400 blur-md opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
               <img src="/stater-logo-96.png" alt="Stater" className="w-10 h-10 relative z-10 rounded-xl shadow-sm" />
             </div>
-            <span className="font-bold text-2xl tracking-tight">Stater</span>
+            <div className="flex flex-col">
+              <span className="font-bold text-2xl tracking-tight leading-tight">Stater</span>
+              <span className="text-blue-200/80 text-xs font-medium hidden sm:block">Inteligência para Prosperar</span>
+            </div>
           </Link>
           <div className="flex items-center gap-3">
             <Link to="/login" className="hidden sm:block">
@@ -275,9 +278,12 @@ const HomePage: React.FC = () => {
       <footer className="relative z-10 py-12 px-6 border-t border-white/5 bg-[#0a0a0f]/50 backdrop-blur-md">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
           
-          <div className="flex items-center gap-3 hover:opacity-100 transition-opacity">
-            <img src="/stater-logo-96.png" alt="Stater" className="w-8 h-8" />
-            <span className="font-bold text-lg">Stater</span>
+          <div className="flex flex-col items-center md:items-start gap-1 hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-3">
+              <img src="/stater-logo-96.png" alt="Stater" className="w-8 h-8" />
+              <span className="font-bold text-lg">Stater</span>
+            </div>
+            <span className="text-blue-200/60 text-xs font-medium">Inteligência para Prosperar</span>
           </div>
           
           <div className="flex flex-wrap justify-center gap-8 text-sm text-white/40">

@@ -32,11 +32,14 @@ export const baseTemplate = (content: string, previewText: string = '') => `
             <td align="center" style="padding-bottom: 32px;">
               <table cellpadding="0" cellspacing="0">
                 <tr>
-                  <td>
-                    <img src="${STATER_LOGO_URL}" alt="Stater" width="40" height="40" style="display: block; border-radius: 12px;" />
+                  <td colspan="2" align="center">
+                    <img src="${STATER_LOGO_URL}" alt="Stater" width="64" height="64" style="display: block; border-radius: 16px; margin-bottom: 12px;" />
                   </td>
-                  <td style="padding-left: 12px; color: #ffffff; font-size: 18px; font-weight: 700; letter-spacing: -0.5px;">
-                    Stater
+                </tr>
+                <tr>
+                  <td colspan="2" align="center">
+                    <p style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">Stater</p>
+                    <p style="margin: 4px 0 0; color: #a78bfa; font-size: 12px; font-weight: 500; letter-spacing: 0.5px;">Inteligência para Prosperar</p>
                   </td>
                 </tr>
               </table>
@@ -183,7 +186,6 @@ export const billsDigestTemplate = (
   // Gerar card de uma conta individual
   const generateBillCard = (bill: BillForEmail, urgency: 'overdue' | 'today' | 'tomorrow' | 'week') => {
     const days = getDaysUntil(bill.dueDate);
-    const emoji = getCategoryEmoji(bill.category || bill.name);
     
     // Cores baseadas na urgência
     const configs = {
@@ -226,8 +228,8 @@ export const billsDigestTemplate = (
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td width="48" valign="top">
-                  <div style="width: 48px; height: 48px; background: ${config.iconBg}; border-radius: 14px; text-align: center; line-height: 48px; font-size: 22px;">
-                    ${emoji}
+                  <div style="width: 48px; height: 48px; background: ${config.iconBg}; border-radius: 14px; text-align: center; line-height: 48px;">
+                    <div style="width: 12px; height: 12px; background: ${config.badge}; border-radius: 50%; margin: 18px auto;"></div>
                   </div>
                 </td>
                 <td style="padding-left: 16px;" valign="middle">

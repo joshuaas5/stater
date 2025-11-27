@@ -5,7 +5,7 @@ import { isLoggedIn, getUserPreferences, saveUserPreferences, saveSupabaseUserPr
 import { clearAllNotifications } from '@/utils/clearAllNotifications';
 import { 
   Sun, Moon, Bell, Languages, DollarSign, 
-  Calendar, Paintbrush, Save, UserCircle2, Trash2, MessageCircle
+  Calendar, Paintbrush, Save, UserCircle2, Trash2, MessageCircle, Crown, XCircle, Mail, Loader2
 } from 'lucide-react';
 import { CURRENCIES, suggestCurrencyByCountry } from '@/utils/currencies';
 import { getCurrentUser } from '@/utils/localStorage';
@@ -17,13 +17,19 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserPlanManager } from '@/utils/userPlanManager';
+import { PlanType } from '@/types';
 
 const PreferencesPage: React.FC = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  
+  // Estados para gerenciar assinatura PRO
+  const [isProUser, setIsProUser] = useState(false);
+  const [cancellingSubscription, setCancellingSubscription] = useState(false);
   
   const [preferences, setPreferences] = useState({
     theme: 'dark' as 'light' | 'dark' | 'system',
@@ -51,6 +57,20 @@ const PreferencesPage: React.FC = () => {
       navigate('/login');
       return;
     }
+    
+    // Verificar plano do usuário
+    const checkPlan = async () => {
+      if (user?.id) {
+        try {
+          const plan = await UserPlanManager.getUserPlan(user.id);
+          setIsProUser(plan.planType !== PlanType.FREE);
+        } catch (err) {
+          console.error('Erro ao verificar plano:', err);
+        }
+      }
+    };
+    checkPlan();
+    
     // Detectar país e sugerir moeda se não houver preferência
     if (!preferences.currency || preferences.currency === 'USD') {
       try {
@@ -140,6 +160,88 @@ const PreferencesPage: React.FC = () => {
       ...prev,
       [key]: !prev[key]
     }));
+  };
+  
+  // Funções para gerenciar assinatura PRO
+  const handleCancelSubscription = async () => {
+    if (!user?.email) {
+      toast({
+        title: 'Erro',
+        description: 'Usuário não encontrado',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const confirmed = window.confirm(
+      'Tem certeza que deseja cancelar sua assinatura PRO?\n\n' +
+      'Você continuará tendo acesso até o fim do período pago.'
+    );
+
+    if (!confirmed) return;
+
+    setCancellingSubscription(true);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-subscription`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            userEmail: user.email,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: 'Assinatura cancelada',
+          description: 'Você ainda tem acesso PRO até o fim do período atual.',
+        });
+      } else {
+        toast({
+          title: 'Erro ao cancelar',
+          description: data.message || 'Tente novamente mais tarde',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao cancelar:', error);
+      toast({
+        title: 'Erro de conexão',
+        description: 'Não foi possível processar. Tente novamente.',
+        variant: 'destructive'
+      });
+    } finally {
+      setCancellingSubscription(false);
+    }
+  };
+
+  const handleContactSupport = () => {
+    const subject = encodeURIComponent('Suporte Stater PRO');
+    const body = encodeURIComponent(`Olá equipe Stater,
+
+Sou assinante PRO e gostaria de:
+
+[ ] Solicitar reembolso (estou dentro dos 7 dias)
+[ ] Reportar problema técnico
+[ ] Outra questão
+
+Email da conta: ${user?.email || ''}
+
+Descreva seu problema:
+
+
+Obrigado!`);
+    
+    window.open(`mailto:support@stater.app?subject=${subject}&body=${body}`, '_blank');
   };
   
   return (
@@ -258,8 +360,73 @@ const PreferencesPage: React.FC = () => {
             <Button variant="outline" disabled className="flex-1 opacity-50 bg-white/10 text-white/50 border-white/20">English (em breve)</Button>
           </div>
         </div>
+        
+        {/* Seção de Assinatura PRO */}
+        <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
+          <h2 className="text-base font-semibold text-white mb-3 flex items-center">
+            <Crown size={18} className="mr-2 text-yellow-400" /> Assinatura PRO
+          </h2>
           
-
+          {isProUser ? (
+            <div className="space-y-4">
+              {/* Status da assinatura */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-green-500/20 border border-green-500/30">
+                <span className="text-green-300 font-medium">Status</span>
+                <span className="text-green-400 font-semibold flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                  Ativo
+                </span>
+              </div>
+              
+              {/* Botão de Suporte/Reembolso */}
+              <Button
+                variant="outline"
+                className="w-full border-white/20 bg-white/5 text-white/80 hover:bg-white/10"
+                onClick={handleContactSupport}
+              >
+                <Mail size={16} className="mr-2" />
+                Suporte / Solicitar reembolso
+              </Button>
+              
+              {/* Botão de Cancelar */}
+              <Button
+                variant="outline"
+                className="w-full border-red-400/50 bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                onClick={handleCancelSubscription}
+                disabled={cancellingSubscription}
+              >
+                {cancellingSubscription ? (
+                  <>
+                    <Loader2 size={16} className="mr-2 animate-spin" />
+                    Cancelando...
+                  </>
+                ) : (
+                  <>
+                    <XCircle size={16} className="mr-2" />
+                    Cancelar assinatura
+                  </>
+                )}
+              </Button>
+              
+              <p className="text-xs text-white/40 text-center">
+                Reembolso disponível em até 7 dias após a compra.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-white/70 text-sm">
+                Você está no plano gratuito. Assine o PRO para desbloquear todas as funcionalidades!
+              </p>
+              <Button
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold"
+                onClick={() => navigate('/dashboard?showPremium=true')}
+              >
+                <Crown size={16} className="mr-2" />
+                Assinar PRO - R$ 14,90/mês
+              </Button>
+            </div>
+          )}
+        </div>
           
         <div className="pt-2 pb-2">
           <Button 

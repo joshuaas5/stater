@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Crown, Check, Sparkles, Shield, CreditCard, Infinity, Camera, FileText, Bot, TrendingUp, Loader2 } from 'lucide-react';
+import { X, Crown, Check, Sparkles, Shield, CreditCard, Infinity, Camera, FileText, Bot, TrendingUp, Loader2, AlertTriangle, Mail, XCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { STRIPE_PRICE_PRO } from '@/lib/stripe';
@@ -372,6 +372,7 @@ export default function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
 
 /**
  * 🎉 Modal de Status PRO - Para assinantes
+ * Inclui opção de cancelar assinatura e suporte
  */
 interface ProStatusModalProps {
   isOpen: boolean;
@@ -379,7 +380,74 @@ interface ProStatusModalProps {
 }
 
 export function ProStatusModal({ isOpen, onClose }: ProStatusModalProps) {
+  const { user } = useAuth();
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelSuccess, setCancelSuccess] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
   if (!isOpen) return null;
+
+  const handleCancelSubscription = async () => {
+    if (!user?.email) {
+      setCancelError('Erro: usuário não encontrado');
+      return;
+    }
+
+    setCancelling(true);
+    setCancelError(null);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-subscription`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            userEmail: user.email,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setCancelSuccess(true);
+        setShowCancelConfirm(false);
+      } else {
+        setCancelError(data.message || 'Erro ao cancelar assinatura');
+      }
+    } catch (error: any) {
+      console.error('Erro ao cancelar:', error);
+      setCancelError('Erro de conexão. Tente novamente.');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const handleContactSupport = () => {
+    const subject = encodeURIComponent('Suporte Stater PRO - Reembolso');
+    const body = encodeURIComponent(`Olá equipe Stater,
+
+Sou assinante PRO e gostaria de solicitar:
+
+[ ] Reembolso (estou dentro dos 7 dias)
+[ ] Ajuda com problema técnico
+[ ] Outra questão
+
+Email da conta: ${user?.email || ''}
+
+Descreva seu problema:
+
+
+Obrigado!`);
+    
+    window.open(`mailto:support@stater.app?subject=${subject}&body=${body}`, '_blank');
+  };
 
   const features = [
     { icon: <Infinity size={20} />, text: '50 mensagens IA por dia', color: '#a78bfa', active: true },
@@ -389,6 +457,220 @@ export function ProStatusModal({ isOpen, onClose }: ProStatusModalProps) {
     { icon: <TrendingUp size={20} />, text: 'Relatórios avançados', color: '#fbbf24', active: true },
     { icon: <Shield size={20} />, text: 'Suporte prioritário', color: '#f87171', active: true },
   ];
+
+  // Modal de Confirmação de Cancelamento
+  if (showCancelConfirm) {
+    return (
+      <>
+        <div 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99998,
+            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+            backdropFilter: 'blur(20px)',
+          }}
+          onClick={() => setShowCancelConfirm(false)}
+        />
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '380px',
+              background: 'linear-gradient(180deg, #1f1a2e 0%, #15101f 100%)',
+              borderRadius: '24px',
+              padding: '32px 24px',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              boxShadow: '0 0 60px rgba(239, 68, 68, 0.2)',
+            }}
+          >
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <div
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  margin: '0 auto 20px',
+                  borderRadius: '50%',
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <AlertTriangle style={{ width: '32px', height: '32px', color: '#ef4444' }} />
+              </div>
+              <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', marginBottom: '12px' }}>
+                Cancelar assinatura?
+              </h3>
+              <p style={{ fontSize: '15px', color: 'rgba(255, 255, 255, 0.6)', lineHeight: 1.6 }}>
+                Você continuará tendo acesso PRO até o fim do período atual. Após isso, voltará ao plano gratuito.
+              </p>
+            </div>
+
+            {cancelError && (
+              <div style={{
+                background: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                marginBottom: '20px',
+                color: '#fca5a5',
+                fontSize: '14px',
+                textAlign: 'center',
+              }}>
+                {cancelError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button
+                onClick={handleCancelSubscription}
+                disabled={cancelling}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  borderRadius: '14px',
+                  border: 'none',
+                  background: '#ef4444',
+                  color: '#fff',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  cursor: cancelling ? 'not-allowed' : 'pointer',
+                  opacity: cancelling ? 0.7 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
+              >
+                {cancelling ? (
+                  <>
+                    <Loader2 style={{ width: '18px', height: '18px', animation: 'spin 1s linear infinite' }} />
+                    Cancelando...
+                  </>
+                ) : (
+                  <>
+                    <XCircle style={{ width: '18px', height: '18px' }} />
+                    Sim, cancelar assinatura
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  borderRadius: '14px',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  background: 'transparent',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Não, quero continuar PRO
+              </button>
+            </div>
+          </div>
+        </div>
+        <style>{`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </>
+    );
+  }
+
+  // Modal de Sucesso após Cancelamento
+  if (cancelSuccess) {
+    return (
+      <>
+        <div 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99998,
+            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+            backdropFilter: 'blur(20px)',
+          }}
+          onClick={onClose}
+        />
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '380px',
+              background: 'linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%)',
+              borderRadius: '24px',
+              padding: '32px 24px',
+              border: '1px solid rgba(251, 191, 36, 0.3)',
+              textAlign: 'center',
+            }}
+          >
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                margin: '0 auto 20px',
+                borderRadius: '50%',
+                background: 'rgba(251, 191, 36, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Check style={{ width: '32px', height: '32px', color: '#fbbf24' }} />
+            </div>
+            <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', marginBottom: '12px' }}>
+              Assinatura cancelada
+            </h3>
+            <p style={{ fontSize: '15px', color: 'rgba(255, 255, 255, 0.6)', lineHeight: 1.6, marginBottom: '24px' }}>
+              Você ainda tem acesso PRO até o fim do período pago. Sentiremos sua falta! 💜
+            </p>
+            <button
+              onClick={onClose}
+              style={{
+                width: '100%',
+                padding: '16px',
+                borderRadius: '14px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                color: '#fff',
+                fontSize: '16px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Entendi
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -599,7 +881,7 @@ export function ProStatusModal({ isOpen, onClose }: ProStatusModalProps) {
           </div>
 
           {/* Motivational Message */}
-          <div style={{ padding: '0 24px 24px' }}>
+          <div style={{ padding: '0 24px 16px' }}>
             <div
               style={{
                 background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.1) 100%)',
@@ -616,7 +898,7 @@ export function ProStatusModal({ isOpen, onClose }: ProStatusModalProps) {
           </div>
 
           {/* Close Button */}
-          <div style={{ padding: '0 24px 36px' }}>
+          <div style={{ padding: '0 24px 16px' }}>
             <button
               onClick={onClose}
               style={{
@@ -639,6 +921,86 @@ export function ProStatusModal({ isOpen, onClose }: ProStatusModalProps) {
               <Sparkles style={{ width: '20px', height: '20px' }} />
               Continuar usando
             </button>
+          </div>
+
+          {/* Management Options */}
+          <div style={{ padding: '0 24px 24px' }}>
+            <div style={{ 
+              borderTop: '1px solid rgba(255, 255, 255, 0.1)', 
+              paddingTop: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+            }}>
+              <p style={{ 
+                fontSize: '12px', 
+                color: 'rgba(255, 255, 255, 0.4)', 
+                textAlign: 'center',
+                marginBottom: '4px',
+              }}>
+                Gerenciar assinatura
+              </p>
+              
+              {/* Botão de Suporte/Reembolso */}
+              <button
+                onClick={handleContactSupport}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <Mail style={{ width: '16px', height: '16px' }} />
+                Suporte / Solicitar reembolso
+              </button>
+
+              {/* Botão de Cancelar */}
+              <button
+                onClick={() => setShowCancelConfirm(true)}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  color: 'rgba(239, 68, 68, 0.8)',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <XCircle style={{ width: '16px', height: '16px' }} />
+                Cancelar assinatura
+              </button>
+              
+              <p style={{ 
+                fontSize: '11px', 
+                color: 'rgba(255, 255, 255, 0.35)', 
+                textAlign: 'center',
+                marginTop: '4px',
+                lineHeight: 1.4,
+              }}>
+                Reembolso disponível em até 7 dias após a compra.
+                <br />
+                Entre em contato pelo suporte.
+              </p>
+            </div>
           </div>
         </div>
       </div>

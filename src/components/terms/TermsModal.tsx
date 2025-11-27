@@ -218,64 +218,67 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
         </div>
 
         <div 
-          className="p-4 pt-2 border-t border-white/20 space-y-4 flex-shrink-0"
+          className="p-4 pt-2 border-t border-white/30 space-y-4 flex-shrink-0"
           style={{
-            background: 'rgba(255, 255, 255, 0.1)',
+            background: 'rgba(30, 58, 108, 0.95)',
             backdropFilter: 'blur(10px)'
           }}
         >
           <div className="space-y-3">
             <label 
               htmlFor="terms"
-              className="flex items-start space-x-3 p-3 rounded-md cursor-pointer active:bg-white/20 transition-colors"
+              className="flex items-start space-x-3 p-4 rounded-lg cursor-pointer active:scale-[0.98] transition-all"
               style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)'
+                background: 'rgba(255, 255, 255, 0.15)',
+                border: '2px solid rgba(255, 255, 255, 0.4)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
               }}
             >
               <Checkbox 
                 id="terms" 
                 checked={termsAccepted}
                 onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-                className="mt-0.5 h-5 w-5 flex-shrink-0"
+                className="mt-0.5 h-6 w-6 flex-shrink-0 border-2"
                 style={{ 
-                  borderColor: 'rgba(255, 255, 255, 0.5)',
-                  backgroundColor: termsAccepted ? '#3b82f6' : 'transparent'
+                  borderColor: '#ffffff',
+                  backgroundColor: termsAccepted ? '#22c55e' : 'rgba(255,255,255,0.2)',
+                  borderRadius: '4px'
                 }}
               />
-              <span className="text-sm font-medium leading-5 text-white select-none">
+              <span className="text-base font-semibold leading-6 text-white select-none">
                 Li e aceito os Termos de Uso e Política de Privacidade do Stater
               </span>
             </label>
 
             <label 
               htmlFor="data"
-              className="flex items-start space-x-3 p-3 rounded-md cursor-pointer active:bg-white/20 transition-colors"
+              className="flex items-start space-x-3 p-4 rounded-lg cursor-pointer active:scale-[0.98] transition-all"
               style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)'
+                background: 'rgba(255, 255, 255, 0.15)',
+                border: '2px solid rgba(255, 255, 255, 0.4)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
               }}
             >
               <Checkbox 
                 id="data" 
                 checked={dataProcessingAccepted}
                 onCheckedChange={(checked) => setDataProcessingAccepted(checked === true)}
-                className="mt-0.5 h-5 w-5 flex-shrink-0"
+                className="mt-0.5 h-6 w-6 flex-shrink-0 border-2"
                 style={{ 
-                  borderColor: 'rgba(255, 255, 255, 0.5)',
-                  backgroundColor: dataProcessingAccepted ? '#3b82f6' : 'transparent'
+                  borderColor: '#ffffff',
+                  backgroundColor: dataProcessingAccepted ? '#22c55e' : 'rgba(255,255,255,0.2)',
+                  borderRadius: '4px'
                 }}
               />
-              <span className="text-sm font-medium leading-5 text-white select-none">
+              <span className="text-base font-semibold leading-6 text-white select-none">
                 Autorizo o tratamento dos meus dados pessoais conforme descrito acima (LGPD)
               </span>
             </label>
           </div>
 
           <div 
-            className="flex flex-col gap-3 p-4 rounded-md safe-bottom"
+            className="flex flex-col gap-3 pt-2 safe-bottom"
             style={{
-              background: 'rgba(255, 255, 255, 0.05)',
               paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
               pointerEvents: 'auto'
             }}
@@ -283,37 +286,42 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
             <Button 
               onClick={handleAccept}
               disabled={!allAccepted || isAccepting}
-              className="w-full text-white font-medium order-1"
+              className="w-full font-bold order-1"
               style={{ 
-                backgroundColor: !allAccepted || isAccepting ? 'rgba(255, 255, 255, 0.2)' : '#3b82f6',
-                borderColor: 'rgba(255, 255, 255, 0.3)',
-                fontWeight: 600,
-                padding: '12px 24px',
-                fontSize: '16px',
-                minHeight: '48px',
+                backgroundColor: !allAccepted || isAccepting ? 'rgba(255, 255, 255, 0.3)' : '#22c55e',
+                color: '#ffffff',
+                border: '2px solid rgba(255, 255, 255, 0.5)',
+                fontWeight: 700,
+                padding: '16px 24px',
+                fontSize: '18px',
+                minHeight: '56px',
+                borderRadius: '12px',
+                boxShadow: allAccepted ? '0 4px 12px rgba(34, 197, 94, 0.4)' : 'none',
                 pointerEvents: 'auto',
                 touchAction: 'manipulation'
               }}
             >
-              {isAccepting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isAccepting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
               {isAccepting 
                 ? 'Salvando...' 
                 : allAccepted 
-                  ? 'Aceitar e Continuar' 
+                  ? '✓ Aceitar e Continuar' 
                   : 'Aceite ambos os termos'
               }
             </Button>
             <Button 
               variant="outline" 
               onClick={onClose}
-              className="w-full text-white hover:bg-white/20 order-2"
+              className="w-full order-2"
               disabled={isAccepting}
               style={{
-                borderColor: 'rgba(255, 255, 255, 0.3)',
-                backgroundColor: 'transparent',
+                border: '2px solid rgba(255, 255, 255, 0.5)',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 color: '#ffffff',
-                fontSize: '14px',
-                minHeight: '40px',
+                fontSize: '16px',
+                fontWeight: 600,
+                minHeight: '48px',
+                borderRadius: '12px',
                 pointerEvents: 'auto',
                 touchAction: 'manipulation'
               }}

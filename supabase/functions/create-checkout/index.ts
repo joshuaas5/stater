@@ -29,10 +29,23 @@ serve(async (req) => {
     const { priceId, userId, userEmail, successUrl, cancelUrl } = await req.json();
 
     console.log('💳 Criando checkout session:', { priceId, userId, userEmail });
+    console.log('💳 STRIPE_SECRET_KEY configurada:', Deno.env.get('STRIPE_SECRET_KEY') ? 'SIM (primeiros chars: ' + Deno.env.get('STRIPE_SECRET_KEY')?.substring(0, 10) + ')' : 'NÃO');
 
     // Validar parâmetros
     if (!priceId || !userId || !userEmail) {
-      throw new Error('Parâmetros obrigatórios faltando');
+      console.error('❌ Parâmetros faltando:', { priceId: !!priceId, userId: !!userId, userEmail: !!userEmail });
+      throw new Error('Parâmetros obrigatórios faltando: ' + JSON.stringify({ priceId: !!priceId, userId: !!userId, userEmail: !!userEmail }));
+    }
+
+    // Verificar se o preço existe
+    console.log('🔍 Verificando preço no Stripe:', priceId);
+    
+    try {
+      const price = await stripe.prices.retrieve(priceId);
+      console.log('✅ Preço encontrado:', { id: price.id, active: price.active, currency: price.currency, unit_amount: price.unit_amount });
+    } catch (priceError: any) {
+      console.error('❌ Preço não encontrado:', priceError.message);
+      throw new Error(`Preço não encontrado no Stripe: ${priceId}. Erro: ${priceError.message}`);
     }
 
     // Criar Checkout Session

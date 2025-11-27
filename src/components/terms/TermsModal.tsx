@@ -62,7 +62,8 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
   return (
     <Dialog open={isOpen && !acceptComplete} onOpenChange={() => {}}>
       <DialogContent 
-        className="w-screen h-screen max-w-none max-h-none p-0 m-0 flex flex-col fixed inset-0"
+        hideClose
+        className="w-full h-full max-w-none max-h-none p-0 m-0 flex flex-col fixed inset-0 overflow-hidden"
         style={{ 
           background: 'rgba(49, 81, 139, 0.98)',
           backdropFilter: 'blur(20px)',
@@ -71,7 +72,12 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           color: '#ffffff',
           fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif',
           zIndex: 9999,
-          transform: 'none'
+          left: 0,
+          top: 0,
+          transform: 'none',
+          width: '100vw',
+          height: '100vh',
+          pointerEvents: 'auto'
         }}
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
@@ -100,13 +106,12 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
         </DialogHeader>
         
         <div 
-          className="flex-1 overflow-y-auto px-4 md:px-6 overscroll-contain"
+          className="flex-1 overflow-y-auto px-4 md:px-6 touch-pan-y"
           style={{
             WebkitOverflowScrolling: 'touch',
-            scrollBehavior: 'smooth'
+            scrollBehavior: 'smooth',
+            overscrollBehavior: 'contain'
           }}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchMove={(e) => e.stopPropagation()}
         >
           <div className="space-y-4 text-sm text-white py-4">
             <div className="text-center text-white/60 text-xs">
@@ -220,8 +225,9 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           }}
         >
           <div className="space-y-3">
-            <div 
-              className="flex items-start space-x-3 p-2 rounded-md"
+            <label 
+              htmlFor="terms"
+              className="flex items-start space-x-3 p-3 rounded-md cursor-pointer active:bg-white/20 transition-colors"
               style={{
                 background: 'rgba(255, 255, 255, 0.1)',
                 border: '1px solid rgba(255, 255, 255, 0.2)'
@@ -231,19 +237,20 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
                 id="terms" 
                 checked={termsAccepted}
                 onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-                className="mt-0.5"
+                className="mt-0.5 h-5 w-5 flex-shrink-0"
                 style={{ 
                   borderColor: 'rgba(255, 255, 255, 0.5)',
                   backgroundColor: termsAccepted ? '#3b82f6' : 'transparent'
                 }}
               />
-              <label htmlFor="terms" className="text-sm font-medium leading-5 cursor-pointer text-white select-none">
+              <span className="text-sm font-medium leading-5 text-white select-none">
                 Li e aceito os Termos de Uso e Política de Privacidade do Stater
-              </label>
-            </div>
+              </span>
+            </label>
 
-            <div 
-              className="flex items-start space-x-3 p-2 rounded-md"
+            <label 
+              htmlFor="data"
+              className="flex items-start space-x-3 p-3 rounded-md cursor-pointer active:bg-white/20 transition-colors"
               style={{
                 background: 'rgba(255, 255, 255, 0.1)',
                 border: '1px solid rgba(255, 255, 255, 0.2)'
@@ -253,23 +260,24 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
                 id="data" 
                 checked={dataProcessingAccepted}
                 onCheckedChange={(checked) => setDataProcessingAccepted(checked === true)}
-                className="mt-0.5"
+                className="mt-0.5 h-5 w-5 flex-shrink-0"
                 style={{ 
                   borderColor: 'rgba(255, 255, 255, 0.5)',
                   backgroundColor: dataProcessingAccepted ? '#3b82f6' : 'transparent'
                 }}
               />
-              <label htmlFor="data" className="text-sm font-medium leading-5 cursor-pointer text-white select-none">
+              <span className="text-sm font-medium leading-5 text-white select-none">
                 Autorizo o tratamento dos meus dados pessoais conforme descrito acima (LGPD)
-              </label>
-            </div>
+              </span>
+            </label>
           </div>
 
           <div 
             className="flex flex-col gap-3 p-4 rounded-md safe-bottom"
             style={{
               background: 'rgba(255, 255, 255, 0.05)',
-              paddingBottom: 'max(16px, env(safe-area-inset-bottom))'
+              paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
+              pointerEvents: 'auto'
             }}
           >
             <Button 
@@ -282,7 +290,9 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
                 fontWeight: 600,
                 padding: '12px 24px',
                 fontSize: '16px',
-                minHeight: '48px'
+                minHeight: '48px',
+                pointerEvents: 'auto',
+                touchAction: 'manipulation'
               }}
             >
               {isAccepting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -303,7 +313,9 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
                 backgroundColor: 'transparent',
                 color: '#ffffff',
                 fontSize: '14px',
-                minHeight: '40px'
+                minHeight: '40px',
+                pointerEvents: 'auto',
+                touchAction: 'manipulation'
               }}
             >
               Cancelar

@@ -14,12 +14,13 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Edit, Trash2, Filter, CalendarRange } from 'lucide-react';
+import { Edit, Trash2, Filter, CalendarRange, Upload } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { AdManager } from '@/utils/adManager';
 import { TransactionCounter } from '@/utils/transactionCounter';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
+import OFXImportButton from '@/components/import/OFXImportButton';
 
 const Transactions: React.FC = () => {
   // ...
@@ -477,20 +478,27 @@ const Transactions: React.FC = () => {
           {filteredTransactions.length} transações
         </div>
         
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-[160px]">
-            <div className="flex items-center">
-              <Filter className="mr-2 h-4 w-4" />
-              <span>Filtrar</span>
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
-            <SelectItem value="income">Entradas</SelectItem>
-            <SelectItem value="expense">Saídas</SelectItem>
-            <SelectItem value="recurring">Recorrentes</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <OFXImportButton 
+            onImportComplete={() => loadTransactions()}
+            className="text-sm py-1.5 px-3"
+          />
+          
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-[140px]">
+              <div className="flex items-center">
+                <Filter className="mr-2 h-4 w-4" />
+                <span>Filtrar</span>
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="income">Entradas</SelectItem>
+              <SelectItem value="expense">Saídas</SelectItem>
+              <SelectItem value="recurring">Recorrentes</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       
       <Select value={filterType} onValueChange={setFilterType}>

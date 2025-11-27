@@ -17,10 +17,6 @@ import { generateSimplePDF } from '@/utils/basicPdfExporter';
 import { generateExcelLikePDF } from '@/utils/simpleExcelPdfExporter';
 import { getCurrentUser, getTransactions, getBills } from '@/utils/localStorage';
 import { ReportDownloadLimitManager } from '@/utils/reportDownloadLimit';
-import { AdManager } from '@/utils/adManager';
-import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
-import { AdCooldownManager } from '@/utils/adCooldownManager';
-import { UserPlanManager } from '@/utils/userPlanManager';
 import { useAuth } from '@/contexts/AuthContext';
 
 const ExportReportPage: React.FC = () => {
@@ -35,8 +31,6 @@ const ExportReportPage: React.FC = () => {
   const [exportFormat, setExportFormat] = useState<'xlsx' | 'pdf' | 'ofx' | 'csv'>('xlsx');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [showDownloadLimit, setShowDownloadLimit] = useState<boolean>(false);
-  const [isWatchingAd, setIsWatchingAd] = useState<boolean>(false);
-  const [cooldownInfo, setCooldownInfo] = useState<any>(null);
   
   // Função para gerar uma dica financeira baseada nos dados
   const getFinancialTip = (income: number, expense: number, expensesByCategory: Record<string, number>) => {
@@ -77,51 +71,10 @@ const ExportReportPage: React.FC = () => {
     }
 
     try {
-      // 🎯 SISTEMA SIMPLES: SEMPRE reward ad para qualquer relatório (usuários FREE)
-      const userPlan = await UserPlanManager.getUserPlan(user.id);
-      const isPremium = userPlan.planType !== 'free';
-      
-      if (!isPremium) {
-        console.log('🎬 [REPORT_REWARD] Usuário FREE - SEMPRE mostrar reward ad para relatórios');
-        
-        // Verificar cooldown do reward ad
-        const cooldownResult = await RewardCooldownManager.checkCooldownStatus(user.id, 'report_downloads');
-        
-        if (cooldownResult.canWatchAd) {
-          // Mostrar reward ad SEMPRE
-          const adResult = await AdManager.showRewardedAd('report_downloads');
-          
-          if (adResult.success) {
-            console.log('✅ [REPORT_REWARD] Reward ad assistido com sucesso - permitindo download');
-            toast({
-              title: '🎁 Recompensa obtida!',
-              description: 'Você ganhou acesso ao relatório por assistir o anúncio!',
-            });
-          } else {
-            // Usuário não assistiu o reward ad, bloquear acesso
-            console.log('❌ [REPORT_REWARD] Reward ad não assistido - bloqueando acesso');
-            toast({
-              title: '🎬 Assista o anúncio',
-              description: 'Para baixar relatórios, é necessário assistir um anúncio ou assinar o Premium.',
-              variant: 'destructive',
-            });
-            return;
-          }
-        } else {
-          // Cooldown ativo - mostrar informações sobre cooldown
-          console.log('⏰ [REPORT_REWARD] Cooldown ativo - informando usuário');
-          toast({
-            title: '⏰ Aguarde para o próximo anúncio',
-            description: `Você pode assistir um novo anúncio em ${cooldownResult.remainingMinutes} minutos ou assinar o Premium para acesso ilimitado.`,
-            variant: 'default',
-          });
-          return;
-        }
-      } else {
-        console.log('✅ [REPORT_PREMIUM] Usuário premium - acesso direto aos relatórios');
-      }
+      // 🎯 SISTEMA SIMPLIFICADO: Acesso direto aos relatórios (ads temporariamente desabilitados)
+      console.log('📊 [REPORT] Gerando relatório para usuário:', user.id);
 
-      // 🔒 VERIFICAR LIMITE DE DOWNLOADS (mantido como fallback)
+      // 🔒 VERIFICAR LIMITE DE DOWNLOADS (proteção básica)
       const downloadLimit = await ReportDownloadLimitManager.canDownloadReport(user.id);
       
       if (!downloadLimit.allowed) {

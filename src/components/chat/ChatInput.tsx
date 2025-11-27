@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Image, Camera, X, Loader2, Plus } from 'lucide-react';
+import { Send, Image, Camera, X, Loader2, Plus, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { VoiceRecorder } from '@/components/voice/VoiceRecorderFixed';
@@ -7,6 +7,7 @@ import { VoiceRecorder } from '@/components/voice/VoiceRecorderFixed';
 interface ChatInputProps {
   onSubmit: (message: string) => void;
   onImageUpload?: (imageBase64: string) => void;
+  onFileUpload?: (file: File, content: string) => void;
   loading: boolean;
   waitingConfirmation: boolean;
   pendingActionDetails: { description?: string; category?: string; type?: string; amount?: number; date?: string; ocrTransactions?: any[] } | null;
@@ -21,6 +22,7 @@ interface ChatInputProps {
 const ChatInput: React.FC<ChatInputProps> = ({ 
   onSubmit, 
   onImageUpload,
+  onFileUpload,
   loading, 
   waitingConfirmation, 
   pendingActionDetails,
@@ -73,7 +75,25 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && onImageUpload) {
+    if (!file) return;
+    
+    const fileName = file.name.toLowerCase();
+    const isOFX = fileName.endsWith('.ofx') || fileName.endsWith('.qfx');
+    
+    // Se for OFX/QFX, usar callback específico
+    if (isOFX && onFileUpload) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const content = reader.result as string;
+        onFileUpload(file, content);
+      };
+      reader.readAsText(file, 'ISO-8859-1'); // OFX usa este encoding
+      e.target.value = '';
+      return;
+    }
+    
+    // Para imagens e outros arquivos, usar o callback de imagem
+    if (onImageUpload) {
       const reader = new FileReader();
       reader.onload = () => {
         const base64String = reader.result as string;
@@ -510,7 +530,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         ref={fileInputRef}
         type="file"
         style={{ display: 'none' }}
-        accept=".pdf,.doc,.docx,.txt,.csv,.xls,.xlsx,.xlsm,image/*"
+        accept=".pdf,.doc,.docx,.txt,.csv,.xls,.xlsx,.xlsm,.ofx,.qfx,image/*"
         onChange={handleFileSelect}
       />
       

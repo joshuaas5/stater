@@ -32,6 +32,7 @@ import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
 import { useAILearning } from '@/utils/aiLearningSystem';
 import FinancialAdvisorGate from '@/components/monetization/FinancialAdvisorGate';
 import { MessageLimitManager } from '@/utils/messageLimit';
+import { parseOFX, OFXTransaction } from '@/utils/ofxParser';
 
 
 const IA_AVATAR = '/stater-logo.png'; // Logo do Stater
@@ -3460,6 +3461,92 @@ const handleImageUpload = async (imageBase64: string) => {
   }
 };
 
+// 📄 Handler para arquivos OFX/QFX (extratos bancários)
+const handleOFXUpload = async (file: File, content: string) => {
+  console.log('📄 [OFX] Processando arquivo:', file.name);
+  
+  setLoadingState('ai-thinking', true);
+  
+  try {
+    // Parsear o OFX
+    const result = parseOFX(content);
+    
+    if (!result.success || result.transactions.length === 0) {
+      setMessages(prev => [...prev, {
+        id: uuidv4(),
+        text: `❌ **Erro ao processar arquivo OFX**\n\n${result.error || 'Nenhuma transação encontrada no arquivo.'}\n\n💡 Verifique se o arquivo é um extrato válido.`,
+        sender: 'system',
+        timestamp: new Date(),
+        avatarUrl: IA_AVATAR
+      }]);
+      setLoadingState('ai-thinking', false);
+      return;
+    }
+    
+    console.log(`✅ [OFX] ${result.transactions.length} transações encontradas`);
+    
+    // Calcular totais
+    const totalIncome = result.transactions
+      .filter(tx => tx.type === 'income')
+      .reduce((sum, tx) => sum + tx.amount, 0);
+    const totalExpense = result.transactions
+      .filter(tx => tx.type === 'expense')
+      .reduce((sum, tx) => sum + tx.amount, 0);
+    
+    // Formatar moeda
+    const formatCurrency = (value: number) => 
+      new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+    
+    // Mostrar mensagem de sucesso
+    const successMessage = `📄 **Extrato OFX Processado!**\n\n` +
+      `📊 **Resumo:**\n` +
+      `• ${result.transactions.length} transações encontradas\n` +
+      `• 💰 Entradas: ${formatCurrency(totalIncome)}\n` +
+      `• 💸 Saídas: ${formatCurrency(totalExpense)}\n` +
+      `• 📅 Período: ${result.statementInfo?.startDate || 'N/A'} a ${result.statementInfo?.endDate || 'N/A'}\n\n` +
+      `✏️ **Revise as transações** no modal e confirme para adicionar ao Stater!`;
+    
+    setMessages(prev => [...prev, {
+      id: uuidv4(),
+      text: successMessage,
+      sender: 'assistant',
+      timestamp: new Date(),
+      avatarUrl: IA_AVATAR
+    }]);
+    
+    // Abrir modal com transações para edição
+    setMultiTransactionModal({
+      isOpen: true,
+      transactions: result.transactions.map(tx => ({
+        id: tx.id,
+        description: tx.description,
+        amount: tx.amount,
+        type: tx.type,
+        category: tx.category,
+        date: tx.date,
+      })),
+      documentInfo: {
+        documentType: 'Extrato OFX',
+        establishment: result.bankInfo?.accountId 
+          ? `Conta: ${result.bankInfo.accountId}` 
+          : file.name.replace(/\.(ofx|qfx)$/i, ''),
+      }
+    });
+    
+  } catch (error: any) {
+    console.error('❌ [OFX] Erro:', error);
+    setMessages(prev => [...prev, {
+      id: uuidv4(),
+      text: `❌ **Erro ao processar arquivo OFX**\n\n${error.message || 'Erro desconhecido'}\n\n💡 Verifique se o arquivo não está corrompido.`,
+      sender: 'system',
+      timestamp: new Date(),
+      avatarUrl: IA_AVATAR
+    }]);
+  } finally {
+    setLoadingState('ai-thinking', false);
+  }
+};
+
 // Funções para editar transações OCR
 const updateTransaction = (index: number, updatedTransaction: any) => {
   const newTransactions = [...editableTransactions];
@@ -3794,6 +3881,7 @@ return (
         <ChatInput
           onSubmit={handleSendMessage} 
           onImageUpload={handleImageUpload}
+          onFileUpload={handleOFXUpload}
           loading={isLoadingState('ai-thinking') || isLoadingState('transaction-save')}
           waitingConfirmation={waitingConfirmation} 
           pendingActionDetails={pendingAction ? pendingAction.dados : null} 

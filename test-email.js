@@ -2,13 +2,11 @@ const https = require('https');
 
 const data = JSON.stringify({
   to: 'suplementaja@gmail.com',
-  subject: '🚨 Stater: 2 contas urgentes + 3 a vencer',
+  subject: '📬 Stater: 4 contas esta semana (R$ 1.775,17)',
   template: 'bills-digest',
   data: {
     userName: 'Joshua',
     bills: [
-      { name: 'Aluguel - Apartamento', amount: 1850.00, dueDate: '2025-11-27', category: 'Moradia' },
-      { name: 'Conta de Luz - CEMIG', amount: 287.50, dueDate: '2025-11-28', category: 'Utilidades' },
       { name: 'Internet - Vivo Fibra', amount: 129.90, dueDate: '2025-11-29', category: 'Utilidades' },
       { name: 'Cartão Nubank', amount: 1523.47, dueDate: '2025-12-02', category: 'Cartões' },
       { name: 'Academia Smart Fit', amount: 99.90, dueDate: '2025-12-05', category: 'Saúde' },

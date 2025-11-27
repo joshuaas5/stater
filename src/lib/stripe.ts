@@ -1,10 +1,10 @@
 import { loadStripe, Stripe } from '@stripe/stripe-js';
 
 /**
- * 💳 Stripe Configuration
+ * 💳 Stripe Configuration - MODELO NETFLIX
  * 
- * Configuração do Stripe para pagamentos do Stater Premium.
- * Suporta planos Semanal (R$ 8,90) e Mensal (R$ 19,90).
+ * Configuração do Stripe para pagamentos do Stater.
+ * Apenas 1 plano: PRO por R$ 14,90/mês
  */
 
 let stripePromise: Promise<Stripe | null>;
@@ -28,31 +28,29 @@ export const getStripe = () => {
 };
 
 /**
- * IDs dos preços configurados no Stripe Dashboard
- * 
- * Configure estes em .env.local:
- * VITE_STRIPE_PRICE_WEEKLY=price_stater_weekly_890
- * VITE_STRIPE_PRICE_MONTHLY=price_stater_monthly_1990
+ * ID do preço PRO configurado no Stripe Dashboard (Produção)
+ * Price ID: price_1SXpCw2HBVUtKi5tQOUjW5py - R$ 14,90/mês
  */
+export const STRIPE_PRICE_PRO = 'price_1SXpCw2HBVUtKi5tQOUjW5py';
+
+/**
+ * Preço em reais (para display)
+ */
+export const PRO_PRICE_BRL = 14.90;
+
+/**
+ * Descrição do plano
+ */
+export const PRO_DESCRIPTION = 'Stater PRO - R$ 14,90/mês';
+
+// Mantendo tipos antigos para compatibilidade (deprecated)
+export type PlanType = 'monthly';
 export const STRIPE_PRICES = {
-  weekly: import.meta.env.VITE_STRIPE_PRICE_WEEKLY || '',
-  monthly: import.meta.env.VITE_STRIPE_PRICE_MONTHLY || '',
+  monthly: STRIPE_PRICE_PRO,
 } as const;
-
-/**
- * Preços em reais (para display)
- */
 export const PRICES_BRL = {
-  weekly: 8.90,
-  monthly: 19.90,
+  monthly: PRO_PRICE_BRL,
 } as const;
-
-/**
- * Descrições dos planos
- */
 export const PLAN_DESCRIPTIONS = {
-  weekly: 'Plano Semanal - R$ 8,90/semana',
-  monthly: 'Plano Mensal - R$ 19,90/mês (MELHOR OFERTA)',
+  monthly: PRO_DESCRIPTION,
 } as const;
-
-export type PlanType = 'weekly' | 'monthly';

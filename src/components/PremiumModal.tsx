@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { X, Crown, Check, Sparkles } from 'lucide-react';
-import StripeCheckout from '@/components/StripeCheckout';
-import { PlanType } from '@/lib/stripe';
+import { X, Crown, Check, Sparkles, CreditCard, Shield } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { STRIPE_PRICE_PRO, PRO_PRICE_BRL } from '@/lib/stripe';
+import { Button } from '@/components/ui/button';
 
 interface PremiumModalProps {
   isOpen: boolean;
@@ -9,30 +11,72 @@ interface PremiumModalProps {
 }
 
 /**
- * 💎 Modal Premium com Stripe Checkout
+ * 💎 Modal PRO - Modelo Netflix
  * 
- * Modal moderno para assinatura Premium do Stater.
- * Integra com componente StripeCheckout para pagamentos.
+ * Modal simplificado para assinatura do Stater PRO.
+ * Apenas 1 plano: R$ 14,90/mês
  */
 export default function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>('monthly');
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
   if (!isOpen) return null;
 
   const benefits = [
+    '50 mensagens de IA por dia',
+    'Análise de fotos e documentos (OCR)',
+    'Leitura de PDFs e extratos bancários',
+    'Bot do Telegram integrado',
+    'Exportação de relatórios',
     'Transações ilimitadas',
-    'Análise financeira com IA avançada',
-    'Telegram Bot - 5.000 análises/mês',
-    'Relatórios personalizados',
-    'OCR - 1.000 documentos/mês',
-    'Suporte prioritário 24/7',
-    'Backup automático na nuvem',
-    'Acesso antecipado a novos recursos',
+    'Suporte prioritário',
   ];
+
+  const handleSubscribe = async () => {
+    if (!user) {
+      alert('Você precisa estar logado para assinar o PRO');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      console.log('💳 Iniciando checkout Stripe PRO:', STRIPE_PRICE_PRO);
+
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          priceId: STRIPE_PRICE_PRO,
+          userId: user.id,
+          userEmail: user.email,
+          successUrl: `${window.location.origin}/dashboard?payment=success`,
+          cancelUrl: `${window.location.origin}/dashboard?payment=canceled`,
+        },
+      });
+
+      if (error) {
+        console.error('❌ Erro ao criar sessão:', error);
+        alert('Erro ao processar pagamento. Tente novamente.');
+        return;
+      }
+
+      if (data?.url) {
+        console.log('✅ Redirecionando para checkout:', data.url);
+        window.location.href = data.url;
+      } else {
+        throw new Error('URL de checkout não retornada');
+      }
+
+    } catch (err: any) {
+      console.error('❌ Erro no checkout:', err);
+      alert(`Erro ao processar pagamento: ${err.message || 'Tente novamente'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
+      <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto relative">
         {/* Botão Fechar */}
         <button
           onClick={onClose}
@@ -42,121 +86,91 @@ export default function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
         </button>
 
         {/* Header com gradiente */}
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-8 text-white rounded-t-3xl">
+        <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-8 text-white rounded-t-3xl">
           <div className="flex items-center justify-center mb-4">
-            <Crown className="w-16 h-16 text-yellow-300 animate-pulse" />
+            <Crown className="w-16 h-16 text-yellow-200 animate-pulse" />
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-2">
-            Desbloqueie o Poder Completo
+          <h2 className="text-3xl font-bold text-center mb-2">
+            Stater PRO
           </h2>
-          <p className="text-center text-blue-100 text-lg">
-            Transforme sua gestão financeira com recursos Premium
+          <p className="text-center text-amber-100 text-lg">
+            Desbloqueie todo o potencial da sua IA financeira
           </p>
         </div>
 
-        <div className="p-6 md:p-8 grid md:grid-cols-2 gap-8">
-          {/* Lado Esquerdo: Benefícios */}
-          <div>
-            <div className="flex items-center gap-2 mb-6">
-              <Sparkles className="w-6 h-6 text-yellow-500" />
-              <h3 className="text-2xl font-bold">O que você ganha:</h3>
+        <div className="p-6">
+          {/* Preço */}
+          <div className="text-center p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl mb-6 border-2 border-amber-200 dark:border-amber-700">
+            <div className="text-5xl font-bold text-amber-600 dark:text-amber-400">
+              R$ {PRO_PRICE_BRL.toFixed(2).replace('.', ',')}
+            </div>
+            <div className="text-lg text-amber-700 dark:text-amber-300 mt-1 font-medium">
+              por mês
+            </div>
+            <div className="text-sm text-amber-600/70 dark:text-amber-400/70 mt-2">
+              Cancele quando quiser
+            </div>
+          </div>
+
+          {/* Benefícios */}
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-5 h-5 text-amber-500" />
+              <h3 className="text-lg font-bold">O que está incluído:</h3>
             </div>
 
             <div className="space-y-3">
               {benefits.map((benefit, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  className="flex items-center gap-3"
                 >
-                  <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0">
                     <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
                   </div>
                   <span className="text-gray-700 dark:text-gray-300">{benefit}</span>
                 </div>
               ))}
             </div>
-
-            {/* Aviso de Garantia */}
-            <div className="mt-8 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">✅</span>
-                <span className="text-sm font-semibold text-green-700 dark:text-green-300">
-                  Garantia de 7 dias
-                </span>
-              </div>
-              <p className="text-sm text-green-600 dark:text-green-400">
-                Cancele quando quiser. Reembolso total em até 7 dias sem perguntas.
-              </p>
-            </div>
           </div>
 
-          {/* Lado Direito: Planos */}
-          <div>
-            {/* Seletor de Planos */}
-            <div className="mb-6">
-              <div className="flex gap-3 mb-6">
-                <button
-                  onClick={() => setSelectedPlan('monthly')}
-                  className={`flex-1 p-4 rounded-xl border-2 transition-all ${
-                    selectedPlan === 'monthly'
-                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-lg">Mensal</span>
-                    {selectedPlan === 'monthly' && (
-                      <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                        POPULAR
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    R$ 14,90
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    por mês
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => setSelectedPlan('weekly')}
-                  className={`flex-1 p-4 rounded-xl border-2 transition-all ${
-                    selectedPlan === 'weekly'
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="font-bold text-lg mb-2">Semanal</div>
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    R$ 8,90
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    por semana
-                  </div>
-                </button>
-              </div>
-
-              {/* Componente Stripe Checkout */}
-              <StripeCheckout
-                plan={selectedPlan}
-                onSuccess={() => {
-                  onClose();
-                  alert('✅ Assinatura ativada com sucesso! Bem-vindo ao Premium!');
-                }}
-                onCancel={() => {
-                  console.log('Checkout cancelado');
-                }}
-              />
-
-              {/* Garantias */}
-              <div className="mt-4 space-y-2 text-sm text-center text-gray-600 dark:text-gray-400">
-                <p>✅ Pagamento seguro via Stripe</p>
-                <p>✅ Cancele quando quiser</p>
-                <p>✅ Garantia de 7 dias ou seu dinheiro de volta</p>
-              </div>
+          {/* Garantia */}
+          <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800 mb-6">
+            <div className="flex items-center gap-2 mb-1">
+              <Shield className="w-5 h-5 text-green-600" />
+              <span className="font-semibold text-green-700 dark:text-green-300">
+                Garantia de 7 dias
+              </span>
             </div>
+            <p className="text-sm text-green-600 dark:text-green-400">
+              Reembolso total sem perguntas se não gostar.
+            </p>
           </div>
+
+          {/* Botão de Checkout */}
+          <Button
+            onClick={handleSubscribe}
+            disabled={loading}
+            size="lg"
+            className="w-full py-6 text-lg font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl shadow-lg shadow-orange-500/25"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                Processando...
+              </>
+            ) : (
+              <>
+                <CreditCard className="w-5 h-5 mr-2" />
+                Assinar PRO - R$ 14,90/mês
+              </>
+            )}
+          </Button>
+
+          {/* Rodapé */}
+          <p className="text-center text-gray-500 dark:text-gray-400 text-xs mt-4">
+            ✅ Pagamento seguro via Stripe • Cancele quando quiser
+          </p>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getStripe, STRIPE_PRICES, PlanType, PLAN_DESCRIPTIONS, PRICES_BRL } from '@/lib/stripe';
+import { getStripe, STRIPE_PRICE_PRO, PRO_PRICE_BRL, PRO_DESCRIPTION } from '@/lib/stripe';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
@@ -7,41 +7,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { CheckCircle, CreditCard, Shield, Zap } from 'lucide-react';
 
 interface StripeCheckoutProps {
-  plan: PlanType;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
 /**
- * 💳 Componente de Checkout Stripe
+ * 💳 Componente de Checkout Stripe - Modelo Netflix
  * 
- * Processa pagamentos recorrentes para planos Premium do Stater.
- * Integra com Stripe Checkout e Edge Functions do Supabase.
+ * Processa pagamentos para o plano PRO do Stater.
+ * Apenas 1 plano: R$ 14,90/mês
  */
-export default function StripeCheckout({ plan, onSuccess, onCancel }: StripeCheckoutProps) {
+export default function StripeCheckout({ onSuccess, onCancel }: StripeCheckoutProps) {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
   const handleCheckout = async () => {
     if (!user) {
-      alert('Você precisa estar logado para assinar o Premium');
-      return;
-    }
-
-    if (!STRIPE_PRICES[plan]) {
-      alert('Erro: Preço não configurado. Configure as variáveis de ambiente.');
+      alert('Você precisa estar logado para assinar o PRO');
       return;
     }
 
     setLoading(true);
 
     try {
-      console.log('💳 Iniciando checkout Stripe:', { plan, priceId: STRIPE_PRICES[plan] });
+      console.log('💳 Iniciando checkout Stripe PRO:', STRIPE_PRICE_PRO);
 
       // 1. Criar Checkout Session via Edge Function
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
-          priceId: STRIPE_PRICES[plan],
+          priceId: STRIPE_PRICE_PRO,
           userId: user.id,
           userEmail: user.email,
           successUrl: `${window.location.origin}/dashboard?payment=success`,
@@ -60,7 +54,7 @@ export default function StripeCheckout({ plan, onSuccess, onCancel }: StripeChec
 
       console.log('✅ Sessão criada:', data.sessionId);
 
-      // 2. Redirecionar para Stripe Checkout (API moderna)
+      // 2. Redirecionar para Stripe Checkout
       console.log('🔄 Redirecionando para:', data.url);
       window.location.href = data.url;
 
@@ -74,10 +68,10 @@ export default function StripeCheckout({ plan, onSuccess, onCancel }: StripeChec
   };
 
   const benefits = [
-    'Transações ilimitadas',
-    'Análise financeira com IA',
-    'Telegram Bot sem limites',
-    'Relatórios avançados',
+    '50 mensagens de IA por dia',
+    'Análise de fotos e documentos (OCR)',
+    'Bot do Telegram integrado',
+    'Exportação de relatórios',
     'Suporte prioritário',
   ];
 
@@ -85,22 +79,21 @@ export default function StripeCheckout({ plan, onSuccess, onCancel }: StripeChec
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl text-center">
-          {plan === 'monthly' && '💎 '}
-          Stater Premium {plan === 'monthly' && '- MELHOR OFERTA'}
+          💎 Stater PRO
         </CardTitle>
         <CardDescription className="text-center">
-          {PLAN_DESCRIPTIONS[plan]}
+          {PRO_DESCRIPTION}
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6">
         {/* Preço */}
-        <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-          <div className="text-4xl font-bold text-blue-900">
-            R$ {PRICES_BRL[plan].toFixed(2)}
+        <div className="text-center p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl">
+          <div className="text-4xl font-bold text-amber-600">
+            R$ {PRO_PRICE_BRL.toFixed(2).replace('.', ',')}
           </div>
-          <div className="text-sm text-blue-600 mt-1">
-            por {plan === 'weekly' ? 'semana' : 'mês'}
+          <div className="text-sm text-amber-700 mt-1">
+            por mês
           </div>
         </div>
 
@@ -136,7 +129,7 @@ export default function StripeCheckout({ plan, onSuccess, onCancel }: StripeChec
           onClick={handleCheckout}
           disabled={loading}
           size="lg"
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg"
+          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-6 text-lg"
         >
           {loading ? (
             <>
@@ -146,9 +139,10 @@ export default function StripeCheckout({ plan, onSuccess, onCancel }: StripeChec
           ) : (
             <>
               <CreditCard className="w-5 h-5 mr-2" />
-              Assinar Agora
+              Assinar PRO - R$ 14,90/mês
             </>
           )}
+        </Button>
         </Button>
 
         {/* Informações adicionais */}

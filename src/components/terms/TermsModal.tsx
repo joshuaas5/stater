@@ -65,8 +65,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
         hideClose
         className="w-full h-full max-w-none max-h-none p-0 m-0 flex flex-col fixed inset-0 overflow-hidden"
         style={{ 
-          background: 'rgba(49, 81, 139, 0.98)',
-          backdropFilter: 'blur(20px)',
+          background: '#1e3a6e',
           border: 'none',
           borderRadius: '0',
           color: '#ffffff',
@@ -84,10 +83,9 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
         onPointerDownOutside={(e) => e.preventDefault()}
       >
         <DialogHeader 
-          className="p-4 pb-2 flex-shrink-0 border-b border-white/20 safe-top"
+          className="p-4 pb-2 flex-shrink-0 border-b border-white/30 safe-top"
           style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
+            background: '#2a4a7a',
             paddingTop: 'max(16px, env(safe-area-inset-top))'
           }}
         >
@@ -220,8 +218,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
         <div 
           className="p-4 pt-2 border-t border-white/30 space-y-4 flex-shrink-0"
           style={{
-            background: 'rgba(30, 58, 108, 0.95)',
-            backdropFilter: 'blur(10px)'
+            background: '#2a4a7a'
           }}
         >
           <div className="space-y-3">

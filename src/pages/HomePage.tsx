@@ -48,14 +48,14 @@ const HomePage: React.FC = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
-            <span className="text-emerald-300 text-sm font-bold tracking-wide uppercase">Plano Gratuito Disponível</span>
+            <span className="text-emerald-300 text-sm font-bold tracking-wide uppercase">Acesso grátis a funções avançadas</span>
           </div>
           
           {/* Headline */}
           <h1 className="text-5xl sm:text-7xl font-extrabold leading-tight mb-8 tracking-tight drop-shadow-2xl">
             Organize suas finanças <br className="hidden sm:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-white to-blue-200">
-              sem esforço
+              com ajuda da IA
             </span>
           </h1>
           
@@ -111,8 +111,8 @@ const HomePage: React.FC = () => {
                 <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4">
                   <Shield className="w-6 h-6 text-purple-400" />
                 </div>
-                <h3 className="text-lg font-bold mb-2">100% Seguro</h3>
-                <p className="text-white/60 text-sm">Seus dados são seus. Não pedimos senhas bancárias e não vendemos suas informações.</p>
+                <h3 className="text-lg font-bold mb-2">Privacidade Absoluta</h3>
+                <p className="text-white/60 text-sm">Não pedimos dados bancários e não armazenamos informações pessoais desnecessárias.</p>
               </div>
 
             </div>
@@ -275,8 +275,8 @@ const HomePage: React.FC = () => {
       <footer className="relative z-10 py-12 px-6 border-t border-white/5 bg-[#0a0a0f]/50 backdrop-blur-md">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
           
-          <div className="flex items-center gap-3 opacity-70 hover:opacity-100 transition-opacity">
-            <img src="/stater-logo-96.png" alt="Stater" className="w-8 h-8 grayscale hover:grayscale-0 transition-all" />
+          <div className="flex items-center gap-3 hover:opacity-100 transition-opacity">
+            <img src="/stater-logo-96.png" alt="Stater" className="w-8 h-8" />
             <span className="font-bold text-lg">Stater</span>
           </div>
           

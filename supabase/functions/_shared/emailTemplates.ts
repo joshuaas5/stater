@@ -173,21 +173,18 @@ export const billsDigestTemplate = (
   };
 
   // Mensagem de saudação baseada na urgência
-  let greetingEmoji = '📊';
-  let greetingText = 'Resumo semanal das suas contas';
+  let greetingEmoji = '✨';
+  let greetingText = 'Seu resumo financeiro semanal';
+  let subText = 'Organização é o primeiro passo para a liberdade financeira.';
   
   if (overdueBills.length > 0) {
-    greetingEmoji = '🔴';
-    greetingText = `Atenção! ${overdueBills.length} conta${overdueBills.length > 1 ? 's' : ''} vencida${overdueBills.length > 1 ? 's' : ''}`;
+    greetingEmoji = '📝';
+    greetingText = 'Atualização das suas contas';
+    subText = 'Manter tudo em dia ajuda você a crescer. Vamos organizar?';
   } else if (today.length > 0) {
-    greetingEmoji = '🚨';
-    greetingText = `Você tem ${today.length} conta${today.length > 1 ? 's' : ''} vencendo hoje!`;
-  } else if (tomorrow.length > 0) {
-    greetingEmoji = '⚠️';
-    greetingText = `${tomorrow.length} conta${tomorrow.length > 1 ? 's' : ''} vence${tomorrow.length > 1 ? 'm' : ''} amanhã`;
-  } else if (thisWeek.length > 0) {
     greetingEmoji = '📅';
-    greetingText = 'Suas contas da semana';
+    greetingText = 'Lembrete do dia';
+    subText = 'Você tem contas vencendo hoje. Que tal resolver agora?';
   }
 
   const totalGeral = totalUpcoming + totalOverdue;
@@ -202,16 +199,19 @@ export const billsDigestTemplate = (
           <p style="margin: 0 0 6px; font-size: 13px; color: #64647a;">
             ${firstName ? `Olá, ${firstName}` : 'Olá'} 👋
           </p>
-          <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff; line-height: 1.3;">
+          <h1 style="margin: 0 0 8px; font-size: 20px; font-weight: 700; color: #ffffff; line-height: 1.3;">
             ${greetingEmoji} ${greetingText}
           </h1>
+          <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">
+            ${subText}
+          </p>
         </td>
       </tr>
       
       <!-- RESUMO RÁPIDO -->
       <tr>
         <td style="padding: 0 24px 24px;">
-          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: rgba(255,255,255,0.1); border-radius: 16px;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: rgba(255,255,255,0.05); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
             <tr>
               <td style="padding: 20px;">
                 
@@ -220,11 +220,8 @@ export const billsDigestTemplate = (
                 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                   <tr>
                     <td>
-                      <p style="margin: 0 0 4px; font-size: 11px; color: #fca5a5; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">🔴 Total Vencido</p>
-                      <p style="margin: 0; font-size: 22px; font-weight: 800; color: #fca5a5;">${formatCurrency(totalOverdue)}</p>
-                    </td>
-                    <td style="text-align: right; vertical-align: bottom;">
-                      <span style="font-size: 12px; color: #fca5a5; font-weight: 600;">${overdueBills.length} conta${overdueBills.length > 1 ? 's' : ''}</span>
+                      <p style="margin: 0 0 4px; font-size: 11px; color: #fca5a5; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">🔴 Contas em aberto</p>
+                      <p style="margin: 0; font-size: 14px; color: #cbd5e1;">Você tem <strong style="color: #fca5a5;">${overdueBills.length}</strong> conta${overdueBills.length > 1 ? 's' : ''} que precisa${overdueBills.length > 1 ? 'm' : ''} de atenção.</p>
                     </td>
                   </tr>
                 </table>
@@ -234,11 +231,8 @@ export const billsDigestTemplate = (
                 <table width="100%" cellpadding="0" cellspacing="0" border="0">
                   <tr>
                     <td>
-                      <p style="margin: 0 0 4px; font-size: 11px; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Próximos 7 dias</p>
-                      <p style="margin: 0; font-size: 22px; font-weight: 800; color: #ffffff;">${formatCurrency(totalUpcoming)}</p>
-                    </td>
-                    <td style="text-align: right; vertical-align: bottom;">
-                      <span style="font-size: 12px; color: #ffffff; font-weight: 600;">${upcomingBills.length} conta${upcomingBills.length > 1 ? 's' : ''}</span>
+                      <p style="margin: 0 0 4px; font-size: 11px; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">📅 Próximos 7 dias</p>
+                      <p style="margin: 0; font-size: 14px; color: #cbd5e1;">Existem <strong style="color: #ffffff;">${upcomingBills.length}</strong> conta${upcomingBills.length > 1 ? 's' : ''} programada${upcomingBills.length > 1 ? 's' : ''} para esta semana.</p>
                     </td>
                   </tr>
                 </table>
@@ -272,8 +266,8 @@ export const billsDigestTemplate = (
   `;
 
   const previewText = overdueBills.length > 0 
-    ? `🔴 ${overdueBills.length} vencida${overdueBills.length > 1 ? 's' : ''} + ${upcomingBills.length} a vencer - Total: ${formatCurrency(totalGeral)}`
-    : `📊 ${upcomingBills.length} contas a vencer - Total: ${formatCurrency(totalUpcoming)}`;
+    ? `📝 Resumo financeiro: ${overdueBills.length} conta${overdueBills.length > 1 ? 's' : ''} pendente${overdueBills.length > 1 ? 's' : ''} e ${upcomingBills.length} para a semana.`
+    : `✨ Tudo organizado! Veja seu resumo financeiro da semana.`;
 
   return baseTemplate(content, previewText);
 };

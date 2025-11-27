@@ -1,11 +1,11 @@
-// Templates de email REVOLUCIONÁRIOS para o Stater
-// Design moderno dark mode com logo real
+// Templates de email do Stater
+// Design premium dark mode glassmorphism
 
-// Logo Stater em Base64 (40x40 PNG otimizado)
+// Logo Stater
 const STATER_LOGO_URL = 'https://stater.app/stater-logo-96.png';
 
 // ============================================
-// TEMPLATE BASE - DESIGN REVOLUCIONÁRIO
+// TEMPLATE BASE - DESIGN PREMIUM
 // ============================================
 export const baseTemplate = (content: string, previewText: string = '') => `
 <!DOCTYPE html>
@@ -15,55 +15,63 @@ export const baseTemplate = (content: string, previewText: string = '') => `
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Stater</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; background-color: #31518b; }
-    @media (max-width: 600px) {
-      .container { width: 100% !important; padding: 16px !important; }
-      .card { padding: 20px !important; }
-      .bill-item { padding: 16px !important; }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body style="margin: 0; padding: 0; background-color: #31518b; font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased;">
+<body style="margin: 0; padding: 0; background-color: #050510; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;">
   
   <div style="display: none; max-height: 0; overflow: hidden;">${previewText}</div>
 
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #31518b;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(180deg, #050510 0%, #0c0c1d 50%, #0f0a1e 100%); padding: 40px 16px;">
     <tr>
-      <td align="center" style="padding: 24px 12px;">
+      <td align="center">
         
-        <table class="container" width="440" cellpadding="0" cellspacing="0" border="0" style="max-width: 440px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 440px;">
           
-          <!-- HEADER -->
+          <!-- Logo / Brand -->
           <tr>
-            <td style="padding: 8px 0 28px; text-align: center;">
-              <img src="${STATER_LOGO_URL}" alt="Stater" width="64" height="64" style="display: inline-block; vertical-align: middle; border-radius: 14px;" />
-              <span style="display: inline-block; vertical-align: middle; margin-left: 12px; font-size: 24px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">Stater</span>
+            <td align="center" style="padding-bottom: 32px;">
+              <table cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <img src="${STATER_LOGO_URL}" alt="Stater" width="40" height="40" style="display: block; border-radius: 12px;" />
+                  </td>
+                  <td style="padding-left: 12px; color: #ffffff; font-size: 18px; font-weight: 700; letter-spacing: -0.5px;">
+                    Stater
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
           
           <!-- CONTENT -->
-          <tr>
-            <td>
-              ${content}
-            </td>
-          </tr>
+          ${content}
           
-          <!-- FOOTER -->
+          <!-- Footer -->
           <tr>
-            <td style="padding: 32px 0 8px; text-align: center;">
-              <p style="margin: 0 0 4px; font-size: 11px; color: #525264; letter-spacing: 0.3px;">
-                STATER • SEU ASSISTENTE FINANCEIRO
-              </p>
-              <a href="https://stater.app" style="color: #525264; text-decoration: none; font-size: 11px;">stater.app</a>
+            <td style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 28px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0 0 8px; color: #475569; font-size: 12px;">
+                      Enviado automaticamente pelo Stater
+                    </p>
+                    <p style="margin: 0; color: #334155; font-size: 11px;">
+                      Não quer mais receber? <a href="https://stater.app/bills" style="color: #6366f1; text-decoration: none;">Desative na aba Contas</a>
+                      &nbsp;&nbsp;•&nbsp;&nbsp;
+                      <a href="https://stater.app" style="color: #475569; text-decoration: none;">stater.app</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
           
         </table>
+        
       </td>
     </tr>
   </table>
+  
 </body>
 </html>
 `;
@@ -72,11 +80,11 @@ export const baseTemplate = (content: string, previewText: string = '') => `
 const formatCurrency = (value: number): string => 
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-// Formatar data curta
+// Formatar data curta (27 Nov)
 const formatDateShort = (dateStr: string): string => {
   const date = new Date(dateStr);
-  const day = date.getDate().toString().padStart(2, '0');
-  const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  const day = date.getDate();
+  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   return `${day} ${months[date.getMonth()]}`;
 };
 
@@ -87,6 +95,52 @@ const getDaysUntil = (dateStr: string): number => {
   const dueDate = new Date(dateStr);
   dueDate.setHours(0, 0, 0, 0);
   return Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+// Emoji baseado na categoria
+const getCategoryEmoji = (category?: string): string => {
+  const categoryMap: Record<string, string> = {
+    'Moradia': '🏠',
+    'Aluguel': '🏠',
+    'Casa': '🏠',
+    'Utilidades': '⚡',
+    'Luz': '⚡',
+    'Energia': '⚡',
+    'Água': '💧',
+    'Internet': '🌐',
+    'Telefone': '📱',
+    'Celular': '📱',
+    'Cartões': '💳',
+    'Cartão': '💳',
+    'Nubank': '💜',
+    'Saúde': '🏥',
+    'Plano de Saúde': '🏥',
+    'Educação': '📚',
+    'Streaming': '📺',
+    'Netflix': '🎬',
+    'Spotify': '🎵',
+    'Transporte': '🚗',
+    'Combustível': '⛽',
+    'Gasolina': '⛽',
+    'Seguro': '🛡️',
+    'Alimentação': '🍽️',
+    'Mercado': '🛒',
+    'Assinatura': '📦',
+    'Academia': '💪',
+    'Lazer': '🎮',
+    'Outros': '📄'
+  };
+  
+  if (!category) return '📄';
+  
+  // Busca exata ou parcial
+  for (const [key, emoji] of Object.entries(categoryMap)) {
+    if (category.toLowerCase().includes(key.toLowerCase())) {
+      return emoji;
+    }
+  }
+  
+  return '📄';
 };
 
 // ============================================
@@ -120,51 +174,79 @@ export const billsDigestTemplate = (
     if (days === 0) today.push(bill);
     else if (days === 1) tomorrow.push(bill);
     else if (days >= 2 && days <= 7) thisWeek.push(bill);
-    // Ignora contas com mais de 7 dias (não serão mostradas)
   });
 
-  // Calcular totais
+  // Total de contas
   const upcomingBills = [...today, ...tomorrow, ...thisWeek];
-  const totalUpcoming = upcomingBills.reduce((sum, b) => sum + b.amount, 0);
-  const totalOverdue = overdueBills.reduce((sum, b) => sum + b.amount, 0);
-  const urgentCount = today.length + tomorrow.length;
+  const totalCount = upcomingBills.length + overdueBills.length;
 
-  // Gerar seção de contas
-  const generateBillSection = (title: string, emoji: string, color: string, bgColor: string, billList: BillForEmail[]) => {
-    if (billList.length === 0) return '';
+  // Gerar card de uma conta individual
+  const generateBillCard = (bill: BillForEmail, urgency: 'overdue' | 'today' | 'tomorrow' | 'week') => {
+    const days = getDaysUntil(bill.dueDate);
+    const emoji = getCategoryEmoji(bill.category || bill.name);
     
-    const billRows = billList.map(bill => `
-      <tr>
-        <td style="padding: 14px 16px; border-bottom: 1px solid #1a1a24;">
-          <table width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr>
-              <td style="vertical-align: middle;">
-                <p style="margin: 0 0 2px; font-size: 14px; font-weight: 600; color: #ffffff;">${bill.name}</p>
-                <p style="margin: 0; font-size: 11px; color: #64647a;">${formatDateShort(bill.dueDate)}${bill.category ? ` • ${bill.category}` : ''}</p>
-              </td>
-              <td style="text-align: right; vertical-align: middle;">
-                <p style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff;">${formatCurrency(bill.amount)}</p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    `).join('');
-
+    // Cores baseadas na urgência
+    const configs = {
+      overdue: { 
+        bg: 'linear-gradient(135deg, rgba(220, 38, 38, 0.12) 0%, rgba(220, 38, 38, 0.04) 100%)',
+        border: 'rgba(220, 38, 38, 0.2)',
+        iconBg: 'linear-gradient(135deg, #fef2f2 0%, #fecaca 100%)',
+        badge: '#dc2626',
+        badgeText: `⚠️ ${Math.abs(days)} dia${Math.abs(days) > 1 ? 's' : ''} atrás`
+      },
+      today: { 
+        bg: 'linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.03) 100%)',
+        border: 'rgba(239, 68, 68, 0.15)',
+        iconBg: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+        badge: '#ef4444',
+        badgeText: '⚠️ HOJE'
+      },
+      tomorrow: { 
+        bg: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.03) 100%)',
+        border: 'rgba(245, 158, 11, 0.15)',
+        iconBg: 'linear-gradient(135deg, #fefce8 0%, #fef08a 100%)',
+        badge: '#f59e0b',
+        badgeText: 'em 1 dia'
+      },
+      week: { 
+        bg: 'rgba(99, 102, 241, 0.05)',
+        border: 'rgba(99, 102, 241, 0.12)',
+        iconBg: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
+        badge: '#818cf8',
+        badgeText: `em ${days} dias`
+      }
+    };
+    
+    const config = configs[urgency];
+    
     return `
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 16px;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background: ${config.bg}; border-radius: 16px; border: 1px solid ${config.border}; overflow: hidden; margin-bottom: 12px;">
         <tr>
-          <td style="padding: 10px 16px; background-color: ${bgColor}; border-radius: 12px 12px 0 0;">
-            <span style="font-size: 12px; font-weight: 700; color: ${color}; text-transform: uppercase; letter-spacing: 0.5px;">
-              ${emoji} ${title}
-            </span>
-            <span style="float: right; font-size: 12px; color: ${color}; font-weight: 600;">${billList.length} ${billList.length === 1 ? 'conta' : 'contas'}</span>
-          </td>
-        </tr>
-        <tr>
-          <td style="background-color: #12121a; border-radius: 0 0 12px 12px; overflow: hidden;">
-            <table width="100%" cellpadding="0" cellspacing="0" border="0">
-              ${billRows}
+          <td style="padding: 20px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td width="48" valign="top">
+                  <div style="width: 48px; height: 48px; background: ${config.iconBg}; border-radius: 14px; text-align: center; line-height: 48px; font-size: 22px;">
+                    ${emoji}
+                  </div>
+                </td>
+                <td style="padding-left: 16px;" valign="middle">
+                  <p style="margin: 0 0 4px; color: #ffffff; font-size: 16px; font-weight: 700;">
+                    ${bill.name}
+                  </p>
+                  <p style="margin: 0; color: #64748b; font-size: 13px;">
+                    ${formatDateShort(bill.dueDate)}${bill.category ? ` • ${bill.category}` : ''}
+                  </p>
+                </td>
+                <td align="right" valign="middle">
+                  <p style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">
+                    ${formatCurrency(bill.amount)}
+                  </p>
+                  <p style="margin: 4px 0 0; color: ${config.badge}; font-size: 11px; font-weight: 600;">
+                    ${config.badgeText}
+                  </p>
+                </td>
+              </tr>
             </table>
           </td>
         </tr>
@@ -172,102 +254,132 @@ export const billsDigestTemplate = (
     `;
   };
 
-  // Mensagem de saudação baseada na urgência
-  let greetingEmoji = '✨';
-  let greetingText = 'Seu resumo financeiro semanal';
-  let subText = 'Organização é o primeiro passo para a liberdade financeira.';
-  
-  if (overdueBills.length > 0) {
-    greetingEmoji = '📝';
-    greetingText = 'Atualização das suas contas';
-    subText = 'Manter tudo em dia ajuda você a crescer. Vamos organizar?';
-  } else if (today.length > 0) {
-    greetingEmoji = '📅';
-    greetingText = 'Lembrete do dia';
-    subText = 'Você tem contas vencendo hoje. Que tal resolver agora?';
-  }
-
-  const totalGeral = totalUpcoming + totalOverdue;
-
-  const content = `
-    <!-- CARD PRINCIPAL -->
-    <table class="card" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(180deg, #14141e 0%, #0f0f17 100%); border-radius: 24px; border: 1px solid #1f1f2e; overflow: hidden;">
-      
-      <!-- HEADER DO CARD -->
+  // Gerar seção com label
+  const generateSection = (
+    title: string, 
+    dotColor: string, 
+    textColor: string, 
+    billList: BillForEmail[], 
+    urgency: 'overdue' | 'today' | 'tomorrow' | 'week'
+  ) => {
+    if (billList.length === 0) return '';
+    
+    return `
+      <!-- ${title.toUpperCase()} -->
       <tr>
-        <td style="padding: 28px 24px 20px;">
-          <p style="margin: 0 0 6px; font-size: 13px; color: #64647a;">
-            ${firstName ? `Olá, ${firstName}` : 'Olá'} 👋
-          </p>
-          <h1 style="margin: 0 0 8px; font-size: 20px; font-weight: 700; color: #ffffff; line-height: 1.3;">
-            ${greetingEmoji} ${greetingText}
-          </h1>
-          <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">
-            ${subText}
-          </p>
-        </td>
-      </tr>
-      
-      <!-- RESUMO RÁPIDO -->
-      <tr>
-        <td style="padding: 0 24px 24px;">
-          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: rgba(255,255,255,0.05); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+        <td style="padding-bottom: 24px;">
+          <!-- Section Label -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
             <tr>
-              <td style="padding: 20px;">
-                
-                ${overdueBills.length > 0 ? `
-                <!-- SEPARADO: VENCIDO -->
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+              <td>
+                <table cellpadding="0" cellspacing="0">
                   <tr>
-                    <td>
-                      <p style="margin: 0 0 4px; font-size: 11px; color: #fca5a5; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">🔴 Contas em aberto</p>
-                      <p style="margin: 0; font-size: 14px; color: #cbd5e1;">Você tem <strong style="color: #fca5a5;">${overdueBills.length}</strong> conta${overdueBills.length > 1 ? 's' : ''} que precisa${overdueBills.length > 1 ? 'm' : ''} de atenção.</p>
+                    <td style="width: 8px; height: 8px; background: ${dotColor}; border-radius: 50%; box-shadow: 0 0 12px ${dotColor}99;"></td>
+                    <td style="padding-left: 10px; color: ${textColor}; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                      ${title}
                     </td>
                   </tr>
                 </table>
-                ` : ''}
-                
-                <!-- A VENCER -->
-                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td>
-                      <p style="margin: 0 0 4px; font-size: 11px; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">📅 Próximos 7 dias</p>
-                      <p style="margin: 0; font-size: 14px; color: #cbd5e1;">Existem <strong style="color: #ffffff;">${upcomingBills.length}</strong> conta${upcomingBills.length > 1 ? 's' : ''} programada${upcomingBills.length > 1 ? 's' : ''} para esta semana.</p>
-                    </td>
-                  </tr>
-                </table>
-
+              </td>
+              <td align="right">
+                <span style="color: #475569; font-size: 12px; font-weight: 500;">${billList.length} conta${billList.length > 1 ? 's' : ''}</span>
               </td>
             </tr>
           </table>
+          
+          <!-- Bill Cards -->
+          ${billList.map(bill => generateBillCard(bill, urgency)).join('')}
         </td>
       </tr>
-      
-      <!-- LISTA DE CONTAS POR URGÊNCIA -->
-      <tr>
-        <td style="padding: 0 24px 24px;">
-          ${generateBillSection('Contas vencidas', '🔴', '#f87171', '#2d1a1a', overdueBills)}
-          ${generateBillSection('Vence hoje', '🚨', '#fca5a5', '#2a1a1a', today)}
-          ${generateBillSection('Vence amanhã', '⚠️', '#fdba74', '#2a2214', tomorrow)}
-          ${generateBillSection('Próximos 7 dias', '📅', '#93c5fd', '#1a1f2a', thisWeek)}
-        </td>
-      </tr>
-      
-      <!-- BOTÃO CTA -->
-      <tr>
-        <td style="padding: 0 24px 28px; text-align: center;">
-          <a href="https://stater.app/bills" style="display: inline-block; background: linear-gradient(135deg, #3B82F6 0%, #2563eb 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);">
-            Gerenciar contas →
-          </a>
-        </td>
-      </tr>
-      
-    </table>
+    `;
+  };
+
+  // Mensagem de saudação
+  let greetingText = 'Lembrete da semana';
+  let subText = 'Confira suas contas para os próximos dias.';
+  
+  if (overdueBills.length > 0) {
+    greetingText = 'Atenção às suas contas';
+    subText = 'Você tem contas que precisam de atenção. Vamos organizar?';
+  } else if (today.length > 0) {
+    subText = 'Você tem contas vencendo hoje. Que tal resolver agora?';
+  }
+
+  const content = `
+    <!-- Hero Section com Gradiente -->
+    <tr>
+      <td style="padding-bottom: 32px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%); border-radius: 24px; border: 1px solid rgba(139, 92, 246, 0.2); overflow: hidden;">
+          <tr>
+            <td style="padding: 32px 28px;">
+              <p style="margin: 0 0 6px; color: #a78bfa; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;">
+                Olá, ${firstName || 'usuário'} 👋
+              </p>
+              <h1 style="margin: 0 0 12px; color: #ffffff; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2;">
+                ${greetingText}
+              </h1>
+              <p style="margin: 0; color: #94a3b8; font-size: 15px; line-height: 1.5;">
+                ${subText}
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    
+    <!-- Stats Card - Apenas quantidade, sem total -->
+    <tr>
+      <td style="padding-bottom: 28px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);">
+          <tr>
+            <td style="padding: 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  ${overdueBills.length > 0 ? `
+                  <td width="50%" style="border-right: 1px solid rgba(255,255,255,0.08);">
+                    <p style="margin: 0 0 4px; color: #f87171; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">⚠️ Em aberto</p>
+                    <p style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">${overdueBills.length}</p>
+                    <p style="margin: 4px 0 0; color: #64748b; font-size: 12px;">conta${overdueBills.length > 1 ? 's' : ''} vencida${overdueBills.length > 1 ? 's' : ''}</p>
+                  </td>
+                  <td width="50%" style="padding-left: 20px;">
+                    <p style="margin: 0 0 4px; color: #64748b; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Próximos 7 dias</p>
+                    <p style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">${upcomingBills.length}</p>
+                    <p style="margin: 4px 0 0; color: #64748b; font-size: 12px;">conta${upcomingBills.length > 1 ? 's' : ''} programada${upcomingBills.length > 1 ? 's' : ''}</p>
+                  </td>
+                  ` : `
+                  <td style="text-align: center;">
+                    <p style="margin: 0 0 4px; color: #64748b; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">📅 Próximos 7 dias</p>
+                    <p style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">${upcomingBills.length}</p>
+                    <p style="margin: 4px 0 0; color: #64748b; font-size: 12px;">conta${upcomingBills.length > 1 ? 's' : ''} programada${upcomingBills.length > 1 ? 's' : ''}</p>
+                  </td>
+                  `}
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    
+    <!-- LISTA DE CONTAS POR URGÊNCIA -->
+    ${generateSection('Contas vencidas', '#dc2626', '#f87171', overdueBills, 'overdue')}
+    ${generateSection('Vence hoje', '#ef4444', '#ef4444', today, 'today')}
+    ${generateSection('Vence amanhã', '#f59e0b', '#f59e0b', tomorrow, 'tomorrow')}
+    ${generateSection('Próximos 7 dias', '#6366f1', '#818cf8', thisWeek, 'week')}
+    
+    <!-- CTA Button -->
+    <tr>
+      <td align="center" style="padding-bottom: 40px;">
+        <a href="https://stater.app/bills" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #4f46e5 100%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 16px 48px; border-radius: 14px; box-shadow: 0 8px 32px rgba(99, 102, 241, 0.35); letter-spacing: 0.3px;">
+          Gerenciar contas →
+        </a>
+      </td>
+    </tr>
   `;
 
   const previewText = overdueBills.length > 0 
-    ? `📝 Resumo financeiro: ${overdueBills.length} conta${overdueBills.length > 1 ? 's' : ''} pendente${overdueBills.length > 1 ? 's' : ''} e ${upcomingBills.length} para a semana.`
-    : `✨ Tudo organizado! Veja seu resumo financeiro da semana.`;
+    ? `⚠️ Você tem ${overdueBills.length} conta${overdueBills.length > 1 ? 's' : ''} vencida${overdueBills.length > 1 ? 's' : ''} e ${upcomingBills.length} para a semana`
+    : `📬 ${totalCount} conta${totalCount > 1 ? 's' : ''} para esta semana`;
 
   return baseTemplate(content, previewText);
 };
@@ -279,74 +391,111 @@ export const welcomeTemplate = (userName: string) => {
   const firstName = userName ? userName.split(' ')[0] : '';
 
   const content = `
-    <table class="card" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(180deg, #14141e 0%, #0f0f17 100%); border-radius: 24px; border: 1px solid #1f1f2e; overflow: hidden;">
-      
-      <tr>
-        <td style="padding: 40px 28px 0; text-align: center;">
-          <div style="font-size: 52px; margin-bottom: 16px;">🚀</div>
-          <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #ffffff;">
-            Bem-vindo ao Stater${firstName ? `, ${firstName}` : ''}!
-          </h1>
-          <p style="margin: 0; font-size: 14px; color: #64647a; line-height: 1.6;">
-            Seu controle financeiro inteligente começa agora
-          </p>
-        </td>
-      </tr>
-      
-      <tr>
-        <td style="padding: 28px;">
-          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #12121a; border-radius: 16px; overflow: hidden;">
-            <tr>
-              <td style="padding: 18px 20px; border-bottom: 1px solid #1a1a24;">
-                <table cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td style="padding-right: 14px;"><span style="font-size: 22px;">📊</span></td>
-                    <td>
-                      <p style="margin: 0 0 1px; font-size: 14px; font-weight: 600; color: #ffffff;">Controle total</p>
-                      <p style="margin: 0; font-size: 12px; color: #64647a;">Veja para onde vai seu dinheiro</p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 18px 20px; border-bottom: 1px solid #1a1a24;">
-                <table cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td style="padding-right: 14px;"><span style="font-size: 22px;">🔔</span></td>
-                    <td>
-                      <p style="margin: 0 0 1px; font-size: 14px; font-weight: 600; color: #ffffff;">Lembretes inteligentes</p>
-                      <p style="margin: 0; font-size: 12px; color: #64647a;">Nunca esqueça uma conta</p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 18px 20px;">
-                <table cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td style="padding-right: 14px;"><span style="font-size: 22px;">🤖</span></td>
-                    <td>
-                      <p style="margin: 0 0 1px; font-size: 14px; font-weight: 600; color: #ffffff;">IA Financeira</p>
-                      <p style="margin: 0; font-size: 12px; color: #64647a;">Converse sobre suas finanças</p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      
-      <tr>
-        <td style="padding: 0 28px 36px; text-align: center;">
-          <a href="https://stater.app" style="display: inline-block; background: linear-gradient(135deg, #3B82F6 0%, #2563eb 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);">
-            Começar agora →
-          </a>
-        </td>
-      </tr>
-    </table>
+    <!-- Hero Section -->
+    <tr>
+      <td style="padding-bottom: 32px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%); border-radius: 24px; border: 1px solid rgba(16, 185, 129, 0.2); overflow: hidden;">
+          <tr>
+            <td style="padding: 32px 28px; text-align: center;">
+              <div style="font-size: 52px; margin-bottom: 16px;">🚀</div>
+              <h1 style="margin: 0 0 12px; color: #ffffff; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">
+                Bem-vindo ao Stater${firstName ? `, ${firstName}` : ''}!
+              </h1>
+              <p style="margin: 0; color: #94a3b8; font-size: 15px; line-height: 1.5;">
+                Seu controle financeiro inteligente começa agora
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    
+    <!-- Features Cards -->
+    <tr>
+      <td style="padding-bottom: 32px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); overflow: hidden;">
+          
+          <!-- Feature 1 -->
+          <tr>
+            <td style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="48" valign="top">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: 14px; text-align: center; line-height: 48px; font-size: 22px;">
+                      📊
+                    </div>
+                  </td>
+                  <td style="padding-left: 16px;" valign="middle">
+                    <p style="margin: 0 0 4px; color: #ffffff; font-size: 16px; font-weight: 700;">
+                      Controle total
+                    </p>
+                    <p style="margin: 0; color: #64748b; font-size: 13px;">
+                      Veja para onde vai seu dinheiro com clareza
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Feature 2 -->
+          <tr>
+            <td style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="48" valign="top">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 14px; text-align: center; line-height: 48px; font-size: 22px;">
+                      🔔
+                    </div>
+                  </td>
+                  <td style="padding-left: 16px;" valign="middle">
+                    <p style="margin: 0 0 4px; color: #ffffff; font-size: 16px; font-weight: 700;">
+                      Lembretes inteligentes
+                    </p>
+                    <p style="margin: 0; color: #64748b; font-size: 13px;">
+                      Nunca mais esqueça uma conta importante
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Feature 3 -->
+          <tr>
+            <td style="padding: 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="48" valign="top">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); border-radius: 14px; text-align: center; line-height: 48px; font-size: 22px;">
+                      🤖
+                    </div>
+                  </td>
+                  <td style="padding-left: 16px;" valign="middle">
+                    <p style="margin: 0 0 4px; color: #ffffff; font-size: 16px; font-weight: 700;">
+                      IA Financeira
+                    </p>
+                    <p style="margin: 0; color: #64748b; font-size: 13px;">
+                      Converse sobre suas finanças com inteligência
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+    
+    <!-- CTA Button -->
+    <tr>
+      <td align="center" style="padding-bottom: 40px;">
+        <a href="https://stater.app" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 16px 48px; border-radius: 14px; box-shadow: 0 8px 32px rgba(16, 185, 129, 0.35); letter-spacing: 0.3px;">
+          Começar agora →
+        </a>
+      </td>
+    </tr>
   `;
 
   return baseTemplate(content, `🚀 Bem-vindo ao Stater${firstName ? `, ${firstName}` : ''}! Seu assistente financeiro.`);
@@ -357,42 +506,56 @@ export const welcomeTemplate = (userName: string) => {
 // ============================================
 export const testEmailTemplate = () => {
   const content = `
-    <table class="card" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(180deg, #14141e 0%, #0f0f17 100%); border-radius: 24px; border: 1px solid #1f1f2e; overflow: hidden;">
-      
-      <tr>
-        <td style="padding: 40px 28px; text-align: center;">
-          <table width="56" height="56" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto 20px;">
-            <tr>
-              <td align="center" valign="middle" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%;">
-                <span style="font-size: 24px; color: #ffffff;">✓</span>
-              </td>
-            </tr>
-          </table>
-          
-          <h1 style="margin: 0 0 8px; font-size: 20px; font-weight: 700; color: #ffffff;">
-            Tudo pronto!
-          </h1>
-          <p style="margin: 0 0 24px; font-size: 14px; color: #64647a;">
-            Sistema de notificações <span style="color: #4ade80;">100% operacional</span>
-          </p>
-          
-          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #12121a; border-radius: 12px;">
-            <tr>
-              <td style="padding: 16px 20px;">
-                <p style="margin: 0 0 8px; font-size: 12px; font-weight: 600; color: #ffffff;">📬 Você receberá:</p>
-                <p style="margin: 0; font-size: 12px; color: #64647a; line-height: 1.7;">
-                  Um resumo diário com todas as suas contas próximas do vencimento, organizadas por urgência.
-                </p>
-              </td>
-            </tr>
-          </table>
-          
-          <a href="https://stater.app" style="display: inline-block; margin-top: 24px; background: linear-gradient(135deg, #3B82F6 0%, #2563eb 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 14px; font-weight: 600;">
-            Acessar Stater →
-          </a>
-        </td>
-      </tr>
-    </table>
+    <!-- Hero Section -->
+    <tr>
+      <td style="padding-bottom: 32px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%); border-radius: 24px; border: 1px solid rgba(16, 185, 129, 0.2); overflow: hidden;">
+          <tr>
+            <td style="padding: 32px 28px; text-align: center;">
+              <table width="56" height="56" cellpadding="0" cellspacing="0" style="margin: 0 auto 20px;">
+                <tr>
+                  <td align="center" valign="middle" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; width: 56px; height: 56px;">
+                    <span style="font-size: 24px; color: #ffffff;">✓</span>
+                  </td>
+                </tr>
+              </table>
+              
+              <h1 style="margin: 0 0 12px; color: #ffffff; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">
+                Tudo pronto!
+              </h1>
+              <p style="margin: 0; color: #94a3b8; font-size: 15px; line-height: 1.5;">
+                Sistema de notificações <span style="color: #4ade80; font-weight: 600;">100% operacional</span>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    
+    <!-- Info Card -->
+    <tr>
+      <td style="padding-bottom: 32px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);">
+          <tr>
+            <td style="padding: 20px;">
+              <p style="margin: 0 0 8px; font-size: 13px; font-weight: 700; color: #ffffff;">📬 Você receberá:</p>
+              <p style="margin: 0; font-size: 14px; color: #94a3b8; line-height: 1.6;">
+                Um resumo semanal com todas as suas contas próximas do vencimento, organizadas por urgência.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    
+    <!-- CTA Button -->
+    <tr>
+      <td align="center" style="padding-bottom: 40px;">
+        <a href="https://stater.app" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #4f46e5 100%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 16px 48px; border-radius: 14px; box-shadow: 0 8px 32px rgba(99, 102, 241, 0.35); letter-spacing: 0.3px;">
+          Acessar Stater →
+        </a>
+      </td>
+    </tr>
   `;
 
   return baseTemplate(content, '✅ Sistema de emails do Stater configurado com sucesso!');

@@ -1,17 +1,29 @@
 const https = require('https');
 
+// Gera datas dinâmicas baseadas em hoje
+const today = new Date();
+const tomorrow = new Date(today);
+tomorrow.setDate(tomorrow.getDate() + 1);
+const in3days = new Date(today);
+in3days.setDate(in3days.getDate() + 3);
+const in5days = new Date(today);
+in5days.setDate(in5days.getDate() + 5);
+
+const formatDate = (date) => date.toISOString().split('T')[0];
+
 const data = JSON.stringify({
   to: 'suplementaja@gmail.com',
-  subject: '📬 Stater: 4 contas esta semana (R$ 1.775,17)',
+  subject: '📬 Stater: Lembrete da semana',
   template: 'bills-digest',
   data: {
     userName: 'Joshua',
     bills: [
-      { name: 'Internet - Vivo Fibra', amount: 129.90, dueDate: '2025-11-29', category: 'Utilidades' },
-      { name: 'Cartão Nubank', amount: 1523.47, dueDate: '2025-12-02', category: 'Cartões' },
-      { name: 'Academia Smart Fit', amount: 99.90, dueDate: '2025-12-05', category: 'Saúde' },
-      { name: 'Spotify Premium', amount: 21.90, dueDate: '2025-12-10', category: 'Assinaturas' }
-    ]
+      { name: 'Aluguel - Apartamento', amount: 1850, dueDate: formatDate(today), category: 'Moradia' },
+      { name: 'Conta de Luz - CEMIG', amount: 287.50, dueDate: formatDate(tomorrow), category: 'Utilidades' },
+      { name: 'Internet - Vivo Fibra', amount: 129.90, dueDate: formatDate(in3days), category: 'Utilidades' },
+      { name: 'Cartão Nubank', amount: 1523.47, dueDate: formatDate(in5days), category: 'Cartões' }
+    ],
+    overdueBills: [] // Sem contas vencidas para teste padrão
   }
 });
 

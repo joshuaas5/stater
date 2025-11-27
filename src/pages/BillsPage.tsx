@@ -87,6 +87,10 @@ const BillsPage: React.FC = () => {
   const [userPlan, setUserPlan] = useState<any>(null);
   const { isOpen: paywallOpen, trigger: paywallTrigger, openPaywall, closePaywall } = usePaywallModal();
   
+  // Estado para notificações por email
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState<boolean>(true);
+  const [loadingEmailPref, setLoadingEmailPref] = useState<boolean>(false);
+  
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -115,9 +119,79 @@ const BillsPage: React.FC = () => {
       
       // Carregar plano após definir userId
       loadUserPlan(user.id);
+      
+      // Carregar preferência de notificações por email
+      loadEmailNotificationPreference(user.id);
     } catch (error) {
       console.error('Erro na inicialização do usuário:', error);
       navigate('/login');
+    }
+  };
+  
+  // Carregar preferência de notificações por email do Supabase
+  const loadEmailNotificationPreference = async (uid: string) => {
+    try {
+      const { supabase } = await import('@/lib/supabase');
+      const { data, error } = await supabase
+        .from('user_notification_preferences')
+        .select('email_notifications')
+        .eq('user_id', uid)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao carregar preferência de email:', error);
+        return;
+      }
+      
+      // Se existe, usar o valor do banco; senão, default é true
+      setEmailNotificationsEnabled(data?.email_notifications ?? true);
+    } catch (error) {
+      console.error('Erro ao carregar preferência de email:', error);
+    }
+  };
+  
+  // Salvar preferência de notificações por email
+  const toggleEmailNotifications = async () => {
+    if (!userId || loadingEmailPref) return;
+    
+    setLoadingEmailPref(true);
+    const newValue = !emailNotificationsEnabled;
+    
+    try {
+      const { supabase } = await import('@/lib/supabase');
+      
+      // Upsert para criar ou atualizar
+      const { error } = await supabase
+        .from('user_notification_preferences')
+        .upsert({
+          user_id: userId,
+          email_notifications: newValue,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+      
+      if (error) {
+        console.error('Erro ao salvar preferência de email:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível salvar a preferência. Tente novamente.',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      setEmailNotificationsEnabled(newValue);
+      toast({
+        title: newValue ? '📧 Notificações ativadas' : '🔕 Notificações desativadas',
+        description: newValue 
+          ? 'Você receberá lembretes semanais por e-mail.' 
+          : 'Você não receberá mais lembretes por e-mail.',
+      });
+    } catch (error) {
+      console.error('Erro ao salvar preferência de email:', error);
+    } finally {
+      setLoadingEmailPref(false);
     }
   };
   
@@ -516,20 +590,25 @@ const BillsPage: React.FC = () => {
       {showEmailBanner && (
         <div className="mx-4 mt-4">
           <div 
-            className="relative overflow-hidden rounded-2xl border border-emerald-400/30"
+            className="relative overflow-hidden rounded-2xl border"
             style={{
-              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(59, 130, 246, 0.15) 50%, rgba(139, 92, 246, 0.15) 100%)',
+              background: emailNotificationsEnabled 
+                ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(59, 130, 246, 0.15) 50%, rgba(139, 92, 246, 0.15) 100%)'
+                : 'linear-gradient(135deg, rgba(100, 100, 100, 0.15) 0%, rgba(80, 80, 80, 0.15) 100%)',
+              borderColor: emailNotificationsEnabled ? 'rgba(16, 185, 129, 0.3)' : 'rgba(100, 100, 100, 0.3)',
               backdropFilter: 'blur(20px)',
             }}
           >
             {/* Efeito de brilho animado */}
-            <div 
-              className="absolute inset-0 opacity-30"
-              style={{
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
-                animation: 'shimmer 3s infinite',
-              }}
-            />
+            {emailNotificationsEnabled && (
+              <div 
+                className="absolute inset-0 opacity-30"
+                style={{
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
+                  animation: 'shimmer 3s infinite',
+                }}
+              />
+            )}
             
             {/* Botão de fechar */}
             <button
@@ -542,34 +621,56 @@ const BillsPage: React.FC = () => {
             
             <div className="relative p-4">
               <div className="flex items-start gap-4">
-                {/* Ícone animado */}
+                {/* Ícone */}
                 <div 
                   className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
                   style={{
-                    background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)',
-                    boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)',
+                    background: emailNotificationsEnabled 
+                      ? 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)'
+                      : 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
+                    boxShadow: emailNotificationsEnabled 
+                      ? '0 4px 15px rgba(16, 185, 129, 0.4)'
+                      : '0 4px 15px rgba(100, 100, 100, 0.2)',
                   }}
                 >
                   <div className="relative">
                     <Mail size={22} className="text-white" />
-                    <div 
-                      className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-500 border-2 border-white"
-                      style={{ animation: 'pulse 2s infinite' }}
-                    />
+                    {emailNotificationsEnabled && (
+                      <div 
+                        className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-green-400 border-2 border-white"
+                      />
+                    )}
                   </div>
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-                      ✨ Ativo
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className={`text-xs font-bold uppercase tracking-wider ${emailNotificationsEnabled ? 'text-emerald-400' : 'text-gray-400'}`}>
+                      {emailNotificationsEnabled ? '✨ Ativo' : '🔕 Desativado'}
                     </span>
+                    
+                    {/* Toggle Switch */}
+                    <button
+                      onClick={toggleEmailNotifications}
+                      disabled={loadingEmailPref}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        emailNotificationsEnabled ? 'bg-emerald-500' : 'bg-gray-500'
+                      } ${loadingEmailPref ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          emailNotificationsEnabled ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
                   </div>
                   <h3 className="text-white font-bold text-base leading-tight mb-1">
-                    Lembretes por e-mail ativados!
+                    Lembretes por e-mail
                   </h3>
                   <p className="text-white/70 text-sm leading-snug">
-                    Toda semana você receberá um resumo das suas contas a vencer nos próximos 7 dias. Basta criar contas com a opção "Notificar" ativada.
+                    {emailNotificationsEnabled 
+                      ? 'Toda semana você receberá um resumo das suas contas a vencer nos próximos 7 dias.'
+                      : 'Você não está recebendo lembretes por e-mail. Ative para não perder nenhuma conta!'}
                   </p>
                 </div>
               </div>

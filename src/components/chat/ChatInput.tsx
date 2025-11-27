@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Image, Camera, X, Loader2, Plus, FileText } from 'lucide-react';
+import { Send, Paperclip, Camera, X, Loader2, Plus, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { VoiceRecorder } from '@/components/voice/VoiceRecorderFixed';
@@ -383,7 +383,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                       setShowAttachmentButtons(false);
                     }}
                     disabled={loading}
-                    title="Anexar arquivo"
+                    title="Anexar arquivo (imagem, PDF, OFX)"
                     style={{
                       width: '44px',
                       height: '44px',
@@ -401,7 +401,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                       opacity: loading ? 0.5 : 1,
                     }}
                   >
-                    <Image size={18} />
+                    <Paperclip size={18} />
                   </button>
 
                   <button

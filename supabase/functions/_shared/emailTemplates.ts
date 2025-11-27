@@ -224,15 +224,10 @@ export const billsDigestTemplate = (
     return `
       <table width="100%" cellpadding="0" cellspacing="0" style="background: ${config.bg}; border-radius: 16px; border: 1px solid ${config.border}; overflow: hidden; margin-bottom: 12px;">
         <tr>
-          <td style="padding: 20px;">
+          <td style="padding: 18px 20px;">
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
-                <td width="48" valign="top">
-                  <div style="width: 48px; height: 48px; background: ${config.iconBg}; border-radius: 14px; text-align: center; line-height: 48px;">
-                    <div style="width: 12px; height: 12px; background: ${config.badge}; border-radius: 50%; margin: 18px auto;"></div>
-                  </div>
-                </td>
-                <td style="padding-left: 16px;" valign="middle">
+                <td valign="middle">
                   <p style="margin: 0 0 4px; color: #ffffff; font-size: 16px; font-weight: 700;">
                     ${bill.name}
                   </p>
@@ -240,8 +235,8 @@ export const billsDigestTemplate = (
                     ${formatDateShort(bill.dueDate)}${bill.category ? ` • ${bill.category}` : ''}
                   </p>
                 </td>
-                <td align="right" valign="middle">
-                  <p style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">
+                <td align="right" valign="middle" style="white-space: nowrap;">
+                  <p style="margin: 0; color: #ffffff; font-size: 18px; font-weight: 800; letter-spacing: -0.5px;">
                     ${formatCurrency(bill.amount)}
                   </p>
                   <p style="margin: 4px 0 0; color: ${config.badge}; font-size: 11px; font-weight: 600;">

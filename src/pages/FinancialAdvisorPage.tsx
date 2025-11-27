@@ -4020,9 +4020,9 @@ return (
                   amount: tx.amount,
                   category: tx.category,
                   type: tx.type,
-                  date: new Date(tx.date),
-                  userId: user.id,
-                  isRecurring: false
+                  date: tx.date, // Já está em formato ISO string
+                  user_id: user.id,
+                  is_recurring: false
                 };
 
                 const { error: saveError } = await supabase

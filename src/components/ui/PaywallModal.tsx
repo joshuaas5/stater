@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { STRIPE_PRICE_PRO, PRO_PRICE_BRL } from '@/lib/stripe';
+import { STRIPE_PRICE_PRO } from '@/lib/stripe';
 import { 
   X, 
   Crown, 
   Sparkles, 
-  MessageSquare, 
   Camera, 
   FileText, 
-  Send, 
-  Download,
   Shield,
-  Zap,
   Check,
   Loader2,
-  Star
+  Infinity,
+  Bot,
+  TrendingUp,
+  CreditCard
 } from 'lucide-react';
 
 interface PaywallModalProps {
@@ -46,7 +45,6 @@ export function PaywallModal({ isOpen, onClose, trigger, userId }: PaywallModalP
     }
   }, [isOpen]);
 
-  // Bloquear scroll do body
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -58,55 +56,12 @@ export function PaywallModal({ isOpen, onClose, trigger, userId }: PaywallModalP
     };
   }, [isOpen]);
 
-  const getTriggerInfo = () => {
-    switch (trigger) {
-      case 'messages':
-        return {
-          icon: <MessageSquare className="w-7 h-7" />,
-          title: 'Limite de mensagens atingido',
-          subtitle: 'Você usou suas 5 mensagens diárias gratuitas'
-        };
-      case 'ocr':
-        return {
-          icon: <Camera className="w-7 h-7" />,
-          title: 'Recurso exclusivo PRO',
-          subtitle: 'Análise de fotos e documentos'
-        };
-      case 'pdf':
-        return {
-          icon: <FileText className="w-7 h-7" />,
-          title: 'Recurso exclusivo PRO',
-          subtitle: 'Leitura de PDFs e extratos'
-        };
-      case 'audio':
-        return {
-          icon: <MessageSquare className="w-7 h-7" />,
-          title: 'Recurso exclusivo PRO',
-          subtitle: 'Análise de áudio e voz'
-        };
-      case 'reports':
-        return {
-          icon: <Download className="w-7 h-7" />,
-          title: 'Recurso exclusivo PRO',
-          subtitle: 'Exportação de relatórios'
-        };
-      default:
-        return {
-          icon: <Sparkles className="w-7 h-7" />,
-          title: 'Desbloqueie o Stater PRO',
-          subtitle: 'Potencialize sua gestão financeira'
-        };
-    }
-  };
-
   const handleSubscribe = async () => {
     if (loading) return;
     
     setLoading(true);
     
     try {
-      console.log('🛒 Iniciando checkout PRO:', STRIPE_PRICE_PRO);
-
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
           priceId: STRIPE_PRICE_PRO,
@@ -124,7 +79,6 @@ export function PaywallModal({ isOpen, onClose, trigger, userId }: PaywallModalP
       }
 
       if (data?.url) {
-        console.log('✅ Redirecionando para checkout:', data.url);
         window.location.href = data.url;
       } else {
         throw new Error('URL de checkout não retornada');
@@ -138,196 +92,333 @@ export function PaywallModal({ isOpen, onClose, trigger, userId }: PaywallModalP
     }
   };
 
-  const triggerInfo = getTriggerInfo();
-
-  const features = [
-    { icon: <MessageSquare className="w-5 h-5" />, text: '50 mensagens de IA por dia', highlight: true },
-    { icon: <Camera className="w-5 h-5" />, text: 'Análise de fotos e documentos' },
-    { icon: <FileText className="w-5 h-5" />, text: 'Leitura de PDFs e extratos' },
-    { icon: <Send className="w-5 h-5" />, text: 'Bot do Telegram integrado' },
-    { icon: <Download className="w-5 h-5" />, text: 'Exportação de relatórios' },
-  ];
-
   if (!isOpen) return null;
 
+  const triggerMessages: Record<string, { emoji: string; title: string; desc: string }> = {
+    messages: { emoji: '💬', title: 'Suas mensagens acabaram', desc: 'Você usou suas 5 mensagens diárias' },
+    ocr: { emoji: '📷', title: 'Recurso PRO', desc: 'Análise de fotos com IA' },
+    pdf: { emoji: '📄', title: 'Recurso PRO', desc: 'Leitura de PDFs e extratos' },
+    audio: { emoji: '🎤', title: 'Recurso PRO', desc: 'Comandos por voz' },
+    reports: { emoji: '📊', title: 'Recurso PRO', desc: 'Exportação de relatórios' },
+    manual: { emoji: '✨', title: 'Seja PRO', desc: 'Desbloqueie todo o potencial' },
+    bills: { emoji: '📑', title: 'Recurso PRO', desc: 'Gestão avançada de contas' },
+    transactions: { emoji: '💳', title: 'Recurso PRO', desc: 'Transações ilimitadas' },
+  };
+
+  const info = triggerMessages[trigger] || triggerMessages.manual;
+
   return (
-    <div 
-      className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}
-    >
-      {/* Backdrop com blur */}
+    <>
+      {/* Overlay */}
       <div 
-        className="absolute inset-0 backdrop-blur-xl"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 99998,
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        }}
         onClick={onClose}
       />
-      
-      {/* Modal Card */}
-      <div className="relative w-full max-w-md overflow-hidden animate-in zoom-in-95 fade-in duration-300">
-        
-        {/* Card principal com gradiente de borda */}
-        <div className="relative rounded-[28px] p-[1px] bg-gradient-to-b from-amber-400/50 via-amber-500/20 to-transparent">
-          <div className="relative bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 rounded-[27px] overflow-hidden">
-            
-            {/* Glow effect */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-40 bg-gradient-to-b from-amber-500/20 to-transparent blur-3xl pointer-events-none" />
-            
-            {/* Estrelas decorativas */}
-            <div className="absolute top-6 left-8 text-amber-400/30">
-              <Star className="w-3 h-3 fill-current" />
-            </div>
-            <div className="absolute top-12 right-12 text-amber-400/20">
-              <Star className="w-2 h-2 fill-current" />
-            </div>
-            <div className="absolute top-20 left-16 text-amber-400/10">
-              <Star className="w-2 h-2 fill-current" />
-            </div>
-            
-            {/* Botão fechar */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 z-10 p-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all hover:scale-105"
+
+      {/* Modal */}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '420px',
+            background: 'linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%)',
+            borderRadius: '32px',
+            overflow: 'hidden',
+            boxShadow: '0 0 100px rgba(139, 92, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.2)',
+            border: '1px solid rgba(139, 92, 246, 0.2)',
+            position: 'relative',
+          }}
+        >
+          {/* Gradient glow top */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '-100px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '400px',
+              height: '200px',
+              background: 'radial-gradient(ellipse, rgba(139, 92, 246, 0.4) 0%, transparent 70%)',
+              pointerEvents: 'none',
+            }}
+          />
+
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              zIndex: 10,
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
+            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+          >
+            <X style={{ width: '18px', height: '18px', color: 'rgba(255, 255, 255, 0.6)' }} />
+          </button>
+
+          {/* Header */}
+          <div style={{ padding: '40px 24px 24px', textAlign: 'center', position: 'relative' }}>
+            {/* PRO Badge */}
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 16px',
+                borderRadius: '100px',
+                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                marginBottom: '24px',
+              }}
             >
-              <X className="w-5 h-5 text-white/60" />
-            </button>
+              <Crown style={{ width: '16px', height: '16px', color: '#a78bfa' }} />
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#c4b5fd', letterSpacing: '1px' }}>
+                STATER PRO
+              </span>
+            </div>
 
-            {/* Header */}
-            <div className="relative pt-8 pb-6 px-6 text-center">
-              {/* Badge PRO animado */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/30 mb-5 animate-pulse">
-                <Crown className="w-4 h-4 text-amber-400" />
-                <span className="text-sm font-bold tracking-wide text-amber-300">STATER PRO</span>
+            {/* Emoji Icon */}
+            <div
+              style={{
+                fontSize: '56px',
+                marginBottom: '20px',
+                filter: 'drop-shadow(0 0 30px rgba(139, 92, 246, 0.5))',
+              }}
+            >
+              {info.emoji}
+            </div>
+
+            {/* Title */}
+            <h2
+              style={{
+                fontSize: '28px',
+                fontWeight: 800,
+                color: '#ffffff',
+                marginBottom: '8px',
+                letterSpacing: '-0.5px',
+              }}
+            >
+              {info.title}
+            </h2>
+            <p style={{ fontSize: '15px', color: 'rgba(255, 255, 255, 0.5)', margin: 0 }}>
+              {info.desc}
+            </p>
+          </div>
+
+          {/* Price Card */}
+          <div style={{ padding: '0 24px 20px' }}>
+            <div
+              style={{
+                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.1) 100%)',
+                borderRadius: '20px',
+                padding: '24px',
+                border: '1px solid rgba(139, 92, 246, 0.2)',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Discount badge */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  color: '#fff',
+                }}
+              >
+                POPULAR
               </div>
 
-              {/* Trigger icon com glow */}
-              <div className="relative w-20 h-20 mx-auto mb-5">
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 blur-xl opacity-50" />
-                <div className="relative w-full h-full rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-2xl">
-                  {triggerInfo.icon}
-                </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '18px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: 500 }}>R$</span>
+                <span style={{ fontSize: '56px', fontWeight: 800, color: '#fff', lineHeight: 1 }}>14</span>
+                <span style={{ fontSize: '24px', fontWeight: 700, color: '#fff' }}>,90</span>
+                <span style={{ fontSize: '15px', color: 'rgba(255, 255, 255, 0.4)', marginLeft: '4px' }}>/mês</span>
               </div>
 
-              <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">
-                {triggerInfo.title}
-              </h2>
-              <p className="text-white/50 text-sm">
-                {triggerInfo.subtitle}
+              <p style={{ textAlign: 'center', fontSize: '13px', color: 'rgba(255, 255, 255, 0.4)', marginTop: '12px' }}>
+                Cancele quando quiser • Sem surpresas
               </p>
             </div>
+          </div>
 
-            {/* Preço */}
-            <div className="px-6 pb-5">
-              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/10 backdrop-blur-sm">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="px-4 py-1.5 text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full shadow-lg shadow-amber-500/30">
-                    OFERTA ESPECIAL
-                  </span>
-                </div>
-                
-                <div className="flex items-baseline justify-center gap-1 mt-3">
-                  <span className="text-lg text-white/50 font-medium">R$</span>
-                  <span className="text-5xl font-extrabold text-white tracking-tight">14</span>
-                  <span className="text-2xl font-bold text-white">,90</span>
-                  <span className="text-white/50 ml-1">/mês</span>
-                </div>
-                
-                <p className="text-center text-xs text-white/40 mt-3">
-                  Sem fidelidade • Cancele quando quiser
-                </p>
-              </div>
-            </div>
-
-            {/* Features */}
-            <div className="px-6 pb-5">
-              <div className="space-y-2.5">
-                {features.map((feature, index) => (
-                  <div 
-                    key={index}
-                    className={`flex items-center gap-3 p-3.5 rounded-xl transition-all ${
-                      feature.highlight 
-                        ? 'bg-gradient-to-r from-emerald-500/15 to-green-500/10 border border-emerald-500/20' 
-                        : 'bg-white/[0.03] border border-white/5'
-                    }`}
+          {/* Features */}
+          <div style={{ padding: '0 24px 24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                { icon: <Infinity size={18} />, text: '50 mensagens IA/dia', color: '#a78bfa' },
+                { icon: <Camera size={18} />, text: 'Scanner de notas e recibos', color: '#f472b6' },
+                { icon: <FileText size={18} />, text: 'Leitura de PDFs', color: '#60a5fa' },
+                { icon: <Bot size={18} />, text: 'Bot Telegram integrado', color: '#34d399' },
+                { icon: <TrendingUp size={18} />, text: 'Relatórios avançados', color: '#fbbf24' },
+              ].map((feature, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    padding: '14px 16px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    borderRadius: '14px',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
+                      background: `${feature.color}15`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: feature.color,
+                    }}
                   >
-                    <div className={`p-2 rounded-lg ${
-                      feature.highlight 
-                        ? 'bg-emerald-500/20 text-emerald-400' 
-                        : 'bg-white/5 text-white/50'
-                    }`}>
-                      {feature.icon}
-                    </div>
-                    <span className={`text-sm font-medium flex-1 ${
-                      feature.highlight ? 'text-emerald-300' : 'text-white/70'
-                    }`}>
-                      {feature.text}
-                    </span>
-                    <Check className={`w-4 h-4 ${
-                      feature.highlight ? 'text-emerald-400' : 'text-white/30'
-                    }`} />
+                    {feature.icon}
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* CTA Button */}
-            <div className="px-6 pb-4">
-              <button
-                onClick={handleSubscribe}
-                disabled={loading}
-                className="relative w-full py-4 px-6 rounded-2xl font-bold text-lg text-white overflow-hidden transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
-              >
-                {/* Gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-500" />
-                
-                {/* Shine effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-1000" />
-                
-                {/* Shadow */}
-                <div className="absolute inset-0 rounded-2xl shadow-lg shadow-amber-500/30" />
-                
-                {/* Content */}
-                <span className="relative flex items-center justify-center gap-2">
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Processando...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-5 h-5" />
-                      Desbloquear PRO Agora
-                    </>
-                  )}
-                </span>
-              </button>
-            </div>
-
-            {/* Trust badges */}
-            <div className="px-6 pb-5">
-              <div className="flex items-center justify-center gap-6 text-xs text-white/35">
-                <div className="flex items-center gap-1.5">
-                  <Shield className="w-4 h-4" />
-                  <span>Pagamento seguro</span>
+                  <span style={{ flex: 1, fontSize: '14px', fontWeight: 500, color: 'rgba(255, 255, 255, 0.8)' }}>
+                    {feature.text}
+                  </span>
+                  <Check style={{ width: '18px', height: '18px', color: '#10b981' }} />
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Check className="w-4 h-4" />
-                  <span>7 dias de garantia</span>
-                </div>
-              </div>
+              ))}
             </div>
+          </div>
 
-            {/* Botão continuar grátis */}
-            <div className="px-6 pb-8">
-              <button
-                onClick={onClose}
-                className="w-full py-3 text-sm text-white/40 hover:text-white/60 transition-colors font-medium"
-              >
-                Continuar com plano gratuito →
-              </button>
+          {/* CTA Button */}
+          <div style={{ padding: '0 24px 16px' }}>
+            <button
+              onClick={handleSubscribe}
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '18px 24px',
+                borderRadius: '16px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                color: '#fff',
+                fontSize: '17px',
+                fontWeight: 700,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.7 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                boxShadow: '0 10px 40px rgba(139, 92, 246, 0.4)',
+                transition: 'all 0.2s',
+                transform: 'scale(1)',
+              }}
+              onMouseOver={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 15px 50px rgba(139, 92, 246, 0.5)';
+                }
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 10px 40px rgba(139, 92, 246, 0.4)';
+              }}
+            >
+              {loading ? (
+                <>
+                  <Loader2 style={{ width: '20px', height: '20px', animation: 'spin 1s linear infinite' }} />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <Sparkles style={{ width: '20px', height: '20px' }} />
+                  Assinar PRO agora
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Trust badges */}
+          <div
+            style={{
+              padding: '12px 24px 20px',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '24px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255, 255, 255, 0.35)', fontSize: '12px' }}>
+              <Shield style={{ width: '14px', height: '14px' }} />
+              <span>Pagamento seguro</span>
             </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255, 255, 255, 0.35)', fontSize: '12px' }}>
+              <CreditCard style={{ width: '14px', height: '14px' }} />
+              <span>Stripe</span>
+            </div>
+          </div>
+
+          {/* Skip button */}
+          <div style={{ padding: '0 24px 32px', textAlign: 'center' }}>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'rgba(255, 255, 255, 0.35)',
+                fontSize: '14px',
+                cursor: 'pointer',
+                padding: '8px 16px',
+                transition: 'color 0.2s',
+              }}
+              onMouseOver={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)'}
+              onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.35)'}
+            >
+              Continuar com plano gratuito →
+            </button>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Keyframes for spinner */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </>
   );
 }
 

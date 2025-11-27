@@ -26,6 +26,7 @@ import PrivacyPolicy from '@/pages/PrivacyPage';
 import NotFound from '@/pages/NotFound';
 import ProfilePage from '@/pages/Profile';
 import SettingsPage from '@/pages/SettingsPage';
+import RecurringTransactionsPage from '@/pages/RecurringTransactionsPage';
 
 /**
  * Componente para redirecionar raiz baseado em autenticação
@@ -207,6 +208,14 @@ const AppRouter: React.FC = () => {
           element={
             <ProtectedRoute requireAuth={true}>
               <SettingsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/recurring" 
+          element={
+            <ProtectedRoute requireAuth={true}>
+              <RecurringTransactionsPage />
             </ProtectedRoute>
           } 
         />

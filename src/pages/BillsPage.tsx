@@ -454,7 +454,7 @@ const BillsPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
             <div className="flex gap-2 flex-1 sm:flex-none">
               <Button 
-                onClick={() => navigate('/export-report')} 
+                onClick={() => navigate('/export')} 
                 variant="outline"
                 className="flex-1 sm:flex-none bg-purple-600/20 hover:bg-purple-600/30 text-white font-semibold border-purple-400/50 hover:border-purple-400/70 backdrop-blur-sm transition-all duration-200 text-xs sm:text-sm"
                 style={{ color: '#ffffff !important' }}
@@ -465,7 +465,7 @@ const BillsPage: React.FC = () => {
                 Relatório
               </Button>
               <Button 
-                onClick={() => navigate('/recurring-transactions')} 
+                onClick={() => navigate('/recurring')} 
                 variant="outline"
                 className="flex-1 sm:flex-none bg-blue-600/20 hover:bg-blue-600/30 text-white font-semibold border-blue-400/50 hover:border-blue-400/70 backdrop-blur-sm transition-all duration-500 ease-in-out transform hover:scale-105 text-xs sm:text-sm"
                 style={{ color: '#ffffff !important' }}

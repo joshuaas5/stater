@@ -999,7 +999,9 @@ export const getBills = (onlyActive: boolean = true): Bill[] => {
     let newBillsAdded = false;
     
     // Gerar instâncias para 6 meses iniciais
-    for (const bill of bills) {
+    // Usar uma cópia para evitar loop infinito ao adicionar novos itens durante a iteração
+    const billsToProcess = [...bills];
+    for (const bill of billsToProcess) {
       if (bill.isRecurring && bill.isInfiniteRecurrence) {
         // Calcular próxima data de vencimento
         const dueDate = new Date(bill.dueDate);

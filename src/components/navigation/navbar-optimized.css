@@ -166,17 +166,6 @@
   .navbar-logo-text {
     font-size: 0.7rem !important;
   }
-    width: 1rem !important;
-  }
-  
-  /* Reduzir tamanho do texto para economizar recursos */
-  .navbar-label {
-    font-size: 0.65rem !important;
-  }
-  
-  .navbar-logo-text {
-    font-size: 0.65rem !important;
-  }
   
   /* ADICIONADO: Otimizações durante scroll */
   .navbar-scrolling {

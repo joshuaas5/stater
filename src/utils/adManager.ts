@@ -231,38 +231,6 @@ export class AdManager {
       };
     }
   }
-      
-      const dayConfig = journeyConfig[journey.currentDay as keyof typeof journeyConfig];
-      
-      if (!dayConfig) {
-        return {
-          shouldShow: false,
-          adsRequired: 0,
-          messagesReward: 0,
-          day: journey.currentDay
-        };
-      }
-      
-      // Verificar se já assistiu os ads necessários hoje
-      const shouldShow = journey.adsWatchedToday < dayConfig.adsRequired;
-      
-      return {
-        shouldShow,
-        adsRequired: dayConfig.adsRequired,
-        messagesReward: dayConfig.messagesReward,
-        day: journey.currentDay
-      };
-      
-    } catch (error) {
-      console.error('Erro ao verificar ad para mensagens:', error);
-      return {
-        shouldShow: false,
-        adsRequired: 0,
-        messagesReward: 0,
-        day: 1
-      };
-    }
-  }
   
   /**
    * Verifica cooldown entre anúncios da mesma categoria

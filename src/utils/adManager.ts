@@ -70,7 +70,11 @@ export class AdManager {
         console.log('🔧 [DEV] Conta desenvolvedor - sem ads');
         return false;
       }
+
+      // REMOVIDO: Ads desativados globalmente conforme solicitação
+      return false;
       
+      /* Lógica anterior desativada
       const userPlan = await UserPlanManager.getUserPlan(userId);
       
       // Usuários pagos não veem ads
@@ -95,6 +99,7 @@ export class AdManager {
       }
       
       return false;
+      */
       
     } catch (error) {
       console.error('Erro ao verificar ad para bill:', error);
@@ -108,6 +113,10 @@ export class AdManager {
    */
   static async shouldShowAdForTransaction(userId: string): Promise<boolean> {
     try {
+      // REMOVIDO: Ads desativados globalmente conforme solicitação
+      return false;
+      
+      /* Lógica anterior desativada
       // Contas de desenvolvedor nunca veem ads
       if (isDeveloperAccount(userId)) {
         console.log('🔧 [DEV] Conta desenvolvedor - sem ads');
@@ -133,6 +142,7 @@ export class AdManager {
       }
       
       return false;
+      */
       
     } catch (error) {
       console.error('Erro ao verificar ad para transação:', error);
@@ -150,6 +160,15 @@ export class AdManager {
     day: number;
   }> {
     try {
+      // REMOVIDO: Ads desativados globalmente conforme solicitação
+      return {
+        shouldShow: false,
+        adsRequired: 0,
+        messagesReward: 999, // Mensagens ilimitadas
+        day: 0
+      };
+
+      /* Lógica anterior desativada
       // Contas de desenvolvedor nunca veem ads
       if (isDeveloperAccount(userId)) {
         console.log('🔧 [DEV] Conta desenvolvedor - sem limitações');
@@ -192,6 +211,26 @@ export class AdManager {
           day: journey.currentDay
         };
       }
+      */
+      
+      // Fallback para evitar erro de compilação se o código acima for comentado
+      return {
+        shouldShow: false,
+        adsRequired: 0,
+        messagesReward: 999,
+        day: 0
+      };
+      
+    } catch (error) {
+      console.error('Erro ao verificar ad para mensagens:', error);
+      return {
+        shouldShow: false,
+        adsRequired: 0,
+        messagesReward: 0,
+        day: 0
+      };
+    }
+  }
       
       const dayConfig = journeyConfig[journey.currentDay as keyof typeof journeyConfig];
       

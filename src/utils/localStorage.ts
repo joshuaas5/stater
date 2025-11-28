@@ -1420,7 +1420,7 @@ export const saveNotification = (notification: Notification): void => {
   
   // Gerar ID se necessário
   if (!notification.id) {
-    notification.id = `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    notification.id = uuidv4();
   }
   
   // Salvar localmente

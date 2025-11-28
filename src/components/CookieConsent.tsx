@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 /**
  * 🍪 Cookie Consent Component
@@ -15,8 +16,14 @@ interface ConsentPreferences {
 }
 
 export default function CookieConsent() {
+  const location = useLocation();
   const [showBanner, setShowBanner] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+
+  // Não mostrar no dashboard
+  if (location.pathname === '/dashboard') {
+    return null;
+  }
 
   useEffect(() => {
     // Verificar se já tem consentimento salvo
@@ -84,6 +91,9 @@ export default function CookieConsent() {
   };
 
   if (!showBanner) return null;
+
+  // Ocultar na dashboard se estiver na rota /dashboard
+  if (window.location.pathname === '/dashboard') return null;
 
   return (
     <>

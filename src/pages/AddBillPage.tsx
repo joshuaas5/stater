@@ -333,9 +333,9 @@ const AddBillPage: React.FC = () => {
               control={form.control}
               name="isCardBill"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 bg-white/10 p-3 shadow-sm">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-galileo-text">Fatura de Cartão de Crédito</FormLabel>
+                    <FormLabel className="text-white font-medium">Fatura de Cartão de Crédito</FormLabel>
                   </div>
                   <FormControl>
                     <Switch
@@ -607,6 +607,7 @@ const AddBillPage: React.FC = () => {
                               form.setValue('totalInstallments', '', { shouldValidate: true });
                             }
                           }}
+                          className="border-white/40 data-[state=checked]:bg-white data-[state=checked]:text-[#31518b]"
                         />
                       </FormControl>
                       <div className="grid gap-1.5 leading-none">

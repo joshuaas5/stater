@@ -786,95 +786,134 @@ const BillsPage: React.FC = () => {
       <div className="mt-4 pb-16" style={{ background: '#31518b' }}>
         {getBillsToDisplay().length > 0 ? (
           getBillsToDisplay().map((bill) => (
-            <Card key={bill.id} className="mx-4 mb-3 overflow-hidden border border-white/20 bg-white/15 backdrop-blur-xl">
+            <Card key={bill.id} className="mx-4 mb-4 overflow-hidden border-0 shadow-lg" style={{ background: 'rgba(255, 255, 255, 0.08)', backdropFilter: 'blur(20px)', borderRadius: '16px' }}>
               <CardContent className="p-0">
-                <div className="flex items-center gap-4 px-4 py-3">
-                  <div className={`text-white flex items-center justify-center rounded-lg ${bill.isPaid ? 'bg-green-500' : activeTab === 'overdue' ? 'bg-galileo-negative' : 'bg-galileo-accent'} shrink-0 size-12`}>
-                    {renderBillIcon(bill.category, bill.isCardBill)}
+                <div className="flex items-center gap-4 px-5 py-4">
+                  <div 
+                    className="flex items-center justify-center rounded-full shrink-0 size-12"
+                    style={{ 
+                      background: bill.isPaid 
+                        ? 'linear-gradient(135deg, #10b981 0%, #34d399 100%)' 
+                        : activeTab === 'overdue' 
+                          ? 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)'
+                          : 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
+                      border: '2px solid rgba(255,255,255,0.2)'
+                    }}
+                  >
+                    <Clock className="h-5 w-5 text-white" />
                   </div>
-                  <div className="flex flex-col justify-center flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="text-galileo-text text-base font-medium leading-normal line-clamp-1">
+                  <div className="flex flex-col justify-center flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-white text-lg font-semibold leading-normal line-clamp-1">
                         {bill.title}
+                        {bill.currentInstallment && bill.totalInstallments && bill.totalInstallments > 1 && (
+                          <span className="ml-2 text-white/70 font-normal text-base">
+                            ({bill.currentInstallment}/{bill.totalInstallments})
+                          </span>
+                        )}
                       </p>
                       <div className="flex items-center gap-2">
-                        <p className={`text-base font-semibold leading-normal ${bill.isPaid ? 'text-green-500' : 'text-galileo-negative'}`}>
+                        <p className={`text-lg font-bold ${bill.isPaid ? 'text-green-400' : 'text-white'}`}>
                           {formatCurrency(bill.amount)}
                         </p>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Opções">
-                              <span style={{fontSize: '1.5rem', fontWeight: 'bold'}}>⋮</span>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10" title="Opções">
+                              <MoreVertical className="h-5 w-5" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => { setEditBill(bill); setShowEditBillModal(true); }}>
+                          <DropdownMenuContent align="end" className="bg-[#31518b] border-white/20">
+                            <DropdownMenuItem onClick={() => { setEditBill(bill); setShowEditBillModal(true); }} className="text-white hover:bg-white/10">
                               <Edit className="mr-2 h-4 w-4" />
                               <span>Editar</span>
                             </DropdownMenuItem>
                             {!bill.isPaid && (
-                              <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
+                              <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)} className="text-white hover:bg-white/10">
+                                <CalendarCheck className="mr-2 h-4 w-4" />
                                 <span>Marcar como Paga</span>
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem onClick={() => handleCloneBill(bill)}>
+                            <DropdownMenuItem onClick={() => handleCloneBill(bill)} className="text-white hover:bg-white/10">
+                              <Plus className="mr-2 h-4 w-4" />
                               <span>Clonar Conta</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDeleteBill(bill.id)}>
-                              <Trash className="mr-2 h-4 w-4 text-red-500" />
-                              <span className="text-red-500">Excluir Conta</span>
+                            <DropdownMenuItem onClick={() => handleDeleteBill(bill.id)} className="text-red-400 hover:bg-red-500/20">
+                              <Trash className="mr-2 h-4 w-4" />
+                              <span>Excluir Conta</span>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
                     </div>
-                    <div className="flex items-center flex-wrap gap-2 mt-1">
-                      {/* Status da Conta (Vencida, Paga, A Vencer) - como o usuário preferiu */}
-                      <span className={`text-sm ${formatBillDisplayDateAndStatus(bill).className}`}>
+                    <div className="flex items-center flex-wrap gap-2 mt-2">
+                      {/* Status da Conta */}
+                      <span 
+                        className="text-sm font-medium px-2.5 py-0.5 rounded-full"
+                        style={{
+                          background: bill.isPaid 
+                            ? 'rgba(16, 185, 129, 0.2)' 
+                            : formatBillDisplayDateAndStatus(bill).text.includes('Vencida') 
+                              ? 'rgba(239, 68, 68, 0.2)'
+                              : 'rgba(251, 191, 36, 0.2)',
+                          color: bill.isPaid 
+                            ? '#34d399' 
+                            : formatBillDisplayDateAndStatus(bill).text.includes('Vencida')
+                              ? '#f87171'
+                              : '#fbbf24'
+                        }}
+                      >
                         {formatBillDisplayDateAndStatus(bill).text}
                       </span>
 
-                      {/* Categoria com capitalização */}
+                      {/* Categoria */}
                       {bill.category && (
-                        <Badge variant="outline" className="text-xs">
+                        <span 
+                          className="text-xs font-medium px-2.5 py-0.5 rounded-full"
+                          style={{ background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.9)' }}
+                        >
                           {capitalizeFirstLetter(bill.category)}
-                        </Badge>
+                        </span>
                       )}
 
-                      {/* Recorrente - Este badge pode ser condicional se uma parcela individual não deve mostrar "Recorrente" explicitamente */}
-                      {/* Se a conta faz parte de uma série de parcelas (tem totalInstallments > 1), ela é recorrente nesse sentido */}
+                      {/* Badge Recorrente */}
                       {bill.totalInstallments && bill.totalInstallments > 1 && (
-                        <Badge variant="secondary" className="text-xs">
+                        <span 
+                          className="text-xs font-medium px-2.5 py-0.5 rounded-full"
+                          style={{ background: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc' }}
+                        >
                           Recorrente
-                        </Badge>
+                        </span>
                       )}
 
-                      {/* Parcelas - agora usa currentInstallment e totalInstallments diretamente da conta */}
+                      {/* Parcelas */}
                       {bill.currentInstallment && bill.totalInstallments && bill.totalInstallments > 1 && (
-                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800 font-semibold border border-blue-200">
-                          {`Parcela ${bill.currentInstallment}/${bill.totalInstallments}`}
-                        </Badge>
+                        <span 
+                          className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
+                          style={{ background: 'rgba(59, 130, 246, 0.25)', color: '#93c5fd' }}
+                        >
+                          Parcela {bill.currentInstallment}/{bill.totalInstallments}
+                        </span>
                       )}
                     </div>
                   </div>
                 </div>
                 
                 {bill.cardItems && bill.cardItems.length > 0 && (
-                  <div className="px-4 pt-0 pb-3">
-                    <Separator className="my-2" />
-                    <p className="text-sm font-medium text-galileo-text mb-2">Itens da fatura:</p>
+                  <div className="px-5 pt-0 pb-4">
+                    <div className="h-px bg-white/10 my-3"></div>
+                    <p className="text-sm font-medium text-white/70 mb-2">Itens da fatura:</p>
                     <div className="space-y-2">
                       {bill.cardItems.map((item, index) => (
-                        <div key={index} className="flex justify-between items-center bg-galileo-card/30 p-2 rounded-md">
+                        <div key={index} className="flex justify-between items-center p-2.5 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
                           <div className="flex-1">
-                            <p className="text-sm text-galileo-text">{item.description}</p>
+                            <p className="text-sm text-white">{item.description}</p>
                             {item.installments && (
-                              <p className="text-xs text-blue-700 font-semibold bg-blue-50 px-2 py-1 rounded-md inline-block">
+                              <p className="text-xs text-blue-300 font-medium mt-0.5">
                                 Parcela {item.installments.current}/{item.installments.total}
                               </p>
                             )}
                           </div>
-                          <p className="text-sm font-medium text-galileo-negative">
+                          <p className="text-sm font-semibold text-white">
                             {formatCurrency(item.amount)}
                           </p>
                         </div>
@@ -884,14 +923,17 @@ const BillsPage: React.FC = () => {
                 )}
                 
                 {!bill.isPaid && (
-                  <div className="flex border-t border-galileo-border">
-                    <button
-                      onClick={() => handleMarkAsPaid(bill.id)}
-                      className="flex-1 py-2 text-white bg-green-500 hover:bg-green-600 font-medium flex items-center justify-center"
-                    >
-                      <CalendarCheck size={16} className="mr-1" /> Marcar como Pago
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => handleMarkAsPaid(bill.id)}
+                    className="w-full py-3 text-white font-semibold flex items-center justify-center transition-all duration-200"
+                    style={{ 
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      borderBottomLeftRadius: '16px',
+                      borderBottomRightRadius: '16px'
+                    }}
+                  >
+                    <CalendarCheck size={18} className="mr-2" /> Marcar como Pago
+                  </button>
                 )}
               </CardContent>
             </Card>

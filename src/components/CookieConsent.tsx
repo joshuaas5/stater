@@ -20,12 +20,13 @@ export default function CookieConsent() {
   const [showBanner, setShowBanner] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
-  // Não mostrar no dashboard
-  if (location.pathname === '/dashboard') {
-    return null;
-  }
+  // Verificar se está no dashboard (mas mover o return para depois dos hooks)
+  const isDashboard = location.pathname === '/dashboard';
 
   useEffect(() => {
+    // Não executar no dashboard
+    if (isDashboard) return;
+    
     // Verificar se já tem consentimento salvo
     const savedConsent = localStorage.getItem('cookie-consent');
     
@@ -38,7 +39,7 @@ export default function CookieConsent() {
       const preferences: ConsentPreferences = JSON.parse(savedConsent);
       applyConsent(preferences);
     }
-  }, []);
+  }, [isDashboard]);
 
   const applyConsent = (preferences: ConsentPreferences) => {
     // Configurar Google AdSense consent
@@ -92,8 +93,8 @@ export default function CookieConsent() {
 
   if (!showBanner) return null;
 
-  // Ocultar na dashboard se estiver na rota /dashboard
-  if (window.location.pathname === '/dashboard') return null;
+  // Ocultar no dashboard
+  if (isDashboard) return null;
 
   return (
     <>

@@ -1340,11 +1340,23 @@ export const processRecurringTransactions = (selectedMonth: number, selectedYear
 
 // Funções de mapeamento entre formatos locais e Supabase para notificações
 const mapNotificationToSupabase = (notification: Notification, userId: string) => {
+  // Garantir ID válido como UUID
+  let notificationId = notification.id;
+  if (!notificationId || !notificationId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+    notificationId = uuidv4();
+  }
+  
+  // Validar entity_id (billId) - deve ser UUID válido ou null
+  let entityId: string | null = null;
+  if (notification.billId && notification.billId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+    entityId = notification.billId;
+  }
+  
   return {
-    id: notification.id || uuidv4(),
+    id: notificationId,
     user_id: userId,
-    entity_id: notification.billId || null,
-    entity_type: notification.billId ? 'bill' : null,
+    entity_id: entityId,
+    entity_type: entityId ? 'bill' : null,
     title: notification.type.charAt(0).toUpperCase() + notification.type.slice(1),
     type: notification.type,
     message: notification.message,
@@ -1371,13 +1383,27 @@ export const saveSupabaseNotification = async (notification: Notification): Prom
     const user = getCurrentUser();
     if (!user) return { data: null, error: "Usuário não autenticado" };
     
+    // Garantir que o ID seja um UUID válido
+    if (!notification.id || !notification.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      notification.id = uuidv4();
+    }
+    
     // Verificar se a notificação já existe para evitar duplicatas
-    const { data: existingNotifications, error: fetchError } = await supabase
+    // Construir a query de forma segura
+    let query = supabase
       .from('notifications')
       .select('id')
       .eq('user_id', user.id)
-      .eq('entity_id', notification.billId || null)
       .eq('type', notification.type);
+    
+    // Apenas adicionar filtro de entity_id se houver um billId válido
+    if (notification.billId && notification.billId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      query = query.eq('entity_id', notification.billId);
+    } else {
+      query = query.is('entity_id', null);
+    }
+    
+    const { data: existingNotifications, error: fetchError } = await query;
       
     if (fetchError) {
       console.warn("Erro ao verificar notificações existentes:", fetchError);

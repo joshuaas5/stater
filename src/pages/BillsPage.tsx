@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { Bill, CardItem, EXPENSE_CATEGORIES, PlanType } from '@/types';
@@ -7,9 +7,7 @@ import { formatCurrency, getOverdueBills, getBillsDueInNextDays } from '@/utils/
 import { useToast } from '@/hooks/use-toast';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { AdManager } from '@/utils/adManager';
-import { AdCooldownManager } from '@/utils/adCooldownManager';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
-import { AdCooldownStatus } from '@/components/monetization/AdCooldownStatus';
 import { 
   CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
   Edit, MoreVertical, Trash, Calendar, Mail, X, Send, Loader2
@@ -95,33 +93,41 @@ const BillsPage: React.FC = () => {
   const [sendingEmailReport, setSendingEmailReport] = useState<boolean>(false);
   
   const navigate = useNavigate();
-  const isInitialized = useRef(false);
-
+  
+  useEffect(() => {
+    if (!isLoggedIn()) {
+      navigate('/login');
+      return;
+    }
+    initializeUser();
+    loadBills();
+  }, [navigate, selectedMonth, selectedYear]); // Adicionado selectedMonth e selectedYear às dependências
+  
   // Inicializar usuário do Supabase
-  const initializeUser = useCallback(async () => {
+  const initializeUser = async () => {
     try {
       const { supabase } = await import('@/lib/supabase');
       const { data: { user }, error } = await supabase.auth.getUser();
-
+      
       if (error || !user) {
         console.error('Erro ao obter usuário:', error);
         navigate('/login');
         return;
       }
-
+      
       setUserId(user.id);
       console.log('🔐 [BILLS] Usuário autenticado:', user.id);
-
+      
       // Carregar plano após definir userId
       loadUserPlan(user.id);
-
+      
       // Carregar preferência de notificações por email
       loadEmailNotificationPreference(user.id);
     } catch (error) {
       console.error('Erro na inicialização do usuário:', error);
       navigate('/login');
     }
-  }, [navigate]);
+  };
   
   // Carregar preferência de notificações por email do Supabase
   const loadEmailNotificationPreference = async (uid: string) => {
@@ -279,10 +285,10 @@ const BillsPage: React.FC = () => {
     }
   };
   
-  const loadUserPlan = useCallback(async (userIdParam?: string) => {
+  const loadUserPlan = async (userIdParam?: string) => {
     const targetUserId = userIdParam || userId;
     if (!targetUserId) return;
-
+    
     try {
       const plan = await UserPlanManager.getUserPlan(targetUserId);
       setUserPlan(plan);
@@ -290,12 +296,12 @@ const BillsPage: React.FC = () => {
     } catch (error) {
       console.error('Erro ao carregar plano do usuário:', error);
     }
-  }, [userId]);
-
-  const loadBills = useCallback(() => {
+  };
+  
+  const loadBills = () => {
     const allUserBills = getBills().map(bill => ({
       ...bill,
-      dueDate: new Date(bill.dueDate)
+      dueDate: new Date(bill.dueDate) 
     }));
 
     // Com a nova lógica, cada parcela é uma conta individual.
@@ -309,32 +315,11 @@ const BillsPage: React.FC = () => {
     // pois isso é feito na criação da conta em AddBillPage.
     setBills(filteredForMonthYear);
     setOverdueBills(getOverdueBills(filteredForMonthYear));
-    setUpcomingBills(getBillsDueInNextDays(filteredForMonthYear, 30));
-  }, [selectedMonth, selectedYear]);
-
-  // useEffect para inicialização (executa uma única vez)
-  useEffect(() => {
-    if (!isLoggedIn()) {
-      navigate('/login');
-      return;
-    }
-
-    if (!isInitialized.current) {
-      isInitialized.current = true;
-      initializeUser();
-      loadBills();
-    }
-  }, []); // Array vazio = executa apenas na montagem
-
-  // useEffect para recarregar bills quando mês ou ano mudar
-  useEffect(() => {
-    if (isInitialized.current) {
-      loadBills();
-    }
-  }, [selectedMonth, selectedYear, loadBills]);
-
+    setUpcomingBills(getBillsDueInNextDays(filteredForMonthYear, 30)); 
+  };
+  
   // ... (restante das funções existentes como handleAddBill, handleDeleteBill, etc.)
-
+  
   // Funções auxiliares para gerar opções de mês/ano
   const monthOptions = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => ({

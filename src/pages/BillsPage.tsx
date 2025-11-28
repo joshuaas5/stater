@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { Bill, CardItem, EXPENSE_CATEGORIES, PlanType } from '@/types';
@@ -95,41 +95,33 @@ const BillsPage: React.FC = () => {
   const [sendingEmailReport, setSendingEmailReport] = useState<boolean>(false);
   
   const navigate = useNavigate();
-  
-  useEffect(() => {
-    if (!isLoggedIn()) {
-      navigate('/login');
-      return;
-    }
-    initializeUser();
-    loadBills();
-  }, [navigate, selectedMonth, selectedYear]); // Adicionado selectedMonth e selectedYear às dependências
-  
+  const isInitialized = useRef(false);
+
   // Inicializar usuário do Supabase
-  const initializeUser = async () => {
+  const initializeUser = useCallback(async () => {
     try {
       const { supabase } = await import('@/lib/supabase');
       const { data: { user }, error } = await supabase.auth.getUser();
-      
+
       if (error || !user) {
         console.error('Erro ao obter usuário:', error);
         navigate('/login');
         return;
       }
-      
+
       setUserId(user.id);
       console.log('🔐 [BILLS] Usuário autenticado:', user.id);
-      
+
       // Carregar plano após definir userId
       loadUserPlan(user.id);
-      
+
       // Carregar preferência de notificações por email
       loadEmailNotificationPreference(user.id);
     } catch (error) {
       console.error('Erro na inicialização do usuário:', error);
       navigate('/login');
     }
-  };
+  }, [navigate]);
   
   // Carregar preferência de notificações por email do Supabase
   const loadEmailNotificationPreference = async (uid: string) => {
@@ -287,10 +279,10 @@ const BillsPage: React.FC = () => {
     }
   };
   
-  const loadUserPlan = async (userIdParam?: string) => {
+  const loadUserPlan = useCallback(async (userIdParam?: string) => {
     const targetUserId = userIdParam || userId;
     if (!targetUserId) return;
-    
+
     try {
       const plan = await UserPlanManager.getUserPlan(targetUserId);
       setUserPlan(plan);
@@ -298,12 +290,12 @@ const BillsPage: React.FC = () => {
     } catch (error) {
       console.error('Erro ao carregar plano do usuário:', error);
     }
-  };
-  
-  const loadBills = () => {
+  }, [userId]);
+
+  const loadBills = useCallback(() => {
     const allUserBills = getBills().map(bill => ({
       ...bill,
-      dueDate: new Date(bill.dueDate) 
+      dueDate: new Date(bill.dueDate)
     }));
 
     // Com a nova lógica, cada parcela é uma conta individual.
@@ -317,11 +309,32 @@ const BillsPage: React.FC = () => {
     // pois isso é feito na criação da conta em AddBillPage.
     setBills(filteredForMonthYear);
     setOverdueBills(getOverdueBills(filteredForMonthYear));
-    setUpcomingBills(getBillsDueInNextDays(filteredForMonthYear, 30)); 
-  };
-  
+    setUpcomingBills(getBillsDueInNextDays(filteredForMonthYear, 30));
+  }, [selectedMonth, selectedYear]);
+
+  // useEffect para inicialização (executa uma única vez)
+  useEffect(() => {
+    if (!isLoggedIn()) {
+      navigate('/login');
+      return;
+    }
+
+    if (!isInitialized.current) {
+      isInitialized.current = true;
+      initializeUser();
+      loadBills();
+    }
+  }, []); // Array vazio = executa apenas na montagem
+
+  // useEffect para recarregar bills quando mês ou ano mudar
+  useEffect(() => {
+    if (isInitialized.current) {
+      loadBills();
+    }
+  }, [selectedMonth, selectedYear, loadBills]);
+
   // ... (restante das funções existentes como handleAddBill, handleDeleteBill, etc.)
-  
+
   // Funções auxiliares para gerar opções de mês/ano
   const monthOptions = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => ({

@@ -27,6 +27,7 @@ import NotFound from '@/pages/NotFound';
 import ProfilePage from '@/pages/Profile';
 import SettingsPage from '@/pages/SettingsPage';
 import RecurringTransactionsPage from '@/pages/RecurringTransactionsPage';
+import GoalsPage from '@/pages/GoalsPage';
 
 /**
  * Componente para redirecionar raiz baseado em autenticação
@@ -216,6 +217,14 @@ const AppRouter: React.FC = () => {
           element={
             <ProtectedRoute requireAuth={true}>
               <RecurringTransactionsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/goals" 
+          element={
+            <ProtectedRoute requireAuth={true}>
+              <GoalsPage />
             </ProtectedRoute>
           } 
         />

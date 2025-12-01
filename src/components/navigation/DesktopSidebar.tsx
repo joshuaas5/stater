@@ -125,7 +125,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
     {
       icon: Target,
       label: 'Metas',
-      action: () => navigate('/preferences?tab=goals'),
+      action: () => navigate('/goals'),
       color: '#f59e0b'
     }
   ];

@@ -157,7 +157,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <Target size={18} />,
       title: 'Metas Financeiras',
       subtitle: 'Definir e acompanhar metas',
-      action: () => { navigate('/preferences?tab=goals'); onClose(); },
+      action: () => { navigate('/goals'); onClose(); },
       color: '#f59e0b'
     },
   ];

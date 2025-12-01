@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Search, Crown, User, LogOut } from 'lucide-react';
+import { Bell, Search, Crown, User, LogOut, Smartphone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { PlanType } from '@/types';
@@ -16,9 +16,10 @@ import {
 interface DesktopHeaderProps {
   sidebarWidth: number;
   onOpenSearch?: () => void;
+  onToggleSimpleMode?: () => void;
 }
 
-const DesktopHeader: React.FC<DesktopHeaderProps> = ({ sidebarWidth, onOpenSearch }) => {
+const DesktopHeader: React.FC<DesktopHeaderProps> = ({ sidebarWidth, onOpenSearch, onToggleSimpleMode }) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [isPro, setIsPro] = useState(false);
@@ -182,6 +183,14 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ sidebarWidth, onOpenSearc
             >
               <Crown size={16} className="mr-2 text-yellow-400" />
               Assinatura
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuItem 
+              onClick={onToggleSimpleMode}
+              className="text-white/80 hover:text-white hover:bg-white/10 cursor-pointer"
+            >
+              <Smartphone size={16} className="mr-2 text-cyan-400" />
+              Modo Simples
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-white/10" />
             <DropdownMenuItem 

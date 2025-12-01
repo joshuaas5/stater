@@ -5,15 +5,23 @@ import DesktopSidebar from '@/components/navigation/DesktopSidebar';
 import DesktopHeader from '@/components/navigation/DesktopHeader';
 import GlobalImportModal from '@/components/import/GlobalImportModal';
 import CommandPalette from '@/components/search/CommandPalette';
-import { Monitor } from 'lucide-react';
+import { Smartphone } from 'lucide-react';
 
 const PersistentLayout: React.FC = () => {
   const location = useLocation();
   const noNavBarRoutes = ['/financial-advisor'];
   
-  // Estado para modo simples (menos funcionalidades visíveis)
-  const [isSimpleMode, setIsSimpleMode] = useState(() => {
-    const saved = localStorage.getItem('stater-simple-mode');
+  // Detectar se é desktop (≥1024px)
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024;
+    }
+    return false;
+  });
+
+  // Modo simples forçado pelo usuário (apenas funciona no desktop)
+  const [forceSimpleMode, setForceSimpleMode] = useState(() => {
+    const saved = localStorage.getItem('stater-force-simple-mode');
     return saved === 'true';
   });
   
@@ -28,6 +36,19 @@ const PersistentLayout: React.FC = () => {
     const saved = localStorage.getItem('sidebar-collapsed');
     return saved === 'true';
   });
+
+  // Detectar redimensionamento da janela
+  useEffect(() => {
+    const handleResize = () => {
+      const desktop = window.innerWidth >= 1024;
+      setIsDesktop(desktop);
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Checar no mount
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Detectar mudanças no localStorage para sincronizar estado
   useEffect(() => {
@@ -76,16 +97,18 @@ const PersistentLayout: React.FC = () => {
   }, []);
 
   const toggleSimpleMode = () => {
-    const newValue = !isSimpleMode;
-    setIsSimpleMode(newValue);
-    localStorage.setItem('stater-simple-mode', String(newValue));
+    const newValue = !forceSimpleMode;
+    setForceSimpleMode(newValue);
+    localStorage.setItem('stater-force-simple-mode', String(newValue));
   };
 
   // Largura da sidebar baseada no estado
   const sidebarWidth = isSidebarCollapsed ? 80 : 240;
 
-  // No modo simples, comporta-se como mobile mesmo no desktop
-  const showDesktopUI = !isSimpleMode;
+  // LÓGICA PRINCIPAL:
+  // - Mobile (<1024px): SEMPRE modo simples (mobile)
+  // - Desktop (≥1024px): Modo completo por padrão, mas pode forçar simples
+  const showDesktopUI = isDesktop && !forceSimpleMode;
 
   return (
     <div 
@@ -118,12 +141,13 @@ const PersistentLayout: React.FC = () => {
         <>
           <DesktopSidebar 
             onToggleSimpleMode={toggleSimpleMode}
-            isSimpleMode={isSimpleMode}
+            isSimpleMode={forceSimpleMode}
             onOpenImportModal={() => setShowImportModal(true)}
           />
           <DesktopHeader 
             sidebarWidth={sidebarWidth}
             onOpenSearch={() => setShowCommandPalette(true)}
+            onToggleSimpleMode={toggleSimpleMode}
           />
         </>
       )}
@@ -157,30 +181,30 @@ const PersistentLayout: React.FC = () => {
           `}</style>
         )}
         
-        <Outlet context={{ isSimpleMode, toggleSimpleMode }} />
+        <Outlet context={{ isSimpleMode: !showDesktopUI, toggleSimpleMode }} />
       </main>
       
-      {/* NavBar: Mobile sempre | Desktop apenas no modo simples */}
+      {/* NavBar: Mobile sempre | Desktop apenas no modo simples forçado */}
       {!noNavBarRoutes.includes(location.pathname) && (
         <div className={showDesktopUI ? 'lg:hidden' : ''}>
           <NavBar />
         </div>
       )}
       
-      {/* Botão flutuante para ativar modo avançado (apenas desktop no modo simples) */}
-      {isSimpleMode && (
+      {/* Botão flutuante para voltar ao modo completo (apenas desktop com modo simples forçado) */}
+      {isDesktop && forceSimpleMode && (
         <button
           onClick={toggleSimpleMode}
-          className="hidden lg:flex fixed bottom-6 right-6 z-50 items-center gap-2 px-4 py-3 rounded-xl transition-all hover:scale-105"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl transition-all hover:scale-105"
           style={{
-            background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
-            boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4)',
             border: '1px solid rgba(255, 255, 255, 0.2)'
           }}
-          title="Ativar modo avançado"
+          title="Voltar ao modo completo"
         >
-          <Monitor size={18} className="text-white" />
-          <span className="text-sm font-medium text-white">Modo Avançado</span>
+          <Smartphone size={18} className="text-white" />
+          <span className="text-sm font-medium text-white">Modo Completo</span>
         </button>
       )}
       

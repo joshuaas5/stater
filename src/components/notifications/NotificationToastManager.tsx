@@ -13,22 +13,22 @@ const NotificationToastManager: React.FC = () => {
   const [activeToasts, setActiveToasts] = useState<ActiveToast[]>([]);
   const { markAsRead } = useNotifications();
 
-  // Limitar o nu00famero de toasts visu00edveis ao mesmo tempo
+  // Limitar o número de toasts visíveis ao mesmo tempo
   const MAX_VISIBLE_TOASTS = 3;
 
   useEffect(() => {
-    // Funu00e7u00e3o para lidar com notificau00e7u00f5es de contas a vencer
+    // Função para lidar com notificações de contas a vencer
     const handleBillNotification = (event: CustomEvent) => {
       const notification = event.detail;
       
-      // Verificar se ju00e1 existe uma notificau00e7u00e3o semelhante para evitar duplicatas
+      // Verificar se já existe uma notificação semelhante para evitar duplicatas
       const isDuplicate = activeToasts.some(toast => 
         toast.message === notification.message && 
         Date.now() - toast.timestamp < 10000 // 10 segundos
       );
       
       if (!isDuplicate) {
-        // Adicionar nova notificau00e7u00e3o ao topo da lista
+        // Adicionar nova notificação ao topo da lista
         setActiveToasts(prev => [
           {
             id: notification.id,
@@ -37,11 +37,11 @@ const NotificationToastManager: React.FC = () => {
             timestamp: Date.now()
           },
           ...prev
-        ].slice(0, MAX_VISIBLE_TOASTS)); // Limitar o nu00famero de toasts
+        ].slice(0, MAX_VISIBLE_TOASTS)); // Limitar o número de toasts
       }
     };
 
-    // Adicionar listeners para eventos de notificau00e7u00e3o
+    // Adicionar listeners para eventos de notificação
     window.addEventListener('saveNotification', handleBillNotification as EventListener);
     
     return () => {
@@ -51,12 +51,12 @@ const NotificationToastManager: React.FC = () => {
 
   const handleCloseToast = (id: string) => {
     setActiveToasts(prev => prev.filter(toast => toast.id !== id));
-    // Marcar a notificau00e7u00e3o como lida no contexto
+    // Marcar a notificação como lida no contexto
     markAsRead(id);
   };
 
   return (
-    <div className="notification-toast-container">
+    <div className="fixed bottom-4 right-4 z-[9999] flex flex-col-reverse gap-3 pointer-events-none">
       {activeToasts.map((toast, index) => (
         <NotificationToast
           key={toast.id}
@@ -65,7 +65,8 @@ const NotificationToastManager: React.FC = () => {
           type={toast.type as any}
           onClose={handleCloseToast}
           autoClose={true}
-          duration={8000 + (index * 1000)} // Escalonar o tempo para que nu00e3o fechem todas ao mesmo tempo
+          duration={5000}
+          index={index}
         />
       ))}
     </div>

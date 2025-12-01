@@ -26,9 +26,7 @@ import {
 import { getCurrentUser, getTransactions, isLoggedIn, saveTransaction, updateTransaction, deleteTransaction, uuidv4, forceSupabaseSync, startAutoSync, stopAutoSync } from '@/utils/localStorage';
 import { TransactionCounter } from '@/utils/transactionCounter';
 import { UserPlanManager } from '@/utils/userPlanManager';
-import { AdManager } from '@/utils/adManager';
 import { RecurringTransactionLimitManager } from '@/utils/recurringTransactionLimit';
-import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
 import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star, Trash, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -41,8 +39,6 @@ import { useScrollOptimization } from '@/hooks/useScrollOptimization';
 import VirtualizedTransactionList from '@/components/virtualized/VirtualizedTransactionList';
 import { TransactionModal } from '@/components/modals/TransactionModal';
 import PremiumModal, { ProStatusModal } from '@/components/PremiumModal';
-import { AdBanner } from '@/components/monetization/AdBanner';
-import { AdPlaceholder } from '@/components/ads/AdPlaceholder';
 
 //  DEBUG: Log para identificar re-renderizaes do Dashboard
 console.log(' Dashboard.tsx carregado/re-renderizado:', new Date().toISOString());
@@ -81,10 +77,6 @@ const Dashboard: React.FC = () => {
   const [nameFilter, setNameFilter] = useState<string>('');
   
   // Estados para monetização
-  
-  // Estados para Ad Placeholder
-  const [showAdPlaceholder, setShowAdPlaceholder] = useState(false);
-  const [adType, setAdType] = useState<'bills' | 'transactions' | 'messages' | 'financial_analysis' | 'report_downloads' | 'recurring_transactions'>('transactions');
   
   // Estados para PaywallModal
   const [showPaywallModal, setShowPaywallModal] = useState(false);
@@ -612,32 +604,6 @@ const Dashboard: React.FC = () => {
       // Não redefinir o saldo total aqui - deixar calculateTotalBalance() gerenciar
     }
   };
-  
-  // 🎬 useEffect para gerenciar AdPlaceholder
-  useEffect(() => {
-    const handleShowAd = (event: CustomEvent) => {
-      console.log('🎬 [DASHBOARD] Recebido evento de mostrar ad:', event.detail.type);
-      setAdType(event.detail.type);
-      setShowAdPlaceholder(true);
-    };
-
-    const handleAdResult = (success: boolean) => {
-      console.log('✅ [DASHBOARD] Resultado do ad:', success);
-      setShowAdPlaceholder(false);
-      
-      // Enviar resultado de volta para o AdManager
-      const resultEvent = new CustomEvent('adPlaceholderResult', {
-        detail: { success }
-      });
-      window.dispatchEvent(resultEvent);
-    };
-
-    window.addEventListener('showAdPlaceholder', handleShowAd as EventListener);
-
-    return () => {
-      window.removeEventListener('showAdPlaceholder', handleShowAd as EventListener);
-    };
-  }, []);
   
   const handleMonthChange = (month: number, year: number) => {
     setSelectedMonth(month);
@@ -1367,60 +1333,16 @@ const Dashboard: React.FC = () => {
               return;
             }
 
-            // 🚫 VALIDAÇÃO DE LIMITE DE TRANSAÇÕES RECORRENTES
+            // 🚫 VALIDAÇÃO DE LIMITE DE TRANSAÇÕES RECORRENTES (apenas para free)
             if (transactionData.isRecurring) {
               const recurringLimit = await RecurringTransactionLimitManager.canCreateRecurring(user.id);
               
               if (!recurringLimit.allowed) {
-                if (recurringLimit.reason === 'ad_required') {
-                  // Primeira transação da semana - anúncio obrigatório
-                  const cooldown = await RewardCooldownManager.checkCooldownStatus(user.id, 'recurring_transactions');
-                  
-                  if (cooldown.isInCooldown) {
-                    const remainingTime = cooldown.remainingMinutes || 0;
-                    toast({
-                      title: '⏳ Anúncio em cooldown',
-                      description: `Aguarde ${remainingTime} minutos para assistir outro anúncio de transações recorrentes`,
-                      variant: 'destructive',
-                    });
-                    return;
-                  }
-                  
-                  // Mostrar reward ad específico para transações recorrentes
-                  try {
-                    const watchResult = await AdManager.showRewardedAd('recurring_transactions');
-                    
-                    if (watchResult.success) {
-                      // Liberar criação de transação recorrente
-                      await RecurringTransactionLimitManager.unlockRecurringAfterAd(user.id);
-                      
-                      toast({
-                        title: '🎉 Transação recorrente liberada!',
-                        description: 'Você pode criar sua primeira transação recorrente desta semana!',
-                        variant: 'default',
-                      });
-                    } else {
-                      toast({
-                        title: 'Erro no anúncio',
-                        description: 'Não foi possível completar o anúncio. Tente novamente.',
-                        variant: 'destructive',
-                      });
-                      return;
-                    }
-                  } catch (error) {
-                    console.error('Erro ao assistir reward ad:', error);
-                    toast({
-                      title: 'Erro',
-                      description: 'Erro interno ao processar anúncio',
-                      variant: 'destructive',
-                    });
-                    return;
-                  }
-                } else if (recurringLimit.reason === 'limit_reached') {
+                if (recurringLimit.reason === 'limit_reached') {
                   // Limite semanal atingido - mostrar paywall
                   toast({
                     title: '📊 Limite semanal atingido',
-                    description: 'Você já criou sua transação recorrente desta semana. Aguarde a próxima semana ou assine o plano premium para criar mais.',
+                    description: 'Assine o plano premium para criar transações recorrentes ilimitadas.',
                     variant: 'destructive',
                   });
                   
@@ -1475,39 +1397,18 @@ const Dashboard: React.FC = () => {
             
             // 🎯 NOVA ESTRATÉGIA: Verificar contador de transações para reward ad
             try {
-              // Verificar se o usuário é premium
+              // Verificar se o usuário é premium - para futuro uso de analytics
               const userPlan = await UserPlanManager.getUserPlan(user.id);
               const isPremium = userPlan.planType !== PlanType.FREE;
               
-              console.log(`📊 [TRANSACTION_REWARD] Plano do usuário: ${userPlan.planType}, isPremium: ${isPremium}`);
+              console.log(`📊 [TRANSACTION] Plano do usuário: ${userPlan.planType}, isPremium: ${isPremium}`);
               
+              // Transação salva com sucesso - incrementar contador para analytics
               if (!isPremium) {
-                // Incrementar contador e verificar se deve mostrar reward ad
-                const counterResult = await TransactionCounter.incrementAndCheck(user.id);
-                
-                console.log(`📊 [TRANSACTION_COUNTER] Contador atual: ${counterResult.currentCount}, deve mostrar ad: ${counterResult.shouldShowRewardAd}`);
-                
-                if (counterResult.shouldShowRewardAd) {
-                  console.log('🎬 [TRANSACTION_REWARD] Mostrando reward ad após 5 transações');
-                  
-                  // Mostrar reward ad específico para transações
-                  const adResult = await AdManager.showRewardedAd('transactions');
-                  
-                  if (adResult.success) {
-                    console.log('✅ [TRANSACTION_REWARD] Reward ad assistido com sucesso');
-                    toast({
-                      title: '🎁 Recompensa obtida!',
-                      description: 'Você ganhou mais transações por assistir o anúncio!',
-                    });
-                  } else {
-                    console.log('❌ [TRANSACTION_REWARD] Reward ad não assistido');
-                  }
-                } else {
-                  console.log(`📊 [TRANSACTION_COUNTER] ${counterResult.nextRewardAt} transações restantes para próximo reward ad`);
-                }
+                await TransactionCounter.incrementAndCheck(user.id);
               }
             } catch (error) {
-              console.error('❌ [TRANSACTION_REWARD] Erro ao processar contador:', error);
+              console.error('❌ [TRANSACTION] Erro ao processar contador:', error);
             }
             
             // Resetar formulário
@@ -1834,30 +1735,6 @@ const Dashboard: React.FC = () => {
           // Iniciar verificação após 1 segundo
           setTimeout(verifyLoop, 1000);
         }}
-      />
-      
-      {/* Ad Banner - TEMPORARIAMENTE REMOVIDO */}
-      {/* <AdBanner position="bottom" /> */}
-      
-      {/* Ad Placeholder */}
-      <AdPlaceholder
-        isOpen={showAdPlaceholder}
-        onClose={() => {
-          const resultEvent = new CustomEvent('adPlaceholderResult', {
-            detail: { success: false }
-          });
-          window.dispatchEvent(resultEvent);
-          setShowAdPlaceholder(false);
-        }}
-        onReward={() => {
-          const resultEvent = new CustomEvent('adPlaceholderResult', {
-            detail: { success: true }
-          });
-          window.dispatchEvent(resultEvent);
-          setShowAdPlaceholder(false);
-        }}
-        type={adType}
-        duration={8}
       />
       
       {/* Premium Modal com Stripe */}

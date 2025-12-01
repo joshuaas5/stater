@@ -17,7 +17,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Edit, Trash2, Filter, CalendarRange, Upload } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { UserPlanManager } from '@/utils/userPlanManager';
-import { AdManager } from '@/utils/adManager';
 import { TransactionCounter } from '@/utils/transactionCounter';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
 import OFXImportButton from '@/components/import/OFXImportButton';
@@ -27,13 +26,10 @@ const Transactions: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTransaction, setNewTransaction] = useState<Transaction | null>(null);
 
-  // Função para clonar transação com monetização
+  // Função para clonar transação
   const handleCloneTransaction = async (transaction: Transaction) => {
-    console.log('🎯 [MONETIZAÇÃO] handleCloneTransaction chamado para userId:', userId);
-    
     // Verificar se userId está disponível
     if (!userId) {
-      console.error('❌ [ERRO] UserId não disponível');
       toast({
         title: 'Erro de autenticação',
         description: 'Por favor, faça login novamente.',
@@ -43,72 +39,7 @@ const Transactions: React.FC = () => {
     }
     
     try {
-      // Verificar se usuário atingiu paywall
-      const hasReachedPaywall = await AdManager.hasReachedPaywall(userId);
-      console.log('🚫 [PAYWALL] hasReachedPaywall:', hasReachedPaywall);
-      
-      if (hasReachedPaywall) {
-        console.log('🚫 [PAYWALL] Abrindo paywall');
-        openPaywall('transactions');
-        return;
-      }
-
-      // NOVO: Verificar cooldown de ads contextuais para transactions
-      const permission = await AdCooldownManager.canPerformAction(userId, 'transactions');
-      console.log('🎯 [COOLDOWN] Permissão para transactions:', permission);
-      
-      if (permission.allowed) {
-        console.log('✅ [COOLDOWN] Ação permitida, clonando transação');
-        // Consumir uma ação se for free_actions
-        if (permission.reason === 'free_actions') {
-          await AdCooldownManager.consumeAction(userId, 'transactions');
-        }
-        
-        // Clonar direto
-        const cloned = {
-          ...transaction,
-          id: `${transaction.id}_clone_${Date.now()}`,
-          date: new Date(),
-        };
-        setNewTransaction(cloned);
-        setIsAddDialogOpen(true);
-        return;
-      }
-      
-      // Se não pode realizar ação, verificar o motivo
-      if (permission.reason === 'cooldown_active') {
-        console.log('⏰ [COOLDOWN] Cooldown ativo');
-        toast({
-          title: 'Aguarde o cooldown',
-          description: `Próximo anúncio disponível em ${permission.minutesUntilNextAd} minutos.`,
-          variant: 'default'
-        });
-        return;
-      }
-      
-      if (permission.reason === 'need_ad') {
-        console.log('🎬 [COOLDOWN] Precisa ver anúncio contextual - DESABILITADO PARA INVESTIDORES');
-        // TEMPORARIAMENTE DESABILITADO PARA APRESENTAÇÃO PARA INVESTIDORES
-        // Guardar a transação para clonar após o anúncio
-        // setPendingCloneTransaction(transaction);
-        // setShowContextualAd({ show: true, action: 'transactions' });
-        // return;
-        // Permitir que continue normalmente
-      }
-
-      // Fallback para sistema antigo se necessário
-      const canAddTransaction = await UserPlanManager.checkDailyLimit(userId, 'transactions');
-      if (!canAddTransaction) {
-        console.log('📊 [LIMITE] Limite atingido, abrindo paywall');
-        toast({
-          title: 'Limite diário atingido',
-          description: 'Você atingiu o limite de transações. Assine o PRO por R$ 14,90/mês para transações ilimitadas!',
-        });
-        openPaywall('transactions');
-        return;
-      }
-
-      // Se chegou até aqui, clonar normalmente
+      // Clonar transação
       const cloned = {
         ...transaction,
         id: `${transaction.id}_clone_${Date.now()}`,
@@ -118,7 +49,7 @@ const Transactions: React.FC = () => {
       setIsAddDialogOpen(true);
       
     } catch (error) {
-      console.error('Erro ao verificar permissões para clonar transação:', error);
+      console.error('Erro ao clonar transação:', error);
       // Em caso de erro, permitir que o usuário continue
       const cloned = {
         ...transaction,
@@ -153,37 +84,16 @@ const Transactions: React.FC = () => {
       description: `${newTransaction.title} foi clonada com sucesso!`,
     });
 
-    // 🎯 NOVA ESTRATÉGIA: Verificar contador de transações para reward ad
+    // Incrementar contador para analytics
     try {
-      // Verificar se o usuário é premium
       const userPlan = await UserPlanManager.getUserPlan(user.id);
       const isPremium = userPlan.planType !== PlanType.FREE;
       
       if (!isPremium) {
-        // Incrementar contador e verificar se deve mostrar reward ad
-        const counterResult = await TransactionCounter.incrementAndCheck(user.id);
-        
-        if (counterResult.shouldShowRewardAd) {
-          console.log('🎬 [TRANSACTION_REWARD] Mostrando reward ad após 5 transações');
-          
-          // Mostrar reward ad específico para transações
-          const adResult = await AdManager.showRewardedAd('transactions');
-          
-          if (adResult.success) {
-            console.log('✅ [TRANSACTION_REWARD] Reward ad assistido com sucesso');
-            toast({
-              title: '🎁 Recompensa obtida!',
-              description: 'Você ganhou mais transações por assistir o anúncio!',
-            });
-          } else {
-            console.log('❌ [TRANSACTION_REWARD] Reward ad não assistido');
-          }
-        } else {
-          console.log(`📊 [TRANSACTION_COUNTER] ${counterResult.nextRewardAt} transações restantes para próximo reward ad`);
-        }
+        await TransactionCounter.incrementAndCheck(user.id);
       }
     } catch (error) {
-      console.error('❌ [TRANSACTION_REWARD] Erro ao processar contador:', error);
+      console.error('Erro ao processar contador:', error);
     }
   };
 

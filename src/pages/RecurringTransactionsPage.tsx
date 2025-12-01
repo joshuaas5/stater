@@ -9,8 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { RecurringTransactionLimitManager } from '@/utils/recurringTransactionLimit';
-import { AdManager } from '@/utils/adManager';
-import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
 import { useAuth } from '@/contexts/AuthContext';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
 import { 
@@ -109,23 +107,18 @@ const RecurringTransactionsPage: React.FC = () => {
       return;
     }
 
-    // 🚫 VERIFICAR LIMITE DE TRANSAÇÕES RECORRENTES
+    // Verificar limite de transações recorrentes para usuários free
     const recurringLimit = await RecurringTransactionLimitManager.canCreateRecurring(user.id);
     
     if (!recurringLimit.allowed) {
-      if (recurringLimit.reason === 'ad_required') {
-        // Primeira transação da semana - anúncio obrigatório
-        const cooldown = await RewardCooldownManager.checkCooldownStatus(user.id, 'recurring_transactions');
-        setCooldownInfo(cooldown);
-        setShowRecurringLimit(true);
-        return;
-      } else if (recurringLimit.reason === 'limit_reached') {
-        // Limite semanal atingido - aguardar próxima semana ou premium
+      if (recurringLimit.reason === 'limit_reached') {
+        // Limite semanal atingido - mostrar paywall
         toast({
           title: '📊 Limite semanal atingido',
-          description: 'Você já criou sua transação recorrente desta semana. Aguarde a próxima semana ou assine o plano premium para criar mais.',
+          description: 'Assine o plano premium para criar transações recorrentes ilimitadas.',
           variant: 'destructive',
         });
+        openPaywall('recurring_transactions');
         return;
       } else if (recurringLimit.reason === 'error') {
         toast({
@@ -239,58 +232,6 @@ const RecurringTransactionsPage: React.FC = () => {
         description: "Não foi possível excluir a transação recorrente.",
         variant: "destructive"
       });
-    }
-  };
-
-  // 🎥 FUNÇÃO PARA ASSISTIR REWARD AD
-  const handleWatchAd = async () => {
-    if (!user) return;
-    
-    // Verificar cooldown antes de permitir assistir
-    const cooldownStatus = await RewardCooldownManager.checkCooldownStatus(user.id, 'recurring_transactions');
-    if (cooldownStatus.isInCooldown) {
-      const remainingTime = cooldownStatus.remainingMinutes || 0;
-      toast({
-        title: 'Anúncio em cooldown',
-        description: `Aguarde ${remainingTime} minutos para assistir outro anúncio`,
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    setIsWatchingAd(true);
-    
-    try {
-      // Mostrar reward ad
-      const watchResult = await AdManager.showRewardedAd('recurring_transactions');
-      
-      if (watchResult.success) {
-        // Registrar que o anúncio foi assistido para liberar transação recorrente
-        await RecurringTransactionLimitManager.unlockRecurringAfterAd(user.id);
-        
-        setShowRecurringLimit(false);
-        
-        toast({
-          title: '🎉 Transação recorrente liberada!',
-          description: 'Você pode criar sua primeira transação recorrente desta semana!',
-          variant: 'default',
-        });
-      } else {
-        toast({
-          title: 'Erro no anúncio',
-          description: 'Não foi possível completar o anúncio. Tente novamente.',
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
-      console.error('Erro ao assistir reward ad:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro interno ao processar anúncio',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsWatchingAd(false);
     }
   };
 

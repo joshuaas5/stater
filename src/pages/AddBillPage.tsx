@@ -16,7 +16,6 @@ import { ArrowLeft, Calendar, CreditCard, Plus, X, Tag, ChevronDown, Search } fr
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { BillCounter } from '@/utils/billCounter';
-import { AdManager } from '@/utils/adManager';
 import { scheduleBillNotifications } from '@/utils/pushNotifications';
 
 const formSchema = z.object({
@@ -237,43 +236,19 @@ const AddBillPage: React.FC = () => {
       }
     }
     
-    // 🎯 NOVA ESTRATÉGIA: Sistema de contador de bills para reward ads
+    // Incrementar contador para analytics
     try {
-      // Verificar se o usuário é premium
       const userPlan = await UserPlanManager.getUserPlan(user.id);
       const isPremium = userPlan.planType !== 'free';
       
       if (!isPremium) {
-        // Para bills recorrentes, incrementar o contador apenas uma vez (não por parcela)
         const incrementCount = values.isRecurring && !values.isInfiniteRecurrence && totalInstallments > 1 ? 1 : billsAdded;
-        
-        // Incrementar contador baseado na quantidade de bills únicas criadas
         for (let i = 0; i < incrementCount; i++) {
-          const counterResult = await BillCounter.incrementAndCheck(user.id);
-          
-          if (counterResult.shouldShowRewardAd) {
-            console.log('🎬 [BILL_REWARD] Mostrando reward ad após 3 bills');
-            
-            // Mostrar reward ad específico para bills
-            const adResult = await AdManager.showRewardedAd('bills');
-            
-            if (adResult.success) {
-              console.log('✅ [BILL_REWARD] Reward ad assistido com sucesso');
-              toast({
-                title: '🎁 Recompensa obtida!',
-                description: 'Você ganhou mais recursos por assistir o anúncio!',
-              });
-            } else {
-              console.log('❌ [BILL_REWARD] Reward ad não assistido');
-            }
-            break; // Apenas um reward ad por operação
-          } else {
-            console.log(`📋 [BILL_COUNTER] ${counterResult.nextRewardAt} bills restantes para próximo reward ad`);
-          }
+          await BillCounter.incrementAndCheck(user.id);
         }
       }
     } catch (error) {
-      console.error('❌ [BILL_REWARD] Erro ao processar contador:', error);
+      console.error('Erro ao processar contador:', error);
     }
     
     // Navegar de volta para a página de bills

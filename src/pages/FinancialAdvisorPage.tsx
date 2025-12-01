@@ -26,9 +26,6 @@ import { validateUserInput, validateChatMessage, validateTransactionData, saniti
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { UserJourneyManager } from '@/utils/userJourneyManager';
 import { PaywallModal } from '@/components/ui/PaywallModal';
-import { AdRewardModal } from '@/components/monetization/AdRewardModal';
-import { AdManager } from '@/utils/adManager';
-import { RewardCooldownManager } from '@/utils/rewardCooldownManager';
 import { useAILearning } from '@/utils/aiLearningSystem';
 import FinancialAdvisorGate from '@/components/monetization/FinancialAdvisorGate';
 import { MessageLimitManager } from '@/utils/messageLimit';
@@ -791,64 +788,31 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
       const isPremium = userPlan.planType !== 'free';
       
       if (!isPremium) {
-        // COOLDOWN SIMPLES: Verificar uma vez por minuto para performance
-        const lastCooldownCheck = localStorage.getItem(`cooldown_check_${user.id}`);
-        const shouldCheckCooldown = !lastCooldownCheck || (now - parseInt(lastCooldownCheck)) > 60000;
+        // Verificar limite de mensagens para usuários free
+        console.log('📊 [MESSAGE_LIMIT] Verificando limite de mensagens para usuário:', user.id);
+        const messageLimit = await MessageLimitManager.canSendMessage(user.id);
+        console.log(`📊 [MESSAGE_LIMIT] Usuário FREE - Mensagens usadas: ${messageLimit.messagesUsed}/3`);
         
-        if (shouldCheckCooldown) {
-          console.log('🕐 [COOLDOWN] Verificando status para financial_analysis - usuário:', user.id);
-          const cooldownResult = await RewardCooldownManager.checkCooldownStatus(user.id, 'financial_analysis');
-          localStorage.setItem(`cooldown_check_${user.id}`, now.toString());
+        if (!messageLimit.allowed) {
+          console.log('🚫 [MESSAGE_LIMIT] Limite de mensagens gratuitas atingido');
+          setMessages(prev => [...prev, {
+            id: uuidv4(),
+            text: `🚫 **Você atingiu seu limite de mensagens**\n\nPara continuar usando o Stater:\n\n✨ **Stater PRO** por apenas R$ 14,90/mês:\n• 🤖 Mensagens ilimitadas com a IA\n• 📊 Análise de PDFs e imagens\n• 🎙️ Envie áudios sempre que precisar\n• 📋 Relatórios em diversos formatos\n• E muito mais!`,
+            sender: 'assistant',
+            timestamp: new Date(),
+            avatarUrl: IA_AVATAR
+          }]);
           
-          if (cooldownResult.canWatchAd) {
-            console.log('🎬 [REWARD_AD] Usuário FREE - mostrando reward ad antes da mensagem');
-            const adResult = await AdManager.showRewardedAd('financial_analysis');
-            
-            if (adResult.success) {
-              console.log('✅ [REWARD_AD] Assistido com sucesso - processando mensagem');
-            } else {
-              // Verificar limite de mensagens apenas se reward ad não foi assistido
-              console.log('📊 [MESSAGE_LIMIT] Verificando limite de mensagens para usuário:', user.id);
-              const messageLimit = await MessageLimitManager.canSendMessage(user.id);
-              console.log('📊 [MESSAGE_LIMIT] Plano do usuário:', messageLimit);
-              console.log(`📊 [MESSAGE_LIMIT] Usuário FREE - Mensagens usadas: ${messageLimit.messagesUsed}/3`);
-              
-              if (!messageLimit.allowed) {
-                console.log('🚫 [MESSAGE_LIMIT] Limite de mensagens gratuitas atingido');
-                console.log('🚫 [PAYWALL] Sem mensagens restantes e reward ad não assistido');
-                setMessages(prev => [...prev, {
-                  id: uuidv4(),
-                  text: `🚫 **Você atingiu seus limites**\n\nPara continuar usando o Stater:\n\n✨ **Stater PRO** por apenas R$ 14,90/mês:\n• 🤖 Não se preocupe mais com limites de mensagens\n• 📊 Análise de PDFs e imagens\n• 🎙️ Envie áudios sempre que precisar\n• 🚫 Livre de anúncios\n• 📋 Relatórios em diversos formatos\n• E muito mais!`,
-                  sender: 'assistant',
-                  timestamp: new Date(),
-                  avatarUrl: IA_AVATAR
-                }]);
-                
-                setShowPaywall(true);
-                setIsProcessingMessage(false);
-                return;
-              }
-            }
-          } else {
-            console.log(`⏰ [COOLDOWN] Restam ${cooldownResult.remainingMinutes} minutos`);
-            // Verificar mensagens mesmo em cooldown
-            const messageLimit = await MessageLimitManager.canSendMessage(user.id);
-            if (!messageLimit.allowed) {
-              console.log('🚫 [PAYWALL] Sem mensagens e cooldown de reward ad ativo');
-              setShowPaywall(true);
-              setIsProcessingMessage(false);
-              return;
-            }
-          }
-        } else {
-          console.log('📋 [COOLDOWN CACHE] Usando verificação recente de cooldown');
+          setShowPaywall(true);
+          setIsProcessingMessage(false);
+          return;
         }
       } else {
         console.log('✅ [PREMIUM] Usuário premium - processamento direto');
       }
       
       } catch (error) {
-        console.error('Erro ao verificar sistema de reward ad/mensagens:', error);
+        console.error('Erro ao verificar limites:', error);
         setError("Erro interno. Tente novamente.");
         setIsProcessingMessage(false);
         return;

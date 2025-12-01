@@ -12,7 +12,6 @@ import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import { TransactionCounter } from '@/utils/transactionCounter';
 import { UserPlanManager } from '@/utils/userPlanManager';
-import { AdManager } from '@/utils/adManager';
 import { PlanType } from '@/types';
 
 interface MobileHeaderProps {
@@ -79,41 +78,16 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
       // Disparar evento customizado para atualizar outras partes da aplicação
       window.dispatchEvent(new CustomEvent('transactionsUpdated'));
       
-      // 🎯 SISTEMA DE CONTADOR DE TRANSAÇÕES - Verificar se deve mostrar anúncio após 5ª transação
+      // Incrementar contador para analytics
       try {
-        // Verificar se o usuário é premium
         const userPlan = await UserPlanManager.getUserPlan(user.id);
         const isPremium = userPlan.planType !== PlanType.FREE;
         
-        console.log(`📊 [QUICK_ADD_REWARD] Plano do usuário: ${userPlan.planType}, isPremium: ${isPremium}`);
-        
         if (!isPremium) {
-          // Incrementar contador e verificar se deve mostrar reward ad
-          const counterResult = await TransactionCounter.incrementAndCheck(user.id);
-          
-          console.log(`📊 [QUICK_ADD_COUNTER] Contador atual: ${counterResult.currentCount}, deve mostrar ad: ${counterResult.shouldShowRewardAd}`);
-          
-          if (counterResult.shouldShowRewardAd) {
-            console.log('🎬 [QUICK_ADD_REWARD] Mostrando reward ad após 5 transações');
-            
-            // Mostrar reward ad específico para transações
-            const adResult = await AdManager.showRewardedAd('transactions');
-            
-            if (adResult.success) {
-              console.log('✅ [QUICK_ADD_REWARD] Reward ad assistido com sucesso');
-              toast({
-                title: '🎁 Recompensa obtida!',
-                description: 'Você ganhou mais transações por assistir o anúncio!',
-              });
-            } else {
-              console.log('❌ [QUICK_ADD_REWARD] Reward ad não assistido');
-            }
-          } else {
-            console.log(`📊 [QUICK_ADD_COUNTER] ${counterResult.nextRewardAt} transações restantes para próximo reward ad`);
-          }
+          await TransactionCounter.incrementAndCheck(user.id);
         }
       } catch (error) {
-        console.error('❌ [QUICK_ADD_REWARD] Erro ao processar contador:', error);
+        console.error('Erro ao processar contador:', error);
       }
       
     } catch (error) {

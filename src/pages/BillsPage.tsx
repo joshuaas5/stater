@@ -6,7 +6,6 @@ import { getBills, isLoggedIn, markBillAsPaid, saveBill, updateBill, deleteBill 
 import { formatCurrency, getOverdueBills, getBillsDueInNextDays } from '@/utils/dataProcessing';
 import { useToast } from '@/hooks/use-toast';
 import { UserPlanManager } from '@/utils/userPlanManager';
-import { AdManager } from '@/utils/adManager';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
 import { 
   CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
@@ -354,11 +353,8 @@ const BillsPage: React.FC = () => {
   };
 
   const handleAddBill = async () => {
-    console.log('🎯 [MONETIZAÇÃO] handleAddBill chamado para userId:', userId);
-    
     // Verificar se userId está disponível
     if (!userId) {
-      console.error('❌ [ERRO] UserId não disponível');
       toast({
         title: 'Erro de autenticação',
         description: 'Por favor, faça login novamente.',
@@ -367,70 +363,8 @@ const BillsPage: React.FC = () => {
       return;
     }
     
-    try {
-      // Verificar se usuário atingiu paywall
-      const hasReachedPaywall = await AdManager.hasReachedPaywall(userId);
-      console.log('🚫 [PAYWALL] hasReachedPaywall:', hasReachedPaywall);
-      
-      if (hasReachedPaywall) {
-        console.log('🚫 [PAYWALL] Abrindo paywall');
-        openPaywall('bills');
-        return;
-      }
-
-      // NOVO: Verificar cooldown de ads contextuais para bills
-      const permission = await AdCooldownManager.canPerformAction(userId, 'bills');
-      console.log('🎯 [COOLDOWN] Permissão para bills:', permission);
-      
-      if (permission.allowed) {
-        console.log('✅ [COOLDOWN] Ação permitida, navegando para /add-bill');
-        // Consumir uma ação se for free_actions
-        if (permission.reason === 'free_actions') {
-          await AdCooldownManager.consumeAction(userId, 'bills');
-        }
-        navigate('/add-bill');
-        return;
-      }
-      
-      // Se não pode realizar ação, verificar o motivo
-      if (permission.reason === 'cooldown_active') {
-        console.log('⏰ [COOLDOWN] Cooldown ativo');
-        toast({
-          title: 'Aguarde o cooldown',
-          description: `Próximo anúncio disponível em ${permission.minutesUntilNextAd} minutos.`,
-          variant: 'default'
-        });
-        return;
-      }
-      
-      if (permission.reason === 'need_ad') {
-        console.log('🎬 [COOLDOWN] Precisa ver anúncio contextual - DESABILITADO PARA INVESTIDORES');
-        // TEMPORARIAMENTE DESABILITADO PARA APRESENTAÇÃO PARA INVESTIDORES
-        // setShowContextualAd({ show: true, action: 'bills' });
-        // return;
-        // Permitir que continue normalmente
-      }
-
-      // Fallback para sistema antigo se necessário
-      const canAddBill = await UserPlanManager.checkDailyLimit(userId, 'bills');
-      if (!canAddBill) {
-        console.log('📊 [LIMITE] Limite atingido, abrindo paywall');
-        toast({
-          title: 'Limite diário atingido',
-          description: 'Você atingiu o limite de contas. Assine o PRO por R$ 14,90/mês para contas ilimitadas!',
-        });
-        openPaywall('bills');
-        return;
-      }
-
-      // Se chegou até aqui, navegar normalmente
-      navigate('/add-bill');
-      
-    } catch (error) {
-      console.error('❌ [ERRO] Erro ao verificar permissões para adicionar conta:', error);
-      // Em caso de erro, permitir que o usuário continue
-      navigate('/add-bill');
-    }
+    // Navegar para adicionar conta
+    navigate('/add-bill');
   };
 
   const handleMarkAsPaid = (billId: string) => {

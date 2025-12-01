@@ -245,7 +245,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 flex items-center justify-center p-4 transaction-modal"
+      className="fixed inset-0 flex items-start justify-center p-4 pt-8 pb-24 transaction-modal"
       style={{
         zIndex: 9999,
         transform: 'translateZ(0)',
@@ -255,7 +255,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         top: 0,
         left: 0,
         right: 0,
-        bottom: 0
+        bottom: 0,
+        overflowY: 'auto'
       }}
     >
       {/* Backdrop with blur */}

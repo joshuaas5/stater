@@ -19,24 +19,16 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 
-// CSS para scrollbar elegante
+// CSS para ocultar scrollbar completamente
 const sidebarStyles = `
   .sidebar-scroll::-webkit-scrollbar {
-    width: 4px;
-  }
-  .sidebar-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .sidebar-scroll::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 4px;
-  }
-  .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.25);
+    display: none;
+    width: 0;
   }
   .sidebar-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overflow-x: hidden;
   }
 `;
 
@@ -134,12 +126,13 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
 
   return (
     <aside 
-      className="hidden lg:flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300"
+      className="hidden lg:flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 overflow-hidden"
       style={{
         width: isCollapsed ? '80px' : '240px',
         background: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)',
         borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '4px 0 20px rgba(0, 0, 0, 0.3)'
+        boxShadow: '4px 0 20px rgba(0, 0, 0, 0.3)',
+        overflowX: 'hidden'
       }}
     >
       {/* Inject scrollbar styles */}
@@ -174,7 +167,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-2 overflow-y-auto sidebar-scroll">
+      <nav className="flex-1 py-4 px-2 overflow-y-auto overflow-x-hidden sidebar-scroll">
         <div className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;

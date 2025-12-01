@@ -24,7 +24,6 @@ import { LoadingState, CardLoading, useLoadingStates } from '@/components/ui/loa
 import { saveChatMessages, loadChatMessages, clearChatMessages, hasSavedMessages } from '@/utils/chatPersistence';
 import { validateUserInput, validateChatMessage, validateTransactionData, sanitizeString } from '@/utils/dataValidation';
 import { UserPlanManager } from '@/utils/userPlanManager';
-import { UserJourneyManager } from '@/utils/userJourneyManager';
 import { PaywallModal } from '@/components/ui/PaywallModal';
 import { useAILearning } from '@/utils/aiLearningSystem';
 import FinancialAdvisorGate from '@/components/monetization/FinancialAdvisorGate';
@@ -274,13 +273,8 @@ export const FinancialAdvisorPage: React.FC = () => {
   
   // Estados para monetização e controle de acesso
   const [showPaywall, setShowPaywall] = useState(false);
-  const [showAdReward, setShowAdReward] = useState(false);
   const [messageLimit, setMessageLimit] = useState<number>(3);
   const [messagesUsedToday, setMessagesUsedToday] = useState<number>(0);
-  const [currentDay, setCurrentDay] = useState<number>(1);
-  const [adsWatched, setAdsWatched] = useState<number>(0);
-  const [adsRequired, setAdsRequired] = useState<number>(1);
-  const [isWatchingAd, setIsWatchingAd] = useState(false);
   
   const tts = useTextToSpeech();
   const audioLimits = useAudioLimits(currentUserId || null);
@@ -685,60 +679,7 @@ const isAddBillIntent = (msg: string) => {
     });
   }, [openTransactionModal]);
 
-  // Função para assistir ad rewarded e ganhar mensagens
-  const handleWatchAdReward = async () => {
-    if (!currentUserId) return;
-    
-    setIsWatchingAd(true);
-    
-    try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
-        console.error('Usuário não autenticado');
-        return;
-      }
 
-      const result = await AdManager.watchRewardedAdForMessages(user.id);
-      
-      if (result.success && result.messagesGranted > 0) {
-        // Atualizar estados locais
-        const journeyStatus = await UserJourneyManager.getJourneyStatus(user.id);
-        setAdsWatched(journeyStatus.journey.adsWatchedToday);
-        setMessagesUsedToday(journeyStatus.usage.messagesUsed);
-        
-        // Mostrar mensagem de sucesso
-        const successMessage: ChatMessage = {
-          id: uuidv4(),
-          text: `🎉 Parabéns! Você ganhou ${result.messagesGranted} mensagens para usar hoje. Continue explorando o Stater IA!`,
-          sender: 'system',
-          timestamp: new Date(),
-          avatarUrl: IA_AVATAR
-        };
-        
-        setMessages(prev => [...prev, successMessage]);
-        setShowAdReward(false);
-        
-        console.log(`✨ Ad rewarded assistido com sucesso: +${result.messagesGranted} mensagens`);
-      } else {
-        console.error('Erro no ad rewarded:', result.error);
-        
-        const errorMessage: ChatMessage = {
-          id: uuidv4(),
-          text: result.error || 'Não foi possível processar o anúncio. Tente novamente.',
-          sender: 'system',
-          timestamp: new Date(),
-          avatarUrl: IA_AVATAR
-        };
-        
-        setMessages(prev => [...prev, errorMessage]);
-      }
-      
-    } catch (error) {
-      console.error('Erro ao assistir ad:', error);
-    } finally {
-      setIsWatchingAd(false);
-    }
-  };
 
 const handleSendMessage = async (message: string, skipAddingUserMessage = false) => {
   // Validação robusta da entrada
@@ -4206,17 +4147,7 @@ return (
       }}
     />
     
-    {/* Modal de Ad Rewarded para jornada progressiva */}
-    <AdRewardModal
-      isOpen={showAdReward}
-      onClose={() => setShowAdReward(false)}
-      onWatchAd={handleWatchAdReward}
-      currentDay={currentDay}
-      adsWatched={adsWatched}
-      adsRequired={adsRequired}
-      messagesWillGrant={currentDay <= 3 ? [3, 4, 5][currentDay - 1] : 0}
-      isLoading={isWatchingAd}
-    />
+
   </>
   </FinancialAdvisorGate>
 );

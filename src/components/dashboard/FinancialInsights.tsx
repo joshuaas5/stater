@@ -194,43 +194,48 @@ const FinancialInsights: React.FC = () => {
     switch (type) {
       case 'success':
         return {
-          bg: 'rgba(16, 185, 129, 0.15)',
-          border: 'rgba(16, 185, 129, 0.4)',
-          glow: 'rgba(16, 185, 129, 0.2)',
-          iconBg: 'rgba(16, 185, 129, 0.3)',
-          color: '#10b981'
+          bg: 'linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(5, 150, 105, 0.25))',
+          border: 'rgba(16, 185, 129, 0.6)',
+          glow: 'rgba(16, 185, 129, 0.4)',
+          iconBg: 'linear-gradient(135deg, #10b981, #059669)',
+          color: '#34d399',
+          textColor: '#ecfdf5'
         };
       case 'warning':
         return {
-          bg: 'rgba(245, 158, 11, 0.15)',
-          border: 'rgba(245, 158, 11, 0.4)',
-          glow: 'rgba(245, 158, 11, 0.2)',
-          iconBg: 'rgba(245, 158, 11, 0.3)',
-          color: '#f59e0b'
+          bg: 'linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(217, 119, 6, 0.25))',
+          border: 'rgba(245, 158, 11, 0.6)',
+          glow: 'rgba(245, 158, 11, 0.4)',
+          iconBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+          color: '#fbbf24',
+          textColor: '#fefce8'
         };
       case 'info':
         return {
-          bg: 'rgba(59, 130, 246, 0.15)',
-          border: 'rgba(59, 130, 246, 0.4)',
-          glow: 'rgba(59, 130, 246, 0.2)',
-          iconBg: 'rgba(59, 130, 246, 0.3)',
-          color: '#3b82f6'
+          bg: 'linear-gradient(135deg, rgba(59, 130, 246, 0.35), rgba(37, 99, 235, 0.25))',
+          border: 'rgba(59, 130, 246, 0.6)',
+          glow: 'rgba(59, 130, 246, 0.4)',
+          iconBg: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+          color: '#60a5fa',
+          textColor: '#eff6ff'
         };
       case 'tip':
         return {
-          bg: 'rgba(139, 92, 246, 0.15)',
-          border: 'rgba(139, 92, 246, 0.4)',
-          glow: 'rgba(139, 92, 246, 0.2)',
-          iconBg: 'rgba(139, 92, 246, 0.3)',
-          color: '#8b5cf6'
+          bg: 'linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(124, 58, 237, 0.25))',
+          border: 'rgba(139, 92, 246, 0.6)',
+          glow: 'rgba(139, 92, 246, 0.4)',
+          iconBg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+          color: '#a78bfa',
+          textColor: '#f5f3ff'
         };
       default:
         return {
-          bg: 'rgba(255, 255, 255, 0.1)',
-          border: 'rgba(255, 255, 255, 0.2)',
-          glow: 'rgba(255, 255, 255, 0.1)',
-          iconBg: 'rgba(255, 255, 255, 0.2)',
-          color: '#fff'
+          bg: 'rgba(255, 255, 255, 0.15)',
+          border: 'rgba(255, 255, 255, 0.3)',
+          glow: 'rgba(255, 255, 255, 0.2)',
+          iconBg: 'rgba(255, 255, 255, 0.3)',
+          color: '#fff',
+          textColor: '#fff'
         };
     }
   };
@@ -318,37 +323,47 @@ const FinancialInsights: React.FC = () => {
               return (
                 <div
                   key={insight.id}
-                  className="p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5"
+                  className="p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1"
                   style={{
                     background: styles.bg,
-                    border: `1px solid ${styles.border}`,
-                    boxShadow: `0 4px 20px ${styles.glow}`,
+                    border: `2px solid ${styles.border}`,
+                    boxShadow: `0 8px 32px ${styles.glow}, inset 0 1px 0 rgba(255,255,255,0.1)`,
                     animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`
                   }}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-4">
                     <div 
-                      className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: styles.iconBg }}
+                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg"
+                      style={{ 
+                        background: styles.iconBg,
+                        boxShadow: `0 4px 15px ${styles.glow}`
+                      }}
                     >
-                      <span style={{ color: styles.color }}>{insight.icon}</span>
+                      <span className="text-white">{insight.icon}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-white text-sm mb-1">
+                      <h3 
+                        className="font-bold text-base mb-1.5"
+                        style={{ color: styles.color }}
+                      >
                         {insight.title}
                       </h3>
-                      <p className="text-white/70 text-xs leading-relaxed mb-2">
+                      <p 
+                        className="text-sm leading-relaxed mb-3 font-medium"
+                        style={{ color: 'rgba(255, 255, 255, 0.9)' }}
+                      >
                         {insight.description}
                       </p>
                       {insight.action && (
                         <div 
-                          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs"
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold"
                           style={{ 
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            color: styles.color
+                            background: styles.iconBg,
+                            color: '#fff',
+                            boxShadow: `0 2px 10px ${styles.glow}`
                           }}
                         >
-                          <Lightbulb className="h-3 w-3" />
+                          <Lightbulb className="h-3.5 w-3.5" />
                           <span>{insight.action}</span>
                         </div>
                       )}

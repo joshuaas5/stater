@@ -322,103 +322,171 @@ export default function ModernCharts() {
     }
 
     const totalValue = categoryData.reduce((sum, item) => sum + item.value, 0);
+    
+    // Cores vibrantes e distintas para cada categoria
     const CATEGORY_COLORS = [
-      '#ffffff', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', 
-      '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'
+      '#ef4444', // Vermelho vibrante
+      '#f97316', // Laranja
+      '#eab308', // Amarelo
+      '#22c55e', // Verde
+      '#06b6d4', // Ciano
+      '#3b82f6', // Azul
+      '#8b5cf6', // Roxo
+      '#ec4899', // Rosa
+      '#14b8a6', // Teal
+      '#f43f5e'  // Rose
     ];
 
     return (
       <div className="space-y-6">
-        {/* Container principal com glassmorphism */}
+        {/* Container principal */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
-          {/* Gráfico de pizza */}
+          {/* Gráfico de pizza revolucionado */}
           <div 
-            className="rounded-lg border p-6 shadow-xl"
+            className="rounded-2xl border p-6 shadow-2xl"
             style={{
-              background: 'rgba(49, 81, 139, 0.95)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9))',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
               backdropFilter: 'blur(20px)'
             }}
           >
-            <div className="text-center mb-4">
+            <div className="text-center mb-6">
               <h4 
-                className="text-lg font-bold mb-1"
+                className="text-xl font-bold mb-2 flex items-center justify-center gap-2"
                 style={{
                   color: '#ffffff',
                   fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
                 }}
               >
-                💰 Distribuição de Gastos
+                <span className="text-2xl">🎯</span>
+                Distribuição de Gastos
               </h4>
               <p 
-                className="text-sm"
+                className="text-sm font-medium"
                 style={{
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: 'rgba(255, 255, 255, 0.6)',
                   fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
                 }}
               >
-                Visualização por categorias
+                Onde seu dinheiro está indo
               </p>
             </div>
             
-            <ResponsiveContainer width="100%" height={320}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
+                <defs>
+                  {CATEGORY_COLORS.map((color, index) => (
+                    <linearGradient key={`gradient-${index}`} id={`pieGradient-${index}`} x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor={color} stopOpacity={1}/>
+                      <stop offset="100%" stopColor={color} stopOpacity={0.7}/>
+                    </linearGradient>
+                  ))}
+                  <filter id="pieGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
                 <Pie
                   data={categoryData}
                   cx="50%"
                   cy="50%"
-                  outerRadius={100}
-                  innerRadius={40}
-                  paddingAngle={3}
+                  outerRadius={110}
+                  innerRadius={55}
+                  paddingAngle={4}
                   dataKey="value"
+                  filter="url(#pieGlow)"
+                  animationBegin={0}
+                  animationDuration={1000}
                 >
                   {categoryData.map((entry, index) => (
                     <Cell 
                       key={`cell-${index}`} 
-                      fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]}
-                      stroke="white"
+                      fill={`url(#pieGradient-${index % CATEGORY_COLORS.length})`}
+                      stroke="rgba(255,255,255,0.3)"
                       strokeWidth={2}
+                      style={{ filter: `drop-shadow(0 0 8px ${CATEGORY_COLORS[index % CATEGORY_COLORS.length]}50)` }}
                     />
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(value: number) => [
+                  formatter={(value: number, name: string) => [
                     `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-                    'Valor gasto'
+                    name
                   ]}
                   contentStyle={{
-                    background: 'rgba(49, 81, 139, 0.95)',
+                    background: 'rgba(15, 23, 42, 0.95)',
                     border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '8px',
+                    borderRadius: '12px',
                     backdropFilter: 'blur(20px)',
                     color: '#ffffff',
-                    fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
+                    fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
                   }}
                 />
               </PieChart>
             </ResponsiveContainer>
             
-            {/* Valor total central */}
-            <div className="text-center mt-4">
+            {/* Valor total central com destaque */}
+            <div 
+              className="text-center mt-4 p-4 rounded-xl"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
+                border: '1px solid rgba(255,255,255,0.1)'
+              }}
+            >
               <div 
-                className="text-sm"
+                className="text-xs font-semibold uppercase tracking-wider mb-1"
                 style={{
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: 'rgba(255, 255, 255, 0.5)',
                   fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
                 }}
               >
                 Total Gasto
               </div>
               <div 
-                className="text-2xl font-bold"
+                className="text-3xl font-black"
                 style={{
-                  color: '#ffffff',
+                  background: 'linear-gradient(135deg, #fff, #a5b4fc)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
                   fontFamily: '"SF Pro Display", system-ui, -apple-system, sans-serif'
                 }}
               >
                 R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </div>
+            </div>
+            
+            {/* Legenda colorida das categorias */}
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              {categoryData.slice(0, 6).map((item, index) => (
+                <div 
+                  key={item.name}
+                  className="flex items-center gap-2 p-2 rounded-lg transition-all hover:scale-105"
+                  style={{
+                    background: `${CATEGORY_COLORS[index % CATEGORY_COLORS.length]}15`,
+                    border: `1px solid ${CATEGORY_COLORS[index % CATEGORY_COLORS.length]}40`
+                  }}
+                >
+                  <div 
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ 
+                      background: CATEGORY_COLORS[index % CATEGORY_COLORS.length],
+                      boxShadow: `0 0 8px ${CATEGORY_COLORS[index % CATEGORY_COLORS.length]}80`
+                    }}
+                  />
+                  <span className="text-xs text-white/90 font-medium truncate">{item.name}</span>
+                  <span 
+                    className="text-xs font-bold ml-auto"
+                    style={{ color: CATEGORY_COLORS[index % CATEGORY_COLORS.length] }}
+                  >
+                    {item.percentage.toFixed(0)}%
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 

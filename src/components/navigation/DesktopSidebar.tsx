@@ -150,23 +150,20 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         className="flex items-center gap-3 p-4 border-b"
         style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
       >
-        <div 
-          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+        <img 
+          src="/stater-logo-192.png" 
+          alt="Stater" 
+          className="flex-shrink-0 object-contain"
           style={{
-            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-            boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
+            width: isCollapsed ? '48px' : '56px',
+            height: isCollapsed ? '48px' : '56px',
+            filter: 'drop-shadow(0 4px 12px rgba(59, 130, 246, 0.4))'
           }}
-        >
-          <img 
-            src="/stater-logo-192.png" 
-            alt="Stater" 
-            className="w-7 h-7 object-contain"
-          />
-        </div>
+        />
         {!isCollapsed && (
           <div className="flex flex-col">
             <span 
-              className="text-lg font-bold text-white"
+              className="text-xl font-bold text-white"
               style={{ fontFamily: '"Fredoka One", sans-serif' }}
             >
               STATER

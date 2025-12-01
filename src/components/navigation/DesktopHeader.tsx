@@ -4,6 +4,7 @@ import { Bell, Search, Crown, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { PlanType } from '@/types';
+import PremiumModal from '@/components/PremiumModal';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +22,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ sidebarWidth, onOpenSearc
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [isPro, setIsPro] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   // Verificar status PRO
   useEffect(() => {
@@ -94,7 +96,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ sidebarWidth, onOpenSearc
           </div>
         ) : (
           <button 
-            onClick={() => navigate('/preferences?tab=subscription')}
+            onClick={() => setShowPremiumModal(true)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all hover:scale-105"
             style={{
               background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
@@ -102,7 +104,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ sidebarWidth, onOpenSearc
             }}
           >
             <Crown size={14} className="text-white" />
-            <span className="text-xs font-semibold text-white">Upgrade Pro</span>
+            <span className="text-xs font-semibold text-white">Assinar PRO</span>
           </button>
         )}
 
@@ -192,6 +194,12 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ sidebarWidth, onOpenSearc
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Premium Modal */}
+      <PremiumModal 
+        isOpen={showPremiumModal} 
+        onClose={() => setShowPremiumModal(false)} 
+      />
     </header>
   );
 };

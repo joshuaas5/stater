@@ -450,16 +450,8 @@ const BillsPage: React.FC = () => {
 
   const [showEditBillModal, setShowEditBillModal] = useState(false);
   const [editBill, setEditBill] = useState<Bill | null>(null);
-  const [showEmailBanner, setShowEmailBanner] = useState(() => {
-    // Verificar se o usuário já fechou o banner antes
-    const dismissed = localStorage.getItem('email-notification-banner-dismissed');
-    return dismissed !== 'true';
-  });
-
-  const handleDismissEmailBanner = () => {
-    setShowEmailBanner(false);
-    localStorage.setItem('email-notification-banner-dismissed', 'true');
-  };
+  // Banner de email sempre visível (fixo)
+  const showEmailBanner = true;
 
   return (
     <div className="flex flex-col min-h-screen pb-32 lg:pb-8" style={{ background: '#31518b' }}>
@@ -656,15 +648,6 @@ const BillsPage: React.FC = () => {
                 }}
               />
             )}
-            
-            {/* Botão de fechar */}
-            <button
-              onClick={handleDismissEmailBanner}
-              className="absolute top-2 right-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
-              aria-label="Fechar"
-            >
-              <X size={14} className="text-white/70" />
-            </button>
             
             <div className="relative p-4">
               <div className="flex items-start gap-4">

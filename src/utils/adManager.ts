@@ -70,7 +70,11 @@ export class AdManager {
         console.log('🔧 [DEV] Conta desenvolvedor - sem ads');
         return false;
       }
+
+      // REMOVIDO: Ads desativados globalmente conforme solicitação
+      return false;
       
+      /* Lógica anterior desativada
       const userPlan = await UserPlanManager.getUserPlan(userId);
       
       // Usuários pagos não veem ads
@@ -95,6 +99,7 @@ export class AdManager {
       }
       
       return false;
+      */
       
     } catch (error) {
       console.error('Erro ao verificar ad para bill:', error);
@@ -108,6 +113,10 @@ export class AdManager {
    */
   static async shouldShowAdForTransaction(userId: string): Promise<boolean> {
     try {
+      // REMOVIDO: Ads desativados globalmente conforme solicitação
+      return false;
+      
+      /* Lógica anterior desativada
       // Contas de desenvolvedor nunca veem ads
       if (isDeveloperAccount(userId)) {
         console.log('🔧 [DEV] Conta desenvolvedor - sem ads');
@@ -133,6 +142,7 @@ export class AdManager {
       }
       
       return false;
+      */
       
     } catch (error) {
       console.error('Erro ao verificar ad para transação:', error);
@@ -150,6 +160,15 @@ export class AdManager {
     day: number;
   }> {
     try {
+      // REMOVIDO: Ads desativados globalmente conforme solicitação
+      return {
+        shouldShow: false,
+        adsRequired: 0,
+        messagesReward: 999, // Mensagens ilimitadas
+        day: 0
+      };
+
+      /* Lógica anterior desativada
       // Contas de desenvolvedor nunca veem ads
       if (isDeveloperAccount(userId)) {
         console.log('🔧 [DEV] Conta desenvolvedor - sem limitações');
@@ -192,26 +211,14 @@ export class AdManager {
           day: journey.currentDay
         };
       }
+      */
       
-      const dayConfig = journeyConfig[journey.currentDay as keyof typeof journeyConfig];
-      
-      if (!dayConfig) {
-        return {
-          shouldShow: false,
-          adsRequired: 0,
-          messagesReward: 0,
-          day: journey.currentDay
-        };
-      }
-      
-      // Verificar se já assistiu os ads necessários hoje
-      const shouldShow = journey.adsWatchedToday < dayConfig.adsRequired;
-      
+      // Fallback para evitar erro de compilação se o código acima for comentado
       return {
-        shouldShow,
-        adsRequired: dayConfig.adsRequired,
-        messagesReward: dayConfig.messagesReward,
-        day: journey.currentDay
+        shouldShow: false,
+        adsRequired: 0,
+        messagesReward: 999,
+        day: 0
       };
       
     } catch (error) {
@@ -220,7 +227,7 @@ export class AdManager {
         shouldShow: false,
         adsRequired: 0,
         messagesReward: 0,
-        day: 1
+        day: 0
       };
     }
   }

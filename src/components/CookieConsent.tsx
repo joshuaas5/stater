@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 /**
  * 🍪 Cookie Consent Component
@@ -15,10 +16,17 @@ interface ConsentPreferences {
 }
 
 export default function CookieConsent() {
+  const location = useLocation();
   const [showBanner, setShowBanner] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
+  // Verificar se está no dashboard (mas mover o return para depois dos hooks)
+  const isDashboard = location.pathname === '/dashboard';
+
   useEffect(() => {
+    // Não executar no dashboard
+    if (isDashboard) return;
+    
     // Verificar se já tem consentimento salvo
     const savedConsent = localStorage.getItem('cookie-consent');
     
@@ -31,7 +39,7 @@ export default function CookieConsent() {
       const preferences: ConsentPreferences = JSON.parse(savedConsent);
       applyConsent(preferences);
     }
-  }, []);
+  }, [isDashboard]);
 
   const applyConsent = (preferences: ConsentPreferences) => {
     // Configurar Google AdSense consent
@@ -84,6 +92,9 @@ export default function CookieConsent() {
   };
 
   if (!showBanner) return null;
+
+  // Ocultar no dashboard
+  if (isDashboard) return null;
 
   return (
     <>

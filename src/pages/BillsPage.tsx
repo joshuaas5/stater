@@ -7,6 +7,7 @@ import { formatCurrency, getOverdueBills, getBillsDueInNextDays } from '@/utils/
 import { useToast } from '@/hooks/use-toast';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
+import { useLayoutMode } from '@/hooks/useLayoutMode';
 import { 
   CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
   Edit, MoreVertical, Trash, Calendar, Mail, X, Send, Loader2,
@@ -77,6 +78,7 @@ const BillsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'overdue' | 'all'>('upcoming');
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const { toast } = useToast();
+  const { isSimpleMode } = useLayoutMode();
 
   // Estados para o seletor de mês/ano
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth()); // 0-11

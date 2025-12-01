@@ -39,6 +39,7 @@ import { useScrollOptimization } from '@/hooks/useScrollOptimization';
 import VirtualizedTransactionList from '@/components/virtualized/VirtualizedTransactionList';
 import { TransactionModal } from '@/components/modals/TransactionModal';
 import PremiumModal, { ProStatusModal } from '@/components/PremiumModal';
+import { useLayoutMode } from '@/hooks/useLayoutMode';
 
 //  DEBUG: Log para identificar re-renderizaes do Dashboard
 console.log(' Dashboard.tsx carregado/re-renderizado:', new Date().toISOString());
@@ -49,6 +50,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { isSimpleMode } = useLayoutMode();
   
   //  DEBUG: Detectar mudanas que causam re-render
   console.log(' [DASHBOARD] Estado atual:', {
@@ -1132,7 +1134,8 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* Premium Telegram Section - Hidden on desktop (moved to sidebar) */}
+        {/* Premium Telegram Section - Hidden on desktop and in simple mode */}
+        {!isSimpleMode && (
         <div 
           className="mx-8 mb-6 p-3 rounded-2xl lg:hidden"
           style={{
@@ -1299,6 +1302,7 @@ const Dashboard: React.FC = () => {
             </div>
           )}
         </div>
+        )}
 
       {/* Novo Modal Otimizado */}
       <TransactionModal
@@ -1468,6 +1472,8 @@ const Dashboard: React.FC = () => {
         </div>
       
         <div className="px-4 mb-4 lg:px-0">
+          {/* Filtros Avançados - escondidos no modo simples */}
+          {!isSimpleMode && (
           <div className="flex justify-start">
             <Button 
               onClick={() => setShowDateFilters(!showDateFilters)} 
@@ -1478,9 +1484,10 @@ const Dashboard: React.FC = () => {
               {showDateFilters ? 'Ocultar Filtros' : 'Filtros Avançados'}
             </Button>
           </div>
+          )}
 
-          {/* Container dos filtros - só aparece quando showDateFilters = true */}
-          {showDateFilters && (
+          {/* Container dos filtros - só aparece quando showDateFilters = true e não em modo simples */}
+          {!isSimpleMode && showDateFilters && (
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 mt-3">
               <div className="flex flex-col gap-3">
                   {/* Filtro por nome */}

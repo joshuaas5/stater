@@ -41,31 +41,8 @@ const NavItem = memo(({ item, isActive, onClick, preloadProps }: {
     >
       {isLogo ? (
         <div className="flex flex-col items-center">
-          <div 
-            className="navbar-logo-circle"
-            style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: '50%',
-              background: 'linear-gradient(145deg, #1e3a6e, #2a4a8a)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 20px rgba(59, 130, 246, 0.3)',
-              border: '2px solid rgba(255, 255, 255, 0.25)',
-              marginBottom: '2px'
-            }}
-          >
-            <img 
-              src="/stater-logo-192.png" 
-              alt="Stater" 
-              style={{
-                width: '28px',
-                height: '28px',
-                objectFit: 'contain',
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
-              }}
-            />
+          <div className="navbar-icon-container">
+            {item.icon}
           </div>
           <span className="navbar-logo-text">
             STATER

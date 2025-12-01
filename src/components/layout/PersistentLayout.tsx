@@ -84,7 +84,26 @@ const PersistentLayout: React.FC = () => {
   const sidebarWidth = isSidebarCollapsed ? 80 : 240;
 
   return (
-    <div className="min-h-screen bg-[#31518b]">
+    <div 
+      className="min-h-screen"
+      style={{
+        // Mobile: azul padrão | Desktop: gradiente escuro igual sidebar
+        background: '#31518b'
+      }}
+    >
+      {/* Desktop Background Override - aplica gradiente escuro */}
+      <style>{`
+        @media (min-width: 1024px) {
+          .desktop-dark-bg {
+            background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
+          }
+        }
+      `}</style>
+      
+      {/* Overlay para desktop com gradiente */}
+      <div className="hidden lg:block fixed inset-0 -z-10" style={{
+        background: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)'
+      }} />
       {/* Desktop: Sidebar + Header */}
       <DesktopSidebar 
         onToggleSimpleMode={toggleSimpleMode}

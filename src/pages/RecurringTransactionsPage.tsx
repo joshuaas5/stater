@@ -267,9 +267,9 @@ const RecurringTransactionsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden pb-20" style={{ background: '#31518b' }}>
-      {/* Header */}
-      <div className="relative z-10 bg-transparent">
+    <div className="min-h-screen relative overflow-hidden pb-20 lg:pb-8">
+      {/* Header - Hidden on desktop */}
+      <div className="relative z-10 bg-transparent lg:hidden">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <Button 
@@ -292,9 +292,15 @@ const RecurringTransactionsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Estatísticas - Reservar espaço para evitar layout jumping */}
-      <div className="relative z-10 p-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      {/* Desktop Header */}
+      <div className="hidden lg:block px-6 pt-6 pb-4">
+        <h1 className="text-3xl font-bold text-white">Transações Recorrentes</h1>
+        <p className="text-white/60 mt-1">Gerencie suas transações automáticas</p>
+      </div>
+
+      {/* Estatísticas */}
+      <div className="relative z-10 p-4 lg:px-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-white">

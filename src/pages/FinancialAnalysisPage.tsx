@@ -71,7 +71,7 @@ const FinancialAnalysisPage: React.FC = () => {
   return (
     <FinancialAnalysisGate>
       <div className="financial-analysis-page min-h-screen pb-20 lg:pb-8" style={{
-        background: '#31518b',
+        // Mobile: azul | Desktop: transparente (usa gradiente do layout)
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}>
         {/* Header com glassmorphism - Hidden on desktop (uses DesktopHeader) */}

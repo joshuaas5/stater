@@ -252,8 +252,14 @@ Obrigado!`);
   };
   
   return (
-    <div className="min-h-screen flex flex-col items-center pb-20" style={{ background: '#31518b', color: 'white' }}>
-      <div className="w-full max-w-md p-4 space-y-6">
+    <div className="min-h-screen flex flex-col items-center pb-20 lg:pb-8 lg:items-start" style={{ color: 'white' }}>
+      {/* Desktop Title */}
+      <div className="hidden lg:block w-full px-6 pt-6 pb-4">
+        <h1 className="text-3xl font-bold text-white">Configurações</h1>
+        <p className="text-white/60 mt-1">Personalize sua experiência no Stater</p>
+      </div>
+      
+      <div className="w-full max-w-md lg:max-w-4xl p-4 lg:px-6 space-y-6 lg:grid lg:grid-cols-2 lg:gap-6">
       <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
         <h2 className="text-base font-semibold text-white mb-3 flex items-center">
           <UserCircle2 size={18} className="mr-2 text-white" /> {t('aboutYourAccount')}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Search, Crown, User, LogOut, Smartphone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -204,11 +205,14 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ sidebarWidth, onOpenSearc
         </DropdownMenu>
       </div>
 
-      {/* Premium Modal */}
-      <PremiumModal 
-        isOpen={showPremiumModal} 
-        onClose={() => setShowPremiumModal(false)} 
-      />
+      {/* Premium Modal - renderizado via portal para evitar conflitos de z-index */}
+      {showPremiumModal && createPortal(
+        <PremiumModal 
+          isOpen={showPremiumModal} 
+          onClose={() => setShowPremiumModal(false)} 
+        />,
+        document.body
+      )}
     </header>
   );
 };

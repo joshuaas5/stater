@@ -118,12 +118,12 @@ const PersistentLayout: React.FC = () => {
         background: '#31518b'
       }}
     >
-      {/* Desktop Background Override - aplica azul escuro igual à sidebar (apenas modo avançado) */}
+      {/* Desktop Background Override - aplica gradiente igual à sidebar (apenas modo avançado) */}
       {showDesktopUI && (
         <>
-          {/* Overlay para desktop com azul escuro */}
+          {/* Overlay para desktop com gradiente igual à sidebar */}
           <div className="hidden lg:block fixed inset-0 -z-10" style={{
-            background: '#1e3a5f'
+            background: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)'
           }} />
         </>
       )}

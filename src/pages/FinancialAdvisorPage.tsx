@@ -3609,17 +3609,27 @@ return (
       className="financial-advisor-page"
       style={{
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        background: '#31518b !important', // Fundo padronizado igual à NavBar
+        background: '#31518b', // Mobile background (desktop usa layout pai)
         minHeight: '100vh',
         width: '100vw',
         color: 'white',
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: '59px', // Espaço para o chat fixo no bottom - reduzido em 6px (65px → 59px)
+        paddingBottom: '59px',
         overflow: 'hidden',
         position: 'relative'
       }}
-    >      {/* Header - CORRIGIDO */}
+    >
+      {/* CSS para desktop usar background transparente */}
+      <style>{`
+        @media (min-width: 1024px) {
+          .financial-advisor-page {
+            background: transparent !important;
+          }
+        }
+      `}</style>
+      
+      {/* Header - CORRIGIDO */}
       <div 
         className="header"
         style={{
@@ -3627,16 +3637,16 @@ return (
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '16px 30px',
-          background: '#31518b !important',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+          background: 'rgba(30, 58, 95, 0.95)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
           zIndex: 1001,
           height: '70px',
-          backdropFilter: 'none !important',
-          WebkitBackdropFilter: 'none !important',
           overflow: 'hidden'
         }}
       >        <h1 

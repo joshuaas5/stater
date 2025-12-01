@@ -12,18 +12,44 @@ import {
   BookOpen,
   Sparkles,
   Monitor,
-  Smartphone
+  Smartphone,
+  Calendar,
+  PieChart,
+  Target
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
+
+// CSS para scrollbar elegante
+const sidebarStyles = `
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+  }
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+  .sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  }
+`;
 
 interface DesktopSidebarProps {
   onToggleSimpleMode?: () => void;
   isSimpleMode?: boolean;
+  onOpenImportModal?: () => void;
 }
 
 const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ 
   onToggleSimpleMode, 
-  isSimpleMode = false 
+  isSimpleMode = false,
+  onOpenImportModal
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -80,8 +106,27 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
     {
       icon: Upload,
       label: 'Importar Extrato',
-      action: () => navigate('/bills?import=true'),
+      action: () => {
+        if (onOpenImportModal) {
+          onOpenImportModal();
+        } else {
+          // Dispara evento global para abrir modal
+          window.dispatchEvent(new CustomEvent('open-import-modal'));
+        }
+      },
       color: '#ec4899'
+    },
+    {
+      icon: Calendar,
+      label: 'Recorrentes',
+      action: () => navigate('/recurring'),
+      color: '#06b6d4'
+    },
+    {
+      icon: Target,
+      label: 'Metas',
+      action: () => navigate('/preferences?tab=goals'),
+      color: '#f59e0b'
     }
   ];
 
@@ -97,6 +142,9 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         boxShadow: '4px 0 20px rgba(0, 0, 0, 0.3)'
       }}
     >
+      {/* Inject scrollbar styles */}
+      <style>{sidebarStyles}</style>
+      
       {/* Logo */}
       <div 
         className="flex items-center gap-3 p-4 border-b"
@@ -129,7 +177,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-2 overflow-y-auto">
+      <nav className="flex-1 py-4 px-2 overflow-y-auto sidebar-scroll">
         <div className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;

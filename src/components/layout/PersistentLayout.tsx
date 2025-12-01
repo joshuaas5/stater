@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import NavBar from '@/components/navigation/NavBar';
 import DesktopSidebar from '@/components/navigation/DesktopSidebar';
 import DesktopHeader from '@/components/navigation/DesktopHeader';
+import GlobalImportModal from '@/components/import/GlobalImportModal';
 
 const PersistentLayout: React.FC = () => {
   const location = useLocation();
@@ -13,6 +14,9 @@ const PersistentLayout: React.FC = () => {
     const saved = localStorage.getItem('stater-simple-mode');
     return saved === 'true';
   });
+  
+  // Estado para o modal de importação global
+  const [showImportModal, setShowImportModal] = useState(false);
 
   // Estado para saber se a sidebar está colapsada
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
@@ -58,6 +62,7 @@ const PersistentLayout: React.FC = () => {
       <DesktopSidebar 
         onToggleSimpleMode={toggleSimpleMode}
         isSimpleMode={isSimpleMode}
+        onOpenImportModal={() => setShowImportModal(true)}
       />
       <DesktopHeader sidebarWidth={sidebarWidth} />
       
@@ -93,6 +98,12 @@ const PersistentLayout: React.FC = () => {
       
       {/* Mobile: NavBar no rodapé */}
       {!noNavBarRoutes.includes(location.pathname) && <NavBar />}
+      
+      {/* Modal de Importação Global */}
+      <GlobalImportModal 
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+      />
     </div>
   );
 };

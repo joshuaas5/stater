@@ -70,13 +70,13 @@ const LoadingCard = ({ title }: { title: string }) => (
 const FinancialAnalysisPage: React.FC = () => {
   return (
     <FinancialAnalysisGate>
-      <div className="financial-analysis-page min-h-screen pb-20" style={{
+      <div className="financial-analysis-page min-h-screen pb-20 lg:pb-8" style={{
         background: '#31518b',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}>
-        {/* Header com glassmorphism igual ao Stater IA */}
+        {/* Header com glassmorphism - Hidden on desktop (uses DesktopHeader) */}
         <div 
-          className="sticky top-0 z-50"
+          className="sticky top-0 z-50 lg:hidden"
           style={{
             display: 'flex',
             justifyContent: 'center',
@@ -104,35 +104,41 @@ const FinancialAnalysisPage: React.FC = () => {
             ANÁLISE FINANCEIRA
           </h1>
         </div>
+        
+        {/* Desktop Title */}
+        <div className="hidden lg:block px-6 pt-6 pb-4">
+          <h1 className="text-3xl font-bold text-white">Análise Financeira</h1>
+          <p className="text-white/60 mt-1">Insights inteligentes sobre suas finanças</p>
+        </div>
 
         {/* Container principal */}
-        <div className="p-4 space-y-6">
+        <div className="p-4 lg:px-6 space-y-6">
           <Tabs defaultValue="insights" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-white/30 dark:border-gray-700/30 mb-6 rounded-xl shadow-md h-auto">
+            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex lg:gap-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-white/30 dark:border-gray-700/30 mb-6 rounded-xl shadow-md h-auto">
               <TabsTrigger 
                 value="insights" 
-                className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-3 px-2 min-h-[60px] justify-center m-1"
+                className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col lg:flex-row items-center gap-1 lg:gap-2 text-xs lg:text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-3 px-2 lg:px-6 min-h-[60px] lg:min-h-0 lg:h-12 justify-center m-1"
               >
                 <Brain className="h-5 w-5 flex-shrink-0" />
                 <span className="font-medium leading-tight">Insights</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="charts" 
-                className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-3 px-2 min-h-[60px] justify-center m-1"
+                className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col lg:flex-row items-center gap-1 lg:gap-2 text-xs lg:text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-3 px-2 lg:px-6 min-h-[60px] lg:min-h-0 lg:h-12 justify-center m-1"
               >
                 <TrendingUp className="h-5 w-5 flex-shrink-0" />
                 <span className="font-medium leading-tight">Gráficos</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="health" 
-                className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-3 px-2 min-h-[60px] justify-center m-1"
+                className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col lg:flex-row items-center gap-1 lg:gap-2 text-xs lg:text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-3 px-2 lg:px-6 min-h-[60px] lg:min-h-0 lg:h-12 justify-center m-1"
               >
                 <Target className="h-5 w-5 flex-shrink-0" />
                 <span className="font-medium leading-tight">Saúde</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="books" 
-                className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col items-center gap-1 text-xs text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-3 px-2 min-h-[60px] justify-center m-1"
+                className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md flex flex-col lg:flex-row items-center gap-1 lg:gap-2 text-xs lg:text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 rounded-lg py-3 px-2 lg:px-6 min-h-[60px] lg:min-h-0 lg:h-12 justify-center m-1"
               >
                 <BookOpen className="h-5 w-5 flex-shrink-0" />
                 <span className="font-medium leading-tight">Livros</span>

@@ -460,10 +460,10 @@ const BillsPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen pb-32" style={{ background: '#31518b' }}>
-      {/* Header com glassmorphism igual ao Análise Financeira */}
+    <div className="flex flex-col min-h-screen pb-32 lg:pb-8" style={{ background: '#31518b' }}>
+      {/* Header com glassmorphism - Hidden on desktop (uses DesktopHeader) */}
       <div 
-        className="sticky top-0 z-50"
+        className="sticky top-0 z-50 lg:hidden"
         style={{
           display: 'flex',
           justifyContent: 'center',
@@ -492,11 +492,17 @@ const BillsPage: React.FC = () => {
         </h1>
       </div>
       
+      {/* Desktop Title */}
+      <div className="hidden lg:block px-6 pt-6 pb-4">
+        <h1 className="text-3xl font-bold text-white">Gerenciar Contas</h1>
+        <p className="text-white/60 mt-1">Controle suas contas a pagar e receber</p>
+      </div>
+      
 
       
       {/* Seletores de Mês e Ano */}
-      <div className="px-4 pt-4 pb-3 sticky z-10 border-b border-white/20" style={{ top: '60px', background: '#31518b' }}>
-        <div className="flex flex-col sm:flex-row gap-3 items-center">
+      <div className="px-4 lg:px-6 pt-4 pb-3 sticky z-10 border-b border-white/20 lg:border-none" style={{ top: '60px', background: '#31518b' }}>
+        <div className="flex flex-col sm:flex-row gap-3 items-center lg:max-w-4xl">
           <div className="flex items-center bg-white/15 backdrop-blur-xl rounded-lg p-1 border border-white/20 w-full sm:w-auto">
             <div className="flex items-center flex-1 sm:flex-auto">
               <Calendar size={18} className="ml-3 mr-2 text-white/70" />
@@ -604,30 +610,30 @@ const BillsPage: React.FC = () => {
       )}
 
       {/* Abas de Filtro */}
-      <div className="px-4 py-3 flex justify-around border-b border-white/20 sticky top-[calc(var(--header-height)_+_60px)] z-10 sm:top-[calc(var(--header-height)_+_60px)]" style={{ background: '#31518b' }}>
+      <div className="px-4 lg:px-6 py-3 flex justify-around lg:justify-start lg:gap-2 border-b border-white/20 lg:border-none sticky top-[calc(var(--header-height)_+_60px)] z-10 sm:top-[calc(var(--header-height)_+_60px)]" style={{ background: '#31518b' }}>
         <button
-          className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'upcoming' ? 'bg-white/20 text-white backdrop-blur-sm' : 'text-white/70'}`}
+          className={`px-4 lg:px-6 py-1.5 lg:py-2 rounded-md lg:rounded-xl text-sm font-medium transition-all ${activeTab === 'upcoming' ? 'bg-white/20 text-white backdrop-blur-sm' : 'text-white/70 hover:bg-white/10'}`}
           onClick={() => setActiveTab('upcoming')}
         >
           A Vencer
         </button>
         <button
-          className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'overdue' ? 'bg-red-500/80 text-white backdrop-blur-sm' : 'text-white/70'}`}
+          className={`px-4 lg:px-6 py-1.5 lg:py-2 rounded-md lg:rounded-xl text-sm font-medium transition-all ${activeTab === 'overdue' ? 'bg-red-500/80 text-white backdrop-blur-sm' : 'text-white/70 hover:bg-white/10'}`}
           onClick={() => setActiveTab('overdue')}
         >
           Vencidas
         </button>
         <button
-          className={`px-4 py-1.5 rounded-md text-sm font-medium ${activeTab === 'all' ? 'bg-white/20 text-white backdrop-blur-sm' : 'text-white/70'}`}
+          className={`px-4 lg:px-6 py-1.5 lg:py-2 rounded-md lg:rounded-xl text-sm font-medium transition-all ${activeTab === 'all' ? 'bg-white/20 text-white backdrop-blur-sm' : 'text-white/70 hover:bg-white/10'}`}
           onClick={() => setActiveTab('all')}
         >
           Todas
         </button>
       </div>
 
-      {/* Banner de Notificações por Email */}
+      {/* Banner de Notificações por Email - Smaller on desktop */}
       {showEmailBanner && (
-        <div className="mx-4 mt-4">
+        <div className="mx-4 lg:mx-6 lg:max-w-2xl mt-4">
           <div 
             className="relative overflow-hidden rounded-2xl border"
             style={{
@@ -718,10 +724,11 @@ const BillsPage: React.FC = () => {
         </div>
       )}
       
-      <div className="mt-4 pb-16" style={{ background: '#31518b' }}>
+      <div className="mt-4 pb-16 lg:pb-8 lg:px-6" style={{ background: '#31518b' }}>
         {getBillsToDisplay().length > 0 ? (
-          getBillsToDisplay().map((bill) => (
-            <Card key={bill.id} className="mx-4 mb-4 overflow-hidden border-0 shadow-lg" style={{ background: 'rgba(255, 255, 255, 0.08)', backdropFilter: 'blur(20px)', borderRadius: '16px' }}>
+          <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4">
+          {getBillsToDisplay().map((bill) => (
+            <Card key={bill.id} className="mx-4 lg:mx-0 mb-4 lg:mb-0 overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow" style={{ background: 'rgba(255, 255, 255, 0.08)', backdropFilter: 'blur(20px)', borderRadius: '16px' }}>
               <CardContent className="p-0">
                 <div className="flex items-center gap-4 px-5 py-4">
                   <div 
@@ -879,15 +886,16 @@ const BillsPage: React.FC = () => {
                 )}
               </CardContent>
             </Card>
-          ))
+          ))}
+          </div>
         ) : (
-          <div className="flex flex-col items-center justify-center p-8 text-white/70">
-            <FileText size={48} className="mb-2 opacity-40" />
-            <p className="text-lg">Nenhuma conta {activeTab === 'upcoming' ? 'a vencer' : activeTab === 'overdue' ? 'vencida' : ''} encontrada</p>
-            <p className="text-sm mt-1">Adicione novas contas para gerenciar seus pagamentos</p>
+          <div className="flex flex-col items-center justify-center p-8 lg:p-16 text-white/70">
+            <FileText size={48} className="mb-2 opacity-40 lg:w-16 lg:h-16" />
+            <p className="text-lg lg:text-xl">Nenhuma conta {activeTab === 'upcoming' ? 'a vencer' : activeTab === 'overdue' ? 'vencida' : ''} encontrada</p>
+            <p className="text-sm lg:text-base mt-1">Adicione novas contas para gerenciar seus pagamentos</p>
             <Button 
               onClick={handleAddBill}
-              className="mt-4 bg-green-600/80 text-white border border-green-500/50 hover:bg-green-600 hover:border-green-500 backdrop-blur-sm"
+              className="mt-4 lg:mt-6 bg-green-600/80 text-white border border-green-500/50 hover:bg-green-600 hover:border-green-500 backdrop-blur-sm lg:px-8 lg:py-3"
             >
               <Plus size={16} className="mr-1" /> Adicionar Conta
             </Button>

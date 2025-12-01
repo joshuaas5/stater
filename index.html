@@ -186,14 +186,16 @@
           });
         }
         
-        // Permitir sincronização em background quando online
-        navigator.serviceWorker.ready.then((registration) => {
+        // Background Sync - só registra se tiver permissão e suporte
+        navigator.serviceWorker.ready.then(async (registration) => {
           if ('sync' in registration) {
-            // Registrar sincronização periódica
-            setInterval(() => {
-              registration.sync.register('sync-data')
-                .catch(err => console.error('Sync registration failed:', err));
-            }, 300000); // A cada 5 minutos
+            try {
+              // Tenta registrar uma vez - se falhar, não insiste
+              await registration.sync.register('sync-data');
+            } catch (e) {
+              // Silenciosamente ignora - Background Sync não é crítico
+              // NotAllowedError é comum em localhost e alguns navegadores
+            }
           }
         });
       }

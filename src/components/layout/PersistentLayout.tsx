@@ -4,6 +4,7 @@ import NavBar from '@/components/navigation/NavBar';
 import DesktopSidebar from '@/components/navigation/DesktopSidebar';
 import DesktopHeader from '@/components/navigation/DesktopHeader';
 import GlobalImportModal from '@/components/import/GlobalImportModal';
+import CommandPalette from '@/components/search/CommandPalette';
 
 const PersistentLayout: React.FC = () => {
   const location = useLocation();
@@ -17,6 +18,9 @@ const PersistentLayout: React.FC = () => {
   
   // Estado para o modal de importação global
   const [showImportModal, setShowImportModal] = useState(false);
+  
+  // Estado para o Command Palette (busca global)
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
 
   // Estado para saber se a sidebar está colapsada
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
@@ -47,6 +51,29 @@ const PersistentLayout: React.FC = () => {
     };
   }, [isSidebarCollapsed]);
 
+  // Listener para abrir Command Palette via evento global ou Ctrl+K
+  useEffect(() => {
+    const handleOpenCommandPalette = () => setShowCommandPalette(true);
+    const handleOpenImportModal = () => setShowImportModal(true);
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(prev => !prev);
+      }
+    };
+
+    window.addEventListener('open-command-palette', handleOpenCommandPalette);
+    window.addEventListener('open-import-modal', handleOpenImportModal);
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('open-command-palette', handleOpenCommandPalette);
+      window.removeEventListener('open-import-modal', handleOpenImportModal);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   const toggleSimpleMode = () => {
     const newValue = !isSimpleMode;
     setIsSimpleMode(newValue);
@@ -64,7 +91,10 @@ const PersistentLayout: React.FC = () => {
         isSimpleMode={isSimpleMode}
         onOpenImportModal={() => setShowImportModal(true)}
       />
-      <DesktopHeader sidebarWidth={sidebarWidth} />
+      <DesktopHeader 
+        sidebarWidth={sidebarWidth}
+        onOpenSearch={() => setShowCommandPalette(true)}
+      />
       
       {/* Main Content Area */}
       <main 
@@ -103,6 +133,16 @@ const PersistentLayout: React.FC = () => {
       <GlobalImportModal 
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
+      />
+      
+      {/* Command Palette (Busca Global - Ctrl+K) */}
+      <CommandPalette
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+        onOpenImport={() => {
+          setShowCommandPalette(false);
+          setShowImportModal(true);
+        }}
       />
     </div>
   );

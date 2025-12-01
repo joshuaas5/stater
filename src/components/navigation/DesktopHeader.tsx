@@ -14,9 +14,10 @@ import {
 
 interface DesktopHeaderProps {
   sidebarWidth: number;
+  onOpenSearch?: () => void;
 }
 
-const DesktopHeader: React.FC<DesktopHeaderProps> = ({ sidebarWidth }) => {
+const DesktopHeader: React.FC<DesktopHeaderProps> = ({ sidebarWidth, onOpenSearch }) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [isPro, setIsPro] = useState(false);
@@ -57,26 +58,25 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ sidebarWidth }) => {
       }}
     >
       {/* Search Bar */}
-      <div 
-        className="flex items-center gap-3 px-4 py-2 rounded-xl w-96"
+      <button 
+        onClick={onOpenSearch}
+        className="flex items-center gap-3 px-4 py-2 rounded-xl w-96 text-left transition-all hover:bg-white/12"
         style={{
           background: 'rgba(255, 255, 255, 0.08)',
           border: '1px solid rgba(255, 255, 255, 0.1)'
         }}
       >
         <Search size={18} className="text-white/50" />
-        <input 
-          type="text"
-          placeholder="Buscar transações, contas..."
-          className="flex-1 bg-transparent border-none outline-none text-sm text-white placeholder:text-white/40"
-        />
+        <span className="flex-1 text-sm text-white/40">
+          Buscar transações, contas...
+        </span>
         <kbd 
           className="px-2 py-0.5 rounded text-[10px] font-mono text-white/40"
           style={{ background: 'rgba(255, 255, 255, 0.1)' }}
         >
           Ctrl+K
         </kbd>
-      </div>
+      </button>
 
       {/* Right Section */}
       <div className="flex items-center gap-4">
@@ -108,6 +108,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ sidebarWidth }) => {
 
         {/* Notifications */}
         <button 
+          onClick={() => navigate('/notifications')}
           className="relative w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
           style={{
             background: 'rgba(255, 255, 255, 0.08)',

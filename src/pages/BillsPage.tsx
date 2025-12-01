@@ -10,7 +10,8 @@ import { AdManager } from '@/utils/adManager';
 import { PaywallModal, usePaywallModal } from '@/components/ui/PaywallModal';
 import { 
   CalendarCheck, Clock, CreditCard, FileText, FileMinus, Plus, 
-  Edit, MoreVertical, Trash, Calendar, Mail, X, Send, Loader2
+  Edit, MoreVertical, Trash, Calendar, Mail, X, Send, Loader2,
+  Check, Receipt
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -790,17 +791,24 @@ const BillsPage: React.FC = () => {
               <CardContent className="p-0">
                 <div className="flex items-center gap-4 px-5 py-4">
                   <div 
-                    className="flex items-center justify-center rounded-full shrink-0 size-12"
+                    className="flex items-center justify-center rounded-2xl shrink-0 size-12"
                     style={{ 
                       background: bill.isPaid 
                         ? 'linear-gradient(135deg, #10b981 0%, #34d399 100%)' 
                         : activeTab === 'overdue' 
                           ? 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)'
-                          : 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
-                      border: '2px solid rgba(255,255,255,0.2)'
+                          : 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
+                      border: '1px solid rgba(255,255,255,0.15)'
                     }}
                   >
-                    <Clock className="h-5 w-5 text-white" />
+                    {/* Ícone simples baseado no status */}
+                    {bill.isPaid ? (
+                      <Check className="h-5 w-5 text-white" />
+                    ) : bill.isCardBill ? (
+                      <CreditCard className="h-5 w-5 text-white/80" />
+                    ) : (
+                      <Receipt className="h-5 w-5 text-white/80" />
+                    )}
                   </div>
                   <div className="flex flex-col justify-center flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">

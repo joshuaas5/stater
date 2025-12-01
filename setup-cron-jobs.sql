@@ -9,19 +9,41 @@ CREATE EXTENSION IF NOT EXISTS pg_cron;
 -- 2. Permitir uso do schema cron
 GRANT USAGE ON SCHEMA cron TO postgres;
 
--- 3. Remover cron job diário antigo (se existir)
-SELECT cron.unschedule('process-bill-reminders-daily');
+-- 3. Remover cron jobs antigos (ignora erro se não existir)
+DO $$
+BEGIN
+  PERFORM cron.unschedule('process-bill-reminders-daily');
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
 
--- 4. Criar o cron job SEMANAL para processar lembretes de contas
+DO $$
+BEGIN
+  PERFORM cron.unschedule('process-bill-reminders-weekly');
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+  PERFORM cron.unschedule('send-weekly-summary');
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+  PERFORM cron.unschedule('weekly-email-digest');
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+-- 4. Criar o cron job SEMANAL para enviar digest de contas
 -- Executa toda SEGUNDA-FEIRA às 11:00 UTC (8:00 BRT)
--- Só envia email para usuários com contas vencendo nos próximos 7 dias
+-- Usa a função weekly-email-digest que tem o template bonito do Stater
 
 SELECT cron.schedule(
-  'process-bill-reminders-weekly',       -- nome do job (mudou de daily para weekly)
+  'weekly-email-digest',                 -- nome do job
   '0 11 * * 1',                          -- cron: Segunda-feira às 11:00 UTC (8:00 BRT)
   $$
   SELECT net.http_post(
-    url := 'https://tmucbwlhkffrhtexmjze.supabase.co/functions/v1/process-bill-reminders',
+    url := 'https://tmucbwlhkffrhtexmjze.supabase.co/functions/v1/weekly-email-digest',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key')
@@ -31,10 +53,7 @@ SELECT cron.schedule(
   $$
 );
 
--- 5. Remover job de resumo semanal duplicado (agora é tudo em um)
-SELECT cron.unschedule('send-weekly-summary');
-
--- 6. Verificar jobs agendados
+-- 5. Verificar jobs agendados
 SELECT * FROM cron.job;
 
 -- ========================================

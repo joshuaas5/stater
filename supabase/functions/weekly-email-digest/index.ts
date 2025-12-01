@@ -13,7 +13,16 @@ import { billsDigestTemplate, type BillForEmail } from '../_shared/emailTemplate
  * Esta função pode ser chamada via:
  * - CRON job (Supabase scheduled functions) - 1x por semana (ex: domingo 8h)
  * - Manualmente via API para testes
+ * 
+ * ⚠️ RATE LIMIT: Resend permite 2 emails/segundo
+ * Adicionamos delay de 600ms entre emails para segurança
  */
+
+// Helper para delay entre emails (evita rate limit do Resend)
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Delay entre emails em ms (600ms = ~1.6 emails/segundo, bem abaixo do limite de 2/s)
+const EMAIL_DELAY_MS = 600;
 
 interface Bill {
   id: string;
@@ -222,6 +231,9 @@ serve(async (req) => {
 
         console.log(`✅ Email enviado para ${user.email} (${totalBills} contas)`);
         emailsSent++;
+
+        // ⏱️ Delay entre emails para evitar rate limit do Resend (2/segundo)
+        await delay(EMAIL_DELAY_MS);
 
       } catch (error) {
         console.error(`❌ Erro processando usuário ${userId}:`, error);

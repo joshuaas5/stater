@@ -3,6 +3,11 @@ const axios = require('axios');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
+// Função para formatar valores no padrão brasileiro (R$ 1.234,56)
+const formatBRL = (value) => {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+};
+
 // Configurar bot
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 
@@ -53,7 +58,7 @@ async function reloadActiveSessions() {
                 console.log(`ðŸ”— [PERSISTÊNCIA] SessÃ£o restaurada: ${user.user_name} (Chat: ${chatId})`);
             });
             
-            console.log(`✅ [PERSISTÊNCIA] ${activeUsers.length} sessões recarregadas com sucesso`);
+            console.log(`? [PERSISTÊNCIA] ${activeUsers.length} sessões recarregadas com sucesso`);
         } else {
             console.log('ðŸ“­ [PERSISTÊNCIA] Nenhuma sessÃ£o ativa encontrada');
         }
@@ -148,7 +153,7 @@ bot.onText(/\/help/, async (msg) => {
     if (!userSession) {
         helpMessage += `\n\nðŸ”— **Status:** Conta não conectada`;
     } else {
-        helpMessage += `\n\n✅ **Status:** Conectado como ${userSession.userName}`;
+        helpMessage += `\n\n? **Status:** Conectado como ${userSession.userName}`;
     }
     
     await bot.sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
@@ -205,7 +210,7 @@ bot.onText(/\/conectar/, async (msg) => {
     const userSession = userSessions.get(chatId);
     
     if (userSession) {
-        await bot.sendMessage(chatId, `✅ *Você jÃ¡ estÃ¡ conectado!*
+        await bot.sendMessage(chatId, `? *Você jÃ¡ estÃ¡ conectado!*
 
 ðŸ‘¤ *Conta:* ${userSession.userName}
 ðŸ“§ *Email:* ${userSession.userEmail}
@@ -260,7 +265,7 @@ bot.onText(/\/conta/, async (msg) => {
 **Chat ID:** \`${chatId}\`
 
 ðŸ’° **Dados Financeiros:**
-â€¢ Saldo atual: R$ ${userContext.balance.toFixed(2).replace('.', ',')}
+â€¢ Saldo atual: R$ ${userContext.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
 â€¢ TransaÃ§Ãµes: ${userContext.transactionCount}
 
 ðŸ”— **AÃ§Ãµes:**
@@ -284,7 +289,7 @@ bot.onText(/\/conta/, async (msg) => {
 **Email:** ${userSession.userEmail}
 **Chat ID:** \`${chatId}\`
 
-✅ *Conta conectada com sucesso!*`, { parse_mode: 'Markdown' });
+? *Conta conectada com sucesso!*`, { parse_mode: 'Markdown' });
     }
 });
 
@@ -377,7 +382,7 @@ bot.on('photo', async (msg) => {
                 parse_mode: 'Markdown',
                 reply_markup: {
                     keyboard: [
-                        [{ text: '✅ SIM' }, { text: 'âŒ NÃƒO' }]
+                        [{ text: '? SIM' }, { text: 'âŒ NÃƒO' }]
                     ],
                     resize_keyboard: true,
                     one_time_keyboard: true
@@ -408,8 +413,8 @@ bot.on('message', async (msg) => {
     }
     
     // Confirmar transações
-    if (text === '✅ SIM' || text === '✅ CONFIRMAR' || text.toLowerCase() === 'sim' || text.toLowerCase() === 'confirmar') {
-        console.log(`✅ [MESSAGE] ConfirmaÃ§Ã£o detectada: ${text}`);
+    if (text === '? SIM' || text === '? CONFIRMAR' || text.toLowerCase() === 'sim' || text.toLowerCase() === 'confirmar') {
+        console.log(`? [MESSAGE] ConfirmaÃ§Ã£o detectada: ${text}`);
         await confirmTransactions(chatId);
         return;
     }
@@ -437,43 +442,43 @@ bot.on('message', async (msg) => {
     // PRIORIDADE: Verificar se é um código de vinculação (formato: 6 dígitos) - SEMPRE PRIMEIRO
     const codePattern = /^\d{6}$/;
     if (codePattern.test(text.trim())) {
-        console.log(`🔗 [CODIGO] Tentativa de vinculação com código: ${text.trim()}`);
+        console.log(`?? [CODIGO] Tentativa de vinculação com código: ${text.trim()}`);
         
         // Remover sessão existente se houver
         const existingSession = userSessions.get(chatId);
         if (existingSession) {
-            console.log(`🔄 [CODIGO] Removendo sessão anterior de: ${existingSession.userName}`);
+            console.log(`?? [CODIGO] Removendo sessão anterior de: ${existingSession.userName}`);
             userSessions.delete(chatId);
         }
         
         const linkResult = await linkTelegramWithCode(chatId, text.trim());
         
         if (linkResult.success) {
-            const successMessage = `🎉 *Conectado com sucesso!*
+            const successMessage = `?? *Conectado com sucesso!*
 
-Oi ${linkResult.userName}! 👋
+Oi ${linkResult.userName}! ??
 
-✅ *Sua conta foi conectada ao bot.*
+? *Sua conta foi conectada ao bot.*
 
-💬 Agora posso responder sobre suas finanças:
+?? Agora posso responder sobre suas finanças:
 • "Como está meu saldo?"
 • "Quais contas vencem esta semana?"  
 • "Minhas transações recentes"
 
-🚀 *Pergunte qualquer coisa!*`;
+?? *Pergunte qualquer coisa!*`;
             
             await bot.sendMessage(chatId, successMessage, { parse_mode: 'Markdown' });
             return;
         } else {
-            await bot.sendMessage(chatId, `❌ *Código inválido ou expirado*
+            await bot.sendMessage(chatId, `? *Código inválido ou expirado*
 
 Para gerar um novo código:
 1. Acesse: ${process.env.APP_URL}
-2. Vá em Configurações → Bot Telegram
+2. Vá em Configurações ? Bot Telegram
 3. Clique em "Gerar Código de Vinculação"
 4. Envie o novo código aqui
 
-⏰ *Códigos expiram em 15 minutos.*`, { parse_mode: 'Markdown' });
+? *Códigos expiram em 15 minutos.*`, { parse_mode: 'Markdown' });
             return;
         }
     }
@@ -494,7 +499,7 @@ Para gerar um novo código:
 
 Oi ${linkResult.userName}! ðŸ‘‹
 
-✅ *Sua conta foi conectada ao bot.*
+? *Sua conta foi conectada ao bot.*
 
 ðŸ’¬ Agora posso responder sobre suas finanÃ§as:
 â€¢ "Como estÃ¡ meu saldo?"
@@ -626,7 +631,7 @@ Retorne APENAS o array JSON, sem explicaÃ§Ãµes adicionais.`;
                 }
             });
             
-            console.log(`✅ ${transactions.length} transações extraÃ­das e validadas`);
+            console.log(`? ${transactions.length} transações extraÃ­das e validadas`);
             return { transactions };
         }
         
@@ -645,7 +650,7 @@ function formatTransactionsResponse(transactions) {
     
     transactions.forEach((t, index) => {
         const isIncome = t.valor > 0;
-        const valor = Math.abs(t.valor).toFixed(2);
+        const valor = Math.abs(t.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
         const tipoEmoji = isIncome ? 'ðŸ“ˆ' : 'ðŸ“‰';
         const tipoTexto = isIncome ? 'RECEITA (aumenta saldo)' : 'DESPESA (diminui saldo)';
         const valorEmoji = isIncome ? 'ðŸ’°' : 'ðŸ’¸';
@@ -684,7 +689,7 @@ async function confirmTransactions(chatId) {
         let salvasComSucesso = 0; // ðŸ”§ CORREÃ‡ÃƒO: Declarar sempre
         
         if (userId) {
-            console.log(`✅ [CONFIRMAÇÃO] Usuário vinculado! Salvando ${pending.transactions.length} transações...`);
+            console.log(`? [CONFIRMAÇÃO] Usuário vinculado! Salvando ${pending.transactions.length} transações...`);
             
             for (const transaction of pending.transactions) {
                 console.log(`ðŸ’¾ [CONFIRMAÇÃO] Salvando: ${transaction.descricao} - R$ ${transaction.valor}`);
@@ -713,7 +718,7 @@ async function confirmTransactions(chatId) {
             const receitas = pending.transactions.filter(t => t.valor > 0);
             const despesas = pending.transactions.filter(t => t.valor < 0);
             
-            successMessage = `✅ *TRANSAÃ‡Ã•ES SALVAS COM SUCESSO!*\n\n`;
+            successMessage = `? *TRANSAÃ‡Ã•ES SALVAS COM SUCESSO!*\n\n`;
             successMessage += `ðŸ’¾ *Salvas:* ${salvasComSucesso}/${pending.transactions.length}\n`;
             
             if (receitas.length > 0) {
@@ -723,7 +728,7 @@ async function confirmTransactions(chatId) {
                 successMessage += `ðŸ“‰ *Despesas:* ${despesas.length} (diminuÃ­ram o saldo)\n`;
             }
             
-            successMessage += `\nðŸ’° *SEU SALDO ATUALIZADO:* R$ ${saldoAtual.toFixed(2)}\n\n`;
+            successMessage += `\nðŸ’° *SEU SALDO ATUALIZADO:* R$ ${saldoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n\n`;
             successMessage += `ðŸŽ‰ *Todas as transações foram processadas corretamente!*\n`;
             successMessage += `ðŸ“± *Abra seu app para ver o detalhamento completo!*`;
             
@@ -819,7 +824,7 @@ async function linkTelegramWithCode(chatId, linkCode) {
             // Mesmo com erro na persistÃªncia, mantÃ©m sessÃ£o em memÃ³ria
         }
         
-        console.log(`✅ Usuário ${data.user_name} vinculado com sucesso`);
+        console.log(`? Usuário ${data.user_name} vinculado com sucesso`);
         return { 
             success: true, 
             userName: data.user_name,
@@ -844,26 +849,26 @@ async function validateUserSession(chatId, userSession) {
             .single();
         
         if (error || !activeUser) {
-            console.log(`🚫 [SESSÃO] Sessão inválida para ${chatId}, removendo do cache`);
+            console.log(`?? [SESSÃO] Sessão inválida para ${chatId}, removendo do cache`);
             userSessions.delete(chatId);
             
-            await bot.sendMessage(chatId, `🔒 **Sessão expirada**
+            await bot.sendMessage(chatId, `?? **Sessão expirada**
 
 Sua conexão foi desativada. Para continuar:
 
 **Como reconectar:**
 1. Acesse: ${process.env.APP_URL}
 2. Faça login na sua conta
-3. Vá em Configurações → Bot Telegram  
+3. Vá em Configurações ? Bot Telegram  
 4. Gere um novo código de vinculação
 5. Envie o código aqui
 
-💡 Use /help para mais informações.`, { parse_mode: 'Markdown' });
+?? Use /help para mais informações.`, { parse_mode: 'Markdown' });
             return false;
         }
         return true;
     } catch (sessionError) {
-        console.error('❌ [SESSÃO] Erro ao verificar sessão:', sessionError);
+        console.error('? [SESSÃO] Erro ao verificar sessão:', sessionError);
         return true; // Continuar mesmo com erro para não bloquear completamente
     }
 }
@@ -900,7 +905,7 @@ async function processChatMessage(chatId, message, userSession) {
                     parse_mode: 'Markdown',
                     reply_markup: {
                         keyboard: [
-                            [{ text: '✅ CONFIRMAR' }, { text: 'âŒ CANCELAR' }]
+                            [{ text: '? CONFIRMAR' }, { text: 'âŒ CANCELAR' }]
                         ],
                         resize_keyboard: true,
                         one_time_keyboard: true
@@ -974,14 +979,14 @@ async function getUserContextForChat(userId) {
         // Calcular saldo REAL de TODAS as transações (CORREÇÃO CRÍTICA)
         let balance = 0;
         
-        // 🔥 BUSCAR TODAS AS TRANSAÇÕES PARA SALDO CORRETO
+        // ?? BUSCAR TODAS AS TRANSAÇÕES PARA SALDO CORRETO
         const { data: allTransactions, error: allTransactionsError } = await supabase
             .from('transactions')
             .select('amount, type')
             .eq('user_id', userId);
             
         if (allTransactionsError) {
-            console.error('⚠️ Erro ao buscar todas as transações:', allTransactionsError);
+            console.error('?? Erro ao buscar todas as transações:', allTransactionsError);
         }
         
         if (allTransactions) {
@@ -992,7 +997,7 @@ async function getUserContextForChat(userId) {
             }, 0);
         }
         
-        console.log(`💰 Saldo calculado para ${userId}: R$ ${balance.toFixed(2)}`);
+        console.log(`?? Saldo calculado para ${userId}: R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
         
         // Calcular estatÃ­sticas das bills
         const activeBills = bills?.filter(b => !b.is_paid) || [];
@@ -1034,11 +1039,11 @@ async function callGeminiForChat(message, userContext, userSession) {
             contextPrompt += `\n\nDados recentes do usuário:`;
             
             if (userContext.transactionCount > 0) {
-                contextPrompt += `\n- Saldo atual: R$ ${userContext.balance.toFixed(2)}`;
+                contextPrompt += `\n- Saldo atual: R$ ${userContext.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
                 contextPrompt += `\n- TransaÃ§Ãµes recentes (${userContext.transactionCount}):`;
                 
                 userContext.recentTransactions.forEach((t, i) => {
-                    contextPrompt += `\n  ${i+1}. ${t.title}: R$ ${t.amount.toFixed(2)} (${t.category})`;
+                    contextPrompt += `\n  ${i+1}. ${t.title}: R$ ${t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (${t.category})`;
                 });
             }
             
@@ -1047,14 +1052,14 @@ async function callGeminiForChat(message, userContext, userSession) {
                 contextPrompt += `\n\nContas a pagar/receber (${userContext.billsCount}):`;
                 
                 userContext.bills.forEach((b, i) => {
-                    const status = b.is_paid ? '✅ Paga' : 'â° Pendente';
+                    const status = b.is_paid ? '? Paga' : 'â° Pendente';
                     const installmentInfo = b.total_installments ? ` (${b.current_installment}/${b.total_installments})` : '';
                     const recurringInfo = b.is_recurring ? ' ðŸ”„ Recorrente' : '';
-                    contextPrompt += `\n  ${i+1}. ${b.title}: R$ ${b.amount.toFixed(2)} - Venc: ${new Date(b.due_date).toLocaleDateString()} - ${status}${installmentInfo}${recurringInfo}`;
+                    contextPrompt += `\n  ${i+1}. ${b.title}: R$ ${b.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - Venc: ${new Date(b.due_date).toLocaleDateString()} - ${status}${installmentInfo}${recurringInfo}`;
                 });
                 
                 if (userContext.activeBillsCount > 0) {
-                    contextPrompt += `\n- Total contas pendentes: R$ ${userContext.totalBillsValue.toFixed(2)} (${userContext.activeBillsCount} contas)`;
+                    contextPrompt += `\n- Total contas pendentes: R$ ${userContext.totalBillsValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (${userContext.activeBillsCount} contas)`;
                 }
             }
         } else {
@@ -1110,7 +1115,7 @@ async function getUserIdFromTelegram(chatId) {
         // Primeiro verificar sessÃ£o em memÃ³ria
         const userSession = userSessions.get(chatId);
         if (userSession && userSession.userId) {
-            console.log(`✅ [PERSISTÊNCIA] Encontrado na memÃ³ria: ${userSession.userName}`);
+            console.log(`? [PERSISTÊNCIA] Encontrado na memÃ³ria: ${userSession.userName}`);
             return userSession.userId;
         }
         
@@ -1130,7 +1135,7 @@ async function getUserIdFromTelegram(chatId) {
         }
         
         if (data && data.user_id) {
-            console.log(`✅ [PERSISTÊNCIA] Encontrado no banco: ${data.user_name}`);
+            console.log(`? [PERSISTÊNCIA] Encontrado no banco: ${data.user_name}`);
             
             // Restaurar sessÃ£o na memÃ³ria para futuras consultas
             userSessions.set(chatId, {
@@ -1179,7 +1184,7 @@ async function saveTransactionToSupabase(userId, transaction) {
             return false;
         }
         
-        console.log(`✅ [SAVE] TransaÃ§Ã£o salva com ID: ${data.id} - ${transaction.descricao} - R$ ${transaction.valor}`);
+        console.log(`? [SAVE] TransaÃ§Ã£o salva com ID: ${data.id} - ${transaction.descricao} - R$ ${transaction.valor}`);
         
         // Enviar notificação ao webhook
         const webhookUrl = process.env.WEBHOOK_URL;
@@ -1191,12 +1196,12 @@ async function saveTransactionToSupabase(userId, transaction) {
                     value: transaction.valor,
                     userId: transaction.userId
                 });
-                console.log('✅ [WEBHOOK] Notificação enviada:', webhookResponse.status);
+                console.log('? [WEBHOOK] Notificação enviada:', webhookResponse.status);
             } catch (webhookError) {
-                console.error('❌ [WEBHOOK] Erro ao enviar notificação:', webhookError);
+                console.error('? [WEBHOOK] Erro ao enviar notificação:', webhookError);
             }
         } else {
-            console.warn('⚠️ [WEBHOOK] URL não configurada. Notificação não enviada.');
+            console.warn('?? [WEBHOOK] URL não configurada. Notificação não enviada.');
         }
         
         // TODO: NOTIFICAR O APP SOBRE A NOVA TRANSAÃ‡ÃƒO (quando webhook estiver configurado)
@@ -1292,7 +1297,7 @@ Se não encontrar transações claras, retorne: []`;
         }
 
         const transactions = JSON.parse(jsonMatch[0]);
-        console.log(`✅ [EXTRAÇÃO] ${transactions.length} transações extraÃ­das`);
+        console.log(`? [EXTRAÇÃO] ${transactions.length} transações extraÃ­das`);
         
         return transactions;
 
@@ -1333,5 +1338,6 @@ process.on('unhandledRejection', (error) => {
 });
 
 console.log('ðŸš€ Bot configurado e aguardando mensagens...');
+
 
 

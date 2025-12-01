@@ -72,13 +72,18 @@ type DataUtils = {
   formatCurrency: (value: number) => string;
 };
 
+// Função auxiliar para formatar valores no padrão brasileiro (R$ 1.234,56)
+const formatBRL = (value: number): string => {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+};
+
 // Mock da função getDataUtils para evitar erros de compilação
 const getDataUtils = async (): Promise<DataUtils> => {
   // Implementação real seria feita aqui
   return {
     transactions: [],
     calculateBalance: (transactions) => 0,
-    formatCurrency: (value) => `R$ ${value.toFixed(2)}`
+    formatCurrency: (value) => formatBRL(value)
   };
 };
 
@@ -560,7 +565,7 @@ const isAddBillIntent = (msg: string) => {
         // Adicionar resposta da IA confirmando detecção
         const assistantMessage: ChatMessage = {
           id: uuidv4(),
-          text: `🎤 Entendi! Detectei uma ${result.transaction_type === 'income' ? 'receita' : 'despesa'} de R$ ${result.amount.toFixed(2)} - ${result.description}. Confirme os dados abaixo:`,
+          text: `🎤 Entendi! Detectei uma ${result.transaction_type === 'income' ? 'receita' : 'despesa'} de ${formatBRL(result.amount)} - ${result.description}. Confirme os dados abaixo:`,
           sender: 'assistant',
           timestamp: new Date(),
           avatarUrl: IA_AVATAR
@@ -1057,7 +1062,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
             // Calcular total das transações QUE SERÃO SALVAS (editáveis)
             const totalAmount = actualTransactionsToSave.reduce((sum, tx) => sum + tx.amount, 0);
             resultMessage += `✅ ${actualSuccessCount} transação${actualSuccessCount > 1 ? 'ões' : ''} processada${actualSuccessCount > 1 ? 's' : ''} com sucesso!\n`;
-            resultMessage += `💰 Total processado: R$ ${totalAmount.toFixed(2)}`;
+            resultMessage += `💰 Total processado: ${formatBRL(totalAmount)}`;
             
             // Listar as transações processadas
             resultMessage += '\n\n📋 Transações processadas:\n';
@@ -1065,7 +1070,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
               const typeIcon = tx.type === 'income' ? '💰' : '💸';
               // Capitalizar primeira letra da descrição
               const capitalizedDescription = tx.description.charAt(0).toUpperCase() + tx.description.slice(1);
-              resultMessage += `${index + 1}. ${typeIcon} ${capitalizedDescription} - R$ ${tx.amount.toFixed(2)} (${tx.category})\n`;
+              resultMessage += `${index + 1}. ${typeIcon} ${capitalizedDescription} - ${formatBRL(tx.amount)} (${tx.category})\n`;
             });
           } else {
             resultMessage += '❌ Nenhuma transação válida foi processada.';
@@ -1443,7 +1448,7 @@ const handleSendMessage = async (message: string, skipAddingUserMessage = false)
         if (allTransactions && allTransactions.length > 0) {
           // Calcular saldo usando TODAS as transações
           balance = allTransactions.reduce((acc, tx) => acc + (tx.type === 'income' ? tx.amount : -tx.amount), 0);
-          console.log(`💰 [SALDO] Calculado com ${allTransactions.length} transações: R$ ${balance.toFixed(2)}`);
+          console.log(`💰 [SALDO] Calculado com ${allTransactions.length} transações: ${formatBRL(balance)}`);
         }        // Montar prompt rico
         userPrompt = `Você é um consultor financeiro realista e responsável.
 
@@ -1482,10 +1487,10 @@ Resposta: [{"description":"Salário","amount":100.0,"type":"income","category":"
 
 EXEMPLOS DE CONSULTA (responder texto):
 Usuário: "qual meu saldo?"
-Resposta: Seu saldo atual é de R$ X,XX...
+Resposta: Seu saldo atual é de R$ X.XXX,XX (use formato brasileiro com pontos para milhares e vírgula para centavos)
 
 CONTEXTO FINANCEIRO:
-Saldo atual: R$ ${balance.toFixed(2)} (baseado em ${allTransactions?.length || 0} transações totais)
+Saldo atual: ${formatBRL(balance)} (baseado em ${allTransactions?.length || 0} transações totais)
 Transações recentes (últimas 10):
 ` +
           (recentTransactions && recentTransactions.length > 0
@@ -2035,21 +2040,21 @@ LEMBRE-SE:
           const typeHint = simpleTransactionMatch[2]?.toLowerCase();
           
           let transactionType: 'income' | 'expense' = 'expense'; // Default para despesa
-          let description = `Transação de R$ ${amount.toFixed(2)}`;
+          let description = `Transação de ${formatBRL(amount)}`;
           
           // Determinar tipo baseado na dica ou assumir receita se não especificado (para "adicione X reais")
           if (typeHint) {
             if (typeHint.includes('entrada') || typeHint.includes('receita')) {
               transactionType = 'income';
-              description = `Receita de R$ ${amount.toFixed(2)}`;
+              description = `Receita de ${formatBRL(amount)}`;
             } else if (typeHint.includes('saída') || typeHint.includes('despesa')) {
               transactionType = 'expense';
-              description = `Despesa de R$ ${amount.toFixed(2)}`;
+              description = `Despesa de ${formatBRL(amount)}`;
             }
           } else {
             // Se não especificou tipo, "adicione X reais" provavelmente é receita
             transactionType = 'income';
-            description = `Entrada de R$ ${amount.toFixed(2)}`;
+            description = `Entrada de ${formatBRL(amount)}`;
           }
           
           console.log('🤖 [FALLBACK] Criando transação simples:', { amount, type: transactionType, description });
@@ -2171,14 +2176,14 @@ LEMBRE-SE:
             let resultMessage = `🤖 Detectei ${detectedTransactionList.length} transações na sua mensagem!\n\n`;
             
             const totalAmount = detectedTransactionList.reduce((sum, tx) => sum + tx.amount, 0);
-            resultMessage += `💰 Total: R$ ${totalAmount.toFixed(2)}\n\n`;
+            resultMessage += `💰 Total: ${formatBRL(totalAmount)}\n\n`;
             resultMessage += `Transações encontradas:\n\n`;
 
             // Listar cada transação
             for (let i = 0; i < detectedTransactionList.length; i++) {
               const transaction = detectedTransactionList[i];
               resultMessage += `${i + 1}. ${transaction.description}\n`;
-              resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
+              resultMessage += `   💵 ${formatBRL(transaction.amount)} (${transaction.type === 'income' ? 'Receita' : 'Despesa'})\n`;
               resultMessage += `   📁 Categoria: ${transaction.category}\n`;
               resultMessage += `   📅 Data: Hoje\n\n`;
             }
@@ -2212,7 +2217,7 @@ LEMBRE-SE:
             if (detectedTransaction) {
               // Se detectamos uma transação, criar confirmação
               const transactionTypeWord = detectedTransaction.tipo === 'income' ? 'receita 🤑' : 'despesa 💸';
-              const confirmationText = `📝 Detectei que você mencionou uma ${transactionTypeWord} de R$${detectedTransaction.dados.amount.toFixed(2)}${detectedTransaction.dados.description ? ` - ${detectedTransaction.dados.description}` : ''}.\n\nAbri o mesmo modal da dashboard para você revisar os detalhes e confirmar.`;
+              const confirmationText = `📝 Detectei que você mencionou uma ${transactionTypeWord} de ${formatBRL(detectedTransaction.dados.amount)}${detectedTransaction.dados.description ? ` - ${detectedTransaction.dados.description}` : ''}.\n\nAbri o mesmo modal da dashboard para você revisar os detalhes e confirmar.`;
               
               const botSystemMessage: ChatMessage = { id: uuidv4(), text: confirmationText, sender: 'system', timestamp: new Date(), avatarUrl: IA_AVATAR };
               setMessages((prevMessages: ChatMessage[]) => [...prevMessages, botSystemMessage]);
@@ -2887,7 +2892,7 @@ LEMBRE-SE:
         } else if (originalMessage.includes('achei') || originalMessage.includes('encontrei')) {
           description = 'Dinheiro encontrado';
         } else {
-          description = `Receita de R$${amount.toFixed(2)}`;
+          description = `Receita de ${formatBRL(amount)}`;
         }
         break;
       }
@@ -2915,7 +2920,7 @@ LEMBRE-SE:
           } else {
             // Tentar extrair contexto da frase
             const contextMatch = originalMessage.match(/(?:no|na|em|do|da|para)\s+([^,.!?]+)/i);
-            description = contextMatch ? contextMatch[1].trim() : `Despesa de R$${amount.toFixed(2)}`;
+            description = contextMatch ? contextMatch[1].trim() : `Despesa de ${formatBRL(amount)}`;
           }
           break;
         }
@@ -3363,7 +3368,7 @@ const handleImageUpload = async (imageBase64: string) => {
     }    // Criar mensagem com resultados e instruções claras
     let resultMessage = `✅ **Documento processado com sucesso!**\n\n`;
     resultMessage += `📋 **Tipo:** ${ocrData.documentType.replace('_', ' ')}\n`;
-    resultMessage += `💰 **Total:** R$ ${ocrData.summary.totalAmount.toFixed(2)}\n`;
+    resultMessage += `💰 **Total:** ${formatBRL(ocrData.summary.totalAmount)}\n`;
     
     if (ocrData.summary.establishment) {
       resultMessage += `🏪 **Local:** ${ocrData.summary.establishment}\n`;
@@ -3379,7 +3384,7 @@ const handleImageUpload = async (imageBase64: string) => {
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
       resultMessage += `${i + 1}. **${transaction.description}**\n`;
-      resultMessage += `   💵 R$ ${transaction.amount.toFixed(2)} (${transaction.type === 'income' ? '✅ Receita' : '❌ Despesa'})\n`;
+      resultMessage += `   💵 ${formatBRL(transaction.amount)} (${transaction.type === 'income' ? '✅ Receita' : '❌ Despesa'})\n`;
       resultMessage += `   📁 ${transaction.category} • 📅 ${transaction.date || 'Hoje'}\n\n`;
     }
     

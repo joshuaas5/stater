@@ -399,11 +399,14 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                 R$
               </span>
               <input
-                type="number"
-                step="0.01"
-                min="0"
+                type="text"
+                inputMode="decimal"
                 value={formData.amount}
-                onChange={(e) => handleInputChange('amount', e.target.value)}
+                onChange={(e) => {
+                  // Permite apenas números e vírgula/ponto
+                  const value = e.target.value.replace(/[^0-9.,]/g, '');
+                  handleInputChange('amount', value);
+                }}
                 placeholder="0,00"
                 className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-xl transition-all duration-200 outline-none font-bold text-lg text-white placeholder-white/50 ${
                   errors.amount 
@@ -411,7 +414,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                     : 'border-white/20 focus:border-white/40 focus:shadow-lg focus:shadow-white/10'
                 }`}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.1)'
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  MozAppearance: 'textfield',
+                  WebkitAppearance: 'none'
                 }}
                 disabled={isSubmitting}
               />

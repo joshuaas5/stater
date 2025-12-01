@@ -5,7 +5,7 @@ import DesktopSidebar from '@/components/navigation/DesktopSidebar';
 import DesktopHeader from '@/components/navigation/DesktopHeader';
 import GlobalImportModal from '@/components/import/GlobalImportModal';
 import CommandPalette from '@/components/search/CommandPalette';
-import { Smartphone } from 'lucide-react';
+import { Monitor } from 'lucide-react';
 
 const PersistentLayout: React.FC = () => {
   const location = useLocation();
@@ -118,20 +118,12 @@ const PersistentLayout: React.FC = () => {
         background: '#31518b'
       }}
     >
-      {/* Desktop Background Override - aplica gradiente escuro (apenas modo avançado) */}
+      {/* Desktop Background Override - aplica azul escuro igual à sidebar (apenas modo avançado) */}
       {showDesktopUI && (
         <>
-          <style>{`
-            @media (min-width: 1024px) {
-              .desktop-dark-bg {
-                background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
-              }
-            }
-          `}</style>
-          
-          {/* Overlay para desktop com gradiente */}
+          {/* Overlay para desktop com azul escuro */}
           <div className="hidden lg:block fixed inset-0 -z-10" style={{
-            background: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)'
+            background: '#1e3a5f'
           }} />
         </>
       )}
@@ -195,16 +187,16 @@ const PersistentLayout: React.FC = () => {
       {isDesktop && forceSimpleMode && (
         <button
           onClick={toggleSimpleMode}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl transition-all hover:scale-105"
+          className="fixed bottom-24 right-6 z-[9999] flex items-center gap-2 px-4 py-3 rounded-xl transition-all hover:scale-105 shadow-2xl"
           style={{
             background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-            boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4)',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
+            boxShadow: '0 4px 25px rgba(59, 130, 246, 0.5)',
+            border: '2px solid rgba(255, 255, 255, 0.3)'
           }}
           title="Voltar ao modo completo"
         >
-          <Smartphone size={18} className="text-white" />
-          <span className="text-sm font-medium text-white">Modo Completo</span>
+          <Monitor size={20} className="text-white" />
+          <span className="text-sm font-semibold text-white">Modo Completo</span>
         </button>
       )}
       

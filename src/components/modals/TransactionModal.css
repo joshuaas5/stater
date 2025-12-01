@@ -6,6 +6,22 @@
   pointer-events: auto !important;
 }
 
+/* Remover spinners/scroll do input de número */
+.transaction-modal input[type="number"]::-webkit-outer-spin-button,
+.transaction-modal input[type="number"]::-webkit-inner-spin-button,
+.transaction-modal input[inputmode="decimal"]::-webkit-outer-spin-button,
+.transaction-modal input[inputmode="decimal"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+  display: none;
+}
+
+.transaction-modal input[type="number"],
+.transaction-modal input[inputmode="decimal"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 .transaction-modal-backdrop {
   animation: fadeIn 0.3s ease-out;
   pointer-events: auto !important;

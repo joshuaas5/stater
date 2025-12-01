@@ -252,346 +252,264 @@ Obrigado!`);
   };
   
   return (
-    <div className="min-h-screen flex flex-col items-center pb-20 lg:pb-8 lg:items-start" style={{ color: 'white' }}>
+    <div className="min-h-screen flex flex-col pb-20 lg:pb-8" style={{ color: 'white' }}>
       {/* Desktop Title */}
       <div className="hidden lg:block w-full px-6 pt-6 pb-4">
         <h1 className="text-3xl font-bold text-white">Configurações</h1>
         <p className="text-white/60 mt-1">Personalize sua experiência no Stater</p>
       </div>
       
-      <div className="w-full max-w-md lg:max-w-4xl p-4 lg:px-6 space-y-6 lg:grid lg:grid-cols-2 lg:gap-6">
-      <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
-        <h2 className="text-base font-semibold text-white mb-3 flex items-center">
-          <UserCircle2 size={18} className="mr-2 text-white" /> {t('aboutYourAccount')}
-        </h2>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-white/80">Nome de usuário</span>
-            <span className="text-white font-medium">{getCurrentUser()?.username}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-white/80">Email</span>
-            <span className="text-white font-medium">{getCurrentUser()?.email}</span>
-          </div>
-        </div>
-      </div>
-
-        <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
-          <h2 className="text-base font-semibold text-white mb-3 flex items-center">
-            <Bell size={18} className="mr-2 text-white" /> {t('notifications')}
-          </h2>
+      {/* Mobile: Layout tradicional | Desktop: Grid 2 colunas */}
+      <div className="w-full p-4 lg:px-6">
+        <div className="max-w-md mx-auto lg:max-w-none lg:mx-0 lg:grid lg:grid-cols-2 lg:gap-6 space-y-4 lg:space-y-0">
           
+          {/* Coluna 1 */}
           <div className="space-y-4">
-            {/* Switch para permitir notificações push */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Smartphone size={16} className="text-white/70" />
-                <Label htmlFor="enable-push" className="cursor-pointer text-white">
-                  Notificações Push
-                </Label>
+            {/* Sobre sua conta */}
+            <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5">
+              <h2 className="text-base font-semibold text-white mb-3 flex items-center">
+                <UserCircle2 size={18} className="mr-2 text-white" /> {t('aboutYourAccount')}
+              </h2>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-white/80">Nome de usuário</span>
+                  <span className="text-white font-medium">{getCurrentUser()?.username}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/80">Email</span>
+                  <span className="text-white font-medium text-sm truncate max-w-[200px]">{getCurrentUser()?.email}</span>
+                </div>
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-white/30 text-white hover:bg-white/20"
-                onClick={async () => {
-                  try {
-                    const supported = isPushSupported();
-                    if (!supported) {
-                      toast({
-                        title: 'Não suportado',
-                        description: 'Seu dispositivo não suporta notificações push',
-                        variant: 'destructive'
-                      });
-                      return;
-                    }
-                    
-                    const status = await getNotificationPermissionStatus();
-                    if (status === 'granted') {
-                      toast({
-                        title: '✅ Já ativado!',
-                        description: 'Notificações push já estão ativas'
-                      });
-                      return;
-                    }
-                    
-                    const granted = await requestNotificationPermission();
-                    if (granted) {
-                      await rescheduleAllBillNotifications();
-                      toast({
-                        title: '🔔 Ativado!',
-                        description: 'Você receberá lembretes de suas contas'
-                      });
-                    } else {
-                      toast({
-                        title: 'Permissão negada',
-                        description: 'Ative nas configurações do navegador/app',
-                        variant: 'destructive'
-                      });
-                    }
-                  } catch (error) {
-                    console.error('Erro:', error);
-                    toast({
-                      title: 'Erro',
-                      description: 'Não foi possível ativar notificações',
-                      variant: 'destructive'
-                    });
-                  }
-                }}
-              >
-                <BellRing size={14} className="mr-1" /> Ativar
-              </Button>
             </div>
-            
-            {/* Switch simples para permitir notificações in-app */}
-            <div className="flex items-center justify-between">
-              <Label htmlFor="enable-notifications" className="cursor-pointer text-white">
-                Notificações no app
-              </Label>
-              <Switch 
-                id="enable-notifications" 
-                checked={preferences.enableNotifications}
-                onCheckedChange={() => {
-                  setPreferences(prev => ({
-                    ...prev,
-                    enableNotifications: !prev.enableNotifications
-                  }));
-                }}
-              />
+
+            {/* Moeda */}
+            <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5">
+              <h2 className="text-base font-semibold text-white mb-3 flex items-center">
+                <DollarSign size={18} className="mr-2" /> {t('currency')}
+              </h2>
+              <div className="mb-3">
+                <label className="block text-white font-medium mb-1 text-sm">Selecione sua moeda</label>
+                <select
+                  className="w-full rounded-lg border border-white/20 py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-white/40"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                  value={preferences.currency}
+                  onChange={e => setPreferences(prev => ({ ...prev, currency: e.target.value }))}
+                >
+                  {CURRENCIES.map(cur => (
+                    <option key={cur.code} value={cur.code} style={{ background: '#1e3a5f', color: 'white' }}>
+                      {cur.symbol} - {cur.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="show-cents" className="cursor-pointer text-white">{t('showCents')}</Label>
+                <Switch 
+                  id="show-cents" 
+                  checked={preferences.showCents}
+                  onCheckedChange={() => handleSwitchChange('showCents')}
+                />
+              </div>
             </div>
-            
-            {/* Botão para limpar todas as notificações */}
-            <div className="pt-2">
-              <Button
-                variant="outline"
-                className="w-full border border-red-400 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center"
-                onClick={async () => {
-                  try {
-                    toast({
-                      title: 'Limpando notificações...',
-                      description: 'Aguarde enquanto excluímos todas as suas notificações.'
-                    });
-                    
-                    const success = await clearAllNotifications();
-                    
-                    toast({
-                      title: success ? 'Notificações excluídas!' : 'Erro ao excluir notificações',
-                      description: success ? 'Todas as suas notificações foram excluídas com sucesso.' : 'Ocorreu um erro ao tentar excluir suas notificações.',
-                      variant: success ? 'default' : 'destructive'
-                    });
-                  } catch (error) {
-                    console.error('Erro ao limpar notificações:', error);
-                    toast({
-                      title: 'Erro ao excluir notificações',
-                      description: 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
-                      variant: 'destructive'
-                    });
-                  }
-                }}
-              >
-                <Trash2 size={16} className="mr-2" /> Limpar todas as notificações
-              </Button>
+
+            {/* Assinatura PRO */}
+            <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5">
+              <h2 className="text-base font-semibold text-white mb-3 flex items-center">
+                <Crown size={18} className="mr-2 text-yellow-400" /> Assinatura PRO
+              </h2>
+              
+              {isProUser ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-green-500/20 border border-green-500/30">
+                    <span className="text-green-300 font-medium">Status</span>
+                    <span className="text-green-400 font-semibold flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                      Ativo
+                    </span>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full border-white/20 bg-white/5 text-white/80 hover:bg-white/10 text-sm"
+                    onClick={handleContactSupport}
+                  >
+                    <Mail size={14} className="mr-2" />
+                    Suporte / Reembolso
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full border-red-400/50 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-sm"
+                    onClick={handleCancelSubscription}
+                    disabled={cancellingSubscription}
+                  >
+                    {cancellingSubscription ? (
+                      <><Loader2 size={14} className="mr-2 animate-spin" /> Cancelando...</>
+                    ) : (
+                      <><XCircle size={14} className="mr-2" /> Cancelar assinatura</>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-white/70 text-sm">
+                    Você está no plano gratuito. Assine o PRO para desbloquear todas as funcionalidades!
+                  </p>
+                  <Button
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold"
+                    onClick={() => navigate('/dashboard?showPremium=true')}
+                  >
+                    <Crown size={16} className="mr-2" />
+                    Assinar PRO - R$ 14,90/mês
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
-        </div>
-          
-        <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
-          <h2 className="text-base font-semibold text-white mb-3 flex items-center">
-            <DollarSign size={18} className="mr-2" /> {t('currency')}
-          </h2>
-          <div className="mb-2">
-            <label className="block text-white font-medium mb-1">Selecione sua moeda</label>
-            <select
-              className="w-full rounded-lg border border-white/20 py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-white/40"
+
+          {/* Coluna 2 */}
+          <div className="space-y-4">
+            {/* Notificações */}
+            <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5">
+              <h2 className="text-base font-semibold text-white mb-3 flex items-center">
+                <Bell size={18} className="mr-2 text-white" /> {t('notifications')}
+              </h2>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Smartphone size={16} className="text-white/70" />
+                    <Label htmlFor="enable-push" className="cursor-pointer text-white text-sm">
+                      Notificações Push
+                    </Label>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-white/30 text-white hover:bg-white/20 text-xs px-3"
+                    onClick={async () => {
+                      try {
+                        const supported = isPushSupported();
+                        if (!supported) {
+                          toast({ title: 'Não suportado', description: 'Seu dispositivo não suporta notificações push', variant: 'destructive' });
+                          return;
+                        }
+                        const status = await getNotificationPermissionStatus();
+                        if (status === 'granted') {
+                          toast({ title: '✅ Já ativado!', description: 'Notificações push já estão ativas' });
+                          return;
+                        }
+                        const granted = await requestNotificationPermission();
+                        if (granted) {
+                          await rescheduleAllBillNotifications();
+                          toast({ title: '🔔 Ativado!', description: 'Você receberá lembretes de suas contas' });
+                        } else {
+                          toast({ title: 'Permissão negada', description: 'Ative nas configurações do navegador/app', variant: 'destructive' });
+                        }
+                      } catch (error) {
+                        toast({ title: 'Erro', description: 'Não foi possível ativar notificações', variant: 'destructive' });
+                      }
+                    }}
+                  >
+                    <BellRing size={12} className="mr-1" /> Ativar
+                  </Button>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="enable-notifications" className="cursor-pointer text-white text-sm">
+                    Notificações no app
+                  </Label>
+                  <Switch 
+                    id="enable-notifications" 
+                    checked={preferences.enableNotifications}
+                    onCheckedChange={() => setPreferences(prev => ({ ...prev, enableNotifications: !prev.enableNotifications }))}
+                  />
+                </div>
+                
+                <Button
+                  variant="outline"
+                  className="w-full border border-red-400/50 text-red-400 hover:bg-red-500/10 text-sm"
+                  onClick={async () => {
+                    try {
+                      toast({ title: 'Limpando notificações...', description: 'Aguarde...' });
+                      const success = await clearAllNotifications();
+                      toast({
+                        title: success ? 'Notificações excluídas!' : 'Erro ao excluir',
+                        description: success ? 'Todas as notificações foram excluídas.' : 'Tente novamente.',
+                        variant: success ? 'default' : 'destructive'
+                      });
+                    } catch (error) {
+                      toast({ title: 'Erro', description: 'Tente novamente mais tarde.', variant: 'destructive' });
+                    }
+                  }}
+                >
+                  <Trash2 size={14} className="mr-2" /> Limpar notificações
+                </Button>
+              </div>
+            </div>
+
+            {/* Idioma */}
+            <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5">
+              <h2 className="text-base font-semibold text-white mb-3 flex items-center">
+                <Languages size={18} className="mr-2" /> {t('language')}
+              </h2>
+              <div className="flex space-x-3">
+                <Button variant="default" className="flex-1 cursor-default bg-white/20 text-white border-white/30 hover:bg-white/30 text-sm">Português</Button>
+                <Button variant="outline" disabled className="flex-1 opacity-50 bg-white/10 text-white/50 border-white/20 text-sm">English</Button>
+              </div>
+            </div>
+
+            {/* Salvar Preferências */}
+            <Button 
+              onClick={handleSavePreferences}
+              className="w-full text-white hover:opacity-90"
               style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)'
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)'
               }}
-              value={preferences.currency}
-              onChange={e => setPreferences(prev => ({ ...prev, currency: e.target.value }))}
             >
-              {CURRENCIES.map(cur => (
-                <option key={cur.code} value={cur.code} style={{ background: '#31518b', color: 'white' }}>
-                  {cur.symbol} - {cur.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="show-cents" className="cursor-pointer text-white">{t('showCents')}</Label>
-            <Switch 
-              id="show-cents" 
-              checked={preferences.showCents}
-              onCheckedChange={() => handleSwitchChange('showCents')}
-            />
-          </div>
-        </div>
-          
-        <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
-          <h2 className="text-base font-semibold text-white mb-3 flex items-center">
-            <Languages size={18} className="mr-2" /> {t('language')}
-          </h2>
-          <div className="flex space-x-4">
-            <Button variant="default" className="flex-1 cursor-default bg-white/20 text-white border-white/30 hover:bg-white/30">Português</Button>
-            <Button variant="outline" disabled className="flex-1 opacity-50 bg-white/10 text-white/50 border-white/20">English (em breve)</Button>
+              <Save size={16} className="mr-2" /> {t('savePreferences')}
+            </Button>
           </div>
         </div>
         
-        {/* Seção de Assinatura PRO */}
-        <div className="rounded-xl shadow-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 mb-4">
-          <h2 className="text-base font-semibold text-white mb-3 flex items-center">
-            <Crown size={18} className="mr-2 text-yellow-400" /> Assinatura PRO
-          </h2>
-          
-          {isProUser ? (
-            <div className="space-y-4">
-              {/* Status da assinatura */}
-              <div className="flex items-center justify-between p-3 rounded-lg bg-green-500/20 border border-green-500/30">
-                <span className="text-green-300 font-medium">Status</span>
-                <span className="text-green-400 font-semibold flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                  Ativo
-                </span>
-              </div>
-              
-              {/* Botão de Suporte/Reembolso */}
-              <Button
-                variant="outline"
-                className="w-full border-white/20 bg-white/5 text-white/80 hover:bg-white/10"
-                onClick={handleContactSupport}
-              >
-                <Mail size={16} className="mr-2" />
-                Suporte / Solicitar reembolso
-              </Button>
-              
-              {/* Botão de Cancelar */}
-              <Button
-                variant="outline"
-                className="w-full border-red-400/50 bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                onClick={handleCancelSubscription}
-                disabled={cancellingSubscription}
-              >
-                {cancellingSubscription ? (
-                  <>
-                    <Loader2 size={16} className="mr-2 animate-spin" />
-                    Cancelando...
-                  </>
-                ) : (
-                  <>
-                    <XCircle size={16} className="mr-2" />
-                    Cancelar assinatura
-                  </>
-                )}
-              </Button>
-              
-              <p className="text-xs text-white/40 text-center">
-                Reembolso disponível em até 7 dias após a compra.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-white/70 text-sm">
-                Você está no plano gratuito. Assine o PRO para desbloquear todas as funcionalidades!
-              </p>
-              <Button
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold"
-                onClick={() => navigate('/dashboard?showPremium=true')}
-              >
-                <Crown size={16} className="mr-2" />
-                Assinar PRO - R$ 14,90/mês
-              </Button>
-            </div>
-          )}
-        </div>
-          
-        <div className="pt-2 pb-2">
-          <Button 
-            onClick={handleSavePreferences}
-            className="w-full text-white hover:opacity-90"
-            style={{
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.3)'
+        {/* Botão Sair - fora do grid */}
+        <div className="max-w-md mx-auto lg:max-w-none lg:mx-0 mt-6">
+          <Button
+            variant="outline"
+            className="w-full lg:w-auto border border-red-400 bg-white/5 backdrop-blur-[8px] text-red-400 hover:bg-red-400/10 font-semibold"
+            onClick={async () => {
+              try {
+                localStorage.setItem('manual_logout', 'true');
+                window.dispatchEvent(new CustomEvent('force-stop-terms-check'));
+                window.dispatchEvent(new CustomEvent('force-stop-onboarding-check'));
+                await new Promise(resolve => setTimeout(resolve, 500));
+                try {
+                  const { stopAutoSync } = await import('@/utils/localStorage');
+                  stopAutoSync();
+                } catch (error) {}
+                localStorage.clear();
+                sessionStorage.clear();
+                localStorage.setItem('manual_logout', 'true');
+                try { await signOut(); } catch (error) {}
+                await new Promise(resolve => setTimeout(resolve, 200));
+                window.location.replace('/login');
+              } catch (error) {
+                localStorage.clear();
+                sessionStorage.clear();
+                localStorage.setItem('manual_logout', 'true');
+                setTimeout(() => window.location.replace('/login'), 500);
+              }
             }}
           >
-            <Save size={16} className="mr-2" /> {t('savePreferences')}
+            Sair da conta
           </Button>
         </div>
       </div>
-      
-      {/* SEÇÃO TELEGRAM REMOVIDA - BOTÃO NÃO FUNCIONANTE */}
-      
-      <div className="pt-2 pb-4">
-        <Button
-          variant="outline"
-          className="w-full border border-red-400 bg-white/5 backdrop-blur-[8px] text-red-400 hover:bg-red-400/10 hover:backdrop-blur-[12px] font-semibold transition-all duration-300"
-          onClick={async () => {
-            try {
-              console.log('🚪 [LOGOUT] Iniciando processo de logout...');
-              
-              // PASSO 1: Marcar logout manual ANTES de qualquer operação
-              localStorage.setItem('manual_logout', 'true');
-              console.log('🚪 [LOGOUT] Marcado como logout manual');
-              
-              // PASSO 2: Parar TODAS as verificações em execução
-              window.dispatchEvent(new CustomEvent('force-stop-terms-check'));
-              window.dispatchEvent(new CustomEvent('force-stop-onboarding-check'));
-              console.log('🚪 [LOGOUT] Eventos de parada enviados');
-              
-              // PASSO 3: Aguardar mais tempo para garantir que os hooks processem
-              await new Promise(resolve => setTimeout(resolve, 500));
-              
-              // PASSO 4: Parar sincronização automática se estiver rodando
-              try {
-                const { stopAutoSync } = await import('@/utils/localStorage');
-                stopAutoSync();
-                console.log('🚪 [LOGOUT] Sincronização automática parada');
-              } catch (error) {
-                console.log('🚪 [LOGOUT] Erro ao parar sync (ignorado):', error);
-              }
-              
-              // PASSO 5: Limpar TUDO imediatamente
-              localStorage.clear();
-              sessionStorage.clear();
-              
-              // PASSO 6: Remarcar logout após limpeza (para AuthContext)
-              localStorage.setItem('manual_logout', 'true');
-              console.log('🚪 [LOGOUT] Cache local limpo e logout remarcado');
-              
-              // PASSO 7: Fazer logout do Supabase (pode falhar, mas não importa)
-              try {
-                await signOut();
-                console.log('🚪 [LOGOUT] Logout do Supabase executado');
-              } catch (error) {
-                console.log('🚪 [LOGOUT] Erro no logout do Supabase (ignorado):', error);
-              }
-              
-              // PASSO 8: Aguardar um pouco antes de redirecionar
-              await new Promise(resolve => setTimeout(resolve, 200));
-              
-              // PASSO 9: Redirecionar IMEDIATAMENTE usando replace
-              console.log('🚪 [LOGOUT] Redirecionando para login...');
-              window.location.replace('/login');
-              
-            } catch (error) {
-              console.error('🚪 [LOGOUT] Erro geral:', error);
-              
-              // FALLBACK: Mesmo com erro, limpar e redirecionar
-              localStorage.clear();
-              sessionStorage.clear();
-              localStorage.setItem('manual_logout', 'true');
-              
-              // Aguardar e redirecionar
-              setTimeout(() => {
-                window.location.replace('/login');
-              }, 500);
-            }
-          }}
-        >
-          Sair da conta
-        </Button>
-      </div>
-      
     </div>
   );
 };

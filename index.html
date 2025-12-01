@@ -26,7 +26,7 @@
     <meta property="og:url" content="https://stater.app/" />
     <meta property="og:title" content="Stater - Controle Financeiro Inteligente com IA" />
     <meta property="og:description" content="Gerencie suas finanças com ajuda de IA. Comandos de voz, OCR de documentos e análises inteligentes. Gratuito para começar." />
-    <meta property="og:image" content="https://stater.app/og-image.png" />
+    <meta property="og:image" content="https://stater.app/stater-logo-512.png" />
     <meta property="og:site_name" content="Stater" />
     <meta property="og:locale" content="pt_BR" />
     
@@ -35,7 +35,7 @@
     <meta name="twitter:url" content="https://stater.app/" />
     <meta name="twitter:title" content="Stater - Controle Financeiro Inteligente com IA" />
     <meta name="twitter:description" content="Aplicativo gratuito com IA para gerenciar finanças pessoais. Comandos de voz e OCR de documentos." />
-    <meta name="twitter:image" content="https://stater.app/og-image.png" />
+    <meta name="twitter:image" content="https://stater.app/stater-logo-512.png" />
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://stater.app/" />
@@ -68,10 +68,7 @@
       gtag('set', 'url_passthrough', true);
     </script>
     
-    <!-- ✅ GOOGLE ADSENSE - Verificação e Monetização -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4642150915962893"
-         crossorigin="anonymous"></script>
-    <!-- FIM Google AdSense -->
+    <!-- AdSense removido - não usamos mais anúncios -->
     
     <!-- PWA Icons -->
     <link rel="manifest" href="/manifest.json">
@@ -81,31 +78,16 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/stater-logo-192.png">
     <link rel="apple-touch-icon" sizes="167x167" href="/stater-logo-192.png">
 
-    <!-- Open Graph Meta Tags para preview correto no Telegram -->
-    <meta property="og:title" content="Stater - Assistente Financeiro IA" />
-    <meta property="og:description" content="Controle suas finanças com inteligência artificial. Análise de extratos, chat inteligente e muito mais." />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://stater.app" />
-    <meta property="og:image" content="https://stater.app/og-image.svg" />
+    <!-- OG Image dimensions -->
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:site_name" content="Stater" />
-
-    <!-- Twitter Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Stater - Assistente Financeiro IA" />
-    <meta name="twitter:description" content="Controle suas finanças com inteligência artificial. Análise de extratos, chat inteligente e muito mais." />
-    <meta name="twitter:image" content="https://stater.app/og-image.svg" />
-
-    <!-- Telegram Meta Tags -->
-    <meta property="telegram:title" content="Stater - Assistente Financeiro IA" />
-    <meta property="telegram:description" content="Controle suas finanças com inteligência artificial. Análise de extratos, chat inteligente e muito mais." />
-    <meta property="telegram:image" content="https://stater.app/og-image.svg" />
     
-    <!-- Fonts -->
+    <!-- Fonts - otimizado com display=swap e preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;700;900&family=Fredoka+One&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
     
     <!-- Mobile-first CSS -->
     <link rel="stylesheet" href="/src/styles/mobile-first.css">
@@ -206,8 +188,6 @@
     <!-- Script de otimizações mobile - crítico para performance -->
     <script src="/mobile-optimizations.js"></script>
     
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

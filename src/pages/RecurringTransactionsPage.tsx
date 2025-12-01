@@ -41,6 +41,31 @@ const RecurringTransactionsPage: React.FC = () => {
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [cooldownInfo, setCooldownInfo] = useState<any>(null);
 
+  // 🎬 Handler para assistir anúncio
+  const handleWatchAd = async () => {
+    setIsWatchingAd(true);
+    try {
+      // TODO: Implementar lógica de anúncio
+      console.log('🎬 Iniciando exibição de anúncio...');
+      // Simular tempo de anúncio
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      toast({
+        title: 'Anúncio assistido!',
+        description: 'Você pode criar sua transação recorrente agora.',
+      });
+      setShowRecurringLimit(false);
+    } catch (error) {
+      console.error('Erro ao exibir anúncio:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível exibir o anúncio. Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsWatchingAd(false);
+    }
+  };
+
   // Carregar dados
   const loadData = () => {
     const user = getCurrentUser();

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, TrendingUp, AlertTriangle, Target, Sparkles, Brain, Zap } from 'lucide-react';
+import { Lightbulb, TrendingUp, AlertTriangle, Target, Sparkles, Brain, Zap, RefreshCw } from 'lucide-react';
 import { getTransactions, getBills } from '@/utils/localStorage';
 import { Transaction, Bill } from '@/types';
 
@@ -195,94 +194,162 @@ const FinancialInsights: React.FC = () => {
     switch (type) {
       case 'success':
         return {
-          gradient: 'from-green-400/20 to-emerald-500/20',
-          border: 'border-green-400/30',
-          textColor: 'text-green-100'
+          bg: 'rgba(16, 185, 129, 0.15)',
+          border: 'rgba(16, 185, 129, 0.4)',
+          glow: 'rgba(16, 185, 129, 0.2)',
+          iconBg: 'rgba(16, 185, 129, 0.3)',
+          color: '#10b981'
         };
       case 'warning':
         return {
-          gradient: 'from-yellow-400/20 to-orange-500/20',
-          border: 'border-yellow-400/30',
-          textColor: 'text-yellow-100'
+          bg: 'rgba(245, 158, 11, 0.15)',
+          border: 'rgba(245, 158, 11, 0.4)',
+          glow: 'rgba(245, 158, 11, 0.2)',
+          iconBg: 'rgba(245, 158, 11, 0.3)',
+          color: '#f59e0b'
         };
       case 'info':
         return {
-          gradient: 'from-blue-400/20 to-purple-500/20',
-          border: 'border-blue-400/30',
-          textColor: 'text-blue-100'
+          bg: 'rgba(59, 130, 246, 0.15)',
+          border: 'rgba(59, 130, 246, 0.4)',
+          glow: 'rgba(59, 130, 246, 0.2)',
+          iconBg: 'rgba(59, 130, 246, 0.3)',
+          color: '#3b82f6'
         };
       case 'tip':
         return {
-          gradient: 'from-purple-400/20 to-pink-500/20',
-          border: 'border-purple-400/30',
-          textColor: 'text-purple-100'
+          bg: 'rgba(139, 92, 246, 0.15)',
+          border: 'rgba(139, 92, 246, 0.4)',
+          glow: 'rgba(139, 92, 246, 0.2)',
+          iconBg: 'rgba(139, 92, 246, 0.3)',
+          color: '#8b5cf6'
         };
       default:
         return {
-          gradient: 'from-gray-400/20 to-gray-500/20',
-          border: 'border-gray-400/30',
-          textColor: 'text-gray-100'
+          bg: 'rgba(255, 255, 255, 0.1)',
+          border: 'rgba(255, 255, 255, 0.2)',
+          glow: 'rgba(255, 255, 255, 0.1)',
+          iconBg: 'rgba(255, 255, 255, 0.2)',
+          color: '#fff'
         };
     }
   };
 
   return (
-    <Card className="relative overflow-hidden border-0 bg-gradient-to-br backdrop-blur-xl shadow-2xl"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}>
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10" />
-
-      <CardHeader className="relative">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-white text-xl font-semibold flex items-center gap-2">
-            <Lightbulb className="w-6 h-6 text-yellow-400" />
-            Insights Financeiros IA
-          </CardTitle>
-          <Button
-            onClick={generateInsights}
-            disabled={isGenerating}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg"
+    <div 
+      className="rounded-2xl overflow-hidden"
+      style={{
+        background: 'rgba(255, 255, 255, 0.08)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.15)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+      }}
+    >
+      {/* Header */}
+      <div 
+        className="p-4 flex items-center justify-between"
+        style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div 
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, rgba(250, 204, 21, 0.4), rgba(245, 158, 11, 0.2))',
+              boxShadow: '0 0 20px rgba(250, 204, 21, 0.3)'
+            }}
           >
-            {isGenerating ? '🤖 Analisando...' : '🔄 Atualizar'}
-          </Button>
+            <Lightbulb className="h-5 w-5 text-yellow-400" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              Insights Financeiros IA
+              <Sparkles className="h-4 w-4 text-purple-400" />
+            </h2>
+            <p className="text-xs text-white/60">Análise inteligente dos seus dados</p>
+          </div>
         </div>
-      </CardHeader>
+        
+        <Button
+          onClick={generateInsights}
+          disabled={isGenerating}
+          className="px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 transition-all duration-300 hover:scale-105 border-0"
+          style={{
+            background: isGenerating 
+              ? 'rgba(255, 255, 255, 0.1)' 
+              : 'linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(236, 72, 153, 0.5))',
+            color: '#fff',
+            boxShadow: isGenerating ? 'none' : '0 4px 15px rgba(139, 92, 246, 0.3)'
+          }}
+        >
+          <RefreshCw className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
+          {isGenerating ? 'Analisando...' : 'Atualizar'}
+        </Button>
+      </div>
 
-      <CardContent className="relative space-y-4">
+      {/* Content */}
+      <div className="p-4 space-y-3">
         {isGenerating ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="flex items-center gap-3">
-              <div className="animate-spin w-6 h-6 border-2 border-white/30 border-t-white rounded-full"></div>
-              <span className="text-white/80">IA analisando seus dados...</span>
+          <div className="flex flex-col items-center justify-center py-12 gap-4">
+            <div 
+              className="w-16 h-16 rounded-2xl flex items-center justify-center animate-pulse"
+              style={{
+                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.2))'
+              }}
+            >
+              <Brain className="h-8 w-8 text-white animate-bounce" />
+            </div>
+            <div className="text-center">
+              <p className="text-white font-medium">IA analisando seus dados</p>
+              <p className="text-white/50 text-sm">Gerando insights personalizados...</p>
+            </div>
+            <div className="flex gap-1">
+              <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+              <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+              <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            {insights.map((insight) => {
+          <div className="space-y-3">
+            {insights.map((insight, index) => {
               const styles = getInsightStyles(insight.type);
               return (
                 <div
                   key={insight.id}
-                  className={`p-4 rounded-xl bg-gradient-to-r ${styles.gradient} ${styles.border} border backdrop-blur-sm transition-all duration-300 hover:scale-105`}
+                  className="p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5"
+                  style={{
+                    background: styles.bg,
+                    border: `1px solid ${styles.border}`,
+                    boxShadow: `0 4px 20px ${styles.glow}`,
+                    animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`
+                  }}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`${styles.textColor} mt-1`}>
-                      {insight.icon}
+                    <div 
+                      className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: styles.iconBg }}
+                    >
+                      <span style={{ color: styles.color }}>{insight.icon}</span>
                     </div>
-                    <div className="flex-1">
-                      <h3 className={`font-semibold ${styles.textColor} mb-1`}>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-white text-sm mb-1">
                         {insight.title}
                       </h3>
-                      <p className="text-white/80 text-sm mb-2">
+                      <p className="text-white/70 text-xs leading-relaxed mb-2">
                         {insight.description}
                       </p>
                       {insight.action && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-white/60">💡</span>
-                          <span className="text-xs text-white/60">{insight.action}</span>
+                        <div 
+                          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs"
+                          style={{ 
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            color: styles.color
+                          }}
+                        >
+                          <Lightbulb className="h-3 w-3" />
+                          <span>{insight.action}</span>
                         </div>
                       )}
                     </div>
@@ -292,8 +359,15 @@ const FinancialInsights: React.FC = () => {
             })}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(15px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
   );
 };
 

@@ -451,45 +451,63 @@ export default function ModernCharts() {
                 return (
                   <>
                     {/* Top categoria */}
-                    <div className="bg-gray-50 rounded-lg p-4 border hover:shadow-md transition-all">
+                    <div 
+                      className="rounded-lg p-4 transition-all hover:scale-105"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)'
+                      }}
+                    >
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-xl">🏆</span>
-                        <span className="text-gray-800 font-semibold">Maior Gasto</span>
+                        <span className="text-white font-semibold text-sm">Maior Gasto</span>
                       </div>
-                      <p className="text-gray-700 text-sm mb-1">
-                        <strong className="text-amber-600">{topCategory?.name}</strong>
+                      <p className="text-white text-sm mb-1">
+                        <strong className="text-amber-400">{topCategory?.name}</strong>
                       </p>
-                      <p className="text-gray-600 text-xs">
+                      <p className="text-white/60 text-xs">
                         {((topCategory?.value || 0) / totalValue * 100).toFixed(1)}% do total
                       </p>
                     </div>
 
                     {/* Segunda categoria */}
                     {secondCategory && (
-                      <div className="bg-gray-50 rounded-lg p-4 border hover:shadow-md transition-all">
+                      <div 
+                        className="rounded-lg p-4 transition-all hover:scale-105"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          border: '1px solid rgba(255, 255, 255, 0.15)'
+                        }}
+                      >
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-xl">🥈</span>
-                          <span className="text-gray-800 font-semibold">Segundo Lugar</span>
+                          <span className="text-white font-semibold text-sm">Segundo Lugar</span>
                         </div>
-                        <p className="text-gray-700 text-sm mb-1">
-                          <strong className="text-blue-600">{secondCategory.name}</strong>
+                        <p className="text-white text-sm mb-1">
+                          <strong className="text-blue-400">{secondCategory.name}</strong>
                         </p>
-                        <p className="text-gray-600 text-xs">
+                        <p className="text-white/60 text-xs">
                           {((secondCategory.value || 0) / totalValue * 100).toFixed(1)}% do total
                         </p>
                       </div>
                     )}
 
                     {/* Estatísticas */}
-                    <div className="bg-gray-50 rounded-lg p-4 border hover:shadow-md transition-all">
+                    <div 
+                      className="rounded-lg p-4 transition-all hover:scale-105"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)'
+                      }}
+                    >
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-xl">📊</span>
-                        <span className="text-gray-800 font-semibold">Média</span>
+                        <span className="text-white font-semibold text-sm">Média</span>
                       </div>
-                      <p className="text-gray-700 text-sm mb-1">
-                        <strong className="text-green-600">R$ {avgSpending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+                      <p className="text-white text-sm mb-1">
+                        <strong className="text-emerald-400">R$ {avgSpending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
                       </p>
-                      <p className="text-gray-600 text-xs">
+                      <p className="text-white/60 text-xs">
                         por categoria
                       </p>
                     </div>
@@ -499,12 +517,18 @@ export default function ModernCharts() {
             </div>
             
             {/* Dicas inteligentes */}
-            <div className="mt-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
+            <div 
+              className="mt-4 rounded-lg p-4"
+              style={{
+                background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.15))',
+                border: '1px solid rgba(59, 130, 246, 0.3)'
+              }}
+            >
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl">💡</span>
-                <span className="text-gray-800 font-semibold">Dica Inteligente</span>
+                <span className="text-white font-semibold text-sm">Dica Inteligente</span>
               </div>
-              <p className="text-gray-700 text-sm">
+              <p className="text-white/80 text-sm">
                 {(() => {
                   const topCategory = categoryData[0];
                   const topPercentage = ((topCategory?.value || 0) / totalValue * 100);

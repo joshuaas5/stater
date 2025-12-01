@@ -113,7 +113,7 @@ const NotificationsPage: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen pb-24 lg:pb-8"
+      className="min-h-screen pb-24 lg:pb-8 bg-[#31518b] lg:bg-transparent"
       style={{ 
         background: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)',
         minHeight: '100vh'

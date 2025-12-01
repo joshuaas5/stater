@@ -454,7 +454,7 @@ const BillsPage: React.FC = () => {
   const showEmailBanner = true;
 
   return (
-    <div className="flex flex-col min-h-screen pb-32 lg:pb-8">
+    <div className="flex flex-col min-h-screen pb-32 lg:pb-8 bg-[#31518b] lg:bg-transparent">
       {/* Header com glassmorphism - Hidden on desktop (uses DesktopHeader) */}
       <div 
         className="sticky top-0 z-50 lg:hidden"

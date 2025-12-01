@@ -237,9 +237,9 @@ const ChartsPage: React.FC = () => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-galileo-card p-2 border border-galileo-border rounded shadow-sm">
-          <p className="font-medium">{data.name}</p>
-          <p className="text-galileo-accent">{formatCurrency(data.value)}</p>
+        <div className="bg-slate-800/95 backdrop-blur-xl p-2 border border-white/20 rounded shadow-sm">
+          <p className="font-medium text-white">{data.name}</p>
+          <p className="text-blue-400">{formatCurrency(data.value)}</p>
         </div>
       );
     }
@@ -276,7 +276,7 @@ const ChartsPage: React.FC = () => {
   const weeklyData = prepareIncomeVsExpenseByWeek();
 
   return (
-    <div className="flex flex-col min-h-screen bg-galileo-background">
+    <div className="flex flex-col min-h-screen bg-[#31518b] lg:bg-transparent">
       <PageHeader title="Gráficos" showSearch={false} />
       
       <main className="flex-grow overflow-y-auto p-4 pb-24 md:pb-20">
@@ -289,7 +289,7 @@ const ChartsPage: React.FC = () => {
             <Button 
               variant={activeChart === 'pie' ? "default" : "outline"} 
               size="sm"
-              className={activeChart === 'pie' ? "bg-galileo-accent hover:bg-galileo-accent/80 text-white" : ""} 
+              className={activeChart === 'pie' ? "bg-blue-600 hover:bg-blue-700 text-white" : "text-white border-white/30 hover:bg-white/10"} 
               onClick={() => setActiveChart('pie')}
             >
               <PieChartIcon size={16} className="mr-1" /> Pizza
@@ -297,7 +297,7 @@ const ChartsPage: React.FC = () => {
             <Button 
               variant={activeChart === 'bar' ? "default" : "outline"} 
               size="sm"
-              className={activeChart === 'bar' ? "bg-galileo-accent hover:bg-galileo-accent/80 text-white" : ""} 
+              className={activeChart === 'bar' ? "bg-blue-600 hover:bg-blue-700 text-white" : "text-white border-white/30 hover:bg-white/10"} 
               onClick={() => setActiveChart('bar')}
             >
               <BarChartIcon size={16} className="mr-1" /> Barras
@@ -305,7 +305,7 @@ const ChartsPage: React.FC = () => {
             <Button 
               variant={activeChart === 'line' ? "default" : "outline"} 
               size="sm"
-              className={activeChart === 'line' ? "bg-galileo-accent hover:bg-galileo-accent/80 text-white" : ""} 
+              className={activeChart === 'line' ? "bg-blue-600 hover:bg-blue-700 text-white" : "text-white border-white/30 hover:bg-white/10"} 
               onClick={() => setActiveChart('line')}
             >
               <LineChartIcon size={16} className="mr-1" /> Linha
@@ -331,25 +331,25 @@ const ChartsPage: React.FC = () => {
         
         {/* Resumo financeiro */}
         <div className="px-4 mb-4 grid grid-cols-2 gap-3">
-          <Card className="bg-galileo-card border-galileo-border">
+          <Card className="bg-white/10 backdrop-blur-xl border-white/20">
             <CardContent className="p-3">
               <div className="flex flex-col">
-                <span className="text-sm text-galileo-secondaryText">Receitas</span>
+                <span className="text-sm text-white/70">Receitas</span>
                 <div className="flex items-center">
-                  <span className="text-lg font-semibold text-galileo-positive">{formatCurrency(totalIncome)}</span>
-                  <ArrowUp size={16} className="ml-1 text-galileo-positive" />
+                  <span className="text-lg font-semibold text-green-400">{formatCurrency(totalIncome)}</span>
+                  <ArrowUp size={16} className="ml-1 text-green-400" />
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-galileo-card border-galileo-border">
+          <Card className="bg-white/10 backdrop-blur-xl border-white/20">
             <CardContent className="p-3">
               <div className="flex flex-col">
-                <span className="text-sm text-galileo-secondaryText">Despesas</span>
+                <span className="text-sm text-white/70">Despesas</span>
                 <div className="flex items-center">
-                  <span className="text-lg font-semibold text-galileo-negative">{formatCurrency(totalExpenses)}</span>
-                  <ArrowDown size={16} className="ml-1 text-galileo-negative" />
+                  <span className="text-lg font-semibold text-red-400">{formatCurrency(totalExpenses)}</span>
+                  <ArrowDown size={16} className="ml-1 text-red-400" />
                 </div>
               </div>
             </CardContent>
@@ -357,7 +357,7 @@ const ChartsPage: React.FC = () => {
         </div>
         
         {/* Gráfico principal */}
-        <Card className="mx-4 bg-galileo-card border-galileo-border mb-6">
+        <Card className="mx-4 bg-white/10 backdrop-blur-xl border-white/20 mb-6">
           {activeChart === 'pie' && (
             <CardContent className="p-4">
               <h3 className="font-medium mb-4">
@@ -400,7 +400,7 @@ const ChartsPage: React.FC = () => {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-medium">Receitas vs Despesas por Semana</h3>
                 <Tabs value={activeWeekTab} onValueChange={setActiveWeekTab} className="w-auto">
-                  <TabsList className="bg-galileo-background">
+                  <TabsList className="bg-white/10">
                     <TabsTrigger value="all" className="text-xs">Todas</TabsTrigger>
                     {getWeeksInMonth().map((week, index) => (
                       <TabsTrigger key={index} value={index.toString()} className="text-xs">
@@ -474,28 +474,28 @@ const ChartsPage: React.FC = () => {
               .sort((a, b) => b.amount - a.amount)
               .slice(0, 6)
               .map((transaction, index) => (
-                <Card key={index} className="bg-galileo-card border-galileo-border h-full flex flex-col justify-between shadow-sm hover:scale-[1.02] transition-transform duration-100">
+                <Card key={index} className="bg-white/10 backdrop-blur-xl border-white/20 h-full flex flex-col justify-between shadow-sm hover:scale-[1.02] transition-transform duration-100">
                   <CardContent className="p-3 flex flex-col gap-2">
                     <div>
-                      <p className="font-medium truncate max-w-[160px] md:max-w-[220px]" title={transaction.title}>{transaction.title}</p>
+                      <p className="font-medium text-white truncate max-w-[160px] md:max-w-[220px]" title={transaction.title}>{transaction.title}</p>
                       <div className="flex items-center mt-1 flex-wrap gap-1">
                         <Badge 
                           variant="outline" 
-                          className="text-xs bg-galileo-background"
+                          className="text-xs bg-white/10 text-white border-white/20"
                         >
                           {transaction.category}
                         </Badge>
                         {transaction.isRecurring && (
                           <Badge 
                             variant="outline" 
-                            className="text-xs bg-galileo-background"
+                            className="text-xs bg-white/10 text-white border-white/20"
                           >
                             Recorrente
                           </Badge>
                         )}
                       </div>
                     </div>
-                    <span className={`font-semibold text-lg ${transaction.type === 'income' ? 'text-galileo-positive' : 'text-galileo-negative'}`}
+                    <span className={`font-semibold text-lg ${transaction.type === 'income' ? 'text-green-400' : 'text-red-400'}`}
                       style={{wordBreak: 'break-word'}}>
                       {formatCurrency(transaction.type === 'expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount))}
                     </span>
@@ -503,7 +503,7 @@ const ChartsPage: React.FC = () => {
                 </Card>
               ))}
             {transactions.filter(t => filterType === 'all' ? true : t.type === filterType).length === 0 && (
-              <div className="text-center py-6 text-galileo-secondaryText col-span-full">
+              <div className="text-center py-6 text-white/60 col-span-full">
                 <p>Nenhuma {filterType === 'income' ? 'receita' : 'despesa'} registrada neste mês</p>
               </div>
             )}

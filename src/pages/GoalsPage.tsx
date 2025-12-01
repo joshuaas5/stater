@@ -8,7 +8,7 @@ const GoalsPage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-8">
+    <div className="min-h-screen pb-24 lg:pb-8 bg-[#31518b] lg:bg-transparent">
       {/* Header Mobile */}
       <div 
         className="sticky top-0 z-50 lg:hidden"

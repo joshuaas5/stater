@@ -252,7 +252,7 @@ Obrigado!`);
   };
   
   return (
-    <div className="min-h-screen flex flex-col pb-20 lg:pb-8" style={{ color: 'white' }}>
+    <div className="min-h-screen flex flex-col pb-20 lg:pb-8 bg-[#31518b] lg:bg-transparent" style={{ color: 'white' }}>
       {/* Desktop Title */}
       <div className="hidden lg:block w-full px-6 pt-6 pb-4">
         <h1 className="text-3xl font-bold text-white">Configurações</h1>

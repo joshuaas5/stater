@@ -70,7 +70,7 @@ const LoadingCard = ({ title }: { title: string }) => (
 const FinancialAnalysisPage: React.FC = () => {
   return (
     <FinancialAnalysisGate>
-      <div className="financial-analysis-page min-h-screen pb-20 lg:pb-8" style={{
+      <div className="financial-analysis-page min-h-screen pb-20 lg:pb-8 bg-[#31518b] lg:bg-transparent" style={{
         // Mobile: azul | Desktop: transparente (usa gradiente do layout)
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}>

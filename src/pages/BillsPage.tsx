@@ -495,7 +495,7 @@ const BillsPage: React.FC = () => {
 
       
       {/* Seletores de Mês e Ano */}
-      <div className="px-4 lg:px-6 pt-4 pb-3 sticky z-10 border-b border-white/20 lg:border-none" style={{ top: '60px', background: '#31518b' }}>
+      <div className="px-4 lg:px-6 pt-4 pb-3 sticky z-10 border-b border-white/20 lg:border-none" style={{ top: '60px', background: 'transparent' }}>
         <div className="flex flex-col sm:flex-row gap-3 items-center lg:max-w-4xl">
           <div className="flex items-center bg-white/15 backdrop-blur-xl rounded-lg p-1 border border-white/20 w-full sm:w-auto">
             <div className="flex items-center flex-1 sm:flex-auto">
@@ -604,7 +604,7 @@ const BillsPage: React.FC = () => {
       )}
 
       {/* Abas de Filtro */}
-      <div className="px-4 lg:px-6 py-3 flex justify-around lg:justify-start lg:gap-2 border-b border-white/20 lg:border-none sticky top-[calc(var(--header-height)_+_60px)] z-10 sm:top-[calc(var(--header-height)_+_60px)]" style={{ background: '#31518b' }}>
+      <div className="px-4 lg:px-6 py-3 flex justify-around lg:justify-start lg:gap-2 border-b border-white/20 lg:border-none sticky top-[calc(var(--header-height)_+_60px)] z-10 sm:top-[calc(var(--header-height)_+_60px)]" style={{ background: 'transparent' }}>
         <button
           className={`px-4 lg:px-6 py-1.5 lg:py-2 rounded-md lg:rounded-xl text-sm font-medium transition-all ${activeTab === 'upcoming' ? 'bg-white/20 text-white backdrop-blur-sm' : 'text-white/70 hover:bg-white/10'}`}
           onClick={() => setActiveTab('upcoming')}
@@ -709,7 +709,7 @@ const BillsPage: React.FC = () => {
         </div>
       )}
       
-      <div className="mt-4 pb-16 lg:pb-8 lg:px-6" style={{ background: '#31518b' }}>
+      <div className="mt-4 pb-16 lg:pb-8 lg:px-6" style={{ background: 'transparent' }}>
         {getBillsToDisplay().length > 0 ? (
           <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4">
           {getBillsToDisplay().map((bill) => (
@@ -756,7 +756,7 @@ const BillsPage: React.FC = () => {
                               <MoreVertical className="h-5 w-5" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-[#31518b] border-white/20">
+                          <DropdownMenuContent align="end" className="bg-slate-800/95 backdrop-blur-xl border-white/20">
                             <DropdownMenuItem onClick={() => { setEditBill(bill); setShowEditBillModal(true); }} className="text-white hover:bg-white/10">
                               <Edit className="mr-2 h-4 w-4" />
                               <span>Editar</span>

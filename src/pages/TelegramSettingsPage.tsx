@@ -150,7 +150,7 @@ const TelegramSettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden pb-20" style={{ background: '#31518b' }}>
+    <div className="min-h-screen relative overflow-hidden pb-20 bg-[#31518b] lg:bg-transparent">
       <div className="relative z-10 p-4">
         
         {/* Header personalizado */}

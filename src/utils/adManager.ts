@@ -3,6 +3,7 @@ import { UserJourneyManager } from './userJourneyManager';
 import { RewardCooldownManager } from './rewardCooldownManager';
 import { PlanType } from '@/types';
 import { getCurrentUser } from '@/utils/localStorage';
+import { Capacitor } from '@capacitor/core';
 
 export interface AdCooldown {
   lastAdShown: Date;
@@ -278,11 +279,21 @@ export class AdManager {
   
   /**
    * Simula a exibição de um anúncio rewarded
-   * TODO: Integrar com AdMob ou similar
+   * Em ambiente web (sem AdMob), retorna sucesso imediatamente para não bloquear a UX
+   * Em ambiente nativo, mostra o anúncio real via AdMob
    */
   static async showRewardedAd(type: 'bills' | 'transactions' | 'messages' | 'financial_analysis' | 'report_downloads' | 'recurring_transactions'): Promise<AdResult> {
     try {
       console.log(`🎬 [AD_MANAGER] Iniciando reward ad: ${type}`);
+      
+      // BYPASS: Em ambiente web, não temos AdMob - retornar sucesso para não bloquear
+      if (!Capacitor.isNativePlatform()) {
+        console.log('🌐 [AD_MANAGER] Ambiente web detectado - bypass do reward ad');
+        return {
+          success: true,
+          reward: this.getAdReward(type)
+        };
+      }
       
       // Criar evento personalizado para mostrar o placeholder
       const adEvent = new CustomEvent('showAdPlaceholder', {

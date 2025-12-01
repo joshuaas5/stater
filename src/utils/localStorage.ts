@@ -998,18 +998,36 @@ export const getBills = (onlyActive: boolean = true): Bill[] => {
     
     let newBillsAdded = false;
     
+    // OTIMIZAÇÃO: Limitar a 5 contas por execução para não bloquear a UI
+    let billsAddedThisRun = 0;
+    const MAX_BILLS_PER_RUN = 5;
+    
     // Gerar instâncias para 6 meses iniciais
     // Usar uma cópia para evitar loop infinito ao adicionar novos itens durante a iteração
     const billsToProcess = [...bills];
     for (const bill of billsToProcess) {
+      // Parar se já adicionamos o máximo
+      if (billsAddedThisRun >= MAX_BILLS_PER_RUN) break;
+      
       if (bill.isRecurring && bill.isInfiniteRecurrence) {
         // Calcular próxima data de vencimento
         const dueDate = new Date(bill.dueDate);
+        
+        // LIMITE: Não gerar contas para mais de 6 meses no futuro
+        if (dueDate > sixMonthsFromNow) {
+          continue; // Pular - já é muito no futuro
+        }
+        
         const recurringDay = dueDate.getDate();
         
-        // Calcular próxima data de vencimento a partir da última conhecida
+        // Calcular próxima data de vencimento (1 mês à frente, não 6)
         const nextDueDate = new Date(dueDate);
-        nextDueDate.setMonth(nextDueDate.getMonth() + 6);
+        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+        
+        // LIMITE: Não criar contas além de 6 meses no futuro
+        if (nextDueDate > sixMonthsFromNow) {
+          continue;
+        }
         
         // Ajustar para o dia correto (considerando meses com menos dias)
         nextDueDate.setDate(Math.min(recurringDay, new Date(nextDueDate.getFullYear(), nextDueDate.getMonth() + 1, 0).getDate()));
@@ -1040,10 +1058,14 @@ export const getBills = (onlyActive: boolean = true): Bill[] => {
           
           bills.push(futureBill);
           newBillsAdded = true;
+          billsAddedThisRun++;
           
           // Também salvar no Supabase em segundo plano
           saveSupabaseBill(futureBill).catch(error => {
-            console.error(`Erro ao salvar instância futura no Supabase:`, error);
+            // Silenciar erros de conflito
+            if (!error?.message?.includes('duplicate')) {
+              console.error(`Erro ao salvar instância futura no Supabase:`, error);
+            }
           });
         }
       }
@@ -1120,37 +1142,51 @@ export const getBills = (onlyActive: boolean = true): Bill[] => {
         localStorage.setItem(`bills_${user.id}`, JSON.stringify(mergedBills));
         
         // Enviar as contas locais para o Supabase, com limite de frequência
+        // LIMITE: Máximo de 10 contas por sincronização para não bloquear a UI
         if (localOnlyBills.length > 0) {
-          console.log(`Sincronizando ${localOnlyBills.length} contas locais com o Supabase...`);
+          const MAX_SYNC_PER_BATCH = 10;
+          const billsToSync = localOnlyBills.slice(0, MAX_SYNC_PER_BATCH);
+          
+          if (localOnlyBills.length > MAX_SYNC_PER_BATCH) {
+            console.log(`⚠️ [SYNC] Muitas contas para sincronizar (${localOnlyBills.length}). Sincronizando apenas ${MAX_SYNC_PER_BATCH} agora.`);
+          }
+          
+          console.log(`Sincronizando ${billsToSync.length} contas locais com o Supabase...`);
           
           // Processar uma conta por vez com intervalo para evitar sobrecarga
           let index = 0;
           const processNextBill = () => {
-            if (index < localOnlyBills.length) {
-              const bill = localOnlyBills[index];
-              console.log(`Tentando salvar conta no Supabase:`, JSON.stringify(bill));
+            if (index < billsToSync.length) {
+              const bill = billsToSync[index];
+              // Logs reduzidos para não poluir o console
+              // console.log(`Tentando salvar conta no Supabase:`, JSON.stringify(bill));
               
               saveSupabaseBill(bill)
                 .then(result => {
                   if (result.error) {
-                    console.error("Erro ao salvar conta no Supabase:", result.error);
-                  } else {
-                    console.log("Conta sincronizada com sucesso:", result.data);
+                    // Ignorar erros 409 (conflito) silenciosamente
+                    if (!result.error.code || result.error.code !== '23505') {
+                      console.error("Erro ao salvar conta no Supabase:", result.error);
+                    }
                   }
+                  // Removido log de sucesso para reduzir ruído
                   
                   // Processar a próxima conta após um pequeno intervalo
                   index++;
-                  setTimeout(processNextBill, 1000); // 1 segundo entre cada conta
+                  setTimeout(processNextBill, 500); // 500ms entre cada conta (mais rápido)
                 })
                 .catch(error => {
-                  console.error("Erro ao sincronizar conta local com Supabase:", error);
+                  // Silenciar erros de conflito
+                  if (!error.message?.includes('duplicate')) {
+                    console.error("Erro ao sincronizar conta local com Supabase:", error);
+                  }
                   // Continuar mesmo com erro
                   index++;
-                  setTimeout(processNextBill, 1000);
+                  setTimeout(processNextBill, 500);
                 });
             } else {
               // Todas as contas foram processadas
-              console.log("Sincronização de contas concluída");
+              console.log("✅ Sincronização de contas concluída");
               // Notificar a UI para atualizar
               window.dispatchEvent(new CustomEvent('billsUpdated'));
             }

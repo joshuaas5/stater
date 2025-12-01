@@ -902,10 +902,10 @@ const Dashboard: React.FC = () => {
         ))}
       </div>
       
-      <div className="relative z-10 safe-area-content">
-        {/* Premium Header */}
+      <div className="relative z-10 safe-area-content lg:pt-4">
+        {/* Premium Header - Hidden on desktop (uses DesktopHeader) */}
         <div 
-          className="text-center pt-3 pb-6 px-6 relative"
+          className="text-center pt-3 pb-6 px-6 relative lg:hidden"
           style={{
             backdropFilter: 'blur(10px)'
           }}

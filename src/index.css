@@ -45,10 +45,18 @@ html, body {
 
 .edge-to-edge-page {
   min-height: 100vh;
-  background-color: #31518b !important; /* CORRIGIDO: Usando o mesmo azul escuro para consistência */
+  background-color: #31518b; /* Azul para mobile - desktop usa gradiente via JS */
   display: flex;
   flex-direction: column;
   flex: 1;
+}
+
+/* Desktop: background transparente para usar gradiente do layout pai */
+@media (min-width: 1024px) {
+  .edge-to-edge-page {
+    background-color: transparent !important;
+    background: transparent !important;
+  }
 }
 
 .safe-area-content {
@@ -225,15 +233,28 @@ body .safe-area-content {
 
 /* === FIX DEFINITIVO PARA INCONSISTÊNCIA DE COR (LIGHT/DARK MODE) === */
 
-/* Define a cor de fundo padrão para todos os modos */
-html, body, #root, .edge-to-edge-page, .edge-to-edge-login {
+/* Define a cor de fundo padrão para mobile */
+html, body, #root, .edge-to-edge-login {
   background-color: #31518b !important;
+}
+
+/* Desktop: usar gradiente do layout (não forçar cor) */
+@media (min-width: 1024px) {
+  html, body, #root {
+    background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
+  }
 }
 
 /* Garante que a MESMA cor seja usada quando o Modo Escuro do celular estiver ativo */
 @media (prefers-color-scheme: dark) {
-  html, body, #root, .edge-to-edge-page, .edge-to-edge-login {
+  html, body, #root, .edge-to-edge-login {
     background-color: #31518b !important;
+  }
+  
+  @media (min-width: 1024px) {
+    html, body, #root {
+      background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
+    }
   }
 }
 

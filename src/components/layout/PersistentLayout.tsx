@@ -114,20 +114,12 @@ const PersistentLayout: React.FC = () => {
     <div 
       className="min-h-screen"
       style={{
-        // Mobile/Modo Simples: azul padrão | Desktop Avançado: gradiente escuro
-        background: '#31518b'
+        // Desktop Avançado: gradiente igual à sidebar | Mobile/Modo Simples: azul padrão
+        background: showDesktopUI 
+          ? 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)' 
+          : '#31518b'
       }}
     >
-      {/* Desktop Background Override - aplica gradiente igual à sidebar (apenas modo avançado) */}
-      {showDesktopUI && (
-        <>
-          {/* Overlay para desktop com gradiente igual à sidebar */}
-          <div className="hidden lg:block fixed inset-0 -z-10" style={{
-            background: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)'
-          }} />
-        </>
-      )}
-      
       {/* Desktop: Sidebar + Header (apenas modo avançado) */}
       {showDesktopUI && (
         <>

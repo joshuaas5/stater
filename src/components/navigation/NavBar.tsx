@@ -220,9 +220,9 @@ const NavBar: React.FC = () => {
   }, [navItems, throttledPathname, handleNavigation, preloadOnHover]);
 
   // ALTERADO: Remover portal e renderizar diretamente com classe fixa garantida
-  // lg:hidden para ocultar no desktop (sidebar assume a navegação)
+  // Visibilidade controlada pelo PersistentLayout (lg:hidden aplicado no wrapper)
   return (
-    <nav className={`navbar-optimized navbar-fixed-bottom lg:hidden ${isScrolling ? 'navbar-scrolling' : ''}`}>
+    <nav className={`navbar-optimized navbar-fixed-bottom ${isScrolling ? 'navbar-scrolling' : ''}`}>
       <div className="navbar-content">
         {memoizedNavItems}
       </div>

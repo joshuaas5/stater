@@ -5,6 +5,7 @@ import DesktopSidebar from '@/components/navigation/DesktopSidebar';
 import DesktopHeader from '@/components/navigation/DesktopHeader';
 import GlobalImportModal from '@/components/import/GlobalImportModal';
 import CommandPalette from '@/components/search/CommandPalette';
+import { Monitor } from 'lucide-react';
 
 const PersistentLayout: React.FC = () => {
   const location = useLocation();
@@ -83,70 +84,105 @@ const PersistentLayout: React.FC = () => {
   // Largura da sidebar baseada no estado
   const sidebarWidth = isSidebarCollapsed ? 80 : 240;
 
+  // No modo simples, comporta-se como mobile mesmo no desktop
+  const showDesktopUI = !isSimpleMode;
+
   return (
     <div 
       className="min-h-screen"
       style={{
-        // Mobile: azul padrão | Desktop: gradiente escuro igual sidebar
+        // Mobile/Modo Simples: azul padrão | Desktop Avançado: gradiente escuro
         background: '#31518b'
       }}
     >
-      {/* Desktop Background Override - aplica gradiente escuro */}
-      <style>{`
-        @media (min-width: 1024px) {
-          .desktop-dark-bg {
-            background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
-          }
-        }
-      `}</style>
+      {/* Desktop Background Override - aplica gradiente escuro (apenas modo avançado) */}
+      {showDesktopUI && (
+        <>
+          <style>{`
+            @media (min-width: 1024px) {
+              .desktop-dark-bg {
+                background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
+              }
+            }
+          `}</style>
+          
+          {/* Overlay para desktop com gradiente */}
+          <div className="hidden lg:block fixed inset-0 -z-10" style={{
+            background: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)'
+          }} />
+        </>
+      )}
       
-      {/* Overlay para desktop com gradiente */}
-      <div className="hidden lg:block fixed inset-0 -z-10" style={{
-        background: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)'
-      }} />
-      {/* Desktop: Sidebar + Header */}
-      <DesktopSidebar 
-        onToggleSimpleMode={toggleSimpleMode}
-        isSimpleMode={isSimpleMode}
-        onOpenImportModal={() => setShowImportModal(true)}
-      />
-      <DesktopHeader 
-        sidebarWidth={sidebarWidth}
-        onOpenSearch={() => setShowCommandPalette(true)}
-      />
+      {/* Desktop: Sidebar + Header (apenas modo avançado) */}
+      {showDesktopUI && (
+        <>
+          <DesktopSidebar 
+            onToggleSimpleMode={toggleSimpleMode}
+            isSimpleMode={isSimpleMode}
+            onOpenImportModal={() => setShowImportModal(true)}
+          />
+          <DesktopHeader 
+            sidebarWidth={sidebarWidth}
+            onOpenSearch={() => setShowCommandPalette(true)}
+          />
+        </>
+      )}
       
       {/* Main Content Area */}
       <main 
         className="transition-all duration-300"
         style={{
-          // No desktop: offset da sidebar e header
-          // No mobile: sem offset
-          marginLeft: 'var(--sidebar-width, 0px)',
-          paddingTop: 'var(--header-height, 0px)',
+          // No desktop avançado: offset da sidebar e header
+          // No mobile ou modo simples: sem offset
+          marginLeft: showDesktopUI ? 'var(--sidebar-width, 0px)' : '0px',
+          paddingTop: showDesktopUI ? 'var(--header-height, 0px)' : '0px',
           minHeight: '100vh'
         }}
       >
-        {/* CSS Variables para responsividade */}
-        <style>{`
-          @media (min-width: 1024px) {
-            main {
-              --sidebar-width: ${sidebarWidth}px;
-              --header-height: 64px;
+        {/* CSS Variables para responsividade (apenas modo avançado) */}
+        {showDesktopUI && (
+          <style>{`
+            @media (min-width: 1024px) {
+              main {
+                --sidebar-width: ${sidebarWidth}px;
+                --header-height: 64px;
+              }
             }
-          }
-          @media (max-width: 1023px) {
-            main {
-              --sidebar-width: 0px;
-              --header-height: 0px;
+            @media (max-width: 1023px) {
+              main {
+                --sidebar-width: 0px;
+                --header-height: 0px;
+              }
             }
-          }
-        `}</style>
+          `}</style>
+        )}
         
         <Outlet context={{ isSimpleMode, toggleSimpleMode }} />
       </main>
       
-      {/* Mobile: NavBar no rodapé */}
-      {!noNavBarRoutes.includes(location.pathname) && <NavBar />}
+      {/* NavBar: Mobile sempre | Desktop apenas no modo simples */}
+      {!noNavBarRoutes.includes(location.pathname) && (
+        <div className={showDesktopUI ? 'lg:hidden' : ''}>
+          <NavBar />
+        </div>
+      )}
+      
+      {/* Botão flutuante para ativar modo avançado (apenas desktop no modo simples) */}
+      {isSimpleMode && (
+        <button
+          onClick={toggleSimpleMode}
+          className="hidden lg:flex fixed bottom-6 right-6 z-50 items-center gap-2 px-4 py-3 rounded-xl transition-all hover:scale-105"
+          style={{
+            background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
+            boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}
+          title="Ativar modo avançado"
+        >
+          <Monitor size={18} className="text-white" />
+          <span className="text-sm font-medium text-white">Modo Avançado</span>
+        </button>
+      )}
       
       {/* Modal de Importação Global */}
       <GlobalImportModal 

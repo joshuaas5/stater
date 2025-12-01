@@ -27,7 +27,7 @@ import { getCurrentUser, getTransactions, isLoggedIn, saveTransaction, updateTra
 import { TransactionCounter } from '@/utils/transactionCounter';
 import { UserPlanManager } from '@/utils/userPlanManager';
 import { RecurringTransactionLimitManager } from '@/utils/recurringTransactionLimit';
-import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star, Trash, Crown } from 'lucide-react';
+import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star, Trash, Crown, Brain, FileText, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from "@/components/ui/input";
@@ -884,8 +884,8 @@ const Dashboard: React.FC = () => {
         backfaceVisibility: 'hidden'
       }}
     >
-      {/* Floating Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Floating Elements - hidden on desktop */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none lg:hidden">
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
@@ -1033,11 +1033,11 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Premium Balance Section */}
-        <div className="pt-10 pb-9 px-8 text-center relative">
-          <div className="flex items-center justify-between mb-6">
+        {/* Premium Balance Section - Desktop: maior e centralizado */}
+        <div className="pt-10 pb-9 px-8 text-center relative lg:pt-6 lg:pb-6">
+          <div className="flex items-center justify-between mb-6 lg:justify-center lg:gap-8">
             <div 
-              className="text-white/80 font-medium text-base uppercase tracking-wider"
+              className="text-white/80 font-medium text-base uppercase tracking-wider lg:text-lg"
               style={{ 
                 letterSpacing: '1px'
               }}
@@ -1073,7 +1073,7 @@ const Dashboard: React.FC = () => {
           </div>
           
           <div 
-            className="text-white font-light mb-5"
+            className="text-white font-light mb-5 lg:text-6xl"
             style={{
               fontSize: '42px',
               textShadow: '0 4px 20px rgba(0,0,0,0.3)',
@@ -1104,11 +1104,11 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Premium Quick Actions */}
-        <div className="flex px-8 gap-3 mb-4">
+        {/* Premium Quick Actions - Desktop: botões menores e mais elegantes */}
+        <div className="flex px-8 gap-3 mb-4 lg:justify-center lg:max-w-xl lg:mx-auto">
           <button 
             onClick={() => handleAddTransaction('income')}
-            className="flex-1 flex items-center justify-center gap-2 py-5 px-3 rounded-2xl text-white font-medium text-sm hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
+            className="flex-1 lg:flex-none flex items-center justify-center gap-2 py-5 px-3 lg:px-8 lg:py-4 rounded-2xl text-white font-medium text-sm hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
             style={{
               background: 'linear-gradient(135deg, rgba(46, 204, 113, 0.3), rgba(39, 174, 96, 0.2))',
               backdropFilter: 'blur(15px)',
@@ -1120,7 +1120,7 @@ const Dashboard: React.FC = () => {
           </button>
           <button 
             onClick={() => handleAddTransaction('expense')}
-            className="flex-1 flex items-center justify-center gap-2 py-5 px-3 rounded-2xl text-white font-medium text-sm hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
+            className="flex-1 lg:flex-none flex items-center justify-center gap-2 py-5 px-3 lg:px-8 lg:py-4 rounded-2xl text-white font-medium text-sm hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
             style={{
               background: 'linear-gradient(135deg, rgba(231, 76, 60, 0.3), rgba(192, 57, 43, 0.2))',
               backdropFilter: 'blur(15px)',
@@ -1132,9 +1132,9 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* Premium Telegram Section */}
+        {/* Premium Telegram Section - Hidden on desktop (moved to sidebar) */}
         <div 
-          className="mx-8 mb-6 p-3 rounded-2xl"
+          className="mx-8 mb-6 p-3 rounded-2xl lg:hidden"
           style={{
             background: 'rgba(255,255,255,0.08)',
             backdropFilter: 'blur(20px)',
@@ -1450,9 +1450,14 @@ const Dashboard: React.FC = () => {
           : EXPENSE_CATEGORIES}
       />
       
-        <div className="px-4 mb-4">
+        {/* Desktop: Grid layout com 2 colunas */}
+        <div className="lg:grid lg:grid-cols-3 lg:gap-6 lg:px-6">
+        
+        {/* Coluna principal - Transações */}
+        <div className="lg:col-span-2">
+        <div className="px-4 mb-4 lg:px-0">
           <h2 
-            className="text-white text-xl font-semibold leading-tight tracking-normal pb-3 pt-2"
+            className="text-white text-xl font-semibold leading-tight tracking-normal pb-3 pt-2 lg:text-2xl"
             style={{
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
@@ -1462,7 +1467,7 @@ const Dashboard: React.FC = () => {
           </h2>
         </div>
       
-        <div className="px-4 mb-4">
+        <div className="px-4 mb-4 lg:px-0">
           <div className="flex justify-start">
             <Button 
               onClick={() => setShowDateFilters(!showDateFilters)} 
@@ -1560,22 +1565,24 @@ const Dashboard: React.FC = () => {
         console.log(` [RENDER] Renderizando ${displayTransactions.length} transações (página ${transactionsPage})`);
         
         return displayTransactions.length > 0 ? (
-          <div className="px-4 space-y-3">
+          <div className="px-4 lg:px-0 space-y-3">
+            {/* Desktop: Grid de 2 colunas para transações */}
+            <div className="lg:grid lg:grid-cols-1 xl:grid-cols-1 gap-3 space-y-3 lg:space-y-0">
             {displayTransactions.map((transaction: Transaction) => (
               <div key={transaction.id} className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/15 transition-colors duration-300">
                 <div className="flex items-center gap-4 justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="text-white flex items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 shrink-0 size-12">
+                    <div className="text-white flex items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 shrink-0 size-12 lg:size-10">
                       {transaction.isRecurring ? 
-                        <CalendarRange size={24} /> : 
-                        (transaction.type === 'income' ? <TrendingUp size={24} /> : <CreditCard size={24} />)
+                        <CalendarRange size={24} className="lg:w-5 lg:h-5" /> : 
+                        (transaction.type === 'income' ? <TrendingUp size={24} className="lg:w-5 lg:h-5" /> : <CreditCard size={24} className="lg:w-5 lg:h-5" />)
                       }
                     </div>
                     <div className="flex flex-col justify-center">
-                      <p className="text-white text-base font-medium leading-normal line-clamp-1">
+                      <p className="text-white text-base lg:text-sm font-medium leading-normal line-clamp-1">
                         {transaction.title}
                       </p>
-                      <p className="text-white/70 text-sm font-normal leading-normal line-clamp-2">
+                      <p className="text-white/70 text-sm lg:text-xs font-normal leading-normal line-clamp-2">
                         {transaction.category} {transaction.isRecurring && '(Recorrente)'}
                       </p>
                       <p className="text-white/50 text-xs font-normal leading-normal">
@@ -1584,7 +1591,7 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <p className={`text-base font-semibold leading-normal ${
+                    <p className={`text-base lg:text-sm font-semibold leading-normal ${
                       transaction.type === 'income' ? 'text-green-300' : 'text-red-300'
                     }`}>
                       {formatCurrency(transaction.type === 'expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount))}
@@ -1650,7 +1657,7 @@ const Dashboard: React.FC = () => {
             
             {/* Navegação de páginas - CORRIGIDO: Botões para frente e volta */}
             {(hasMoreTransactions || transactionsPage > 1) && (
-              <div className="px-4 py-3">
+              <div className="px-4 lg:px-0 py-3">
                 <div className="flex gap-3 justify-center">
                   {transactionsPage > 1 && (
                     <button
@@ -1676,9 +1683,10 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
             )}
+            </div>{/* Fim do grid de transações desktop */}
           </div>
         ) : (
-          <div className="px-4">
+          <div className="px-4 lg:px-0">
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8 hover:bg-white/15 transition-colors duration-300">
               <div className="flex flex-col items-center justify-center">
                 <p className="text-white/70 mb-4">Nenhuma transação encontrada</p>
@@ -1687,6 +1695,110 @@ const Dashboard: React.FC = () => {
           </div>
         );
       })()}
+      </div>{/* Fim da coluna principal */}
+      
+      {/* Sidebar Desktop - Resumo e Gráficos */}
+      <div className="hidden lg:block lg:col-span-1 space-y-4">
+        {/* Card de Resumo Mensal */}
+        <div 
+          className="rounded-2xl p-5"
+          style={{
+            background: 'rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.15)'
+          }}
+        >
+          <h3 className="text-white font-semibold text-lg mb-4">Resumo do Mês</h3>
+          
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'rgba(46, 204, 113, 0.15)' }}>
+              <div className="flex items-center gap-3">
+                <TrendingUp size={20} className="text-green-400" />
+                <span className="text-white/80 text-sm">Entradas</span>
+              </div>
+              <span className="text-green-400 font-semibold">{formatCurrency(totalIncomes)}</span>
+            </div>
+            
+            <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'rgba(231, 76, 60, 0.15)' }}>
+              <div className="flex items-center gap-3">
+                <TrendingDown size={20} className="text-red-400" />
+                <span className="text-white/80 text-sm">Saídas</span>
+              </div>
+              <span className="text-red-400 font-semibold">{formatCurrency(totalExpenses)}</span>
+            </div>
+            
+            <div className="h-px bg-white/10 my-2"></div>
+            
+            <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'rgba(59, 130, 246, 0.15)' }}>
+              <div className="flex items-center gap-3">
+                <DollarSign size={20} className="text-blue-400" />
+                <span className="text-white/80 text-sm">Balanço</span>
+              </div>
+              <span className={`font-semibold ${totalIncomes - totalExpenses >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {formatCurrency(totalIncomes - totalExpenses)}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Card de Ações Rápidas Desktop */}
+        <div 
+          className="rounded-2xl p-5"
+          style={{
+            background: 'rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.15)'
+          }}
+        >
+          <h3 className="text-white font-semibold text-lg mb-4">Ações Rápidas</h3>
+          
+          <div className="space-y-2">
+            <button 
+              onClick={() => navigate('/analise-financeira')}
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left"
+            >
+              <Brain size={18} />
+              <span className="text-sm">Ver Análise IA</span>
+            </button>
+            
+            <button 
+              onClick={() => navigate('/bills')}
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left"
+            >
+              <FileText size={18} />
+              <span className="text-sm">Gerenciar Contas</span>
+            </button>
+            
+            <button 
+              onClick={() => navigate('/financial-advisor')}
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left"
+            >
+              <Lightbulb size={18} />
+              <span className="text-sm">Consultar Stater IA</span>
+            </button>
+          </div>
+        </div>
+        
+        {/* Telegram Status Desktop */}
+        {isTelegramLinked && (
+          <div 
+            className="rounded-2xl p-4"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0, 136, 204, 0.2), rgba(0, 116, 179, 0.1))',
+              border: '1px solid rgba(0, 136, 204, 0.3)'
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm" style={{ background: 'linear-gradient(135deg, #0088cc, #0074b3)' }}>TG</div>
+              <div>
+                <p className="text-white text-sm font-medium">Telegram Conectado</p>
+                <p className="text-white/60 text-xs">@{telegramInfo?.username || 'usuário'}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      </div>{/* Fim do grid desktop */}
       
       {/* O NavBar foi movido para o PersistentLayout.tsx */}
       

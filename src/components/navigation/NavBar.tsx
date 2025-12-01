@@ -119,6 +119,9 @@ const NavBar: React.FC = () => {
     const body = document.body;
     const root = document.getElementById('root');
     
+    // Verificar se é desktop (1024px+)
+    const isDesktop = window.innerWidth >= 1024;
+    
     // Garantir que a navbar sempre seja fixa
     if (html) {
       html.style.transform = 'none';
@@ -129,14 +132,26 @@ const NavBar: React.FC = () => {
       body.style.overscrollBehavior = 'none';
       body.style.overflowX = 'hidden';
       // ADICIONADO: Padding bottom para compensar navbar fixa (72px + safe area)
-      body.style.paddingBottom = '80px';
+      // Apenas no mobile - no desktop não precisa pois usamos sidebar
+      body.style.paddingBottom = isDesktop ? '0px' : '80px';
     }
     if (root) {
       root.style.transform = 'none';
     }
     
+    // Atualizar ao redimensionar
+    const handleResize = () => {
+      const isDesktopNow = window.innerWidth >= 1024;
+      if (body) {
+        body.style.paddingBottom = isDesktopNow ? '0px' : '80px';
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
     // Cleanup ao desmontar
     return () => {
+      window.removeEventListener('resize', handleResize);
       if (body) {
         body.style.paddingBottom = '';
       }
@@ -205,8 +220,9 @@ const NavBar: React.FC = () => {
   }, [navItems, throttledPathname, handleNavigation, preloadOnHover]);
 
   // ALTERADO: Remover portal e renderizar diretamente com classe fixa garantida
+  // lg:hidden para ocultar no desktop (sidebar assume a navegação)
   return (
-    <nav className={`navbar-optimized navbar-fixed-bottom ${isScrolling ? 'navbar-scrolling' : ''}`}>
+    <nav className={`navbar-optimized navbar-fixed-bottom lg:hidden ${isScrolling ? 'navbar-scrolling' : ''}`}>
       <div className="navbar-content">
         {memoizedNavItems}
       </div>

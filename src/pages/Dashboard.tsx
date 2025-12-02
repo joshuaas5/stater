@@ -1752,7 +1752,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
         
-        {/* Card de Ações Rápidas Desktop */}
+        {/* Card de Funcionalidades Desktop */}
         <div 
           className="rounded-2xl p-5"
           style={{
@@ -1761,31 +1761,59 @@ const Dashboard: React.FC = () => {
             border: '1px solid rgba(255,255,255,0.15)'
           }}
         >
-          <h3 className="text-white font-semibold text-lg mb-4">Ações Rápidas</h3>
+          <h3 className="text-white font-semibold text-lg mb-4">Funcionalidades</h3>
           
           <div className="space-y-2">
             <button 
               onClick={() => navigate('/analise-financeira')}
-              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left"
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left group"
             >
-              <Brain size={18} />
-              <span className="text-sm">Ver Análise IA</span>
+              <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">
+                <Brain size={16} className="text-purple-400" />
+              </div>
+              <div className="flex-1">
+                <span className="text-sm font-medium block">Análise IA</span>
+                <span className="text-xs text-white/50">Insights automáticos</span>
+              </div>
             </button>
             
             <button 
               onClick={() => navigate('/bills')}
-              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left"
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left group"
             >
-              <FileText size={18} />
-              <span className="text-sm">Gerenciar Contas</span>
+              <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
+                <FileText size={16} className="text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <span className="text-sm font-medium block">Contas a Pagar</span>
+                <span className="text-xs text-white/50">Gerencie vencimentos</span>
+              </div>
             </button>
             
             <button 
               onClick={() => navigate('/financial-advisor')}
-              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left"
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left group"
             >
-              <Lightbulb size={18} />
-              <span className="text-sm">Consultar Stater IA</span>
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center group-hover:bg-amber-500/30 transition-colors">
+                <Lightbulb size={16} className="text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <span className="text-sm font-medium block">Stater IA</span>
+                <span className="text-xs text-white/50">Tire dúvidas financeiras</span>
+              </div>
+            </button>
+
+            <button 
+              onClick={() => navigate('/charts')}
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center group-hover:bg-emerald-500/30 transition-colors">
+                <TrendingUp size={16} className="text-emerald-400" />
+              </div>
+              <div className="flex-1">
+                <span className="text-sm font-medium block">Gráficos</span>
+                <span className="text-xs text-white/50">Visualize seus gastos</span>
+              </div>
             </button>
           </div>
         </div>

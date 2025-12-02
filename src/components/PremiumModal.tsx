@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, Crown, Check, Sparkles, Shield, CreditCard, Infinity, Camera, FileText, Bot, TrendingUp, Loader2, AlertTriangle, Mail, XCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Crown, Check, Sparkles, Shield, CreditCard, Infinity, Camera, FileText, Bot, TrendingUp, Loader2, AlertTriangle, Mail, XCircle, Mic, PieChart, Bell, Zap } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { STRIPE_PRICE_PRO } from '@/lib/stripe';
@@ -10,11 +10,19 @@ interface PremiumModalProps {
 }
 
 /**
- * 💎 Modal PRO Premium - Design Apple/Spotify
+ * 💎 Modal PRO Premium - Design Responsivo (Desktop horizontal, Mobile vertical)
  */
 export default function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
   const [loading, setLoading] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const { user } = useAuth();
+
+  useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 1024);
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   if (!isOpen) return null;
 
@@ -58,13 +66,295 @@ export default function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
   };
 
   const features = [
-    { icon: <Infinity size={18} />, text: '50 mensagens IA/dia', color: '#a78bfa' },
-    { icon: <Camera size={18} />, text: 'Scanner de notas e recibos', color: '#f472b6' },
-    { icon: <FileText size={18} />, text: 'Leitura de PDFs', color: '#60a5fa' },
-    { icon: <Bot size={18} />, text: 'Bot Telegram integrado', color: '#34d399' },
-    { icon: <TrendingUp size={18} />, text: 'Relatórios avançados', color: '#fbbf24' },
+    { icon: <Infinity size={20} />, text: '50 mensagens IA/dia', description: 'Consulte a IA ilimitadamente', color: '#a78bfa' },
+    { icon: <Camera size={20} />, text: 'Scanner de notas', description: 'Extraia dados de recibos', color: '#f472b6' },
+    { icon: <FileText size={20} />, text: 'Leitura de PDFs', description: 'Importe extratos bancários', color: '#60a5fa' },
+    { icon: <Bot size={20} />, text: 'Bot Telegram', description: 'Registre gastos pelo chat', color: '#34d399' },
+    { icon: <TrendingUp size={20} />, text: 'Relatórios avançados', description: 'Análises detalhadas', color: '#fbbf24' },
   ];
 
+  // Layout Desktop - Horizontal sem scroll
+  if (isDesktop) {
+    return (
+      <>
+        {/* Overlay */}
+        <div 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99998,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(12px)',
+          }}
+          onClick={onClose}
+        />
+
+        {/* Modal Desktop - Layout Horizontal */}
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '900px',
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%)',
+              borderRadius: '24px',
+              overflow: 'hidden',
+              boxShadow: '0 0 80px rgba(139, 92, 246, 0.25)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              display: 'flex',
+              position: 'relative',
+            }}
+          >
+            {/* Gradient glow */}
+            <div style={{
+              position: 'absolute',
+              top: '-50%',
+              left: '-20%',
+              width: '60%',
+              height: '200%',
+              background: 'radial-gradient(ellipse, rgba(139, 92, 246, 0.15) 0%, transparent 60%)',
+              pointerEvents: 'none',
+            }} />
+
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                zIndex: 10,
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+            >
+              <X style={{ width: '18px', height: '18px', color: 'rgba(255, 255, 255, 0.6)' }} />
+            </button>
+
+            {/* Lado Esquerdo - Branding e Features */}
+            <div style={{ 
+              flex: '1', 
+              padding: '40px', 
+              display: 'flex', 
+              flexDirection: 'column',
+              justifyContent: 'center',
+              position: 'relative',
+            }}>
+              {/* PRO Badge */}
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 16px',
+                borderRadius: '100px',
+                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(236, 72, 153, 0.3) 100%)',
+                border: '1px solid rgba(139, 92, 246, 0.4)',
+                marginBottom: '20px',
+                width: 'fit-content',
+              }}>
+                <Crown style={{ width: '16px', height: '16px', color: '#c4b5fd' }} />
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#e9d5ff', letterSpacing: '1.5px' }}>STATER PRO</span>
+              </div>
+
+              {/* Title */}
+              <h2 style={{
+                fontSize: '32px',
+                fontWeight: 800,
+                color: '#ffffff',
+                marginBottom: '12px',
+                lineHeight: 1.2,
+              }}>
+                Desbloqueie o poder<br />completo da IA
+              </h2>
+              <p style={{ fontSize: '15px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '28px' }}>
+                Ferramentas avançadas para sua gestão financeira
+              </p>
+
+              {/* Features Grid - 2 colunas */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {features.map((feature, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '12px',
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(255, 255, 255, 0.05)',
+                    }}
+                  >
+                    <div style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
+                      background: `${feature.color}20`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: feature.color,
+                      flexShrink: 0,
+                    }}>
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)', display: 'block' }}>
+                        {feature.text}
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.4)' }}>
+                        {feature.description}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Lado Direito - Preço e CTA */}
+            <div style={{
+              width: '320px',
+              padding: '40px 32px',
+              background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%)',
+              borderLeft: '1px solid rgba(255, 255, 255, 0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}>
+              {/* Sparkle icon */}
+              <div style={{
+                width: '64px',
+                height: '64px',
+                margin: '0 auto 24px',
+                borderRadius: '20px',
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 16px 48px rgba(139, 92, 246, 0.4)',
+              }}>
+                <Sparkles style={{ width: '28px', height: '28px', color: '#fff' }} />
+              </div>
+
+              {/* Best seller badge */}
+              <div style={{
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#fff',
+                letterSpacing: '0.5px',
+                textAlign: 'center',
+                marginBottom: '20px',
+                width: 'fit-content',
+                margin: '0 auto 20px',
+              }}>
+                ⭐ MAIS POPULAR
+              </div>
+
+              {/* Price */}
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '2px' }}>
+                  <span style={{ fontSize: '16px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: 500 }}>R$</span>
+                  <span style={{ fontSize: '52px', fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-2px' }}>14</span>
+                  <span style={{ fontSize: '24px', fontWeight: 700, color: '#fff' }}>,90</span>
+                </div>
+                <span style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.4)' }}>/mês</span>
+              </div>
+
+              {/* CTA Button */}
+              <button
+                onClick={handleSubscribe}
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  borderRadius: '14px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                  color: '#fff',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.7 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  boxShadow: '0 12px 40px rgba(139, 92, 246, 0.4)',
+                  marginBottom: '16px',
+                }}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 style={{ width: '20px', height: '20px', animation: 'spin 1s linear infinite' }} />
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles style={{ width: '20px', height: '20px' }} />
+                    Assinar PRO
+                  </>
+                )}
+              </button>
+
+              {/* Trust badges */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255, 255, 255, 0.4)', fontSize: '11px' }}>
+                  <Shield style={{ width: '14px', height: '14px' }} />
+                  <span>Seguro</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255, 255, 255, 0.4)', fontSize: '11px' }}>
+                  <CreditCard style={{ width: '14px', height: '14px' }} />
+                  <span>Stripe</span>
+                </div>
+              </div>
+
+              <p style={{ textAlign: 'center', fontSize: '12px', color: 'rgba(255, 255, 255, 0.35)', marginBottom: '12px' }}>
+                Cancele quando quiser
+              </p>
+
+              {/* Skip button */}
+              <button
+                onClick={onClose}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.35)',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  padding: '8px',
+                }}
+              >
+                Continuar grátis →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      </>
+    );
+  }
+
+  // Layout Mobile - Vertical (original)
   return (
     <>
       {/* Overlay */}
@@ -80,7 +370,7 @@ export default function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
         onClick={onClose}
       />
 
-      {/* Modal */}
+      {/* Modal Mobile */}
       <div
         style={{
           position: 'fixed',
@@ -95,262 +385,220 @@ export default function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
         <div
           style={{
             width: '100%',
-            maxWidth: '420px',
+            maxWidth: '400px',
             background: 'linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%)',
-            borderRadius: '32px',
+            borderRadius: '28px',
             overflow: 'hidden',
-            boxShadow: '0 0 100px rgba(139, 92, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.2)',
+            boxShadow: '0 0 80px rgba(139, 92, 246, 0.3)',
             border: '1px solid rgba(139, 92, 246, 0.2)',
             position: 'relative',
-            maxHeight: '90vh',
+            maxHeight: '85vh',
             overflowY: 'auto',
           }}
         >
           {/* Gradient glow top */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '-100px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '400px',
-              height: '200px',
-              background: 'radial-gradient(ellipse, rgba(139, 92, 246, 0.4) 0%, transparent 70%)',
-              pointerEvents: 'none',
-            }}
-          />
+          <div style={{
+            position: 'absolute',
+            top: '-80px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '300px',
+            height: '160px',
+            background: 'radial-gradient(ellipse, rgba(139, 92, 246, 0.4) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
 
           {/* Close button */}
           <button
             onClick={onClose}
             style={{
               position: 'absolute',
-              top: '16px',
-              right: '16px',
+              top: '14px',
+              right: '14px',
               zIndex: 10,
-              width: '40px',
-              height: '40px',
+              width: '36px',
+              height: '36px',
               borderRadius: '50%',
               background: 'rgba(255, 255, 255, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              border: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              transition: 'all 0.2s',
             }}
           >
-            <X style={{ width: '20px', height: '20px', color: 'rgba(255, 255, 255, 0.6)' }} />
+            <X style={{ width: '18px', height: '18px', color: 'rgba(255, 255, 255, 0.6)' }} />
           </button>
 
           {/* Header */}
-          <div style={{ padding: '48px 24px 28px', textAlign: 'center', position: 'relative' }}>
-            {/* PRO Badge */}
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '10px 20px',
-                borderRadius: '100px',
-                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(236, 72, 153, 0.3) 100%)',
-                border: '1px solid rgba(139, 92, 246, 0.4)',
-                marginBottom: '28px',
-              }}
-            >
-              <Crown style={{ width: '18px', height: '18px', color: '#c4b5fd' }} />
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#e9d5ff', letterSpacing: '2px' }}>
-                STATER PRO
-              </span>
+          <div style={{ padding: '40px 24px 24px', textAlign: 'center', position: 'relative' }}>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 16px',
+              borderRadius: '100px',
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(236, 72, 153, 0.3) 100%)',
+              border: '1px solid rgba(139, 92, 246, 0.4)',
+              marginBottom: '20px',
+            }}>
+              <Crown style={{ width: '16px', height: '16px', color: '#c4b5fd' }} />
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#e9d5ff', letterSpacing: '1.5px' }}>STATER PRO</span>
             </div>
 
-            {/* Main Icon */}
-            <div
-              style={{
-                width: '80px',
-                height: '80px',
-                margin: '0 auto 24px',
-                borderRadius: '24px',
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 20px 60px rgba(139, 92, 246, 0.5)',
-              }}
-            >
-              <Sparkles style={{ width: '36px', height: '36px', color: '#fff' }} />
+            <div style={{
+              width: '64px',
+              height: '64px',
+              margin: '0 auto 20px',
+              borderRadius: '20px',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 16px 48px rgba(139, 92, 246, 0.5)',
+            }}>
+              <Sparkles style={{ width: '28px', height: '28px', color: '#fff' }} />
             </div>
 
-            {/* Title */}
-            <h2
-              style={{
-                fontSize: '32px',
-                fontWeight: 800,
-                color: '#ffffff',
-                marginBottom: '10px',
-                letterSpacing: '-0.5px',
-                lineHeight: 1.2,
-              }}
-            >
+            <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#ffffff', marginBottom: '8px', lineHeight: 1.2 }}>
               Desbloqueie todo o<br />poder da IA
             </h2>
-            <p style={{ fontSize: '16px', color: 'rgba(255, 255, 255, 0.5)', margin: 0 }}>
-              Sua gestão financeira no próximo nível
+            <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.5)', margin: 0 }}>
+              Gestão financeira no próximo nível
             </p>
           </div>
 
-          {/* Price Card */}
-          <div style={{ padding: '0 24px 24px' }}>
-            <div
-              style={{
-                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(236, 72, 153, 0.15) 100%)',
-                borderRadius: '24px',
-                padding: '28px',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-            >
-              {/* Best seller badge */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '16px',
-                  right: '16px',
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: '#fff',
-                  letterSpacing: '0.5px',
-                }}
-              >
-                ⭐ MAIS POPULAR
+          {/* Price */}
+          <div style={{ padding: '0 24px 20px' }}>
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.1) 100%)',
+              borderRadius: '20px',
+              padding: '24px',
+              border: '1px solid rgba(139, 92, 246, 0.25)',
+              position: 'relative',
+              textAlign: 'center',
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                padding: '5px 10px',
+                borderRadius: '6px',
+                fontSize: '10px',
+                fontWeight: 700,
+                color: '#fff',
+              }}>
+                ⭐ POPULAR
               </div>
-
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px', marginTop: '8px' }}>
-                <span style={{ fontSize: '20px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: 500 }}>R$</span>
-                <span style={{ fontSize: '64px', fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-2px' }}>14</span>
-                <span style={{ fontSize: '28px', fontWeight: 700, color: '#fff' }}>,90</span>
-                <span style={{ fontSize: '16px', color: 'rgba(255, 255, 255, 0.4)', marginLeft: '6px' }}>/mês</span>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '2px', marginTop: '8px' }}>
+                <span style={{ fontSize: '16px', color: 'rgba(255, 255, 255, 0.5)' }}>R$</span>
+                <span style={{ fontSize: '48px', fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-2px' }}>14</span>
+                <span style={{ fontSize: '20px', fontWeight: 700, color: '#fff' }}>,90</span>
+                <span style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.4)', marginLeft: '4px' }}>/mês</span>
               </div>
-
-              <p style={{ textAlign: 'center', fontSize: '14px', color: 'rgba(255, 255, 255, 0.4)', marginTop: '16px' }}>
-                Cancele quando quiser • Sem surpresas
+              <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.4)', marginTop: '12px' }}>
+                Cancele quando quiser
               </p>
             </div>
           </div>
 
           {/* Features */}
-          <div style={{ padding: '0 24px 28px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ padding: '0 24px 24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {features.map((feature, idx) => (
                 <div
                   key={idx}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '14px',
-                    padding: '16px 18px',
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    gap: '12px',
+                    padding: '12px 14px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
                   }}
                 >
-                  <div
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '12px',
-                      background: `${feature.color}20`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: feature.color,
-                      flexShrink: 0,
-                    }}
-                  >
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: `${feature.color}20`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: feature.color,
+                    flexShrink: 0,
+                  }}>
                     {feature.icon}
                   </div>
-                  <span style={{ flex: 1, fontSize: '15px', fontWeight: 500, color: 'rgba(255, 255, 255, 0.85)' }}>
+                  <span style={{ flex: 1, fontSize: '14px', fontWeight: 500, color: 'rgba(255, 255, 255, 0.85)' }}>
                     {feature.text}
                   </span>
-                  <Check style={{ width: '20px', height: '20px', color: '#10b981' }} />
+                  <Check style={{ width: '18px', height: '18px', color: '#10b981' }} />
                 </div>
               ))}
             </div>
           </div>
 
-          {/* CTA Button */}
-          <div style={{ padding: '0 24px 20px' }}>
+          {/* CTA */}
+          <div style={{ padding: '0 24px 16px' }}>
             <button
               onClick={handleSubscribe}
               disabled={loading}
               style={{
                 width: '100%',
-                padding: '20px 24px',
-                borderRadius: '18px',
+                padding: '18px',
+                borderRadius: '16px',
                 border: 'none',
                 background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
                 color: '#fff',
-                fontSize: '18px',
+                fontSize: '17px',
                 fontWeight: 700,
                 cursor: loading ? 'not-allowed' : 'pointer',
                 opacity: loading ? 0.7 : 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '12px',
-                boxShadow: '0 15px 50px rgba(139, 92, 246, 0.4)',
-                transition: 'all 0.2s',
+                gap: '10px',
+                boxShadow: '0 12px 40px rgba(139, 92, 246, 0.4)',
               }}
             >
               {loading ? (
                 <>
-                  <Loader2 style={{ width: '22px', height: '22px', animation: 'spin 1s linear infinite' }} />
+                  <Loader2 style={{ width: '20px', height: '20px', animation: 'spin 1s linear infinite' }} />
                   Processando...
                 </>
               ) : (
                 <>
-                  <Sparkles style={{ width: '22px', height: '22px' }} />
+                  <Sparkles style={{ width: '20px', height: '20px' }} />
                   Assinar PRO agora
                 </>
               )}
             </button>
           </div>
 
-          {/* Trust badges */}
-          <div
-            style={{
-              padding: '16px 24px 24px',
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '32px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255, 255, 255, 0.4)', fontSize: '13px' }}>
-              <Shield style={{ width: '16px', height: '16px' }} />
-              <span>Pagamento seguro</span>
+          {/* Trust + Skip */}
+          <div style={{ padding: '0 24px 28px', textAlign: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255, 255, 255, 0.4)', fontSize: '12px' }}>
+                <Shield style={{ width: '14px', height: '14px' }} />
+                <span>Pagamento seguro</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255, 255, 255, 0.4)', fontSize: '12px' }}>
+                <CreditCard style={{ width: '14px', height: '14px' }} />
+                <span>Via Stripe</span>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255, 255, 255, 0.4)', fontSize: '13px' }}>
-              <CreditCard style={{ width: '16px', height: '16px' }} />
-              <span>Via Stripe</span>
-            </div>
-          </div>
-
-          {/* Skip button */}
-          <div style={{ padding: '0 24px 36px', textAlign: 'center' }}>
             <button
               onClick={onClose}
               style={{
                 background: 'none',
                 border: 'none',
                 color: 'rgba(255, 255, 255, 0.35)',
-                fontSize: '15px',
+                fontSize: '14px',
                 cursor: 'pointer',
-                padding: '10px 20px',
-                transition: 'color 0.2s',
+                padding: '8px 16px',
               }}
             >
               Continuar com plano gratuito →
@@ -359,13 +607,7 @@ export default function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
         </div>
       </div>
 
-      {/* Keyframes for spinner */}
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </>
   );
 }

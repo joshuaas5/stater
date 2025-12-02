@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency } from '@/utils/dataProcessing';
-import { TrendingDown, Target, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 export const ProjectedBalanceCard = () => {
   const { user } = useAuth();
@@ -40,58 +40,43 @@ export const ProjectedBalanceCard = () => {
   }, [user]);
 
   if (loading || !data) return null;
+  
+  // Don't show if no pending bills
+  if (data.pending_bills === 0) return null;
 
   const isPositive = data.projected_balance >= 0;
-  const projectionColor = isPositive ? 'text-emerald-400' : 'text-red-400';
 
   return (
-    <div className="px-8 mb-6 lg:px-0">
+    <div className="px-8 mb-4 lg:px-0">
       <div 
-        className="rounded-2xl p-4 relative overflow-hidden transition-all duration-300 hover:bg-white/10"
+        className="flex items-center justify-between py-2.5 px-4 rounded-xl"
         style={{
-          background: 'rgba(255,255,255,0.05)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.1)'
+          background: isPositive 
+            ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))'
+            : 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05))',
+          border: `1px solid ${isPositive ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`
         }}
       >
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Target size={16} className="text-white/70" />
-            <span className="text-white/70 text-sm font-medium uppercase tracking-wider">Saldo Projetado (Fim do Mês)</span>
-          </div>
-          {isPositive ? (
-            <CheckCircle2 size={18} className="text-emerald-400" />
-          ) : (
-            <AlertCircle size={18} className="text-red-400" />
-          )}
-        </div>
-
-        <div className="flex items-baseline gap-3">
-          <span className={`text-2xl font-bold ${projectionColor}`}>
-            {formatCurrency(data.projected_balance)}
-          </span>
-          <span className="text-white/40 text-xs">
-            (Atual: {formatCurrency(data.current_balance)})
-          </span>
-        </div>
-
-        <div className="mt-3 pt-3 border-t border-white/10 flex justify-between items-center text-xs">
-          <div className="flex items-center gap-1.5 text-red-300/80">
-            <TrendingDown size={12} />
-            <span>Contas Pendentes: {formatCurrency(data.pending_bills)}</span>
-          </div>
-        </div>
-        
-        {/* Progress Bar Visual */}
-        <div className="mt-3 h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+        <div className="flex items-center gap-3">
           <div 
-            className={`h-full rounded-full ${isPositive ? 'bg-emerald-500' : 'bg-red-500'}`}
-            style={{ 
-              width: '100%',
-              opacity: 0.6
-            }}
+            className={`w-2 h-2 rounded-full ${isPositive ? 'bg-emerald-400' : 'bg-red-400'}`}
+            style={{ boxShadow: `0 0 8px ${isPositive ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'}` }}
           />
+          <div className="flex flex-col">
+            <span className="text-white/60 text-[10px] uppercase tracking-wider leading-none">
+              Projeção fim do mês
+            </span>
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <span className={`text-base font-bold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                {formatCurrency(data.projected_balance)}
+              </span>
+              <span className="text-white/30 text-[10px]">
+                (-{formatCurrency(data.pending_bills)} pendente)
+              </span>
+            </div>
+          </div>
         </div>
+        <ChevronRight size={16} className="text-white/30" />
       </div>
     </div>
   );

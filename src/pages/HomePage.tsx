@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Mic, Camera, PieChart, Bell, Sparkles, Check, ArrowRight, Shield, Zap, 
   Smartphone, CreditCard, Lock, Calendar, Brain, TrendingUp, Bot, FileText,
-  LayoutDashboard, ChevronRight, Star, Users, Clock, Infinity, MessageCircle
+  LayoutDashboard, Infinity, MessageCircle
 } from 'lucide-react';
 
 const HomePage: React.FC = () => {
@@ -55,7 +55,7 @@ const HomePage: React.FC = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="text-emerald-300 text-xs sm:text-sm font-medium">+5.000 usuários organizando suas finanças</span>
+            <span className="text-emerald-300 text-xs sm:text-sm font-medium">100% gratuito para começar</span>
           </div>
           
           {/* Headline */}
@@ -215,7 +215,7 @@ const HomePage: React.FC = () => {
               )}
             </div>
 
-            {/* Visual Side - Mock Interface */}
+            {/* Visual Side - Screenshots Reais */}
             <div className={`transition-all duration-500 ${activeMode === 'simples' ? 'order-2' : 'order-2 lg:order-1'}`}>
               <div className="relative">
                 <div className={`absolute -inset-4 rounded-3xl blur-3xl opacity-30 ${
@@ -223,89 +223,71 @@ const HomePage: React.FC = () => {
                 }`}></div>
                 
                 {activeMode === 'simples' ? (
-                  /* Mobile Mock */
+                  /* Screenshot Mobile - Modo Simples */
                   <div className="relative mx-auto w-[280px] sm:w-[320px]">
                     <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[40px] p-3 border border-white/10 shadow-2xl">
-                      <div className="bg-slate-950 rounded-[32px] overflow-hidden">
-                        {/* Status Bar */}
-                        <div className="h-8 bg-slate-900 flex items-center justify-center">
-                          <div className="w-20 h-5 bg-slate-800 rounded-full"></div>
-                        </div>
-                        {/* App Content */}
-                        <div className="p-4 space-y-4">
-                          <div className="text-center py-4">
-                            <p className="text-xs text-white/40 mb-1">Saldo do mês</p>
-                            <p className="text-3xl font-bold text-white">R$ 2.450<span className="text-lg">,00</span></p>
-                          </div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-emerald-500/20 rounded-xl p-3 text-center">
-                              <p className="text-emerald-400 text-xs">Entradas</p>
-                              <p className="text-emerald-300 font-bold">+ R$ 5.200</p>
-                            </div>
-                            <div className="bg-red-500/20 rounded-xl p-3 text-center">
-                              <p className="text-red-400 text-xs">Saídas</p>
-                              <p className="text-red-300 font-bold">- R$ 2.750</p>
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            {[
-                              { name: 'Mercado', value: '-R$ 280', color: 'bg-orange-500' },
-                              { name: 'Aluguel', value: '-R$ 1.500', color: 'bg-blue-500' },
-                            ].map((item, i) => (
-                              <div key={i} className="flex items-center gap-3 bg-white/5 rounded-xl p-3">
-                                <div className={`w-8 h-8 ${item.color} rounded-lg`}></div>
-                                <span className="flex-1 text-sm text-white/80">{item.name}</span>
-                                <span className="text-sm font-medium text-white">{item.value}</span>
+                      <div className="rounded-[32px] overflow-hidden">
+                        <img 
+                          src="/screenshots/modo-simples.png" 
+                          alt="Stater - Modo Simples" 
+                          className="w-full h-auto"
+                          onError={(e) => {
+                            // Fallback se a imagem não existir
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.parentElement!.innerHTML = `
+                              <div class="bg-slate-950 p-4 space-y-4" style="min-height: 400px;">
+                                <div class="text-center py-4">
+                                  <p class="text-xs text-white/40 mb-1">Saldo do mês</p>
+                                  <p class="text-3xl font-bold text-white">R$ 2.450<span class="text-lg">,00</span></p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                  <div class="bg-emerald-500/20 rounded-xl p-3 text-center">
+                                    <p class="text-emerald-400 text-xs">Entradas</p>
+                                    <p class="text-emerald-300 font-bold">+ R$ 5.200</p>
+                                  </div>
+                                  <div class="bg-red-500/20 rounded-xl p-3 text-center">
+                                    <p class="text-red-400 text-xs">Saídas</p>
+                                    <p class="text-red-300 font-bold">- R$ 2.750</p>
+                                  </div>
+                                </div>
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                        {/* Bottom Nav */}
-                        <div className="h-16 bg-slate-900 border-t border-white/5 flex items-center justify-around px-6">
-                          <div className="w-6 h-6 rounded-full bg-blue-500"></div>
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
-                            <span className="text-xl font-bold">+</span>
-                          </div>
-                          <div className="w-6 h-6 rounded-full bg-white/20"></div>
-                        </div>
+                            `;
+                          }}
+                        />
                       </div>
                     </div>
                   </div>
                 ) : (
-                  /* Desktop Mock */
-                  <div className="relative bg-slate-900 rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
-                    <div className="flex">
-                      {/* Sidebar */}
-                      <div className="w-16 sm:w-20 bg-slate-800/50 border-r border-white/5 py-4 flex flex-col items-center gap-3">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-xl"></div>
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/10 rounded-lg"></div>
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/10 rounded-lg"></div>
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/10 rounded-lg"></div>
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-500/50 rounded-lg mt-auto"></div>
-                      </div>
-                      {/* Main Content */}
-                      <div className="flex-1 p-4 sm:p-6">
-                        <div className="flex gap-4 mb-4">
-                          <div className="flex-1 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl p-4 border border-white/10">
-                            <p className="text-xs text-white/50 mb-1">Saldo Total</p>
-                            <p className="text-xl sm:text-2xl font-bold">R$ 12.450,00</p>
+                  /* Screenshot Desktop - Modo Completo */
+                  <div className="relative rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+                    <img 
+                      src="/screenshots/modo-completo.png" 
+                      alt="Stater - Modo Completo" 
+                      className="w-full h-auto"
+                      onError={(e) => {
+                        // Fallback se a imagem não existir
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.parentElement!.innerHTML = `
+                          <div class="bg-slate-900 flex" style="min-height: 300px;">
+                            <div class="w-16 sm:w-20 bg-slate-800/50 border-r border-white/5 py-4 flex flex-col items-center gap-3">
+                              <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-xl"></div>
+                              <div class="w-6 h-6 sm:w-8 sm:h-8 bg-white/10 rounded-lg"></div>
+                              <div class="w-6 h-6 sm:w-8 sm:h-8 bg-white/10 rounded-lg"></div>
+                            </div>
+                            <div class="flex-1 p-4 sm:p-6">
+                              <div class="flex gap-4 mb-4">
+                                <div class="flex-1 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl p-4 border border-white/10">
+                                  <p class="text-xs text-white/50 mb-1">Saldo Total</p>
+                                  <p class="text-xl sm:text-2xl font-bold text-white">R$ 12.450,00</p>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex-1 bg-white/5 rounded-xl p-4 border border-white/10">
-                            <p className="text-xs text-white/50 mb-1">Economia do Mês</p>
-                            <p className="text-xl sm:text-2xl font-bold text-emerald-400">+18%</p>
-                          </div>
-                        </div>
-                        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                          <div className="flex items-center gap-2 mb-3">
-                            <Brain className="w-4 h-4 text-purple-400" />
-                            <span className="text-sm font-medium">Consultor IA</span>
-                          </div>
-                          <div className="bg-purple-500/10 rounded-lg p-3 text-sm text-white/70">
-                            "Você economizou R$ 340 esse mês reduzindo gastos com delivery. Continue assim!"
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                        `;
+                      }}
+                    />
                   </div>
                 )}
               </div>
@@ -428,48 +410,6 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ========== SOCIAL PROOF ========== */}
-      <section className="relative z-10 py-16 sm:py-20 px-4 sm:px-6">
-        <div className="max-w-5xl mx-auto">
-          
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-1 mb-3">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-              ))}
-            </div>
-            <p className="text-white/60 text-sm">Avaliação média dos nossos usuários</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { name: 'Maria Silva', text: 'Finalmente consigo ver para onde vai meu dinheiro! A IA ajuda demais.', role: 'Empreendedora' },
-              { name: 'João Pedro', text: 'O modo simples é perfeito pro dia a dia. Sem frescura, só funciona.', role: 'Desenvolvedor' },
-              { name: 'Ana Costa', text: 'Nunca mais esqueci uma conta. Os lembretes por email salvaram minha vida.', role: 'Designer' },
-            ].map((testimonial, i) => (
-              <div key={i} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-white/70 mb-4 leading-relaxed">"{testimonial.text}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-bold text-sm">
-                    {testimonial.name.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm">{testimonial.name}</p>
-                    <p className="text-white/40 text-xs">{testimonial.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-        </div>
-      </section>
-
       {/* ========== FINAL CTA ========== */}
       <section className="relative z-10 py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto text-center">
@@ -485,9 +425,6 @@ const HomePage: React.FC = () => {
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </Link>
-          <p className="text-white/30 text-sm mt-6">
-            Junte-se a mais de 5.000 pessoas organizando suas finanças
-          </p>
         </div>
       </section>
 

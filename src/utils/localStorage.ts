@@ -761,10 +761,31 @@ export const mapSupabaseToBill = (data: any): Bill => {
   };
 };
 
-// Salvar uma conta a pagar no Supabase
+// Tracker para evitar salvar o mesmo bill múltiplas vezes
+const billSaveTracker = new Map<string, number>(); // billId -> timestamp
+const BILL_SAVE_DEBOUNCE_MS = 2000; // 2 segundos de debounce
+
+// Salvar uma conta a pagar no Supabase (com debounce)
 export const saveSupabaseBill = async (bill: Bill): Promise<{ data: any, error: any }> => {
   const user = getCurrentUser();
   if (!user) return { data: null, error: "Usuário não autenticado" };
+  
+  // Debounce: ignorar se já salvou este bill recentemente
+  const lastSave = billSaveTracker.get(bill.id);
+  const now = Date.now();
+  if (lastSave && now - lastSave < BILL_SAVE_DEBOUNCE_MS) {
+    console.log(`⏳ [DEBOUNCE] Ignorando salvamento de "${bill.title}" - já salvou há ${now - lastSave}ms`);
+    return { data: null, error: null };
+  }
+  billSaveTracker.set(bill.id, now);
+  
+  // Limpar tracker antigo (evitar memory leak)
+  if (billSaveTracker.size > 100) {
+    const cutoff = now - 60000; // Remove entradas mais antigas que 1 minuto
+    for (const [id, timestamp] of billSaveTracker.entries()) {
+      if (timestamp < cutoff) billSaveTracker.delete(id);
+    }
+  }
   
   try {
     // Verificar se o usuário está autenticado no Supabase
@@ -784,13 +805,12 @@ export const saveSupabaseBill = async (bill: Bill): Promise<{ data: any, error: 
     const supabaseBill = mapBillToSupabase(bill, user.id);
     
     // Registrar a tentativa de salvamento
-    console.log(`Tentando salvar conta no Supabase: ${bill.title} (ID: ${bill.id})`);
-    console.log('Dados enviados:', JSON.stringify(supabaseBill));
+    console.log(`💾 Salvando conta no Supabase: ${bill.title} (ID: ${bill.id})`);
     
-    // Salvar no Supabase
+    // Usar UPSERT em vez de INSERT para evitar conflitos
     const { data, error } = await supabase
       .from('bills')
-      .insert(supabaseBill)
+      .upsert(supabaseBill, { onConflict: 'id' })
       .select()
       .single();
     

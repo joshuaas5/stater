@@ -1,27 +1,54 @@
 ﻿// src/pages/FinancialAnalysisPage.tsx
-import React, { Suspense, lazy, Component, ErrorInfo, ReactNode } from 'react';
+import React, { Suspense, lazy, Component, ErrorInfo, ReactNode, useState, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from '@/components/ui/card';
-import { Brain, Target, BookOpen, Loader2, TrendingUp, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Brain, Target, BookOpen, Loader2, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react';
 import FinancialAnalysisGate from '@/components/monetization/FinancialAnalysisGate';
 
-// Lazy load dos componentes pesados
-const ModernCharts = lazy(() => import('@/components/dashboard/ModernCharts'));
-const ScientificFinancialHealth = lazy(() => import('@/components/dashboard/ScientificFinancialHealth'));
-const FinancialInsights = lazy(() => import('@/components/dashboard/FinancialInsights'));
-const BookOfTheWeek = lazy(() => import('@/components/personal_analysis/BookOfTheWeek'));
+// Lazy load com retry para evitar problemas de cache em produção
+const lazyWithRetry = <T extends React.ComponentType<unknown>>(
+  componentImport: () => Promise<{ default: T }>
+): React.LazyExoticComponent<T> =>
+  lazy(async () => {
+    const pageHasAlreadyBeenForceRefreshed = JSON.parse(
+      window.sessionStorage.getItem('page-has-been-force-refreshed') || 'false'
+    );
 
-// Error Boundary Component
+    try {
+      const component = await componentImport();
+      window.sessionStorage.setItem('page-has-been-force-refreshed', 'false');
+      return component;
+    } catch (error) {
+      if (!pageHasAlreadyBeenForceRefreshed) {
+        // Cache bust - força reload sem cache
+        window.sessionStorage.setItem('page-has-been-force-refreshed', 'true');
+        console.warn('Module loading failed, forcing page refresh...', error);
+        window.location.reload();
+      }
+      throw error;
+    }
+  });
+
+// Lazy load dos componentes pesados com retry automático
+const ModernCharts = lazyWithRetry(() => import('@/components/dashboard/ModernCharts'));
+const ScientificFinancialHealth = lazyWithRetry(() => import('@/components/dashboard/ScientificFinancialHealth'));
+const FinancialInsights = lazyWithRetry(() => import('@/components/dashboard/FinancialInsights'));
+const BookOfTheWeek = lazyWithRetry(() => import('@/components/personal_analysis/BookOfTheWeek'));
+
+// Error Boundary Component with Retry
 interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
 }
 
-class ComponentErrorBoundary extends Component<
-  { children: ReactNode; fallback?: ReactNode },
-  ErrorBoundaryState
-> {
-  constructor(props: { children: ReactNode; fallback?: ReactNode }) {
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+class ComponentErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
@@ -34,16 +61,31 @@ class ComponentErrorBoundary extends Component<
     console.error('ComponentErrorBoundary caught an error:', error, errorInfo);
   }
 
+  handleRetry = () => {
+    // Limpa o flag de refresh e força reload da página
+    window.sessionStorage.removeItem('page-has-been-force-refreshed');
+    window.location.reload();
+  };
+
   render() {
     if (this.state.hasError) {
       return this.props.fallback || (
         <Card className="bg-white dark:bg-gray-800 border-red-200 dark:border-red-700">
-          <CardContent className="flex items-center justify-center h-32 p-4">
+          <CardContent className="flex items-center justify-center min-h-[120px] p-4">
             <div className="flex flex-col items-center gap-3 text-center">
               <AlertCircle className="h-6 w-6 text-red-500" />
               <p className="text-sm text-red-600 dark:text-red-400">
                 Erro ao carregar componente
               </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={this.handleRetry}
+                className="flex items-center gap-2 mt-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Tentar Novamente
+              </Button>
             </div>
           </CardContent>
         </Card>

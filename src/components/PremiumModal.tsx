@@ -14,12 +14,15 @@ interface PremiumModalProps {
  */
 export default function PremiumModal({ isOpen, onClose }: PremiumModalProps) {
   const [loading, setLoading] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
+  // Inicializa com o valor correto para evitar flash
+  const [isDesktop, setIsDesktop] = useState(() => 
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : false
+  );
   const { user } = useAuth();
 
   useEffect(() => {
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 1024);
-    checkDesktop();
+    // Não precisa chamar checkDesktop() aqui pois já inicializamos corretamente
     window.addEventListener('resize', checkDesktop);
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);

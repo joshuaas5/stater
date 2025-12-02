@@ -41,18 +41,15 @@ const HomePage: React.FC = () => {
             </div>
             <div className="flex flex-col">
               <span 
-                className="text-xl sm:text-2xl tracking-tight leading-tight"
+                className="text-2xl sm:text-3xl uppercase tracking-wide"
                 style={{ 
-                  fontFamily: "'Fredoka One', 'Inter', system-ui, sans-serif",
-                  fontWeight: 400,
-                  background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 50%, #2563EB 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  textShadow: '0 0 30px rgba(59, 130, 246, 0.3)'
+                  fontFamily: "'Fredoka One', 'Comic Sans MS', Poppins, sans-serif",
+                  letterSpacing: '2px',
+                  color: '#ffffff',
+                  textShadow: '#3B82F6 2px 2px 0px, #1D4ED8 4px 4px 0px'
                 }}
               >
-                STATER
+                Stater
               </span>
               <span className="text-[10px] sm:text-xs text-blue-300/60 font-medium tracking-wide hidden sm:block">
                 Inteligência para prosperar
@@ -483,18 +480,15 @@ const HomePage: React.FC = () => {
               <div className="flex items-center gap-3 mb-3">
                 <img src="/stater-logo-96.png" alt="Stater" className="w-10 h-10 rounded-xl shadow-lg" />
                 <span 
-                  className="text-2xl"
+                  className="text-2xl uppercase tracking-wide"
                   style={{ 
-                    fontFamily: "'Fredoka One', 'Inter', system-ui, sans-serif",
-                    fontWeight: 400,
-                    background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 50%, #2563EB 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    textShadow: '0 0 30px rgba(59, 130, 246, 0.3)'
+                    fontFamily: "'Fredoka One', 'Comic Sans MS', Poppins, sans-serif",
+                    letterSpacing: '2px',
+                    color: '#ffffff',
+                    textShadow: '#3B82F6 2px 2px 0px, #1D4ED8 4px 4px 0px'
                   }}
                 >
-                  STATER
+                  Stater
                 </span>
               </div>
               <p className="text-white/40 text-sm text-center md:text-left max-w-xs">

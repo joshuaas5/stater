@@ -235,7 +235,7 @@ function drawSummaryCard(
   width: number,
   height: number,
   color: [number, number, number],
-  icon?: string
+  symbol?: string
 ): void {
   // Sombra sutil
   doc.setFillColor(0, 0, 0, 0.05);
@@ -250,23 +250,29 @@ function drawSummaryCard(
   doc.roundedRect(x, y, 4, height, 3, 3, 'F');
   doc.rect(x + 2, y, 2, height, 'F');
   
-  // Ícone (emoji)
-  if (icon) {
-    doc.setFontSize(14);
-    doc.text(icon, x + 10, y + 13);
+  // Circulo com simbolo
+  if (symbol) {
+    // Circulo de fundo
+    doc.setFillColor(color[0], color[1], color[2]);
+    doc.circle(x + 14, y + height / 2, 6, 'F');
+    // Simbolo dentro
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text(symbol, x + 12, y + height / 2 + 2);
   }
   
   // Label
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_SECONDARY));
-  doc.text(label, x + (icon ? 22 : 10), y + 10);
+  doc.text(label, x + (symbol ? 24 : 10), y + 10);
   
   // Valor
   doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(color[0], color[1], color[2]);
-  doc.text(value, x + (icon ? 22 : 10), y + 20);
+  doc.text(value, x + (symbol ? 24 : 10), y + 20);
 }
 
 // Função principal para gerar o PDF premium
@@ -296,7 +302,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   try {
     doc.addImage(STATER_LOGO_BASE64, 'SVG', margin, 8, 20, 20);
   } catch {
-    // Fallback: círculo com S
+    // Fallback: circulo com S
     doc.setFillColor(255, 255, 255);
     doc.circle(margin + 10, 18, 9, 'F');
     doc.setFontSize(14);
@@ -305,23 +311,23 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     doc.text('S', margin + 7, 21);
   }
   
-  // Título principal
+  // Titulo principal
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(255, 255, 255);
-  doc.text('RELATÓRIO FINANCEIRO', margin + 28, 16);
+  doc.text('RELATORIO FINANCEIRO', margin + 28, 16);
   
-  // Subtítulo
+  // Subtitulo
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(255, 255, 255);
-  doc.text(`${BRAND_INFO.name} • ${BRAND_INFO.slogan}`, margin + 28, 24);
+  doc.text('Stater - Inteligencia para prosperar', margin + 28, 24);
   
-  // Informações do relatório (lado direito)
+  // Informacoes do relatorio (lado direito)
   doc.setFontSize(8);
   const periodText = `${formatDateBR(data.startDate)} a ${formatDateBR(data.endDate)}`;
-  doc.text(`Período: ${periodText}`, pageWidth - margin, 12, { align: 'right' });
-  doc.text(`Usuário: ${data.userName || 'N/A'}`, pageWidth - margin, 19, { align: 'right' });
+  doc.text(`Periodo: ${periodText}`, pageWidth - margin, 12, { align: 'right' });
+  doc.text(`Usuario: ${data.userName || 'N/A'}`, pageWidth - margin, 19, { align: 'right' });
   doc.text(`Gerado: ${formatDateFull(new Date())}`, pageWidth - margin, 26, { align: 'right' });
   
   y = headerHeight + 10;
@@ -334,20 +340,20 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   drawSummaryCard(
     doc, 'Receitas', formatCurrency(data.incomeTotal),
     margin, y, cardWidth, cardHeight,
-    hexToRGB(BRAND_COLORS.SUCCESS), '💰'
+    hexToRGB(BRAND_COLORS.SUCCESS), '+'
   );
   
   drawSummaryCard(
     doc, 'Despesas', formatCurrency(data.expenseTotal),
     margin + cardWidth + 6, y, cardWidth, cardHeight,
-    hexToRGB(BRAND_COLORS.DANGER), '💸'
+    hexToRGB(BRAND_COLORS.DANGER), '-'
   );
   
   drawSummaryCard(
     doc, 'Saldo', formatCurrency(data.balance),
     margin + (cardWidth + 6) * 2, y, cardWidth, cardHeight,
     data.balance >= 0 ? hexToRGB(BRAND_COLORS.PRIMARY) : hexToRGB(BRAND_COLORS.DANGER),
-    data.balance >= 0 ? '📈' : '📉'
+    '='
   );
   
   y += cardHeight + 12;
@@ -360,7 +366,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(255, 255, 255);
-  doc.text('📥  ' + REPORT_SECTIONS.income, margin + 5, y + 6.5);
+  doc.text(REPORT_SECTIONS.income, margin + 5, y + 6.5);
   y += 13;
   
   if (data.incomeTransactions.length > 0) {
@@ -383,14 +389,14 @@ export function generateEnhancedPDF(data: ReportData): Blob {
       isExpense: false
     });
     
-    // Distribuição por categoria
+    // Distribuicao por categoria
     const incomeDistribution = calculateCategoryDistribution(data.incomeTransactions);
     if (incomeDistribution.length > 0) {
       y += 6;
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_PRIMARY));
-      doc.text('📊 ' + REPORT_SECTIONS.incomeByCategory, margin, y + 3);
+      doc.text(REPORT_SECTIONS.incomeByCategory, margin, y + 3);
       y += 8;
       y = drawChartBars(doc, incomeDistribution, margin, y, contentWidth);
     }
@@ -398,15 +404,15 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_SECONDARY));
-    doc.text('Nenhuma receita registrada no período.', margin, y + 4);
+    doc.text('Nenhuma receita registrada no periodo.', margin, y + 4);
     y += 10;
   }
   
   y += 10;
   
-  // ========== SEÇÃO: DESPESAS ==========
+  // ========== SECAO: DESPESAS ==========
   
-  // Verificar espaço na página
+  // Verificar espaco na pagina
   if (y + 60 > pageHeight - 30) {
     doc.addPage();
     y = margin;
@@ -417,7 +423,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(255, 255, 255);
-  doc.text('📤  ' + REPORT_SECTIONS.expenses, margin + 5, y + 6.5);
+  doc.text(REPORT_SECTIONS.expenses, margin + 5, y + 6.5);
   y += 13;
   
   if (data.expenseTransactions.length > 0) {
@@ -439,14 +445,14 @@ export function generateEnhancedPDF(data: ReportData): Blob {
       isExpense: true
     });
     
-    // Distribuição por categoria
+    // Distribuicao por categoria
     const expenseDistribution = calculateCategoryDistribution(data.expenseTransactions);
     if (expenseDistribution.length > 0) {
       y += 6;
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_PRIMARY));
-      doc.text('📊 ' + REPORT_SECTIONS.expensesByCategory, margin, y + 3);
+      doc.text(REPORT_SECTIONS.expensesByCategory, margin, y + 3);
       y += 8;
       y = drawChartBars(doc, expenseDistribution, margin, y, contentWidth);
     }
@@ -454,7 +460,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_SECONDARY));
-    doc.text('Nenhuma despesa registrada no período.', margin, y + 4);
+    doc.text('Nenhuma despesa registrada no periodo.', margin, y + 4);
     y += 10;
   }
   
@@ -473,18 +479,18 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(255, 255, 255);
-    doc.text('📋  ' + REPORT_SECTIONS.bills, margin + 5, y + 6.5);
+    doc.text(REPORT_SECTIONS.bills, margin + 5, y + 6.5);
     y += 13;
     
     const billRows = data.bills.map(b => {
       const installmentInfo = b.totalInstallments && b.currentInstallment 
         ? `${b.currentInstallment}/${b.totalInstallments}` 
-        : b.isRecurring ? '♻️' : '-';
+        : b.isRecurring ? 'Rec.' : '-';
       
       return [
         formatDateBR(b.dueDate),
         b.title,
-        b.isPaid ? '✅ Paga' : '⏳ Pendente',
+        b.isPaid ? 'Paga' : 'Pendente',
         installmentInfo,
         formatCurrency(b.amount)
       ];
@@ -518,12 +524,11 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   doc.roundedRect(margin, y, 4, 24, 3, 3, 'F');
   doc.rect(margin + 2, y, 2, 24, 'F');
   
-  // Ícone e título
+  // Titulo da dica
   doc.setFontSize(10);
-  doc.text('💡', margin + 10, y + 10);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...hexToRGB(BRAND_COLORS.PRIMARY));
-  doc.text(REPORT_SECTIONS.tip, margin + 20, y + 10);
+  doc.text(REPORT_SECTIONS.tip, margin + 10, y + 10);
   
   // Texto da dica
   doc.setFontSize(9);
@@ -556,7 +561,7 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     // Direita - CTA
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...hexToRGB(BRAND_COLORS.PRIMARY));
-    doc.text(`🌐 ${BRAND_INFO.website}`, pageWidth - margin, pageHeight - 8, { align: 'right' });
+    doc.text(BRAND_INFO.website, pageWidth - margin, pageHeight - 8, { align: 'right' });
   }
 
   return doc.output('blob');

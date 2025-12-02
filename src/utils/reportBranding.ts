@@ -68,7 +68,8 @@ export const BRAND_COLORS = {
 
 // Informações da marca
 export const BRAND_INFO = {
-  name: 'STATER',
+  name: 'Stater',
+  nameCaps: 'STATER', // Para títulos quando necessário em caps
   slogan: 'Inteligência para prosperar',
   website: 'stater.app',
   email: 'stater@stater.app',
@@ -179,28 +180,28 @@ export function hexToRGB(hex: string): [number, number, number] {
 
 // Componentes de texto do cabeçalho do relatório
 export const REPORT_HEADER = {
-  title: 'RELATÓRIO FINANCEIRO',
-  subtitle: 'Gerado por STATER',
-  poweredBy: 'Powered by STATER - Inteligência para prosperar',
+  title: 'RELATORIO FINANCEIRO',
+  subtitle: 'Gerado por Stater',
+  poweredBy: 'Powered by Stater - Inteligencia para prosperar',
 };
 
 // Componentes de texto do rodapé do relatório
 export const REPORT_FOOTER = {
   confidential: 'Documento confidencial - Uso pessoal',
-  generated: 'Gerado automaticamente pelo STATER',
-  cta: 'Organize suas finanças em stater.app',
+  generated: 'Gerado automaticamente pelo Stater',
+  cta: 'Organize suas financas em stater.app',
 };
 
 // Nomes das seções do relatório
 export const REPORT_SECTIONS = {
   summary: 'RESUMO FINANCEIRO',
   income: 'RECEITAS',
-  incomeByCategory: 'RECEITAS POR CATEGORIA',
+  incomeByCategory: 'Receitas por Categoria',
   expenses: 'DESPESAS',
-  expensesByCategory: 'DESPESAS POR CATEGORIA',
+  expensesByCategory: 'Despesas por Categoria',
   bills: 'CONTAS A PAGAR/RECEBER',
   tip: 'DICA FINANCEIRA',
-  projection: 'PROJEÇÃO',
+  projection: 'PROJECAO',
 };
 
 // Status de contas

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, DollarSign, Tag, Calendar, Repeat, Save, Trash2, ArrowRight, ChevronDown, Search } from 'lucide-react';
 import { Transaction, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
 import './TransactionModal.css';
@@ -243,7 +244,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
   const hasErrors = Object.keys(errors).length > 0 || Object.values(errors).some(err => !!err);
 
-  return (
+  const modalContent = (
     <div 
       className="fixed inset-0 flex items-center justify-center p-4 lg:p-8 transaction-modal"
       style={{
@@ -739,4 +740,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       </div>
     </div>
   );
+
+  // Renderizar no body via portal para evitar problemas de layout no desktop
+  return createPortal(modalContent, document.body);
 };

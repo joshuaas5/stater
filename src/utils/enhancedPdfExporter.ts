@@ -234,8 +234,7 @@ function drawSummaryCard(
   y: number,
   width: number,
   height: number,
-  color: [number, number, number],
-  symbol?: string
+  color: [number, number, number]
 ): void {
   // Sombra sutil
   doc.setFillColor(0, 0, 0, 0.05);
@@ -250,29 +249,17 @@ function drawSummaryCard(
   doc.roundedRect(x, y, 4, height, 3, 3, 'F');
   doc.rect(x + 2, y, 2, height, 'F');
   
-  // Circulo com simbolo
-  if (symbol) {
-    // Circulo de fundo
-    doc.setFillColor(color[0], color[1], color[2]);
-    doc.circle(x + 14, y + height / 2, 6, 'F');
-    // Simbolo dentro
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255);
-    doc.text(symbol, x + 12, y + height / 2 + 2);
-  }
-  
   // Label
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_SECONDARY));
-  doc.text(label, x + (symbol ? 24 : 10), y + 10);
+  doc.text(label, x + 10, y + 10);
   
   // Valor
   doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(color[0], color[1], color[2]);
-  doc.text(value, x + (symbol ? 24 : 10), y + 20);
+  doc.text(value, x + 10, y + 20);
 }
 
 // Função principal para gerar o PDF premium
@@ -298,18 +285,9 @@ export function generateEnhancedPDF(data: ReportData): Blob {
     doc.rect(0, (headerHeight / gradientSteps) * i, pageWidth, headerHeight / gradientSteps + 0.5, 'F');
   }
   
-  // Logo
-  try {
-    doc.addImage(STATER_LOGO_BASE64, 'SVG', margin, 8, 20, 20);
-  } catch {
-    // Fallback: circulo com S
-    doc.setFillColor(255, 255, 255);
-    doc.circle(margin + 10, 18, 9, 'F');
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...hexToRGB(BRAND_COLORS.PRIMARY));
-    doc.text('S', margin + 7, 21);
-  }
+  // Logo - apenas circulo branco (sem texto para evitar bugs de fonte)
+  doc.setFillColor(255, 255, 255);
+  doc.circle(margin + 10, 18, 9, 'F');
   
   // Titulo principal
   doc.setFontSize(20);
@@ -340,20 +318,19 @@ export function generateEnhancedPDF(data: ReportData): Blob {
   drawSummaryCard(
     doc, 'Receitas', formatCurrency(data.incomeTotal),
     margin, y, cardWidth, cardHeight,
-    hexToRGB(BRAND_COLORS.SUCCESS), '+'
+    hexToRGB(BRAND_COLORS.SUCCESS)
   );
   
   drawSummaryCard(
     doc, 'Despesas', formatCurrency(data.expenseTotal),
     margin + cardWidth + 6, y, cardWidth, cardHeight,
-    hexToRGB(BRAND_COLORS.DANGER), '-'
+    hexToRGB(BRAND_COLORS.DANGER)
   );
   
   drawSummaryCard(
     doc, 'Saldo', formatCurrency(data.balance),
     margin + (cardWidth + 6) * 2, y, cardWidth, cardHeight,
-    data.balance >= 0 ? hexToRGB(BRAND_COLORS.PRIMARY) : hexToRGB(BRAND_COLORS.DANGER),
-    '='
+    data.balance >= 0 ? hexToRGB(BRAND_COLORS.PRIMARY) : hexToRGB(BRAND_COLORS.DANGER)
   );
   
   y += cardHeight + 12;

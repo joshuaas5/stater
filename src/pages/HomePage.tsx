@@ -261,67 +261,22 @@ const HomePage: React.FC = () => {
                   /* Screenshot Mobile - Modo Simples */
                   <div className="relative mx-auto w-[280px] sm:w-[320px]">
                     <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[40px] p-3 border border-white/10 shadow-2xl">
-                      <div className="rounded-[32px] overflow-hidden">
+                      <div className="rounded-[32px] overflow-hidden bg-slate-950" style={{ minHeight: '400px' }}>
                         <img 
                           src="/screenshots/modo-simples.png" 
                           alt="Stater - Modo Simples" 
                           className="w-full h-auto"
-                          onError={(e) => {
-                            // Fallback se a imagem não existir
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            target.parentElement!.innerHTML = `
-                              <div class="bg-slate-950 p-4 space-y-4" style="min-height: 400px;">
-                                <div class="text-center py-4">
-                                  <p class="text-xs text-white/40 mb-1">Saldo do mês</p>
-                                  <p class="text-3xl font-bold text-white">R$ 2.450<span class="text-lg">,00</span></p>
-                                </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                  <div class="bg-emerald-500/20 rounded-xl p-3 text-center">
-                                    <p class="text-emerald-400 text-xs">Entradas</p>
-                                    <p class="text-emerald-300 font-bold">+ R$ 5.200</p>
-                                  </div>
-                                  <div class="bg-red-500/20 rounded-xl p-3 text-center">
-                                    <p class="text-red-400 text-xs">Saídas</p>
-                                    <p class="text-red-300 font-bold">- R$ 2.750</p>
-                                  </div>
-                                </div>
-                              </div>
-                            `;
-                          }}
                         />
                       </div>
                     </div>
                   </div>
                 ) : (
                   /* Screenshot Desktop - Modo Completo */
-                  <div className="relative rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+                  <div className="relative rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-slate-900" style={{ minHeight: '300px' }}>
                     <img 
                       src="/screenshots/modo-completo.png" 
                       alt="Stater - Modo Completo" 
                       className="w-full h-auto"
-                      onError={(e) => {
-                        // Fallback se a imagem não existir
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        target.parentElement!.innerHTML = `
-                          <div class="bg-slate-900 flex" style="min-height: 300px;">
-                            <div class="w-16 sm:w-20 bg-slate-800/50 border-r border-white/5 py-4 flex flex-col items-center gap-3">
-                              <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-xl"></div>
-                              <div class="w-6 h-6 sm:w-8 sm:h-8 bg-white/10 rounded-lg"></div>
-                              <div class="w-6 h-6 sm:w-8 sm:h-8 bg-white/10 rounded-lg"></div>
-                            </div>
-                            <div class="flex-1 p-4 sm:p-6">
-                              <div class="flex gap-4 mb-4">
-                                <div class="flex-1 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl p-4 border border-white/10">
-                                  <p class="text-xs text-white/50 mb-1">Saldo Total</p>
-                                  <p class="text-xl sm:text-2xl font-bold text-white">R$ 12.450,00</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        `;
-                      }}
                     />
                   </div>
                 )}

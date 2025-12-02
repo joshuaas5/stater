@@ -102,23 +102,32 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         if (onOpenImportModal) {
           onOpenImportModal();
         } else {
-          // Dispara evento global para abrir modal
           window.dispatchEvent(new CustomEvent('open-import-modal'));
         }
       },
-      color: '#ec4899'
+      color: '#ec4899',
+      description: 'PDF, CSV, OFX'
     },
     {
       icon: Calendar,
       label: 'Recorrentes',
       action: () => navigate('/recurring'),
-      color: '#06b6d4'
+      color: '#06b6d4',
+      description: 'Automatize gastos'
     },
     {
       icon: Target,
       label: 'Metas',
       action: () => navigate('/goals'),
-      color: '#f59e0b'
+      color: '#f59e0b',
+      description: 'Objetivos financeiros'
+    },
+    {
+      icon: PieChart,
+      label: 'Relatórios',
+      action: () => navigate('/dashboard'),
+      color: '#8b5cf6',
+      description: 'Gráficos detalhados'
     }
   ];
 
@@ -246,14 +255,18 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
           })}
         </div>
 
-        {/* Quick Actions */}
+        {/* Funcionalidades */}
         <div className="mt-6 pt-4 border-t" style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}>
           {!isCollapsed && (
-            <span className="px-3 text-[10px] uppercase tracking-wider text-white/40 font-semibold">
-              Ações Rápidas
-            </span>
+            <div className="px-3 mb-3 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-400 to-purple-400"></div>
+              <span className="text-[11px] uppercase tracking-wider text-white/50 font-semibold">
+                Funcionalidades
+              </span>
+              <div className="flex-1 h-px bg-gradient-to-r from-white/10 to-transparent"></div>
+            </div>
           )}
-          <div className="mt-2 space-y-1">
+          <div className="space-y-1.5">
             {quickActions.map((action, idx) => {
               const Icon = action.icon;
               return (
@@ -261,27 +274,40 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                   key={idx}
                   onClick={action.action}
                   className={`
-                    w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-                    transition-all duration-200 hover:scale-[1.02]
+                    w-full flex items-center gap-3 px-3 py-2 rounded-xl
+                    transition-all duration-200 hover:scale-[1.02] group
                     ${isCollapsed ? 'justify-center' : ''}
                   `}
                   style={{
-                    background: `linear-gradient(135deg, ${action.color}25, ${action.color}10)`,
-                    border: `1px solid ${action.color}40`
+                    background: `linear-gradient(135deg, ${action.color}15, transparent)`,
+                    border: `1px solid ${action.color}20`
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = `linear-gradient(135deg, ${action.color}30, ${action.color}10)`;
+                    e.currentTarget.style.borderColor = `${action.color}50`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = `linear-gradient(135deg, ${action.color}15, transparent)`;
+                    e.currentTarget.style.borderColor = `${action.color}20`;
                   }}
                 >
                   <div 
-                    className="w-9 h-9 rounded-lg flex items-center justify-center"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
                     style={{
                       background: `linear-gradient(135deg, ${action.color}, ${action.color}cc)`
                     }}
                   >
-                    <Icon size={18} className="text-white" />
+                    <Icon size={16} className="text-white" />
                   </div>
                   {!isCollapsed && (
-                    <span className="text-sm font-medium text-white/90">
-                      {action.label}
-                    </span>
+                    <div className="flex-1 text-left">
+                      <span className="text-sm font-medium text-white/90 block leading-tight">
+                        {action.label}
+                      </span>
+                      <span className="text-[10px] text-white/40">
+                        {action.description}
+                      </span>
+                    </div>
                   )}
                 </button>
               );

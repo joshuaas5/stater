@@ -377,7 +377,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 {results.some(r => r.type === 'action') && (
                   <div className="mb-2">
                     <p className="px-3 py-1 text-[10px] uppercase tracking-wider text-white/40 font-semibold">
-                      Ações Rápidas
+                      Funcionalidades
                     </p>
                     {results.filter(r => r.type === 'action').map((result) => {
                       const globalIdx = results.indexOf(result);

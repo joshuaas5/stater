@@ -43,15 +43,15 @@ const HomePage: React.FC = () => {
               <span 
                 className="text-xl sm:text-2xl tracking-tight leading-tight"
                 style={{ 
-                  fontFamily: "'Poppins', 'Inter', system-ui, sans-serif",
-                  fontWeight: 700,
+                  fontFamily: "'Fredoka One', 'Inter', system-ui, sans-serif",
+                  fontWeight: 400,
                   background: 'linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text'
                 }}
               >
-                Stater
+                STATER
               </span>
               <span className="text-[10px] sm:text-xs text-blue-300/60 font-medium tracking-wide hidden sm:block">
                 Inteligência Financeira
@@ -92,7 +92,7 @@ const HomePage: React.FC = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="text-emerald-300 text-xs sm:text-sm font-medium">100% gratuito para começar</span>
+            <span className="text-emerald-300 text-xs sm:text-sm font-medium">Gratuito para começar</span>
           </div>
           
           {/* Headline */}
@@ -484,15 +484,15 @@ const HomePage: React.FC = () => {
                 <span 
                   className="text-2xl"
                   style={{ 
-                    fontFamily: "'Poppins', 'Inter', system-ui, sans-serif",
-                    fontWeight: 700,
+                    fontFamily: "'Fredoka One', 'Inter', system-ui, sans-serif",
+                    fontWeight: 400,
                     background: 'linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text'
                   }}
                 >
-                  Stater
+                  STATER
                 </span>
               </div>
               <p className="text-white/40 text-sm text-center md:text-left max-w-xs">

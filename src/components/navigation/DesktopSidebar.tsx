@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -9,15 +9,90 @@ import {
   ChevronLeft,
   ChevronRight,
   Upload,
-  BookOpen,
   Sparkles,
   Monitor,
   Smartphone,
   Calendar,
   PieChart,
-  Target
+  Target,
+  Quote
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
+
+// Banco de frases motivacionais sobre inteligência financeira
+const FINANCIAL_QUOTES = [
+  { text: "O dinheiro que você guarda hoje é a liberdade de amanhã.", author: "Warren Buffett" },
+  { text: "Não é sobre quanto você ganha, mas quanto você mantém.", author: "Robert Kiyosaki" },
+  { text: "Quem não controla seu dinheiro, é controlado por ele.", author: "Dave Ramsey" },
+  { text: "A riqueza não é ter muito dinheiro, é ter muitas opções.", author: "Chris Rock" },
+  { text: "Gaste menos do que ganha. É simples assim.", author: "Thomas Stanley" },
+  { text: "Investir em conhecimento rende os melhores juros.", author: "Benjamin Franklin" },
+  { text: "O segredo da riqueza? Gastar menos do que recebe.", author: "Paul Getty" },
+  { text: "Planeje seus gastos ou seus gastos planejam você.", author: "Larry Burkett" },
+  { text: "Dinheiro é um excelente servo, mas um péssimo mestre.", author: "Francis Bacon" },
+  { text: "A educação financeira é o passaporte para a liberdade.", author: "Gustavo Cerbasi" },
+  { text: "Quem poupa na abundância, não passa necessidade na escassez.", author: "Provérbio Chinês" },
+  { text: "Organize suas finanças antes que elas organizem sua vida.", author: "Anônimo" },
+  { text: "O melhor momento para começar a poupar foi ontem. O segundo melhor é hoje.", author: "Provérbio" },
+  { text: "Disciplina financeira é escolher o que você quer mais sobre o que quer agora.", author: "Dave Ramsey" },
+  { text: "A liberdade financeira é disponível para aqueles que aprendem e trabalham por ela.", author: "Robert Kiyosaki" },
+  { text: "Cuide dos centavos e os reais cuidarão de si mesmos.", author: "Benjamin Franklin" },
+  { text: "Orçamento não é restrição, é direção.", author: "Dave Ramsey" },
+  { text: "Pequenos vazamentos afundam grandes navios.", author: "Benjamin Franklin" },
+  { text: "Não trabalhe pelo dinheiro. Faça o dinheiro trabalhar por você.", author: "Robert Kiyosaki" },
+  { text: "A melhor hora de plantar uma árvore foi há 20 anos. A segunda melhor é agora.", author: "Provérbio Chinês" },
+  { text: "O hábito de poupar é a base de toda fortuna.", author: "Andrew Carnegie" },
+  { text: "Fique longe de dívidas que compram depreciação.", author: "Mark Cuban" },
+  { text: "Enriquecer é um hábito. Empobrecer também.", author: "Thiago Nigro" },
+  { text: "Nunca gaste seu dinheiro antes de tê-lo.", author: "Thomas Jefferson" },
+  { text: "A paz financeira não é sobre acumular riqueza, mas eliminar preocupações.", author: "Suze Orman" },
+  { text: "Quem compra o que não precisa, vende o que precisa.", author: "Provérbio Árabe" },
+  { text: "Dinheiro guardado é dinheiro ganho duas vezes.", author: "Provérbio Italiano" },
+  { text: "O primeiro passo para a riqueza é saber quanto você gasta.", author: "Ramit Sethi" },
+  { text: "Sua situação financeira de amanhã é decidida pelas suas escolhas de hoje.", author: "Tony Robbins" },
+  { text: "A simplicidade é a sofisticação suprema - inclusive nas finanças.", author: "Leonardo da Vinci" }
+];
+
+// Componente de Frase Motivacional
+const FinancialQuote: React.FC = () => {
+  const [quoteIndex, setQuoteIndex] = useState(0);
+  
+  useEffect(() => {
+    // Muda a frase a cada 30 segundos
+    const interval = setInterval(() => {
+      setQuoteIndex(prev => (prev + 1) % FINANCIAL_QUOTES.length);
+    }, 30000);
+    
+    // Escolhe uma frase aleatória na montagem
+    setQuoteIndex(Math.floor(Math.random() * FINANCIAL_QUOTES.length));
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  const quote = FINANCIAL_QUOTES[quoteIndex];
+  
+  return (
+    <div 
+      className="mt-4 mx-2 p-3 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.02]"
+      onClick={() => setQuoteIndex(prev => (prev + 1) % FINANCIAL_QUOTES.length)}
+      style={{
+        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.1))',
+        border: '1px solid rgba(139, 92, 246, 0.25)'
+      }}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <Quote size={14} className="text-purple-400" />
+        <span className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Reflexão</span>
+      </div>
+      <p className="text-[11px] text-white/80 leading-relaxed italic mb-1.5">
+        "{quote.text}"
+      </p>
+      <p className="text-[10px] text-purple-300/70 font-medium">
+        — {quote.author}
+      </p>
+    </div>
+  );
+};
 
 // CSS para ocultar scrollbar completamente
 const sidebarStyles = `
@@ -125,9 +200,9 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
     {
       icon: PieChart,
       label: 'Relatórios',
-      action: () => navigate('/dashboard'),
+      action: () => navigate('/export-report'),
       color: '#8b5cf6',
-      description: 'Gráficos detalhados'
+      description: 'Exporte em PDF, CSV...'
     }
   ];
 
@@ -315,24 +390,8 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
           </div>
         </div>
 
-        {/* Book of the Week Mini */}
-        {!isCollapsed && (
-          <div 
-            className="mt-4 mx-2 p-3 rounded-xl"
-            style={{
-              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.1))',
-              border: '1px solid rgba(139, 92, 246, 0.3)'
-            }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <BookOpen size={16} className="text-purple-400" />
-              <span className="text-xs font-semibold text-white/80">Livro da Semana</span>
-            </div>
-            <p className="text-[11px] text-white/60 leading-relaxed">
-              Clique em Análise IA para ver a recomendação
-            </p>
-          </div>
-        )}
+        {/* Frase Motivacional */}
+        {!isCollapsed && <FinancialQuote />}
       </nav>
 
       {/* Bottom Section */}

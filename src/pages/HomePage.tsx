@@ -381,6 +381,79 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* ========== SCREENSHOTS GALERIA ========== */}
+      <section className="relative z-10 py-16 sm:py-24 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto">
+          
+          <div className="text-center mb-12 sm:mb-16">
+            <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-500/30 rounded-full px-4 py-1.5 mb-6">
+              <Camera className="w-4 h-4 text-blue-400" />
+              <span className="text-blue-300 text-sm font-medium">Veja na prática</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
+              O app em <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">ação</span>
+            </h2>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">
+              Interface moderna, intuitiva e poderosa. Confira como você vai controlar suas finanças.
+            </p>
+          </div>
+
+          {/* Screenshots Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {/* Screenshot 1 - Dashboard */}
+            <div className="group relative">
+              <div className="absolute -inset-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
+              <div className="relative bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
+                <img 
+                  src="/screenshots/dashboard.png" 
+                  alt="Dashboard - Visão geral das finanças" 
+                  className="w-full h-auto"
+                />
+                <div className="p-4">
+                  <h3 className="font-bold text-white mb-1">Dashboard Completo</h3>
+                  <p className="text-white/50 text-sm">Saldo, projeções e transações em uma única tela</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Screenshot 2 - Análise IA */}
+            <div className="group relative">
+              <div className="absolute -inset-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
+              <div className="relative bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
+                <img 
+                  src="/screenshots/analise-ia.png" 
+                  alt="Análise IA - Insights financeiros" 
+                  className="w-full h-auto"
+                />
+                <div className="p-4">
+                  <h3 className="font-bold text-white mb-1">Análise com IA</h3>
+                  <p className="text-white/50 text-sm">Insights personalizados sobre seus gastos</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Screenshot 3 - Contas a Pagar */}
+            <div className="group relative">
+              <div className="absolute -inset-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
+              <div className="relative bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
+                <img 
+                  src="/screenshots/contas.png" 
+                  alt="Contas a Pagar - Organize seus vencimentos" 
+                  className="w-full h-auto"
+                />
+                <div className="p-4">
+                  <h3 className="font-bold text-white mb-1">Contas a Pagar</h3>
+                  <p className="text-white/50 text-sm">Nunca esqueça um vencimento importante</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
       {/* ========== PRO SECTION ========== */}
       <section className="relative z-10 py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">

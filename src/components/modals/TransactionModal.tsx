@@ -245,7 +245,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 flex items-start justify-center p-4 pt-8 pb-24 transaction-modal"
+      className="fixed inset-0 flex items-center justify-center p-4 lg:p-8 transaction-modal"
       style={{
         zIndex: 9999,
         transform: 'translateZ(0)',
@@ -276,7 +276,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       
       {/* Modal */}
       <div 
-        className="relative w-full max-w-sm rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 max-h-[85vh] overflow-hidden transaction-modal-content"
+        className="relative w-full max-w-sm rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 transaction-modal-content"
         style={{
           background: '#31518b',
           border: '1px solid rgba(255, 255, 255, 0.18)',
@@ -285,12 +285,15 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           zIndex: 10000,
           position: 'relative',
           transform: 'translateZ(0)',
-          WebkitTransform: 'translateZ(0)'
+          WebkitTransform: 'translateZ(0)',
+          maxHeight: 'calc(100vh - 32px)',
+          display: 'flex',
+          flexDirection: 'column'
         }}
       >
         {/* Header */}
         <div 
-          className="px-5 py-4 border-b relative overflow-hidden"
+          className="px-5 py-4 border-b relative overflow-hidden flex-shrink-0"
           style={{
             background: 'transparent',
             borderColor: 'rgba(255, 255, 255, 0.18)',
@@ -344,9 +347,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
         {/* Content */}
         <div 
-          className="p-5 space-y-4 overflow-y-auto max-h-[calc(85vh-180px)] transaction-modal-scroll"
+          className="p-5 space-y-4 overflow-y-auto transaction-modal-scroll flex-1"
           style={{ 
             background: 'rgba(49, 81, 139, 0.95)', // Fundo azul sólido com leve transparência para melhor legibilidade
+            minHeight: 0, // Importante para flex scroll funcionar
           }}
         >
           {/* Descrição */}
@@ -680,7 +684,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
         {/* Footer */}
         <div 
-          className="p-5 border-t"
+          className="p-5 border-t flex-shrink-0"
           style={{
             background: 'rgba(255, 255, 255, 0.08)',
             backdropFilter: 'blur(40px) saturate(180%)',

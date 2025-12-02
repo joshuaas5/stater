@@ -200,7 +200,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
     {
       icon: PieChart,
       label: 'Relatórios',
-      action: () => navigate('/export-report'),
+      action: () => navigate('/export'),
       color: '#8b5cf6',
       description: 'Exporte em PDF, CSV...'
     }

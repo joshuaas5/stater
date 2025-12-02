@@ -240,8 +240,14 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         {!isCollapsed && (
           <div className="flex flex-col">
             <span 
-              className="text-xl font-bold text-white"
-              style={{ fontFamily: '"Fredoka One", sans-serif' }}
+              className="text-xl font-bold"
+              style={{ 
+                fontFamily: '"Fredoka One", sans-serif',
+                background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 50%, #2563EB 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}
             >
               STATER
             </span>

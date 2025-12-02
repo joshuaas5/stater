@@ -1,19 +1,16 @@
-import { Transaction, Bill, CardItem, EXPENSE_CATEGORIES } from '@/types';
+import { Transaction, Bill } from '@/types';
 import { getTransactions, getBills, getCurrentUser } from './localStorage';
 import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-// Importar o jsPDF configurado com autoTable
-import { createPdf } from './pdfUtils';
-// Importar o exportador de PDF ultra simples (nenhuma dependência)
-import { generateUltraSimplePDF } from './ultraSimplePdf';
-// Importar o exportador de PDF com gráfico
-import { generatePDFWithChart } from './pdfExporterWithChart';
-// Importar o novo exportador de PDF puro (sem dependências de autoTable)
-import { generatePurePDF } from './purePdfExporter';
-import { generateExtremelySafePDF } from './extremelySimplePdfExporter';
-import { generateXlsxLikePDF } from './pdfXlsxLikeExporter';
-// Importar o novo exportador de PDF aprimorado com layout similar ao Excel
+// Importar o exportador de PDF premium
 import { generateEnhancedPDF } from './enhancedPdfExporter';
+// Importar branding centralizado
+import { 
+  BRAND_INFO, 
+  BRAND_COLORS,
+  formatCurrency, 
+  formatDateBR as formatDate,
+  getRandomFinancialTip 
+} from './reportBranding';
 
 // Interface para a configuração de exportação
 export interface ExportConfig {
@@ -43,69 +40,6 @@ interface ReportData {
   startDate?: Date;
   endDate?: Date;
 }
-
-// Frases motivacionais sobre economia
-const financialTips = [
-  "Economize hoje para colher amahu00e3.",
-  "Poupar nu00e3o u00e9 deixar de viver, u00e9 garantir seu futuro.",
-  "Dinheiro economizado u00e9 dinheiro ganho.",
-  "Invista em vocu00ea: o melhor investimento que existe.",
-  "O segredo da independu00eancia financeira u00e9 gastar menos do que vocu00ea ganha.",
-  "Pequenas economias diu00e1rias trazem grandes resultados ao longo do tempo.",
-  "Planeje suas finanu00e7as hoje para realizar seus sonhos amahu00e3.",
-  "Seja o diretor financeiro da sua vida.",
-  "Economizar u00e9 um hu00e1bito que se constru00f3i dia apu00f3s dia.",
-  "A disciplina financeira de hoje u00e9 a liberdade de amahu00e3."
-];
-
-// Funu00e7u00e3o para obter uma frase motivacional aleatu00f3ria
-const getRandomFinancialTip = (): string => {
-  const randomIndex = Math.floor(Math.random() * financialTips.length);
-  return financialTips[randomIndex];
-};
-
-// Cores do tema Galileo (baseadas no CSS do aplicativo)
-const COLORS = {
-  // Cor principal do app (azul)
-  PRIMARY: '#4F87FF',        // --galileo-accent no modo claro (convertido de HSL)
-  PRIMARY_DARK: '#2D3849',   // --galileo-accent no modo escuro (convertido de HSL)
-  
-  // Cores de texto
-  TEXT: '#374151',           // --galileo-text no modo claro (convertido de HSL)
-  TEXT_SECONDARY: '#6B7280', // --galileo-secondaryText no modo claro (convertido de HSL)
-  
-  // Cores de fundo
-  BACKGROUND: '#FFFFFF',     // --galileo-background no modo claro
-  CARD: '#F8FAFC',           // --galileo-card no modo claro (convertido de HSL)
-  
-  // Cores semu00e2nticas
-  POSITIVE: '#2DE370',       // --galileo-positive (convertido de HSL)
-  NEGATIVE: '#FF4F56',       // --galileo-negative (convertido de HSL)
-  
-  // Cor de borda
-  BORDER: '#D1DBE8',         // --galileo-border no modo claro (convertido de HSL)
-  
-  // Cores adicionais para gru00e1ficos
-  CHART_COLORS: [
-    '#4F87FF', '#FF4F56', '#2DE370', '#FFB84F', '#8B5CF6', 
-    '#EC4899', '#14B8A6', '#F97316', '#A3E635', '#FCD34D'
-  ]
-};
-
-// Funu00e7u00e3o para formatar valores monetu00e1rios
-const formatCurrency = (value: number): string => {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-};
-
-// Funu00e7u00e3o para formatar datas (dd/mm/yyyy)
-const formatDate = (dateInput: Date | string | undefined): string => {
-  if (!dateInput) return '';
-  let date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-  
-  // Adiciona o fuso horu00e1rio para evitar problemas com datas UTC
-  const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-  const correctedDate = new Date(date.getTime() + userTimezoneOffset);
-  return correctedDate.toLocaleDateString('pt-BR');
 };
 
 // Funu00e7u00e3o para obter o resumo por categorias
@@ -213,7 +147,7 @@ const drawPieChart = (
   
   // Desenhar tu00edtulo
   doc.setFontSize(12);
-  doc.setTextColor(COLORS.TEXT);
+  doc.setTextColor(BRAND_COLORS.TEXT_PRIMARY);
   doc.text(title, centerX - (doc.getStringUnitWidth(title) * 12 / 2 / doc.internal.scaleFactor), centerY - radius - 10);
   
   // Desenhar o gru00e1fico de pizza
@@ -256,7 +190,7 @@ const drawPieChart = (
   // Desenhar legenda
   if (showLegend) {
     doc.setFontSize(8);
-    doc.setTextColor(COLORS.TEXT);
+    doc.setTextColor(BRAND_COLORS.TEXT_PRIMARY);
     
     let legendY = centerY + radius + 10;
     legendItems.forEach((text, index) => {
@@ -267,7 +201,7 @@ const drawPieChart = (
       doc.rect(centerX - radius, legendY, 5, 5, 'F');
       
       // Desenhar texto
-      doc.setTextColor(COLORS.TEXT);
+      doc.setTextColor(BRAND_COLORS.TEXT_PRIMARY);
       doc.text(text, centerX - radius + 8, legendY + 4);
       
       legendY += 10;
@@ -280,7 +214,7 @@ const generateChartData = (categorySummary: { category: string; amount: number; 
   return categorySummary.map((item, index) => ({
     label: item.category,
     value: item.amount,
-    color: COLORS.CHART_COLORS[index % COLORS.CHART_COLORS.length]
+    color: BRAND_COLORS.CHART_PALETTE[index % BRAND_COLORS.CHART_PALETTE.length]
   }));
 };
 
@@ -300,107 +234,91 @@ const generateAsciiChart = (data: { category: string; amount: number; percentage
   return chart;
 };
 
-// Exportar para CSV - Com gráficos ASCII e exibição clara de parcelas
+// Exportar para CSV - Formato limpo e importável em qualquer software
 const exportToCSV = (data: ReportData): Blob => {
-  // Obter dica financeira aleatória
-  const financialTip = getRandomFinancialTip();
+  // Função para escapar campos CSV (aspas duplas em valores com vírgula ou aspas)
+  const escapeCSV = (value: string): string => {
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '""')}"`;
+    }
+    return value;
+  };
+  
+  // Função para formatar valor numérico (sem símbolo de moeda para importação)
+  const formatNumber = (value: number): string => {
+    return value.toFixed(2).replace('.', ',');
+  };
   
   let csvContent = "";
   
-  // Cabeçalho do relatório com borda superior
-  csvContent += `==================================================\n`;
-  csvContent += `             RELATÓRIO FINANCEIRO              \n`;
-  csvContent += `==================================================\n`;
-  csvContent += `Usuário: ${data.user?.name || 'N/A'}\n`;
-  csvContent += `Período: ${data.period}\n`;
-  csvContent += `Gerado em: ${formatDate(new Date())}\n`;
-  csvContent += `==================================================\n\n`;
+  // BOM para UTF-8 (ajuda Excel a reconhecer acentos)
+  csvContent = "\uFEFF";
   
-  // RESUMO GERAL
-  csvContent += `+-----------------+----------------------+\n`;
-  csvContent += `|      RESUMO     |        VALOR         |\n`;
-  csvContent += `+-----------------+----------------------+\n`;
-  csvContent += `| Total Entradas  | ${formatCurrency(data.incomeTotal).padStart(20)} |\n`;
-  csvContent += `| Total Saídas    | ${formatCurrency(data.expenseTotal).padStart(20)} |\n`;
-  csvContent += `| Saldo Final     | ${formatCurrency(data.balance).padStart(20)} |\n`;
-  csvContent += `+-----------------+----------------------+\n\n`;
+  // Metadados como comentário
+  csvContent += `# STATER - ${BRAND_INFO.slogan}\n`;
+  csvContent += `# Relatório Financeiro\n`;
+  csvContent += `# Usuário: ${data.user?.name || 'N/A'}\n`;
+  csvContent += `# Período: ${data.period}\n`;
+  csvContent += `# Gerado em: ${formatDate(new Date())}\n`;
+  csvContent += `# Site: ${BRAND_INFO.website}\n`;
+  csvContent += `#\n`;
   
-  // Seção de ENTRADAS
-  csvContent += `==================================================\n`;
-  csvContent += `                    ENTRADAS                    \n`;
-  csvContent += `==================================================\n`;
-  csvContent += `Data,Descrição,Categoria,Valor\n`;
+  // RESUMO
+  csvContent += `\n# === RESUMO ===\n`;
+  csvContent += `Descrição;Valor\n`;
+  csvContent += `Total de Receitas;${formatNumber(data.incomeTotal)}\n`;
+  csvContent += `Total de Despesas;${formatNumber(data.expenseTotal)}\n`;
+  csvContent += `Saldo do Período;${formatNumber(data.balance)}\n`;
   
-  if (data.incomeTransactions.length > 0) {
-    data.incomeTransactions.forEach(t => {
-      csvContent += `${formatDate(t.date)},${t.title},${t.category},${formatCurrency(t.amount)}\n`;
-    });
-  } else {
-    csvContent += `Nenhuma entrada no período\n`;
-  }
+  // TRANSAÇÕES (Receitas e Despesas juntas)
+  csvContent += `\n# === TRANSAÇÕES ===\n`;
+  csvContent += `Data;Tipo;Descrição;Categoria;Valor\n`;
   
-  // Total de ENTRADAS
-  csvContent += `TOTAL DE ENTRADAS,,,${formatCurrency(data.incomeTotal)}\n\n`;
+  // Combinar e ordenar transações por data
+  const allTransactions = [
+    ...data.incomeTransactions.map(t => ({ ...t, type: 'Receita' as const })),
+    ...data.expenseTransactions.map(t => ({ ...t, type: 'Despesa' as const }))
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   
-  // Gráfico de entradas por categoria
+  allTransactions.forEach(t => {
+    const valor = t.type === 'Despesa' ? -t.amount : t.amount;
+    csvContent += `${formatDate(t.date)};${t.type};${escapeCSV(t.title)};${escapeCSV(t.category || 'Sem categoria')};${formatNumber(valor)}\n`;
+  });
+  
+  // DISTRIBUIÇÃO POR CATEGORIA - RECEITAS
   if (data.categorySummary.income.length > 0) {
-    csvContent += `--------------------------------------------------\n`;
-    csvContent += `         DISTRIBUIÇÃO DE ENTRADAS POR CATEGORIA        \n`;
-    csvContent += `--------------------------------------------------\n`;
-    csvContent += generateAsciiChart(data.categorySummary.income);
-    csvContent += `\n`;
-  }
-  
-  // Seção de SAÍDAS
-  csvContent += `==================================================\n`;
-  csvContent += `                     SAÍDAS                     \n`;
-  csvContent += `==================================================\n`;
-  csvContent += `Data,Descrição,Categoria,Valor\n`;
-  
-  if (data.expenseTransactions.length > 0) {
-    data.expenseTransactions.forEach(t => {
-      csvContent += `${formatDate(t.date)},${t.title},${t.category},${formatCurrency(t.amount)}\n`;
+    csvContent += `\n# === RECEITAS POR CATEGORIA ===\n`;
+    csvContent += `Categoria;Valor;Percentual\n`;
+    data.categorySummary.income.forEach(item => {
+      csvContent += `${escapeCSV(item.category)};${formatNumber(item.amount)};${item.percentage.toFixed(1)}%\n`;
     });
-  } else {
-    csvContent += `Nenhuma saída no período\n`;
   }
   
-  // Total de SAÍDAS
-  csvContent += `TOTAL DE SAÍDAS,,,${formatCurrency(data.expenseTotal)}\n\n`;
-  
-  // Gráfico de saídas por categoria
+  // DISTRIBUIÇÃO POR CATEGORIA - DESPESAS
   if (data.categorySummary.expense.length > 0) {
-    csvContent += `--------------------------------------------------\n`;
-    csvContent += `         DISTRIBUIÇÃO DE SAÍDAS POR CATEGORIA        \n`;
-    csvContent += `--------------------------------------------------\n`;
-    csvContent += generateAsciiChart(data.categorySummary.expense);
-    csvContent += `\n`;
+    csvContent += `\n# === DESPESAS POR CATEGORIA ===\n`;
+    csvContent += `Categoria;Valor;Percentual\n`;
+    data.categorySummary.expense.forEach(item => {
+      csvContent += `${escapeCSV(item.category)};${formatNumber(item.amount)};${item.percentage.toFixed(1)}%\n`;
+    });
   }
   
-  // Seção de CONTAS
-  csvContent += `==================================================\n`;
-  csvContent += `                     CONTAS                     \n`;
-  csvContent += `==================================================\n`;
-  csvContent += `Vencimento,Descrição,Categoria,Status,Parcelas,Valor\n`;
-  
+  // CONTAS A PAGAR/RECEBER
   if (data.bills.length > 0) {
+    csvContent += `\n# === CONTAS ===\n`;
+    csvContent += `Vencimento;Descrição;Categoria;Status;Parcela;Valor\n`;
+    
     data.bills.forEach(b => {
-      // Formatar informação de parcelas
       const installmentInfo = b.totalInstallments && b.currentInstallment 
         ? `${b.currentInstallment}/${b.totalInstallments}` 
         : b.isRecurring ? 'Recorrente' : '-';
       
-      csvContent += `${formatDate(b.dueDate)},${b.title},${b.category},${b.isPaid ? 'Paga' : 'Pendente'},${installmentInfo},${formatCurrency(b.amount)}\n`;
+      csvContent += `${formatDate(b.dueDate)};${escapeCSV(b.title)};${escapeCSV(b.category)};${b.isPaid ? 'Paga' : 'Pendente'};${installmentInfo};${formatNumber(b.amount)}\n`;
     });
-  } else {
-    csvContent += `Nenhuma conta no período\n`;
   }
-  csvContent += `\n`;
   
-  // Dica financeira
-  csvContent += `==================================================\n`;
-  csvContent += `DICA FINANCEIRA: ${financialTip}\n`;
-  csvContent += `==================================================\n`;
+  // Rodapé
+  csvContent += `\n# Gerado automaticamente por STATER - ${BRAND_INFO.website}\n`;
   
   return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 };
@@ -410,43 +328,43 @@ const getCellStyle = (type: 'header' | 'subheader' | 'total' | 'normal' | 'incom
   // Estilos base
   const styles: Record<string, any> = {
     header: {
-      fill: { fgColor: { rgb: COLORS.PRIMARY.replace('#', '') } },
+      fill: { fgColor: { rgb: BRAND_COLORS.PRIMARY.replace('#', '') } },
       font: { color: { rgb: 'FFFFFF' }, bold: true, sz: 14 },
       alignment: { horizontal: 'center', vertical: 'center' }
     },
     subheader: {
-      fill: { fgColor: { rgb: COLORS.TEXT.replace('#', '') } },
+      fill: { fgColor: { rgb: BRAND_COLORS.TEXT_PRIMARY.replace('#', '') } },
       font: { color: { rgb: 'FFFFFF' }, bold: true, sz: 12 },
       alignment: { horizontal: 'center', vertical: 'center' }
     },
     normal: {
-      font: { color: { rgb: COLORS.TEXT.replace('#', '') }, sz: 11 },
+      font: { color: { rgb: BRAND_COLORS.TEXT_PRIMARY.replace('#', '') }, sz: 11 },
       alignment: { horizontal: 'left', vertical: 'center' }
     },
     total: {
-      fill: { fgColor: { rgb: COLORS.CARD.replace('#', '') } },
-      font: { color: { rgb: COLORS.TEXT.replace('#', '') }, bold: true, sz: 12 },
+      fill: { fgColor: { rgb: BRAND_COLORS.BACKGROUND_CARD.replace('#', '') } },
+      font: { color: { rgb: BRAND_COLORS.TEXT_PRIMARY.replace('#', '') }, bold: true, sz: 12 },
       alignment: { horizontal: 'right', vertical: 'center' }
     },
     income: {
-      font: { color: { rgb: COLORS.POSITIVE.replace('#', '') }, bold: true, sz: 12 },
+      font: { color: { rgb: BRAND_COLORS.SUCCESS.replace('#', '') }, bold: true, sz: 12 },
       alignment: { horizontal: 'right', vertical: 'center' }
     },
     expense: {
-      font: { color: { rgb: COLORS.NEGATIVE.replace('#', '') }, bold: true, sz: 12 },
+      font: { color: { rgb: BRAND_COLORS.DANGER.replace('#', '') }, bold: true, sz: 12 },
       alignment: { horizontal: 'right', vertical: 'center' }
     },
     balance: {
-      fill: { fgColor: { rgb: COLORS.CARD.replace('#', '') } },
+      fill: { fgColor: { rgb: BRAND_COLORS.BACKGROUND_CARD.replace('#', '') } },
       font: { bold: true, sz: 12 },
       alignment: { horizontal: 'right', vertical: 'center' }
     },
     paid: {
-      font: { color: { rgb: COLORS.POSITIVE.replace('#', '') }, sz: 11 },
+      font: { color: { rgb: BRAND_COLORS.SUCCESS.replace('#', '') }, sz: 11 },
       alignment: { horizontal: 'center', vertical: 'center' }
     },
     unpaid: {
-      font: { color: { rgb: COLORS.NEGATIVE.replace('#', '') }, sz: 11 },
+      font: { color: { rgb: BRAND_COLORS.DANGER.replace('#', '') }, sz: 11 },
       alignment: { horizontal: 'center', vertical: 'center' }
     }
   };
@@ -728,10 +646,10 @@ const exportToPDF = (data: ReportData): Blob => {
   const contentWidth = pageWidth - 2 * margin;
   
   // Definir cores
-  const colorPrimary = COLORS.PRIMARY;
-  const colorText = COLORS.TEXT;
-  const colorPositive = COLORS.POSITIVE;
-  const colorNegative = COLORS.NEGATIVE;
+  const colorPrimary = BRAND_COLORS.PRIMARY;
+  const colorText = BRAND_COLORS.TEXT_PRIMARY;
+  const colorPositive = BRAND_COLORS.SUCCESS;
+  const colorNegative = BRAND_COLORS.DANGER;
   
   // Obter dica financeira aleatória
   const financialTip = getRandomFinancialTip();
@@ -752,7 +670,7 @@ const exportToPDF = (data: ReportData): Blob => {
   
   // Função para adicionar linha
   const addLine = (y: number) => {
-    doc.setDrawColor(COLORS.BORDER);
+    doc.setDrawColor(BRAND_COLORS.BORDER);
     doc.setLineWidth(0.5);
     doc.line(margin, y, pageWidth - margin, y);
   };
@@ -813,7 +731,7 @@ const exportToPDF = (data: ReportData): Blob => {
     body: tableData,
     margin: { left: margin, right: margin },
     headStyles: {
-      fillColor: COLORS.CARD,
+      fillColor: BRAND_COLORS.BACKGROUND_CARD,
       textColor: colorText,
       fontStyle: 'bold',
       halign: 'left'
@@ -954,12 +872,12 @@ const exportToPDF = (data: ReportData): Blob => {
       foot: [['', '', 'TOTAL', formatCurrency(data.incomeTotal)]],
       margin: { left: margin, right: margin },
       headStyles: {
-        fillColor: COLORS.CARD,
+        fillColor: BRAND_COLORS.BACKGROUND_CARD,
         textColor: colorText,
         fontStyle: 'bold'
       },
       footStyles: {
-        fillColor: COLORS.CARD,
+        fillColor: BRAND_COLORS.BACKGROUND_CARD,
         textColor: colorPositive,
         fontStyle: 'bold'
       },
@@ -1010,12 +928,12 @@ const exportToPDF = (data: ReportData): Blob => {
       foot: [['', '', 'TOTAL', formatCurrency(data.expenseTotal)]],
       margin: { left: margin, right: margin },
       headStyles: {
-        fillColor: COLORS.CARD,
+        fillColor: BRAND_COLORS.BACKGROUND_CARD,
         textColor: colorText,
         fontStyle: 'bold'
       },
       footStyles: {
-        fillColor: COLORS.CARD,
+        fillColor: BRAND_COLORS.BACKGROUND_CARD,
         textColor: colorNegative,
         fontStyle: 'bold'
       },
@@ -1074,7 +992,7 @@ const exportToPDF = (data: ReportData): Blob => {
       body: billsTableData,
       margin: { left: margin, right: margin },
       headStyles: {
-        fillColor: COLORS.CARD,
+        fillColor: BRAND_COLORS.BACKGROUND_CARD,
         textColor: colorText,
         fontStyle: 'bold'
       },
@@ -1126,7 +1044,7 @@ const exportToPDF = (data: ReportData): Blob => {
   checkAndAddPage(20);
   
   yPos += 5;
-  doc.setFillColor(COLORS.CARD);
+  doc.setFillColor(BRAND_COLORS.BACKGROUND_CARD);
   doc.roundedRect(margin, yPos, contentWidth, 20, 2, 2, 'F');
   
   doc.setFontSize(10);

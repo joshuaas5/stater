@@ -45,10 +45,11 @@ const HomePage: React.FC = () => {
                 style={{ 
                   fontFamily: "'Fredoka One', 'Inter', system-ui, sans-serif",
                   fontWeight: 400,
-                  background: 'linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)',
+                  background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 50%, #2563EB 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
+                  backgroundClip: 'text',
+                  textShadow: '0 0 30px rgba(59, 130, 246, 0.3)'
                 }}
               >
                 STATER
@@ -486,10 +487,11 @@ const HomePage: React.FC = () => {
                   style={{ 
                     fontFamily: "'Fredoka One', 'Inter', system-ui, sans-serif",
                     fontWeight: 400,
-                    background: 'linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)',
+                    background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 50%, #2563EB 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
+                    backgroundClip: 'text',
+                    textShadow: '0 0 30px rgba(59, 130, 246, 0.3)'
                   }}
                 >
                   STATER

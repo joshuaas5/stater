@@ -1,28 +1,20 @@
 import jsPDF from 'jspdf';
 import { Transaction, Bill } from '@/types';
+import { 
+  BRAND_COLORS, 
+  BRAND_INFO, 
+  STATER_LOGO_BASE64,
+  REPORT_FOOTER,
+  REPORT_SECTIONS,
+  formatCurrency, 
+  formatDateBR,
+  formatDateFull,
+  formatPercentage,
+  getRandomFinancialTip,
+  hexToRGB
+} from './reportBranding';
 
-// Função para formatar moeda
-function formatCurrency(value: number): string {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-// Função para formatar data
-function formatDateBR(date: string | Date): string {
-  try {
-    const d = typeof date === 'string' ? new Date(date) : date;
-    if (isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  } catch {
-    return '';
-  }
-}
-
-// Função para formatar percentual
-function formatPercentage(value: number): string {
-  return `${value.toFixed(1)}%`;
-}
-
-// Interface para os dados do relatório (mantida)
+// Interface para os dados do relatório
 interface ReportData {
   userName: string;
   startDate: Date;
@@ -36,8 +28,10 @@ interface ReportData {
   financialTip: string;
 }
 
-// Função para calcular a distribuição por categoria (mantida)
-function calculateCategoryDistribution(transactions: Transaction[]): Array<{ category: string; amount: number; percentage: number }> {
+// Função para calcular a distribuição por categoria
+function calculateCategoryDistribution(
+  transactions: Transaction[]
+): Array<{ category: string; amount: number; percentage: number; color: string }> {
   const categories: { [key: string]: number } = {};
   const total = transactions.reduce((sum, t) => sum + t.amount, 0);
 
@@ -46,278 +40,523 @@ function calculateCategoryDistribution(transactions: Transaction[]): Array<{ cat
     categories[category] = (categories[category] || 0) + t.amount;
   });
 
-  const distribution = Object.entries(categories).map(([category, amount]) => ({
+  const distribution = Object.entries(categories).map(([category, amount], index) => ({
     category,
     amount,
-    percentage: total > 0 ? (amount / total) * 100 : 0
+    percentage: total > 0 ? (amount / total) * 100 : 0,
+    color: BRAND_COLORS.CHART_PALETTE[index % BRAND_COLORS.CHART_PALETTE.length]
   }));
 
   return distribution.sort((a, b) => b.amount - a.amount);
 }
 
-// Nova Função auxiliar para desenhar tabelas
-function drawSimpleTable(
-  doc: any,
-  headers: string[],
-  dataRows: string[][],
+// Desenhar legenda do gráfico com barras visuais
+function drawChartBars(
+  doc: jsPDF,
+  data: Array<{ category: string; amount: number; percentage: number; color: string }>,
+  startX: number,
   startY: number,
-  columnWidths: number[],
-  options?: {
-    rowHeight?: number;
-    fontSize?: number;
-    headerFillColor?: [number, number, number];
-    headerFontColor?: [number, number, number];
-    cellFontColor?: [number, number, number];
-    borderColor?: [number, number, number];
-    alternateRowFillColor?: [number, number, number] | null;
-    isTotalRow?: (rowIndex: number, rowData: string[]) => boolean;
-    columnAlignments?: Array<'left' | 'center' | 'right'>;
-    margin?: number;
-  }
+  maxWidth: number
 ): number {
-  const margin = options?.margin ?? 15;
-  const rowHeight = options?.rowHeight ?? 8;
-  const fontSize = options?.fontSize ?? 9;
-  const headerFillColor = options?.headerFillColor ?? [230, 230, 230]; // Cinza claro
-  const headerFontColor = options?.headerFontColor ?? [0, 0, 0]; // Preto
-  const cellFontColor = options?.cellFontColor ?? [0, 0, 0]; // Preto
-  const borderColor = options?.borderColor ?? [0, 0, 0]; // Preto
-  const alternateRowFillColor = options?.alternateRowFillColor ?? null; // Sem zebra por padrão
-  const isTotalRow = options?.isTotalRow ?? (() => false);
-  const columnAlignments = options?.columnAlignments ?? headers.map(() => 'left');
-
-  let currentY = startY;
-  const tableWidth = columnWidths.reduce((sum, w) => sum + w, 0);
-  const pageHeight = doc.internal.pageSize.getHeight();
-
-  const drawPageHeader = () => {
-    let currentX = margin;
-    headers.forEach((header, i) => {
-      doc.setFontSize(fontSize);
-      doc.setFont('helvetica', 'bold');
-
-      // Define explicitamente as cores para o preenchimento do retângulo do cabeçalho
-      doc.setFillColor(headerFillColor[0], headerFillColor[1], headerFillColor[2]);
-      doc.setDrawColor(borderColor[0], borderColor[1], borderColor[2]);
-      doc.setLineWidth(0.1);
-      doc.rect(currentX, currentY, columnWidths[i], rowHeight, 'FD');
-
-      // Define explicitamente a cor para o texto do cabeçalho
-      doc.setTextColor(headerFontColor[0], headerFontColor[1], headerFontColor[2]);
-      doc.text(header, currentX + columnWidths[i] / 2, currentY + rowHeight / 2, { align: 'center', baseline: 'middle' });
-      currentX += columnWidths[i];
-    });
-    currentY += rowHeight;
-  };
-
-  // Desenhar cabeçalho da tabela
-  if (currentY + rowHeight > pageHeight - margin) {
-    doc.addPage();
-    currentY = margin;
-  }
-  drawPageHeader();
-
-  // Desenhar linhas de dados
-  dataRows.forEach((row, rowIndex) => {
-    if (currentY + rowHeight > pageHeight - margin) {
-      doc.addPage();
-      currentY = margin;
-      drawPageHeader(); // Redesenhar cabeçalho na nova página
+  let y = startY;
+  const itemHeight = 8;
+  const barHeight = 4;
+  const barMaxWidth = 60;
+  
+  data.slice(0, 5).forEach((item) => {
+    const rgb = hexToRGB(item.color);
+    
+    // Nome da categoria
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_PRIMARY));
+    
+    let categoryText = item.category;
+    if (categoryText.length > 18) {
+      categoryText = categoryText.substring(0, 17) + '...';
     }
-
-    doc.setFontSize(fontSize);
-    const isBoldRow = isTotalRow(rowIndex, row);
-    doc.setFont('helvetica', isBoldRow ? 'bold' : 'normal');
-    doc.setTextColor(...cellFontColor);
-    doc.setDrawColor(...borderColor);
-    doc.setLineWidth(0.1);
-
-    let currentX = margin;
-
-    // Fundo alternado (opcional)
-    if (alternateRowFillColor && rowIndex % 2 !== 0) {
-      doc.setFillColor(...alternateRowFillColor);
-      doc.rect(currentX, currentY, tableWidth, rowHeight, 'F');
-    }
-
-    row.forEach((cellText, colIndex) => {
-      doc.rect(currentX, currentY, columnWidths[colIndex], rowHeight, 'S'); // Apenas borda
-      let xPos;
-      const align = columnAlignments[colIndex] || 'left';
-      if (align === 'right') {
-        xPos = currentX + columnWidths[colIndex] - 2; // padding direito
-      } else if (align === 'center') {
-        xPos = currentX + columnWidths[colIndex] / 2;
-      } else {
-        xPos = currentX + 2; // padding esquerdo
-      }
-      doc.text(String(cellText ?? ''), xPos, currentY + rowHeight / 2, { align, baseline: 'middle' });
-      currentX += columnWidths[colIndex];
-    });
-    currentY += rowHeight;
+    doc.text(categoryText, startX, y);
+    
+    // Barra de progresso
+    const barWidth = (item.percentage / 100) * barMaxWidth;
+    doc.setFillColor(...hexToRGB(BRAND_COLORS.BACKGROUND_CARD));
+    doc.roundedRect(startX + 50, y - 3, barMaxWidth, barHeight, 1, 1, 'F');
+    doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+    doc.roundedRect(startX + 50, y - 3, barWidth, barHeight, 1, 1, 'F');
+    
+    // Percentual e valor
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.text(formatPercentage(item.percentage), startX + 115, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(formatCurrency(item.amount), startX + maxWidth - 5, y, { align: 'right' });
+    
+    y += itemHeight;
   });
-
-  return currentY;
+  
+  return y;
 }
 
-// Função principal para gerar o PDF
+// Desenhar tabela elegante
+function drawTable(
+  doc: jsPDF,
+  headers: string[],
+  rows: string[][],
+  startY: number,
+  columnWidths: number[],
+  options: {
+    margin?: number;
+    headerColor?: [number, number, number];
+    alternateRows?: boolean;
+    highlightLastRow?: boolean;
+    columnAlignments?: Array<'left' | 'center' | 'right'>;
+    valueColumnIndex?: number;
+    isExpense?: boolean;
+  } = {}
+): number {
+  const margin = options.margin ?? 15;
+  const headerColor = options.headerColor ?? hexToRGB(BRAND_COLORS.PRIMARY);
+  const alternateRows = options.alternateRows ?? true;
+  const highlightLastRow = options.highlightLastRow ?? false;
+  const columnAlignments = options.columnAlignments ?? headers.map(() => 'left');
+  const valueColumnIndex = options.valueColumnIndex;
+  const isExpense = options.isExpense ?? false;
+  
+  const rowHeight = 7;
+  const fontSize = 8;
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const totalWidth = columnWidths.reduce((a, b) => a + b, 0);
+  
+  let y = startY;
+  
+  // Função para desenhar cabeçalhos
+  const drawHeaders = (): void => {
+    doc.setFillColor(headerColor[0], headerColor[1], headerColor[2]);
+    doc.roundedRect(margin, y, totalWidth, rowHeight + 1, 1, 1, 'F');
+    
+    doc.setFontSize(fontSize);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    
+    let x = margin;
+    headers.forEach((header, i) => {
+      const align = columnAlignments[i];
+      let textX = x + 2;
+      if (align === 'center') textX = x + columnWidths[i] / 2;
+      if (align === 'right') textX = x + columnWidths[i] - 2;
+      
+      doc.text(header, textX, y + rowHeight - 1.5, { 
+        align: align === 'left' ? undefined : align 
+      });
+      x += columnWidths[i];
+    });
+    
+    y += rowHeight + 1;
+  };
+  
+  // Função para verificar e adicionar nova página
+  const checkPage = (): boolean => {
+    if (y + rowHeight > pageHeight - 20) {
+      doc.addPage();
+      y = margin;
+      drawHeaders();
+      return true;
+    }
+    return false;
+  };
+  
+  // Desenhar cabeçalhos
+  drawHeaders();
+  
+  // Desenhar linhas de dados
+  rows.forEach((row, rowIndex) => {
+    checkPage();
+    
+    const isLastRow = rowIndex === rows.length - 1 && highlightLastRow;
+    const isAlternate = alternateRows && rowIndex % 2 === 1;
+    
+    // Fundo da linha
+    if (isLastRow) {
+      doc.setFillColor(...hexToRGB(BRAND_COLORS.BACKGROUND_CARD));
+      doc.rect(margin, y, totalWidth, rowHeight, 'F');
+    } else if (isAlternate) {
+      doc.setFillColor(...hexToRGB(BRAND_COLORS.BACKGROUND_ALT));
+      doc.rect(margin, y, totalWidth, rowHeight, 'F');
+    }
+    
+    // Texto da linha
+    doc.setFontSize(fontSize);
+    doc.setFont('helvetica', isLastRow ? 'bold' : 'normal');
+    
+    let x = margin;
+    row.forEach((cell, colIndex) => {
+      // Cor do texto
+      if (valueColumnIndex !== undefined && colIndex === valueColumnIndex) {
+        if (isExpense) {
+          doc.setTextColor(...hexToRGB(BRAND_COLORS.DANGER));
+        } else {
+          doc.setTextColor(...hexToRGB(BRAND_COLORS.SUCCESS));
+        }
+      } else {
+        doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_PRIMARY));
+      }
+      
+      const align = columnAlignments[colIndex];
+      let textX = x + 2;
+      if (align === 'center') textX = x + columnWidths[colIndex] / 2;
+      if (align === 'right') textX = x + columnWidths[colIndex] - 2;
+      
+      // Truncar texto se necessário
+      let text = cell || '';
+      const maxWidth = columnWidths[colIndex] - 4;
+      while (doc.getTextWidth(text) > maxWidth && text.length > 3) {
+        text = text.slice(0, -4) + '...';
+      }
+      
+      doc.text(text, textX, y + rowHeight - 2, { 
+        align: align === 'left' ? undefined : align 
+      });
+      x += columnWidths[colIndex];
+    });
+    
+    y += rowHeight;
+  });
+  
+  return y;
+}
+
+// Desenhar card de resumo com design moderno
+function drawSummaryCard(
+  doc: jsPDF,
+  label: string,
+  value: string,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  color: [number, number, number],
+  icon?: string
+): void {
+  // Sombra sutil
+  doc.setFillColor(0, 0, 0, 0.05);
+  doc.roundedRect(x + 1, y + 1, width, height, 3, 3, 'F');
+  
+  // Fundo do card
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(x, y, width, height, 3, 3, 'F');
+  
+  // Borda colorida à esquerda
+  doc.setFillColor(color[0], color[1], color[2]);
+  doc.roundedRect(x, y, 4, height, 3, 3, 'F');
+  doc.rect(x + 2, y, 2, height, 'F');
+  
+  // Ícone (emoji)
+  if (icon) {
+    doc.setFontSize(14);
+    doc.text(icon, x + 10, y + 13);
+  }
+  
+  // Label
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_SECONDARY));
+  doc.text(label, x + (icon ? 22 : 10), y + 10);
+  
+  // Valor
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(color[0], color[1], color[2]);
+  doc.text(value, x + (icon ? 22 : 10), y + 20);
+}
+
+// Função principal para gerar o PDF premium
 export function generateEnhancedPDF(data: ReportData): Blob {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 15;
+  const contentWidth = pageWidth - margin * 2;
   let y = margin;
 
-  const defaultTextColor: [number, number, number] = [0, 0, 0];
-  const sectionTitleFontSize = 16;
-  const defaultFontSize = 9;
-  const tableHeaderBgColor: [number, number, number] = [230, 230, 230]; // Cinza claro
-  const tableBorderColor: [number, number, number] = [50, 50, 50]; // Cinza escuro para bordas
-
-  // Função para adicionar nova página se necessário
-  const checkAndAddPage = (currentY: number, requiredSpace: number = 3 * 8) => {
-    if (currentY + requiredSpace > pageHeight - margin) {
-      doc.addPage();
-      return margin;
-    }
-    return currentY;
-  };
-
-  // Função para desenhar título da seção
-  const drawSectionTitle = (title: string, currentY: number): number => {
-    currentY = checkAndAddPage(currentY, 20);
+  // ========== CABEÇALHO COM GRADIENTE ==========
+  
+  // Gradiente simulado no cabeçalho
+  const headerHeight = 38;
+  const gradientSteps = 30;
+  for (let i = 0; i < gradientSteps; i++) {
+    const ratio = i / gradientSteps;
+    const r = Math.round(BRAND_COLORS.GRADIENT_PRIMARY.start[0] * (1 - ratio) + BRAND_COLORS.GRADIENT_PRIMARY.end[0] * ratio);
+    const g = Math.round(BRAND_COLORS.GRADIENT_PRIMARY.start[1] * (1 - ratio) + BRAND_COLORS.GRADIENT_PRIMARY.end[1] * ratio);
+    const b = Math.round(BRAND_COLORS.GRADIENT_PRIMARY.start[2] * (1 - ratio) + BRAND_COLORS.GRADIENT_PRIMARY.end[2] * ratio);
+    doc.setFillColor(r, g, b);
+    doc.rect(0, (headerHeight / gradientSteps) * i, pageWidth, headerHeight / gradientSteps + 0.5, 'F');
+  }
+  
+  // Logo
+  try {
+    doc.addImage(STATER_LOGO_BASE64, 'SVG', margin, 8, 20, 20);
+  } catch {
+    // Fallback: círculo com S
+    doc.setFillColor(255, 255, 255);
+    doc.circle(margin + 10, 18, 9, 'F');
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(sectionTitleFontSize);
-    doc.setTextColor(...defaultTextColor);
-    doc.text(title.toUpperCase(), margin, currentY);
-    return currentY + 8;
-  };
-
-  // Cabeçalho do Relatório
-  doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...hexToRGB(BRAND_COLORS.PRIMARY));
+    doc.text('S', margin + 7, 21);
+  }
+  
+  // Título principal
   doc.setFontSize(20);
-  doc.setTextColor(...defaultTextColor);
-  doc.text('RELATÓRIO FINANCEIRO', pageWidth / 2, y, { align: 'center' });
-  y += 10;
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('RELATÓRIO FINANCEIRO', margin + 28, 16);
+  
+  // Subtítulo
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
+  doc.setTextColor(255, 255, 255);
+  doc.text(`${BRAND_INFO.name} • ${BRAND_INFO.slogan}`, margin + 28, 24);
+  
+  // Informações do relatório (lado direito)
+  doc.setFontSize(8);
+  const periodText = `${formatDateBR(data.startDate)} a ${formatDateBR(data.endDate)}`;
+  doc.text(`Período: ${periodText}`, pageWidth - margin, 12, { align: 'right' });
+  doc.text(`Usuário: ${data.userName || 'N/A'}`, pageWidth - margin, 19, { align: 'right' });
+  doc.text(`Gerado: ${formatDateFull(new Date())}`, pageWidth - margin, 26, { align: 'right' });
+  
+  y = headerHeight + 10;
+  
+  // ========== CARDS DE RESUMO ==========
+  
+  const cardWidth = (contentWidth - 12) / 3;
+  const cardHeight = 28;
+  
+  drawSummaryCard(
+    doc, 'Receitas', formatCurrency(data.incomeTotal),
+    margin, y, cardWidth, cardHeight,
+    hexToRGB(BRAND_COLORS.SUCCESS), '💰'
+  );
+  
+  drawSummaryCard(
+    doc, 'Despesas', formatCurrency(data.expenseTotal),
+    margin + cardWidth + 6, y, cardWidth, cardHeight,
+    hexToRGB(BRAND_COLORS.DANGER), '💸'
+  );
+  
+  drawSummaryCard(
+    doc, 'Saldo', formatCurrency(data.balance),
+    margin + (cardWidth + 6) * 2, y, cardWidth, cardHeight,
+    data.balance >= 0 ? hexToRGB(BRAND_COLORS.PRIMARY) : hexToRGB(BRAND_COLORS.DANGER),
+    data.balance >= 0 ? '📈' : '📉'
+  );
+  
+  y += cardHeight + 12;
+  
+  // ========== SEÇÃO: RECEITAS ==========
+  
+  // Cabeçalho da seção com ícone
+  doc.setFillColor(...hexToRGB(BRAND_COLORS.SUCCESS));
+  doc.roundedRect(margin, y, contentWidth, 9, 2, 2, 'F');
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('📥  ' + REPORT_SECTIONS.income, margin + 5, y + 6.5);
+  y += 13;
+  
+  if (data.incomeTransactions.length > 0) {
+    // Tabela de transações
+    const incomeRows = data.incomeTransactions.map(t => [
+      formatDateBR(t.date),
+      t.title,
+      t.category || 'Sem categoria',
+      formatCurrency(t.amount)
+    ]);
+    incomeRows.push(['', '', 'TOTAL', formatCurrency(data.incomeTotal)]);
+    
+    const colWidths = [24, contentWidth - 24 - 38 - 34, 38, 34];
+    y = drawTable(doc, ['Data', 'Descrição', 'Categoria', 'Valor'], incomeRows, y, colWidths, {
+      margin,
+      headerColor: hexToRGB(BRAND_COLORS.SUCCESS),
+      highlightLastRow: true,
+      columnAlignments: ['left', 'left', 'left', 'right'],
+      valueColumnIndex: 3,
+      isExpense: false
+    });
+    
+    // Distribuição por categoria
+    const incomeDistribution = calculateCategoryDistribution(data.incomeTransactions);
+    if (incomeDistribution.length > 0) {
+      y += 6;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_PRIMARY));
+      doc.text('📊 ' + REPORT_SECTIONS.incomeByCategory, margin, y + 3);
+      y += 8;
+      y = drawChartBars(doc, incomeDistribution, margin, y, contentWidth);
+    }
+  } else {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_SECONDARY));
+    doc.text('Nenhuma receita registrada no período.', margin, y + 4);
+    y += 10;
+  }
+  
+  y += 10;
+  
+  // ========== SEÇÃO: DESPESAS ==========
+  
+  // Verificar espaço na página
+  if (y + 60 > pageHeight - 30) {
+    doc.addPage();
+    y = margin;
+  }
+  
+  doc.setFillColor(...hexToRGB(BRAND_COLORS.DANGER));
+  doc.roundedRect(margin, y, contentWidth, 9, 2, 2, 'F');
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('📤  ' + REPORT_SECTIONS.expenses, margin + 5, y + 6.5);
+  y += 13;
+  
+  if (data.expenseTransactions.length > 0) {
+    const expenseRows = data.expenseTransactions.map(t => [
+      formatDateBR(t.date),
+      t.title,
+      t.category || 'Sem categoria',
+      formatCurrency(t.amount)
+    ]);
+    expenseRows.push(['', '', 'TOTAL', formatCurrency(data.expenseTotal)]);
+    
+    const colWidths = [24, contentWidth - 24 - 38 - 34, 38, 34];
+    y = drawTable(doc, ['Data', 'Descrição', 'Categoria', 'Valor'], expenseRows, y, colWidths, {
+      margin,
+      headerColor: hexToRGB(BRAND_COLORS.DANGER),
+      highlightLastRow: true,
+      columnAlignments: ['left', 'left', 'left', 'right'],
+      valueColumnIndex: 3,
+      isExpense: true
+    });
+    
+    // Distribuição por categoria
+    const expenseDistribution = calculateCategoryDistribution(data.expenseTransactions);
+    if (expenseDistribution.length > 0) {
+      y += 6;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_PRIMARY));
+      doc.text('📊 ' + REPORT_SECTIONS.expensesByCategory, margin, y + 3);
+      y += 8;
+      y = drawChartBars(doc, expenseDistribution, margin, y, contentWidth);
+    }
+  } else {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_SECONDARY));
+    doc.text('Nenhuma despesa registrada no período.', margin, y + 4);
+    y += 10;
+  }
+  
+  y += 10;
+  
+  // ========== SEÇÃO: CONTAS ==========
+  
+  if (data.bills && data.bills.length > 0) {
+    if (y + 50 > pageHeight - 30) {
+      doc.addPage();
+      y = margin;
+    }
+    
+    doc.setFillColor(...hexToRGB(BRAND_COLORS.WARNING));
+    doc.roundedRect(margin, y, contentWidth, 9, 2, 2, 'F');
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('📋  ' + REPORT_SECTIONS.bills, margin + 5, y + 6.5);
+    y += 13;
+    
+    const billRows = data.bills.map(b => {
+      const installmentInfo = b.totalInstallments && b.currentInstallment 
+        ? `${b.currentInstallment}/${b.totalInstallments}` 
+        : b.isRecurring ? '♻️' : '-';
+      
+      return [
+        formatDateBR(b.dueDate),
+        b.title,
+        b.isPaid ? '✅ Paga' : '⏳ Pendente',
+        installmentInfo,
+        formatCurrency(b.amount)
+      ];
+    });
+    
+    const colWidths = [24, contentWidth - 24 - 30 - 22 - 32, 30, 22, 32];
+    y = drawTable(doc, ['Vencimento', 'Descrição', 'Status', 'Parc.', 'Valor'], billRows, y, colWidths, {
+      margin,
+      headerColor: hexToRGB(BRAND_COLORS.WARNING),
+      columnAlignments: ['left', 'left', 'center', 'center', 'right']
+    });
+    
+    y += 10;
+  }
+  
+  // ========== DICA FINANCEIRA ==========
+  
+  if (y + 28 > pageHeight - 25) {
+    doc.addPage();
+    y = margin;
+  }
+  
+  const tip = data.financialTip || getRandomFinancialTip();
+  
+  // Card da dica com gradiente sutil
+  doc.setFillColor(...hexToRGB(BRAND_COLORS.BACKGROUND_CARD));
+  doc.roundedRect(margin, y, contentWidth, 24, 3, 3, 'F');
+  
+  // Borda esquerda colorida
+  doc.setFillColor(...hexToRGB(BRAND_COLORS.PRIMARY));
+  doc.roundedRect(margin, y, 4, 24, 3, 3, 'F');
+  doc.rect(margin + 2, y, 2, 24, 'F');
+  
+  // Ícone e título
   doc.setFontSize(10);
-  doc.text(`Período: ${formatDateBR(data.startDate)} a ${formatDateBR(data.endDate)}`, pageWidth / 2, y, { align: 'center' });
-  y += 6;
-  doc.text(`Usuário: ${data.userName || 'N/A'}`, pageWidth / 2, y, { align: 'center' });
-  y += 12;
-
-  // 1. Seção: Resumo
-  y = drawSectionTitle('RESUMO', y);
-  const resumoData = [
-    { label: 'Total Entradas:', value: formatCurrency(data.incomeTotal) },
-    { label: 'Total Saídas:', value: formatCurrency(data.expenseTotal) },
-    { label: 'Saldo Final:', value: formatCurrency(data.balance) }
-  ];
+  doc.text('💡', margin + 10, y + 10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...hexToRGB(BRAND_COLORS.PRIMARY));
+  doc.text(REPORT_SECTIONS.tip, margin + 20, y + 10);
+  
+  // Texto da dica
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(defaultFontSize + 1); // Um pouco maior para o resumo
-  resumoData.forEach(item => {
-    y = checkAndAddPage(y, 8);
-    doc.text(item.label, margin, y);
-    doc.text(item.value, margin + 60, y, { align: 'left' });
-    y += 7;
-  });
-  y += 5;
-
-  const tableOptions = {
-    fontSize: defaultFontSize,
-    headerFillColor: tableHeaderBgColor,
-    borderColor: tableBorderColor,
-    margin: margin,
-    rowHeight: 8,
-    // alternateRowFillColor: [245, 245, 245] as [number, number, number] // Zebra sutil opcional
-  };
-
-  // 2. Seção: Entradas
-  y = drawSectionTitle('ENTRADAS', y);
-  const entradasHeaders = ['Data', 'Descrição', 'Categoria', 'Valor'];
-  const entradasTableData = data.incomeTransactions.map(t => [
-    formatDateBR(t.date),
-    t.title,
-    t.category || 'Sem categoria',
-    formatCurrency(t.amount)
-  ]);
-  entradasTableData.push(['', '', 'TOTAL', formatCurrency(data.incomeTotal)]);
-  const entradasColWidths = [25, pageWidth - margin * 2 - 25 - 45 - 35, 45, 35];
-  const entradasAlignments: Array<'left' | 'center' | 'right'> = ['left', 'left', 'left', 'right'];
-  y = drawSimpleTable(doc, entradasHeaders, entradasTableData, y, entradasColWidths, {
-    ...tableOptions,
-    columnAlignments: entradasAlignments,
-    isTotalRow: (rowIndex) => rowIndex === entradasTableData.length - 1
-  });
-  y += 10;
-
-  // 3. Seção: Distribuição de Entradas por Categoria
-  y = drawSectionTitle('DISTRIBUIÇÃO DE ENTRADAS POR CATEGORIA', y);
-  const incomeDistribution = calculateCategoryDistribution(data.incomeTransactions);
-  const incomeCategoryHeaders = ['Categoria', 'Valor', '% do Total'];
-  const incomeCategoryData = incomeDistribution.map(item => [
-    item.category,
-    formatCurrency(item.amount),
-    formatPercentage(item.percentage)
-  ]);
-  const incomeDistColWidths = [(pageWidth - margin * 2) * 0.5, (pageWidth - margin * 2) * 0.25, (pageWidth - margin * 2) * 0.25];
-  const incomeDistAlignments: Array<'left' | 'center' | 'right'> = ['left', 'right', 'right'];
-  if (incomeCategoryData.length > 0) {
-    y = drawSimpleTable(doc, incomeCategoryHeaders, incomeCategoryData, y, incomeDistColWidths, { ...tableOptions, columnAlignments: incomeDistAlignments });
-  } else {
-    y = checkAndAddPage(y, 8);
-    doc.setFont('helvetica', 'italic').setFontSize(defaultFontSize).text('Nenhuma entrada para distribuir.', margin, y); y+=8;
-  }
-  y += 10;
-
-  // 4. Seção: Saídas
-  y = drawSectionTitle('SAÍDAS', y);
-  const saidasHeaders = ['Data', 'Descrição', 'Categoria', 'Valor'];
-  const saidasTableData = data.expenseTransactions.map(t => [
-    formatDateBR(t.date),
-    t.title,
-    t.category || 'Sem categoria',
-    formatCurrency(t.amount)
-  ]);
-  saidasTableData.push(['', '', 'TOTAL', formatCurrency(data.expenseTotal)]);
-  const saidasColWidths = [25, pageWidth - margin * 2 - 25 - 45 - 35, 45, 35];
-  const saidasAlignments: Array<'left' | 'center' | 'right'> = ['left', 'left', 'left', 'right'];
-  y = drawSimpleTable(doc, saidasHeaders, saidasTableData, y, saidasColWidths, {
-    ...tableOptions,
-    columnAlignments: saidasAlignments,
-    isTotalRow: (rowIndex) => rowIndex === saidasTableData.length - 1
-  });
-  y += 10;
-
-  // 5. Seção: Distribuição de Saídas por Categoria
-  y = drawSectionTitle('DISTRIBUIÇÃO DE SAÍDAS POR CATEGORIA', y);
-  const expenseDistribution = calculateCategoryDistribution(data.expenseTransactions);
-  const expenseCategoryHeaders = ['Categoria', 'Valor', '% do Total'];
-  const expenseCategoryData = expenseDistribution.map(item => [
-    item.category,
-    formatCurrency(item.amount),
-    formatPercentage(item.percentage)
-  ]);
-  const expenseDistColWidths = [(pageWidth - margin * 2) * 0.5, (pageWidth - margin * 2) * 0.25, (pageWidth - margin * 2) * 0.25];
-  const expenseDistAlignments: Array<'left' | 'center' | 'right'> = ['left', 'right', 'right'];
-  if (expenseCategoryData.length > 0) {
-    y = drawSimpleTable(doc, expenseCategoryHeaders, expenseCategoryData, y, expenseDistColWidths, { ...tableOptions, columnAlignments: expenseDistAlignments });
-  } else {
-    y = checkAndAddPage(y, 8);
-    doc.setFont('helvetica', 'italic').setFontSize(defaultFontSize).text('Nenhuma saída para distribuir.', margin, y); y+=8;
-  }
-  y += 10;
-
-  // As seções Contas e Dica Financeira foram removidas conforme solicitado.
-
-  // Rodapé em todas as páginas
+  doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_PRIMARY));
+  doc.text(`"${tip}"`, margin + 10, y + 18, { maxWidth: contentWidth - 20 });
+  
+  // ========== RODAPÉ EM TODAS AS PÁGINAS ==========
+  
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150); // Cinza claro para rodapé
-    doc.text(`Página ${i} de ${pageCount} - STATER`, pageWidth / 2, pageHeight - 7, { align: 'center' });
+    
+    // Linha separadora
+    doc.setDrawColor(...hexToRGB(BRAND_COLORS.BORDER));
+    doc.setLineWidth(0.3);
+    doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
+    
+    // Rodapé
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...hexToRGB(BRAND_COLORS.TEXT_MUTED));
+    
+    // Esquerda
+    doc.text(REPORT_FOOTER.generated, margin, pageHeight - 8);
+    
+    // Centro
+    doc.text(`Página ${i} de ${pageCount}`, pageWidth / 2, pageHeight - 8, { align: 'center' });
+    
+    // Direita - CTA
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...hexToRGB(BRAND_COLORS.PRIMARY));
+    doc.text(`🌐 ${BRAND_INFO.website}`, pageWidth - margin, pageHeight - 8, { align: 'right' });
   }
 
   return doc.output('blob');

@@ -277,11 +277,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       
       {/* Modal */}
       <div 
-        className="relative w-full max-w-sm rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 transaction-modal-content"
+        className="relative w-full max-w-sm rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 transaction-modal-content overflow-hidden"
         style={{
-          background: isIncome 
-            ? 'linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%)' 
-            : 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #b91c1c 100%)',
+          background: 'transparent',
           border: `1px solid ${isIncome ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
           boxShadow: isIncome 
             ? '0 8px 32px rgba(16, 185, 129, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)' 
@@ -296,14 +294,14 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           flexDirection: 'column'
         }}
       >
-        {/* Header */}
+        {/* Header - Cor sólida */}
         <div 
-          className="px-5 py-4 border-b relative overflow-hidden flex-shrink-0"
+          className="px-5 py-4 relative overflow-hidden flex-shrink-0"
           style={{
-            background: 'transparent',
-            borderColor: 'rgba(255, 255, 255, 0.18)',
-            border: 'none',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.18)'
+            background: isIncome 
+              ? 'linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%)' 
+              : 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #b91c1c 100%)',
+            borderBottom: `1px solid ${isIncome ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
           }}
         >
           <div className="relative flex items-center justify-between">
@@ -356,14 +354,14 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           </div>
         </div>
 
-        {/* Content */}
+        {/* Content - Semi-transparente com blur */}
         <div 
           className="p-5 space-y-4 overflow-y-auto transaction-modal-scroll flex-1"
           style={{ 
-            background: isIncome 
-              ? 'rgba(6, 78, 59, 0.95)' 
-              : 'rgba(127, 29, 29, 0.95)',
-            minHeight: 0, // Importante para flex scroll funcionar
+            background: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(20px) saturate(150%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(150%)',
+            minHeight: 0,
           }}
         >
           {/* Descrição */}
@@ -383,9 +381,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                   : 'border-white/20 focus:border-white/40 focus:shadow-lg focus:shadow-white/10'
               }`}
               style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                backdropFilter: 'blur(3px) saturate(120%)',
-                WebkitBackdropFilter: 'blur(3px) saturate(120%)'
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)'
               }}
               disabled={isSubmitting}
             />
@@ -695,18 +693,15 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Footer - Semi-transparente com blur */}
         <div 
           className="p-5 border-t flex-shrink-0"
           style={{
-            background: isIncome 
-              ? 'rgba(6, 78, 59, 0.9)' 
-              : 'rgba(127, 29, 29, 0.9)',
-            backdropFilter: 'blur(40px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-            borderColor: isIncome ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)',
-            boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
-            borderTop: isIncome ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)'
+            background: 'rgba(15, 23, 42, 0.9)',
+            backdropFilter: 'blur(20px) saturate(150%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(150%)',
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.1)'
           }}
         >
           <div className="flex gap-3">

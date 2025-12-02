@@ -163,13 +163,13 @@ export const GoalModal: React.FC<GoalModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowIconPicker(!showIconPicker)}
-                  className="w-14 h-14 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-3xl hover:bg-white/20 transition-colors"
+                  className="w-14 h-14 rounded-xl bg-slate-700/50 border border-white/20 flex items-center justify-center hover:bg-slate-600/50 transition-colors"
                 >
-                  {formData.icon}
+                  <span className="text-3xl leading-none">{formData.icon}</span>
                 </button>
                 
                 {showIconPicker && (
-                  <div className="absolute top-full left-0 mt-2 p-3 bg-slate-800 rounded-xl border border-white/20 shadow-xl z-20 grid grid-cols-4 gap-2 w-48">
+                  <div className="absolute top-full left-0 mt-2 p-3 bg-slate-800 rounded-xl border border-white/20 shadow-xl z-20 grid grid-cols-4 gap-2 w-56">
                     {GOAL_ICONS.map(icon => (
                       <button
                         key={icon.value}
@@ -178,12 +178,12 @@ export const GoalModal: React.FC<GoalModalProps> = ({
                           setFormData(prev => ({ ...prev, icon: icon.value }));
                           setShowIconPicker(false);
                         }}
-                        className={`p-2 text-2xl rounded-lg hover:bg-white/20 transition-colors ${
-                          formData.icon === icon.value ? 'bg-white/20 ring-2 ring-teal-500' : ''
+                        className={`w-11 h-11 flex items-center justify-center rounded-lg hover:bg-slate-600/50 transition-colors ${
+                          formData.icon === icon.value ? 'bg-teal-600/50 ring-2 ring-teal-400' : 'bg-slate-700/50'
                         }`}
                         title={icon.label}
                       >
-                        {icon.value}
+                        <span className="text-2xl leading-none">{icon.value}</span>
                       </button>
                     ))}
                   </div>
@@ -219,20 +219,28 @@ export const GoalModal: React.FC<GoalModalProps> = ({
             <div>
               <Label className="text-white/70 text-sm">Categoria</Label>
               <div className="mt-2 grid grid-cols-2 gap-2">
-                {GOAL_CATEGORIES.map(cat => (
-                  <button
-                    key={cat.value}
-                    type="button"
-                    onClick={() => handleCategoryChange(cat.value as typeof formData.category)}
-                    className={`p-3 rounded-xl text-left transition-all ${
-                      formData.category === cat.value 
-                        ? 'bg-gradient-to-r ' + cat.color + ' text-white shadow-lg scale-105'
-                        : 'bg-white/10 text-white/70 hover:bg-white/20'
-                    }`}
-                  >
-                    <span className="text-sm font-medium">{cat.label}</span>
-                  </button>
-                ))}
+                {GOAL_CATEGORIES.map(cat => {
+                  const isSelected = formData.category === cat.value;
+                  const colorInfo = GOAL_COLORS.find(c => c.value === cat.color);
+                  return (
+                    <button
+                      key={cat.value}
+                      type="button"
+                      onClick={() => handleCategoryChange(cat.value as typeof formData.category)}
+                      className={`p-3 rounded-xl text-left transition-all ${
+                        isSelected 
+                          ? 'text-white shadow-lg scale-[1.02] border-2'
+                          : 'bg-slate-700/50 text-white/70 hover:bg-slate-600/50 border border-white/10'
+                      }`}
+                      style={isSelected ? {
+                        background: `linear-gradient(135deg, ${colorInfo?.hex || '#3b82f6'}dd, ${colorInfo?.hex || '#3b82f6'}99)`,
+                        borderColor: colorInfo?.hex || '#3b82f6'
+                      } : {}}
+                    >
+                      <span className="text-sm font-medium">{cat.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -318,10 +326,10 @@ export const GoalModal: React.FC<GoalModalProps> = ({
 
             {/* Preview */}
             {formData.title && formData.target_amount > 0 && (
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-slate-700/30 border border-white/10">
                 <p className="text-white/50 text-xs mb-2">Preview da Meta:</p>
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{formData.icon}</span>
+                  <span className="text-2xl leading-none">{formData.icon}</span>
                   <div className="flex-1">
                     <h4 className="text-white font-semibold">{formData.title}</h4>
                     <p className="text-white/60 text-sm">

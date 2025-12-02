@@ -27,6 +27,7 @@ const RecommendationsPage = lazy(() => import("@/pages/RecommendationsPage"));
 const SettingsPage = lazy(() => import("@/pages/SettingsPageNew"));
 const ExportReportPage = lazy(() => import("@/pages/ExportReportPage"));
 const FinancialAnalysisPage = lazy(() => import("@/pages/FinancialAnalysisPage"));
+const ProjectedBalancePage = lazy(() => import("@/pages/ProjectedBalancePage"));
 const RecurringTransactionsPage = lazy(() => import("@/pages/RecurringTransactionsPage"));
 const TelegramSettingsPage = lazy(() => import("@/pages/TelegramSettingsPage"));
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
@@ -130,6 +131,10 @@ export const appRoutes: RouteObject[] = [
   {
     path: "/analise-financeira",
     element: <LazyPrivateRoute><FinancialAnalysisPage /></LazyPrivateRoute>
+  },
+  {
+    path: "/projecao",
+    element: <LazyPrivateRoute><ProjectedBalancePage /></LazyPrivateRoute>
   },
   {
     path: "/financial-advisor",

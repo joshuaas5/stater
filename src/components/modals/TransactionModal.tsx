@@ -279,9 +279,13 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       <div 
         className="relative w-full max-w-sm rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 transaction-modal-content"
         style={{
-          background: '#31518b',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+          background: isIncome 
+            ? 'linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%)' 
+            : 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #b91c1c 100%)',
+          border: `1px solid ${isIncome ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+          boxShadow: isIncome 
+            ? '0 8px 32px rgba(16, 185, 129, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)' 
+            : '0 8px 32px rgba(239, 68, 68, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
           pointerEvents: 'auto',
           zIndex: 10000,
           position: 'relative',
@@ -307,14 +311,20 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               <div 
                 className="p-3 rounded-xl"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.12)',
+                  background: isIncome 
+                    ? 'rgba(16, 185, 129, 0.25)' 
+                    : 'rgba(239, 68, 68, 0.25)',
                   backdropFilter: 'blur(30px) saturate(150%)',
                   WebkitBackdropFilter: 'blur(30px) saturate(150%)',
-                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                  boxShadow: isIncome 
+                    ? '0 8px 25px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)' 
+                    : '0 8px 25px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                  border: isIncome 
+                    ? '1px solid rgba(16, 185, 129, 0.3)' 
+                    : '1px solid rgba(239, 68, 68, 0.3)'
                 }}
               >
-                <DollarSign className="h-6 w-6 text-white" />
+                <DollarSign className={`h-6 w-6 ${isIncome ? 'text-emerald-300' : 'text-red-300'}`} />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white" style={{ textDecoration: 'none' }}>
@@ -350,7 +360,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         <div 
           className="p-5 space-y-4 overflow-y-auto transaction-modal-scroll flex-1"
           style={{ 
-            background: 'rgba(49, 81, 139, 0.95)', // Fundo azul sólido com leve transparência para melhor legibilidade
+            background: isIncome 
+              ? 'rgba(6, 78, 59, 0.95)' 
+              : 'rgba(127, 29, 29, 0.95)',
             minHeight: 0, // Importante para flex scroll funcionar
           }}
         >
@@ -687,12 +699,14 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         <div 
           className="p-5 border-t flex-shrink-0"
           style={{
-            background: 'rgba(255, 255, 255, 0.08)',
+            background: isIncome 
+              ? 'rgba(6, 78, 59, 0.9)' 
+              : 'rgba(127, 29, 29, 0.9)',
             backdropFilter: 'blur(40px) saturate(180%)',
             WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-            borderColor: 'rgba(255, 255, 255, 0.18)',
+            borderColor: isIncome ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)',
             boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
-            borderTop: '1px solid rgba(255, 255, 255, 0.18)'
+            borderTop: isIncome ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)'
           }}
         >
           <div className="flex gap-3">

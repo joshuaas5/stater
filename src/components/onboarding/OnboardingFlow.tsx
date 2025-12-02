@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
-import { ChevronRight, Smartphone, Bot, BarChart3, Camera, MessageSquare, Target } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { 
+  ChevronRight, 
+  Camera, 
+  MessageSquare, 
+  Zap, 
+  Bell, 
+  TrendingUp,
+  Sparkles,
+  Check,
+  X
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { useOnboarding } from '@/hooks/useOnboarding';
 
 interface OnboardingStep {
@@ -10,47 +20,82 @@ interface OnboardingStep {
   subtitle: string;
   description: string;
   icon: React.ReactNode;
-  color: string;
-  features: string[];
+  gradient: string;
+  benefits: { emoji: string; text: string }[];
+  tip?: string;
 }
 
 const onboardingSteps: OnboardingStep[] = [
   {
     id: 1,
-    title: "Bem-vindo ao Stater",
-    subtitle: "Seu assistente financeiro inteligente",
-    description: "Controle suas finanças de forma simples e automática com ajuda da Inteligência Artificial",
-    icon: <Target className="w-16 h-16" />,
-    color: "from-blue-500 to-purple-600",
-    features: [
-      "📊 Dashboard completo",
-      "🤖 Stater IA",
-      "📈 Relatórios automáticos"
-    ]
+    title: "Olá! 👋",
+    subtitle: "Bem-vindo ao Stater",
+    description: "O app que faz o trabalho chato por você. Chega de digitar cada gasto manualmente!",
+    icon: <Sparkles className="w-12 h-12" />,
+    gradient: "from-blue-500 via-purple-500 to-pink-500",
+    benefits: [
+      { emoji: "📸", text: "Tire foto do recibo → gasto registrado" },
+      { emoji: "🎤", text: "Fale com o app → ele entende" },
+      { emoji: "🤖", text: "Pergunte qualquer dúvida financeira" }
+    ],
+    tip: "Você não precisa decorar nada. É só usar naturalmente!"
   },
   {
     id: 2,
-    title: "Adicione Gastos Facilmente",
-    subtitle: "Múltiplas formas de registrar",
-    description: "Digite, tire fotos ou use nosso bot do Telegram para registrar seus gastos instantaneamente",
-    icon: <Camera className="w-16 h-16" />,
-    color: "from-green-500 to-teal-600",
-    features: [
-      "📝 Digite diretamente",
-      "📷 Tire fotos de notas",
-      "🤖 Use o bot Telegram"
-    ]
-  },  {
+    title: "Jeito Fácil de Registrar",
+    subtitle: "Escolha como você prefere",
+    description: "Múltiplas formas de adicionar seus gastos sem esforço:",
+    icon: <Camera className="w-12 h-12" />,
+    gradient: "from-emerald-500 via-green-500 to-teal-500",
+    benefits: [
+      { emoji: "📷", text: "Foto de nota fiscal ou recibo" },
+      { emoji: "📄", text: "PDF de fatura de cartão" },
+      { emoji: "🏦", text: "Arquivo OFX do seu banco" },
+      { emoji: "💬", text: "Digitar ou falar naturalmente" }
+    ],
+    tip: "A IA entende \"gastei 50 no uber\" e cria a transação!"
+  },
+  {
     id: 3,
-    title: "🎉 Sua Vida Financeira Transformada!",
-    subtitle: "A revolução chegou ao seu bolso",
-    description: "Com IA avançada e automação inteligente, você terá o controle total das suas finanças sem esforço",
-    icon: <Target className="w-16 h-16" />,
-    color: "from-purple-600 to-pink-600",    features: [
-      "💎 Transformação digital completa",
-      "⚡ Decisões financeiras inteligentes",
-      "🎯 Objetivos financeiros alcançáveis"
-    ]
+    title: "Telegram: Seu Atalho",
+    subtitle: "Controle financeiro no chat",
+    description: "Conecte nosso bot e registre gastos direto do Telegram, sem abrir o app:",
+    icon: <MessageSquare className="w-12 h-12" />,
+    gradient: "from-sky-500 via-blue-500 to-indigo-500",
+    benefits: [
+      { emoji: "⚡", text: "\"Gastei 30 no almoço\" → Pronto!" },
+      { emoji: "📊", text: "\"Quanto gastei hoje?\" → Resposta na hora" },
+      { emoji: "🔄", text: "Sincroniza automático com o app" }
+    ],
+    tip: "Vá em Ajustes → Telegram para conectar"
+  },
+  {
+    id: 4,
+    title: "Nunca Esqueça uma Conta",
+    subtitle: "Alertas inteligentes",
+    description: "Configure suas contas fixas e receba lembretes antes do vencimento:",
+    icon: <Bell className="w-12 h-12" />,
+    gradient: "from-amber-500 via-orange-500 to-red-500",
+    benefits: [
+      { emoji: "📅", text: "Cadastre contas recorrentes" },
+      { emoji: "🔔", text: "Notificação 3 dias antes" },
+      { emoji: "✅", text: "Marque como paga com 1 clique" }
+    ],
+    tip: "Acesse 'Contas' no menu para começar"
+  },
+  {
+    id: 5,
+    title: "Pronto para Começar! 🚀",
+    subtitle: "Sua jornada financeira começa agora",
+    description: "Você tem tudo que precisa para controlar suas finanças de forma inteligente.",
+    icon: <TrendingUp className="w-12 h-12" />,
+    gradient: "from-violet-500 via-purple-500 to-fuchsia-500",
+    benefits: [
+      { emoji: "💡", text: "Dica: Comece adicionando seu saldo atual" },
+      { emoji: "📈", text: "Registre seus gastos dos últimos dias" },
+      { emoji: "🎯", text: "Crie uma meta de economia" }
+    ],
+    tip: "Quanto mais você usar, mais inteligente o app fica!"
   }
 ];
 
@@ -60,222 +105,200 @@ interface OnboardingFlowProps {
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const { completeOnboarding } = useOnboarding();  const handleNext = () => {
-    console.log('handleNext called, currentStep:', currentStep, 'total steps:', onboardingSteps.length);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const { completeOnboarding } = useOnboarding();
+
+  const handleNext = () => {
+    if (isAnimating) return;
     
     if (currentStep < onboardingSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      setIsAnimating(true);
+      setTimeout(() => {
+        setCurrentStep(currentStep + 1);
+        setIsAnimating(false);
+      }, 150);
     } else {
-      console.log('Completing onboarding - apenas fechar popup...');
-      
-      // SIMPLES: Apenas marcar como concluído e fechar
-      completeOnboarding();
-      
-      // Chamar callback se fornecido (que vai esconder o onboarding)
-      if (onComplete) {
-        console.log('Calling onComplete callback - fechando popup');
-        onComplete();
-      }
-      
-      console.log('✅ Onboarding concluído - popup fechado');
+      handleComplete();
     }
   };
-  
-  const handleSkip = () => {
-    console.log('handleSkip called - apenas fechar popup...');
-    
-    // SIMPLES: Apenas marcar como concluído e fechar
+
+  const handleComplete = () => {
     completeOnboarding();
-    
-    // Chamar callback se fornecido (que vai esconder o onboarding)
     if (onComplete) {
-      console.log('Calling onComplete callback from skip - fechando popup');
       onComplete();
     }
-    
-    console.log('✅ Onboarding pulado - popup fechado');
+  };
+
+  const handleSkip = () => {
+    completeOnboarding();
+    if (onComplete) {
+      onComplete();
+    }
   };
 
   const step = onboardingSteps[currentStep];
+  const isLastStep = currentStep === onboardingSteps.length - 1;
+  const progress = ((currentStep + 1) / onboardingSteps.length) * 100;
 
-  return (
+  const modalContent = (
     <div 
-      className="fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4"
+      className="fixed inset-0 flex items-center justify-center p-4"
       style={{
-        background: 'rgba(0, 0, 0, 0.8)',
-        backdropFilter: 'blur(8px)'
+        zIndex: 99999,
+        background: 'rgba(0, 0, 0, 0.85)',
+        backdropFilter: 'blur(12px)'
       }}
     >
-      <Card 
-        className="w-full max-w-sm sm:max-w-md mx-auto rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto"
+      <div 
+        className={`w-full max-w-md mx-auto rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 ${isAnimating ? 'opacity-50 scale-95' : 'opacity-100 scale-100'}`}
         style={{
-          background: 'rgba(49, 81, 139, 0.95)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif'
+          background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          maxHeight: '90vh'
         }}
       >
-        {/* Header com progresso */}
-        <div 
-          className="p-4 sm:p-6 pb-3 sm:pb-4"
-          style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
-          }}
-        >
-          <div className="flex justify-between items-center mb-3 sm:mb-4">
-            <div className="flex space-x-1.5 sm:space-x-2">
-              {onboardingSteps.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-colors ${
-                    index <= currentStep ? 'bg-white' : 'bg-white/30'
-                  }`}
-                  style={{
-                    backgroundColor: index <= currentStep ? '#ffffff' : 'rgba(255, 255, 255, 0.3)'
-                  }}
-                />
-              ))}
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSkip}
-              className="text-white/70 hover:text-white hover:bg-white/20 text-xs sm:text-sm px-2 py-1"
-              style={{
-                color: 'rgba(255, 255, 255, 0.7)',
-                fontWeight: 500
-              }}
-            >
-              Pular
-            </Button>
-          </div>
+        {/* Progress Bar */}
+        <div className="h-1 bg-white/10">
+          <div 
+            className="h-full transition-all duration-500 ease-out"
+            style={{
+              width: `${progress}%`,
+              background: `linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899)`
+            }}
+          />
         </div>
 
-        {/* Conteúdo principal */}
-        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-          {/* Ícone com gradiente */}
-          <div className={`w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto mb-4 sm:mb-6 rounded-full bg-gradient-to-br ${step.color} flex items-center justify-center text-white shadow-lg`}>
-            <div className="flex items-center justify-center">
-              {React.cloneElement(step.icon as React.ReactElement, {
-                className: "w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12"
-              })}
-            </div>
+        {/* Header */}
+        <div className="flex justify-between items-center px-6 py-4">
+          <div className="flex items-center gap-2">
+            {onboardingSteps.map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  index < currentStep 
+                    ? 'bg-green-400' 
+                    : index === currentStep 
+                      ? 'bg-white w-6' 
+                      : 'bg-white/30'
+                }`}
+              />
+            ))}
+          </div>
+          <button
+            onClick={handleSkip}
+            className="text-white/60 hover:text-white text-sm font-medium transition-colors flex items-center gap-1"
+          >
+            Pular
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="px-6 pb-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 180px)' }}>
+          {/* Icon */}
+          <div 
+            className={`w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${step.gradient} flex items-center justify-center text-white shadow-2xl`}
+            style={{
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
+            }}
+          >
+            {step.icon}
           </div>
 
-          {/* Títulos */}
-          <div className="text-center mb-4 sm:mb-6">
-            <h2 
-              className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2"
-              style={{
-                color: '#ffffff',
-                textShadow: '0 2px 10px rgba(0,0,0,0.3)',
-                fontWeight: 600
-              }}
-            >
+          {/* Title */}
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-white mb-2">
               {step.title}
             </h2>
-            <h3 
-              className="text-base sm:text-lg font-semibold text-white/80 mb-2 sm:mb-3"
-              style={{
-                color: 'rgba(255, 255, 255, 0.8)',
-                fontWeight: 500
-              }}
-            >
+            <h3 className="text-lg font-semibold text-white/70 mb-3">
               {step.subtitle}
             </h3>
-            <p 
-              className="text-sm sm:text-base text-white/70 leading-relaxed px-2"
-              style={{
-                color: 'rgba(255, 255, 255, 0.7)'
-              }}
-            >
+            <p className="text-white/60 text-sm leading-relaxed">
               {step.description}
             </p>
           </div>
 
-          {/* Features */}
-          <div className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
-            {step.features.map((feature, index) => (
+          {/* Benefits */}
+          <div className="space-y-3 mb-6">
+            {step.benefits.map((benefit, index) => (
               <div
                 key={index}
-                className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg"
+                className="flex items-center gap-3 p-3 rounded-xl transition-all duration-300"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(10px)'
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)'
                 }}
               >
-                <div 
-                  className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0"
-                  style={{
-                    backgroundColor: '#3b82f6'
-                  }}
-                />
-                <span 
-                  className="text-sm sm:text-base font-medium"
-                  style={{
-                    color: 'rgba(255, 255, 255, 0.9)',
-                    fontWeight: 500
-                  }}
-                >
-                  {feature}
+                <span className="text-2xl flex-shrink-0">{benefit.emoji}</span>
+                <span className="text-white/90 text-sm font-medium">
+                  {benefit.text}
                 </span>
               </div>
             ))}
           </div>
 
-          {/* Botões */}
-          <div className="space-y-3">
-            <Button
-              onClick={handleNext}
-              className="w-full py-2.5 sm:py-3 text-base sm:text-lg font-semibold text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
+          {/* Tip */}
+          {step.tip && (
+            <div 
+              className="p-4 rounded-xl mb-6"
               style={{
-                background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                color: '#ffffff',
-                fontWeight: 600
+                background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15))',
+                border: '1px solid rgba(59, 130, 246, 0.3)'
               }}
-            >              {currentStep === onboardingSteps.length - 1 ? (
-                <>
-                  🚀 Transformar Minhas Finanças!
-                </>
-              ) : (
-                <>
-                  Próximo
-                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
-                </>
-              )}
-            </Button>
-
-            {currentStep === onboardingSteps.length - 1 && (
-              <div 
-                className="text-center pt-3 sm:pt-4 border-t"
-                style={{
-                  borderColor: 'rgba(255, 255, 255, 0.2)'
-                }}
-              >
-                <p 
-                  className="text-xs sm:text-sm mb-2 sm:mb-3"
-                  style={{
-                    color: 'rgba(255, 255, 255, 0.8)'
-                  }}
-                >
-                  🎉 Pronto para começar sua jornada financeira!
+            >
+              <div className="flex items-start gap-3">
+                <Zap className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <p className="text-white/80 text-sm">
+                  <span className="font-semibold text-yellow-400">Dica: </span>
+                  {step.tip}
                 </p>
-                <div className="flex flex-col space-y-1 sm:space-y-2 text-xs">
-                  <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>📱 App otimizado para mobile</span>
-                  <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>🔒 Seus dados estão seguros</span>
-                  <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>🚀 Interface simples e intuitiva</span>
-                </div>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div 
+          className="px-6 py-4 border-t"
+          style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
+        >
+          <Button
+            onClick={handleNext}
+            className="w-full py-4 text-base font-bold text-white rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+            style={{
+              background: isLastStep 
+                ? 'linear-gradient(135deg, #10b981, #059669)' 
+                : 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+              border: 'none',
+              boxShadow: isLastStep 
+                ? '0 8px 24px rgba(16, 185, 129, 0.4)' 
+                : '0 8px 24px rgba(59, 130, 246, 0.4)'
+            }}
+          >
+            {isLastStep ? (
+              <span className="flex items-center justify-center gap-2">
+                <Check className="w-5 h-5" />
+                Começar a Usar!
+              </span>
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                Continuar
+                <ChevronRight className="w-5 h-5" />
+              </span>
             )}
-          </div>
-        </CardContent>
-      </Card>
+          </Button>
+
+          {isLastStep && (
+            <p className="text-center text-white/40 text-xs mt-3">
+              Você pode rever este tutorial em Ajustes
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default OnboardingFlow;

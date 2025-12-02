@@ -22,22 +22,59 @@ const HomePage: React.FC = () => {
       </div>
 
       {/* ========== HEADER ========== */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/80 backdrop-blur-xl border-b border-white/5" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+      <header 
+        className="fixed top-0 left-0 right-0 z-50" 
+        style={{ 
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.85) 100%)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.3)'
+        }}
+      >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <img src="/stater-logo-96.png" alt="Stater" className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl" />
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-40 transition-opacity duration-500"></div>
+              <img src="/stater-logo-96.png" alt="Stater" className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-xl shadow-lg" />
+            </div>
             <div className="flex flex-col">
-              <span className="font-bold text-xl sm:text-2xl tracking-tight leading-tight">Stater</span>
+              <span 
+                className="text-xl sm:text-2xl tracking-tight leading-tight"
+                style={{ 
+                  fontFamily: "'Poppins', 'Inter', system-ui, sans-serif",
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}
+              >
+                Stater
+              </span>
+              <span className="text-[10px] sm:text-xs text-blue-300/60 font-medium tracking-wide hidden sm:block">
+                Inteligência Financeira
+              </span>
             </div>
           </Link>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link to="/login" className="hidden sm:block">
-              <Button variant="ghost" className="text-white/70 hover:text-white hover:bg-white/10">
+              <Button 
+                variant="ghost" 
+                className="text-white/70 hover:text-white hover:bg-white/10 font-medium"
+              >
                 Entrar
               </Button>
             </Link>
             <Link to="/login?view=register">
-              <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-blue-500/25 h-9 sm:h-10 px-4 sm:px-6 text-sm sm:text-base">
+              <Button 
+                className="font-semibold shadow-lg h-9 sm:h-11 px-5 sm:px-7 text-sm sm:text-base rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                style={{
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+                  boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4)'
+                }}
+              >
                 Começar Grátis
               </Button>
             </Link>
@@ -429,25 +466,77 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* ========== FOOTER ========== */}
-      <footer className="relative z-10 py-10 sm:py-12 px-4 sm:px-6 border-t border-white/5 bg-slate-950/50">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          
-          <div className="flex items-center gap-3">
-            <img src="/stater-logo-96.png" alt="Stater" className="w-8 h-8 rounded-lg" />
-            <div>
-              <span className="font-bold">Stater</span>
-              <p className="text-white/40 text-xs">Inteligência para Prosperar</p>
+      <footer 
+        className="relative z-10 py-12 sm:py-16 px-4 sm:px-6"
+        style={{
+          background: 'linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.8) 20%, #0a0f1a 100%)',
+          borderTop: '1px solid rgba(255, 255, 255, 0.05)'
+        }}
+      >
+        <div className="max-w-6xl mx-auto">
+          {/* Main Footer Content */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+            
+            {/* Brand */}
+            <div className="flex flex-col items-center md:items-start">
+              <div className="flex items-center gap-3 mb-3">
+                <img src="/stater-logo-96.png" alt="Stater" className="w-10 h-10 rounded-xl shadow-lg" />
+                <span 
+                  className="text-2xl"
+                  style={{ 
+                    fontFamily: "'Poppins', 'Inter', system-ui, sans-serif",
+                    fontWeight: 700,
+                    background: 'linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}
+                >
+                  Stater
+                </span>
+              </div>
+              <p className="text-white/40 text-sm text-center md:text-left max-w-xs">
+                Organize suas finanças com inteligência artificial. Simples, seguro e eficiente.
+              </p>
             </div>
+            
+            {/* Links */}
+            <div className="flex flex-col items-center">
+              <h4 className="text-white/60 text-xs uppercase tracking-wider font-semibold mb-4">Links</h4>
+              <div className="flex flex-col items-center gap-2">
+                <Link to="/terms" className="text-white/40 hover:text-white text-sm transition-colors">Termos de Uso</Link>
+                <Link to="/privacy" className="text-white/40 hover:text-white text-sm transition-colors">Política de Privacidade</Link>
+              </div>
+            </div>
+            
+            {/* Contact */}
+            <div className="flex flex-col items-center md:items-end">
+              <h4 className="text-white/60 text-xs uppercase tracking-wider font-semibold mb-4">Contato</h4>
+              <a 
+                href="mailto:stater@stater.app" 
+                className="text-blue-400 hover:text-blue-300 text-sm transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                stater@stater.app
+              </a>
+            </div>
+            
           </div>
           
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-white/40">
-            <Link to="/terms" className="hover:text-white transition-colors">Termos</Link>
-            <Link to="/privacy" className="hover:text-white transition-colors">Privacidade</Link>
-            <a href="mailto:staterbills@gmail.com" className="hover:text-white transition-colors">Contato</a>
-          </div>
-          
-          <div className="text-xs text-white/30">
-            © 2025 Stater
+          {/* Bottom Bar */}
+          <div 
+            className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4"
+            style={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}
+          >
+            <p className="text-white/30 text-xs">
+              © 2025 Stater. Todos os direitos reservados.
+            </p>
+            <div className="flex items-center gap-2 text-white/30 text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Sistema operacional</span>
+            </div>
           </div>
           
         </div>

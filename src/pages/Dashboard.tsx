@@ -40,6 +40,7 @@ import VirtualizedTransactionList from '@/components/virtualized/VirtualizedTran
 import { TransactionModal } from '@/components/modals/TransactionModal';
 import PremiumModal, { ProStatusModal } from '@/components/PremiumModal';
 import { useLayoutMode } from '@/hooks/useLayoutMode';
+import { ProjectedBalanceCard } from '@/components/dashboard/ProjectedBalanceCard';
 
 //  DEBUG: Log para identificar re-renderizaes do Dashboard
 console.log(' Dashboard.tsx carregado/re-renderizado:', new Date().toISOString());
@@ -1105,6 +1106,9 @@ const Dashboard: React.FC = () => {
               : '---%'              } Últimos 30 Dias
           </div>
         </div>
+
+        {/* Projected Balance Card - NEW */}
+        <ProjectedBalanceCard />
 
         {/* Premium Quick Actions - Desktop: botões menores e mais elegantes */}
         <div className="flex px-8 gap-3 mb-4 lg:justify-center lg:max-w-xl lg:mx-auto">

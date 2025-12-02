@@ -245,7 +245,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
             >
               STATER
             </span>
-            <span className="text-[10px] text-white/50">Controle Financeiro</span>
+            <span className="text-[10px] text-white/50">Inteligência para prosperar</span>
           </div>
         )}
       </div>

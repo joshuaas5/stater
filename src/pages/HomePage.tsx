@@ -54,7 +54,7 @@ const HomePage: React.FC = () => {
                 STATER
               </span>
               <span className="text-[10px] sm:text-xs text-blue-300/60 font-medium tracking-wide hidden sm:block">
-                Inteligência Financeira
+                Inteligência para prosperar
               </span>
             </div>
           </Link>

@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -275,7 +275,7 @@ const HomePage: React.FC = () => {
                 
                 {activeMode === 'simples' ? (
                   /* Screenshot Mobile - Modo Simples */
-                  <div className="relative mx-auto w-[180px] sm:w-[220px]">
+                  <div className="relative mx-auto w-[200px] sm:w-[240px]">
                     <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[2.5rem] p-2 border border-white/10 shadow-2xl">
                       <div className="rounded-[2rem] overflow-hidden bg-slate-950">
                         <img 
@@ -596,3 +596,4 @@ const HomePage: React.FC = () => {
 };
 
 export default HomePage;
+

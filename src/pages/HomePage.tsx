@@ -389,20 +389,24 @@ const HomePage: React.FC = () => {
             <div className="bg-slate-900/50 rounded-2xl border border-white/10 shadow-2xl overflow-hidden relative group backdrop-blur-sm ring-1 ring-white/5">
               
               {/* Image Container */}
-              <div className="relative bg-slate-950/30 grid grid-cols-1 grid-rows-1">
+              <div className="relative bg-slate-950/30">
                  {screenshots.map((item, index) => (
-                   <img 
+                   <div 
                      key={index}
-                     src={`/screenshots/${item.img}`} 
-                     alt={item.title}
-                     className={`col-start-1 row-start-1 w-full h-auto shadow-inner transition-opacity duration-500 ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-                   />
+                     className={index === currentSlide ? 'block animate-in fade-in duration-300' : 'hidden'}
+                   >
+                     <img 
+                       src={`/screenshots/${item.img}`} 
+                       alt={item.title}
+                       className="w-full h-auto shadow-inner"
+                       loading="eager"
+                     />
+                     {/* Description Overlay - Mobile/Desktop unified */}
+                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent p-6 pt-24 flex flex-col justify-end items-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <p className="text-white text-lg font-medium">{item.desc}</p>
+                     </div>
+                   </div>
                  ))}
-                 
-                 {/* Description Overlay */}
-                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent p-6 pt-24 flex flex-col justify-end items-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                    <p className="text-white text-lg font-medium">{screenshots[currentSlide].desc}</p>
-                 </div>
               </div>
             </div>
 

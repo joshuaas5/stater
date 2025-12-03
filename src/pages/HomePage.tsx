@@ -275,9 +275,9 @@ const HomePage: React.FC = () => {
                 
                 {activeMode === 'simples' ? (
                   /* Screenshot Mobile - Modo Simples */
-                  <div className="relative mx-auto w-[280px] sm:w-[320px]">
-                    <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[40px] p-3 border border-white/10 shadow-2xl">
-                      <div className="rounded-[32px] overflow-hidden bg-slate-950">
+                  <div className="relative mx-auto w-[200px] sm:w-[240px]">
+                    <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[2.5rem] p-2 border border-white/10 shadow-2xl">
+                      <div className="rounded-[2rem] overflow-hidden bg-slate-950">
                         <img 
                           src="/screenshots/modo-simples.png" 
                           alt="Stater - Modo Simples" 
@@ -385,7 +385,7 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Main Showcase Window */}
-          <div className="relative max-w-4xl mx-auto">
+          <div className="relative max-w-3xl mx-auto">
             {/* Simple Sleek Frame */}
             <div className="bg-slate-900/50 rounded-2xl border border-white/10 shadow-2xl overflow-hidden relative group backdrop-blur-sm ring-1 ring-white/5">
               
@@ -436,7 +436,7 @@ const HomePage: React.FC = () => {
 
       {/* ========== PRO SECTION ========== */}
       <section className="relative z-10 py-16 sm:py-24 px-4 sm:px-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 rounded-3xl blur-lg opacity-30"></div>
             <div className="relative bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10 rounded-3xl p-8 sm:p-12 overflow-hidden">

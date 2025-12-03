@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -205,65 +205,55 @@ const HomePage: React.FC = () => {
             
             {/* Description Side */}
             <div className={`transition-all duration-500 ${activeMode === 'simples' ? 'order-1' : 'order-1 lg:order-2'}`}>
-              {activeMode === 'simples' ? (
-                <div className="space-y-6">
-                  <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-500/30 rounded-full px-4 py-1.5">
-                    <Smartphone className="w-4 h-4 text-emerald-400" />
-                    <span className="text-emerald-300 text-sm font-medium">Para quem quer simplicidade</span>
-                  </div>
-                  <h3 className="text-3xl sm:text-4xl font-bold leading-tight">
-                    Interface limpa,<br />foco no essencial
-                  </h3>
-                  <p className="text-white/60 text-lg leading-relaxed">
-                    Perfeito para quem quer apenas controlar gastos e contas sem complicação. 
-                    Visual otimizado para celular, ações rápidas e intuitivas.
-                  </p>
-                  <ul className="space-y-4">
-                    {[
-                      { icon: <CreditCard className="w-5 h-5" />, text: 'Registro rápido de gastos' },
-                      { icon: <Bell className="w-5 h-5" />, text: 'Lembretes de contas por email' },
-                      { icon: <PieChart className="w-5 h-5" />, text: 'Gráficos simples e claros' },
-                      { icon: <Mic className="w-5 h-5" />, text: 'Entrada por voz com IA' },
-                    ].map((item, i) => (
-                      <li key={i} className="flex items-center gap-4 text-white/80">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                          {item.icon}
+                {/* Preload images para transicao suave */}
+                <img src="/screenshots/modo-simples.png" alt="" className="hidden" />
+                <img src="/screenshots/dashboard.png" alt="" className="hidden" />
+
+                {/* Container com altura fixa para evitar layout shift */}
+                <div className="relative min-h-[400px] sm:min-h-[450px] flex items-center justify-center">
+
+                  {/* Screenshot Mobile - Modo Simples */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-in-out ${
+                      activeMode === 'simples'
+                        ? 'opacity-100 scale-100'
+                        : 'opacity-0 scale-95 pointer-events-none'
+                    }`}
+                  >
+                    <div className="relative w-[240px] sm:w-[280px]">
+                      <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[2.5rem] p-2 border border-white/10 shadow-2xl">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-slate-900 rounded-b-2xl z-10"></div>
+                        <div className="rounded-[2rem] overflow-hidden bg-slate-950 aspect-[9/19]">
+                          <img
+                            src="/screenshots/modo-simples.png"
+                            alt="Stater - Modo Simples"
+                            className="w-full h-full object-cover object-top"
+                          />
                         </div>
-                        <span className="font-medium">{item.text}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-500/30 rounded-full px-4 py-1.5">
-                    <LayoutDashboard className="w-4 h-4 text-blue-400" />
-                    <span className="text-blue-300 text-sm font-medium">Para quem quer controle total</span>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="text-3xl sm:text-4xl font-bold leading-tight">
-                    Dashboard completo,<br />visão 360° das finanças
-                  </h3>
-                  <p className="text-white/60 text-lg leading-relaxed">
-                    Ideal para desktop. Sidebar com navegação, gráficos avançados, 
-                    consultor financeiro IA e muito mais. Tudo em uma tela.
-                  </p>
-                  <ul className="space-y-4">
-                    {[
-                      { icon: <Brain className="w-5 h-5" />, text: 'Consultor financeiro com IA' },
-                      { icon: <TrendingUp className="w-5 h-5" />, text: 'Projeções e metas financeiras' },
-                      { icon: <Calendar className="w-5 h-5" />, text: 'Transações recorrentes automáticas' },
-                      { icon: <PieChart className="w-5 h-5" />, text: 'Relatórios e análises detalhadas' },
-                    ].map((item, i) => (
-                      <li key={i} className="flex items-center gap-4 text-white/80">
-                        <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400">
-                          {item.icon}
-                        </div>
-                        <span className="font-medium">{item.text}</span>
-                      </li>
-                    ))}
-                  </ul>
+
+                  {/* Screenshot Desktop - Modo Completo */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-in-out ${
+                      activeMode === 'completo'
+                        ? 'opacity-100 scale-100'
+                        : 'opacity-0 scale-95 pointer-events-none'
+                    }`}
+                  >
+                    <div className="relative w-full max-w-lg">
+                      <div className="rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-slate-900">
+                        <img
+                          src="/screenshots/dashboard.png"
+                          alt="Stater - Modo Completo"
+                          className="w-full h-auto"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
-              )}
             </div>
 
             {/* Visual Side - Screenshots Reais */}
@@ -273,29 +263,55 @@ const HomePage: React.FC = () => {
                   activeMode === 'simples' ? 'bg-emerald-500' : 'bg-blue-500'
                 }`}></div>
                 
-                {activeMode === 'simples' ? (
-                  /* Screenshot Mobile - Modo Simples */
-                  <div className="relative mx-auto w-[180px] sm:w-[220px]">
-                    <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[2.5rem] p-2 border border-white/10 shadow-2xl">
-                      <div className="rounded-[2rem] overflow-hidden bg-slate-950">
-                        <img 
-                          src="/screenshots/modo-simples.png" 
-                          alt="Stater - Modo Simples" 
+                {/* Preload images para transicao suave */}
+                <img src="/screenshots/modo-simples.png" alt="" className="hidden" />
+                <img src="/screenshots/dashboard.png" alt="" className="hidden" />
+
+                {/* Container com altura fixa para evitar layout shift */}
+                <div className="relative min-h-[400px] sm:min-h-[450px] flex items-center justify-center">
+
+                  {/* Screenshot Mobile - Modo Simples */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-in-out ${
+                      activeMode === 'simples'
+                        ? 'opacity-100 scale-100'
+                        : 'opacity-0 scale-95 pointer-events-none'
+                    }`}
+                  >
+                    <div className="relative w-[240px] sm:w-[280px]">
+                      <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[2.5rem] p-2 border border-white/10 shadow-2xl">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-slate-900 rounded-b-2xl z-10"></div>
+                        <div className="rounded-[2rem] overflow-hidden bg-slate-950 aspect-[9/19]">
+                          <img
+                            src="/screenshots/modo-simples.png"
+                            alt="Stater - Modo Simples"
+                            className="w-full h-full object-cover object-top"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Screenshot Desktop - Modo Completo */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-in-out ${
+                      activeMode === 'completo'
+                        ? 'opacity-100 scale-100'
+                        : 'opacity-0 scale-95 pointer-events-none'
+                    }`}
+                  >
+                    <div className="relative w-full max-w-lg">
+                      <div className="rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-slate-900">
+                        <img
+                          src="/screenshots/dashboard.png"
+                          alt="Stater - Modo Completo"
                           className="w-full h-auto"
                         />
                       </div>
                     </div>
                   </div>
-                ) : (
-                  /* Screenshot Desktop - Modo Completo */
-                  <div className="relative rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-slate-900">
-                    <img 
-                      src="/screenshots/dashboard.png" 
-                      alt="Stater - Modo Completo" 
-                      className="w-full h-auto"
-                    />
-                  </div>
-                )}
+
+                </div>
               </div>
             </div>
 

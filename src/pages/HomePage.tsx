@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,6 @@ const HomePage: React.FC = () => {
     { img: 'importar-docs.png', title: 'Importar Documentos', desc: 'Importe extratos OFX, PDFs e fotos de notas fiscais' },
     { img: 'metas.png', title: 'Metas Financeiras', desc: 'Defina seus objetivos e acompanhe o progresso' },
     { img: 'recorrentes.png', title: 'Gastos Recorrentes', desc: 'Configure uma vez e automatize seus gastos mensais' },
-    { img: 'modo-simples.png', title: 'Modo Simples', desc: 'Uma interface simplificada para quem quer praticidade' },
   ];
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % screenshots.length);

@@ -23,16 +23,8 @@ const HomePage: React.FC = () => {
     { img: 'recorrentes.png', title: 'Gastos Recorrentes', desc: 'Configure uma vez e automatize seus gastos mensais' },
   ];
 
-  const scrollToSlide = (index: number) => {
-    if (carouselRef.current) {
-      const slideWidth = carouselRef.current.offsetWidth;
-      carouselRef.current.scrollTo({ left: slideWidth * index, behavior: 'smooth' });
-      setCurrentSlide(index);
-    }
-  };
-
-  const nextSlide = () => scrollToSlide((currentSlide + 1) % screenshots.length);
-  const prevSlide = () => scrollToSlide(currentSlide === 0 ? screenshots.length - 1 : currentSlide - 1);
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % screenshots.length);
+  const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? screenshots.length - 1 : prev - 1));
 
   return (
     <div className="min-h-[100dvh] bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white overflow-x-hidden font-sans selection:bg-blue-500/30">
@@ -359,77 +351,89 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ========== SCREENSHOTS CARROSSEL ========== */}
-      <section className="relative z-10 py-16 sm:py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/20 to-transparent"></div>
+      {/* ========== FEATURE SHOWCASE (Browser Style) ========== */}
+      <section className="relative z-10 py-20 overflow-hidden">
+        {/* Background Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/20 blur-[120px] rounded-full pointer-events-none"></div>
         
-        <div className="relative max-w-lg mx-auto px-4">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-              Veja o Stater em <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">ação</span>
+        <div className="relative max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+              Por dentro do <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Stater</span>
             </h2>
-            <p className="text-white/50 text-sm">
-              Explore as funcionalidades
+            <p className="text-white/60 text-lg max-w-2xl mx-auto">
+              Uma interface pensada para clareza, potência e facilidade de uso.
             </p>
           </div>
 
-          {/* Container do Carrossel */}
-          <div className="relative">
-            {/* Seta Esquerda */}
-            <button 
-              onClick={prevSlide}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 sm:-translate-x-12 z-10 w-9 h-9 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center transition-all hover:scale-110"
-            >
-              <ChevronLeft className="w-5 h-5 text-white" />
-            </button>
-
-            {/* Seta Direita */}
-            <button 
-              onClick={nextSlide}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-12 z-10 w-9 h-9 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center transition-all hover:scale-110"
-            >
-              <ChevronRight className="w-5 h-5 text-white" />
-            </button>
-
-            {/* Carrossel */}
-            <div 
-              ref={carouselRef}
-              className="flex overflow-x-auto snap-x snap-mandatory rounded-xl"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              onScroll={(e) => {
-                const target = e.target as HTMLDivElement;
-                const index = Math.round(target.scrollLeft / target.offsetWidth);
-                if (index !== currentSlide) setCurrentSlide(index);
-              }}
-            >
-              {screenshots.map((item, i) => (
-                <div key={i} className="flex-shrink-0 w-full snap-center">
-                  <div className="bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
-                    <img 
-                      src={`/screenshots/${item.img}`} 
-                      alt={item.title} 
-                      className="w-full h-auto"
-                    />
-                    <div className="p-4 text-center">
-                      <h3 className="font-semibold text-white text-base mb-1">{item.title}</h3>
-                      <p className="text-white/50 text-xs sm:text-sm">{item.desc}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Indicadores clicáveis */}
-          <div className="flex justify-center mt-5 gap-1.5">
-            {screenshots.map((_, i) => (
-              <button 
+          {/* Navigation Pills */}
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
+            {screenshots.map((item, i) => (
+              <button
                 key={i}
-                onClick={() => scrollToSlide(i)}
-                className={`h-1.5 rounded-full transition-all ${currentSlide === i ? 'bg-blue-500 w-6' : 'bg-white/30 w-1.5 hover:bg-white/50'}`}
-              />
+                onClick={() => setCurrentSlide(i)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border ${
+                  currentSlide === i 
+                    ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/25 scale-105' 
+                    : 'bg-slate-800/50 border-white/10 text-white/60 hover:bg-slate-700/50 hover:text-white'
+                }`}
+              >
+                {item.title}
+              </button>
             ))}
           </div>
+
+          {/* Main Showcase Window */}
+          <div className="relative max-w-5xl mx-auto">
+            {/* Browser Window Frame */}
+            <div className="bg-slate-900 rounded-xl border border-white/10 shadow-2xl overflow-hidden relative group">
+              {/* Window Header */}
+              <div className="h-8 bg-slate-800/80 backdrop-blur-md border-b border-white/5 flex items-center px-4 gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+                {/* Address Bar Mockup */}
+                <div className="ml-4 flex-1 max-w-md mx-auto h-5 bg-slate-900/50 rounded-md flex items-center justify-center">
+                  <span className="text-[10px] text-white/30 font-mono">app.stater.com/{screenshots[currentSlide].img.split('.')[0]}</span>
+                </div>
+              </div>
+
+              {/* Image Container */}
+              <div className="relative aspect-video bg-slate-950">
+                 <img 
+                   key={currentSlide}
+                   src={`/screenshots/${screenshots[currentSlide].img}`} 
+                   alt={screenshots[currentSlide].title}
+                   className="w-full h-full object-cover animate-in fade-in duration-500"
+                 />
+                 
+                 {/* Description Overlay */}
+                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-6 pt-20 flex flex-col justify-end items-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p className="text-white text-lg font-medium">{screenshots[currentSlide].desc}</p>
+                 </div>
+              </div>
+            </div>
+
+            {/* Navigation Arrows (Floating) */}
+            <button 
+              onClick={prevSlide}
+              className="absolute top-1/2 -left-4 sm:-left-12 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white transition-all hover:scale-110 z-20"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button 
+              onClick={nextSlide}
+              className="absolute top-1/2 -right-4 sm:-right-12 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white transition-all hover:scale-110 z-20"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>
+          
+          {/* Mobile Description */}
+          <div className="mt-6 text-center sm:hidden">
+             <p className="text-white/80">{screenshots[currentSlide].desc}</p>
+          </div>
+
         </div>
       </section>
 

@@ -360,15 +360,15 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* ========== SCREENSHOTS CARROSSEL ========== */}
-      <section className="relative z-10 py-16 sm:py-20 overflow-hidden">
+      <section className="relative z-10 py-12 sm:py-16 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/20 to-transparent"></div>
         
-        <div className="relative max-w-2xl mx-auto px-4">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+        <div className="relative max-w-sm mx-auto px-4">
+          <div className="text-center mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold mb-1">
               Veja o Stater em <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">ação</span>
             </h2>
-            <p className="text-white/50 text-sm">
+            <p className="text-white/50 text-xs">
               Explore as funcionalidades
             </p>
           </div>
@@ -378,23 +378,23 @@ const HomePage: React.FC = () => {
             {/* Seta Esquerda */}
             <button 
               onClick={prevSlide}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-12 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center transition-all hover:scale-110"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 sm:-translate-x-10 z-10 w-7 h-7 sm:w-8 sm:h-8 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center transition-all hover:scale-110"
             >
-              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
             </button>
 
             {/* Seta Direita */}
             <button 
               onClick={nextSlide}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-12 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center transition-all hover:scale-110"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 sm:translate-x-10 z-10 w-7 h-7 sm:w-8 sm:h-8 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center transition-all hover:scale-110"
             >
-              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
             </button>
 
             {/* Carrossel */}
             <div 
               ref={carouselRef}
-              className="flex overflow-x-auto snap-x snap-mandatory rounded-xl"
+              className="flex overflow-x-auto snap-x snap-mandatory rounded-lg"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               onScroll={(e) => {
                 const target = e.target as HTMLDivElement;
@@ -404,16 +404,14 @@ const HomePage: React.FC = () => {
             >
               {screenshots.map((item, i) => (
                 <div key={i} className="flex-shrink-0 w-full snap-center">
-                  <div className="bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
+                  <div className="bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-lg overflow-hidden">
                     <img 
                       src={`/screenshots/${item.img}`} 
                       alt={item.title} 
                       className="w-full h-auto"
-                      style={{ imageRendering: 'auto' }}
                     />
-                    <div className="p-3 text-center">
-                      <h3 className="font-semibold text-white text-base">{item.title}</h3>
-                      <p className="text-white/50 text-xs">{item.desc}</p>
+                    <div className="p-2 text-center">
+                      <h3 className="font-medium text-white text-sm">{item.title}</h3>
                     </div>
                   </div>
                 </div>
@@ -422,12 +420,12 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Indicadores clicáveis */}
-          <div className="flex justify-center mt-4 gap-1.5">
+          <div className="flex justify-center mt-3 gap-1">
             {screenshots.map((_, i) => (
               <button 
                 key={i}
                 onClick={() => scrollToSlide(i)}
-                className={`h-1.5 rounded-full transition-all ${currentSlide === i ? 'bg-blue-500 w-6' : 'bg-white/30 w-1.5 hover:bg-white/50'}`}
+                className={`h-1 rounded-full transition-all ${currentSlide === i ? 'bg-blue-500 w-4' : 'bg-white/30 w-1 hover:bg-white/50'}`}
               />
             ))}
           </div>

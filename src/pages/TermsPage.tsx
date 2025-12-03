@@ -1,164 +1,66 @@
-﻿import { ArrowLeft } from 'lucide-react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowLeft, Shield, FileText } from 'lucide-react';
 
-export default function TermsPage() {
+const TermsPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Link 
-            to="/" 
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar ao App
-          </Link>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Termos de Uso</h1>
-          
-          <div className="space-y-6 text-gray-700">
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">1. AceitaÃ§Ã£o dos Termos</h2>
-              <p>
-                Ao acessar e usar o Stater ("Aplicativo"), vocÃª concorda em cumprir e estar 
-                vinculado a estes Termos de Uso. Se vocÃª nÃ£o concordar com algum destes termos, 
-                nÃ£o deve usar o Aplicativo.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">2. DescriÃ§Ã£o do ServiÃ§o</h2>
-              <p>
-                O Stater Ã© um aplicativo de gestÃ£o financeira pessoal que oferece:
-              </p>
-              <ul className="list-disc list-inside space-y-2 mt-2">
-                <li>Controle de receitas e despesas</li>
-                <li>CategorizaÃ§Ã£o de transaÃ§Ãµes</li>
-                <li>AnÃ¡lise financeira com inteligÃªncia artificial</li>
-                <li>RelatÃ³rios e grÃ¡ficos financeiros</li>
-                <li>IntegraÃ§Ã£o com Telegram para notificaÃ§Ãµes</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">3. Conta do UsuÃ¡rio</h2>
-              <p>Para usar o Aplicativo, vocÃª deve:</p>
-              <ul className="list-disc list-inside space-y-2 mt-2">
-                <li>Fornecer informaÃ§Ãµes precisas e atualizadas</li>
-                <li>Manter a confidencialidade de sua conta</li>
-                <li>Ser responsÃ¡vel por todas as atividades em sua conta</li>
-                <li>Notificar-nos imediatamente sobre uso nÃ£o autorizado</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Uso Permitido</h2>
-              <p>VocÃª pode usar o Aplicativo para:</p>
-              <ul className="list-disc list-inside space-y-2 mt-2">
-                <li>Gerenciar suas finanÃ§as pessoais</li>
-                <li>Registrar transaÃ§Ãµes financeiras</li>
-                <li>Gerar relatÃ³rios de suas atividades financeiras</li>
-                <li>Utilizar recursos de inteligÃªncia artificial para anÃ¡lises</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Uso Proibido</h2>
-              <p>VocÃª NÃƒO pode usar o Aplicativo para:</p>
-              <ul className="list-disc list-inside space-y-2 mt-2">
-                <li>Atividades ilegais ou fraudulentas</li>
-                <li>Tentar acessar contas de outros usuÃ¡rios</li>
-                <li>Interferir no funcionamento do sistema</li>
-                <li>Violar direitos de propriedade intelectual</li>
-                <li>Enviar spam ou conteÃºdo malicioso</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Dados Financeiros</h2>
-              <p>
-                VocÃª Ã© totalmente responsÃ¡vel pela precisÃ£o e veracidade dos dados financeiros 
-                inseridos no Aplicativo. O Stater nÃ£o se responsabiliza por:
-              </p>
-              <ul className="list-disc list-inside space-y-2 mt-2">
-                <li>DecisÃµes financeiras baseadas nos dados do app</li>
-                <li>Erros nos dados inseridos pelo usuÃ¡rio</li>
-                <li>Perdas financeiras decorrentes do uso do app</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">7. Propriedade Intelectual</h2>
-              <p>
-                O Aplicativo e todo seu conteÃºdo sÃ£o protegidos por direitos autorais e outras 
-                leis de propriedade intelectual. VocÃª nÃ£o pode copiar, modificar, distribuir 
-                ou criar obras derivadas sem autorizaÃ§Ã£o.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">8. Disponibilidade</h2>
-              <p>
-                Embora nos esforcemos para manter o Aplicativo disponÃ­vel, nÃ£o garantimos 
-                operaÃ§Ã£o ininterrupta. Podemos suspender o serviÃ§o temporariamente para 
-                manutenÃ§Ã£o ou melhorias.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">9. LimitaÃ§Ã£o de Responsabilidade</h2>
-              <p>
-                O Stater Ã© fornecido "como estÃ¡". NÃ£o oferecemos garantias e nÃ£o nos 
-                responsabilizamos por danos diretos, indiretos, incidentais ou consequenciais 
-                decorrentes do uso do Aplicativo.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">10. Encerramento</h2>
-              <p>
-                Podemos encerrar ou suspender sua conta a qualquer momento, com ou sem aviso, 
-                por violaÃ§Ã£o destes termos ou por outros motivos legÃ­timos.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">11. AlteraÃ§Ãµes nos Termos</h2>
-              <p>
-                Reservamo-nos o direito de modificar estes termos a qualquer momento. 
-                AlteraÃ§Ãµes significativas serÃ£o comunicadas atravÃ©s do Aplicativo ou por email.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">12. Lei AplicÃ¡vel</h2>
-              <p>
-                Estes termos sÃ£o regidos pelas leis brasileiras. Qualquer disputa serÃ¡ 
-                resolvida nos tribunais competentes do Brasil.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">13. Contato</h2>
-              <p>
-                Para dÃºvidas sobre estes termos, entre em contato:
-              </p>
-              <p className="mt-2">
-                <strong>Email:</strong> stater@stater.app
-              </p>
-            </section>
-
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-500">
-                Ãšltima atualizaÃ§Ã£o: {new Date().toLocaleDateString('pt-BR')}
-              </p>
-            </div>
+    <div className="min-h-screen bg-gradient-to-b from-[#050510] to-[#0c0c1d]">
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <Link to="/" className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 mb-8 transition-colors">
+          <ArrowLeft className="w-5 h-5" />
+          Voltar
+        </Link>
+        <div className="flex items-center gap-4 mb-8">
+          <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30">
+            <Shield className="w-8 h-8 text-purple-400" />
           </div>
+          <div>
+            <h1 className="text-3xl font-bold text-white">Termos de Uso</h1>
+            <p className="text-gray-400">Ultima atualizacao: {new Date().toLocaleDateString('pt-BR')}</p>
+          </div>
+        </div>
+        <div className="prose prose-invert max-w-none space-y-8 text-gray-300">
+          <section className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <h2 className="flex items-center gap-2 text-xl font-semibold text-white mb-4"><FileText className="w-5 h-5 text-purple-400" />1. Aceitacao dos Termos</h2>
+            <p>Ao acessar e utilizar o Stater, voce concorda com estes Termos de Uso e nossa Politica de Privacidade. Se voce nao concordar com algum dos termos, por favor, nao utilize nossos servicos.</p>
+          </section>
+          <section className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">2. Descricao do Servico</h2>
+            <p>O Stater e uma plataforma de gestao financeira pessoal que oferece:</p>
+            <ul className="mt-3 space-y-2 list-disc list-inside text-gray-400">
+              <li>Gerenciamento de contas e transacoes financeiras</li>
+              <li>Controle de despesas e receitas</li>
+              <li>Definicao e acompanhamento de metas financeiras</li>
+              <li>Consultor financeiro com inteligencia artificial</li>
+              <li>Integracao com Telegram para lembretes</li>
+            </ul>
+          </section>
+          <section className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">3. Cadastro e Conta</h2>
+            <p>Para utilizar o Stater, voce deve criar uma conta fornecendo informacoes verdadeiras e atualizadas. Voce e responsavel por manter a confidencialidade de sua senha e por todas as atividades realizadas em sua conta.</p>
+          </section>
+          <section className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">4. Protecao de Dados</h2>
+            <p>Implementamos medidas de seguranca tecnicas e organizacionais para proteger seus dados, incluindo criptografia e controles de acesso. Seus dados nunca sao vendidos a terceiros.</p>
+          </section>
+          <section className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">5. Seus Direitos (LGPD)</h2>
+            <p>Em conformidade com a LGPD, voce tem direito a:</p>
+            <ul className="mt-3 space-y-2 list-disc list-inside text-gray-400">
+              <li>Acessar seus dados pessoais</li>
+              <li>Corrigir dados incompletos ou desatualizados</li>
+              <li>Solicitar a exclusao de seus dados</li>
+              <li>Revogar seu consentimento</li>
+            </ul>
+          </section>
+          <section className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">6. Contato</h2>
+            <p>Para questoes sobre estes termos, entre em contato atraves do email <a href="mailto:stater@stater.app" className="text-purple-400 hover:text-purple-300">stater@stater.app</a></p>
+          </section>
         </div>
       </div>
     </div>
   );
-}
+};
 
+export default TermsPage;

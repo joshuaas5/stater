@@ -1,123 +1,76 @@
-﻿import { ArrowLeft } from 'lucide-react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowLeft, Lock, Eye } from 'lucide-react';
 
-export default function PrivacyPage() {
+const PrivacyPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Link 
-            to="/" 
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar ao App
-          </Link>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">PolÃ­tica de Privacidade</h1>
-          
-          <div className="space-y-6 text-gray-700">
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">1. InformaÃ§Ãµes Gerais</h2>
-              <p>
-                Esta PolÃ­tica de Privacidade descreve como o Stater ("nÃ³s", "nosso" ou "aplicativo") 
-                coleta, usa e protege suas informaÃ§Ãµes pessoais quando vocÃª utiliza nosso serviÃ§o.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">2. InformaÃ§Ãµes que Coletamos</h2>
-              <ul className="list-disc list-inside space-y-2">
-                <li>InformaÃ§Ãµes de conta: Nome, email e foto do perfil (via Google OAuth)</li>
-                <li>Dados financeiros: TransaÃ§Ãµes, categorias e valores inseridos por vocÃª</li>
-                <li>Dados de uso: Como vocÃª interage com o aplicativo</li>
-                <li>InformaÃ§Ãµes tÃ©cnicas: IP, navegador, dispositivo (para seguranÃ§a)</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">3. Como Usamos suas InformaÃ§Ãµes</h2>
-              <ul className="list-disc list-inside space-y-2">
-                <li>Fornecer e melhorar nossos serviÃ§os financeiros</li>
-                <li>Personalizar sua experiÃªncia no aplicativo</li>
-                <li>Enviar notificaÃ§Ãµes e atualizaÃ§Ãµes importantes</li>
-                <li>Garantir a seguranÃ§a e prevenir fraudes</li>
-                <li>Cumprir obrigaÃ§Ãµes legais</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Compartilhamento de InformaÃ§Ãµes</h2>
-              <p>
-                NÃ£o vendemos, alugamos ou compartilhamos suas informaÃ§Ãµes pessoais com terceiros, 
-                exceto quando necessÃ¡rio para:
-              </p>
-              <ul className="list-disc list-inside space-y-2 mt-2">
-                <li>Cumprir obrigaÃ§Ãµes legais</li>
-                <li>Proteger nossos direitos e seguranÃ§a</li>
-                <li>Prestar serviÃ§os essenciais (ex: autenticaÃ§Ã£o via Google)</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">5. SeguranÃ§a dos Dados</h2>
-              <p>
-                Implementamos medidas de seguranÃ§a tÃ©cnicas e organizacionais adequadas para 
-                proteger suas informaÃ§Ãµes contra acesso nÃ£o autorizado, alteraÃ§Ã£o, divulgaÃ§Ã£o 
-                ou destruiÃ§Ã£o.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Seus Direitos (LGPD)</h2>
-              <p>De acordo com a Lei Geral de ProteÃ§Ã£o de Dados (LGPD), vocÃª tem direito a:</p>
-              <ul className="list-disc list-inside space-y-2 mt-2">
-                <li>Acesso aos seus dados pessoais</li>
-                <li>CorreÃ§Ã£o de dados incompletos ou incorretos</li>
-                <li>ExclusÃ£o de dados desnecessÃ¡rios ou tratados em desconformidade</li>
-                <li>Portabilidade dos dados</li>
-                <li>RevogaÃ§Ã£o do consentimento</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">7. RetenÃ§Ã£o de Dados</h2>
-              <p>
-                Mantemos suas informaÃ§Ãµes pelo tempo necessÃ¡rio para cumprir os propÃ³sitos 
-                descritos nesta polÃ­tica, atender requisitos legais e resolver disputas.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">8. Contato</h2>
-              <p>
-                Para exercer seus direitos ou esclarecer dÃºvidas sobre esta polÃ­tica, 
-                entre em contato conosco:
-              </p>
-              <p className="mt-2">
-                <strong>Email:</strong> stater@stater.app
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">9. AlteraÃ§Ãµes</h2>
-              <p>
-                Esta polÃ­tica pode ser atualizada periodicamente. Notificaremos sobre 
-                mudanÃ§as significativas atravÃ©s do aplicativo ou por email.
-              </p>
-            </section>
-
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-500">
-                Ãšltima atualizaÃ§Ã£o: {new Date().toLocaleDateString('pt-BR')}
-              </p>
-            </div>
+    <div className="min-h-screen bg-gradient-to-b from-[#050510] to-[#0c0c1d]">
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <Link to="/" className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 mb-8 transition-colors">
+          <ArrowLeft className="w-5 h-5" />
+          Voltar
+        </Link>
+        <div className="flex items-center gap-4 mb-8">
+          <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30">
+            <Lock className="w-8 h-8 text-purple-400" />
           </div>
+          <div>
+            <h1 className="text-3xl font-bold text-white">Politica de Privacidade</h1>
+            <p className="text-gray-400">Ultima atualizacao: {new Date().toLocaleDateString('pt-BR')}</p>
+          </div>
+        </div>
+        <div className="prose prose-invert max-w-none space-y-8 text-gray-300">
+          <section className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <h2 className="flex items-center gap-2 text-xl font-semibold text-white mb-4"><Eye className="w-5 h-5 text-purple-400" />1. Coleta de Dados</h2>
+            <p>Para fornecer nossos servicos, coletamos os seguintes dados:</p>
+            <ul className="mt-3 space-y-2 list-disc list-inside text-gray-400">
+              <li>Informacoes de identificacao (nome, email)</li>
+              <li>Dados financeiros inseridos por voce</li>
+              <li>Informacoes de uso da plataforma</li>
+              <li>Dados de dispositivo e navegacao</li>
+            </ul>
+          </section>
+          <section className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">2. Uso dos Dados</h2>
+            <p>Seus dados sao utilizados exclusivamente para:</p>
+            <ul className="mt-3 space-y-2 list-disc list-inside text-gray-400">
+              <li>Fornecer e melhorar nossos servicos</li>
+              <li>Personalizar sua experiencia</li>
+              <li>Enviar comunicacoes relevantes</li>
+              <li>Garantir a seguranca da plataforma</li>
+            </ul>
+          </section>
+          <section className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">3. Protecao de Dados</h2>
+            <p>Implementamos medidas de seguranca tecnicas e organizacionais para proteger seus dados, incluindo criptografia, controles de acesso e monitoramento continuo.</p>
+          </section>
+          <section className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">4. Compartilhamento</h2>
+            <p>Nao vendemos seus dados. Compartilhamos apenas com:</p>
+            <ul className="mt-3 space-y-2 list-disc list-inside text-gray-400">
+              <li>Provedores de servicos essenciais (processamento de pagamentos)</li>
+              <li>Quando exigido por lei</li>
+            </ul>
+          </section>
+          <section className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">5. Seus Direitos (LGPD)</h2>
+            <p>Voce tem direito a:</p>
+            <ul className="mt-3 space-y-2 list-disc list-inside text-gray-400">
+              <li>Acessar seus dados pessoais</li>
+              <li>Corrigir dados incorretos</li>
+              <li>Solicitar exclusao de dados</li>
+              <li>Revogar consentimento</li>
+              <li>Portabilidade dos dados</li>
+            </ul>
+          </section>
+          <section className="bg-white/5 rounded-xl p-6 border border-white/10">
+            <h2 className="text-xl font-semibold text-white mb-4">6. Contato</h2>
+            <p>Para exercer seus direitos ou tirar duvidas: <a href="mailto:stater@stater.app" className="text-purple-400 hover:text-purple-300">stater@stater.app</a></p>
+          </section>
         </div>
       </div>
     </div>
   );
-}
+};
 
+export default PrivacyPage;

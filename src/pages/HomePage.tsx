@@ -1,15 +1,38 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   Mic, Camera, PieChart, Bell, Sparkles, Check, ArrowRight, Shield, Zap, 
   Smartphone, CreditCard, Lock, Calendar, Brain, TrendingUp, Bot, FileText,
-  LayoutDashboard, Infinity, MessageCircle
+  LayoutDashboard, Infinity, MessageCircle, ChevronLeft, ChevronRight
 } from 'lucide-react';
 
 const HomePage: React.FC = () => {
   const [activeMode, setActiveMode] = useState<'simples' | 'completo'>('completo');
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const screenshots = [
+    { img: 'insights-ia.png', title: 'Insights com IA', desc: 'Receba dicas personalizadas baseadas nos seus gastos reais' },
+    { img: 'saude-financeira.png', title: 'Saúde Financeira', desc: 'Acompanhe seu score, fundo de emergência e taxa de poupança' },
+    { img: 'stater-ia.png', title: 'Stater IA', desc: 'Converse com a inteligência artificial sobre suas finanças' },
+    { img: 'export.png', title: 'Exportar Relatórios', desc: 'Gere relatórios profissionais em PDF, Excel, CSV e OFX' },
+    { img: 'importar-docs.png', title: 'Importar Documentos', desc: 'Importe extratos OFX, PDFs e fotos de notas fiscais' },
+    { img: 'metas.png', title: 'Metas Financeiras', desc: 'Defina seus objetivos e acompanhe o progresso' },
+    { img: 'recorrentes.png', title: 'Gastos Recorrentes', desc: 'Configure uma vez e automatize seus gastos mensais' },
+  ];
+
+  const scrollToSlide = (index: number) => {
+    if (carouselRef.current) {
+      const slideWidth = carouselRef.current.offsetWidth;
+      carouselRef.current.scrollTo({ left: slideWidth * index, behavior: 'smooth' });
+      setCurrentSlide(index);
+    }
+  };
+
+  const nextSlide = () => scrollToSlide((currentSlide + 1) % screenshots.length);
+  const prevSlide = () => scrollToSlide(currentSlide === 0 ? screenshots.length - 1 : currentSlide - 1);
 
   return (
     <div className="min-h-[100dvh] bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white overflow-x-hidden font-sans selection:bg-blue-500/30">
@@ -336,87 +359,77 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ========== SCREENSHOTS CARROSSEL FULLSCREEN ========== */}
-      <section className="relative z-10 py-16 sm:py-24 overflow-hidden">
+      {/* ========== SCREENSHOTS CARROSSEL ========== */}
+      <section className="relative z-10 py-16 sm:py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/20 to-transparent"></div>
         
-        <div className="relative">
-          <div className="text-center mb-8 sm:mb-12 px-4">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
+        <div className="relative max-w-4xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-3">
               Veja o Stater em <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">ação</span>
             </h2>
-            <p className="text-white/50 text-base sm:text-lg max-w-xl mx-auto">
-              Deslize para explorar as funcionalidades
+            <p className="text-white/50 text-base">
+              Explore as funcionalidades
             </p>
           </div>
 
-          {/* Carrossel Fullscreen - 1 card por vez */}
-          <div 
-            className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
-            style={{ 
-              scrollbarWidth: 'none', 
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-            {[
-              { img: 'insights-ia.png', title: 'Insights com IA', desc: 'Receba dicas personalizadas baseadas nos seus gastos reais', color: 'from-purple-500 to-pink-500', badge: '🧠 IA' },
-              { img: 'saude-financeira.png', title: 'Saúde Financeira', desc: 'Acompanhe seu score, fundo de emergência e taxa de poupança', color: 'from-blue-500 to-cyan-500', badge: '📊 Score' },
-              { img: 'stater-ia.png', title: 'Stater IA', desc: 'Converse com a inteligência artificial sobre suas finanças', color: 'from-indigo-500 to-violet-500', badge: '💬 Chat' },
-              { img: 'export.png', title: 'Exportar Relatórios', desc: 'Gere relatórios profissionais em PDF, Excel, CSV e OFX', color: 'from-cyan-500 to-blue-500', badge: '📑 Export' },
-              { img: 'importar-docs.png', title: 'Importar Documentos', desc: 'Importe extratos OFX, PDFs e fotos de notas fiscais', color: 'from-emerald-500 to-teal-500', badge: '📄 Import' },
-              { img: 'metas.png', title: 'Metas Financeiras', desc: 'Defina seus objetivos e acompanhe o progresso em tempo real', color: 'from-amber-500 to-orange-500', badge: '🎯 Metas' },
-              { img: 'recorrentes.png', title: 'Gastos Recorrentes', desc: 'Configure uma vez e automatize seus gastos mensais', color: 'from-rose-500 to-pink-500', badge: '🔄 Auto' },
-            ].map((item, i, arr) => (
-              <div 
-                key={i} 
-                className="flex-shrink-0 w-full snap-center px-4 sm:px-8 md:px-16 lg:px-24"
-              >
-                <div className="max-w-4xl mx-auto">
-                  {/* Card principal */}
-                  <div className="relative">
-                    <div className={`absolute -inset-2 bg-gradient-to-r ${item.color} rounded-3xl blur-xl opacity-30`}></div>
-                    <div className="relative bg-slate-800/90 backdrop-blur-sm border border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl">
-                      {/* Imagem grande */}
-                      <div className="relative">
-                        <img 
-                          src={`/screenshots/${item.img}`} 
-                          alt={item.title} 
-                          className="w-full h-auto"
-                        />
-                        <div className={`absolute top-4 right-4 bg-gradient-to-r ${item.color} text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg`}>
-                          {item.badge}
-                        </div>
-                      </div>
-                      {/* Info */}
-                      <div className="p-5 sm:p-6 text-center">
-                        <h3 className="font-bold text-white text-xl sm:text-2xl mb-2">{item.title}</h3>
-                        <p className="text-white/60 text-sm sm:text-base">{item.desc}</p>
-                      </div>
+          {/* Container do Carrossel */}
+          <div className="relative">
+            {/* Seta Esquerda */}
+            <button 
+              onClick={prevSlide}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 sm:-translate-x-14 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center transition-all hover:scale-110"
+            >
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </button>
+
+            {/* Seta Direita */}
+            <button 
+              onClick={nextSlide}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 sm:translate-x-14 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center transition-all hover:scale-110"
+            >
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </button>
+
+            {/* Carrossel */}
+            <div 
+              ref={carouselRef}
+              className="flex overflow-x-auto snap-x snap-mandatory rounded-2xl"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              onScroll={(e) => {
+                const target = e.target as HTMLDivElement;
+                const index = Math.round(target.scrollLeft / target.offsetWidth);
+                if (index !== currentSlide) setCurrentSlide(index);
+              }}
+            >
+              {screenshots.map((item, i) => (
+                <div key={i} className="flex-shrink-0 w-full snap-center">
+                  <div className="bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
+                    <img 
+                      src={`/screenshots/${item.img}`} 
+                      alt={item.title} 
+                      className="w-full h-auto"
+                      style={{ imageRendering: 'auto' }}
+                    />
+                    <div className="p-4 text-center">
+                      <h3 className="font-bold text-white text-lg mb-1">{item.title}</h3>
+                      <p className="text-white/50 text-sm">{item.desc}</p>
                     </div>
                   </div>
-                  
-                  {/* Indicador de posição */}
-                  <div className="flex justify-center mt-6 gap-2">
-                    {arr.map((_, dotIndex) => (
-                      <div 
-                        key={dotIndex}
-                        className={`w-2 h-2 rounded-full transition-all ${dotIndex === i ? 'bg-white w-6' : 'bg-white/30'}`}
-                      />
-                    ))}
-                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
-          {/* Dica de navegação */}
-          <div className="flex justify-center mt-6">
-            <div className="text-white/40 text-sm flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full">
-              <span>←</span>
-              <span>deslize para navegar</span>
-              <span>→</span>
-            </div>
+          {/* Indicadores clicáveis */}
+          <div className="flex justify-center mt-5 gap-2">
+            {screenshots.map((_, i) => (
+              <button 
+                key={i}
+                onClick={() => scrollToSlide(i)}
+                className={`h-2 rounded-full transition-all ${currentSlide === i ? 'bg-blue-500 w-8' : 'bg-white/30 w-2 hover:bg-white/50'}`}
+              />
+            ))}
           </div>
         </div>
       </section>

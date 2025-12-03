@@ -1,122 +1,123 @@
-TERMOS DE USO E POLÍTICA DE PRIVACIDADE - STATER
+﻿TERMOS DE USO E POLÃTICA DE PRIVACIDADE - STATER
 ==================================================
 
-ÚLTIMA ATUALIZAÇÃO: 27 de junho de 2025
+ÃšLTIMA ATUALIZAÃ‡ÃƒO: 27 de junho de 2025
 
 1. SOBRE O APLICATIVO
-1.1. O Stater é um aplicativo de assistente financeiro inteligente que utiliza Inteligência Artificial para ajudar usuários a gerenciar suas finanças pessoais.
+1.1. O Stater Ã© um aplicativo de assistente financeiro inteligente que utiliza InteligÃªncia Artificial para ajudar usuÃ¡rios a gerenciar suas finanÃ§as pessoais.
 
-1.2. O aplicativo oferece funcionalidades como análise de extratos, chat com IA, controle de gastos, relatórios financeiros e integração com bot do Telegram.
+1.2. O aplicativo oferece funcionalidades como anÃ¡lise de extratos, chat com IA, controle de gastos, relatÃ³rios financeiros e integraÃ§Ã£o com bot do Telegram.
 
-2. ACEITAÇÃO DOS TERMOS
-2.1. Ao criar uma conta no Stater, você concorda integralmente com estes Termos de Uso e Política de Privacidade.
+2. ACEITAÃ‡ÃƒO DOS TERMOS
+2.1. Ao criar uma conta no Stater, vocÃª concorda integralmente com estes Termos de Uso e PolÃ­tica de Privacidade.
 
-2.2. O uso continuado do aplicativo implica na aceitação de eventuais atualizações destes termos.
+2.2. O uso continuado do aplicativo implica na aceitaÃ§Ã£o de eventuais atualizaÃ§Ãµes destes termos.
 
 3. FUNCIONALIDADES GRATUITAS E PAGAS
-3.1. O Stater oferece funcionalidades básicas gratuitas e recursos premium pagos.
+3.1. O Stater oferece funcionalidades bÃ¡sicas gratuitas e recursos premium pagos.
 
 3.2. PAGAMENTOS VIA GOOGLE PLAY:
-- Todos os pagamentos de funcionalidades premium são processados exclusivamente através do Google Play Billing
-- A Google é responsável por toda a parte de cobrança, faturamento e processamento de pagamentos
-- Devoluções, estornos, contestações e questões de pagamento devem ser direcionadas diretamente à Google Play Store
-- O Stater não tem acesso direto aos dados de pagamento dos usuários
-- As políticas de reembolso seguem os termos e condições da Google Play Store
-- Para cancelar assinaturas, o usuário deve acessar sua conta Google Play
+- Todos os pagamentos de funcionalidades premium sÃ£o processados exclusivamente atravÃ©s do Google Play Billing
+- A Google Ã© responsÃ¡vel por toda a parte de cobranÃ§a, faturamento e processamento de pagamentos
+- DevoluÃ§Ãµes, estornos, contestaÃ§Ãµes e questÃµes de pagamento devem ser direcionadas diretamente Ã  Google Play Store
+- O Stater nÃ£o tem acesso direto aos dados de pagamento dos usuÃ¡rios
+- As polÃ­ticas de reembolso seguem os termos e condiÃ§Ãµes da Google Play Store
+- Para cancelar assinaturas, o usuÃ¡rio deve acessar sua conta Google Play
 
-3.3. O Stater não armazena dados de cartão de crédito ou informações financeiras de pagamento.
+3.3. O Stater nÃ£o armazena dados de cartÃ£o de crÃ©dito ou informaÃ§Ãµes financeiras de pagamento.
 
 4. COLETA E TRATAMENTO DE DADOS (LGPD)
 4.1. DADOS COLETADOS:
-- Informações de cadastro (nome, email)
-- Dados financeiros inseridos pelo usuário
+- InformaÃ§Ãµes de cadastro (nome, email)
+- Dados financeiros inseridos pelo usuÃ¡rio
 - Conversas com a IA
 - Dados de uso do aplicativo
-- Informações do Telegram (quando conectado)
+- InformaÃ§Ãµes do Telegram (quando conectado)
 
 4.2. FINALIDADE DO TRATAMENTO:
-- Fornecer o serviço de assistente financeiro
-- Melhorar a experiência do usuário
+- Fornecer o serviÃ§o de assistente financeiro
+- Melhorar a experiÃªncia do usuÃ¡rio
 - Treinar e aprimorar a IA
-- Comunicações importantes sobre o serviço
+- ComunicaÃ§Ãµes importantes sobre o serviÃ§o
 
 4.3. BASE LEGAL (LGPD):
 - Consentimento do titular
-- Execução de contrato
-- Legítimo interesse
+- ExecuÃ§Ã£o de contrato
+- LegÃ­timo interesse
 
 5. COMPARTILHAMENTO DE DADOS
-5.1. Não vendemos, alugamos ou compartilhamos dados pessoais com terceiros para fins comerciais.
+5.1. NÃ£o vendemos, alugamos ou compartilhamos dados pessoais com terceiros para fins comerciais.
 
 5.2. Dados podem ser compartilhados apenas para:
-- Cumprimento de obrigações legais
-- Prevenção de fraudes
-- Proteção dos direitos do Stater
+- Cumprimento de obrigaÃ§Ãµes legais
+- PrevenÃ§Ã£o de fraudes
+- ProteÃ§Ã£o dos direitos do Stater
 
-6. SEGURANÇA DOS DADOS
-6.1. Implementamos medidas técnicas e organizacionais para proteger seus dados.
-6.2. Utilizamos criptografia e armazenamento seguro em servidores confiáveis.
-6.3. Acesso aos dados é restrito apenas a pessoal autorizado.
+6. SEGURANÃ‡A DOS DADOS
+6.1. Implementamos medidas tÃ©cnicas e organizacionais para proteger seus dados.
+6.2. Utilizamos criptografia e armazenamento seguro em servidores confiÃ¡veis.
+6.3. Acesso aos dados Ã© restrito apenas a pessoal autorizado.
 
 7. SEUS DIREITOS (LGPD)
-Você tem direito a:
-- Confirmação da existência de tratamento
+VocÃª tem direito a:
+- ConfirmaÃ§Ã£o da existÃªncia de tratamento
 - Acesso aos dados
-- Correção de dados incompletos/incorretos
-- Anonimização, bloqueio ou eliminação
+- CorreÃ§Ã£o de dados incompletos/incorretos
+- AnonimizaÃ§Ã£o, bloqueio ou eliminaÃ§Ã£o
 - Portabilidade dos dados
-- Eliminação dos dados
-- Informações sobre compartilhamento
-- Revogação do consentimento
+- EliminaÃ§Ã£o dos dados
+- InformaÃ§Ãµes sobre compartilhamento
+- RevogaÃ§Ã£o do consentimento
 
 8. ENCARREGADO DE DADOS
-8.1. Para exercer seus direitos ou esclarecer dúvidas sobre tratamento de dados:
-Email: staterbills@gmail.com
-Assunto: [LGPD] + sua solicitação
+8.1. Para exercer seus direitos ou esclarecer dÃºvidas sobre tratamento de dados:
+Email: stater@stater.app
+Assunto: [LGPD] + sua solicitaÃ§Ã£o
 
-9. RETENÇÃO DE DADOS
-9.1. Dados serão mantidos pelo tempo necessário para as finalidades informadas.
-9.2. Após exclusão da conta, dados serão removidos em até 30 dias.
+9. RETENÃ‡ÃƒO DE DADOS
+9.1. Dados serÃ£o mantidos pelo tempo necessÃ¡rio para as finalidades informadas.
+9.2. ApÃ³s exclusÃ£o da conta, dados serÃ£o removidos em atÃ© 30 dias.
 
-10. RESPONSABILIDADES DO USUÁRIO
+10. RESPONSABILIDADES DO USUÃRIO
 10.1. Manter credenciais de acesso seguras
-10.2. Não compartilhar sua conta
-10.3. Inserir informações verdadeiras
-10.4. Não usar o app para atividades ilegais
+10.2. NÃ£o compartilhar sua conta
+10.3. Inserir informaÃ§Ãµes verdadeiras
+10.4. NÃ£o usar o app para atividades ilegais
 
-11. LIMITAÇÃO DE RESPONSABILIDADE
-11.1. O Stater não se responsabiliza por:
-- Decisões financeiras baseadas nas análises do app
-- Perda de dados por falha do usuário
+11. LIMITAÃ‡ÃƒO DE RESPONSABILIDADE
+11.1. O Stater nÃ£o se responsabiliza por:
+- DecisÃµes financeiras baseadas nas anÃ¡lises do app
+- Perda de dados por falha do usuÃ¡rio
 - Problemas de conectividade
-- Ações de terceiros
+- AÃ§Ãµes de terceiros
 
 12. PROPRIEDADE INTELECTUAL
-12.1. Todo conteúdo do Stater é protegido por direitos autorais.
-12.2. É proibida a reprodução sem autorização expressa.
+12.1. Todo conteÃºdo do Stater Ã© protegido por direitos autorais.
+12.2. Ã‰ proibida a reproduÃ§Ã£o sem autorizaÃ§Ã£o expressa.
 
-13. CANCELAMENTO E SUSPENSÃO
-13.1. Podemos suspender contas por violação destes termos.
-13.2. Usuários podem excluir sua conta a qualquer momento.
+13. CANCELAMENTO E SUSPENSÃƒO
+13.1. Podemos suspender contas por violaÃ§Ã£o destes termos.
+13.2. UsuÃ¡rios podem excluir sua conta a qualquer momento.
 
-14. ALTERAÇÕES NOS TERMOS
+14. ALTERAÃ‡Ã•ES NOS TERMOS
 14.1. Reservamo-nos o direito de alterar estes termos.
-14.2. Usuários serão notificados sobre mudanças significativas.
+14.2. UsuÃ¡rios serÃ£o notificados sobre mudanÃ§as significativas.
 
 15. CONTATO
-Para dúvidas, sugestões ou solicitações relacionadas aos dados:
-Email: staterbills@gmail.com
+Para dÃºvidas, sugestÃµes ou solicitaÃ§Ãµes relacionadas aos dados:
+Email: stater@stater.app
 
-16. LEI APLICÁVEL
-16.1. Estes termos são regidos pela legislação brasileira.
+16. LEI APLICÃVEL
+16.1. Estes termos sÃ£o regidos pela legislaÃ§Ã£o brasileira.
 16.2. Foro competente: comarca da sede da empresa.
 
 ==================================================
 
 CONSENTIMENTO:
-☐ Li e aceito os Termos de Uso e Política de Privacidade do Stater
-☐ Autorizo o tratamento dos meus dados pessoais conforme descrito
-☐ Estou ciente das funcionalidades pagas processadas via Google Play
+â˜ Li e aceito os Termos de Uso e PolÃ­tica de Privacidade do Stater
+â˜ Autorizo o tratamento dos meus dados pessoais conforme descrito
+â˜ Estou ciente das funcionalidades pagas processadas via Google Play
 
 Data: _____/_____/_____
-Usuário: ________________________________
+UsuÃ¡rio: ________________________________
+

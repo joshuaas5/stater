@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+﻿import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 import { corsHeaders } from '../_shared/cors.ts';
 
@@ -53,7 +53,7 @@ const formatCurrency = (amount: number, currency = 'BRL'): string => {
 
 const generateWeeklySummaryEmail = async (userId: string, userEmail: string): Promise<EmailData | null> => {
   try {
-    // Buscar preferências do usuário
+    // Buscar preferÃªncias do usuÃ¡rio
     const { data: userPrefs, error: prefsError } = await supabase
       .from('user_preferences')
       .select('*')
@@ -61,24 +61,24 @@ const generateWeeklySummaryEmail = async (userId: string, userEmail: string): Pr
       .single();
     
     if (prefsError) {
-      console.error('Erro ao buscar preferências do usuário:', prefsError);
+      console.error('Erro ao buscar preferÃªncias do usuÃ¡rio:', prefsError);
       return null;
     }
     
     const preferences = userPrefs as UserPreferences;
     
-    // Verificar se o usuário deseja receber emails semanais
+    // Verificar se o usuÃ¡rio deseja receber emails semanais
     if (!preferences.notifications_weekly_email || !preferences.notifications_email) {
-      console.log(`Usuário ${userId} optou por não receber emails semanais`);
+      console.log(`UsuÃ¡rio ${userId} optou por nÃ£o receber emails semanais`);
       return null;
     }
     
-    // Definir período da semana (últimos 7 dias)
+    // Definir perÃ­odo da semana (Ãºltimos 7 dias)
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 7);
     
-    // Buscar transações da semana
+    // Buscar transaÃ§Ãµes da semana
     const { data: transactions, error: transactionsError } = await supabase
       .from('transactions')
       .select('*')
@@ -88,11 +88,11 @@ const generateWeeklySummaryEmail = async (userId: string, userEmail: string): Pr
       .order('date', { ascending: false });
     
     if (transactionsError) {
-      console.error('Erro ao buscar transações:', transactionsError);
+      console.error('Erro ao buscar transaÃ§Ãµes:', transactionsError);
       return null;
     }
     
-    // Buscar contas a vencer nos próximos 7 dias
+    // Buscar contas a vencer nos prÃ³ximos 7 dias
     const nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
     
@@ -195,7 +195,7 @@ const generateWeeklySummaryEmail = async (userId: string, userEmail: string): Pr
       <body>
         <div class="header">
           <div class="logo">Stater</div>
-          <p>Inteligência para Prosperar</p>
+          <p>InteligÃªncia para Prosperar</p>
         </div>
         
         <div class="summary">
@@ -206,12 +206,12 @@ const generateWeeklySummaryEmail = async (userId: string, userEmail: string): Pr
         </div>
         
         <div class="section">
-          <h2>Transações Recentes</h2>
+          <h2>TransaÃ§Ãµes Recentes</h2>
           ${transactions.length > 0 ? `
           <table>
             <tr>
               <th>Data</th>
-              <th>Descrição</th>
+              <th>DescriÃ§Ã£o</th>
               <th>Categoria</th>
               <th>Valor</th>
             </tr>
@@ -224,7 +224,7 @@ const generateWeeklySummaryEmail = async (userId: string, userEmail: string): Pr
             </tr>
             `).join('')}
           </table>
-          ` : '<p>Nenhuma transação registrada nesta semana.</p>'}
+          ` : '<p>Nenhuma transaÃ§Ã£o registrada nesta semana.</p>'}
         </div>
         
         ${upcomingBills.length > 0 ? `
@@ -233,7 +233,7 @@ const generateWeeklySummaryEmail = async (userId: string, userEmail: string): Pr
           <table>
             <tr>
               <th>Vencimento</th>
-              <th>Descrição</th>
+              <th>DescriÃ§Ã£o</th>
               <th>Valor</th>
             </tr>
             ${upcomingBills.map((b: Bill) => `
@@ -249,14 +249,14 @@ const generateWeeklySummaryEmail = async (userId: string, userEmail: string): Pr
         
         <div class="section">
           <h2>Dicas Financeiras</h2>
-          <p>💡 Lembre-se de revisar suas despesas recorrentes e verificar se todas são necessárias.</p>
-          <p>💡 Estabeleça metas de economia para o próximo mês.</p>
-          <p>💡 Não se esqueça de pagar suas contas em dia para evitar juros e multas.</p>
+          <p>ðŸ’¡ Lembre-se de revisar suas despesas recorrentes e verificar se todas sÃ£o necessÃ¡rias.</p>
+          <p>ðŸ’¡ EstabeleÃ§a metas de economia para o prÃ³ximo mÃªs.</p>
+          <p>ðŸ’¡ NÃ£o se esqueÃ§a de pagar suas contas em dia para evitar juros e multas.</p>
         </div>
       
         <div class="footer">
-          <p>Este email foi enviado automaticamente pelo Stater - Inteligência para Prosperar.</p>
-          <p>Para ajustar suas preferências de notificação, acesse a página de Preferências no aplicativo.</p>
+          <p>Este email foi enviado automaticamente pelo Stater - InteligÃªncia para Prosperar.</p>
+          <p>Para ajustar suas preferÃªncias de notificaÃ§Ã£o, acesse a pÃ¡gina de PreferÃªncias no aplicativo.</p>
         </div>
       </body>
       </html>
@@ -276,11 +276,11 @@ const generateWeeklySummaryEmail = async (userId: string, userEmail: string): Pr
 
 const sendEmail = async (emailData: EmailData) => {
   try {
-    // Obter a chave de API do SendGrid das variáveis de ambiente
+    // Obter a chave de API do SendGrid das variÃ¡veis de ambiente
     const SENDGRID_API_KEY = Deno.env.get('SENDGRID_API_KEY');
     
     if (!SENDGRID_API_KEY) {
-      throw new Error('SENDGRID_API_KEY não está configurada nas variáveis de ambiente');
+      throw new Error('SENDGRID_API_KEY nÃ£o estÃ¡ configurada nas variÃ¡veis de ambiente');
     }
     
     // Registrar a tentativa de envio no log
@@ -294,7 +294,7 @@ const sendEmail = async (emailData: EmailData) => {
           subject: emailData.subject,
         },
       ],
-      from: { email: 'staterbills@gmail.com', name: 'Stater - Inteligência para Prosperar' },
+      from: { email: 'stater@stater.app', name: 'Stater - InteligÃªncia para Prosperar' },
       content: [
         {
           type: 'text/html',
@@ -303,7 +303,7 @@ const sendEmail = async (emailData: EmailData) => {
       ],
     };
     
-    // Enviar a requisição para a API do SendGrid
+    // Enviar a requisiÃ§Ã£o para a API do SendGrid
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
       headers: {
@@ -345,36 +345,36 @@ const sendEmail = async (emailData: EmailData) => {
 };
 
 serve(async (req) => {
-  // Lidar com requisições OPTIONS para CORS
+  // Lidar com requisiÃ§Ãµes OPTIONS para CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
   
   try {
-    // Verificar se é uma requisição POST
+    // Verificar se Ã© uma requisiÃ§Ã£o POST
     if (req.method !== 'POST') {
-      return new Response(JSON.stringify({ error: 'Método não permitido' }), {
+      return new Response(JSON.stringify({ error: 'MÃ©todo nÃ£o permitido' }), {
         status: 405,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
     
-    // Obter dados da requisição
+    // Obter dados da requisiÃ§Ã£o
     const { userId } = await req.json();
     
     if (!userId) {
-      return new Response(JSON.stringify({ error: 'ID do usuário não fornecido' }), {
+      return new Response(JSON.stringify({ error: 'ID do usuÃ¡rio nÃ£o fornecido' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
     
-    // Buscar dados do usuário
+    // Buscar dados do usuÃ¡rio
     const { data: userData, error: userError } = await supabase
       .auth.admin.getUserById(userId);
     
     if (userError || !userData || !userData.user) {
-      return new Response(JSON.stringify({ error: 'Usuário não encontrado' }), {
+      return new Response(JSON.stringify({ error: 'UsuÃ¡rio nÃ£o encontrado' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -384,7 +384,7 @@ serve(async (req) => {
     const emailData = await generateWeeklySummaryEmail(userId, userData.user.email);
     
     if (!emailData) {
-      return new Response(JSON.stringify({ message: 'Nenhum email enviado - usuário optou por não receber ou não há dados suficientes' }), {
+      return new Response(JSON.stringify({ message: 'Nenhum email enviado - usuÃ¡rio optou por nÃ£o receber ou nÃ£o hÃ¡ dados suficientes' }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -397,10 +397,11 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Erro ao processar requisição:', error);
+    console.error('Erro ao processar requisiÃ§Ã£o:', error);
     return new Response(JSON.stringify({ error: 'Erro interno do servidor' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 });
+

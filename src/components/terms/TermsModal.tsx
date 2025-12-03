@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -42,7 +42,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
     
     try {
       setIsAccepting(true);
-      console.log('✅ [TERMS MODAL] Aceitando termos...');
+      console.log('âœ… [TERMS MODAL] Aceitando termos...');
       
       toast({
         title: "Salvando seus termos",
@@ -56,7 +56,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
         description: "Bem-vindo ao Stater!"
       });
     } catch (error) {
-      console.error('❌ [TERMS MODAL] Erro ao aceitar termos:', error);
+      console.error('âŒ [TERMS MODAL] Erro ao aceitar termos:', error);
       toast({
         title: "Erro ao aceitar termos",
         description: "Tente novamente em alguns instantes.",
@@ -103,11 +103,11 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           margin: 0,
           color: '#ffffff'
         }}>
-          Termos de Uso e Política de Privacidade
+          Termos de Uso e PolÃ­tica de Privacidade
         </h1>
       </div>
 
-      {/* Conteúdo scrollável */}
+      {/* ConteÃºdo scrollÃ¡vel */}
       <div 
         style={{
           flex: 1,
@@ -117,33 +117,33 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
         }}
       >
         <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: '12px', marginBottom: '16px' }}>
-          ÚLTIMA ATUALIZAÇÃO: 27 de junho de 2025
+          ÃšLTIMA ATUALIZAÃ‡ÃƒO: 27 de junho de 2025
         </p>
 
         <div style={{ marginBottom: '20px' }}>
           <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>1. SOBRE O APLICATIVO</h3>
           <p style={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.5, marginBottom: '8px' }}>
-            1.1. O Stater é um aplicativo de assistente financeiro inteligente que utiliza Inteligência Artificial para ajudar usuários a gerenciar suas finanças pessoais.
+            1.1. O Stater Ã© um aplicativo de assistente financeiro inteligente que utiliza InteligÃªncia Artificial para ajudar usuÃ¡rios a gerenciar suas finanÃ§as pessoais.
           </p>
           <p style={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>
-            1.2. O aplicativo oferece funcionalidades como análise de extratos, chat com IA, controle de gastos, relatórios financeiros e integração com bot do Telegram.
+            1.2. O aplicativo oferece funcionalidades como anÃ¡lise de extratos, chat com IA, controle de gastos, relatÃ³rios financeiros e integraÃ§Ã£o com bot do Telegram.
           </p>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>2. ACEITAÇÃO DOS TERMOS</h3>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>2. ACEITAÃ‡ÃƒO DOS TERMOS</h3>
           <p style={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.5, marginBottom: '8px' }}>
-            2.1. Ao criar uma conta no Stater, você concorda integralmente com estes Termos de Uso e Política de Privacidade.
+            2.1. Ao criar uma conta no Stater, vocÃª concorda integralmente com estes Termos de Uso e PolÃ­tica de Privacidade.
           </p>
           <p style={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>
-            2.2. O uso continuado do aplicativo implica na aceitação de eventuais atualizações destes termos.
+            2.2. O uso continuado do aplicativo implica na aceitaÃ§Ã£o de eventuais atualizaÃ§Ãµes destes termos.
           </p>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
           <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>3. FUNCIONALIDADES GRATUITAS E PAGAS</h3>
           <p style={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.5, marginBottom: '8px' }}>
-            3.1. O Stater oferece funcionalidades básicas gratuitas e recursos premium pagos.
+            3.1. O Stater oferece funcionalidades bÃ¡sicas gratuitas e recursos premium pagos.
           </p>
           <div style={{ 
             background: 'rgba(255,255,255,0.1)', 
@@ -155,7 +155,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
             <p style={{ fontWeight: 600, marginBottom: '8px' }}>3.2. PAGAMENTOS:</p>
             <ul style={{ paddingLeft: '20px', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6 }}>
               <li>Pagamentos processados via Stripe ou Google Play</li>
-              <li>O Stater não armazena dados de cartão de crédito</li>
+              <li>O Stater nÃ£o armazena dados de cartÃ£o de crÃ©dito</li>
               <li>Para cancelar assinaturas, acesse sua conta</li>
             </ul>
           </div>
@@ -171,8 +171,8 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           }}>
             <p style={{ fontWeight: 600, marginBottom: '8px' }}>Dados coletados:</p>
             <ul style={{ paddingLeft: '20px', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6 }}>
-              <li>Informações de cadastro (nome, email)</li>
-              <li>Dados financeiros inseridos pelo usuário</li>
+              <li>InformaÃ§Ãµes de cadastro (nome, email)</li>
+              <li>Dados financeiros inseridos pelo usuÃ¡rio</li>
               <li>Conversas com a IA</li>
               <li>Dados de uso do aplicativo</li>
             </ul>
@@ -183,10 +183,10 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>5. SEUS DIREITOS</h3>
           <ul style={{ paddingLeft: '20px', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6 }}>
             <li>Acesso aos dados</li>
-            <li>Correção de dados incorretos</li>
-            <li>Eliminação dos dados</li>
+            <li>CorreÃ§Ã£o de dados incorretos</li>
+            <li>EliminaÃ§Ã£o dos dados</li>
             <li>Portabilidade dos dados</li>
-            <li>Revogação do consentimento</li>
+            <li>RevogaÃ§Ã£o do consentimento</li>
           </ul>
         </div>
 
@@ -197,19 +197,19 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           padding: '12px',
           marginBottom: '20px'
         }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px', color: '#fef08a' }}>📧 CONTATO</h3>
-          <p style={{ color: '#fef9c3' }}>Email: staterbills@gmail.com</p>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px', color: '#fef08a' }}>ðŸ“§ CONTATO</h3>
+          <p style={{ color: '#fef9c3' }}>Email: stater@stater.app</p>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>6. LEI APLICÁVEL</h3>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>6. LEI APLICÃVEL</h3>
           <p style={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>
-            Estes termos são regidos pela legislação brasileira (LGPD - Lei nº 13.709/2018).
+            Estes termos sÃ£o regidos pela legislaÃ§Ã£o brasileira (LGPD - Lei nÂº 13.709/2018).
           </p>
         </div>
       </div>
 
-      {/* Footer com checkboxes e botões */}
+      {/* Footer com checkboxes e botÃµes */}
       <div 
         style={{
           padding: '16px',
@@ -256,7 +256,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
             )}
           </div>
           <span style={{ fontSize: '14px', lineHeight: 1.4 }}>
-            Li e aceito os Termos de Uso e Política de Privacidade do Stater
+            Li e aceito os Termos de Uso e PolÃ­tica de Privacidade do Stater
           </span>
         </button>
 
@@ -301,7 +301,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           </span>
         </button>
 
-        {/* Botão Aceitar */}
+        {/* BotÃ£o Aceitar */}
         <button
           type="button"
           onClick={handleAccept}
@@ -324,10 +324,10 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
           }}
         >
           {isAccepting && <Loader2 className="h-5 w-5 animate-spin" />}
-          {isAccepting ? 'Salvando...' : allAccepted ? '✓ Aceitar e Continuar' : 'Aceite ambos os termos'}
+          {isAccepting ? 'Salvando...' : allAccepted ? 'âœ“ Aceitar e Continuar' : 'Aceite ambos os termos'}
         </button>
 
-        {/* Botão Cancelar */}
+        {/* BotÃ£o Cancelar */}
         <button
           type="button"
           onClick={onClose}
@@ -350,3 +350,4 @@ export const TermsModal: React.FC<TermsModalProps> = ({ isOpen, onClose, onAccep
     </div>
   );
 };
+

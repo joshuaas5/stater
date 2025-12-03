@@ -14,13 +14,14 @@ const HomePage: React.FC = () => {
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const screenshots = [
-    { img: 'insights-ia.png', title: 'Insights com IA', desc: 'Receba dicas personalizadas baseadas nos seus gastos reais' },
+    { img: 'dashboard.png', title: 'Visão Geral', desc: 'Tenha o controle total das suas finanças em uma única tela' },
+    { img: 'insights.png', title: 'Insights com IA', desc: 'Receba dicas personalizadas baseadas nos seus gastos reais' },
     { img: 'saude-financeira.png', title: 'Saúde Financeira', desc: 'Acompanhe seu score, fundo de emergência e taxa de poupança' },
     { img: 'stater-ia.png', title: 'Stater IA', desc: 'Converse com a inteligência artificial sobre suas finanças' },
-    { img: 'export.png', title: 'Exportar Relatórios', desc: 'Gere relatórios profissionais em PDF, Excel, CSV e OFX' },
     { img: 'importar-docs.png', title: 'Importar Documentos', desc: 'Importe extratos OFX, PDFs e fotos de notas fiscais' },
     { img: 'metas.png', title: 'Metas Financeiras', desc: 'Defina seus objetivos e acompanhe o progresso' },
     { img: 'recorrentes.png', title: 'Gastos Recorrentes', desc: 'Configure uma vez e automatize seus gastos mensais' },
+    { img: 'modo-simples.png', title: 'Modo Simples', desc: 'Uma interface simplificada para quem quer praticidade' },
   ];
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % screenshots.length);

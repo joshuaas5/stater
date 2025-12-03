@@ -1,4 +1,4 @@
-﻿import * as React from 'react';
+import * as React from 'react';
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -14,10 +14,10 @@ const HomePage: React.FC = () => {
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const screenshots = [
-    { img: 'dashboard.png', title: 'VisÃ£o Geral', desc: 'Tenha o controle total das suas finanÃ§as em uma Ãºnica tela' },
+    { img: 'dashboard.png', title: 'Visão Geral', desc: 'Tenha o controle total das suas finanças em uma única tela' },
     { img: 'insights.png', title: 'Insights com IA', desc: 'Receba dicas personalizadas baseadas nos seus gastos reais' },
-    { img: 'saude-financeira.png', title: 'SaÃºde Financeira', desc: 'Acompanhe seu score, fundo de emergÃªncia e taxa de poupanÃ§a' },
-    { img: 'stater-ia.png', title: 'Stater IA', desc: 'Converse com a inteligÃªncia artificial sobre suas finanÃ§as' },
+    { img: 'saude-financeira.png', title: 'Saúde Financeira', desc: 'Acompanhe seu score, fundo de emergência e taxa de poupança' },
+    { img: 'stater-ia.png', title: 'Stater IA', desc: 'Converse com a inteligência artificial sobre suas finanças' },
     { img: 'importar-docs.png', title: 'Importar Documentos', desc: 'Importe extratos OFX, PDFs e fotos de notas fiscais' },
     { img: 'metas.png', title: 'Metas Financeiras', desc: 'Defina seus objetivos e acompanhe o progresso' },
     { img: 'recorrentes.png', title: 'Gastos Recorrentes', desc: 'Configure uma vez e automatize seus gastos mensais' },
@@ -68,7 +68,7 @@ const HomePage: React.FC = () => {
                 Stater
               </span>
               <span className="text-[10px] sm:text-xs text-blue-300/60 font-medium tracking-wide hidden sm:block">
-                InteligÃªncia para prosperar
+                Inteligência para prosperar
               </span>
             </div>
           </Link>
@@ -89,7 +89,7 @@ const HomePage: React.FC = () => {
                   boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4)'
                 }}
               >
-                ComeÃ§ar GrÃ¡tis
+                Começar Grátis
               </Button>
             </Link>
           </div>
@@ -106,29 +106,29 @@ const HomePage: React.FC = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="text-emerald-300 text-xs sm:text-sm font-medium">Gratuito para comeÃ§ar</span>
+            <span className="text-emerald-300 text-xs sm:text-sm font-medium">Gratuito para começar</span>
           </div>
           
           {/* Headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] mb-6 sm:mb-8 tracking-tight">
-            Suas finanÃ§as no<br />
+            Suas finanças no<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
-              piloto automÃ¡tico
+              piloto automático
             </span>
           </h1>
           
           {/* Subheadline */}
           <p className="text-lg sm:text-xl text-white/60 mb-10 sm:mb-12 leading-relaxed max-w-2xl mx-auto">
-            Controle gastos com <span className="text-white font-medium">inteligÃªncia artificial</span>, 
+            Controle gastos com <span className="text-white font-medium">inteligência artificial</span>, 
             receba lembretes de contas e visualize seu dinheiro com clareza.
-            <span className="text-blue-400"> Simples ou completo â€” vocÃª escolhe.</span>
+            <span className="text-blue-400"> Simples ou completo — você escolhe.</span>
           </p>
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
             <Link to="/login?view=register" className="w-full sm:w-auto">
               <Button size="lg" className="w-full sm:w-auto bg-white text-slate-900 hover:bg-white/90 font-bold h-14 px-8 rounded-xl shadow-2xl shadow-white/10 transition-all hover:-translate-y-0.5 text-base">
-                Criar conta grÃ¡tis
+                Criar conta grátis
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
@@ -143,7 +143,7 @@ const HomePage: React.FC = () => {
           <div className="flex flex-wrap items-center justify-center gap-6 text-xs sm:text-sm text-white/40">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
-              <span>Sem dados bancÃ¡rios</span>
+              <span>Sem dados bancários</span>
             </div>
             <div className="flex items-center gap-2">
               <Lock className="w-4 h-4" />
@@ -151,7 +151,7 @@ const HomePage: React.FC = () => {
             </div>
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4" />
-              <span>GrÃ¡tis para comeÃ§ar</span>
+              <span>Grátis para começar</span>
             </div>
           </div>
 
@@ -165,10 +165,10 @@ const HomePage: React.FC = () => {
           {/* Section Header */}
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-              Dois modos. <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Uma experiÃªncia.</span>
+              Dois modos. <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Uma experiência.</span>
             </h2>
             <p className="text-white/50 text-lg max-w-2xl mx-auto">
-              Escolha como quer usar. Mude quando quiser. Sem complicaÃ§Ã£o.
+              Escolha como quer usar. Mude quando quiser. Sem complicação.
             </p>
           </div>
 
@@ -205,30 +205,65 @@ const HomePage: React.FC = () => {
             
             {/* Description Side */}
             <div className={`transition-all duration-500 ${activeMode === 'simples' ? 'order-1' : 'order-1 lg:order-2'}`}>
-                {/* Preload images */}
-                <img src="/screenshots/modo-simples.png" alt="" className="hidden" />
-                <img src="/screenshots/dashboard.png" alt="" className="hidden" />
-
-                {/* Container para ambos os modos */}
-                <div className="relative">
-                  {/* Screenshot Mobile - Modo Simples */}
-                  <div className={`flex items-center justify-center transition-opacity duration-300 ${activeMode === 'simples' ? 'opacity-100' : 'opacity-0 absolute inset-0 pointer-events-none'}`}>
-                    <div className="relative mx-auto w-[180px] sm:w-[220px]">
-                      <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[2.5rem] p-2 border border-white/10 shadow-2xl" style={{ aspectRatio: '9/19.5' }}>
-                        <div className="rounded-[2rem] overflow-hidden bg-slate-950 h-full">
-                          <img src="/screenshots/modo-simples.png" alt="Stater - Modo Simples" className="w-full h-full object-cover object-top" />
+              {activeMode === 'simples' ? (
+                <div className="space-y-6">
+                  <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-500/30 rounded-full px-4 py-1.5">
+                    <Smartphone className="w-4 h-4 text-emerald-400" />
+                    <span className="text-emerald-300 text-sm font-medium">Para quem quer simplicidade</span>
+                  </div>
+                  <h3 className="text-3xl sm:text-4xl font-bold leading-tight">
+                    Interface limpa,<br />foco no essencial
+                  </h3>
+                  <p className="text-white/60 text-lg leading-relaxed">
+                    Perfeito para quem quer apenas controlar gastos e contas sem complicação. 
+                    Visual otimizado para celular, ações rápidas e intuitivas.
+                  </p>
+                  <ul className="space-y-4">
+                    {[
+                      { icon: <CreditCard className="w-5 h-5" />, text: 'Registro rápido de gastos' },
+                      { icon: <Bell className="w-5 h-5" />, text: 'Lembretes de contas por email' },
+                      { icon: <PieChart className="w-5 h-5" />, text: 'Gráficos simples e claros' },
+                      { icon: <Mic className="w-5 h-5" />, text: 'Entrada por voz com IA' },
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-4 text-white/80">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                          {item.icon}
                         </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Screenshot Desktop - Modo Completo */}
-                  <div className={`transition-opacity duration-300 ${activeMode === 'completo' ? 'opacity-100' : 'opacity-0 absolute inset-0 pointer-events-none'}`}>
-                    <div className="relative rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-slate-900">
-                      <img src="/screenshots/dashboard.png" alt="Stater - Modo Completo" className="w-full h-auto" />
-                    </div>
-                  </div>
+                        <span className="font-medium">{item.text}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-500/30 rounded-full px-4 py-1.5">
+                    <LayoutDashboard className="w-4 h-4 text-blue-400" />
+                    <span className="text-blue-300 text-sm font-medium">Para quem quer controle total</span>
+                  </div>
+                  <h3 className="text-3xl sm:text-4xl font-bold leading-tight">
+                    Dashboard completo,<br />visão 360° das finanças
+                  </h3>
+                  <p className="text-white/60 text-lg leading-relaxed">
+                    Ideal para desktop. Sidebar com navegação, gráficos avançados, 
+                    consultor financeiro IA e muito mais. Tudo em uma tela.
+                  </p>
+                  <ul className="space-y-4">
+                    {[
+                      { icon: <Brain className="w-5 h-5" />, text: 'Consultor financeiro com IA' },
+                      { icon: <TrendingUp className="w-5 h-5" />, text: 'Projeções e metas financeiras' },
+                      { icon: <Calendar className="w-5 h-5" />, text: 'Transações recorrentes automáticas' },
+                      { icon: <PieChart className="w-5 h-5" />, text: 'Relatórios e análises detalhadas' },
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-4 text-white/80">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400">
+                          {item.icon}
+                        </div>
+                        <span className="font-medium">{item.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* Visual Side - Screenshots Reais */}
@@ -238,30 +273,29 @@ const HomePage: React.FC = () => {
                   activeMode === 'simples' ? 'bg-emerald-500' : 'bg-blue-500'
                 }`}></div>
                 
-                {/* Preload images */}
-                <img src="/screenshots/modo-simples.png" alt="" className="hidden" />
-                <img src="/screenshots/dashboard.png" alt="" className="hidden" />
-
-                {/* Container para ambos os modos */}
-                <div className="relative">
-                  {/* Screenshot Mobile - Modo Simples */}
-                  <div className={`flex items-center justify-center transition-opacity duration-300 ${activeMode === 'simples' ? 'opacity-100' : 'opacity-0 absolute inset-0 pointer-events-none'}`}>
-                    <div className="relative mx-auto w-[180px] sm:w-[220px]">
-                      <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[2.5rem] p-2 border border-white/10 shadow-2xl" style={{ aspectRatio: '9/19.5' }}>
-                        <div className="rounded-[2rem] overflow-hidden bg-slate-950 h-full">
-                          <img src="/screenshots/modo-simples.png" alt="Stater - Modo Simples" className="w-full h-full object-cover object-top" />
-                        </div>
+                {activeMode === 'simples' ? (
+                  /* Screenshot Mobile - Modo Simples */
+                  <div className="relative mx-auto w-[180px] sm:w-[220px]">
+                    <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[2.5rem] p-2 border border-white/10 shadow-2xl">
+                      <div className="rounded-[2rem] overflow-hidden bg-slate-950">
+                        <img 
+                          src="/screenshots/modo-simples.png" 
+                          alt="Stater - Modo Simples" 
+                          className="w-full h-auto"
+                        />
                       </div>
                     </div>
                   </div>
-
-                  {/* Screenshot Desktop - Modo Completo */}
-                  <div className={`transition-opacity duration-300 ${activeMode === 'completo' ? 'opacity-100' : 'opacity-0 absolute inset-0 pointer-events-none'}`}>
-                    <div className="relative rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-slate-900">
-                      <img src="/screenshots/dashboard.png" alt="Stater - Modo Completo" className="w-full h-auto" />
-                    </div>
+                ) : (
+                  /* Screenshot Desktop - Modo Completo */
+                  <div className="relative rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-slate-900">
+                    <img 
+                      src="/screenshots/dashboard.png" 
+                      alt="Stater - Modo Completo" 
+                      className="w-full h-auto"
+                    />
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -276,7 +310,7 @@ const HomePage: React.FC = () => {
           
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-              Tudo que vocÃª precisa
+              Tudo que você precisa
             </h2>
             <p className="text-white/50 text-lg max-w-2xl mx-auto">
               Funcionalidades pensadas para simplificar sua vida financeira
@@ -286,15 +320,15 @@ const HomePage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             
             {[
-              { icon: <Bell />, title: 'Lembretes Inteligentes', desc: 'Nunca esqueÃ§a de pagar uma conta. Receba alertas por email.', color: 'from-blue-500 to-cyan-500' },
-              { icon: <Mic />, title: 'Registro por Voz', desc: '"Gastei 50 reais no mercado" â€” a IA entende e registra.', color: 'from-purple-500 to-pink-500' },
-              { icon: <Camera />, title: 'Scanner de Notas', desc: 'Tire foto do recibo e extraÃ­mos os dados automaticamente.', color: 'from-orange-500 to-red-500' },
+              { icon: <Bell />, title: 'Lembretes Inteligentes', desc: 'Nunca esqueça de pagar uma conta. Receba alertas por email.', color: 'from-blue-500 to-cyan-500' },
+              { icon: <Mic />, title: 'Registro por Voz', desc: '"Gastei 50 reais no mercado" — a IA entende e registra.', color: 'from-purple-500 to-pink-500' },
+              { icon: <Camera />, title: 'Scanner de Notas', desc: 'Tire foto do recibo e extraímos os dados automaticamente.', color: 'from-orange-500 to-red-500' },
               { icon: <Brain />, title: 'Consultor Financeiro IA', desc: 'Receba dicas personalizadas para economizar mais.', color: 'from-violet-500 to-purple-500' },
-              { icon: <TrendingUp />, title: 'ProjeÃ§Ãµes Futuras', desc: 'Veja como estarÃ¡ seu saldo nos prÃ³ximos meses.', color: 'from-emerald-500 to-teal-500' },
-              { icon: <Calendar />, title: 'TransaÃ§Ãµes Recorrentes', desc: 'Configure uma vez, registra-se todo mÃªs automaticamente.', color: 'from-blue-500 to-indigo-500' },
-              { icon: <PieChart />, title: 'GrÃ¡ficos Detalhados', desc: 'Visualize para onde seu dinheiro estÃ¡ indo.', color: 'from-pink-500 to-rose-500' },
+              { icon: <TrendingUp />, title: 'Projeções Futuras', desc: 'Veja como estará seu saldo nos próximos meses.', color: 'from-emerald-500 to-teal-500' },
+              { icon: <Calendar />, title: 'Transações Recorrentes', desc: 'Configure uma vez, registra-se todo mês automaticamente.', color: 'from-blue-500 to-indigo-500' },
+              { icon: <PieChart />, title: 'Gráficos Detalhados', desc: 'Visualize para onde seu dinheiro está indo.', color: 'from-pink-500 to-rose-500' },
               { icon: <Bot />, title: 'Bot Telegram', desc: 'Registre gastos direto pelo Telegram, sem abrir o app.', color: 'from-cyan-500 to-blue-500', pro: true },
-              { icon: <FileText />, title: 'Leitura de PDFs', desc: 'Importe extratos bancÃ¡rios em PDF automaticamente.', color: 'from-amber-500 to-orange-500', pro: true },
+              { icon: <FileText />, title: 'Leitura de PDFs', desc: 'Importe extratos bancários em PDF automaticamente.', color: 'from-amber-500 to-orange-500', pro: true },
             ].map((feature, i) => (
               <div 
                 key={i}
@@ -329,7 +363,7 @@ const HomePage: React.FC = () => {
               Por dentro do <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Stater</span>
             </h2>
             <p className="text-white/60 text-lg max-w-2xl mx-auto">
-              Uma interface pensada para clareza, potÃªncia e facilidade de uso.
+              Uma interface pensada para clareza, potência e facilidade de uso.
             </p>
           </div>
 
@@ -420,7 +454,7 @@ const HomePage: React.FC = () => {
                     Desbloqueie todo o<br />poder da plataforma
                   </h2>
                   <p className="text-white/60 mb-6 leading-relaxed">
-                    Para quem quer ir alÃ©m. Mais mensagens IA, scanner de notas, 
+                    Para quem quer ir além. Mais mensagens IA, scanner de notas, 
                     bot Telegram, leitura de PDFs e muito mais.
                   </p>
                   
@@ -428,13 +462,13 @@ const HomePage: React.FC = () => {
                     <span className="text-white/50 text-lg">R$</span>
                     <span className="text-5xl font-extrabold">14</span>
                     <span className="text-2xl font-bold">,90</span>
-                    <span className="text-white/40 ml-1">/mÃªs</span>
+                    <span className="text-white/40 ml-1">/mês</span>
                   </div>
 
                   <Link to="/login?view=register">
                     <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold h-12 px-8 rounded-xl shadow-lg shadow-purple-500/25">
                       <Sparkles className="w-5 h-5 mr-2" />
-                      ComeÃ§ar com PRO
+                      Começar com PRO
                     </Button>
                   </Link>
                 </div>
@@ -445,8 +479,8 @@ const HomePage: React.FC = () => {
                     { icon: <Camera />, text: 'Scanner ilimitado de notas' },
                     { icon: <Bot />, text: 'Bot Telegram integrado' },
                     { icon: <FileText />, text: 'Leitura de PDFs e extratos' },
-                    { icon: <TrendingUp />, text: 'RelatÃ³rios avanÃ§ados' },
-                    { icon: <MessageCircle />, text: 'Suporte prioritÃ¡rio' },
+                    { icon: <TrendingUp />, text: 'Relatórios avançados' },
+                    { icon: <MessageCircle />, text: 'Suporte prioritário' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-4 bg-white/5 rounded-xl p-3 border border-white/5">
                       <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center text-purple-300">
@@ -468,14 +502,14 @@ const HomePage: React.FC = () => {
       <section className="relative z-10 py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
-            Pronto para organizar<br />suas finanÃ§as?
+            Pronto para organizar<br />suas finanças?
           </h2>
           <p className="text-white/50 text-lg mb-8 max-w-xl mx-auto">
-            Comece grÃ¡tis agora mesmo. Sem cartÃ£o de crÃ©dito, sem compromisso.
+            Comece grátis agora mesmo. Sem cartão de crédito, sem compromisso.
           </p>
           <Link to="/login?view=register">
             <Button size="lg" className="bg-white text-slate-900 hover:bg-white/90 font-bold h-14 px-10 rounded-xl shadow-2xl shadow-white/10 text-base">
-              Criar minha conta grÃ¡tis
+              Criar minha conta grátis
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </Link>
@@ -511,7 +545,7 @@ const HomePage: React.FC = () => {
                 </span>
               </div>
               <p className="text-white/40 text-sm text-center md:text-left max-w-xs">
-                Organize suas finanÃ§as com inteligÃªncia artificial. Simples, seguro e eficiente.
+                Organize suas finanças com inteligência artificial. Simples, seguro e eficiente.
               </p>
             </div>
             
@@ -520,7 +554,7 @@ const HomePage: React.FC = () => {
               <h4 className="text-white/60 text-xs uppercase tracking-wider font-semibold mb-4">Links</h4>
               <div className="flex flex-col items-center gap-2">
                 <Link to="/terms" className="text-white/40 hover:text-white text-sm transition-colors">Termos de Uso</Link>
-                <Link to="/privacy" className="text-white/40 hover:text-white text-sm transition-colors">PolÃ­tica de Privacidade</Link>
+                <Link to="/privacy" className="text-white/40 hover:text-white text-sm transition-colors">Política de Privacidade</Link>
               </div>
             </div>
             
@@ -546,7 +580,7 @@ const HomePage: React.FC = () => {
             style={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}
           >
             <p className="text-white/30 text-xs">
-              Â© 2025 Stater. Todos os direitos reservados.
+              © 2025 Stater. Todos os direitos reservados.
             </p>
             <div className="flex items-center gap-2 text-white/30 text-xs">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>

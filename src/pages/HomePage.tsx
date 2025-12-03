@@ -384,31 +384,21 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Main Showcase Window */}
-          <div className="relative max-w-5xl mx-auto">
-            {/* Browser Window Frame */}
-            <div className="bg-slate-900 rounded-xl border border-white/10 shadow-2xl overflow-hidden relative group">
-              {/* Window Header */}
-              <div className="h-8 bg-slate-800/80 backdrop-blur-md border-b border-white/5 flex items-center px-4 gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
-                {/* Address Bar Mockup */}
-                <div className="ml-4 flex-1 max-w-md mx-auto h-5 bg-slate-900/50 rounded-md flex items-center justify-center">
-                  <span className="text-[10px] text-white/30 font-mono">app.stater.com/{screenshots[currentSlide].img.split('.')[0]}</span>
-                </div>
-              </div>
-
+          <div className="relative max-w-4xl mx-auto">
+            {/* Simple Sleek Frame */}
+            <div className="bg-slate-900/50 rounded-2xl border border-white/10 shadow-2xl overflow-hidden relative group backdrop-blur-sm ring-1 ring-white/5">
+              
               {/* Image Container */}
-              <div className="relative aspect-video bg-slate-950">
+              <div className="relative bg-slate-950/30">
                  <img 
                    key={currentSlide}
                    src={`/screenshots/${screenshots[currentSlide].img}`} 
                    alt={screenshots[currentSlide].title}
-                   className="w-full h-full object-cover animate-in fade-in duration-500"
+                   className="w-full h-auto shadow-inner"
                  />
                  
                  {/* Description Overlay */}
-                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-6 pt-20 flex flex-col justify-end items-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent p-6 pt-24 flex flex-col justify-end items-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <p className="text-white text-lg font-medium">{screenshots[currentSlide].desc}</p>
                  </div>
               </div>

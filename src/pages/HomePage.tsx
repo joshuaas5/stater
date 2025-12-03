@@ -204,26 +204,23 @@ const HomePage: React.FC = () => {
             
             {/* Description Side */}
             <div className={`transition-all duration-500 ${activeMode === 'simples' ? 'order-1' : 'order-1 lg:order-2'}`}>
-                {/* Preload images para evitar flicker */}
+                {/* Preload images */}
                 <img src="/screenshots/modo-simples.png" alt="" className="hidden" />
                 <img src="/screenshots/dashboard.png" alt="" className="hidden" />
-                
+
                 {/* Container com altura fixa */}
-                <div className="relative min-h-[480px] sm:min-h-[520px] flex items-center justify-center">
-                  
-                  {/* Screenshot Mobile - Modo Simples */}
+                <div className="relative min-h-[350px] sm:min-h-[400px] flex items-center justify-center">
+
+                  {/* Screenshot Modo Simples - SEM mockup de celular */}
                   <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${activeMode === 'simples' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                    <div className="relative w-[200px] sm:w-[240px]">
-                      <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[2.5rem] p-2 border border-white/10 shadow-2xl">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-slate-900 rounded-b-xl z-10"></div>
-                        <div className="rounded-[2rem] overflow-hidden bg-slate-950 h-[420px] sm:h-[480px]">
-                          <img src="/screenshots/modo-simples.png" alt="Stater - Modo Simples" className="w-full h-full object-cover object-top" />
-                        </div>
+                    <div className="relative w-full max-w-sm">
+                      <div className="rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-slate-900">
+                        <img src="/screenshots/modo-simples.png" alt="Stater - Modo Simples" className="w-full h-auto" />
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Screenshot Desktop - Modo Completo */}
+
+                  {/* Screenshot Modo Completo */}
                   <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${activeMode === 'completo' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                     <div className="relative w-full max-w-md">
                       <div className="rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-slate-900">
@@ -231,7 +228,7 @@ const HomePage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                 </div>
             </div>
 
@@ -242,26 +239,23 @@ const HomePage: React.FC = () => {
                   activeMode === 'simples' ? 'bg-emerald-500' : 'bg-blue-500'
                 }`}></div>
                 
-                {/* Preload images para evitar flicker */}
+                {/* Preload images */}
                 <img src="/screenshots/modo-simples.png" alt="" className="hidden" />
                 <img src="/screenshots/dashboard.png" alt="" className="hidden" />
-                
+
                 {/* Container com altura fixa */}
-                <div className="relative min-h-[480px] sm:min-h-[520px] flex items-center justify-center">
-                  
-                  {/* Screenshot Mobile - Modo Simples */}
+                <div className="relative min-h-[350px] sm:min-h-[400px] flex items-center justify-center">
+
+                  {/* Screenshot Modo Simples - SEM mockup de celular */}
                   <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${activeMode === 'simples' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                    <div className="relative w-[200px] sm:w-[240px]">
-                      <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[2.5rem] p-2 border border-white/10 shadow-2xl">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-slate-900 rounded-b-xl z-10"></div>
-                        <div className="rounded-[2rem] overflow-hidden bg-slate-950 h-[420px] sm:h-[480px]">
-                          <img src="/screenshots/modo-simples.png" alt="Stater - Modo Simples" className="w-full h-full object-cover object-top" />
-                        </div>
+                    <div className="relative w-full max-w-sm">
+                      <div className="rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-slate-900">
+                        <img src="/screenshots/modo-simples.png" alt="Stater - Modo Simples" className="w-full h-auto" />
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Screenshot Desktop - Modo Completo */}
+
+                  {/* Screenshot Modo Completo */}
                   <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${activeMode === 'completo' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                     <div className="relative w-full max-w-md">
                       <div className="rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-slate-900">
@@ -269,7 +263,7 @@ const HomePage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                 </div>
               </div>
             </div>

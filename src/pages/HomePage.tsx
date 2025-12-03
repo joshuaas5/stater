@@ -365,6 +365,8 @@ const HomePage: React.FC = () => {
             {[
               { img: 'insights-ia.png', title: 'Insights com IA', desc: 'Dicas personalizadas baseadas nos seus gastos', color: 'from-purple-500 to-pink-500', badge: '🧠 IA' },
               { img: 'saude-financeira.png', title: 'Saúde Financeira', desc: 'Score, fundo de emergência e taxa de poupança', color: 'from-blue-500 to-cyan-500', badge: '📊 Score' },
+              { img: 'stater-ia.png', title: 'Stater IA', desc: 'Converse com a IA sobre suas finanças', color: 'from-indigo-500 to-violet-500', badge: '💬 Chat' },
+              { img: 'export.png', title: 'Exportar Relatórios', desc: 'PDF, Excel, CSV e OFX profissionais', color: 'from-cyan-500 to-blue-500', badge: '📑 Export' },
               { img: 'importar-docs.png', title: 'Importar Documentos', desc: 'OFX, PDFs e fotos de notas fiscais', color: 'from-emerald-500 to-teal-500', badge: '📄 Import' },
               { img: 'metas.png', title: 'Metas Financeiras', desc: 'Defina objetivos e acompanhe seu progresso', color: 'from-amber-500 to-orange-500', badge: '🎯 Metas' },
               { img: 'recorrentes.png', title: 'Gastos Recorrentes', desc: 'Automatize seus gastos mensais', color: 'from-rose-500 to-pink-500', badge: '🔄 Auto' },

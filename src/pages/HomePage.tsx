@@ -261,7 +261,7 @@ const HomePage: React.FC = () => {
                   /* Screenshot Mobile - Modo Simples */
                   <div className="relative mx-auto w-[280px] sm:w-[320px]">
                     <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-[40px] p-3 border border-white/10 shadow-2xl">
-                      <div className="rounded-[32px] overflow-hidden bg-slate-950" style={{ minHeight: '400px' }}>
+                      <div className="rounded-[32px] overflow-hidden bg-slate-950">
                         <img 
                           src="/screenshots/modo-simples.png" 
                           alt="Stater - Modo Simples" 
@@ -272,9 +272,9 @@ const HomePage: React.FC = () => {
                   </div>
                 ) : (
                   /* Screenshot Desktop - Modo Completo */
-                  <div className="relative rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-slate-900" style={{ minHeight: '300px' }}>
+                  <div className="relative rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-slate-900">
                     <img 
-                      src="/screenshots/modo-completo.png" 
+                      src="/screenshots/dashboard.png" 
                       alt="Stater - Modo Completo" 
                       className="w-full h-auto"
                     />
@@ -336,74 +336,159 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ========== SCREENSHOTS GALERIA ========== */}
-      <section className="relative z-10 py-16 sm:py-24 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto">
+      {/* ========== SCREENSHOTS GALERIA - SHOWCASE COMPLETO ========== */}
+      <section className="relative z-10 py-20 sm:py-32 px-4 sm:px-6 overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-950/30 via-purple-950/20 to-transparent"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/10 rounded-full blur-[150px]"></div>
+        
+        <div className="relative max-w-7xl mx-auto">
           
-          <div className="text-center mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-500/30 rounded-full px-4 py-1.5 mb-6">
-              <Camera className="w-4 h-4 text-blue-400" />
-              <span className="text-blue-300 text-sm font-medium">Veja na prática</span>
+          <div className="text-center mb-16 sm:mb-20">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-full px-5 py-2 mb-6">
+              <Sparkles className="w-4 h-4 text-blue-400" />
+              <span className="text-blue-300 text-sm font-semibold">Experiência Premium</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-              O app em <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">ação</span>
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">
+              Veja o Stater em <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">ação</span>
             </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">
-              Interface moderna, intuitiva e poderosa. Confira como você vai controlar suas finanças.
+            <p className="text-white/60 text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed">
+              Uma interface que você vai amar usar. Design moderno, funcionalidades poderosas e tudo organizado para você ter controle total.
             </p>
           </div>
 
-          {/* Screenshots Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
-            {/* Screenshot 1 - Dashboard */}
-            <div className="group relative">
-              <div className="absolute -inset-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
-              <div className="relative bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
+          {/* Hero Screenshot - Dashboard Principal */}
+          <div className="relative mb-16">
+            <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-3xl blur-2xl opacity-20"></div>
+            <div className="relative bg-gradient-to-b from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-2 sm:p-3 shadow-2xl">
+              <div className="rounded-2xl overflow-hidden">
                 <img 
                   src="/screenshots/dashboard.png" 
-                  alt="Dashboard - Visão geral das finanças" 
+                  alt="Stater Dashboard - Controle financeiro completo" 
                   className="w-full h-auto"
                 />
-                <div className="p-4">
-                  <h3 className="font-bold text-white mb-1">Dashboard Completo</h3>
-                  <p className="text-white/50 text-sm">Saldo, projeções e transações em uma única tela</p>
-                </div>
+              </div>
+              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full font-semibold shadow-lg shadow-purple-500/30 text-sm sm:text-base">
+                ✨ Dashboard Principal
               </div>
             </div>
+          </div>
 
-            {/* Screenshot 2 - Análise IA */}
+          {/* Features Grid - 2x3 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            
+            {/* Card 1 - Análise IA */}
             <div className="group relative">
-              <div className="absolute -inset-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
-              <div className="relative bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
-                <img 
-                  src="/screenshots/analise-ia.png" 
-                  alt="Análise IA - Insights financeiros" 
-                  className="w-full h-auto"
-                />
-                <div className="p-4">
-                  <h3 className="font-bold text-white mb-1">Análise com IA</h3>
-                  <p className="text-white/50 text-sm">Insights personalizados sobre seus gastos</p>
+              <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-40 transition-all duration-500"></div>
+              <div className="relative bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/20">
+                <div className="relative">
+                  <img src="/screenshots/analise-ia.png" alt="Análise com IA" className="w-full h-auto" />
+                  <div className="absolute top-3 right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                    🧠 IA
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h3 className="font-bold text-white text-lg mb-2">Insights com Inteligência Artificial</h3>
+                  <p className="text-white/50 text-sm leading-relaxed">Receba análises personalizadas e dicas para economizar baseadas nos seus gastos reais.</p>
                 </div>
               </div>
             </div>
 
-            {/* Screenshot 3 - Contas a Pagar */}
+            {/* Card 2 - Contas a Pagar */}
             <div className="group relative">
-              <div className="absolute -inset-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
-              <div className="relative bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
-                <img 
-                  src="/screenshots/contas.png" 
-                  alt="Contas a Pagar - Organize seus vencimentos" 
-                  className="w-full h-auto"
-                />
-                <div className="p-4">
-                  <h3 className="font-bold text-white mb-1">Contas a Pagar</h3>
-                  <p className="text-white/50 text-sm">Nunca esqueça um vencimento importante</p>
+              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-40 transition-all duration-500"></div>
+              <div className="relative bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/20">
+                <div className="relative">
+                  <img src="/screenshots/contas.png" alt="Contas a Pagar" className="w-full h-auto" />
+                  <div className="absolute top-3 right-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                    📅 Lembretes
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h3 className="font-bold text-white text-lg mb-2">Contas Organizadas</h3>
+                  <p className="text-white/50 text-sm leading-relaxed">Visualize todas as suas contas a pagar, receba lembretes por email e nunca atrase um pagamento.</p>
                 </div>
               </div>
             </div>
 
+            {/* Card 3 - Saúde Financeira */}
+            <div className="group relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-40 transition-all duration-500"></div>
+              <div className="relative bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20">
+                <div className="relative">
+                  <img src="/screenshots/saude-financeira.png" alt="Saúde Financeira" className="w-full h-auto" />
+                  <div className="absolute top-3 right-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                    📊 Score
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h3 className="font-bold text-white text-lg mb-2">Saúde Financeira</h3>
+                  <p className="text-white/50 text-sm leading-relaxed">Acompanhe seu score financeiro, fundo de emergência e taxa de poupança em tempo real.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4 - Transações Recorrentes */}
+            <div className="group relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-40 transition-all duration-500"></div>
+              <div className="relative bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20">
+                <div className="relative">
+                  <img src="/screenshots/recorrentes.png" alt="Transações Recorrentes" className="w-full h-auto" />
+                  <div className="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                    🔄 Auto
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h3 className="font-bold text-white text-lg mb-2">Gastos Recorrentes</h3>
+                  <p className="text-white/50 text-sm leading-relaxed">Configure uma vez e deixe o Stater registrar automaticamente seus gastos mensais.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 5 - Importar Documentos */}
+            <div className="group relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-rose-500 to-pink-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-40 transition-all duration-500"></div>
+              <div className="relative bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-rose-500/50 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-rose-500/20">
+                <div className="relative">
+                  <img src="/screenshots/importar.png" alt="Importar Documentos" className="w-full h-auto" />
+                  <div className="absolute top-3 right-3 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" /> PRO
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h3 className="font-bold text-white text-lg mb-2">Importe Tudo</h3>
+                  <p className="text-white/50 text-sm leading-relaxed">Importe extratos bancários em OFX, PDFs, fotos de notas fiscais e recibos com OCR.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 6 - Mobile */}
+            <div className="group relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 to-purple-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-40 transition-all duration-500"></div>
+              <div className="relative bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-violet-500/50 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-violet-500/20">
+                <div className="relative flex justify-center bg-gradient-to-b from-slate-700/50 to-slate-800/50 py-4">
+                  <div className="w-[180px] sm:w-[200px]">
+                    <img src="/screenshots/modo-simples.png" alt="App Mobile" className="w-full h-auto rounded-2xl shadow-xl" />
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h3 className="font-bold text-white text-lg mb-2">Perfeito no Celular</h3>
+                  <p className="text-white/50 text-sm leading-relaxed">Interface otimizada para mobile. Use no celular ou no desktop, sempre com a melhor experiência.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="text-center mt-16">
+            <Link to="/login?view=register">
+              <Button size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold h-14 px-10 rounded-xl shadow-2xl shadow-purple-500/30 transition-all hover:-translate-y-1 text-base">
+                Começar a usar agora
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            <p className="text-white/40 text-sm mt-4">Gratuito para começar • Sem cartão de crédito</p>
           </div>
 
         </div>

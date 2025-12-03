@@ -336,78 +336,85 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ========== SCREENSHOTS CARROSSEL ========== */}
+      {/* ========== SCREENSHOTS CARROSSEL FULLSCREEN ========== */}
       <section className="relative z-10 py-16 sm:py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/20 to-transparent"></div>
         
         <div className="relative">
-          <div className="text-center mb-10 sm:mb-14 px-4">
+          <div className="text-center mb-8 sm:mb-12 px-4">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
               Veja o Stater em <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">ação</span>
             </h2>
             <p className="text-white/50 text-base sm:text-lg max-w-xl mx-auto">
-              Arraste para explorar as funcionalidades
+              Deslize para explorar as funcionalidades
             </p>
           </div>
 
-          {/* Carrossel Horizontal */}
+          {/* Carrossel Fullscreen - 1 card por vez */}
           <div 
-            className="flex gap-4 sm:gap-6 overflow-x-auto pb-6 px-4 sm:px-8 snap-x snap-mandatory scrollbar-hide"
+            className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
             style={{ 
               scrollbarWidth: 'none', 
               msOverflowStyle: 'none',
               WebkitOverflowScrolling: 'touch'
             }}
           >
-            {/* Espaço inicial para centralizar */}
-            <div className="flex-shrink-0 w-4 sm:w-20"></div>
-            
             {[
-              { img: 'insights-ia.png', title: 'Insights com IA', desc: 'Dicas personalizadas baseadas nos seus gastos', color: 'from-purple-500 to-pink-500', badge: '🧠 IA' },
-              { img: 'saude-financeira.png', title: 'Saúde Financeira', desc: 'Score, fundo de emergência e taxa de poupança', color: 'from-blue-500 to-cyan-500', badge: '📊 Score' },
-              { img: 'stater-ia.png', title: 'Stater IA', desc: 'Converse com a IA sobre suas finanças', color: 'from-indigo-500 to-violet-500', badge: '💬 Chat' },
-              { img: 'export.png', title: 'Exportar Relatórios', desc: 'PDF, Excel, CSV e OFX profissionais', color: 'from-cyan-500 to-blue-500', badge: '📑 Export' },
-              { img: 'importar-docs.png', title: 'Importar Documentos', desc: 'OFX, PDFs e fotos de notas fiscais', color: 'from-emerald-500 to-teal-500', badge: '📄 Import' },
-              { img: 'metas.png', title: 'Metas Financeiras', desc: 'Defina objetivos e acompanhe seu progresso', color: 'from-amber-500 to-orange-500', badge: '🎯 Metas' },
-              { img: 'recorrentes.png', title: 'Gastos Recorrentes', desc: 'Automatize seus gastos mensais', color: 'from-rose-500 to-pink-500', badge: '🔄 Auto' },
-              { img: 'modo-simples.png', title: 'Mobile First', desc: 'Perfeito no celular', color: 'from-violet-500 to-purple-500', badge: '📱 App', isMobile: true },
-            ].map((item, i) => (
+              { img: 'insights-ia.png', title: 'Insights com IA', desc: 'Receba dicas personalizadas baseadas nos seus gastos reais', color: 'from-purple-500 to-pink-500', badge: '🧠 IA' },
+              { img: 'saude-financeira.png', title: 'Saúde Financeira', desc: 'Acompanhe seu score, fundo de emergência e taxa de poupança', color: 'from-blue-500 to-cyan-500', badge: '📊 Score' },
+              { img: 'stater-ia.png', title: 'Stater IA', desc: 'Converse com a inteligência artificial sobre suas finanças', color: 'from-indigo-500 to-violet-500', badge: '💬 Chat' },
+              { img: 'export.png', title: 'Exportar Relatórios', desc: 'Gere relatórios profissionais em PDF, Excel, CSV e OFX', color: 'from-cyan-500 to-blue-500', badge: '📑 Export' },
+              { img: 'importar-docs.png', title: 'Importar Documentos', desc: 'Importe extratos OFX, PDFs e fotos de notas fiscais', color: 'from-emerald-500 to-teal-500', badge: '📄 Import' },
+              { img: 'metas.png', title: 'Metas Financeiras', desc: 'Defina seus objetivos e acompanhe o progresso em tempo real', color: 'from-amber-500 to-orange-500', badge: '🎯 Metas' },
+              { img: 'recorrentes.png', title: 'Gastos Recorrentes', desc: 'Configure uma vez e automatize seus gastos mensais', color: 'from-rose-500 to-pink-500', badge: '🔄 Auto' },
+            ].map((item, i, arr) => (
               <div 
                 key={i} 
-                className="flex-shrink-0 snap-center"
-                style={{ width: item.isMobile ? '200px' : '300px' }}
+                className="flex-shrink-0 w-full snap-center px-4 sm:px-8 md:px-16 lg:px-24"
               >
-                <div className="group relative h-full">
-                  <div className={`absolute -inset-1 bg-gradient-to-r ${item.color} rounded-2xl blur-lg opacity-0 group-hover:opacity-40 transition-all duration-500`}></div>
-                  <div className="relative bg-slate-800/80 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-white/30 transition-all duration-300 h-full">
-                    <div className={`relative ${item.isMobile ? 'flex justify-center py-4 bg-gradient-to-b from-slate-700/50 to-slate-800/50' : ''}`}>
-                      <img 
-                        src={`/screenshots/${item.img}`} 
-                        alt={item.title} 
-                        className={`${item.isMobile ? 'w-[140px] rounded-xl shadow-lg' : 'w-full'} h-auto`}
-                      />
-                      <div className={`absolute top-3 right-3 bg-gradient-to-r ${item.color} text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 rounded-full shadow-lg`}>
-                        {item.badge}
+                <div className="max-w-4xl mx-auto">
+                  {/* Card principal */}
+                  <div className="relative">
+                    <div className={`absolute -inset-2 bg-gradient-to-r ${item.color} rounded-3xl blur-xl opacity-30`}></div>
+                    <div className="relative bg-slate-800/90 backdrop-blur-sm border border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl">
+                      {/* Imagem grande */}
+                      <div className="relative">
+                        <img 
+                          src={`/screenshots/${item.img}`} 
+                          alt={item.title} 
+                          className="w-full h-auto"
+                        />
+                        <div className={`absolute top-4 right-4 bg-gradient-to-r ${item.color} text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg`}>
+                          {item.badge}
+                        </div>
+                      </div>
+                      {/* Info */}
+                      <div className="p-5 sm:p-6 text-center">
+                        <h3 className="font-bold text-white text-xl sm:text-2xl mb-2">{item.title}</h3>
+                        <p className="text-white/60 text-sm sm:text-base">{item.desc}</p>
                       </div>
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-bold text-white text-sm sm:text-base mb-1">{item.title}</h3>
-                      <p className="text-white/50 text-xs sm:text-sm leading-relaxed">{item.desc}</p>
-                    </div>
+                  </div>
+                  
+                  {/* Indicador de posição */}
+                  <div className="flex justify-center mt-6 gap-2">
+                    {arr.map((_, dotIndex) => (
+                      <div 
+                        key={dotIndex}
+                        className={`w-2 h-2 rounded-full transition-all ${dotIndex === i ? 'bg-white w-6' : 'bg-white/30'}`}
+                      />
+                    ))}
                   </div>
                 </div>
               </div>
             ))}
-            
-            {/* Espaço final */}
-            <div className="flex-shrink-0 w-4 sm:w-20"></div>
           </div>
 
-          {/* Indicador de scroll */}
-          <div className="flex justify-center mt-4 gap-1">
-            <div className="text-white/30 text-xs flex items-center gap-2">
+          {/* Dica de navegação */}
+          <div className="flex justify-center mt-6">
+            <div className="text-white/40 text-sm flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full">
               <span>←</span>
-              <span>deslize</span>
+              <span>deslize para navegar</span>
               <span>→</span>
             </div>
           </div>

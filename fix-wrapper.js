@@ -1,4 +1,6 @@
-import React from 'react';
+﻿const fs = require('fs');
+
+const newContent = `import React from 'react';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 
@@ -28,3 +30,7 @@ export const OnboardingWrapper: React.FC<OnboardingWrapperProps> = ({ children }
 };
 
 export default OnboardingWrapper;
+`;
+
+fs.writeFileSync('src/components/onboarding/OnboardingWrapper.tsx', newContent, 'utf8');
+console.log('OnboardingWrapper simplificado!');

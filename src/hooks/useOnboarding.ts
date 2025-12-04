@@ -35,27 +35,32 @@ export const useOnboarding = () => {
 
         console.log('🔍 [ONBOARDING DEBUG] Verificando para usuário:', user.id);
 
-        // Verificar localStorage primeiro para resposta imediata (cache)
         const localKey = `stater_onboarding_completed_${user.id}`;
-        const localCompleted = localStorage.getItem(localKey) === 'true';
-        
-        if (localCompleted) {
-          console.log('🔍 [ONBOARDING DEBUG] Onboarding já completo no localStorage (cache)');
-          setShowOnboarding(false);
-          setIsChecking(false);
-          return;
-        }
 
-        // Verificar no Supabase se o usuário já completou o onboarding
+        // CORRECAO CRITICA: Verificar PRIMEIRO no Supabase, nao no localStorage
+        // Isso garante que novos usuarios sempre vejam o onboarding
         const { data: onboardingData, error } = await supabase
           .from('user_onboarding')
           .select('onboarding_completed')
           .eq('user_id', user.id)
           .single();
 
-        if (error && error.code !== 'PGRST116') { // PGRST116 = row not found
-          console.error('❌ [ONBOARDING DEBUG] Erro ao buscar dados do onboarding:', error);
-          // Em caso de erro, verificar localStorage como fallback
+        console.log('[ONBOARDING DEBUG] Resultado Supabase:', { onboardingData, error });
+
+        // PGRST116 = row not found (usuario novo, nunca fez onboarding)
+        if (error && error.code === 'PGRST116') {
+          console.log('[ONBOARDING DEBUG] Usuario NOVO - nenhum registro de onboarding encontrado');
+          // Limpar qualquer cache antigo que possa existir
+          localStorage.removeItem(localKey);
+          // Usuario novo = DEVE mostrar onboarding
+          setShowOnboarding(true);
+          setIsChecking(false);
+          return;
+        }
+
+        if (error) {
+          console.error('[ONBOARDING DEBUG] Erro ao buscar dados do onboarding:', error);
+          // Em caso de erro de conexao, verificar localStorage como fallback
           const hasCompletedFallback = localStorage.getItem(localKey) === 'true';
           setShowOnboarding(!hasCompletedFallback);
           setIsChecking(false);
@@ -63,12 +68,14 @@ export const useOnboarding = () => {
         }
 
         const hasCompletedOnboarding = onboardingData?.onboarding_completed || false;
-        
-        // Se completou no Supabase, salvar cache no localStorage
+
+        // Sincronizar cache com Supabase
         if (hasCompletedOnboarding) {
           localStorage.setItem(localKey, 'true');
+        } else {
+          localStorage.removeItem(localKey);
         }
-        
+
         const shouldShow = !hasCompletedOnboarding;
         
         console.log('🔍 [ONBOARDING DEBUG] Status final:', { 

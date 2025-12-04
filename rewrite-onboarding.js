@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+﻿const fs = require('fs');
+
+const newContent = `import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 
@@ -98,7 +100,7 @@ export const useOnboarding = () => {
         console.log('[ONBOARDING] Salvo com sucesso!');
       }
       
-      localStorage.setItem(`stater_onboarding_completed_${user.id}`, 'true');
+      localStorage.setItem(\`stater_onboarding_completed_\${user.id}\`, 'true');
       
     } catch (err) {
       console.error('[ONBOARDING] Erro geral ao salvar:', err);
@@ -114,7 +116,7 @@ export const useOnboarding = () => {
         .delete()
         .eq('user_id', user.id);
       
-      localStorage.removeItem(`stater_onboarding_completed_${user.id}`);
+      localStorage.removeItem(\`stater_onboarding_completed_\${user.id}\`);
       setShowOnboarding(true);
       console.log('[ONBOARDING] Reset completo!');
     } catch (err) {
@@ -132,3 +134,7 @@ export const useOnboarding = () => {
 };
 
 export default useOnboarding;
+`;
+
+fs.writeFileSync('src/hooks/useOnboarding.ts', newContent, 'utf8');
+console.log('Arquivo reescrito!');

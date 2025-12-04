@@ -37,8 +37,8 @@ export const useOnboarding = () => {
 
         const localKey = `stater_onboarding_completed_${user.id}`;
 
-        // CORRECAO CRITICA: Verificar PRIMEIRO no Supabase, nao no localStorage
-        // Isso garante que novos usuarios sempre vejam o onboarding
+        // CORRECAO: Verificar PRIMEIRO no Supabase - fonte de verdade
+        // Isso garante que TODOS os usuarios vejam o onboarding uma vez
         const { data: onboardingData, error } = await supabase
           .from('user_onboarding')
           .select('onboarding_completed')
@@ -47,12 +47,12 @@ export const useOnboarding = () => {
 
         console.log('[ONBOARDING DEBUG] Resultado Supabase:', { onboardingData, error });
 
-        // PGRST116 = row not found (usuario novo, nunca fez onboarding)
+        // PGRST116 = row not found (usuario nunca fez onboarding - novo OU antigo)
         if (error && error.code === 'PGRST116') {
-          console.log('[ONBOARDING DEBUG] Usuario NOVO - nenhum registro de onboarding encontrado');
+          console.log('[ONBOARDING DEBUG] Usuario sem registro de onboarding - MOSTRAR onboarding');
           // Limpar qualquer cache antigo que possa existir
           localStorage.removeItem(localKey);
-          // Usuario novo = DEVE mostrar onboarding
+          // Usuario sem registro = DEVE mostrar onboarding (novo ou existente)
           setShowOnboarding(true);
           setIsChecking(false);
           return;
@@ -67,12 +67,14 @@ export const useOnboarding = () => {
           return;
         }
 
-        const hasCompletedOnboarding = onboardingData?.onboarding_completed || false;
+        // So nao mostrar se o usuario JA completou o onboarding
+        const hasCompletedOnboarding = onboardingData?.onboarding_completed === true;
 
         // Sincronizar cache com Supabase
         if (hasCompletedOnboarding) {
           localStorage.setItem(localKey, 'true');
         } else {
+          // Se tem registro mas nao completou, mostrar onboarding
           localStorage.removeItem(localKey);
         }
 

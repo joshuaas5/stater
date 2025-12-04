@@ -1,5 +1,5 @@
 // 🔧 Service Worker OTIMIZADO - Melhor suporte offline
-const CACHE_NAME = 'stater-app-v6';
+const CACHE_NAME = 'stater-app-v7';
 
 // Lista expandida de arquivos para cache offline
 const urlsToCache = [

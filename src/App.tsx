@@ -4,7 +4,7 @@ import { CustomToastContainer } from "@/components/ui/CustomToast";
 import { useCustomToast } from "@/hooks/useCustomToast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
@@ -22,6 +22,8 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 // Import the paywall fixes CSS
 import '@/styles/paywall-fixes.css';
+// Import analytics
+import { initGA, trackPageView } from '@/lib/analytics';
 
 const queryClient = new QueryClient();
 
@@ -114,31 +116,51 @@ const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// Analytics Provider Component - Rastreamento automático de páginas
+const AnalyticsProvider = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+  
+  // Inicializar analytics na primeira montagem
+  useEffect(() => {
+    initGA();
+    trackPageView(location.pathname + location.search);
+  }, []);
+  
+  // Rastrear mudanças de página automaticamente
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location]);
+  
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ErrorBoundary>
       <BrowserRouter>
-        <EdgeToEdgeProvider>
-          <ThemeProvider>
-            <AuthProvider>
-              <TermsWrapper>
-                <NotificationProvider>
-                  <RoutePreloadingProvider>
-                    <ToastProvider>
-                      <TooltipProvider>
-                        <Toaster />
-                        <Sonner />
-                        <NotificationToastManager />
-                        <CookieConsent />
-                        <AppRouter />
-                      </TooltipProvider>
-                    </ToastProvider>
-                  </RoutePreloadingProvider>
-                </NotificationProvider>
-              </TermsWrapper>
-            </AuthProvider>
-          </ThemeProvider>
-        </EdgeToEdgeProvider>
+        <AnalyticsProvider>
+          <EdgeToEdgeProvider>
+            <ThemeProvider>
+              <AuthProvider>
+                <TermsWrapper>
+                  <NotificationProvider>
+                    <RoutePreloadingProvider>
+                      <ToastProvider>
+                        <TooltipProvider>
+                          <Toaster />
+                          <Sonner />
+                          <NotificationToastManager />
+                          <CookieConsent />
+                          <AppRouter />
+                        </TooltipProvider>
+                      </ToastProvider>
+                    </RoutePreloadingProvider>
+                  </NotificationProvider>
+                </TermsWrapper>
+              </AuthProvider>
+            </ThemeProvider>
+          </EdgeToEdgeProvider>
+        </AnalyticsProvider>
       </BrowserRouter>
     </ErrorBoundary>
   </QueryClientProvider>

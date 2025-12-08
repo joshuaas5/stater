@@ -68,6 +68,20 @@
       gtag('set', 'url_passthrough', true);
     </script>
     
+    <!-- 📊 GOOGLE ANALYTICS 4 (Real-time Monitoring) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      
+      // IMPORTANTE: Trocar G-XXXXXXXXXX pelo seu Measurement ID real
+      gtag('config', 'G-XXXXXXXXXX', {
+        'send_page_view': true,
+        'anonymize_ip': true
+      });
+    </script>
+    
     <!-- AdSense removido - não usamos mais anúncios -->
     
     <!-- PWA Icons -->

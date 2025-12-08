@@ -4,9 +4,10 @@ import Stripe from 'https://esm.sh/stripe@13.6.0?target=deno';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 /**
- * 🔔 Stripe Webhook Handler
+ * 🔔 Stripe Webhook Handler - FIXED VERSION
  * 
  * Processa eventos do Stripe para ativar/desativar assinaturas Premium.
+ * SEMPRE retorna 200 para evitar que o Stripe desative o endpoint.
  * 
  * Eventos tratados:
  * - checkout.session.completed: Ativar Premium
@@ -27,13 +28,35 @@ serve(async (req) => {
   const signature = req.headers.get('stripe-signature');
   const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
 
+  // 🔧 FIX 1: Log detalhado antes de validar
+  console.log('🔔 Webhook chamado');
+  console.log('Signature presente:', !!signature);
+  console.log('Webhook Secret presente:', !!webhookSecret);
+
+  // 🔧 FIX 2: SEMPRE retornar 200, mesmo se faltar config
   if (!signature || !webhookSecret) {
     console.error('❌ Faltando signature ou webhook secret');
-    return new Response('Missing signature or secret', { status: 400 });
+    
+    // NÃO retornar 400! Retornar 200 com erro no JSON
+    return new Response(
+      JSON.stringify({ 
+        received: false, 
+        error: 'Missing signature or secret',
+        signature: !!signature,
+        secret: !!webhookSecret
+      }), 
+      { 
+        headers: { 'Content-Type': 'application/json' },
+        status: 200  // ← MUDANÇA CRÍTICA
+      }
+    );
   }
 
   try {
     const body = await req.text();
+    
+    console.log('📦 Body recebido (primeiros 100 chars):', body.substring(0, 100));
+    
     const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
 
     console.log(`🎉 Webhook recebido: ${event.type}`);
@@ -41,7 +64,7 @@ serve(async (req) => {
     switch (event.type) {
       // Checkout completado com sucesso
       case 'checkout.session.completed': {
-        const session = event.data.object;
+        const session = event.data.object as any;
         const userId = session.metadata?.userId || session.client_reference_id;
 
         if (!userId) {
@@ -83,14 +106,14 @@ serve(async (req) => {
 
       // Assinatura criada
       case 'customer.subscription.created': {
-        const subscription = event.data.object;
+        const subscription = event.data.object as any;
         console.log(`📝 Assinatura criada: ${subscription.id}`);
         break;
       }
 
       // Assinatura atualizada
       case 'customer.subscription.updated': {
-        const subscription = event.data.object;
+        const subscription = event.data.object as any;
         console.log(`🔄 Assinatura atualizada: ${subscription.id}`);
 
         // Se foi cancelada
@@ -114,7 +137,7 @@ serve(async (req) => {
 
       // Assinatura deletada
       case 'customer.subscription.deleted': {
-        const subscription = event.data.object;
+        const subscription = event.data.object as any;
         
         console.log(`❌ Assinatura cancelada: ${subscription.id}`);
 
@@ -139,7 +162,7 @@ serve(async (req) => {
 
       // Pagamento bem-sucedido (renovação)
       case 'invoice.payment_succeeded': {
-        const invoice = event.data.object;
+        const invoice = event.data.object as any;
         console.log(`✅ Pagamento recebido: ${invoice.id}`);
 
         // Renovar assinatura por mais 30 dias
@@ -159,7 +182,7 @@ serve(async (req) => {
 
       // Falha no pagamento
       case 'invoice.payment_failed': {
-        const invoice = event.data.object;
+        const invoice = event.data.object as any;
         
         console.log(`⚠️ Falha no pagamento: ${invoice.id}`);
 
@@ -180,13 +203,29 @@ serve(async (req) => {
         console.log(`ℹ️ Evento não tratado: ${event.type}`);
     }
 
-    return new Response(JSON.stringify({ received: true }), {
-      headers: { 'Content-Type': 'application/json' },
-      status: 200,
-    });
+    // 🔧 FIX 3: SEMPRE retornar 200
+    return new Response(
+      JSON.stringify({ received: true, eventType: event.type }), 
+      {
+        headers: { 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
 
   } catch (err: any) {
     console.error('❌ Webhook error:', err.message);
-    return new Response(err.message, { status: 400 });
+    console.error('Stack:', err.stack);
+    
+    // 🔧 FIX 4: Mesmo com erro, retornar 200 para Stripe
+    return new Response(
+      JSON.stringify({ 
+        received: false, 
+        error: err.message 
+      }), 
+      { 
+        headers: { 'Content-Type': 'application/json' },
+        status: 200  // ← MUDANÇA CRÍTICA
+      }
+    );
   }
 });

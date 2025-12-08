@@ -24,6 +24,8 @@ import { Capacitor } from '@capacitor/core';
 import '@/styles/paywall-fixes.css';
 // Import analytics
 import { initGA, trackPageView } from '@/lib/analytics';
+// Import Vercel Analytics (Dashboard visual lindo!)
+import { Analytics } from '@vercel/analytics/react';
 
 const queryClient = new QueryClient();
 
@@ -152,6 +154,7 @@ const App = () => (
                           <NotificationToastManager />
                           <CookieConsent />
                           <AppRouter />
+                          <Analytics />
                         </TooltipProvider>
                       </ToastProvider>
                     </RoutePreloadingProvider>

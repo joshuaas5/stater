@@ -360,7 +360,10 @@ Obrigado!`);
                   </p>
                   <Button
                     className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold"
-                    onClick={() => navigate('/dashboard?showPremium=true')}
+                    onClick={() => {
+                      // Disparar evento para abrir paywall
+                      window.dispatchEvent(new CustomEvent('open-premium-modal'));
+                    }}
                   >
                     <Crown size={16} className="mr-2" />
                     Assinar PRO - R$ 14,90/mês

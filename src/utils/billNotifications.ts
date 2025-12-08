@@ -86,8 +86,14 @@ export const clearNotificationCache = (): void => {
 
 /**
  * Exibe notificações de contas próximas do vencimento (apenas as essenciais)
+ * DESABILITADO - Usuário pediu para remover notificações de vencimento
  */
 export const showBillNotifications = (): void => {
+  // Função desabilitada - não exibir notificações de vencimento
+  return;
+  
+  // Código original comentado:
+  /*
   const notifications = checkBillDueDates();
   
   // Filtrar apenas notificações realmente importantes
@@ -136,6 +142,7 @@ export const showBillNotifications = (): void => {
         break;
     }
   });
+  */
 };
 
 /**

@@ -26,6 +26,7 @@ import {
   isPushSupported,
   rescheduleAllBillNotifications 
 } from '@/utils/pushNotifications';
+import PremiumModal from '@/components/PremiumModal';
 
 const PreferencesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ const PreferencesPage: React.FC = () => {
   // Estados para gerenciar assinatura PRO
   const [isProUser, setIsProUser] = useState(false);
   const [cancellingSubscription, setCancellingSubscription] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   
   const [preferences, setPreferences] = useState({
     theme: 'dark' as 'light' | 'dark' | 'system',
@@ -360,10 +362,7 @@ Obrigado!`);
                   </p>
                   <Button
                     className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold"
-                    onClick={() => {
-                      // Disparar evento para abrir paywall
-                      window.dispatchEvent(new CustomEvent('open-premium-modal'));
-                    }}
+                    onClick={() => setShowPremiumModal(true)}
                   >
                     <Crown size={16} className="mr-2" />
                     Assinar PRO - R$ 14,90/mês
@@ -513,6 +512,12 @@ Obrigado!`);
           </Button>
         </div>
       </div>
+
+      {/* Modal Premium */}
+      <PremiumModal 
+        isOpen={showPremiumModal} 
+        onClose={() => setShowPremiumModal(false)} 
+      />
     </div>
   );
 };

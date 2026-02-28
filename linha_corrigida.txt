@@ -1,0 +1,1 @@
+        response += `💰 Total: R$ ${(result.summary.totalAmount || 0).toFixed(2)}\n\n`;

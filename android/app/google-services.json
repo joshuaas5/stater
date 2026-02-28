@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "709126447592",
+    "project_id": "stater-68765",
+    "storage_bucket": "stater-68765.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:709126447592:android:8e0465b5dc52dd0f97845d",
+        "android_client_info": {
+          "package_name": "com.timothy.stater"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "YOUR_GEMINI_API_KEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

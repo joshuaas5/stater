@@ -1,0 +1,39 @@
+.pop-art-tips {
+  font-family: Impact, Charcoal, Arial Black, sans-serif;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #fff;
+  background: linear-gradient(90deg, #ff0080, #7928ca, #ffe600, #00ffea);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 2px 2px 0 #000, 4px 4px 0 #ffe600;
+  letter-spacing: 2px;
+  border: 2px solid #ffe600;
+  box-shadow: 2px 2px 8px #7928ca66;
+  cursor: pointer;
+  transition: transform 0.1s;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+}
+.pop-art-tips:active {
+  transform: scale(0.95);
+}
+
+/* ===== MODO SIMPLES/MOBILE - CORES CLARAS ===== */
+@media (max-width: 1023px) {
+  .text-white {
+    color: #0f172a !important;
+  }
+  
+  .bg-white\/10 {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+  }
+  
+  .bg-white\/20 {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+  }
+  
+  .via-white\/20 {
+    --tw-gradient-stops: var(--tw-gradient-from), rgba(0, 0, 0, 0.1), var(--tw-gradient-to) !important;
+  }
+}

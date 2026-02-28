@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5" />
+
+  <!-- CSS Crítico Inline - evita bloqueio de render -->
+  <style>
+    *,
+    ::before,
+    ::after {
+      box-sizing: border-box;
+      border-width: 0;
+      border-style: solid;
+      border-color: #e5e7eb
+    }
+
+    ::before,
+    ::after {
+      --tw-content: ''
+    }
+
+    html {
+      line-height: 1.5;
+      -webkit-text-size-adjust: 100%;
+      -moz-tab-size: 4;
+      tab-size: 4;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+      font-feature-settings: normal;
+      font-variation-settings: normal
+    }
+
+    body {
+      margin: 0;
+      line-height: inherit;
+      min-height: 100vh;
+      background: #0f172a;
+      color: #fff;
+      overflow-y: auto !important
+    }
+
+    #root {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-size: inherit;
+      font-weight: inherit
+    }
+
+    a {
+      color: inherit;
+      text-decoration: inherit
+    }
+
+    button,
+    input,
+    optgroup,
+    select,
+    textarea {
+      font-family: inherit;
+      font-size: 100%;
+      font-weight: inherit;
+      line-height: inherit;
+      color: inherit;
+      margin: 0;
+      padding: 0
+    }
+
+    button,
+    select {
+      text-transform: none
+    }
+
+    button,
+    [type='button'],
+    [type='reset'],
+    [type='submit'] {
+      -webkit-appearance: button;
+      background-color: transparent;
+      background-image: none
+    }
+
+    :-moz-focusring {
+      outline: auto
+    }
+
+    :-moz-ui-invalid {
+      box-shadow: none
+    }
+
+    progress {
+      vertical-align: baseline
+    }
+
+    ::-webkit-inner-spin-button,
+    ::-webkit-outer-spin-button {
+      height: auto
+    }
+
+    [type='search'] {
+      -webkit-appearance: textfield;
+      outline-offset: -2px
+    }
+
+    ::-webkit-search-decoration {
+      -webkit-appearance: none
+    }
+
+    ::-webkit-file-upload-button {
+      -webkit-appearance: button;
+      font: inherit
+    }
+
+    summary {
+      display: list-item
+    }
+
+    blockquote,
+    dl,
+    dd,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    hr,
+    figure,
+    p,
+    pre {
+      margin: 0
+    }
+
+    fieldset {
+      margin: 0;
+      padding: 0
+    }
+
+    legend {
+      padding: 0
+    }
+
+    ol,
+    ul,
+    menu {
+      list-style: none;
+      margin: 0;
+      padding: 0
+    }
+
+    textarea {
+      resize: vertical
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      opacity: 1;
+      color: #9ca3af
+    }
+
+    button,
+    [role="button"] {
+      cursor: pointer
+    }
+
+    :disabled {
+      cursor: default
+    }
+
+    img,
+    svg,
+    video,
+    canvas,
+    audio,
+    iframe,
+    embed,
+    object {
+      display: block;
+      vertical-align: middle
+    }
+
+    img,
+    video {
+      max-width: 100%;
+      height: auto
+    }
+
+    [hidden] {
+      display: none
+    }
+  </style>
+
+  <!-- Preconnect para recursos críticos -->
+  <link rel="preconnect" href="https://aoxkrxmojnxgbijcaazw.supabase.co" crossorigin>
+  <link rel="dns-prefetch" href="https://aoxkrxmojnxgbijcaazw.supabase.co">
+  <link rel="preconnect" href="https://js.stripe.com" crossorigin>
+  <link rel="dns-prefetch" href="https://js.stripe.com">
+
+  <!-- ðŸ”¥ EDGE-TO-EDGE CONFIGURATION -->
+  <meta name="theme-color" content="#020617">
+  <meta name="msapplication-navbutton-color" content="#020617">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <title>Stater - Controle Financeiro Inteligente com IA | Assistente Pessoal</title>
+  <meta name="description"
+    content="Aplicativo gratuito de controle financeiro com inteligência artificial. Registre despesas por voz, escaneie notas fiscais e receba análises inteligentes. Comece agora!" />
+  <meta name="keywords"
+    content="controle financeiro, finanças pessoais, aplicativo financeiro, orçamento doméstico, despesas, receitas, IA, inteligência artificial, OCR nota fiscal, comandos de voz, assistente financeiro, gestão financeira" />
+  <meta name="author" content="Stater - Controle Financeiro Inteligente" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://stater.app/" />
+  <meta property="og:title" content="Stater - Controle Financeiro Inteligente com IA" />
+  <meta property="og:description"
+    content="Gerencie suas finanças com ajuda de IA. Comandos de voz, OCR de documentos e análises inteligentes. Gratuito para começar." />
+  <meta property="og:image" content="https://stater.app/stater-logo-512.png" />
+  <meta property="og:site_name" content="Stater" />
+  <meta property="og:locale" content="pt_BR" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://stater.app/" />
+  <meta name="twitter:title" content="Stater - Controle Financeiro Inteligente com IA" />
+  <meta name="twitter:description"
+    content="Aplicativo gratuito com IA para gerenciar finanças pessoais. Comandos de voz e OCR de documentos." />
+  <meta name="twitter:image" content="https://stater.app/stater-logo-512.png" />
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://stater.app/" />
+
+  <!-- PWA Meta Tags -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Stater">
+  <meta name="theme-color" content="#020617">
+  <meta name="msapplication-TileColor" content="#020617">
+  <meta name="msapplication-navbutton-color" content="#020617">
+
+
+
+  <!-- Google AdSense -->
+
+  <!-- PWA Icons -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/stater-logo-16.png">
+  <link rel="apple-touch-icon" href="/stater-logo-192.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/stater-logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/stater-logo-192.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="/stater-logo-192.png">
+
+  <!-- OG Image dimensions -->
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Preload critical logo -->
+  <link rel="preload" as="image" href="/stater-logo-192.png" fetchpriority="high">
+
+  <!-- Fonts - otimizado com display=swap -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet">
+  </noscript>
+
+  <!-- Mobile-first CSS -->
+  <link rel="stylesheet" href="/src/styles/mobile-first.css">
+  <!-- Otimizações de scroll - críticas para performance -->
+  <!-- <link rel="stylesheet" href="/src/styles/scroll-optimizations.css"> -->
+  <!-- Otimizações de performance da dashboard -->
+  <!-- <link rel="stylesheet" href="/src/styles/dashboard-performance.css"> -->
+  
+  
+  
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4642150915962893" crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <!-- CSS para otimizações imediatas -->
+  <style>
+    /* Reset básico - deixa o navegador controlar scroll naturalmente */
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      background-color: #020617 !important;
+      /* CRáTICO: NáƒO definir height, overflow, ou transform */
+      /* Deixa o navegador controlar scroll nativamente */
+      min-height: 100vh;
+      overflow-y: auto !important;
+      position: static !important;
+      height: auto !important;
+    }
+
+    /* Prevenir scroll horizontal apenas */
+    html {
+      overflow-x: hidden;
+    }
+
+    /* Touch nativo para melhor responsividade mobile */
+    body {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Reduzir movimentos/animações para melhor performance */
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      ::before,
+      ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+
+  <!-- PWA Service Worker - LAZY LOAD -->
+  <script>
+    window.addEventListener('load', () => {
+      if ('serviceWorker' in navigator) {
+        setTimeout(() => {
+          navigator.serviceWorker.register('/performance-worker.js', { scope: '/', updateViaCache: 'none' });
+          setTimeout(() => navigator.serviceWorker.register('/sw.js'), 2000);
+        }, 3000);
+      }
+    });
+  </script>
+
+  <!-- Script de otimização de scroll - carregado antes de tudo -->
+  <!-- <script src="/scroll-performance.js" defer></script> -->
+  <!-- Script de otimizações mobile - crítico para performance -->
+  <!-- <script src="/mobile-optimizations.js" defer></script> -->
+
+  <script type="module" src="/src/main.tsx" fetchpriority="high"></script>
+</body>
+
+</html>

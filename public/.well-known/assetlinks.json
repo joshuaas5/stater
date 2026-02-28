@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.timothy.stater",
+    "sha256_cert_fingerprints": [
+      "8C:02:48:F6:71:D3:07:01:CC:11:BB:06:AC:EA:5B:D6:FB:3E:A5:68:66:07:AC:6B:BA:F3:A7:57:E3:30:84:C2"
+    ]
+  }
+}]

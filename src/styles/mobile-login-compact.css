@@ -1,0 +1,207 @@
+/* 📱 MOBILE LOGIN COMPACT - Redimensionamento para viewport correto */
+
+/* Aplicar apenas em telas mobile */
+@media (max-width: 768px) {
+  /* ✅ CONTAINER LOGIN - usar altura disponível corretamente */
+  .homepage-container {
+    min-height: 100% !important; /* 100% da área disponível (já descontada a status bar) */
+    height: auto !important;
+    padding: 1rem !important; /* Padding uniforme */
+    padding-bottom: max(env(safe-area-inset-bottom, 20px), 20px) !important;
+    /* Layout flex centralizado */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    overflow-y: auto !important;
+  }
+
+  /* ✅ LOGO SECTION - reduzir espaçamento */
+  .homepage-container .text-center.mb-8 {
+    margin-bottom: 1.25rem !important; /* era mb-8 (2rem) */
+  }
+  
+  .homepage-container .text-center.mb-8 .flex.justify-center.mb-6 {
+    margin-bottom: 0.75rem !important; /* era mb-6 (1.5rem) */
+  }
+  
+  /* ✅ LOGO - tamanho adequado sem cortar */
+  .homepage-container .w-24.h-24.sm\:w-32.sm\:h-32 {
+    width: 6rem !important; /* 96px - maior para não cortar */
+    height: 6rem !important;
+    max-width: none !important; /* Remove qualquer limitação */
+    max-height: none !important;
+  }
+
+  /* ✅ TÍTULO - reduzir tamanho e espaçamento */
+  .homepage-container .text-3xl.sm\:text-5xl {
+    font-size: 2rem !important; /* era text-3xl (1.875rem) */
+    margin-bottom: 0.25rem !important; /* era mb-2 (0.5rem) */
+  }
+  
+  /* Subtítulo menor */
+  .homepage-container .text-base.sm\:text-lg {
+    font-size: 0.875rem !important; /* era text-base (1rem) */
+  }
+
+  /* ✅ LOGIN CARD - reduzir padding e espaçamento */
+  .homepage-container .bg-white\/10.rounded-3xl {
+    padding: 1.25rem !important; /* era p-6 sm:p-8 (1.5rem/2rem) */
+    margin-left: 0.75rem !important; /* era mx-4 (1rem) */
+    margin-right: 0.75rem !important;
+  }
+
+  /* Título do card menor */
+  .homepage-container .text-2xl.font-bold {
+    font-size: 1.375rem !important; /* era text-2xl (1.5rem) */
+    margin-bottom: 0.25rem !important; /* era mb-2 (0.5rem) */
+  }
+
+  /* Subtítulo do card */
+  .homepage-container .text-blue-200.text-sm {
+    margin-bottom: 1rem !important; /* reduzir de padrão */
+  }
+
+  /* ✅ FORM SPACING - reduzir espaçamento entre elementos */
+  .homepage-container .space-y-6 > *:not(:first-child) {
+    margin-top: 1rem !important; /* era space-y-6 (1.5rem) */
+  }
+  
+  .homepage-container .space-y-4 > *:not(:first-child) {
+    margin-top: 0.75rem !important; /* era space-y-4 (1rem) */
+  }
+
+  /* ✅ INPUTS - padding menor */
+  .homepage-container input.px-6.py-4 {
+    padding-left: 1rem !important; /* era px-6 (1.5rem) */
+    padding-right: 1rem !important;
+    padding-top: 0.75rem !important; /* era py-4 (1rem) */
+    padding-bottom: 0.75rem !important;
+    font-size: 0.875rem !important;
+  }
+
+  /* ✅ BOTÕES - reduzir padding + ANIMAÇÕES DE FEEDBACK */
+  .homepage-container button.py-4.px-6 {
+    padding-left: 1rem !important; /* era px-6 (1.5rem) */
+    padding-right: 1rem !important;
+    padding-top: 0.75rem !important; /* era py-4 (1rem) */
+    padding-bottom: 0.75rem !important;
+    font-size: 0.875rem !important;
+    
+    /* ✨ ANIMAÇÕES DE FEEDBACK - sutil mas perceptível */
+    transition: all 0.2s ease-out !important;
+    transform: translateZ(0) !important; /* força aceleração de hardware */
+    backface-visibility: hidden !important;
+  }
+
+  /* ✅ HOVER/FOCUS - feedback visual */
+  .homepage-container button.py-4.px-6:hover,
+  .homepage-container button.py-4.px-6:focus {
+    transform: translateY(-1px) scale(1.02) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  /* ✅ ACTIVE/CLICK - feedback tátil imediato */
+  .homepage-container button.py-4.px-6:active {
+    transform: translateY(0px) scale(0.98) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.1s ease-out !important;
+  }
+
+  /* ✅ LOADING STATE - animação durante processamento */
+  .homepage-container button.py-4.px-6:disabled,
+  .homepage-container button.py-4.px-6[data-loading="true"] {
+    opacity: 0.7 !important;
+    transform: none !important;
+    cursor: not-allowed !important;
+    position: relative !important;
+  }
+
+  /* ✅ Spinner sutil para loading */
+  .homepage-container button.py-4.px-6[data-loading="true"]::after {
+    content: "" !important;
+    position: absolute !important;
+    right: 0.75rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 1rem !important;
+    height: 1rem !important;
+    border: 2px solid transparent !important;
+    border-top: 2px solid currentColor !important;
+    border-radius: 50% !important;
+    animation: spin 0.8s linear infinite !important;
+  }
+
+  /* Keyframe para spinner */
+  @keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+  }
+
+  /* ✅ DIVISOR "OU" - espaçamento menor */
+  .homepage-container .relative:has(.border-t) {
+    margin-top: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  /* ✅ MENSAGENS DE ERRO - menor */
+  .homepage-container .text-red-400.text-sm {
+    font-size: 0.75rem !important;
+    margin-top: 0.25rem !important;
+  }
+
+  /* ✅ SUCCESS MESSAGE - compacto */
+  .homepage-container .bg-green-500\/20 {
+    padding: 0.75rem !important; /* era p-4 (1rem) */
+    margin-bottom: 1rem !important; /* era mb-6 (1.5rem) */
+    font-size: 0.875rem !important;
+  }
+
+  /* ✅ LINKS FOOTER - espaçamento menor */
+  .homepage-container .text-center:has(.text-blue-300) {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* ✅ FOOTER FINAL - reduzir espaçamento */
+  .homepage-container .text-center.mt-8 {
+    margin-top: 1.5rem !important; /* era mt-8 (2rem) */
+  }
+  
+  .homepage-container .text-center.mt-8 .text-sm {
+    font-size: 0.75rem !important;
+  }
+  
+  .homepage-container .text-center.mt-8 .text-xs {
+    font-size: 0.625rem !important;
+  }
+}
+
+/* ✅ Para telas muito pequenas (iPhone SE, etc.) */
+@media (max-width: 375px) {
+  .homepage-container {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+  
+  .homepage-container .bg-white\/10.rounded-3xl {
+    margin-left: 0.5rem !important;
+    margin-right: 0.5rem !important;
+    padding: 1rem !important;
+  }
+}
+
+/* ✅ Para telas com altura limitada */
+@media (max-height: 700px) {
+  .homepage-container .text-center.mb-8 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .homepage-container .w-24.h-24.sm\:w-32.sm\:h-32 {
+    width: 4.5rem !important; /* mantém um tamanho decente */
+    height: 4.5rem !important;
+  }
+  
+  .homepage-container .text-3xl.sm\:text-5xl {
+    font-size: 1.75rem !important;
+  }
+}

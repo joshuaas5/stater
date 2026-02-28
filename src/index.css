@@ -1,0 +1,456 @@
+/* SAFE AREA GLOBAL - Protege conte�ｽdo do notch/c�ｽmera */
+:root {
+  --safe-area-top: env(safe-area-inset-top, 24px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-top {
+  padding-top: var(--safe-area-top) !important;
+}
+
+.safe-area-header {
+  padding-top: calc(var(--safe-area-top) + 16px) !important;
+}
+
+/* CSS SIMPLIFICADO - VERSﾃグ LEVE */
+
+/* RESET E BASE */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  width: 100%;
+  /* CRﾃ控ICO: Nﾃ｣o definir height! Deixa o conteﾃｺdo definir a altura */
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
+  /* COR UNIFICADA */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  /* SCROLL NATIVO - deixa o navegador controlar */
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto !important;
+  /* GARANTIA DE SCROLL */
+}
+
+body {
+  width: 100%;
+  /* CRﾃ控ICO: Nﾃ｣o definir height! Deixa o conteﾃｺdo definir a altura */
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  /* SCROLL NATIVO - deixa o navegador controlar */
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto !important;
+  /* GARANTIA DE SCROLL */
+  position: static !important;
+  /* PREVINE TRAVAMENTO POR POSIﾃ�グ */
+  left: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  touch-action: pan-y !important;
+  /* FORﾃ② SCROLL VERTICAL EM TOUCH/MOUSEWHEEL */
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%);
+  /* COR UNIFICADA */
+  /* CRﾃ控ICO: Nﾃ｣o usar display: flex no root! */
+  /* Deixa o conteﾃｺdo fluir naturalmente */
+  position: relative;
+}
+
+/* IMPORTAR TAILWIND */
+/* SAFE AREA GLOBAL - Protege conteｽdo do notch/cｽmera */
+:root {
+  --safe-area-top: env(safe-area-inset-top, 24px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-top {
+  padding-top: var(--safe-area-top) !important;
+}
+
+.safe-area-header {
+  padding-top: calc(var(--safe-area-top) + 16px) !important;
+}
+
+/* CSS SIMPLIFICADO - VERSﾃG LEVE */
+
+/* RESET E BASE */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  width: 100%;
+  /* CRﾃ控ICO: Nﾃ｣o definir height! Deixa o conteﾃｺdo definir a altura */
+  margin: 0;
+  padding: 0;
+  background-color: #0f172a !important;
+  /* COR UNIFICADA */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  /* SCROLL NATIVO - deixa o navegador controlar */
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto !important;
+  /* GARANTIA DE SCROLL */
+}
+
+body {
+  width: 100%;
+  /* CRﾃ控ICO: Nﾃ｣o definir height! Deixa o conteﾃｺdo definir a altura */
+  margin: 0;
+  padding: 0;
+  background-color: #0f172a !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  /* SCROLL NATIVO - deixa o navegador controlar */
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto !important;
+  /* GARANTIA DE SCROLL */
+  position: static !important;
+  /* PREVINE TRAVAMENTO POR POSIﾃG */
+  left: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  touch-action: pan-y !important;
+  /* FORﾃ② SCROLL VERTICAL EM TOUCH/MOUSEWHEEL */
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #0f172a;
+  /* COR UNIFICADA */
+  /* CRﾃ控ICO: Nﾃ｣o usar display: flex no root! */
+  /* Deixa o conteﾃｺdo fluir naturalmente */
+  position: relative;
+}
+
+/* IMPORTAR TAILWIND */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CLASSES DE Pﾃ；INA UNIFICADAS */
+
+/* Regras de Página */
+.edge-to-edge-container,
+.edge-to-edge-login {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
+  /* Azul escuro unificado para consistência */
+  position: relative;
+}
+
+.edge-to-edge-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
+  /* Azul escuro unificado */
+  position: relative;
+}
+
+
+/* Desktop: background mantido via PersistentLayout ou gradiente direto */
+@media (min-width: 1024px) {
+  .edge-to-edge-page {
+    /* Background transparente removido para garantir que o gradiente apareça sem gaps */
+  }
+}
+
+
+.safe-area-content {
+  padding-top: 0;
+  /* Removido safe-area para nﾃ｣o criar faixa no topo */
+  padding-left: env(safe-area-inset-left, 16px);
+  padding-right: env(safe-area-inset-right, 16px);
+  padding-bottom: 90px !important;
+  /* 64px (navbar compacta) + 26px (respiro) */
+  flex: 1;
+}
+
+/* NAVBAR SIMPLES */
+.navbar-simple {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  /* Altura compacta para mobile */
+  background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000 !important;
+  /* Navbar sempre no topo de tudo */
+  padding: 0 16px;
+}
+
+.navbar-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navbar-button:hover,
+.navbar-button.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.navbar-icon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 4px;
+}
+
+/* ELIMINAﾃG COMPLETA DE SCROLL HORIZONTAL */
+/* Regras de scroll consolidadas acima */
+
+/* SCROLL SUAVE E RESPONSIVO PARA TODA A APLICAﾃG */
+/* Aplicado no html, body acima */
+
+/* MELHORAR SCROLL PERFORMANCE NO MOBILE */
+[data-overlayscrollbars] {
+  -webkit-overflow-scrolling: touch !important;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* Prevenir elementos que causam overflow horizontal (mantﾃｩm scroll vertical) */
+.navbar-simple {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.safe-area-content {
+  overflow-x: hidden;
+  width: 100% !important;
+  box-sizing: border-box;
+  overflow-y: auto !important;
+  /* PERMITE SCROLL VERTICAL NO CONTEﾃ咼O */
+}
+
+.edge-to-edge-container {
+  overflow-x: hidden;
+  width: 100% !important;
+  box-sizing: border-box;
+  overflow-y: auto !important;
+  /* PERMITE SCROLL VERTICAL */
+}
+
+.navbar-text {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* FORﾃ②R BORDAS ARREDONDADAS - CORRIGIR PROBLEMAS NO APK */
+button,
+.button,
+[role="button"],
+input[type="button"],
+input[type="submit"] {
+  border-radius: 8px !important;
+}
+
+/* Switches devem ser completamente redondos */
+.peer[role="switch"],
+[data-state="checked"],
+[data-state="unchecked"] {
+  border-radius: 9999px !important;
+}
+
+/* Elementos especﾃｭficos do Radix UI */
+[data-radix-collection-item] {
+  border-radius: 8px !important;
+}
+
+/* ANIMAﾃG DE LOADING COMPATﾃ昂EL COM MOBILE */
+@keyframes mobile-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: mobile-spin 1s linear infinite !important;
+}
+
+/* Forﾃｧa animaﾃｧﾃ｣o em WebView Android */
+.loading-spinner {
+  animation: mobile-spin 1s linear infinite !important;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* GARANTIA DE ﾃ垢ONES SVG COM FUNDO TRANSPARENTE */
+svg.lucide,
+button svg,
+a svg {
+  background-color: transparent !important;
+  background: none !important;
+}
+
+/* === FIX DEFINITIVO PARA Pﾃ；INA DE LOGIN === */
+
+/* Garante que a pﾃ｡gina de login possa rolar em telas pequenas */
+.edge-to-edge-login .safe-area-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  /* Alinha no topo para evitar corte da logo */
+  align-items: center;
+  padding-top: 2rem;
+  /* Espaﾃｧo suficiente no topo */
+  padding-bottom: 2rem;
+  min-height: 100vh;
+  overflow-y: auto;
+  /* Permite scroll quando necessﾃ｡rio */
+}
+
+/* Previne que a logo seja espremida ou cortada */
+.stable-logo {
+  flex-shrink: 0;
+}
+
+/* === REESTRUTURAﾃG FINAL DO LAYOUT INFERIOR === */
+
+/* 1. GARANTIR ESPAﾃ⑯ PARA OS ELEMENTOS FIXOS */
+/* Esta regra FORﾃ② o padding em TODAS as pﾃ｡ginas que usam .safe-area-content */
+body .safe-area-content {
+  padding-bottom: 90px !important;
+  /* 64px (navbar compacta) + 26px (respiro) */
+}
+
+/* 2. CORRIGIR A ORDEM DAS CAMADAS (Z-INDEX) */
+.navbar-simple {
+  z-index: 1000 !important;
+  /* Navbar sempre no topo de tudo */
+}
+
+/* 3. POSICIONAR O BANNER CORRETAMENTE */
+.ad-banner {
+  position: fixed;
+  bottom: 64px;
+  /* Exatamente acima da navbar compacta de 64px */
+  left: 0;
+  right: 0;
+  height: 50px;
+  background-color: #1c1c1e;
+  /* Cor escura para contraste */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999 !important;
+  /* Banner fica ABAIXO da navbar, mas acima do conteﾃｺdo */
+  color: white;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* FIX DEFINITIVO PARA INCONSISTÊNCIA DE COR */
+html,
+body,
+#root,
+.edge-to-edge-login {
+  background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
+}
+
+
+/* Desktop: usar gradiente do layout (nﾃ｣o forﾃｧar cor) */
+@media (min-width: 1024px) {
+
+  html,
+  body,
+  #root {
+    background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+
+  html,
+  body,
+  #root,
+  .edge-to-edge-login {
+    background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
+  }
+}
+
+
+/* === FIX PARA MODAIS NO CAPACITOR/MOBILE === */
+/* Garantir que modais sejam sempre visﾃｭveis por cima de tudo */
+.transaction-modal,
+[class*="modal"],
+[class*="Modal"] {
+  z-index: 9999 !important;
+  -webkit-transform: translateZ(0) !important;
+  transform: translateZ(0) !important;
+  pointer-events: auto !important;
+}
+
+/* Forﾃｧar visibilidade de overlays de modal */
+.fixed.inset-0 {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+/* ANIMAﾃ髭S PARA BANNER DE NOTIFICAﾃ髭S */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* ===== MANTÉM TEMA ESCURO EM TODOS OS MODOS ===== */
+/* Removidos overrides de fundo claro para mobile/modo simples */
+
+/* ===== MODO SIMPLES/MOBILE - MANTÉM TEXTO CLARO ===== */
+/* Removidos overrides de texto escuro para mobile */

@@ -1,0 +1,1912 @@
+import React, { useCallback, useEffect, useState, memo, useMemo } from 'react';
+
+import './Dashboard.module.css';
+import './Dashboard.premium.css';
+import '../styles/scroll-optimizations.css';
+import { useNavigate, Link } from 'react-router-dom';
+import { INCOME_CATEGORIES, EXPENSE_CATEGORIES, PlanType } from '@/types';
+import BalanceCard from '@/components/dashboard/BalanceCard';
+import BillsDueWidget from '@/components/bills/BillsDueWidget';
+import NotificationIcon from '@/components/notifications/NotificationIcon';
+import { Eye, EyeOff, Edit } from 'lucide-react';
+import SpendingChart from '@/components/dashboard/SpendingChart';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { DollarSign, ArrowRight, MessageCircle, Check } from 'lucide-react';
+import { MonthSelector } from '@/components/ui/month-selector';
+import { TelegramConnectModal } from '@/components/telegram/TelegramConnectModal';
+import { RecurrenceConfig } from '@/components/transactions/RecurrenceConfig';
+import { calculateNextOccurrence } from '@/utils/recurringProcessor';
+import { Transaction } from '@/types';
+import { 
+  calculateBalance, 
+  calculatePercentageChange,
+  formatCurrency, 
+  getTransactionsFromLastDays 
+} from '@/utils/dataProcessing';
+import { getCurrentUser, getTransactions, isLoggedIn, saveTransaction, updateTransaction, deleteTransaction, uuidv4, forceSupabaseSync, startAutoSync, stopAutoSync } from '@/utils/localStorage';
+import { TransactionCounter } from '@/utils/transactionCounter';
+import { UserPlanManager } from '@/utils/userPlanManager';
+import { RecurringTransactionLimitManager } from '@/utils/recurringTransactionLimit';
+import { CreditCard, TrendingUp, Plus, TrendingDown, BellRing, CalendarRange, Star, Trash, Crown, Brain, FileText, Lightbulb } from 'lucide-react';
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { useScrollOptimization } from '@/hooks/useScrollOptimization';
+import VirtualizedTransactionList from '@/components/virtualized/VirtualizedTransactionList';
+import { TransactionModal } from '@/components/modals/TransactionModal';
+import PremiumModal, { ProStatusModal } from '@/components/PremiumModal';
+import { useLayoutMode } from '@/hooks/useLayoutMode';
+import { ProjectedBalanceCard } from '@/components/dashboard/ProjectedBalanceCard';
+
+const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const { isSimpleMode } = useLayoutMode();
+  
+  // Estados existentes
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [balance, setBalance] = useState(0);
+  const [percentChange, setPercentChange] = useState(0);
+  const [totalIncomes, setTotalIncomes] = useState(0);
+  const [totalExpenses, setTotalExpenses] = useState(0);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [balanceVisible, setBalanceVisible] = useState(true);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [editingTransactionDontAdjustBalance, setEditingTransactionDontAdjustBalance] = useState(false);
+  const [lastEditedTransactionIdForBalanceSkip, setLastEditedTransactionIdForBalanceSkip] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+  const [showDateFilters, setShowDateFilters] = useState(false);
+  const [nameFilter, setNameFilter] = useState<string>('');
+  
+  // Estados para monetização
+  
+  // Estados para PaywallModal
+  const [showPaywallModal, setShowPaywallModal] = useState(false);
+  
+  // Estado para verificar se usuário é PRO
+  const [isProUser, setIsProUser] = useState(false);
+  const [showProStatusModal, setShowProStatusModal] = useState(false);
+  
+  // Estado para controlar visibilidade do botão do olho
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  
+  // ADICIONADO: Estados para paginação das últimas transações
+  const [transactionsPage, setTransactionsPage] = useState(1);
+  const transactionsPerPage = 4;
+
+  // Estado para dialogo de confirmacao de exclusao
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+
+  // Estados do Telegram
+  const [isTelegramLinked, setIsTelegramLinked] = useState(() => {
+    // Inicializar com cache imediatamente se disponvel
+    if (typeof window !== 'undefined' && user?.id) {
+      const cachedStatus = localStorage.getItem(`telegram_status_${user.id}`);
+      return cachedStatus === 'true';
+    }
+    return false;
+  });
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [telegramInfo, setTelegramInfo] = useState<any>(() => {
+    // Inicializar com cache imediatamente se disponvel
+    if (typeof window !== 'undefined' && user?.id) {
+      const cachedInfo = localStorage.getItem(`telegram_info_${user.id}`);
+      return cachedInfo && cachedInfo !== 'null' ? JSON.parse(cachedInfo) : null;
+    }
+    return null;
+  });
+  const [telegramStatusChecked, setTelegramStatusChecked] = useState(() => {
+    // Marcar como checado se j temos cache
+    if (typeof window !== 'undefined' && user?.id) {
+      const cachedStatus = localStorage.getItem(`telegram_status_${user.id}`);
+      return cachedStatus !== null;
+    }
+    return false;
+  });
+  const [isCheckingTelegram, setIsCheckingTelegram] = useState(false); // Loading mais sutil
+
+  // Função SIMPLIFICADA para verificar status do Telegram
+  const checkTelegramStatus = async (force = false) => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('telegram_users')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+      
+      if (error) {
+        return;
+      }
+      
+      const isConnected = data && data.length > 0;
+      
+      // SEMPRE atualizar o estado, independente do cache
+      setIsTelegramLinked(isConnected);
+      setTelegramInfo(isConnected ? data[0] : null);
+      setTelegramStatusChecked(true);
+      
+      // Atualizar cache
+      if (user?.id) {
+        localStorage.setItem(`telegram_status_${user.id}`, isConnected.toString());
+        localStorage.setItem(`telegram_info_${user.id}`, isConnected ? JSON.stringify(data[0]) : 'null');
+      }
+      
+    } catch (error) {
+      // Erro silencioso em produção
+    }
+  };
+
+  const resetTelegramStatus = () => {
+    setTelegramStatusChecked(false);
+    setIsTelegramLinked(false);
+    setTelegramInfo(null);
+    if (user?.id) {
+      localStorage.removeItem(`telegram_status_${user.id}`);
+      localStorage.removeItem(`telegram_info_${user.id}`);
+    }
+  };
+
+  const generateTelegramCode = () => {
+    if (!user?.id) return;
+    setShowTelegramModal(true);
+  };
+
+  // Função SIMPLIFICADA para forçar atualização
+  const refreshTelegramStatus = () => {
+    if (user?.id) {
+      // Limpar cache
+      localStorage.removeItem(`telegram_status_${user.id}`);
+      localStorage.removeItem(`telegram_info_${user.id}`);
+      // Resetar estado
+      setTelegramStatusChecked(false);
+      setIsTelegramLinked(false);
+      setTelegramInfo(null);
+      // Verificar imediatamente
+      setTimeout(() => {
+        checkTelegramStatus(true);
+      }, 100);
+    }
+  };
+
+  // Verificar status do Telegram no carregamento - SIMPLIFICADO
+  useEffect(() => {
+    if (user?.id) {
+      checkTelegramStatus(true);
+    }
+  }, [user?.id]);
+
+  // Verificação periódica a cada 30 segundos se conectado
+  useEffect(() => {
+    if (user?.id && isTelegramLinked) {
+      const interval = setInterval(() => {
+        checkTelegramStatus(true);
+      }, 30000); // 30 segundos para detectar mudanças rapidamente
+      
+      return () => clearInterval(interval);
+    }
+  }, [user?.id, isTelegramLinked]);
+  
+  // Novo filtro por nome
+  const [newTransaction, setNewTransaction] = useState({
+    title: '',
+    amount: '',
+    category: '',
+    type: 'expense' as 'income' | 'expense',
+    isRecurring: false,
+    recurrenceFrequency: 'monthly' as 'weekly' | 'monthly' | 'yearly',
+    recurringDay: 1,
+    recurringWeekday: 1
+  });
+  
+  // 🔧 CORREÇÃO: useEffect OTIMIZADO para evitar loops
+  useEffect(() => {
+    if (!isLoggedIn()) {
+      navigate('/login');
+      return;
+    }
+
+    let mounted = true;
+    let debounceTimer: NodeJS.Timeout;
+    let telegramToastTimer: NodeJS.Timeout;
+    
+    // Função de inicialização única e controlada
+    const executarInicializacaoCompleta = async () => {
+      if (!mounted) return;
+      
+      try {
+        // 1. Iniciar sincronização automática apenas uma vez
+        startAutoSync();
+        
+        // 2. Carregar dados locais primeiro (não bloquear UI)
+        const allTransactions = getTransactions();
+        
+        if (mounted && allTransactions.length > 0) {
+          const validTransactions = allTransactions.filter(t => 
+            !(t.isRecurring && !t.isRecurringInstance)
+          );
+          
+          const totalBalance = calculateBalance(validTransactions, []);
+          setBalance(totalBalance);
+        }
+        
+        // 3. Carregar transações para exibição apenas uma vez
+        if (mounted) {
+          loadTransactions(selectedMonth, selectedYear);
+        }
+        
+        // 4. Sincronização removida para evitar loops - a sincronização é feita automaticamente pelo saveTransaction
+        
+        // 5. Verificar plano do usuário (PRO ou FREE) - COM SINCRONIZAÇÃO STRIPE
+        if (mounted && user?.id && user?.email) {
+          try {
+            // Primeiro verificar no banco de dados local
+            const userPlan = await UserPlanManager.getUserPlan(user.id);
+            let isPro = userPlan.planType !== PlanType.FREE;
+            
+            // Se não é PRO no banco, verificar no Stripe (caso o webhook tenha falhado)
+            if (!isPro) {
+              try {
+                const response = await fetch(
+                  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-subscription`,
+                  {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                    },
+                    body: JSON.stringify({
+                      userId: user.id,
+                      userEmail: user.email,
+                    }),
+                  }
+                );
+                
+                if (response.ok) {
+                  const data = await response.json();
+                  
+                  if (data.isPro) {
+                    isPro = true;
+                    // A Edge Function já atualiza o banco de dados
+                  }
+                }
+              } catch (stripeError) {
+                console.warn('⚠️ [PLAN] Erro ao verificar Stripe (offline?):', stripeError);
+              }
+            }
+            
+            setIsProUser(isPro);
+          } catch (err) {
+            console.error('❌ [PLAN] Erro ao verificar plano:', err);
+          }
+        }
+        
+        // 6. Configurar lembretes (background)
+        if (mounted) {
+          import('@/utils/localStorage').then(({ getBills }) => {
+            import('@/services/NotificationService').then(({ NotificationService }) => {
+              const bills = getBills();
+              NotificationService.scheduleBillReminders(bills);
+            });
+          });
+        }
+        
+      } catch (error) {
+        // Erro silencioso em produção
+      }
+    };
+    
+    // Handlers com debounce otimizado
+    const createDebouncedHandler = (name: string, delay = 1500) => (event?: any) => {
+      if (!mounted) return;
+      
+      // Evitar loops específicos
+      if (event?.detail?.source?.includes('force-sync')) {
+        return;
+      }
+      
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (!mounted) return;
+        
+        // Recarregar apenas se necessário
+        const allTransactions = getTransactions();
+        const validTransactions = allTransactions.filter(t => 
+          !(t.isRecurring && !t.isRecurringInstance)
+        );
+        
+        setBalance(calculateBalance(validTransactions, []));
+        loadTransactions(selectedMonth, selectedYear);
+        
+        console.log(`🔧 [Dashboard] ${name} processado`);
+      }, delay);
+    };
+    
+    const transactionsHandler = createDebouncedHandler('transactionsUpdated');
+    const forceReloadHandler = createDebouncedHandler('forceReload');
+    
+    const telegramSyncHandler = (event: any) => {
+      if (!mounted) return;
+      
+      console.log('🔧 [Dashboard] Telegram sync detectado');
+      
+      clearTimeout(telegramToastTimer);
+      telegramToastTimer = setTimeout(() => {
+        if (event.detail?.transactions?.length > 0) {
+          toast({
+            title: "🤖 Nova transação do Telegram!",
+            description: "Sincronização automática concluída.",
+            duration: 3000,
+          });
+        }
+      }, 2000);
+      
+      // Usar o mesmo handler debounced
+      transactionsHandler(event);
+    };
+    
+    // Registrar listeners apenas uma vez
+    window.addEventListener('transactionsUpdated', transactionsHandler);
+    window.addEventListener('forceTransactionReload', forceReloadHandler);
+    window.addEventListener('telegram-transaction-sync', telegramSyncHandler);
+    
+    // Executar inicialização
+    executarInicializacaoCompleta();
+    
+    // Cleanup otimizado
+    return () => {
+      mounted = false;
+      console.log('🔧 [Dashboard] Cleanup - parando operações');
+      
+      stopAutoSync();
+      clearTimeout(debounceTimer);
+      clearTimeout(telegramToastTimer);
+      
+      window.removeEventListener('transactionsUpdated', transactionsHandler);
+      window.removeEventListener('forceTransactionReload', forceReloadHandler);
+      window.removeEventListener('telegram-transaction-sync', telegramSyncHandler);
+    };
+  }, [navigate]); // Apenas navigate como dependência
+
+  // 🔧 CORREÇÃO: useEffect otimizado para filtro de nome (com debounce)
+  useEffect(() => {
+    const debounceFilter = setTimeout(() => {
+      console.log('🔧 [Dashboard] Aplicando filtro de nome:', nameFilter);
+      setTransactionsPage(1); // Reset paginação
+      loadTransactions(selectedMonth, selectedYear, !!startDate && !!endDate);
+    }, 500); // Debounce de 500ms
+
+    return () => clearTimeout(debounceFilter);
+  }, [nameFilter]); // Apenas nameFilter como dependência
+
+  const calculateTotalBalance = () => {
+    const allTransactions = getTransactions();
+    
+    // CORREÇÃO: Sempre calcular o saldo, independente do skip
+    // O skip é apenas para evitar recálculos desnecessários, não para pular completamente
+    const shouldSkipRecalculation = lastEditedTransactionIdForBalanceSkip;
+    if (shouldSkipRecalculation) {
+      setLastEditedTransactionIdForBalanceSkip(null);
+    }
+    
+    // Filtrar transações válidas para cálculo de saldo
+    const validTransactions = allTransactions.filter(t => {
+      // Excluir apenas transações recorrentes que são templates (não instâncias)
+      if (t.isRecurring && !t.isRecurringInstance) {
+        return false;
+      }
+      return true;
+    });
+    
+    // Calcular saldo total com validação de dados
+    let totalBalance = 0;
+    const excludeIds = shouldSkipRecalculation ? [lastEditedTransactionIdForBalanceSkip || ''] : [];
+    
+    try {
+      totalBalance = calculateBalance(validTransactions, excludeIds);
+      setBalance(totalBalance);
+    } catch (error) {
+      console.error('Erro ao calcular saldo:', error);
+      // Em caso de erro, manter o saldo atual e notificar o usuário
+      toast({
+        title: "Erro de Cálculo",
+        description: "Erro temporário no cálculo do saldo. Tente novamente.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Calcular variação percentual de forma mais robusta
+    try {
+      const today = new Date();
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(today.getDate() - 30);
+      
+      const sixtyDaysAgo = new Date();
+      sixtyDaysAgo.setDate(today.getDate() - 60);
+      
+      // Transações dos últimos 30 dias
+      const last30DaysTransactions = validTransactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate >= thirtyDaysAgo && transactionDate <= today;
+      });
+      
+      // Transações dos 30 dias anteriores
+      const previous30DaysTransactions = validTransactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate >= sixtyDaysAgo && transactionDate < thirtyDaysAgo;
+      });
+      
+      const last30DaysBalance = calculateBalance(last30DaysTransactions, excludeIds);
+      const previous30DaysBalance = calculateBalance(previous30DaysTransactions, excludeIds);
+      
+      const change = calculatePercentageChange(last30DaysBalance, previous30DaysBalance);
+      
+      // Validar resultado antes de setar
+      if (isNaN(change) || !isFinite(change)) {
+        setPercentChange(0);
+      } else {
+        setPercentChange(Math.max(-100, Math.min(100, change))); // Limitar entre -100% e +100%
+      }
+    } catch (error) {
+      console.error('Erro ao calcular variação percentual:', error);
+      setPercentChange(0);
+    }
+  };  const loadTransactions = (month: number, year: number, useCustomPeriod = false) => {
+    console.log(' [loadTransactions] Iniciando carregamento...');
+    
+    try {
+      const allTransactions = getTransactions();
+      console.log(` [loadTransactions] Total encontrado: ${allTransactions.length}`);
+      
+      // CORREÇÃO: Usar uma única fonte de verdade para filtrar transações válidas
+      const validTransactions = allTransactions.filter(t => {
+        // Excluir apenas templates de transações recorrentes (não as instâncias)
+        if (t.isRecurring && !t.isRecurringInstance) {
+          return false;
+        }
+        return true;
+      });
+      
+      console.log(` [loadTransactions] Transações válidas: ${validTransactions.length}`);
+      
+      // CORREÇÃO: Separar claramente a lógica de filtros
+      let filteredForDisplay = [...validTransactions];
+      let filteredForCalculation = [...validTransactions];
+      
+      // Para cálculos: sempre filtrar por mês/ano selecionado
+      filteredForCalculation = validTransactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
+      });
+    console.log(` [loadTransactions] Para cálculos - mês ${month + 1}/${year}: ${filteredForCalculation.length}`);
+    
+    // Para exibição: se não há filtros específicos, mostrar transações mais recentes independente do mês
+    if (useCustomPeriod && startDate && endDate) {
+      // Se há filtro de período personalizado, aplicar ele
+      const start = new Date(startDate + 'T00:00:00');
+      const end = new Date(endDate + 'T23:59:59');
+      filteredForDisplay = validTransactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate >= start && transactionDate <= end;
+      });
+      console.log(` [loadTransactions] Exibição - período personalizado: ${filteredForDisplay.length}`);
+    } else if (nameFilter.trim()) {
+      // Se há filtro de nome, aplicar sobre transações válidas para exibição
+      filteredForDisplay = validTransactions.filter(t => 
+        t.title.toLowerCase().includes(nameFilter.toLowerCase()) ||
+        t.category.toLowerCase().includes(nameFilter.toLowerCase())
+      );
+      console.log(` [loadTransactions] Exibição - filtro por nome: ${filteredForDisplay.length}`);
+    } else {
+      // LÓGICA MELHORADA: Mostrar histórico completo das últimas transações
+      // Esta é a seção "Últimas Transações" que deve ser acumulativa
+      filteredForDisplay = [...validTransactions];
+      
+      // Ordenar por data (mais recentes primeiro)
+      filteredForDisplay.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      // CORREÇÃO: Mostrar as últimas 100 transações para um histórico mais completo
+      // Isso garante que o usuário veja um histórico acumulativo e não perca transações
+      filteredForDisplay = filteredForDisplay.slice(0, 100);
+      
+      console.log(` [DEBUG] LISTA ACUMULATIVA - Mostrando últimas 100 transações (total encontrado: ${validTransactions.length})`);
+      console.log(` [DEBUG] Primeiras 3 transações:`, filteredForDisplay.slice(0, 3).map(t => ({
+        title: t.title,
+        date: new Date(t.date).toLocaleDateString('pt-BR'),
+        amount: t.amount,
+        type: t.type
+      })));
+      
+      // Estatísticas para debug: quantas por mês
+      const monthCounts = filteredForDisplay.reduce((acc: Record<string, number>, t) => {
+        const monthKey = `${new Date(t.date).getMonth() + 1}/${new Date(t.date).getFullYear()}`;
+        acc[monthKey] = (acc[monthKey] || 0) + 1;
+        return acc;
+      }, {});
+      
+      console.log(` [loadTransactions] Distribuição por mês:`, monthCounts);
+    }
+    
+    // Sort final by date in descending order (most recent first)
+    filteredForDisplay.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    // LOG: Mostrar as transações finais que serão exibidas
+    console.log(` [DEBUG] Transações FINAIS para exibição (primeiras 5):`, filteredForDisplay.slice(0, 5).map(t => ({
+      title: t.title,
+      date: new Date(t.date).toISOString(),
+      amount: t.amount,
+      type: t.type
+    })));
+    
+    console.log(` [loadTransactions] Definindo ${filteredForDisplay.length} transações para exibição`);
+    setTransactions(filteredForDisplay);
+
+    // Calcular incomes e expenses APENAS para o mês selecionado (para os cards de resumo)
+    // SEMPRE usar Math.abs para garantir cálculo correto mesmo se amount vier negativo
+    const incomes = filteredForCalculation.filter((t: any) => t.type === 'income')
+      .reduce((sum: number, t: any) => sum + Math.abs(t.amount), 0);
+    const expenses = filteredForCalculation.filter((t: any) => t.type === 'expense')
+      .reduce((sum: number, t: any) => sum + Math.abs(t.amount), 0);
+
+    setTotalIncomes(incomes);
+    setTotalExpenses(expenses);
+    
+    // Calcular o saldo total (independente do ms)
+    calculateTotalBalance();
+    } catch (error) {
+      console.error('❌ [loadTransactions] Erro crítico ao carregar transações:', error);
+      // Garantir estado consistente em caso de erro
+      setTransactions([]);
+      setTotalIncomes(0);
+      setTotalExpenses(0);
+      // Não redefinir o saldo total aqui - deixar calculateTotalBalance() gerenciar
+    }
+  };
+  
+  const handleMonthChange = (month: number, year: number) => {
+    setSelectedMonth(month);
+    setSelectedYear(year);
+    setTransactionsPage(1); // Reset paginação quando mudar mês/ano
+  };
+  
+  const handleAddTransaction = (type: 'income' | 'expense') => {
+    setNewTransaction({
+      ...newTransaction,
+      type,
+      title: '',
+      amount: '',
+      category: '',
+      isRecurring: false,
+      recurrenceFrequency: 'monthly',
+      recurringDay: 1,
+      recurringWeekday: 1
+    });
+    setDialogOpen(true);
+  };
+  
+  
+  // Funo para processar valores monetrios - simplificada para aceitar apenas nmeros
+  const parseMonetaryValue = (value: string): string => {
+    if (!value) return '';
+    
+    // Processar valores normais - apenas nmeros, pontos e vrgulas
+    return parseMonetaryNumber(value).toString();
+  };
+  
+  // Função para converter string monetária em número
+  const parseMonetaryNumber = (value: string | null | undefined): number => {
+    // CORREÇÃO CRÍTICA: Validar entrada null/undefined
+    if (!value || value === null || value === undefined || value === '') {
+      console.warn('⚠️ [PARSE] Valor null/undefined/empty recebido:', value);
+      return 0;
+    }
+    
+    // Converter para string se necessário
+    const stringValue = String(value);
+    
+    // Remover espaços e caracteres especiais, manter apenas dígitos, vírgula e ponto
+    let cleaned = stringValue.replace(/[^\d.,]/g, '');
+    
+    // Se não tem vírgula nem ponto, é um número inteiro
+    if (!cleaned.includes(',') && !cleaned.includes('.')) {
+      const result = parseFloat(cleaned) || 0;
+      console.log('💰 [PARSE] Input:', value, '-> Cleaned:', cleaned, '-> Result:', result);
+      return result;
+    }
+    
+    // Se tem vírgula e ponto, determinar qual é o separador decimal
+    if (cleaned.includes(',') && cleaned.includes('.')) {
+      // Se o último é vírgula, ela é o separador decimal
+      if (cleaned.lastIndexOf(',') > cleaned.lastIndexOf('.')) {
+        // Ex: 1.234,56 -> 1234.56
+        cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+      } else {
+        // Ex: 1,234.56 -> 1234.56
+        cleaned = cleaned.replace(/,/g, '');
+      }
+    } else if (cleaned.includes(',')) {
+      // Só tem vírgula - pode ser milhares ou decimal
+      const parts = cleaned.split(',');
+      if (parts.length === 2 && parts[1].length <= 2) {
+        // Provavelmente decimal: 123,45
+        cleaned = cleaned.replace(',', '.');
+      } else {
+        // Provavelmente milhares: 1,234 ou 1,234,567
+        cleaned = cleaned.replace(/,/g, '');
+      }
+    }
+    // Se só tem ponto, manter como está (já é formato padrão)
+    
+    const result = parseFloat(cleaned) || 0;
+    console.log('💰 [PARSE] Input:', value, '-> Cleaned:', cleaned, '-> Result:', result);
+    return result;
+  };
+
+  const handleNewTransactionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === 'amount') {
+      const processedValue = parseMonetaryValue(value);
+      setNewTransaction({
+        ...newTransaction,
+        [name]: processedValue,
+      });
+    } else {
+      setNewTransaction({
+        ...newTransaction,
+        [name]: value,
+      });
+    }
+  };
+  
+  const handleRecurrenceChange = (checked: boolean) => {
+    setNewTransaction({
+      ...newTransaction,
+      isRecurring: checked
+    });
+  };
+  
+  const handleRecurrenceFrequencyChange = (value: 'weekly' | 'monthly' | 'yearly') => {
+    setNewTransaction({
+      ...newTransaction,
+      recurrenceFrequency: value
+    });
+  };
+  
+  const handleSaveTransaction = () => {
+    // Remove a lógica de dontAdjustBalanceOnSave da criação de nova transação
+    // Ela ser adicionada apenas no bloco de edio mais abaixo.
+
+    const user = getCurrentUser();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
+    // Usar a função parseMonetaryNumber para garantir conversão correta
+    const amount = parseMonetaryNumber(newTransaction.amount);
+    
+    // VALIDAÇÃO CRÍTICA: Garantir que amount nunca seja null, undefined ou NaN
+    if (amount === null || amount === undefined || isNaN(amount) || amount <= 0) {
+      console.error('❌ [AMOUNT VALIDATION] Valor inválido detectado:', {
+        raw: newTransaction.amount,
+        parsed: amount,
+        isNaN: isNaN(amount),
+        isNull: amount === null,
+        isUndefined: amount === undefined
+      });
+      
+      toast({
+        title: "Valor inválido",
+        description: "Por favor, informe um valor válido para a transação",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!newTransaction.title.trim()) {
+      toast({
+        title: "Título obrigatório",
+        description: "Por favor, informe um título para a transação",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const type = newTransaction.type;
+    
+    const transaction: Transaction = {
+      id: uuidv4(), // Usar UUID válido para compatibilidade com o Supabase
+      title: newTransaction.title,
+      amount: Math.max(amount, 0.01), // CRÍTICO: Garantir amount >= 0.01 (nunca null/0)
+      type: type,
+      category: newTransaction.category || (type === 'income' ? 'Receita' : 'Outros'),
+      date: new Date(),
+      userId: user.id,
+      isRecurring: newTransaction.isRecurring,
+      recurrenceFrequency: newTransaction.isRecurring ? newTransaction.recurrenceFrequency : undefined,
+      recurringDay: newTransaction.isRecurring ? newTransaction.recurringDay : undefined,
+      recurringWeekday: newTransaction.isRecurring ? newTransaction.recurringWeekday : undefined,
+      dontAdjustBalanceOnSave: newTransaction.isRecurring // Para recorrentes, sempre true
+    };
+    
+    // LOG DE DEBUG PARA RASTREAMENTO
+    console.log('🔍 [TRANSACTION CREATE] Dados da transação:', {
+      originalAmount: newTransaction.amount,
+      parsedAmount: amount,
+      finalAmount: transaction.amount,
+      type: transaction.type,
+      title: transaction.title
+    });
+    
+    saveTransaction(transaction);
+    
+    setNewTransaction({
+      title: '',
+      amount: '',
+      category: '',
+      type: 'expense',
+      isRecurring: false,
+      recurrenceFrequency: 'monthly',
+      recurringDay: 1,
+      recurringWeekday: 1
+    });
+    
+    setDialogOpen(false);
+    
+    toast({
+      title: `${type === 'income' ? 'Entrada' : 'Sada'} ${newTransaction.isRecurring ? 'recorrente' : ''} adicionada`,
+      description: newTransaction.isRecurring 
+        ? `${transaction.title} foi configurada como recorrente e ser processada automaticamente`
+        : `${transaction.title} foi adicionada com sucesso no valor de ${formatCurrency(transaction.amount)}`
+    });
+    
+    // IMPORTANTE: Atualizar a lista de transaes e o saldo
+    setTimeout(() => {
+      // Recarregar transaes do ms atual
+      loadTransactions(selectedMonth, selectedYear);
+      
+      // Recalcular o saldo total
+      calculateTotalBalance();
+    }, 100);  };
+  
+  const currentUser = getCurrentUser();
+  
+  // Função para extrair nome amigável do email
+  const extractFriendlyName = (user: any): string => {
+    if (!user) return "Usuário";
+    
+    // Se já tem um username que não é um email, usar ele
+    if (user.username && !user.username.includes('@')) {
+      return user.username;
+    }
+    
+    // Extrair nome do email
+    const email = user.email || user.username || '';
+    if (!email || !email.includes('@')) return "Usuário";
+    
+    const emailPrefix = email.split('@')[0];
+    
+    // Transformar em nome amigável com inteligência melhorada
+    let friendlyName = emailPrefix
+      // Remover números no final (ex: drjoshua55 -> drjoshua)
+      .replace(/\d+$/, '')
+      // Separar palavras por pontos, underscores ou hífens
+      .replace(/[._-]/g, ' ')
+      // Detectar padrões comuns como "familiassantos" -> "familias santos"
+      .replace(/([a-z])([A-Z])/g, '$1 $2') // camelCase
+      .replace(/(familia)(s?)([a-z])/gi, 'Família $2$3') // "familiassantos" -> "Família santos"
+      .replace(/(santos?)([a-z])/gi, 'Santos $2') // "santosjoao" -> "Santos joao"
+      .replace(/(silva?)([a-z])/gi, 'Silva $2')
+      .replace(/(pereira?)([a-z])/gi, 'Pereira $2')
+      .replace(/(oliveira?)([a-z])/gi, 'Oliveira $2')
+      .replace(/(costa?)([a-z])/gi, 'Costa $2')
+      .replace(/(souza?)([a-z])/gi, 'Souza $2')
+      .replace(/(rodrigues?)([a-z])/gi, 'Rodrigues $2')
+      .replace(/(ferreira?)([a-z])/gi, 'Ferreira $2')
+      .replace(/(alves?)([a-z])/gi, 'Alves $2')
+      .replace(/(lima?)([a-z])/gi, 'Lima $2')
+      .replace(/(gomes?)([a-z])/gi, 'Gomes $2')
+      // Capitalizar primeira letra de cada palavra
+      .split(' ')
+      .map((word: string) => {
+        if (word.length === 0) return word;
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(' ')
+      // Limpar espaços extras
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    // Tratar casos especiais como "Dr", "Dra" etc
+    friendlyName = friendlyName
+      .replace(/^Dr\s/i, 'Dr. ')
+      .replace(/^Dra\s/i, 'Dra. ')
+      .replace(/^Prof\s/i, 'Prof. ');
+    
+    // Se ficou muito longo (mais de 20 caracteres), pegar apenas as duas primeiras palavras
+    if (friendlyName.length > 20) {
+      const words = friendlyName.split(' ');
+      friendlyName = words.slice(0, 2).join(' ');
+    }
+    
+    return friendlyName || "Usuário";
+  };
+  
+  const userName = extractFriendlyName(currentUser);
+  
+  return (
+    <div 
+      className="edge-to-edge-page"
+      style={{
+        fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif',
+        backfaceVisibility: 'hidden'
+      }}
+    >
+      {/* Floating Elements - hidden on desktop */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none lg:hidden">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute bg-white/10 rounded-full"
+            style={{
+              width: i === 0 ? '4px' : i === 1 ? '6px' : '3px',
+              height: i === 0 ? '4px' : i === 1 ? '6px' : '3px',
+              left: i === 0 ? '10%' : i === 1 ? '85%' : '20%',
+              top: i === 0 ? '20%' : i === 1 ? '60%' : '70%',
+              animation: `float${i + 1} 6s ease-in-out infinite`,
+              animationDelay: `${i * 2}s`
+            }}
+          />
+        ))}
+      </div>
+      
+      <div className="relative z-10 safe-area-content lg:pt-4">
+        {/* Premium Header - Hidden on desktop (uses DesktopHeader) */}
+        <div 
+          className="text-center pt-3 pb-6 px-6 relative lg:hidden"
+          style={{
+            backdropFilter: 'blur(10px)'
+          }}
+        >
+          <div className="absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+          
+          <div className="flex items-start justify-between mb-5">
+            <div className="flex items-center space-x-3">
+              <h2 
+                className="text-white text-xl font-semibold"
+                style={{
+                  textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                  fontWeight: 600
+                }}
+              >
+                Olá, {userName}!
+              </h2>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {/* Botão PRO - Design premium consistente com paywall */}
+              <button
+                onClick={() => {
+                  console.log('🎯 [PRO] Usuário clicou no botão PRO, isProUser:', isProUser);
+                  if (isProUser) {
+                    setShowProStatusModal(true);
+                  } else {
+                    setShowPaywallModal(true);
+                  }
+                }}
+                style={{
+                  background: isProUser 
+                    ? 'linear-gradient(135deg, #10b981 0%, #34d399 100%)'
+                    : 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                  padding: '8px 16px',
+                  borderRadius: '100px',
+                  border: isProUser 
+                    ? '1px solid rgba(16, 185, 129, 0.3)'
+                    : '1px solid rgba(139, 92, 246, 0.3)',
+                  boxShadow: isProUser 
+                    ? '0 4px 20px rgba(16, 185, 129, 0.4)'
+                    : '0 4px 20px rgba(139, 92, 246, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  transform: 'scale(1)',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = isProUser 
+                    ? '0 6px 25px rgba(16, 185, 129, 0.5)'
+                    : '0 6px 25px rgba(139, 92, 246, 0.5)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = isProUser 
+                    ? '0 4px 20px rgba(16, 185, 129, 0.4)'
+                    : '0 4px 20px rgba(139, 92, 246, 0.4)';
+                }}
+              >
+                {isProUser ? (
+                  <>
+                    <span style={{ fontSize: '14px' }}>✓</span>
+                    <span style={{ color: '#fff', fontWeight: 700, fontSize: '13px', letterSpacing: '0.5px' }}>PRO</span>
+                  </>
+                ) : (
+                  <>
+                    <Crown style={{ width: '14px', height: '14px', color: '#fff' }} />
+                    <span style={{ color: '#fff', fontWeight: 700, fontSize: '13px', letterSpacing: '0.5px' }}>PRO</span>
+                  </>
+                )}
+              </button>
+              
+              {/* Notification Icon */}
+              <NotificationIcon onModalToggle={setIsNotificationModalOpen} />
+            </div>
+          </div>
+          
+          {/* Date Navigation */}
+          <div className="flex items-center justify-center gap-4 mt-5">
+            <button
+              onClick={() => {
+                const newDate = new Date(selectedYear, selectedMonth - 1);
+                setSelectedMonth(newDate.getMonth());
+                setSelectedYear(newDate.getFullYear());
+                loadTransactions(newDate.getMonth(), newDate.getFullYear());
+              }}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 hover:scale-110"
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              ‹
+            </button>
+            
+            <div 
+              className="px-6 py-3 rounded-3xl text-white font-medium"
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                backdropFilter: 'blur(15px)',
+                border: '1px solid rgba(255,255,255,0.1)'
+              }}
+            >
+               {new Date(selectedYear, selectedMonth).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+            </div>
+            
+            <button
+              onClick={() => {
+                const newDate = new Date(selectedYear, selectedMonth + 1);
+                setSelectedMonth(newDate.getMonth());
+                setSelectedYear(newDate.getFullYear());
+                loadTransactions(newDate.getMonth(), newDate.getFullYear());
+              }}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 hover:scale-110"
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              ›
+            </button>
+          </div>
+        </div>
+
+        {/* Premium Balance Section - Desktop: maior e centralizado */}
+        <div className="pt-10 pb-9 px-8 text-center relative lg:pt-6 lg:pb-6">
+          <div className="flex items-center justify-between mb-6 lg:justify-center lg:gap-8">
+            <div 
+              className="text-white/80 font-medium text-base uppercase tracking-wider lg:text-lg"
+              style={{ 
+                letterSpacing: '1px'
+              }}
+            >
+              Saldo da Conta
+            </div>
+            {!isNotificationModalOpen && (
+              <button
+                aria-label={balanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 hover:scale-110 relative z-0"
+                onClick={() => setBalanceVisible((v: boolean) => !v)}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
+              {balanceVisible ? (
+                // Ícone do Olho Aberto - Design amigável com pupila menor
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 4C6 4 2 8 2 12s4 8 10 8 10-4 10-8-4-8-10-8z" fill="white" stroke="rgba(255,255,255,0.3)" strokeWidth="0.5"/>
+                  <circle cx="12" cy="12" r="3" fill="#3b82f6" stroke="white" strokeWidth="0.5"/>
+                  <circle cx="12" cy="12" r="0.8" fill="#1e40af"/>
+                  <circle cx="12.8" cy="11.2" r="0.3" fill="white" opacity="0.9"/>
+                </svg>
+              ) : (
+                // Ícone do Olho Fechado
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 12c0 0 3-4 8-4s8 4 8 4" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+                </svg>
+              )}
+              </button>
+            )}
+          </div>
+          
+          <div 
+            className="text-white font-light mb-5 lg:text-6xl"
+            style={{
+              fontSize: '42px',
+              textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+              letterSpacing: '-1px',
+              fontWeight: 300
+            }}
+          >
+            {balanceVisible ? formatCurrency(balance) : '••••••'}
+          </div>
+          
+          <div 
+            className={`inline-block px-5 py-3 rounded-3xl font-semibold text-sm ${
+              percentChange >= 0 ? 'text-green-400' : 'text-red-400'
+            }`}
+            style={{
+              background: percentChange >= 0 
+                ? 'rgba(76, 175, 80, 0.2)' 
+                : 'rgba(244, 67, 54, 0.2)',
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${percentChange >= 0 
+                ? 'rgba(76, 175, 80, 0.3)' 
+                : 'rgba(244, 67, 54, 0.3)'}`
+            }}
+          >
+            {percentChange !== undefined && percentChange !== null && !isNaN(percentChange) 
+              ? `${percentChange >= 0 ? '+' : ''}${Number(percentChange).toFixed(0)}%` 
+              : '---%'              } Últimos 30 Dias
+          </div>
+        </div>
+
+        {/* Projected Balance Card - NEW */}
+        <ProjectedBalanceCard />
+
+        {/* Premium Quick Actions - Desktop: botões menores e mais elegantes */}
+        <div className="flex px-8 gap-3 mb-4 lg:justify-center lg:max-w-xl lg:mx-auto">
+          <button 
+            onClick={() => handleAddTransaction('income')}
+            className="flex-1 lg:flex-none flex items-center justify-center gap-2 py-5 px-3 lg:px-8 lg:py-4 rounded-2xl text-white font-medium text-sm hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
+            style={{
+              background: 'linear-gradient(135deg, rgba(46, 204, 113, 0.3), rgba(39, 174, 96, 0.2))',
+              backdropFilter: 'blur(15px)',
+              border: '2px solid rgba(46, 204, 113, 0.5)'
+            }}
+          >
+            <TrendingUp size={16} />
+            Entrada
+          </button>
+          <button 
+            onClick={() => handleAddTransaction('expense')}
+            className="flex-1 lg:flex-none flex items-center justify-center gap-2 py-5 px-3 lg:px-8 lg:py-4 rounded-2xl text-white font-medium text-sm hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
+            style={{
+              background: 'linear-gradient(135deg, rgba(231, 76, 60, 0.3), rgba(192, 57, 43, 0.2))',
+              backdropFilter: 'blur(15px)',
+              border: '2px solid rgba(231, 76, 60, 0.5)'
+            }}
+          >
+            <TrendingDown size={16} />
+            Saída
+          </button>
+        </div>
+
+        {/* Premium Telegram Section - Hidden on desktop and in simple mode */}
+        {!isSimpleMode && (
+        <div 
+          className="mx-8 mb-6 p-3 rounded-2xl lg:hidden"
+          style={{
+            background: 'rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.1)'
+          }}
+        >
+          {!isTelegramLinked ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs"
+                  style={{
+                    background: 'linear-gradient(135deg, #0088cc, #0074b3)'
+                  }}
+                >
+                  TG
+                </div>
+                <div>
+                  <h4 className="text-white text-sm font-semibold">
+                    Telegram Bot
+                  </h4>
+                  <p className="text-white/70 text-xs">
+                    Consulte suas finanças via Telegram
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    console.log('🔄 [TELEGRAM] Forçando verificação manual...');
+                    // Reset completo e verificação agressiva
+                    if (user?.id) {
+                      localStorage.removeItem(`telegram_status_${user.id}`);
+                      localStorage.removeItem(`telegram_info_${user.id}`);
+                    }
+                    setTelegramStatusChecked(false);
+                    setIsTelegramLinked(false);
+                    setTelegramInfo(null);
+                    
+                    // Verificação imediata
+                    setTimeout(() => {
+                      checkTelegramStatus(true);
+                    }, 500);
+                    
+                    toast({
+                      title: "🔄 Verificando...",
+                      description: "Atualizando status do Telegram",
+                    });
+                  }}
+                  className="px-2 py-1 rounded-lg text-white text-xs hover:bg-white/20 transition-all duration-300"
+                  style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  ↻
+                </button>
+                <button
+                  onClick={generateTelegramCode}
+                  disabled={isGeneratingCode}
+                  className="px-4 py-2 rounded-xl text-white text-xs font-semibold hover:-translate-y-0.5 transition-all duration-300"
+                  style={{
+                    background: 'linear-gradient(135deg, #0088cc, #0074b3)',
+                    boxShadow: isGeneratingCode ? 'none' : '0 4px 15px rgba(0, 136, 204, 0.3)'
+                  }}
+                >
+                  {isGeneratingCode ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
+                      <span>Conectando...</span>
+                    </div>
+                  ) : (
+                    'Conectar'
+                  )}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs"
+                  style={{
+                    background: 'linear-gradient(135deg, #4caf50, #45a049)'
+                  }}
+                >
+                  ✓
+                </div>
+                <div>
+                  <h4 className="text-white text-sm font-semibold">
+                    Telegram Conectado
+                  </h4>
+                  <p className="text-green-200 text-xs">
+                    {telegramInfo?.first_name ? (
+                      <>@{telegramInfo.username || telegramInfo.first_name}</>
+                    ) : (
+                      <>Usuário conectado</>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.open('https://t.me/assistentefinanceiroiabot', '_blank')}
+                  className="flex-1 sm:flex-none px-3 py-2 rounded-xl text-white text-xs hover:-translate-y-0.5 transition-all duration-300 text-center"
+                  style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    minWidth: '80px'
+                  }}
+                >
+                  Abrir Bot
+                </button>
+                <button
+                  onClick={async () => {
+                    if (confirm('🔌 Desconectar do Telegram?\n\nVocê não receberá mais notificações até conectar novamente.')) {
+                      try {
+                        const { error } = await supabase
+                          .from('telegram_users')
+                          .update({ is_active: false })
+                          .eq('user_id', user?.id);
+                        
+                        if (error) {
+                          console.error('Erro ao desativar telegram:', error);
+                          // Se der erro ao desativar, tenta deletar
+                          const { error: deleteError } = await supabase
+                            .from('telegram_users')
+                            .delete()
+                            .eq('user_id', user?.id);
+                          
+                          if (deleteError) throw deleteError;
+                        }
+                        
+                        resetTelegramStatus();
+                        
+                        toast({
+                          title: "📱 Desconectado",
+                          description: "Telegram desconectado com sucesso!",
+                        });
+                      } catch (error: any) {
+                        console.error('Erro completo ao desconectar:', error);
+                        toast({
+                          title: "❌ Erro",
+                          description: "Erro ao desconectar: " + error.message,
+                          variant: "destructive"
+                        });
+                      }
+                    }
+                  }}
+                  className="flex-1 sm:flex-none px-3 py-2 rounded-xl text-red-200 text-xs hover:-translate-y-0.5 transition-all duration-300 text-center"
+                  style={{
+                    background: 'rgba(244, 67, 54, 0.2)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(244, 67, 54, 0.3)',
+                    minWidth: '80px'
+                  }}
+                >
+                  Desconectar
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        )}
+
+      {/* Novo Modal Otimizado */}
+      <TransactionModal
+        isOpen={dialogOpen}
+        onClose={() => {
+          setDialogOpen(false);
+          setEditingTransaction(null);
+          setEditingTransactionDontAdjustBalance(false);
+        }}
+        transaction={editingTransaction}
+        type={editingTransaction?.type || newTransaction.type}
+        onSave={async (transactionData) => {
+          if (editingTransaction) {
+            // Lógica de edição
+            const updatedTransaction: Transaction = {
+              ...editingTransaction,
+              ...transactionData,
+              dontAdjustBalanceOnSave: editingTransactionDontAdjustBalance,
+            };
+            updateTransaction(updatedTransaction);
+            
+            if (editingTransactionDontAdjustBalance) {
+              setLastEditedTransactionIdForBalanceSkip(updatedTransaction.id);
+            }
+            
+            toast({ title: "Sucesso", description: "Transação atualizada." });
+          } else {
+            // Lógica de criação
+            const user = getCurrentUser();
+            if (!user) {
+              navigate('/login');
+              return;
+            }
+
+            // 🚫 VALIDAÇÃO DE LIMITE DE TRANSAÇÕES RECORRENTES (apenas para free)
+            if (transactionData.isRecurring) {
+              const recurringLimit = await RecurringTransactionLimitManager.canCreateRecurring(user.id);
+              
+              if (!recurringLimit.allowed) {
+                if (recurringLimit.reason === 'limit_reached') {
+                  // Limite semanal atingido - mostrar paywall
+                  toast({
+                    title: '📊 Limite semanal atingido',
+                    description: 'Assine o plano premium para criar transações recorrentes ilimitadas.',
+                    variant: 'destructive',
+                  });
+                  
+                  // Abrir paywall
+                  setShowPaywallModal(true);
+                  return;
+                } else if (recurringLimit.reason === 'error') {
+                  toast({
+                    title: 'Erro',
+                    description: 'Erro ao verificar limite de transações recorrentes',
+                    variant: 'destructive',
+                  });
+                  return;
+                }
+              }
+            }
+
+            // VALIDAÇÃO CRÍTICA: Garantir amount válido
+            const validAmount = transactionData.amount && !isNaN(transactionData.amount) && transactionData.amount > 0 
+              ? transactionData.amount 
+              : 0.01;
+
+            const transaction: Transaction = {
+              id: uuidv4(),
+              title: transactionData.title!,
+              amount: validAmount, // CRÍTICO: Usar amount validado
+              type: transactionData.type!,
+              category: transactionData.category!,
+              date: new Date(),
+              userId: user.id,
+              isRecurring: transactionData.isRecurring || false,
+              recurrenceFrequency: transactionData.recurrenceFrequency,
+              recurringDay: transactionData.recurringDay,
+              recurringWeekday: transactionData.recurringWeekday,
+              dontAdjustBalanceOnSave: transactionData.isRecurring || false
+            };
+
+            console.log('🔍 [MODAL CREATE] Dados da transação modal:', {
+              originalAmount: transactionData.amount,
+              validAmount: validAmount,
+              type: transaction.type,
+              title: transaction.title,
+              isRecurring: transaction.isRecurring
+            });
+
+            saveTransaction(transaction);
+            
+            // 📊 INCREMENTAR CONTADOR DE TRANSAÇÕES RECORRENTES
+            if (transactionData.isRecurring) {
+              await RecurringTransactionLimitManager.incrementRecurringCount(user.id);
+            }
+            
+            // 🎯 NOVA ESTRATÉGIA: Verificar contador de transações para reward ad
+            try {
+              // Verificar se o usuário é premium - para futuro uso de analytics
+              const userPlan = await UserPlanManager.getUserPlan(user.id);
+              const isPremium = userPlan.planType !== PlanType.FREE;
+              
+              console.log(`📊 [TRANSACTION] Plano do usuário: ${userPlan.planType}, isPremium: ${isPremium}`);
+              
+              // Transação salva com sucesso - incrementar contador para analytics
+              if (!isPremium) {
+                await TransactionCounter.incrementAndCheck(user.id);
+              }
+            } catch (error) {
+              console.error('❌ [TRANSACTION] Erro ao processar contador:', error);
+            }
+            
+            // Resetar formulário
+            setNewTransaction({
+              title: '',
+              amount: '',
+              category: '',
+              type: 'expense',
+              isRecurring: false,
+              recurrenceFrequency: 'monthly',
+              recurringDay: 1,
+              recurringWeekday: 1
+            });
+
+            // Atualizar dados imediatamente
+            loadTransactions(selectedMonth, selectedYear);
+            
+            toast({
+              title: `${transaction.type === 'income' ? 'Entrada' : 'Saída'} adicionada`,
+              description: `${transaction.title} foi adicionada com sucesso`,
+              duration: 2000
+            });
+          }
+        }}
+        onDelete={(transactionId) => {
+          const user = getCurrentUser();
+          if (!user) {
+            navigate('/login');
+            return;
+          }
+          deleteTransaction(transactionId);
+          toast({
+            title: 'Transação excluída',
+            description: 'A transação foi removida com sucesso.'
+          });
+        }}
+        categories={editingTransaction?.type === 'income' || newTransaction.type === 'income' 
+          ? INCOME_CATEGORIES 
+          : EXPENSE_CATEGORIES}
+      />
+      
+        {/* Desktop: Grid layout com 2 colunas */}
+        <div className="lg:grid lg:grid-cols-3 lg:gap-6 lg:px-6">
+        
+        {/* Coluna principal - Transações */}
+        <div className="lg:col-span-2">
+        <div className="px-4 mb-4 lg:px-0">
+          <h2 
+            className="text-white text-xl font-semibold leading-tight tracking-normal pb-3 pt-2 lg:text-2xl"
+            style={{
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              textShadow: 'rgba(0, 0, 0, 0.3) 1px 1px 2px',
+              letterSpacing: '0.025em'
+            }}            >
+            Últimas Transações
+          </h2>
+        </div>
+      
+        <div className="px-4 mb-4 lg:px-0">
+          {/* Filtros Avançados - escondidos no modo simples */}
+          {!isSimpleMode && (
+          <div className="flex justify-start">
+            <Button 
+              onClick={() => setShowDateFilters(!showDateFilters)} 
+              variant="outline" 
+              size="sm"
+              className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 shadow-lg transition-all duration-300"
+            >
+              {showDateFilters ? 'Ocultar Filtros' : 'Filtros Avançados'}
+            </Button>
+          </div>
+          )}
+
+          {/* Container dos filtros - só aparece quando showDateFilters = true e não em modo simples */}
+          {!isSimpleMode && showDateFilters && (
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 mt-3">
+              <div className="flex flex-col gap-3">
+                  {/* Filtro por nome */}
+                  <div className="flex-1">
+                    <Input 
+                      placeholder="Buscar por nome ou categoria..." 
+                      value={nameFilter}
+                      onChange={(e) => setNameFilter(e.target.value)}
+                      className="text-sm bg-white/15 backdrop-blur-sm border-white/30 text-white focus:border-blue-400 focus:bg-white/25 transition-all duration-300 shadow-lg"
+                      style={{ color: 'white' }}
+                    />
+                  </div>
+
+                  {/* Filtros de data */}
+                  <div className="flex flex-col sm:flex-row gap-2 items-center">
+                    <div className="grid w-full sm:w-auto gap-1.5">
+                      <Label htmlFor="start-date" className="text-xs text-white/80">De:</Label>
+                      <Input 
+                        type="date" 
+                        id="start-date" 
+                        value={startDate || ''} 
+                        onChange={(e) => {
+                          setStartDate(e.target.value);
+                          setTransactionsPage(1); // Reset paginação
+                        }} 
+                        className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-blue-400 focus:bg-white/20 transition-all duration-300" 
+                        style={{ color: 'white' }}
+                      />
+                    </div>
+                    <div className="grid w-full sm:w-auto gap-1.5">
+                      <Label htmlFor="end-date" className="text-xs text-white/80">Até:</Label>
+                      <Input 
+                        type="date" 
+                        id="end-date" 
+                        value={endDate || ''} 
+                        onChange={(e) => {
+                          setEndDate(e.target.value);
+                          setTransactionsPage(1); // Reset paginação
+                        }} 
+                        className="text-sm bg-white/10 backdrop-blur-sm border-white/20 text-white focus:border-blue-400 focus:bg-white/20 transition-all duration-300" 
+                        style={{ color: 'white' }}
+                      />
+                    </div>
+                    <Button 
+                      onClick={() => {
+                        setTransactionsPage(1); // Reset paginação
+                        loadTransactions(selectedMonth, selectedYear, true);
+                      }} 
+                      className="mt-4 sm:mt-auto h-9 w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300" 
+                      size="sm"
+                    >
+                      Filtrar Período
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        setStartDate(null); 
+                        setEndDate(null); 
+                        setNameFilter('');
+                        setTransactionsPage(1); // Reset paginação
+                        loadTransactions(selectedMonth, selectedYear); 
+                        setShowDateFilters(false);
+                      }} 
+                      variant="ghost" 
+                      className="mt-1 sm:mt-auto h-9 text-xs w-full sm:w-auto text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300" 
+                      size="sm"
+                    >
+                      Limpar Filtros
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+        </div>
+      
+      {(() => {
+        // OTIMIZADO: Paginação para transações
+        const startIndex = (transactionsPage - 1) * transactionsPerPage;
+        const endIndex = startIndex + transactionsPerPage;
+        const displayTransactions = transactions.slice(startIndex, endIndex);
+        const hasMoreTransactions = transactions.length > transactionsPage * transactionsPerPage;
+        
+        console.log(` [RENDER] Renderizando ${displayTransactions.length} transações (página ${transactionsPage})`);
+        
+        return displayTransactions.length > 0 ? (
+          <div className="px-4 lg:px-0 space-y-3">
+            {/* Desktop: Grid de 2 colunas para transações */}
+            <div className="lg:grid lg:grid-cols-1 xl:grid-cols-1 gap-3 space-y-3 lg:space-y-0">
+            {displayTransactions.map((transaction: Transaction) => (
+              <div key={transaction.id} className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-4 hover:bg-white/15 transition-colors duration-300">
+                <div className="flex items-center gap-4 justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="text-white flex items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 shrink-0 size-12 lg:size-10">
+                      {transaction.isRecurring ? 
+                        <CalendarRange size={24} className="lg:w-5 lg:h-5" /> : 
+                        (transaction.type === 'income' ? <TrendingUp size={24} className="lg:w-5 lg:h-5" /> : <CreditCard size={24} className="lg:w-5 lg:h-5" />)
+                      }
+                    </div>
+                    <div className="flex flex-col justify-center">
+                      <p className="text-white text-base lg:text-sm font-medium leading-normal line-clamp-1">
+                        {transaction.title}
+                      </p>
+                      <p className="text-white/70 text-sm lg:text-xs font-normal leading-normal line-clamp-2">
+                        {transaction.category} {transaction.isRecurring && '(Recorrente)'}
+                      </p>
+                      <p className="text-white/50 text-xs font-normal leading-normal">
+                        {new Date(transaction.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className={`text-base lg:text-sm font-semibold leading-normal ${
+                      transaction.type === 'income' ? 'text-green-300' : 'text-red-300'
+                    }`}>
+                      {formatCurrency(transaction.type === 'expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount))}
+                    </p>
+                    <div className="flex gap-1">
+                      <button
+                        aria-label="Editar transação"
+                        className="ml-2 text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/20 transition-all duration-300"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                        onClick={() => {
+                          setEditingTransactionDontAdjustBalance(transaction.dontAdjustBalanceOnSave || false);
+                          setEditingTransaction(transaction);
+                          setDialogOpen(true);
+                        }}
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        aria-label="Excluir transação"
+                        className="ml-1 text-white/60 hover:text-red-300 p-1 rounded-lg hover:bg-red-500/20 transition-all duration-300"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                        onClick={() => {
+                          if (window.confirm(`Tem certeza que deseja excluir a transação "${transaction.title}"?`)) {
+                            const shouldAdjustBalance = !transaction.dontAdjustBalanceOnSave;
+                            deleteTransaction(transaction.id);
+                            toast({
+                              title: 'Transação excluída',
+                              description: `A transação "${transaction.title}" foi excluída com sucesso.`
+                            });
+                            setTimeout(() => {
+                              loadTransactions(selectedMonth, selectedYear);
+                              const allTransactions = getTransactions();
+                              const validTransactions = allTransactions.filter(t => {
+                                if (t.isRecurring && !t.isRecurringInstance) {
+                                  return false;
+                                }
+                                return true;
+                              });
+                              const totalBalance = calculateBalance(validTransactions, []);
+                              setBalance(totalBalance);
+                              const filteredTransactions = validTransactions.filter(t => {
+                                const transactionDate = new Date(t.date);
+                                return transactionDate.getMonth() === selectedMonth && 
+                                       transactionDate.getFullYear() === selectedYear;
+                              });
+                              const incomes = filteredTransactions.filter(t => t.type === 'income')
+                                .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                              const expenses = filteredTransactions.filter(t => t.type === 'expense')
+                                .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                              setTotalIncomes(incomes);
+                              setTotalExpenses(expenses);
+                            }, 100);
+                          }
+                        }}
+                      >
+                        <Trash size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Navegação de páginas - CORRIGIDO: Botões para frente e volta */}
+            {(hasMoreTransactions || transactionsPage > 1) && (
+              <div className="px-4 lg:px-0 py-3">
+                <div className="flex gap-3 justify-center">
+                  {transactionsPage > 1 && (
+                    <button
+                      onClick={() => setTransactionsPage(prev => prev - 1)}
+                      className="text-blue-400 hover:text-blue-300 font-medium transition-colors bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/20 shadow-lg"
+                    >
+                      ← Página anterior
+                    </button>
+                  )}
+                  {hasMoreTransactions && (
+                    <button
+                      onClick={() => setTransactionsPage(prev => prev + 1)}
+                      className="text-blue-400 hover:text-blue-300 font-medium transition-colors bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 hover:bg-white/20 shadow-lg"
+                    >
+                      →
+                    </button>
+                  )}
+                </div>
+                <div className="text-center mt-2">
+                  <span className="text-white/50 text-sm">
+                    Página {transactionsPage} • {displayTransactions.length} de {transactions.length} transações
+                  </span>
+                </div>
+              </div>
+            )}
+            </div>{/* Fim do grid de transações desktop */}
+          </div>
+        ) : (
+          <div className="px-4 lg:px-0">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8 hover:bg-white/15 transition-colors duration-300">
+              <div className="flex flex-col items-center justify-center">
+                <p className="text-white/70 mb-4">Nenhuma transação encontrada</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+      </div>{/* Fim da coluna principal */}
+      
+      {/* Sidebar Desktop - Resumo e Gráficos */}
+      <div className="hidden lg:block lg:col-span-1 space-y-4">
+        {/* Card de Resumo Mensal */}
+        <div 
+          className="rounded-2xl p-5"
+          style={{
+            background: 'rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.15)'
+          }}
+        >
+          <h3 className="text-white font-semibold text-lg mb-4">Resumo do Mês</h3>
+          
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'rgba(46, 204, 113, 0.15)' }}>
+              <div className="flex items-center gap-3">
+                <TrendingUp size={20} className="text-green-400" />
+                <span className="text-white/80 text-sm">Entradas</span>
+              </div>
+              <span className="text-green-400 font-semibold">{formatCurrency(totalIncomes)}</span>
+            </div>
+            
+            <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'rgba(231, 76, 60, 0.15)' }}>
+              <div className="flex items-center gap-3">
+                <TrendingDown size={20} className="text-red-400" />
+                <span className="text-white/80 text-sm">Saídas</span>
+              </div>
+              <span className="text-red-400 font-semibold">{formatCurrency(totalExpenses)}</span>
+            </div>
+            
+            <div className="h-px bg-white/10 my-2"></div>
+            
+            <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'rgba(59, 130, 246, 0.15)' }}>
+              <div className="flex items-center gap-3">
+                <DollarSign size={20} className="text-blue-400" />
+                <span className="text-white/80 text-sm">Balanço</span>
+              </div>
+              <span className={`font-semibold ${totalIncomes - totalExpenses >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {formatCurrency(totalIncomes - totalExpenses)}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Card de Funcionalidades Desktop */}
+        <div 
+          className="rounded-2xl p-5"
+          style={{
+            background: 'rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.15)'
+          }}
+        >
+          <h3 className="text-white font-semibold text-lg mb-4">Funcionalidades</h3>
+          
+          <div className="space-y-2">
+            <button 
+              onClick={() => navigate('/analise-financeira')}
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">
+                <Brain size={16} className="text-purple-400" />
+              </div>
+              <div className="flex-1">
+                <span className="text-sm font-medium block">Análise IA</span>
+                <span className="text-xs text-white/50">Insights automáticos</span>
+              </div>
+            </button>
+            
+            <button 
+              onClick={() => navigate('/bills')}
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
+                <FileText size={16} className="text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <span className="text-sm font-medium block">Contas a Pagar</span>
+                <span className="text-xs text-white/50">Gerencie vencimentos</span>
+              </div>
+            </button>
+            
+            <button 
+              onClick={() => navigate('/financial-advisor')}
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center group-hover:bg-amber-500/30 transition-colors">
+                <Lightbulb size={16} className="text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <span className="text-sm font-medium block">Stater IA</span>
+                <span className="text-xs text-white/50">Tire dúvidas financeiras</span>
+              </div>
+            </button>
+
+            <button 
+              onClick={() => navigate('/charts')}
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all text-left group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center group-hover:bg-emerald-500/30 transition-colors">
+                <TrendingUp size={16} className="text-emerald-400" />
+              </div>
+              <div className="flex-1">
+                <span className="text-sm font-medium block">Gráficos</span>
+                <span className="text-xs text-white/50">Visualize seus gastos</span>
+              </div>
+            </button>
+          </div>
+        </div>
+        
+        {/* Telegram Status Desktop */}
+        {isTelegramLinked && (
+          <div 
+            className="rounded-2xl p-4"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0, 136, 204, 0.2), rgba(0, 116, 179, 0.1))',
+              border: '1px solid rgba(0, 136, 204, 0.3)'
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm" style={{ background: 'linear-gradient(135deg, #0088cc, #0074b3)' }}>TG</div>
+              <div>
+                <p className="text-white text-sm font-medium">Telegram Conectado</p>
+                <p className="text-white/60 text-xs">@{telegramInfo?.username || 'usuário'}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      </div>{/* Fim do grid desktop */}
+      
+      {/* O NavBar foi movido para o PersistentLayout.tsx */}
+      
+      <TelegramConnectModal
+        isOpen={showTelegramModal}
+        onClose={() => setShowTelegramModal(false)}
+        onConnect={(code) => {
+          console.log('🎉 [TELEGRAM] onConnect chamado com código:', code);
+          setShowTelegramModal(false);
+          
+          // FORÇAR atualização IMEDIATA
+          if (user?.id) {
+            localStorage.removeItem(`telegram_status_${user.id}`);
+            localStorage.removeItem(`telegram_info_${user.id}`);
+          }
+          
+          // Reset e verificação imediata
+          setTelegramStatusChecked(false);
+          setIsTelegramLinked(false);
+          setTelegramInfo(null);
+          
+          // Verificação múltipla até encontrar
+          let attempts = 0;
+          const maxAttempts = 10;
+          
+          const verifyLoop = () => {
+            attempts++;
+            console.log(`🔄 [TELEGRAM] Tentativa ${attempts}/${maxAttempts}`);
+            
+            checkTelegramStatus(true).then(() => {
+              // Se ainda não conectou e tem tentativas restantes, tenta novamente
+              setTimeout(() => {
+                if (attempts < maxAttempts && !isTelegramLinked) {
+                  verifyLoop();
+                } else if (isTelegramLinked) {
+                  console.log('✅ [TELEGRAM] Conexão confirmada!');
+                  toast({
+                    title: "🎉 Conectado!",
+                    description: "Telegram conectado com sucesso!",
+                  });
+                }
+              }, 2000);
+            });
+          };
+          
+          // Iniciar verificação após 1 segundo
+          setTimeout(verifyLoop, 1000);
+        }}
+      />
+      
+      {/* Premium Modal com Stripe */}
+      <PremiumModal
+        isOpen={showPaywallModal}
+        onClose={() => setShowPaywallModal(false)}
+      />
+      
+      {/* Modal de Status PRO para assinantes */}
+      <ProStatusModal
+        isOpen={showProStatusModal}
+        onClose={() => setShowProStatusModal(false)}
+      />
+      {/* Dialog de confirmacao para excluir transacao */}
+      <ConfirmDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteDialogOpen(false);
+            setTransactionToDelete(null);
+          }
+        }}
+        onConfirm={async () => {
+          if (transactionToDelete) {
+            try {
+              deleteTransaction(transactionToDelete.id);
+              
+              toast({
+                title: 'Transacao excluida',
+                description: 'A transacao foi removida com sucesso.',
+              });
+              
+              loadTransactions(selectedMonth, selectedYear);
+            } catch (err) {
+              console.error('Erro ao excluir:', err);
+              toast({
+                title: 'Erro',
+                description: 'Nao foi possivel excluir a transacao.',
+                variant: 'destructive',
+              });
+            }
+          }
+          setDeleteDialogOpen(false);
+          setTransactionToDelete(null);
+        }}
+        title="Excluir Transacao"
+        description="Tem certeza que deseja excluir esta transacao? Esta acao nao pode ser desfeita."
+      />
+
+      
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;

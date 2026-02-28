@@ -1,0 +1,89 @@
+package com.timothy.stater;
+
+import com.getcapacitor.JSObject;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import com.superwall.sdk.Superwall;
+import com.superwall.sdk.models.triggers.InternalTriggerResult;
+import com.superwall.sdk.delegate.SuperwallDelegate;
+import com.superwall.sdk.models.events.SuperwallEventInfo;
+import java.util.HashMap;
+import java.util.Map;
+
+@CapacitorPlugin(name = "SuperwallPlugin")
+public class SuperwallPlugin extends Plugin {
+
+    @PluginMethod
+    public void register(PluginCall call) {
+        String event = call.getString("event");
+        if (event == null) {
+            call.reject("Event name is required");
+            return;
+        }
+
+        // Registrar evento no Superwall
+        Superwall.shared.register(event, result -> {
+            JSObject ret = new JSObject();
+            
+            if (result instanceof InternalTriggerResult.EventNotFound) {
+                ret.put("result", "eventNotFound");
+                ret.put("message", "Event not configured in Superwall dashboard");
+            } else if (result instanceof InternalTriggerResult.NoRuleMatch) {
+                ret.put("result", "noRuleMatch");
+                ret.put("message", "User doesn't match paywall rules");
+            } else if (result instanceof InternalTriggerResult.Paywall) {
+                ret.put("result", "paywallPresented");
+                ret.put("message", "Paywall will be shown");
+            }
+            
+            call.resolve(ret);
+        });
+    }
+
+    @PluginMethod
+    public void setUserAttributes(PluginCall call) {
+        JSObject attributes = call.getObject("attributes");
+        if (attributes == null) {
+            call.reject("Attributes object is required");
+            return;
+        }
+
+        // Converter JSObject para Map
+        Map<String, Object> userAttributes = new HashMap<>();
+        for (String key : attributes.keys()) {
+            userAttributes.put(key, attributes.get(key));
+        }
+
+        Superwall.shared.setUserAttributes(userAttributes);
+        
+        JSObject ret = new JSObject();
+        ret.put("success", true);
+        call.resolve(ret);
+    }
+
+    @PluginMethod
+    public void track(PluginCall call) {
+        String event = call.getString("event");
+        JSObject parameters = call.getObject("parameters");
+        
+        if (event == null) {
+            call.reject("Event name is required");
+            return;
+        }
+
+        Map<String, Object> eventParameters = new HashMap<>();
+        if (parameters != null) {
+            for (String key : parameters.keys()) {
+                eventParameters.put(key, parameters.get(key));
+            }
+        }
+
+        Superwall.shared.track(event, eventParameters);
+        
+        JSObject ret = new JSObject();
+        ret.put("success", true);
+        call.resolve(ret);
+    }
+}

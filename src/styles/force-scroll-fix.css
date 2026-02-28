@@ -1,0 +1,183 @@
+﻿/* ===== FIX OTIMIZADO DE SCROLL PARA MOBILE E CAPACITOR ===== */
+/* Versão otimizada para performance e compatibilidade com APK */
+
+/* === BASE: Scroll nativo e fluido === */
+html {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  height: auto !important;
+  min-height: 100% !important;
+  /* CRÍTICO para Capacitor: touch-action deve permitir scroll */
+  touch-action: pan-x pan-y !important;
+  -webkit-overflow-scrolling: touch !important;
+  /* Performance: desabilita scroll smooth que causa lag */
+  scroll-behavior: auto !important;
+}
+
+body {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  position: relative !important;
+  height: auto !important;
+  min-height: 100% !important;
+  /* CRÍTICO: touch-action permite gestos de scroll */
+  touch-action: pan-x pan-y !important;
+  -webkit-overflow-scrolling: touch !important;
+  scroll-behavior: auto !important;
+  /* Remove qualquer bloqueio de scroll */
+  overscroll-behavior-y: auto !important;
+}
+
+/* === CONTAINERS PRINCIPAIS === */
+#root {
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
+  position: relative !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  /* Permite scroll dentro do root */
+  touch-action: pan-x pan-y !important;
+}
+
+/* Páginas e containers scrolláveis */
+.edge-to-edge-page,
+.edge-to-edge-container,
+.edge-to-edge-login,
+[class*="Page"],
+[class*="Dashboard"] {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  position: relative !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  touch-action: pan-x pan-y !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* Conteúdo scrollável */
+.safe-area-content {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  touch-action: pan-x pan-y !important;
+  -webkit-overflow-scrolling: touch !important;
+  /* Evita conflitos com navbar */
+  min-height: calc(100vh - 64px) !important;
+}
+
+/* === PERFORMANCE MOBILE: Evita repaints caros === */
+@media (max-width: 768px) {
+  /* Remove will-change excessivo que causa memory leaks */
+  * {
+    will-change: auto !important;
+  }
+  
+  /* Mantém apenas para elementos que realmente precisam */
+  .navbar-simple,
+  .navbar-optimized,
+  nav[class*="fixed"] {
+    will-change: transform !important;
+    transform: translateZ(0) !important;
+  }
+  
+  /* Desabilita transições durante scroll para fluidez */
+  .scrolling *,
+  *:active {
+    transition-duration: 0s !important;
+  }
+  
+  /* Remove backdrop-filter pesado em mobile */
+  *:not(.modal-overlay):not([class*="blur"]) {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  /* Simplifica sombras */
+  .card,
+  .financial-card,
+  [class*="card"] {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12) !important;
+  }
+}
+
+/* === FIX ESPECÍFICO PARA CAPACITOR/WEBVIEW === */
+/* Detecta ambiente Capacitor via classe no body ou html */
+html.capacitor,
+body.capacitor,
+.capacitor-app {
+  /* WebView Android precisa de height 100% */
+  height: 100% !important;
+  overflow: auto !important;
+}
+
+/* Garante que WebView pode scrollar */
+html.capacitor body,
+html.capacitor #root {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-y: auto !important;
+  touch-action: pan-x pan-y !important;
+}
+
+/* === MODAL: Não bloqueia scroll quando fechado === */
+body:not([data-scroll-locked="true"]):not(:has([data-state="open"])) {
+  overflow: auto !important;
+  position: relative !important;
+}
+
+/* === NAVBAR: Sempre acessível === */
+.navbar-simple,
+nav[class*="fixed"] {
+  position: fixed !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  z-index: 1000 !important;
+}
+
+/* Botões da navbar devem responder ao toque */
+.navbar-simple button,
+.navbar-simple a,
+nav[class*="fixed"] button,
+nav[class*="fixed"] a {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+/* === INTERATIVIDADE: Garante que elementos respondem === */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"],
+[onclick],
+[class*="btn"],
+[class*="Button"] {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+/* === PERFORMANCE: GPU acceleration seletiva === */
+.smooth-scroll,
+.scroll-container,
+.virtual-list-container {
+  transform: translateZ(0);
+  -webkit-overflow-scrolling: touch !important;
+  contain: layout style;
+}
+
+/* === FIX: Previne travamento por animações === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Classe para aplicar durante scroll intenso */
+.scroll-optimized-mode * {
+  animation: none !important;
+  transition: none !important;
+}

@@ -1,0 +1,9 @@
+{
+  "name": "process-bill-reminders",
+  "version": "1.0.0",
+  "description": "Processa lembretes de contas a vencer e envia notificações",
+  "verify_jwt": true,
+  "schedule": {
+    "cron": "0 9 * * *"
+  }
+}

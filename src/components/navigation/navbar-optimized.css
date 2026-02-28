@@ -1,0 +1,225 @@
+/* Otimizações de performance para NavBar - RESPONSIVO para mobile */
+.navbar-optimized {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: 72px;
+  /* Altura maior para melhor usabilidade */
+  z-index: 999;
+  background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%);
+  backdrop-filter: blur(5px);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  display: flex;
+  overscroll-behavior: none;
+  transform: translateZ(0) !important;
+  will-change: transform;
+  contain: layout;
+  /* Safe area para iPhones com notch */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.navbar-content {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 72px;
+  padding: 0.5rem 0.5rem;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.navbar-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.75rem;
+  transition: background-color 0.2s ease;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  gap: 4px;
+}
+
+.navbar-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-button-active {
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.navbar-icon-container {
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-icon {
+  color: white;
+  width: 22px;
+  height: 22px;
+}
+
+.navbar-icon-active {
+  filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.2));
+}
+
+.navbar-label {
+  font-size: 0.7rem;
+  color: white;
+  font-weight: 500;
+  opacity: 0.85;
+  line-height: 1.1;
+}
+
+.navbar-label-active {
+  opacity: 1;
+  font-weight: 600;
+}
+
+.navbar-indicator {
+  display: none;
+  /* Remover indicador extra para economizar espaço */
+}
+
+.navbar-logo-text {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: white;
+  font-family: 'Fredoka One', 'Comic Sans MS', Poppins, sans-serif;
+  letter-spacing: 0.3px;
+  line-height: 1;
+}
+
+/* Otimizações específicas para mobile - RESPONSIVO */
+@media (max-width: 768px) {
+  .navbar-optimized {
+    /* CRÍTICO: Manter posição fixa mesmo em mobile */
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    /* Manter transform para hardware acceleration */
+    transform: translateZ(0) !important;
+    will-change: transform !important;
+    /* Simplificar visuais mantendo funcionalidade */
+    backdrop-filter: none;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
+    height: 72px;
+    /* Aumentado para melhor usabilidade em mobile */
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .navbar-content {
+    height: 72px;
+    padding: 0.4rem 0.5rem;
+    margin: 0;
+  }
+
+  .navbar-button {
+    min-width: 58px;
+    padding: 0.35rem 0.4rem;
+    /* Aumenta tamanho do touch target para conformidade mobile */
+    min-height: 52px;
+    /* Removendo todas as transições e animações em mobile */
+    transition: none !important;
+    animation: none !important;
+    gap: 3px;
+  }
+
+  /* Remover todos os efeitos de sombra e visuais em mobile */
+  .navbar-button-active {
+    box-shadow: none !important;
+    border: none !important;
+    background-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .navbar-icon {
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  .navbar-icon-active {
+    filter: none !important;
+  }
+
+  .navbar-indicator {
+    box-shadow: none !important;
+    height: 2px !important;
+    margin-top: 0.125rem !important;
+    width: 1rem !important;
+  }
+
+  /* Texto mais legível em mobile */
+  .navbar-label {
+    font-size: 0.7rem !important;
+    font-weight: 500 !important;
+  }
+
+  .navbar-logo-text {
+    font-size: 0.7rem !important;
+  }
+
+  /* ADICIONADO: Otimizações durante scroll */
+  .navbar-scrolling {
+    will-change: auto !important;
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .navbar-scrolling .navbar-icon-container,
+  .navbar-scrolling .navbar-indicator,
+  .navbar-scrolling .navbar-label {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ADICIONADO: Otimizações globais durante scroll */
+.is-scrolling .navbar-optimized {
+  will-change: auto !important;
+  transition: none !important;
+  animation: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.is-scrolling .navbar-optimized * {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+/* ADICIONADO: Classe para otimização quando visível */
+.navbar-optimized-visible {
+  /* Aplicar otimizações quando o navbar está visível */
+  contain: layout style paint;
+  content-visibility: auto;
+}
+
+/* Previne bounce/rubber-banding em todos os navegadores */
+html,
+body {
+  overscroll-behavior: none;
+  overflow-x: hidden;
+}
+
+/* ===== MOBILE - Manter tema azul escuro consistente ===== */
+@media (max-width: 1023px) {
+  .navbar-optimized {
+    background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
+  }
+}

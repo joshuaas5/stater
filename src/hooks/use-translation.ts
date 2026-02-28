@@ -1,0 +1,137 @@
+
+import { useCallback } from 'react';
+import { getUserPreferences } from '@/utils/localStorage';
+
+type Translations = {
+  [key: string]: {
+    [key: string]: string;
+  };
+};
+
+const translations: Translations = {
+  'pt-BR': {
+    login: 'Entrar',
+    register: 'Registrar',
+    createAccount: 'Criar Conta',
+    resetPassword: 'Redefinir Senha',
+    username: 'Nome de Usuário',
+    email: 'Email',
+    password: 'Senha',
+    confirmPassword: 'Confirmar Senha',
+    allFieldsRequired: 'Todos os campos são obrigatórios',
+    passwordsDontMatch: 'Senhas não coincidem',
+    pleaseFillAllFields: 'Por favor, preencha todos os campos',
+    emailRequired: 'Email é obrigatório',
+    yourUsername: 'Seu nome de usuário',
+    emailPlaceholder: 'seu@email.com',
+    sendResetLink: 'Enviar link de redefinição',
+    orContinueWith: 'ou continue com',
+    noAccount: 'Não tem uma conta? Registre-se',
+    forgotPassword: 'Esqueceu sua senha?',
+    alreadyHaveAccount: 'Já tem uma conta? Faça login',
+    backToLogin: 'Voltar para login',
+    dashboard: 'Painel',
+    bills: 'Contas',
+    home: 'Início',
+    advisor: 'Stater IA',
+    settings: 'Ajustes',
+    charts: 'Gráficos',
+    preferences: 'Preferências',
+    notifications: 'Notificações',
+    security: 'Segurança',
+    profile: 'Perfil',
+    logout: 'Sair',
+    logoutSuccessful: 'Logout realizado com sucesso',
+    theme: 'Tema',
+    light: 'Claro',
+    dark: 'Escuro',
+    currency: 'Moeda',
+    language: 'Idioma',
+    compactMode: 'Modo compacto',
+    enableNotifications: 'Ativar notificações',
+    showRecurringIndicator: 'Mostrar indicador de recorrência',
+    startOfWeek: 'Início da Semana',
+    monday: 'Segunda',
+    sunday: 'Domingo',
+    showCents: 'Mostrar centavos',
+    aboutYourAccount: 'Sobre esta conta',
+    savePreferences: 'Salvar Preferências',
+    preferencesUpdated: 'Preferências atualizadas com sucesso',
+    financialAdvisor: 'Consultor Financeiro',
+    askSomething: 'Experimente perguntar:',
+    howToSaveMore: 'Como posso economizar mais?',
+    biggestExpenses: 'Quais são meus maiores gastos?',
+    createBudget: 'Como criar um orçamento?',
+    investOrPayDebt: 'Devo investir ou pagar dívidas?',
+    reduceFoodExpenses: 'Como reduzir gastos com alimentação?',
+    howMuchToSave: 'Quanto devo guardar por mês?',
+  },
+  'en-US': {
+    login: 'Login',
+    register: 'Register',
+    createAccount: 'Create Account',
+    resetPassword: 'Reset Password',
+    username: 'Username',
+    email: 'Email',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    allFieldsRequired: 'All fields are required',
+    passwordsDontMatch: 'Passwords do not match',
+    pleaseFillAllFields: 'Please fill all fields',
+    emailRequired: 'Email is required',
+    yourUsername: 'Your username',
+    emailPlaceholder: 'your@email.com',
+    sendResetLink: 'Send reset link',
+    orContinueWith: 'or continue with',
+    noAccount: 'Don\'t have an account? Sign up',
+    forgotPassword: 'Forgot your password?',
+    alreadyHaveAccount: 'Already have an account? Login',
+    backToLogin: 'Back to login',
+    dashboard: 'Dashboard',
+    bills: 'Bills',
+    home: 'Home',
+    advisor: 'Advisor',
+    settings: 'Settings',
+    charts: 'Charts',
+    preferences: 'Preferences',
+    notifications: 'Notifications',
+    security: 'Security',
+    profile: 'Profile',
+    logout: 'Logout',
+    logoutSuccessful: 'Logout successful',
+    theme: 'Theme',
+    light: 'Light',
+    dark: 'Dark',
+    currency: 'Currency',
+    language: 'Language',
+    compactMode: 'Compact mode',
+    enableNotifications: 'Enable notifications',
+    showRecurringIndicator: 'Show recurring indicator',
+    startOfWeek: 'Start of Week',
+    monday: 'Monday',
+    sunday: 'Sunday',
+    showCents: 'Show cents',
+    aboutYourAccount: 'About this account',
+    savePreferences: 'Save Preferences',
+    preferencesUpdated: 'Preferences updated successfully',
+    financialAdvisor: 'Financial Advisor',
+    askSomething: 'Try asking:',
+    howToSaveMore: 'How can I save more?',
+    biggestExpenses: 'What are my biggest expenses?',
+    createBudget: 'How to create a budget?',
+    investOrPayDebt: 'Should I invest or pay debt?',
+    reduceFoodExpenses: 'How to reduce food expenses?',
+    howMuchToSave: 'How much should I save monthly?',
+  }
+};
+
+export const useTranslation = () => {
+  const { language } = getUserPreferences();
+  const currentLang = language || 'pt-BR';
+
+  const t = useCallback((key: string): string => {
+    return translations[currentLang]?.[key] || key;
+  }, [currentLang]);
+
+  return { t, currentLang };
+};

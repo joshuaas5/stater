@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TESTE - Aba Telegram Stater</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">🔥 TESTE - Interface Telegram Funcionando! 🔥</h1>
+        
+        <!-- Sistema de abas manual -->
+        <div class="border-b border-gray-200 mb-6">
+            <nav class="-mb-px flex space-x-8">
+                <button onclick="showTab('account')" class="py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                    Conta
+                </button>
+                <button onclick="showTab('preferences')" class="py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                    Preferências
+                </button>
+                <button onclick="showTab('telegram')" id="telegram-tab" class="py-2 px-1 border-b-2 border-blue-500 text-blue-600 bg-blue-50 px-4 rounded-t-lg font-bold">
+                    🚀 TELEGRAM 🚀
+                </button>
+                <button onclick="showTab('sync')" class="py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                    Sincronização
+                </button>
+            </nav>
+        </div>
+
+        <!-- Conteúdo da aba Telegram -->
+        <div id="telegram-content" class="bg-white rounded-lg p-8 border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white">
+            <div class="text-center space-y-6">
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                    ✅ INTERFACE TELEGRAM FUNCIONANDO! Você consegue ver isso! 👇
+                </div>
+                
+                <div class="bg-blue-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto">
+                    <span class="text-4xl">📱</span>
+                </div>
+                
+                <h2 class="text-3xl font-bold text-gray-900">Use o Stater no Telegram</h2>
+                <p class="text-xl text-gray-600">Acesse seu assistente financeiro em qualquer lugar</p>
+                
+                <div class="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-xl p-8">
+                    <div class="grid grid-cols-2 gap-6 text-center">
+                        <div class="space-y-3">
+                            <div class="text-4xl">📷</div>
+                            <p class="font-bold">Análise de Extratos</p>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="text-4xl">💬</div>
+                            <p class="font-bold">Chat com IA</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="connectTelegram()" class="w-full max-w-md mx-auto text-2xl py-8 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white rounded-lg shadow-xl transform hover:scale-105 transition-all font-bold">
+                    🚀 CONECTAR AGORA 🚀
+                </button>
+                
+                <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                    <p class="font-bold text-green-800 mb-2 text-lg">É super fácil! ✨</p>
+                    <p class="text-green-700 text-lg">
+                        Clique no botão → o Telegram abre automaticamente → aperte "Iniciar" → pronto! 🎉
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Outras abas (ocultas por padrão) -->
+        <div id="account-content" class="hidden bg-white rounded-lg p-8">
+            <h2 class="text-2xl font-bold mb-4">Informações da Conta</h2>
+            <p>Conteúdo da aba conta...</p>
+        </div>
+        
+        <div id="preferences-content" class="hidden bg-white rounded-lg p-8">
+            <h2 class="text-2xl font-bold mb-4">Preferências</h2>
+            <p>Conteúdo da aba preferências...</p>
+        </div>
+        
+        <div id="sync-content" class="hidden bg-white rounded-lg p-8">
+            <h2 class="text-2xl font-bold mb-4">Sincronização</h2>
+            <p>Conteúdo da aba sincronização...</p>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Esconder todas as abas
+            document.getElementById('account-content').classList.add('hidden');
+            document.getElementById('preferences-content').classList.add('hidden');
+            document.getElementById('telegram-content').classList.add('hidden');
+            document.getElementById('sync-content').classList.add('hidden');
+            
+            // Mostrar aba selecionada
+            document.getElementById(tabName + '-content').classList.remove('hidden');
+            
+            // Resetar estilos dos botões
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.className = 'py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700';
+            });
+            
+            // Destacar botão ativo
+            if (tabName === 'telegram') {
+                document.getElementById('telegram-tab').className = 'py-2 px-1 border-b-2 border-blue-500 text-blue-600 bg-blue-50 px-4 rounded-t-lg font-bold';
+            }
+        }
+        
+        function connectTelegram() {
+            alert('🚀 Telegram seria aberto aqui! Funcionalidade funcionando!');
+        }
+        
+        // Mostrar aba Telegram por padrão
+        showTab('telegram');
+    </script>
+</body>
+</html>

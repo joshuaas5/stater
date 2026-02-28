@@ -1,0 +1,51 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fundo azul escuro -->
+  <circle cx="96" cy="96" r="96" fill="#2E4A6B"/>
+  
+  <!-- Peixe dourado principal -->
+  <g transform="translate(32, 48)">
+    <!-- Corpo do peixe -->
+    <ellipse cx="64" cy="32" rx="45" ry="28" fill="#F4B942"/>
+    
+    <!-- Cauda do peixe -->
+    <path d="M20 32 L8 20 L8 44 Z" fill="#F4B942"/>
+    
+    <!-- Barbatana superior -->
+    <path d="M45 12 L65 8 L75 20 L55 18 Z" fill="#E6A532"/>
+    
+    <!-- Barbatana inferior -->
+    <path d="M45 52 L65 56 L75 44 L55 46 Z" fill="#E6A532"/>
+    
+    <!-- Olho -->
+    <circle cx="85" cy="28" r="8" fill="white"/>
+    <circle cx="87" cy="26" r="5" fill="black"/>
+    <circle cx="88" cy="24" r="2" fill="white"/>
+    
+    <!-- Linha do corpo -->
+    <path d="M25 32 Q55 28 95 32" stroke="#E6A532" stroke-width="2" fill="none"/>
+    
+    <!-- Escamas decorativas -->
+    <circle cx="50" cy="25" r="3" fill="#E6A532" opacity="0.6"/>
+    <circle cx="65" cy="30" r="3" fill="#E6A532" opacity="0.6"/>
+    <circle cx="50" cy="39" r="3" fill="#E6A532" opacity="0.6"/>
+  </g>
+  
+  <!-- Moedas em volta -->
+  <g>
+    <!-- Moeda 1 -->
+    <circle cx="140" cy="70" r="12" fill="#F4B942"/>
+    <text x="140" y="76" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#2E4A6B">$</text>
+    
+    <!-- Moeda 2 -->
+    <circle cx="150" cy="110" r="10" fill="#F4B942"/>
+    <text x="150" y="115" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#2E4A6B">$</text>
+    
+    <!-- Moeda 3 -->
+    <circle cx="120" cy="130" r="8" fill="#F4B942"/>
+    <text x="120" y="134" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#2E4A6B">$</text>
+    
+    <!-- Moeda 4 (menor) -->
+    <circle cx="45" cy="140" r="6" fill="#F4B942"/>
+    <text x="45" y="143" text-anchor="middle" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="#2E4A6B">$</text>
+  </g>
+</svg>

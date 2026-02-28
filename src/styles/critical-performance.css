@@ -1,0 +1,157 @@
+﻿/* ===== OTIMIZAÇÕES DE PERFORMANCE MOBILE ===== */
+/* Versão ultra-otimizada para fluidez no mobile */
+
+/* === REGRA 1: Desabilitar animações pesadas em mobile === */
+@media (max-width: 768px) {
+  /* Remove animate-pulse que consome CPU */
+  .animate-pulse {
+    animation: none !important;
+  }
+  
+  /* Simplifica transições */
+  *:not(button):not(a):not([role='button']) {
+    transition-duration: 0.1s !important;
+    transition-timing-function: linear !important;
+  }
+  
+  /* Remove blur/backdrop-filter pesados - SEM alterar a cor de fundo */
+  .backdrop-blur,
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  [class*='backdrop-blur'] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    /* NÃO forçar cor de fundo - mantém a cor original do elemento */
+  }
+  
+  /* Simplifica box-shadows em cards - mantém visual mas mais leve */
+  .shadow,
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+  }
+}
+
+/* === REGRA 2: GPU Acceleration apenas onde necessário === */
+/* Navbar PRECISA de GPU acceleration por ser fixed */
+.navbar-simple,
+nav[class*='fixed'],
+.fixed.bottom-0 {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* === REGRA 3: Scroll fluido com CSS containment === */
+.scroll-container,
+.safe-area-content,
+main,
+[role='main'] {
+  contain: layout style;
+  content-visibility: auto;
+}
+
+/* Para listas longas */
+.virtual-list-container {
+  contain: layout style paint;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 100px;
+}
+
+/* === REGRA 4: Otimização específica para touch === */
+@media (pointer: coarse) {
+  /* Botões devem ter resposta rápida */
+  button,
+  a,
+  [role='button'] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+}
+
+/* === REGRA 5: Classe .scrolling aplicada durante scroll === */
+/* Quando usuário está scrollando, desativa animações que causam jank */
+body.scrolling * {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+/* Mantém interatividade na navbar durante scroll */
+body.scrolling .navbar-simple,
+body.scrolling nav,
+body.scrolling button,
+body.scrolling a {
+  pointer-events: auto !important;
+}
+
+/* === REGRA 6: Prefers reduced motion === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* === REGRA 7: Fix para re-paints excessivos === */
+/* Elementos que mudam frequentemente devem ter contain */
+.financial-card,
+.card,
+[class*='Card'],
+.balance-display,
+.transaction-item {
+  contain: layout style paint;
+  isolation: isolate;
+}
+
+/* === REGRA 8: Skeleton/Loading otimizado === */
+.skeleton,
+.skeleton-loader,
+[class*='skeleton'] {
+  animation: skeleton-pulse 1.5s ease-in-out infinite !important;
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%) !important;
+  background-size: 200% 100% !important;
+}
+
+@keyframes skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Em mobile, desabilita animação do skeleton para economia */
+@media (max-width: 768px) {
+  .skeleton,
+  .skeleton-loader,
+  [class*='skeleton'] {
+    animation: none !important;
+    background: #374151 !important;
+  }
+}
+
+/* === REGRA 9: Imagens e SVGs otimizados === */
+img {
+  content-visibility: auto;
+}
+
+svg {
+  shape-rendering: geometricPrecision;
+}
+
+@media (max-width: 768px) {
+  svg {
+    shape-rendering: optimizeSpeed;
+  }
+}
+
+/* === REGRA 10: Texto otimizado === */
+body {
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

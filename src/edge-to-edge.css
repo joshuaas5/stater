@@ -1,0 +1,49 @@
+/* ===== CLASSES EDGE-TO-EDGE DEFINITIVAS ===== */
+
+/* Container principal edge-to-edge */
+.edge-to-edge-container {
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  background-color: #0f172a !important;
+  background: #0f172a !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: relative;
+  /* REMOVIDO: display flex que causa problema de scroll */
+}
+
+/* Página edge-to-edge completa */
+.edge-to-edge-page {
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  background-color: #0f172a !important;
+  background: #0f172a !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: relative;
+  /* REMOVIDO: display flex e overflow que causam problema de scroll */
+}
+
+/* Conteúdo com safe areas */
+.safe-area-content {
+  padding-top: 0; /* REMOVIDO - Não criar faixa no topo */
+  padding-left: env(safe-area-inset-left, 16px);
+  padding-right: env(safe-area-inset-right, 16px);
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Override Tailwind - força background azul */
+.homepage-container,
+.min-h-screen {
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  min-height: -webkit-fill-available !important;
+  background-color: #0f172a !important;
+  background: #0f172a !important;
+}
+
+/* ===== MODO SIMPLES/MOBILE - MANTÉM TEMA ESCURO ===== */
+/* REMOVIDO: Override de fundo claro para mobile - agora usa tema escuro em todos os modos */

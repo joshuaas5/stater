@@ -1,0 +1,282 @@
+﻿/*  STATER IA - Ajustes de teclado e layout */
+
+/*  VIEWPORT PARA STATER IA - Ajuste dinâmico do teclado */
+.stater-ia-container {
+  /* Altura dinâmica que se ajusta ao teclado */
+  min-height: 100vh !important;
+  min-height: 100dvh !important; /* Dynamic Viewport Height */
+  height: auto !important;
+  
+  /* Layout flex para ajustar automaticamente */
+  display: flex !important;
+  flex-direction: column !important;
+  
+  /* Permitir scroll quando necessário */
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/*  CHAT INPUT AREA - Posicionamento acima do teclado */
+.stater-ia-input-container,
+.chat-input-area,
+.message-input-area {
+  /* Fixar na parte inferior da viewport visível */
+  position: sticky !important;
+  bottom: 0 !important;
+  
+  /* Background para contraste */
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  
+  /* Padding para respirar */
+  padding: 1rem !important;
+  padding-bottom: max(env(safe-area-inset-bottom, 8px), 8px) !important;
+  
+  /* Border superior sutil */
+  border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+  
+  /* Z-index para ficar acima do conteúdo */
+  z-index: 100 !important;
+  
+  /* Transição suave */
+  transition: all 0.3s ease-in-out !important;
+}
+
+/*  INPUT FIELD - Estilo e comportamento */
+.stater-ia-input,
+.chat-input-field,
+.message-input {
+  width: 100% !important;
+  min-height: 2.5rem !important;
+  max-height: 8rem !important;
+  
+  /* Padding interno */
+  padding: 0.75rem 1rem !important;
+  
+  /* Background e bordas */
+  background: white !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 1.5rem !important;
+  
+  /* Typography */
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  color: #1a202c !important;
+  
+  /* Focus state */
+  outline: none !important;
+  resize: none !important;
+  
+  /* Transições */
+  transition: all 0.2s ease-in-out !important;
+}
+
+.stater-ia-input:focus,
+.chat-input-field:focus,
+.message-input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  transform: translateY(-1px) !important;
+}
+
+/*  BOTÕES DE AÇÃO - Microfone, Câmera, Enviar */
+.stater-ia-actions,
+.chat-actions,
+.input-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  margin-top: 0.5rem !important;
+}
+
+.stater-ia-action-btn,
+.chat-action-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  
+  background: #3b82f6 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 50% !important;
+  
+  cursor: pointer !important;
+  transition: all 0.2s ease-in-out !important;
+  
+  /* Sombra sutil */
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2) !important;
+}
+
+.stater-ia-action-btn:hover,
+.chat-action-btn:hover {
+  background: #2563eb !important;
+  transform: translateY(-1px) scale(1.05) !important;
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3) !important;
+}
+
+.stater-ia-action-btn:active,
+.chat-action-btn:active {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+/*  CHAT MESSAGES AREA - Scroll suave */
+.stater-ia-messages,
+.chat-messages-area {
+  flex: 1 !important;
+  
+  /* Padding para não ficar colado */
+  padding: 1rem !important;
+  padding-bottom: 8rem !important; /* Espaço para input fixo */
+  
+  /* Scroll suave */
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scroll-behavior: smooth !important;
+  
+  /* Ocultar scrollbar */
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.stater-ia-messages::-webkit-scrollbar,
+.chat-messages-area::-webkit-scrollbar {
+  display: none !important;
+}
+
+/*  MOBILE SPECIFIC - Ajustes para dispositivos móveis */
+@media (max-width: 768px) {
+  /* Ajustar altura mínima para mobile */
+  .stater-ia-container {
+    min-height: calc(100vh - env(keyboard-height, 0px)) !important;
+  }
+  
+  /* Input maior em mobile para melhor usabilidade */
+  .stater-ia-input,
+  .chat-input-field,
+  .message-input {
+    font-size: 1.1rem !important;
+    min-height: 3rem !important;
+    padding: 1rem 1.25rem !important;
+  }
+  
+  /* Botões maiores em mobile */
+  .stater-ia-action-btn,
+  .chat-action-btn {
+    width: 3rem !important;
+    height: 3rem !important;
+  }
+  
+  /* Mais padding no input container */
+  .stater-ia-input-container,
+  .chat-input-area,
+  .message-input-area {
+    padding: 1.25rem !important;
+  }
+}
+
+/*  KEYBOARD VISIBLE - Quando teclado está ativo */
+@supports (height: 100dvh) {
+  .stater-ia-container {
+    /* Use dynamic viewport height quando disponível */
+    height: 100dvh !important;
+  }
+}
+
+/*  SAFE AREA - Para dispositivos com notch */
+.stater-ia-input-container,
+.chat-input-area,
+.message-input-area {
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem) !important;
+  padding-left: max(env(safe-area-inset-left), 1rem) !important;
+  padding-right: max(env(safe-area-inset-right), 1rem) !important;
+}
+
+/*  UPLOAD DE ARQUIVOS - Drag and drop area */
+.stater-ia-upload-area {
+  border: 2px dashed #cbd5e0 !important;
+  border-radius: 1rem !important;
+  padding: 2rem !important;
+  text-align: center !important;
+  background: #f8fafc !important;
+  margin: 1rem 0 !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.stater-ia-upload-area:hover,
+.stater-ia-upload-area.drag-over {
+  border-color: #3b82f6 !important;
+  background: #eff6ff !important;
+  transform: translateY(-1px) !important;
+}
+
+/*  LOADING STATES */
+.stater-ia-loading {
+  opacity: 0.7 !important;
+  pointer-events: none !important;
+}
+
+.stater-ia-typing-indicator {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  padding: 1rem !important;
+  color: #64748b !important;
+  font-style: italic !important;
+}
+
+.stater-ia-typing-dots {
+  display: flex !important;
+  gap: 0.25rem !important;
+}
+
+.stater-ia-typing-dots span {
+  width: 0.5rem !important;
+  height: 0.5rem !important;
+  background: #94a3b8 !important;
+  border-radius: 50% !important;
+  animation: typing-bounce 1.4s infinite ease-in-out !important;
+}
+
+.stater-ia-typing-dots span:nth-child(1) { animation-delay: -0.32s !important; }
+.stater-ia-typing-dots span:nth-child(2) { animation-delay: -0.16s !important; }
+
+@keyframes typing-bounce {
+  0%, 80%, 100% { 
+    transform: scale(0.8) !important; 
+    opacity: 0.5 !important; 
+  }
+  40% { 
+    transform: scale(1) !important; 
+    opacity: 1 !important; 
+  }
+}
+
+/*  PERMISSIONS PROMPT - Para solicitar permissões */
+.permissions-prompt {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  
+  background: white !important;
+  padding: 2rem !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+  
+  max-width: 90vw !important;
+  text-align: center !important;
+  z-index: 1000 !important;
+}
+
+.permissions-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  z-index: 999 !important;
+}

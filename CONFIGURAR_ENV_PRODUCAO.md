@@ -30,7 +30,7 @@ https://vercel.com/dashboard
 
 #### **VITE_STRIPE_PUBLIC_KEY**
 ```
-Valor: pk_live_51SIF7wFog1FXcH5v9uSLdcEArKlpzVSUEaCn2XjIoX3B98YL8y0q9kZxtZtMGhNaTz344ZLNB668nPtUG1Kk21H700Mq7mI5JP
+Valor: chave_publica_producao_stripe51SIF7wFog1FXcH5v9uSLdcEArKlpzVSUEaCn2XjIoX3B98YL8y0q9kZxtZtMGhNaTz344ZLNB668nPtUG1Kk21H700Mq7mI5JP
 ```
 ⚠️ **ATENÇÃO:** Você vai precisar pegar a chave de PRODUÇÃO no Stripe!
 
@@ -80,18 +80,18 @@ https://supabase.com/dashboard
 
 #### **STRIPE_SECRET_KEY**
 ```
-sk_live_51SIF7wFog1FXcH5v[RESTO_DA_CHAVE_DE_PRODUÇÃO]
+STRIPE_SECRET_KEY_PROD_PLACEHOLDERÇÃO]
 ```
 ⚠️ **VOCÊ PRECISA PEGAR NO STRIPE!**
 
 Onde pegar:
 1. https://dashboard.stripe.com/apikeys
 2. Certifique-se de estar em **MODO PRODUÇÃO** (🔴)
-3. Copie a **Secret key** (começa com `sk_live_`)
+3. Copie a **Secret key** (começa com `chave_secreta_producao_stripe`)
 
 #### **STRIPE_WEBHOOK_SECRET**
 ```
-whsec_[WEBHOOK_SECRET_DE_PRODUÇÃO]
+STRIPE_WEBHOOK_SECRET_PLACEHOLDERÇÃO]
 ```
 ⚠️ **VOCÊ PRECISA CRIAR WEBHOOK DE PRODUÇÃO!**
 
@@ -101,7 +101,7 @@ Como criar:
 3. URL: `https://tmucbwlhkffrhtexmjze.supabase.co/functions/v1/stripe-webhook`
 4. Eventos: `checkout.session.completed`, `customer.subscription.deleted`, `invoice.payment_failed`
 5. Clique "Adicionar"
-6. Copie o **Signing secret** (whsec_...)
+6. Copie o **Signing secret** (segredo_assinatura_webhook...)
 
 #### **SUPABASE_SERVICE_ROLE_KEY**
 ```
@@ -115,29 +115,29 @@ Como criar:
 ### **✅ O que você já tem:**
 - [x] Price ID Semanal: `price_1SIZyF2HBVUtKi5t6y6opjHe`
 - [x] Price ID Mensal: `price_1SIZz12HBVUtKi5tFtu75oX4`
-- [x] Stripe Public Key (teste): `pk_test_51SIF7w...`
+- [x] Stripe Public Key (teste): `chave_publica_teste_stripe51SIF7w...`
 
 ### **🔄 O que você PRECISA fazer AGORA:**
 
 #### **1. Pegar API Keys de PRODUÇÃO do Stripe:**
 - [ ] Acessar: https://dashboard.stripe.com/apikeys (modo produção 🔴)
-- [ ] Copiar: `pk_live_51SIF7w...` (Publishable key)
-- [ ] Copiar: `sk_live_51SIF7w...` (Secret key)
+- [ ] Copiar: `chave_publica_producao_stripe51SIF7w...` (Publishable key)
+- [ ] Copiar: `STRIPE_SECRET_KEY_PROD_PLACEHOLDER` (Secret key)
 
 #### **2. Criar Webhook de PRODUÇÃO:**
 - [ ] Acessar: https://dashboard.stripe.com/webhooks (modo produção 🔴)
 - [ ] Criar endpoint: `https://tmucbwlhkffrhtexmjze.supabase.co/functions/v1/stripe-webhook`
-- [ ] Copiar: `whsec_...` (Webhook secret)
+- [ ] Copiar: `segredo_assinatura_webhook...` (Webhook secret)
 
 #### **3. Configurar Vercel:**
-- [ ] Adicionar `VITE_STRIPE_PUBLIC_KEY` (pk_live_...)
+- [ ] Adicionar `VITE_STRIPE_PUBLIC_KEY` (chave_publica_producao_stripe...)
 - [ ] Adicionar `VITE_STRIPE_PRICE_WEEKLY` (price_1SIZyF...)
 - [ ] Adicionar `VITE_STRIPE_PRICE_MONTHLY` (price_1SIZz1...)
 - [ ] Redeploy
 
 #### **4. Configurar Supabase:**
-- [ ] Adicionar `STRIPE_SECRET_KEY` (sk_live_...)
-- [ ] Adicionar `STRIPE_WEBHOOK_SECRET` (whsec_...)
+- [ ] Adicionar `STRIPE_SECRET_KEY` (chave_secreta_producao_stripe...)
+- [ ] Adicionar `STRIPE_WEBHOOK_SECRET` (segredo_assinatura_webhook...)
 
 #### **5. Testar:**
 - [ ] Acessar https://stater.app
@@ -162,7 +162,7 @@ Se sim, primeiro complete:
 Se a área restrita sumiu:
 1. https://dashboard.stripe.com/apikeys
 2. Toggle: **"Modo ativo"** (🔴)
-3. Copie as keys que começam com `pk_live_` e `sk_live_`
+3. Copie as keys que começam com `chave_publica_producao_stripe` e `chave_secreta_producao_stripe`
 
 ---
 
@@ -178,7 +178,7 @@ Se quiser lançar HOJE mas ainda não tem produção ativada:
 
 **Configuração temporária:**
 ```
-VITE_STRIPE_PUBLIC_KEY=pk_test_51SIF7wFog1FXcH5v9uSLdcEArKlpzVSUEaCn2XjIoX3B98YL8y0q9kZxtZtMGhNaTz344ZLNB668nPtUG1Kk21H700Mq7mI5JP
+VITE_STRIPE_PUBLIC_KEY=chave_publica_teste_stripe51SIF7wFog1FXcH5v9uSLdcEArKlpzVSUEaCn2XjIoX3B98YL8y0q9kZxtZtMGhNaTz344ZLNB668nPtUG1Kk21H700Mq7mI5JP
 VITE_STRIPE_PRICE_WEEKLY=price_1SIZyF2HBVUtKi5t6y6opjHe
 VITE_STRIPE_PRICE_MONTHLY=price_1SIZz12HBVUtKi5tFtu75oX4
 ```

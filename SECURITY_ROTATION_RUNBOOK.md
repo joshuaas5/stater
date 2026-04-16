@@ -41,7 +41,7 @@ Este runbook cobre o passo 1 apos limpeza de historico: rotacionar todas as cred
 Executar no repo local:
 
 ```bash
-git grep -nI -E "AIza[0-9A-Za-z_-]{20,}|[0-9]{8,}:[A-Za-z0-9_-]{30,}|sk_live_[A-Za-z0-9]{20,}|sk_test_[A-Za-z0-9]{20,}|whsec_[A-Za-z0-9]{20,}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"
+git grep -nI -E "AIza[0-9A-Za-z_-]{20,}|[0-9]{8,}:[A-Za-z0-9_-]{30,}|STRIPE_SECRET_KEY_PROD_PLACEHOLDER{20,}|STRIPE_SECRET_KEY_TEST_PLACEHOLDER{20,}|STRIPE_WEBHOOK_SECRET_PLACEHOLDER{20,}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"
 ```
 
 Se esse comando nao retornar linhas, o estado atual do codigo rastreado esta limpo.

@@ -16,12 +16,12 @@ Como o Supabase CLI nÃ£o pode ser instalado globalmente via npm, vamos fazer d
 
 ```
 Nome: STRIPE_SECRET_KEY
-Valor: sk_test_REDACTED
+Valor: STRIPE_SECRET_KEY_TEST_PLACEHOLDER
 ```
 
 ```
 Nome: STRIPE_WEBHOOK_SECRET
-Valor: whsec_YOUR_WEBHOOK_SECRET
+Valor: STRIPE_WEBHOOK_SECRET_PLACEHOLDER
 ```
 
 ```

@@ -48,13 +48,13 @@ Isso permite testar tudo sem cobranÃ§as reais
 
 **Chave PublicÃ¡vel (Frontend):**
 ```
-pk_test_XXXXXXXXXXXXXXXXXXXXXXXX
+chave_publica_teste_stripeXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 â˜‘ï¸ Pode ser exposta no cÃ³digo JavaScript
 
 **Chave Secreta (Backend):**
 ```
-sk_test_REDACTED
+STRIPE_SECRET_KEY_TEST_PLACEHOLDER
 ```
 âš ï¸ NUNCA exponha esta no frontend!
 
@@ -120,7 +120,7 @@ https://stater.app/api/stripe-webhook
 
 #### 4. **Copie o Signing Secret:**
 ```
-whsec_YOUR_WEBHOOK_SECRET
+STRIPE_WEBHOOK_SECRET_PLACEHOLDER
 ```
 
 ---
@@ -131,9 +131,9 @@ Crie arquivo `.env.local` na raiz do projeto:
 
 ```env
 # STRIPE API KEYS (TESTE)
-VITE_STRIPE_PUBLIC_KEY=pk_test_XXXXXXXXXXXXXXXXXXXXXXXX
-STRIPE_SECRET_KEY=sk_test_REDACTED
-STRIPE_WEBHOOK_SECRET=whsec_YOUR_WEBHOOK_SECRET
+VITE_STRIPE_PUBLIC_KEY=chave_publica_teste_stripeXXXXXXXXXXXXXXXXXXXXXXXX
+STRIPE_SECRET_KEY=STRIPE_SECRET_KEY_TEST_PLACEHOLDER
+STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET_PLACEHOLDER
 
 # STRIPE PRICE IDS
 VITE_STRIPE_PRICE_WEEKLY=price_stater_weekly_890
@@ -469,8 +469,8 @@ supabase functions deploy stripe-webhook
 ### **2. Configurar Secrets:**
 
 ```bash
-supabase secrets set STRIPE_SECRET_KEY=sk_test_XXX
-supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_XXX
+supabase secrets set STRIPE_SECRET_KEY=chave_secreta_teste_stripeXXX
+supabase secrets set STRIPE_WEBHOOK_SECRET=segredo_assinatura_webhookXXX
 ```
 
 ---

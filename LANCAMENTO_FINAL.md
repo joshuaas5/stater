@@ -9,9 +9,9 @@
 
 ### **Stripe - API Keys:**
 ```
-Publishable Key: pk_live_51SIF7P2HBVUtKi5t0ekFiXDkAUfZzkudiy7Kxi5FCIqyjYMUO9E6BsM8xBOpSGN499C0pfVP7dy24RNmNT0CGSQq00Qvvlgb4R
-Secret Key: sk_live_REDACTED
-Webhook Secret: whsec_YOUR_WEBHOOK_SECRET
+Publishable Key: chave_publica_producao_stripe51SIF7P2HBVUtKi5t0ekFiXDkAUfZzkudiy7Kxi5FCIqyjYMUO9E6BsM8xBOpSGN499C0pfVP7dy24RNmNT0CGSQq00Qvvlgb4R
+Secret Key: STRIPE_SECRET_KEY_PROD_PLACEHOLDER
+Webhook Secret: STRIPE_WEBHOOK_SECRET_PLACEHOLDER
 ```
 
 ### **Stripe - Price IDs:**
@@ -41,7 +41,7 @@ https://vercel.com/dashboard
 **VariÃ¡vel 1:**
 ```
 Name: VITE_STRIPE_PUBLIC_KEY
-Value: pk_live_51SIF7P2HBVUtKi5t0ekFiXDkAUfZzkudiy7Kxi5FCIqyjYMUO9E6BsM8xBOpSGN499C0pfVP7dy24RNmNT0CGSQq00Qvvlgb4R
+Value: chave_publica_producao_stripe51SIF7P2HBVUtKi5t0ekFiXDkAUfZzkudiy7Kxi5FCIqyjYMUO9E6BsM8xBOpSGN499C0pfVP7dy24RNmNT0CGSQq00Qvvlgb4R
 Environment: Production, Preview, Development (marque todos)
 ```
 
@@ -94,21 +94,21 @@ https://supabase.com/dashboard
 **Secret 1:**
 ```
 Name: STRIPE_SECRET_KEY
-Value: sk_live_REDACTED
+Value: STRIPE_SECRET_KEY_PROD_PLACEHOLDER
 ```
 
 **Secret 2:**
 ```
 Name: STRIPE_WEBHOOK_SECRET
-Value: whsec_YOUR_WEBHOOK_SECRET
+Value: STRIPE_WEBHOOK_SECRET_PLACEHOLDER
 ```
 
 #### **Como adicionar no Supabase:**
 - Se tiver interface: Clique "New secret" â†’ Cole nome â†’ Cole valor â†’ Save
 - Se nÃ£o tiver interface, use CLI:
   ```bash
-  supabase secrets set STRIPE_SECRET_KEY=sk_live_REDACTED
-  supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_YOUR_WEBHOOK_SECRET
+  supabase secrets set STRIPE_SECRET_KEY=STRIPE_SECRET_KEY_PROD_PLACEHOLDER
+  supabase secrets set STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET_PLACEHOLDER
   ```
 
 ---

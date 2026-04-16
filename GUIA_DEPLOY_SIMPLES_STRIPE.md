@@ -96,13 +96,13 @@ serve(async (req) => {
 **Secret 1:**
 \`\`\`
 Nome: STRIPE_SECRET_KEY
-Valor: sk_test_REDACTED
+Valor: STRIPE_SECRET_KEY_TEST_PLACEHOLDER
 \`\`\`
 
 **Secret 2:**
 \`\`\`
 Nome: STRIPE_WEBHOOK_SECRET
-Valor: whsec_YOUR_WEBHOOK_SECRET
+Valor: STRIPE_WEBHOOK_SECRET_PLACEHOLDER
 \`\`\`
 
 **Secret 3:**

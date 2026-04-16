@@ -49,11 +49,11 @@ https://dashboard.stripe.com/apikeys
 â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
 â”‚                                              â”‚
 â”‚ Publishable key (Chave publicÃ¡vel):         â”‚
-â”‚ pk_live_51SIF7wFog1FXcH5v...                â”‚
+â”‚ chave_publica_producao_stripe51SIF7wFog1FXcH5v...                â”‚
 â”‚ [ðŸ‘ï¸ Mostrar] [ðŸ“‹ Copiar]                    â”‚
 â”‚                                              â”‚
 â”‚ Secret key (Chave secreta):                 â”‚
-â”‚ sk_live_51SIF7wFog1FXcH5v... (oculta)       â”‚
+â”‚ STRIPE_SECRET_KEY_PROD_PLACEHOLDER (oculta)       â”‚
 â”‚ [ðŸ‘ï¸ Revelar] [ðŸ“‹ Copiar]                    â”‚
 â”‚                                              â”‚
 â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
@@ -66,15 +66,15 @@ https://dashboard.stripe.com/apikeys
 
 #### 3. Copie as 2 chaves de PRODUÃ‡ÃƒO:
 
-**Publishable key (comeÃ§a com `pk_live_`):**
+**Publishable key (comeÃ§a com `chave_publica_producao_stripe`):**
 ```
-pk_live_51SIF7wFog1FXcH5v9uSLdcEArKlpzVSUEaCn2XjIoX3B98YL8y0q9kZxtZtMGhNaTz344ZLNB668nPtUG1Kk21H700Mq7mI5JP
+chave_publica_producao_stripe51SIF7wFog1FXcH5v9uSLdcEArKlpzVSUEaCn2XjIoX3B98YL8y0q9kZxtZtMGhNaTz344ZLNB668nPtUG1Kk21H700Mq7mI5JP
 ```
 ðŸ‘† Essa vai no FRONTEND (Vercel)
 
-**Secret key (comeÃ§a com `sk_live_`):**
+**Secret key (comeÃ§a com `chave_secreta_producao_stripe`):**
 ```
-sk_live_51SIF7wFog1FXcH5v[resto da chave]
+STRIPE_SECRET_KEY_PROD_PLACEHOLDER da chave]
 ```
 ðŸ‘† Essa vai no BACKEND (Supabase) - NUNCA exponha!
 
@@ -133,14 +133,14 @@ Webhook de produÃ§Ã£o - Stater Premium
 ```
 â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
 â”‚ Signing secret:                              â”‚
-â”‚ whsec_[cÃ³digo de produÃ§Ã£o]                   â”‚
+â”‚ segredo_assinatura_webhook[cÃ³digo de produÃ§Ã£o]                   â”‚
 â”‚ [ðŸ‘ï¸ Revelar] [ðŸ“‹ Copiar]                    â”‚
 â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Exemplo:**
 ```
-whsec_YOUR_WEBHOOK_SECRET
+STRIPE_WEBHOOK_SECRET_PLACEHOLDER
 ```
 
 ---
@@ -194,9 +194,9 @@ Depois de seguir os passos acima, vocÃª terÃ¡:
 
 ```env
 # STRIPE - PRODUÃ‡ÃƒO
-VITE_STRIPE_PUBLIC_KEY=pk_live_51SIF7wFog1FXcH5v...
-STRIPE_SECRET_KEY=sk_live_51SIF7wFog1FXcH5v...
-STRIPE_WEBHOOK_SECRET=whsec_[cÃ³digo_produÃ§Ã£o]
+VITE_STRIPE_PUBLIC_KEY=chave_publica_producao_stripe51SIF7wFog1FXcH5v...
+STRIPE_SECRET_KEY=STRIPE_SECRET_KEY_PROD_PLACEHOLDER
+STRIPE_WEBHOOK_SECRET=segredo_assinatura_webhook[cÃ³digo_produÃ§Ã£o]
 
 # STRIPE PRICE IDS - PRODUÃ‡ÃƒO
 VITE_STRIPE_PRICE_WEEKLY=price_[cÃ³digo_produÃ§Ã£o_semanal]
@@ -217,7 +217,7 @@ Acesse: https://vercel.com/dashboard
 
 ```
 VITE_STRIPE_PUBLIC_KEY
-Valor: pk_live_51SIF7wFog1FXcH5v...
+Valor: chave_publica_producao_stripe51SIF7wFog1FXcH5v...
 
 VITE_STRIPE_PRICE_WEEKLY
 Valor: price_[cÃ³digo_produÃ§Ã£o]
@@ -242,17 +242,17 @@ Valor: price_[cÃ³digo_produÃ§Ã£o]
 
 ```
 STRIPE_SECRET_KEY
-Valor: sk_live_51SIF7wFog1FXcH5v...
+Valor: STRIPE_SECRET_KEY_PROD_PLACEHOLDER
 
 STRIPE_WEBHOOK_SECRET
-Valor: whsec_[cÃ³digo_produÃ§Ã£o]
+Valor: segredo_assinatura_webhook[cÃ³digo_produÃ§Ã£o]
 ```
 
 #### Via CLI (Alternativo):
 
 ```bash
-supabase secrets set STRIPE_SECRET_KEY=sk_live_XXX
-supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_XXX
+supabase secrets set STRIPE_SECRET_KEY=chave_secreta_producao_stripeXXX
+supabase secrets set STRIPE_WEBHOOK_SECRET=segredo_assinatura_webhookXXX
 ```
 
 ---
@@ -262,9 +262,9 @@ supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_XXX
 Antes de usar as keys de produÃ§Ã£o:
 
 - [ ] âœ… Modo produÃ§Ã£o ATIVADO no Stripe
-- [ ] âœ… API Keys de produÃ§Ã£o copiadas (pk_live_ e sk_live_)
+- [ ] âœ… API Keys de produÃ§Ã£o copiadas (chave_publica_producao_stripe e chave_secreta_producao_stripe)
 - [ ] âœ… Webhook de PRODUÃ‡ÃƒO criado
-- [ ] âœ… Webhook secret de produÃ§Ã£o copiado (whsec_)
+- [ ] âœ… Webhook secret de produÃ§Ã£o copiado (segredo_assinatura_webhook)
 - [ ] âœ… Produtos existem em modo produÃ§Ã£o
 - [ ] âœ… Price IDs de produÃ§Ã£o copiados
 - [ ] âœ… Keys atualizadas no Vercel
@@ -303,13 +303,13 @@ Antes de usar as keys de produÃ§Ã£o:
 ## ðŸš¨ IMPORTANTE - SEGURANÃ‡A
 
 ### **âŒ NUNCA FAÃ‡A:**
-- Commitar sk_live_ no Git
-- Expor sk_live_ no frontend
-- Compartilhar whsec_ publicamente
+- Commitar chave_secreta_producao_stripe no Git
+- Expor chave_secreta_producao_stripe no frontend
+- Compartilhar segredo_assinatura_webhook publicamente
 
 ### **âœ… SEMPRE FAÃ‡A:**
-- Mantenha sk_live_ apenas no Supabase
-- Use pk_live_ no frontend (essa pode ser pÃºblica)
+- Mantenha chave_secreta_producao_stripe apenas no Supabase
+- Use chave_publica_producao_stripe no frontend (essa pode ser pÃºblica)
 - Rotacione keys se houver vazamento
 
 ---
@@ -318,7 +318,7 @@ Antes de usar as keys de produÃ§Ã£o:
 
 1. Stripe Dashboard â†’ Toggle no topo
 2. Mude de "Modo ativo" â†’ "Modo de teste"
-3. Use as keys antigas (pk_test_ e sk_test_)
+3. Use as keys antigas (chave_publica_teste_stripe e chave_secreta_teste_stripe)
 
 ---
 

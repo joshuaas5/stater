@@ -23,17 +23,17 @@ O pagamento foi processado no Stripe, mas o sistema não ativou o PRO porque o *
   - `invoice.payment_failed`
 
 ### Passo 3: Copiar o Webhook Secret
-Após criar, clique no webhook e copie o **"Signing secret"** (começa com `whsec_...`)
+Após criar, clique no webhook e copie o **"Signing secret"** (começa com `segredo_assinatura_webhook...`)
 
 ### Passo 4: Configurar no Supabase
 1. Vá para: https://supabase.com/dashboard/project/tmucbwlhkffrhtexmjze/settings/vault
 2. Adicione o segredo:
    - Nome: `STRIPE_WEBHOOK_SECRET`
-   - Valor: O secret que você copiou (`whsec_...`)
+   - Valor: O secret que você copiou (`segredo_assinatura_webhook...`)
 
 3. Vá para: Edge Functions > stripe-webhook > Configurações
 4. Adicione a variável de ambiente:
-   - `STRIPE_WEBHOOK_SECRET` = `whsec_...`
+   - `STRIPE_WEBHOOK_SECRET` = `segredo_assinatura_webhook...`
 
 ### Passo 5: Fazer Deploy do Webhook (se necessário)
 ```powershell

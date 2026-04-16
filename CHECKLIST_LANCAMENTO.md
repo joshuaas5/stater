@@ -1,54 +1,54 @@
-﻿# ðŸš€ CHECKLIST DE LANÃ‡AMENTO - STATER APP
+# 🚀 CHECKLIST DE LANÇAMENTO - STATER APP
 
 **Data:** 15 de Outubro de 2025  
-**Objetivo:** LanÃ§ar Stater.app em produÃ§Ã£o completa
+**Objetivo:** Lançar Stater.app em produção completa
 
 ---
 
-## âœ… FASE 1: VALIDAÃ‡Ã•ES PRÃ‰-LANÃ‡AMENTO
+## ✅ FASE 1: VALIDAÇÕES PRÉ-LANÇAMENTO
 
 ### **1.1 Pagamentos Stripe**
-- [x] âœ… Stripe configurado em modo teste
-- [x] âœ… 2 produtos criados (Semanal R$ 8,90 / Mensal R$ 19,90)
-- [x] âœ… Edge Functions deployadas (create-checkout + stripe-webhook)
-- [x] âœ… Teste de pagamento com cartÃ£o teste funcionando
-- [ ] ðŸ”„ **AÃ‡ÃƒO:** Ativar modo PRODUÃ‡ÃƒO no Stripe
-- [ ] ðŸ”„ **AÃ‡ÃƒO:** Substituir API keys de teste por produÃ§Ã£o no Vercel
+- [x] ✅ Stripe configurado em modo teste
+- [x] ✅ 2 produtos criados (Semanal R$ 8,90 / Mensal R$ 19,90)
+- [x] ✅ Edge Functions deployadas (create-checkout + stripe-webhook)
+- [x] ✅ Teste de pagamento com cartão teste funcionando
+- [ ] 🔄 **AÇÃO:** Ativar modo PRODUÇÃO no Stripe
+- [ ] 🔄 **AÇÃO:** Substituir API keys de teste por produção no Vercel
 
 ### **1.2 Google AdSense**
-- [ ] â³ Status atual: "Preparando seu site"
-- [ ] â³ Aguardando aprovaÃ§Ã£o do Google (pode levar 2-7 dias)
-- [ ] ðŸ”„ **AÃ‡ÃƒO:** Monitorar email para aprovaÃ§Ã£o
-- [ ] âš ï¸ **NOTA:** NÃ£o bloqueia lanÃ§amento, ads aparecem apÃ³s aprovaÃ§Ã£o
+- [ ] ⏳ Status atual: "Preparando seu site"
+- [ ] ⏳ Aguardando aprovação do Google (pode levar 2-7 dias)
+- [ ] 🔄 **AÇÃO:** Monitorar email para aprovação
+- [ ] ⚠️ **NOTA:** Não bloqueia lançamento, ads aparecem após aprovação
 
 ### **1.3 Funcionalidades Core**
-- [x] âœ… Dashboard funcionando
-- [x] âœ… TransaÃ§Ãµes (criar, editar, deletar)
-- [x] âœ… Categorias e tags
-- [x] âœ… GrÃ¡ficos e relatÃ³rios
-- [x] âœ… Telegram Bot integrado
-- [x] âœ… OCR de documentos
-- [x] âœ… IA Advisor
-- [x] âœ… Dark Mode
-- [x] âœ… Mobile responsivo
+- [x] ✅ Dashboard funcionando
+- [x] ✅ Transações (criar, editar, deletar)
+- [x] ✅ Categorias e tags
+- [x] ✅ Gráficos e relatórios
+- [x] ✅ Telegram Bot integrado
+- [x] ✅ OCR de documentos
+- [x] ✅ IA Advisor
+- [x] ✅ Dark Mode
+- [x] ✅ Mobile responsivo
 
 ### **1.4 Sistema de Limites**
-- [x] âœ… Plano Free: 3 anÃ¡lises IA/dia
-- [x] âœ… Plano Premium: OCR 1.000/mÃªs + Telegram 5.000/mÃªs
-- [x] âœ… Modal Premium sem duplicaÃ§Ãµes
-- [x] âœ… Paywall funcionando corretamente
+- [x] ✅ Plano Free: 3 análises IA/dia
+- [x] ✅ Plano Premium: OCR 1.000/mês + Telegram 5.000/mês
+- [x] ✅ Modal Premium sem duplicações
+- [x] ✅ Paywall funcionando corretamente
 
 ---
 
-## ðŸ”§ FASE 2: CONFIGURAÃ‡Ã•ES FINAIS
+## 🔧 FASE 2: CONFIGURAÇÕES FINAIS
 
-### **2.1 Ambiente de ProduÃ§Ã£o (Vercel)**
+### **2.1 Ambiente de Produção (Vercel)**
 
-**VariÃ¡veis de Ambiente a Configurar:**
+**Variáveis de Ambiente a Configurar:**
 
 ```bash
-# Stripe (PRODUÃ‡ÃƒO)
-VITE_STRIPE_PUBLIC_KEY=pk_live_XXXXXXXXXXXXXXXXXXXXXXXX
+# Stripe (PRODUÇÃO)
+VITE_STRIPE_PUBLIC_KEY=chave_publica_producao_stripeXXXXXXXXXXXXXXXXXXXXXXXX
 VITE_STRIPE_PRICE_WEEKLY=price_live_XXXXXXXXXXXXXXXXXXXXXXXX
 VITE_STRIPE_PRICE_MONTHLY=price_live_XXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -64,28 +64,28 @@ VITE_ADSENSE_ENABLED=true
 VITE_GA_TRACKING_ID=[seu_GA4_tracking_id]
 ```
 
-### **2.2 Supabase Edge Functions (ProduÃ§Ã£o)**
+### **2.2 Supabase Edge Functions (Produção)**
 
 **Secrets a Configurar:**
 
 ```bash
-supabase secrets set STRIPE_SECRET_KEY=sk_live_XXXXXXXXXXXXXXXX
-supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_XXXXXXXXXXXXXXXX
+supabase secrets set STRIPE_SECRET_KEY=STRIPE_SECRET_KEY_PROD_PLACEHOLDER
+supabase secrets set STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET_PLACEHOLDER
 supabase secrets set SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
 ```
 
-### **2.3 Stripe Dashboard (Modo ProduÃ§Ã£o)**
+### **2.3 Stripe Dashboard (Modo Produção)**
 
-- [ ] ðŸ”„ Ativar modo produÃ§Ã£o (toggle no topo)
-- [ ] ðŸ”„ Verificar webhook em produÃ§Ã£o:
+- [ ] 🔄 Ativar modo produção (toggle no topo)
+- [ ] 🔄 Verificar webhook em produção:
   - URL: `https://tmucbwlhkffrhtexmjze.supabase.co/functions/v1/stripe-webhook`
   - Eventos: checkout.session.completed, customer.subscription.deleted, invoice.payment_failed
-- [ ] ðŸ”„ Copiar novas API Keys de produÃ§Ã£o
-- [ ] ðŸ”„ Testar pagamento real com cartÃ£o verdadeiro (seu prÃ³prio)
+- [ ] 🔄 Copiar novas API Keys de produção
+- [ ] 🔄 Testar pagamento real com cartão verdadeiro (seu próprio)
 
 ---
 
-## ðŸ“Š FASE 3: MONITORAMENTO
+## 📊 FASE 3: MONITORAMENTO
 
 ### **3.1 Analytics e Tracking**
 
@@ -112,7 +112,7 @@ export const logEvent = (category: string, action: string, label?: string) => {
 - Cadastros (signups)
 - Logins
 - Cliques em "Assinar Premium"
-- Checkouts concluÃ­dos
+- Checkouts concluídos
 - Uso de funcionalidades (Telegram Bot, OCR, Advisor)
 
 ### **3.2 Logs de Erro**
@@ -136,12 +136,12 @@ Sentry.init({
 
 ### **3.3 Monitoramento de Performance**
 
-**MÃ©tricas para acompanhar:**
-- [ ] Taxa de conversÃ£o (Free â†’ Premium)
+**Métricas para acompanhar:**
+- [ ] Taxa de conversão (Free → Premium)
 - [ ] Churn rate (cancelamentos)
 - [ ] MRR (Monthly Recurring Revenue)
-- [ ] UsuÃ¡rios ativos diÃ¡rios/mensais
-- [ ] Tempo mÃ©dio de sessÃ£o
+- [ ] Usuários ativos diários/mensais
+- [ ] Tempo médio de sessão
 - [ ] Funcionalidades mais usadas
 
 **Dashboard Stripe:**
@@ -151,73 +151,73 @@ Sentry.init({
 - Receita mensal
 
 **Dashboard Supabase:**
-- UsuÃ¡rios cadastrados
+- Usuários cadastrados
 - Uso de Edge Functions
 - Queries por minuto
 - Storage utilizado
 
 ---
 
-## ðŸŽ¯ FASE 4: MARKETING PRÃ‰-LANÃ‡AMENTO
+## 🎯 FASE 4: MARKETING PRÉ-LANÇAMENTO
 
 ### **4.1 Landing Page**
 
-- [ ] ðŸ”„ Criar pÃ¡gina inicial atraente (home)
-- [ ] ðŸ”„ Adicionar seÃ§Ã£o de features
-- [ ] ðŸ”„ Testemunhos (apÃ³s primeiros usuÃ¡rios)
-- [ ] ðŸ”„ FAQ (Perguntas frequentes)
-- [ ] ðŸ”„ CTA claro: "Comece GrÃ¡tis" / "Teste 7 dias Premium"
+- [ ] 🔄 Criar página inicial atraente (home)
+- [ ] 🔄 Adicionar seção de features
+- [ ] 🔄 Testemunhos (após primeiros usuários)
+- [ ] 🔄 FAQ (Perguntas frequentes)
+- [ ] 🔄 CTA claro: "Comece Grátis" / "Teste 7 dias Premium"
 
-### **4.2 SEO BÃ¡sico**
+### **4.2 SEO Básico**
 
 ```html
 <!-- public/index.html -->
-<title>Stater - GestÃ£o Financeira Inteligente com IA</title>
-<meta name="description" content="Controle suas finanÃ§as pessoais com IA, Telegram Bot, OCR de documentos e anÃ¡lises avanÃ§adas. GrÃ¡tis para comeÃ§ar!">
-<meta name="keywords" content="gestÃ£o financeira, controle financeiro, IA, Telegram, OCR, planilha financeira">
+<title>Stater - Gestão Financeira Inteligente com IA</title>
+<meta name="description" content="Controle suas finanças pessoais com IA, Telegram Bot, OCR de documentos e análises avançadas. Grátis para começar!">
+<meta name="keywords" content="gestão financeira, controle financeiro, IA, Telegram, OCR, planilha financeira">
 
 <!-- Open Graph -->
-<meta property="og:title" content="Stater - GestÃ£o Financeira Inteligente">
-<meta property="og:description" content="A forma mais inteligente de gerenciar suas finanÃ§as">
+<meta property="og:title" content="Stater - Gestão Financeira Inteligente">
+<meta property="og:description" content="A forma mais inteligente de gerenciar suas finanças">
 <meta property="og:image" content="https://stater.app/og-image.png">
 <meta property="og:url" content="https://stater.app">
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Stater - GestÃ£o Financeira Inteligente">
-<meta name="twitter:description" content="A forma mais inteligente de gerenciar suas finanÃ§as">
+<meta name="twitter:title" content="Stater - Gestão Financeira Inteligente">
+<meta name="twitter:description" content="A forma mais inteligente de gerenciar suas finanças">
 <meta name="twitter:image" content="https://stater.app/twitter-card.png">
 ```
 
 ### **4.3 Google Search Console**
 
-- [ ] ðŸ”„ Adicionar site no Google Search Console
-- [ ] ðŸ”„ Enviar sitemap.xml
-- [ ] ðŸ”„ Solicitar indexaÃ§Ã£o das pÃ¡ginas principais
+- [ ] 🔄 Adicionar site no Google Search Console
+- [ ] 🔄 Enviar sitemap.xml
+- [ ] 🔄 Solicitar indexação das páginas principais
 
 ---
 
-## ðŸš¨ FASE 5: CONTINGÃŠNCIAS
+## 🚨 FASE 5: CONTINGÊNCIAS
 
 ### **5.1 Plano B para Problemas**
 
 **Se Stripe der erro:**
-- Logs disponÃ­veis em: Stripe Dashboard â†’ Developers â†’ Logs
-- Webhook logs: Supabase Dashboard â†’ Functions â†’ stripe-webhook â†’ Logs
-- Email de suporte: Stripe suporta portuguÃªs
+- Logs disponíveis em: Stripe Dashboard → Developers → Logs
+- Webhook logs: Supabase Dashboard → Functions → stripe-webhook → Logs
+- Email de suporte: Stripe suporta português
 
-**Se AdSense nÃ£o aprovar:**
+**Se AdSense não aprovar:**
 - Alternativas: Google AdMob (mobile), Media.net, PropellerAds
 - Ou focar em receita Premium (melhor margem)
 
 **Se Supabase cair:**
 - Status: https://status.supabase.com
 - Backup manual: Export de dados SQL
-- Plano de migraÃ§Ã£o: Railway, Render, Fly.io
+- Plano de migração: Railway, Render, Fly.io
 
 ### **5.2 Rollback Strategy**
 
-**Se algo quebrar em produÃ§Ã£o:**
+**Se algo quebrar em produção:**
 
 ```bash
 # Voltar para commit anterior
@@ -225,66 +225,66 @@ git revert HEAD
 git push origin main
 
 # Ou fazer rollback no Vercel Dashboard:
-# Vercel â†’ Deployments â†’ [Ãšltimo deploy estÃ¡vel] â†’ Promote to Production
+# Vercel → Deployments → [Último deploy estável] → Promote to Production
 ```
 
 ---
 
-## âœ… FASE 6: CHECKLIST FINAL DE LANÃ‡AMENTO
+## ✅ FASE 6: CHECKLIST FINAL DE LANÇAMENTO
 
-### **Dia do LanÃ§amento:**
+### **Dia do Lançamento:**
 
-- [ ] âœ… Stripe em modo PRODUÃ‡ÃƒO
-- [ ] âœ… VariÃ¡veis de ambiente configuradas no Vercel
-- [ ] âœ… Edge Functions com secrets de produÃ§Ã£o
-- [ ] âœ… Teste completo: cadastro â†’ login â†’ transaÃ§Ã£o â†’ premium â†’ pagamento
-- [ ] âœ… Mobile testado (iOS + Android)
-- [ ] âœ… Dark mode funcionando
-- [ ] âœ… Links de redes sociais atualizados
-- [ ] âœ… Email de suporte configurado (ex: suporte@stater.app)
-- [ ] âœ… Termos de Uso + PolÃ­tica de Privacidade publicados
-- [ ] âœ… Monitoramento ativo (Analytics, Stripe, Supabase)
+- [ ] ✅ Stripe em modo PRODUÇÃO
+- [ ] ✅ Variáveis de ambiente configuradas no Vercel
+- [ ] ✅ Edge Functions com secrets de produção
+- [ ] ✅ Teste completo: cadastro → login → transação → premium → pagamento
+- [ ] ✅ Mobile testado (iOS + Android)
+- [ ] ✅ Dark mode funcionando
+- [ ] ✅ Links de redes sociais atualizados
+- [ ] ✅ Email de suporte configurado (ex: suporte@stater.app)
+- [ ] ✅ Termos de Uso + Política de Privacidade publicados
+- [ ] ✅ Monitoramento ativo (Analytics, Stripe, Supabase)
 
-### **PÃ³s-LanÃ§amento (Primeiras 24h):**
+### **Pós-Lançamento (Primeiras 24h):**
 
-- [ ] ðŸ”„ Monitorar logs de erro
-- [ ] ðŸ”„ Verificar pagamentos entrando corretamente
-- [ ] ðŸ”„ Acompanhar mÃ©tricas de cadastro
-- [ ] ðŸ”„ Responder dÃºvidas de usuÃ¡rios
-- [ ] ðŸ”„ Ajustar limites de rate se necessÃ¡rio
+- [ ] 🔄 Monitorar logs de erro
+- [ ] 🔄 Verificar pagamentos entrando corretamente
+- [ ] 🔄 Acompanhar métricas de cadastro
+- [ ] 🔄 Responder dúvidas de usuários
+- [ ] 🔄 Ajustar limites de rate se necessário
 
 ### **Primeira Semana:**
 
-- [ ] ðŸ”„ Coletar feedback dos primeiros usuÃ¡rios
-- [ ] ðŸ”„ Corrigir bugs urgentes
-- [ ] ðŸ”„ Otimizar conversÃ£o Free â†’ Premium
-- [ ] ðŸ”„ Adicionar features mais pedidas
+- [ ] 🔄 Coletar feedback dos primeiros usuários
+- [ ] 🔄 Corrigir bugs urgentes
+- [ ] 🔄 Otimizar conversão Free → Premium
+- [ ] 🔄 Adicionar features mais pedidas
 
 ---
 
-## ðŸŽ‰ PRÃ“XIMOS PASSOS APÃ“S LANÃ‡AMENTO
+## 🎉 PRÓXIMOS PASSOS APÓS LANÇAMENTO
 
 ### **Curto Prazo (1-2 semanas):**
-1. Campanha de lanÃ§amento nas redes sociais
-2. DivulgaÃ§Ã£o em comunidades (Product Hunt, Reddit, Grupos Facebook)
+1. Campanha de lançamento nas redes sociais
+2. Divulgação em comunidades (Product Hunt, Reddit, Grupos Facebook)
 3. Email marketing para beta testers
-4. Parceria com influenciadores de finanÃ§as
+4. Parceria com influenciadores de finanças
 
-### **MÃ©dio Prazo (1-3 meses):**
+### **Médio Prazo (1-3 meses):**
 1. Implementar sistema de referral (indique e ganhe)
-2. Criar versÃ£o mobile nativa (React Native / Flutter)
-3. IntegraÃ§Ã£o com bancos (Open Banking)
+2. Criar versão mobile nativa (React Native / Flutter)
+3. Integração com bancos (Open Banking)
 4. Expandir funcionalidades de IA
 
 ### **Longo Prazo (6+ meses):**
 1. Plano Enterprise (para empresas)
-2. API pÃºblica para desenvolvedores
-3. Marketplace de integraÃ§Ãµes
-4. ExpansÃ£o internacional
+2. API pública para desenvolvedores
+3. Marketplace de integrações
+4. Expansão internacional
 
 ---
 
-## ðŸ“ž CONTATOS IMPORTANTES
+## 📞 CONTATOS IMPORTANTES
 
 - **Stripe Suporte:** https://support.stripe.com
 - **Supabase Suporte:** https://supabase.com/support
@@ -293,47 +293,47 @@ git push origin main
 
 ---
 
-## ðŸ”¥ DECISÃƒO: QUANDO LANÃ‡AR?
+## 🔥 DECISÃO: QUANDO LANÇAR?
 
-### **OpÃ§Ã£o 1: LanÃ§amento Beta (RECOMENDADO)**
-âœ… **Agora mesmo!**
-- Stripe funcionando âœ…
-- Core features prontas âœ…
-- AdSense pendente (nÃ£o bloqueia)
-- Permite testar com usuÃ¡rios reais
-- CorreÃ§Ãµes com feedback real
+### **Opção 1: Lançamento Beta (RECOMENDADO)**
+✅ **Agora mesmo!**
+- Stripe funcionando ✅
+- Core features prontas ✅
+- AdSense pendente (não bloqueia)
+- Permite testar com usuários reais
+- Correções com feedback real
 
-### **OpÃ§Ã£o 2: LanÃ§amento Oficial**
-â³ **Aguardar:**
-- AprovaÃ§Ã£o Google AdSense (2-7 dias)
+### **Opção 2: Lançamento Oficial**
+⏳ **Aguardar:**
+- Aprovação Google AdSense (2-7 dias)
 - Mais testes internos
 - Landing page mais robusta
 - Maior risco: atrasar sem ganhar qualidade
 
 ---
 
-## ðŸš€ MINHA RECOMENDAÃ‡ÃƒO
+## 🚀 MINHA RECOMENDAÇÃO
 
 **LANCE AGORA EM MODO BETA:**
 
-1. âœ… Stripe funcionando â†’ receita ativa
-2. âœ… Funcionalidades core â†’ valor entregue
-3. â³ AdSense â†’ adiciona receita depois (nÃ£o Ã© crÃ­tico)
-4. ðŸŽ¯ Feedback real â†’ melhora produto mais rÃ¡pido
+1. ✅ Stripe funcionando → receita ativa
+2. ✅ Funcionalidades core → valor entregue
+3. ⏳ AdSense → adiciona receita depois (não é crítico)
+4. 🎯 Feedback real → melhora produto mais rápido
 
 **O que fazer:**
-1. Poste nas redes: "ðŸŽ‰ Stater em Beta PÃºblico! Primeiros 100 usuÃ¡rios ganham 50% desconto no Premium!"
-2. Divulgue em grupos de finanÃ§as pessoais
-3. Monitore mÃ©tricas e bugs
+1. Poste nas redes: "🎉 Stater em Beta Público! Primeiros 100 usuários ganham 50% desconto no Premium!"
+2. Divulgue em grupos de finanças pessoais
+3. Monitore métricas e bugs
 4. Ajuste conforme feedback
-5. LanÃ§amento oficial em 2 semanas com melhorias
+5. Lançamento oficial em 2 semanas com melhorias
 
 ---
 
-**ESTÃ PRONTO PARA LANÃ‡AR?** ðŸš€
+**ESTÁ PRONTO PARA LANÇAR?** 🚀
 
-SÃ³ falta:
-1. Ativar Stripe em produÃ§Ã£o
-2. Configurar variÃ¡veis no Vercel
-3. Apertar o botÃ£o! ðŸ”¥
+Só falta:
+1. Ativar Stripe em produção
+2. Configurar variáveis no Vercel
+3. Apertar o botão! 🔥
 

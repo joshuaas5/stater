@@ -117,7 +117,7 @@ Vá completando cada seção!
 #### ✅ 1. Continuar em modo TESTE
 Suas keys de teste funcionam normalmente:
 ```
-pk_test_51SIF7wFog1FXcH5v9uSLdcEArKlpzVSUEaCn2XjIoX3B98YL8y0q9kZxtZtMGhNaTz344ZLNB668nPtUG1Kk21H700Mq7mI5JP
+chave_publica_teste_stripe51SIF7wFog1FXcH5v9uSLdcEArKlpzVSUEaCn2XjIoX3B98YL8y0q9kZxtZtMGhNaTz344ZLNB668nPtUG1Kk21H700Mq7mI5JP
 ```
 
 #### ✅ 2. Lançar em BETA com modo teste
@@ -242,7 +242,7 @@ pk_test_51SIF7wFog1FXcH5v9uSLdcEArKlpzVSUEaCn2XjIoX3B98YL8y0q9kZxtZtMGhNaTz344ZL
 
 ### **"Minha conta foi aprovada, e agora?"**
 - Acesse: https://dashboard.stripe.com/apikeys
-- Você verá as keys de produção (pk_live_ e sk_live_)
+- Você verá as keys de produção (chave_publica_producao_stripe e chave_secreta_producao_stripe)
 - Siga o guia: `STRIPE_PRODUCAO_KEYS.md`
 
 ---

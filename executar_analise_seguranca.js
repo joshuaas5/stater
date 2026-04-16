@@ -1,30 +1,30 @@
-// Script para executar análise de segurança diretamente no Supabase
+// Script para executar anÃ¡lise de seguranÃ§a diretamente no Supabase
 // Execute com: node executar_analise_seguranca.js
 
 const { createClient } = require('@supabase/supabase-js');
 
-// Configuração do Supabase (usando as mesmas do projeto)
+// ConfiguraÃ§Ã£o do Supabase (usando as mesmas do projeto)
 const supabaseUrl = 'https://tmucbwlhkffrhtexmjze.supabase.co';
 const supabaseAnonKey = 'YOUR_JWT_TOKEN';
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-console.log('🔍 INICIANDO ANÁLISE DE SEGURANÇA...');
+console.log('ðŸ” INICIANDO ANÃLISE DE SEGURANÃ‡A...');
 console.log('=====================================\n');
 
 async function verificarEstadoRLS() {
-  console.log('📊 1. VERIFICANDO ESTADO DO RLS...');
+  console.log('ðŸ“Š 1. VERIFICANDO ESTADO DO RLS...');
   
   try {
-    // Query para verificar RLS das tabelas críticas
+    // Query para verificar RLS das tabelas crÃ­ticas
     const { data, error } = await supabase
       .rpc('check_table_rls_status', {})
       .select();
 
     if (error) {
-      console.log('⚠️ Função RPC não existe, usando query alternativa...');
+      console.log('âš ï¸ FunÃ§Ã£o RPC nÃ£o existe, usando query alternativa...');
       
-      // Query SQL direta (pode não funcionar com anon key)
+      // Query SQL direta (pode nÃ£o funcionar com anon key)
       const { data: manualData, error: manualError } = await supabase
         .from('pg_tables')
         .select('tablename, rowsecurity')
@@ -32,8 +32,8 @@ async function verificarEstadoRLS() {
         .eq('schemaname', 'public');
 
       if (manualError) {
-        console.log('❌ Não conseguimos acessar metadados das tabelas com chave anon');
-        console.log('   Isso é normal - precisamos usar service_role ou SQL Editor');
+        console.log('âŒ NÃ£o conseguimos acessar metadados das tabelas com chave anon');
+        console.log('   Isso Ã© normal - precisamos usar service_role ou SQL Editor');
         console.log('   Error:', manualError.message);
         return false;
       }
@@ -41,13 +41,13 @@ async function verificarEstadoRLS() {
 
     return true;
   } catch (err) {
-    console.log('❌ Erro na verificação RLS:', err.message);
+    console.log('âŒ Erro na verificaÃ§Ã£o RLS:', err.message);
     return false;
   }
 }
 
 async function contarRegistros() {
-  console.log('\n📈 2. CONTANDO REGISTROS (IMPACTO)...');
+  console.log('\nðŸ“ˆ 2. CONTANDO REGISTROS (IMPACTO)...');
   
   const tabelas = ['telegram_users', 'telegram_link_codes'];
   
@@ -58,26 +58,26 @@ async function contarRegistros() {
         .select('*', { count: 'exact', head: true });
       
       if (error) {
-        console.log(`❌ ${tabela}: Erro ao contar - ${error.message}`);
+        console.log(`âŒ ${tabela}: Erro ao contar - ${error.message}`);
         
-        // Se der erro, pode ser porque RLS está ativo e não temos dados
+        // Se der erro, pode ser porque RLS estÃ¡ ativo e nÃ£o temos dados
         if (error.code === 'PGRST116' || error.message.includes('permission denied')) {
-          console.log(`✅ ${tabela}: 0 registros (ou RLS bloqueando - isso é bom!)`);
+          console.log(`âœ… ${tabela}: 0 registros (ou RLS bloqueando - isso Ã© bom!)`);
         }
       } else {
         const nivel = count === 0 ? 'Seguro' : 
                      count < 10 ? 'Baixo risco' : 
-                     count < 100 ? 'Risco médio' : 'Alto risco';
-        console.log(`📊 ${tabela}: ${count} registros - ${nivel}`);
+                     count < 100 ? 'Risco mÃ©dio' : 'Alto risco';
+        console.log(`ðŸ“Š ${tabela}: ${count} registros - ${nivel}`);
       }
     } catch (err) {
-      console.log(`⚠️ ${tabela}: Erro - ${err.message}`);
+      console.log(`âš ï¸ ${tabela}: Erro - ${err.message}`);
     }
   }
 }
 
 async function verificarView() {
-  console.log('\n🔍 3. VERIFICANDO VIEW PROBLEMÁTICA...');
+  console.log('\nðŸ” 3. VERIFICANDO VIEW PROBLEMÃTICA...');
   
   try {
     // Tentar acessar a view audio_usage_summary
@@ -88,21 +88,21 @@ async function verificarView() {
     
     if (error) {
       if (error.code === '42P01') {
-        console.log('✅ View audio_usage_summary não existe - sem problemas');
+        console.log('âœ… View audio_usage_summary nÃ£o existe - sem problemas');
       } else {
-        console.log(`⚠️ View audio_usage_summary: ${error.message}`);
+        console.log(`âš ï¸ View audio_usage_summary: ${error.message}`);
       }
     } else {
-      console.log('🚨 View audio_usage_summary existe e é acessível');
+      console.log('ðŸš¨ View audio_usage_summary existe e Ã© acessÃ­vel');
       console.log('   Precisa ser verificada para SECURITY DEFINER');
     }
   } catch (err) {
-    console.log(`⚠️ Erro ao verificar view: ${err.message}`);
+    console.log(`âš ï¸ Erro ao verificar view: ${err.message}`);
   }
 }
 
 async function verificarAudioResponseCache() {
-  console.log('\n🔊 4. VERIFICANDO AUDIO_RESPONSE_CACHE...');
+  console.log('\nðŸ”Š 4. VERIFICANDO AUDIO_RESPONSE_CACHE...');
   
   try {
     const { count, error } = await supabase
@@ -111,20 +111,20 @@ async function verificarAudioResponseCache() {
     
     if (error) {
       if (error.code === '42P01') {
-        console.log('✅ Tabela audio_response_cache não existe - sem problemas');
+        console.log('âœ… Tabela audio_response_cache nÃ£o existe - sem problemas');
       } else {
-        console.log(`❌ audio_response_cache: ${error.message}`);
+        console.log(`âŒ audio_response_cache: ${error.message}`);
       }
     } else {
-      console.log(`📊 audio_response_cache: ${count} registros encontrados`);
+      console.log(`ðŸ“Š audio_response_cache: ${count} registros encontrados`);
     }
   } catch (err) {
-    console.log(`⚠️ Erro ao verificar audio_response_cache: ${err.message}`);
+    console.log(`âš ï¸ Erro ao verificar audio_response_cache: ${err.message}`);
   }
 }
 
 async function testarConexao() {
-  console.log('\n🔌 5. TESTANDO CONEXÃO BÁSICA...');
+  console.log('\nðŸ”Œ 5. TESTANDO CONEXÃƒO BÃSICA...');
   
   try {
     // Testar com uma query simples
@@ -134,12 +134,12 @@ async function testarConexao() {
       .limit(1);
     
     if (error) {
-      console.log(`⚠️ Profiles: ${error.message}`);
+      console.log(`âš ï¸ Profiles: ${error.message}`);
     } else {
-      console.log('✅ Conexão com Supabase funcionando');
+      console.log('âœ… ConexÃ£o com Supabase funcionando');
     }
   } catch (err) {
-    console.log(`❌ Erro de conexão: ${err.message}`);
+    console.log(`âŒ Erro de conexÃ£o: ${err.message}`);
   }
 }
 
@@ -150,22 +150,22 @@ async function executarAnalise() {
   await verificarAudioResponseCache();
   await testarConexao();
   
-  console.log('\n=== RESUMO DA ANÁLISE ===');
+  console.log('\n=== RESUMO DA ANÃLISE ===');
   console.log('');
-  console.log('🎯 PRÓXIMOS PASSOS:');
-  console.log('1. Se encontrou erros de permissão = RLS pode estar ativo (bom!)');
-  console.log('2. Se tabelas têm registros = aplicar correções RLS');
+  console.log('ðŸŽ¯ PRÃ“XIMOS PASSOS:');
+  console.log('1. Se encontrou erros de permissÃ£o = RLS pode estar ativo (bom!)');
+  console.log('2. Se tabelas tÃªm registros = aplicar correÃ§Ãµes RLS');
   console.log('3. Se view existe = recriar sem SECURITY DEFINER');
   console.log('');
-  console.log('⚠️ LIMITAÇÕES:');
-  console.log('- Usando chave anon - não consegue acessar metadados do sistema');
-  console.log('- Para análise completa, use service_role ou SQL Editor');
+  console.log('âš ï¸ LIMITAÃ‡Ã•ES:');
+  console.log('- Usando chave anon - nÃ£o consegue acessar metadados do sistema');
+  console.log('- Para anÃ¡lise completa, use service_role ou SQL Editor');
   console.log('');
-  console.log('✅ ANÁLISE CONCLUÍDA!');
+  console.log('âœ… ANÃLISE CONCLUÃDA!');
 }
 
-// Executar análise
+// Executar anÃ¡lise
 executarAnalise().catch(error => {
-  console.error('❌ Erro fatal na análise:', error);
+  console.error('âŒ Erro fatal na anÃ¡lise:', error);
   process.exit(1);
 });

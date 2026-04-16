@@ -1,4 +1,4 @@
-{
+﻿{
   "project_info": {
     "project_number": "709126447592",
     "project_id": "stater-68765",
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "YOUR_GEMINI_API_KEY"
+          "current_key": "YOUR_GOOGLE_API_KEY"
         }
       ],
       "services": {

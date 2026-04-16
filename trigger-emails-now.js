@@ -5,7 +5,7 @@ async function triggerEmails() {
   // Service Role Key do Supabase
   const SERVICE_ROLE_KEY = 'YOUR_JWT_TOKEN';
   
-  console.log('📧 Disparando weekly-email-digest...\n');
+  console.log('ðŸ“§ Disparando weekly-email-digest...\n');
 
   try {
     const response = await fetch('https://tmucbwlhkffrhtexmjze.supabase.co/functions/v1/weekly-email-digest', {
@@ -23,20 +23,20 @@ async function triggerEmails() {
     console.log('');
     
     if (data.success) {
-      console.log('🎉 SUCESSO!\n');
-      console.log(`📬 Emails enviados: ${data.emailsSent}`);
-      console.log(`⏭️ Emails pulados (opt-out): ${data.emailsSkipped}`);
+      console.log('ðŸŽ‰ SUCESSO!\n');
+      console.log(`ðŸ“¬ Emails enviados: ${data.emailsSent}`);
+      console.log(`â­ï¸ Emails pulados (opt-out): ${data.emailsSkipped}`);
       if (data.errors?.length > 0) {
-        console.log(`\n⚠️ Erros (${data.errors.length}):`);
+        console.log(`\nâš ï¸ Erros (${data.errors.length}):`);
         data.errors.forEach(e => console.log(`   - ${e}`));
       }
-      console.log(`\n⏰ Timestamp: ${data.timestamp}`);
+      console.log(`\nâ° Timestamp: ${data.timestamp}`);
     } else {
-      console.log('❌ Erro:', data.error || JSON.stringify(data));
+      console.log('âŒ Erro:', data.error || JSON.stringify(data));
     }
     
   } catch (error) {
-    console.error('❌ Erro na requisição:', error.message);
+    console.error('âŒ Erro na requisiÃ§Ã£o:', error.message);
   }
 }
 

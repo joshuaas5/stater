@@ -6,13 +6,13 @@ const supabaseKey = 'YOUR_JWT_TOKEN';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function debugTables() {
-  console.log('🔍 Verificando tabela telegram_link_codes...');
+  console.log('ðŸ” Verificando tabela telegram_link_codes...');
   
   try {
     // Tentar inserir um registro de teste
     const testData = {
       code: '123456',
-      user_id: '550e8400-e29b-41d4-a716-446655440000', // UUID de teste válido
+      user_id: '550e8400-e29b-41d4-a716-446655440000', // UUID de teste vÃ¡lido
       user_email: 'test@example.com',
       user_name: 'Test User',
       expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
@@ -27,20 +27,20 @@ async function debugTables() {
       .select();
     
     if (error) {
-      console.error('❌ Erro ao inserir:', error);
+      console.error('âŒ Erro ao inserir:', error);
     } else {
-      console.log('✅ Inserção bem-sucedida:', data);
+      console.log('âœ… InserÃ§Ã£o bem-sucedida:', data);
       
       // Limpar o teste
       await supabase
         .from('telegram_link_codes')
         .delete()
         .eq('code', '123456');
-      console.log('🧹 Dados de teste removidos');
+      console.log('ðŸ§¹ Dados de teste removidos');
     }
     
   } catch (e) {
-    console.error('❌ Erro geral:', e);
+    console.error('âŒ Erro geral:', e);
   }
   
   // Verificar se a tabela existe
@@ -51,12 +51,12 @@ async function debugTables() {
       .limit(1);
     
     if (error) {
-      console.error('❌ Erro ao consultar tabela:', error);
+      console.error('âŒ Erro ao consultar tabela:', error);
     } else {
-      console.log('✅ Tabela existe e é acessível');
+      console.log('âœ… Tabela existe e Ã© acessÃ­vel');
     }
   } catch (e) {
-    console.error('❌ Tabela pode não existir:', e);
+    console.error('âŒ Tabela pode nÃ£o existir:', e);
   }
 }
 

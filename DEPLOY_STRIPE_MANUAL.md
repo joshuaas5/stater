@@ -1,10 +1,10 @@
-# 🚀 DEPLOY MANUAL DAS EDGE FUNCTIONS - STRIPE
+# ðŸš€ DEPLOY MANUAL DAS EDGE FUNCTIONS - STRIPE
 
-Como o Supabase CLI não pode ser instalado globalmente via npm, vamos fazer deploy manual via Dashboard.
+Como o Supabase CLI nÃ£o pode ser instalado globalmente via npm, vamos fazer deploy manual via Dashboard.
 
 ---
 
-## 📋 PASSO A PASSO COMPLETO
+## ðŸ“‹ PASSO A PASSO COMPLETO
 
 ### **ETAPA 1: Configurar Secrets no Supabase**
 
@@ -21,7 +21,7 @@ Valor: sk_test_REDACTED
 
 ```
 Nome: STRIPE_WEBHOOK_SECRET
-Valor: whsec_REDACTED
+Valor: whsec_YOUR_WEBHOOK_SECRET
 ```
 
 ```
@@ -29,23 +29,23 @@ Nome: SUPABASE_URL
 Valor: https://tmucbwlhkffrhtexmjze.supabase.co
 ```
 
-**IMPORTANTE:** O `SUPABASE_SERVICE_ROLE_KEY` já deve existir. Se não existir, adicione também.
+**IMPORTANTE:** O `SUPABASE_SERVICE_ROLE_KEY` jÃ¡ deve existir. Se nÃ£o existir, adicione tambÃ©m.
 
 ---
 
-### **ETAPA 2: Modificar a função "bright-responder" para criar checkout**
+### **ETAPA 2: Modificar a funÃ§Ã£o "bright-responder" para criar checkout**
 
 1. Acesse: https://supabase.com/dashboard/project/tmucbwlhkffrhtexmjze/functions
 
-2. Clique na função **"bright-responder"**
+2. Clique na funÃ§Ã£o **"bright-responder"**
 
-3. Você vai ver 2 abas: **"Details"** e **"Code"** (ou similar)
+3. VocÃª vai ver 2 abas: **"Details"** e **"Code"** (ou similar)
 
 4. Clique em **"Code"** ou **"Edit"**
 
-5. **APAGUE TODO o código existente**
+5. **APAGUE TODO o cÃ³digo existente**
 
-6. **Cole este código:**
+6. **Cole este cÃ³digo:**
 
 ```typescript
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
@@ -69,7 +69,7 @@ serve(async (req) => {
   try {
     const { priceId, userId, userEmail, successUrl, cancelUrl } = await req.json();
 
-    console.log('🛒 Creating checkout session:', { priceId, userId, userEmail });
+    console.log('ðŸ›’ Creating checkout session:', { priceId, userId, userEmail });
 
     // Criar Checkout Session
     const session = await stripe.checkout.sessions.create({
@@ -91,7 +91,7 @@ serve(async (req) => {
       },
     });
 
-    console.log('✅ Checkout session created:', session.id);
+    console.log('âœ… Checkout session created:', session.id);
 
     return new Response(
       JSON.stringify({ sessionId: session.id }),
@@ -102,7 +102,7 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
-    console.error('❌ Error creating checkout:', error.message);
+    console.error('âŒ Error creating checkout:', error.message);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
@@ -116,15 +116,15 @@ serve(async (req) => {
 
 7. Clique em **"Save"** ou **"Deploy"**
 
-8. **Renomeie a função** para `create-checkout`:
-   - Procure a opção de "Settings" ou "Rename"
+8. **Renomeie a funÃ§Ã£o** para `create-checkout`:
+   - Procure a opÃ§Ã£o de "Settings" ou "Rename"
    - Mude o nome de `bright-responder` para `create-checkout`
 
 ---
 
 ### **ETAPA 3: Criar a segunda Edge Function (stripe-webhook)**
 
-Como não tem botão "Create", vamos usar outra abordagem:
+Como nÃ£o tem botÃ£o "Create", vamos usar outra abordagem:
 
 1. Acesse: https://supabase.com/dashboard/project/tmucbwlhkffrhtexmjze/sql-editor
 
@@ -132,7 +132,7 @@ Como não tem botão "Create", vamos usar outra abordagem:
 
 ```sql
 -- Este comando cria uma nova Edge Function via SQL
--- Infelizmente, isso não funciona direto. Precisamos criar via API REST.
+-- Infelizmente, isso nÃ£o funciona direto. Precisamos criar via API REST.
 ```
 
 **ALTERNATIVA:** Criar via cURL (PowerShell):
@@ -143,26 +143,27 @@ Vou criar um script PowerShell que faz isso!
 
 ### **ETAPA 4: Script PowerShell para criar Edge Functions**
 
-Vou criar um arquivo `.ps1` que você pode executar.
+Vou criar um arquivo `.ps1` que vocÃª pode executar.
 
 ---
 
-## ⚠️ PROBLEMA IDENTIFICADO
+## âš ï¸ PROBLEMA IDENTIFICADO
 
-O Supabase Dashboard **não permite criar novas Edge Functions manualmente** sem o CLI.
+O Supabase Dashboard **nÃ£o permite criar novas Edge Functions manualmente** sem o CLI.
 
-**SOLUÇÃO:** Vou criar um script que usa a API REST do Supabase para fazer o deploy.
+**SOLUÃ‡ÃƒO:** Vou criar um script que usa a API REST do Supabase para fazer o deploy.
 
-**Quer que eu crie esse script ou prefere uma solução mais simples?**
+**Quer que eu crie esse script ou prefere uma soluÃ§Ã£o mais simples?**
 
 ---
 
-## ✅ SOLUÇÃO MAIS SIMPLES: Usar npx
+## âœ… SOLUÃ‡ÃƒO MAIS SIMPLES: Usar npx
 
-Vou tentar usar `npx supabase` (que não precisa instalação global):
+Vou tentar usar `npx supabase` (que nÃ£o precisa instalaÃ§Ã£o global):
 
 ```powershell
 npx supabase functions deploy create-checkout --project-ref tmucbwlhkffrhtexmjze
 ```
 
 Quer que eu tente essa abordagem?
+

@@ -40,3 +40,8 @@ android/.gradle_temp/
 android/keystore.properties
 *.keystore
 *.jks
+
+# Build artifacts and signing files (do not track)
+*.apk
+app/build/outputs/
+telegram-bot/.env

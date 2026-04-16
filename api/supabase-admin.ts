@@ -1,9 +1,10 @@
-// Serverless utilitário para acessar o Supabase Admin API (Node)
 import { createClient } from '@supabase/supabase-js';
 
-// Configuração básica e funcional
-const supabaseUrl = 'https://tmucbwlhkffrhtexmjze.supabase.co';
-const supabaseAnonKey = 'YOUR_JWT_TOKEN';
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
-// Usar cliente simples com a chave anon (que funcionava antes)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseAnonKey);
+if (!supabaseUrl || !supabaseKey) {
+  console.warn('[supabase-admin] Missing SUPABASE_URL and/or Supabase key env vars.');
+}
+
+export const supabaseAdmin = createClient(supabaseUrl, supabaseKey);

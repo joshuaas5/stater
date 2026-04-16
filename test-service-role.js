@@ -8,29 +8,29 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 });
 
 async function testWithServiceRole() {
-  console.log('🔍 Testando com service role...');
+  console.log('ðŸ” Testando com service role...');
   
   try {
-    // Buscar um usuário real
+    // Buscar um usuÃ¡rio real
     const { data: users, error: usersError } = await supabase
       .from('profiles')
       .select('id, email, username')
       .limit(1);
     
     if (usersError) {
-      console.error('❌ Erro ao buscar usuários:', usersError);
+      console.error('âŒ Erro ao buscar usuÃ¡rios:', usersError);
       return;
     }
     
     if (!users || users.length === 0) {
-      console.log('⚠️ Nenhum usuário encontrado na tabela profiles');
+      console.log('âš ï¸ Nenhum usuÃ¡rio encontrado na tabela profiles');
       return;
     }
     
     const user = users[0];
-    console.log('✅ Usuário encontrado:', user);
+    console.log('âœ… UsuÃ¡rio encontrado:', user);
     
-    // Tentar inserir código com service role
+    // Tentar inserir cÃ³digo com service role
     const testData = {
       code: '999888',
       user_id: user.id,
@@ -40,7 +40,7 @@ async function testWithServiceRole() {
       created_at: new Date().toISOString()
     };
     
-    console.log('📝 Tentando inserir com service role:', testData);
+    console.log('ðŸ“ Tentando inserir com service role:', testData);
     
     const { data, error } = await supabase
       .from('telegram_link_codes')
@@ -48,20 +48,20 @@ async function testWithServiceRole() {
       .select();
     
     if (error) {
-      console.error('❌ Erro ao inserir com service role:', error);
+      console.error('âŒ Erro ao inserir com service role:', error);
     } else {
-      console.log('✅ Inserção bem-sucedida com service role!', data);
+      console.log('âœ… InserÃ§Ã£o bem-sucedida com service role!', data);
       
       // Limpar
       await supabase
         .from('telegram_link_codes')
         .delete()
         .eq('code', '999888');
-      console.log('🧹 Dados de teste removidos');
+      console.log('ðŸ§¹ Dados de teste removidos');
     }
     
   } catch (e) {
-    console.error('❌ Erro geral:', e);
+    console.error('âŒ Erro geral:', e);
   }
 }
 

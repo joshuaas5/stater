@@ -1,5 +1,5 @@
 -- ========================================
--- 🧹 LIMPAR COMPLETAMENTE E RECRIAR CRON
+-- ðŸ§¹ LIMPAR COMPLETAMENTE E RECRIAR CRON
 -- ========================================
 
 -- 1. Listar TODOS os jobs ativos para identificar o jobid
@@ -8,17 +8,17 @@ FROM cron.job
 ORDER BY jobid;
 
 -- 2. DELETAR o job usando cron.unschedule (substitui DELETE)
--- ⚠️ Se houver múltiplos jobs com mesmo nome, rode este bloco múltiplas vezes
+-- âš ï¸ Se houver mÃºltiplos jobs com mesmo nome, rode este bloco mÃºltiplas vezes
 SELECT cron.unschedule('weekly-email-digest');
 
 -- 3. Verificar se deletou (deve retornar vazio)
 SELECT * FROM cron.job WHERE jobname = 'weekly-email-digest';
 
--- 3. Habilitar extensões (garantir que estão ativas)
+-- 3. Habilitar extensÃµes (garantir que estÃ£o ativas)
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS pg_net;
 
--- 4. Criar tabela de preferências (se não existir)
+-- 4. Criar tabela de preferÃªncias (se nÃ£o existir)
 CREATE TABLE IF NOT EXISTS user_notification_preferences (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS user_notification_preferences (
   UNIQUE(user_id)
 );
 
--- 5. RLS e políticas
+-- 5. RLS e polÃ­ticas
 ALTER TABLE user_notification_preferences ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can view own preferences" ON user_notification_preferences;
@@ -61,7 +61,7 @@ SELECT cron.schedule(
 );
 
 -- ========================================
--- ✅ VERIFICAÇÕES FINAIS
+-- âœ… VERIFICAÃ‡Ã•ES FINAIS
 -- ========================================
 
 -- Ver o job criado (deve ter APENAS 1 job com jobname = 'weekly-email-digest')
@@ -75,7 +75,7 @@ FROM cron.job
 ORDER BY jobid;
 
 -- ========================================
--- 🧪 TESTE MANUAL (descomente para testar AGORA)
+-- ðŸ§ª TESTE MANUAL (descomente para testar AGORA)
 -- ========================================
 /*
 SELECT net.http_post(
@@ -89,7 +89,7 @@ SELECT net.http_post(
 */
 
 -- ========================================
--- 📊 HISTÓRICO DE EXECUÇÕES (últimas 10)
+-- ðŸ“Š HISTÃ“RICO DE EXECUÃ‡Ã•ES (Ãºltimas 10)
 -- ========================================
 SELECT jobid, runid, status, return_message, start_time 
 FROM cron.job_run_details 

@@ -2,12 +2,15 @@
 // node run-sql-api.js
 
 async function runSQL() {
-  // Service Role Key do Supabase (tem permissão total)
+  // Service Role Key do Supabase (tem permissÃƒÂ£o total)
   const SUPABASE_URL = 'https://tmucbwlhkffrhtexmjze.supabase.co';
   
-  // ⚠️ COLE SUA SERVICE_ROLE_KEY AQUI
+  // Ã¢Å¡Â Ã¯Â¸Â COLE SUA SERVICE_ROLE_KEY AQUI
   // Pegue em: Supabase Dashboard > Settings > API > service_role (secret)
-  const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_JWT_TOKEN';
+  const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  if (!SERVICE_ROLE_KEY) {
+    throw new Error('Defina SUPABASE_SERVICE_ROLE_KEY no ambiente.');
+  }
 
   const sql = `
     -- Remover job antigo se existir
@@ -25,7 +28,7 @@ async function runSQL() {
     );
   `;
 
-  console.log('🔧 Configurando CRON job via Supabase API...\n');
+  console.log('Ã°Å¸â€Â§ Configurando CRON job via Supabase API...\n');
 
   try {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/`, {
@@ -39,17 +42,17 @@ async function runSQL() {
       body: JSON.stringify({})
     });
 
-    // A API REST não permite executar SQL arbitrário
+    // A API REST nÃƒÂ£o permite executar SQL arbitrÃƒÂ¡rio
     // Precisamos de outra abordagem...
     
-    console.log('⚠️ A API REST do Supabase não permite executar SQL arbitrário.');
+    console.log('Ã¢Å¡Â Ã¯Â¸Â A API REST do Supabase nÃƒÂ£o permite executar SQL arbitrÃƒÂ¡rio.');
     console.log('');
-    console.log('📋 SOLUÇÃO: Execute este SQL manualmente no Supabase Dashboard:');
+    console.log('Ã°Å¸â€œâ€¹ SOLUÃƒâ€¡ÃƒÆ’O: Execute este SQL manualmente no Supabase Dashboard:');
     console.log('');
     console.log('1. Acesse: https://supabase.com/dashboard/project/tmucbwlhkffrhtexmjze/sql');
     console.log('2. Cole e execute:');
     console.log('');
-    console.log('─'.repeat(60));
+    console.log('Ã¢â€â‚¬'.repeat(60));
     console.log(`
 -- Remover job antigo se existir
 DO $$ 
@@ -76,14 +79,14 @@ SELECT cron.schedule(
 -- Verificar
 SELECT * FROM cron.job;
 `);
-    console.log('─'.repeat(60));
+    console.log('Ã¢â€â‚¬'.repeat(60));
     console.log('');
     console.log('3. Para TESTAR AGORA (enviar emails):');
-    console.log('   - Vá em Edge Functions > weekly-email-digest > Test');
+    console.log('   - VÃƒÂ¡ em Edge Functions > weekly-email-digest > Test');
     console.log('   - Ou acesse: https://supabase.com/dashboard/project/tmucbwlhkffrhtexmjze/functions');
     
   } catch (error) {
-    console.error('❌ Erro:', error.message);
+    console.error('Ã¢ÂÅ’ Erro:', error.message);
   }
 }
 

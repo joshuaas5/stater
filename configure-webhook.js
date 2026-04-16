@@ -1,72 +1,37 @@
-// Configuração rápida do webhook via fetch
-const configureWebhook = async () => {
-  // Token do bot (usar o que está configurado no Vercel)
-  const BOT_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN';
-  const WEBHOOK_URL = 'https://stater.app/api/telegram-webhook';
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+const WEBHOOK_URL = process.env.TELEGRAM_WEBHOOK_URL || 'https://stater.app/api/telegram-webhook';
+const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || undefined;
 
-  console.log('🤖 Configurando webhook do bot Telegram...');
-  console.log('🔗 Bot: https://t.me/stater');
-  console.log('📡 Webhook URL:', WEBHOOK_URL);
+if (!BOT_TOKEN) {
+  console.error('Defina TELEGRAM_BOT_TOKEN no ambiente.');
+  process.exit(1);
+}
 
+async function configureWebhook() {
   try {
-    // 1. Primeiro, vamos limpar qualquer webhook existente
-    console.log('\n🧹 Limpando webhook anterior...');
     const deleteResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/deleteWebhook`);
-    const deleteResult = await deleteResponse.json();
-    console.log('📝 Limpeza:', deleteResult.ok ? '✅ Sucesso' : '❌ Falha');
+    console.log('deleteWebhook:', await deleteResponse.json());
 
-    // 2. Configurar novo webhook
-    console.log('\n⚙️ Configurando novo webhook...');
+    const body = {
+      url: WEBHOOK_URL,
+      allowed_updates: ['message', 'callback_query'],
+      drop_pending_updates: true,
+      max_connections: 40,
+      secret_token: WEBHOOK_SECRET
+    };
+
     const setResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/setWebhook`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url: WEBHOOK_URL,
-        allowed_updates: ['message', 'callback_query'],
-        drop_pending_updates: true,
-        max_connections: 40,
-        secret_token: 'stater_webhook_secret_2025'
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     });
+    console.log('setWebhook:', await setResponse.json());
 
-    const setResult = await setResponse.json();
-    console.log('📝 Configuração:', JSON.stringify(setResult, null, 2));
-
-    if (setResult.ok) {
-      console.log('✅ Webhook configurado com sucesso!');
-    } else {
-      console.log('❌ Erro ao configurar webhook:', setResult.description);
-      return;
-    }
-
-    // 3. Verificar configuração
-    console.log('\n🔍 Verificando configuração...');
     const infoResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getWebhookInfo`);
-    const infoResult = await infoResponse.json();
-    console.log('📊 Status do webhook:', JSON.stringify(infoResult, null, 2));
-
-    // 4. Testar com getMe
-    console.log('\n🤖 Testando bot...');
-    const meResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getMe`);
-    const meResult = await meResponse.json();
-    console.log('👤 Info do bot:', JSON.stringify(meResult, null, 2));
-
-    if (meResult.ok) {
-      console.log(`\n✅ Bot @${meResult.result.username} está ativo!`);
-      console.log('🎉 Configuração completa!');
-      console.log('\n📱 Para testar:');
-      console.log('1. Acesse: https://t.me/stater');
-      console.log('2. Digite: /start');
-      console.log('3. Digite: /help');
-      console.log('4. Teste: qualquer mensagem');
-    }
-
+    console.log('getWebhookInfo:', await infoResponse.json());
   } catch (error) {
-    console.error('❌ Erro na configuração:', error);
+    console.error('Erro na configuracao:', error);
   }
-};
+}
 
-// Executar configuração
 configureWebhook();

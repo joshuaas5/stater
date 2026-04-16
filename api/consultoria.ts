@@ -1,20 +1,25 @@
-// Vercel Serverless Function para proxy seguro Gemini 1.5 Pro
+﻿// Vercel Serverless Function para proxy seguro Gemini 1.5 Pro
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Método não permitido' });
+    res.status(405).json({ error: 'MÃ©todo nÃ£o permitido' });
     return;
   }
   try {
     const { history } = req.body;
     if (!history || !Array.isArray(history)) {
-      res.status(400).json({ error: 'Histórico de mensagens ausente.' });
+      res.status(400).json({ error: 'HistÃ³rico de mensagens ausente.' });
       return;
-    }    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
+    }
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+    if (!GEMINI_API_KEY) {
+      res.status(500).json({ error: 'GEMINI_API_KEY não configurada.' });
+      return;
+    }
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
-    const context = `Você é uma IA chamada VOYB IA e atua em um aplicativo de organização e controle financeiro, deve responder de forma inteligente e correta, como um consultor financeiro, mas que também não é enrolado, mas que fala o necessário e essencial de maneira que inspire e dê ótimas ideias para o usuário. Responde utilizando listas, emojis, use negrito para títulos e dê espaçamento entre tópicos de fala. Se o usuário pedir para registrar uma entrada, saída ou conta, peça confirmação antes de registrar. Apenas registre após o usuário confirmar explicitamente. Se não entender, peça mais detalhes.`;
-    const chatHistory = history.map((msg) => `${msg.sender === "user" ? "Usuário" : "Consultor"}: ${msg.text}`).join("\n");
-    const prompt = `${context}\n\nHistórico:\n${chatHistory}\n\nResposta:`;
+    const context = `VocÃª Ã© uma IA chamada VOYB IA e atua em um aplicativo de organizaÃ§Ã£o e controle financeiro, deve responder de forma inteligente e correta, como um consultor financeiro, mas que tambÃ©m nÃ£o Ã© enrolado, mas que fala o necessÃ¡rio e essencial de maneira que inspire e dÃª Ã³timas ideias para o usuÃ¡rio. Responde utilizando listas, emojis, use negrito para tÃ­tulos e dÃª espaÃ§amento entre tÃ³picos de fala. Se o usuÃ¡rio pedir para registrar uma entrada, saÃ­da ou conta, peÃ§a confirmaÃ§Ã£o antes de registrar. Apenas registre apÃ³s o usuÃ¡rio confirmar explicitamente. Se nÃ£o entender, peÃ§a mais detalhes.`;
+    const chatHistory = history.map((msg) => `${msg.sender === "user" ? "UsuÃ¡rio" : "Consultor"}: ${msg.text}`).join("\n");
+    const prompt = `${context}\n\nHistÃ³rico:\n${chatHistory}\n\nResposta:`;
 
     const geminiRes = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -29,3 +34,6 @@ export default async function handler(req: any, res: any) {
     res.status(500).json({ error: 'Erro ao consultar Gemini.' });
   }
 }
+
+
+

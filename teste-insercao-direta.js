@@ -1,10 +1,10 @@
-// Teste de inserção direta na tabela telegram_users
+﻿// Teste de inserÃ§Ã£o direta na tabela telegram_users
 const SUPABASE_URL = 'https://tmucbwlhkffrhtexmjze.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_JWT_TOKEN';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'COLE_SUA_SUPABASE_ANON_KEY_AQUI';
 
 async function testDirectInsert() {
   try {
-    console.log('🧪 Testando inserção direta...');
+    console.log('ðŸ§ª Testando inserÃ§Ã£o direta...');
     
     const response = await fetch(`${SUPABASE_URL}/rest/v1/telegram_users`, {
       method: 'POST',
@@ -24,19 +24,22 @@ async function testDirectInsert() {
       })
     });
     
-    console.log('📊 Status inserção:', response.status);
+    console.log('ðŸ“Š Status inserÃ§Ã£o:', response.status);
     
     if (response.ok) {
       const data = await response.json();
-      console.log('✅ Inserção bem-sucedida:', data);
+      console.log('âœ… InserÃ§Ã£o bem-sucedida:', data);
     } else {
       const errorData = await response.text();
-      console.log('❌ Erro na inserção:', errorData);
+      console.log('âŒ Erro na inserÃ§Ã£o:', errorData);
     }
     
   } catch (error) {
-    console.error('❌ Erro no teste:', error);
+    console.error('âŒ Erro no teste:', error);
   }
 }
 
 testDirectInsert();
+
+
+

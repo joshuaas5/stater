@@ -1,418 +1,418 @@
-# 💰 STATER IA - ESTRATÉGIA DE MONETIZAÇÃO COMPLETA
+﻿# ðŸ’° STATER IA - ESTRATÃ‰GIA DE MONETIZAÃ‡ÃƒO COMPLETA
 
-## 🎯 **ANÁLISE: ESSENCIAL vs DESNECESSÁRIO**
+## ðŸŽ¯ **ANÃLISE: ESSENCIAL vs DESNECESSÃRIO**
 
-### **✅ ESSENCIAL PARA MONETIZAÇÃO (IMPLEMENTAR PRIMEIRO)**
+### **âœ… ESSENCIAL PARA MONETIZAÃ‡ÃƒO (IMPLEMENTAR PRIMEIRO)**
 
-#### **🎬 Sistema de Ads Core**
+#### **ðŸŽ¬ Sistema de Ads Core**
 - **UserJourneyManager** - Jornada progressiva 3 dias
-- **AdCooldownManager** - Ads por ação (bills alternado, transactions a cada 3)
-- **Componentes Ad Rewarded** - Modal básico de anúncio
-- **🎯 OBJETIVO:** Converter free em pago via frustração controlada
+- **AdCooldownManager** - Ads por aÃ§Ã£o (bills alternado, transactions a cada 3)
+- **Componentes Ad Rewarded** - Modal bÃ¡sico de anÃºncio
+- **ðŸŽ¯ OBJETIVO:** Converter free em pago via frustraÃ§Ã£o controlada
 
-#### **💳 Sistema de Planos Premium**
-- **Google Play Billing** - Obrigatório para Android
-- **PaymentManager** - Validação de compras
+#### **ðŸ’³ Sistema de Planos Premium**
+- **Google Play Billing** - ObrigatÃ³rio para Android
+- **PaymentManager** - ValidaÃ§Ã£o de compras
 - **SubtlePaywall** - Card sutil de upgrade
-- **🎯 OBJETIVO:** Capturar conversões no momento certo
+- **ðŸŽ¯ OBJETIVO:** Capturar conversÃµes no momento certo
 
-#### **📊 Limites Compartilhados**
+#### **ðŸ“Š Limites Compartilhados**
 - **SharedLimitsManager** - App + Telegram sincronizados
 - **Daily limits tracking** - Controle por plano
-- **🎯 OBJETIVO:** Enforcement da monetização
+- **ðŸŽ¯ OBJETIVO:** Enforcement da monetizaÃ§Ã£o
 
-#### **🗄️ Schema Mínimo (4 tabelas)**
+#### **ðŸ—„ï¸ Schema MÃ­nimo (4 tabelas)**
 - `user_journey` - Tracking da jornada
-- `ad_cooldowns` - Controle de ads por ação
+- `ad_cooldowns` - Controle de ads por aÃ§Ã£o
 - `user_subscriptions` - Status dos planos
 - `daily_limits` - Limites compartilhados
 
 ---
 
-### **❌ DESNECESSÁRIO AGORA (REMOVER/SIMPLIFICAR)**
+### **âŒ DESNECESSÃRIO AGORA (REMOVER/SIMPLIFICAR)**
 
-#### **🎮 Gamificação Complexa**
-- ~~XP System~~ - Complexidade desnecessária
-- ~~Achievements~~ - Distração do foco principal
-- ~~Levels~~ - Não agrega na conversão
-- **🚫 PROBLEMA:** Sobrecarrega UX sem impacto na receita
+#### **ðŸŽ® GamificaÃ§Ã£o Complexa**
+- ~~XP System~~ - Complexidade desnecessÃ¡ria
+- ~~Achievements~~ - DistraÃ§Ã£o do foco principal
+- ~~Levels~~ - NÃ£o agrega na conversÃ£o
+- **ðŸš« PROBLEMA:** Sobrecarrega UX sem impacto na receita
 
-#### **📧 Sistema de Email Avançado**
+#### **ðŸ“§ Sistema de Email AvanÃ§ado**
 - ~~Templates personalizados~~ - Ferramentas simples resolvem
 - ~~Notification logs~~ - Excesso de tracking
-- **🚫 PROBLEMA:** Desenvolvimento demorado, baixo ROI
+- **ðŸš« PROBLEMA:** Desenvolvimento demorado, baixo ROI
 
-#### **📈 Analytics Ultra-Detalhado**
-- ~~Event tracking granular~~ - Google Analytics básico resolve
-- ~~Session management~~ - Desnecessário inicialmente
-- **🚫 PROBLEMA:** Over-engineering para MVP
+#### **ðŸ“ˆ Analytics Ultra-Detalhado**
+- ~~Event tracking granular~~ - Google Analytics bÃ¡sico resolve
+- ~~Session management~~ - DesnecessÃ¡rio inicialmente
+- **ðŸš« PROBLEMA:** Over-engineering para MVP
 
-#### **🏗️ Infraestrutura Complexa**
-- ~~CI/CD avançado~~ - Deploy manual inicial
+#### **ðŸ—ï¸ Infraestrutura Complexa**
+- ~~CI/CD avanÃ§ado~~ - Deploy manual inicial
 - ~~Docker multi-stage~~ - Simplicidade primeiro
-- ~~Load balancing~~ - Prematuro para início
-- **🚫 PROBLEMA:** Tempo gasto em infraestrutura vs features
+- ~~Load balancing~~ - Prematuro para inÃ­cio
+- **ðŸš« PROBLEMA:** Tempo gasto em infraestrutura vs features
 
 ---
 
-### **📋 IMPLEMENTAÇÃO FOCADA (2 SEMANAS)**
+### **ðŸ“‹ IMPLEMENTAÃ‡ÃƒO FOCADA (2 SEMANAS)**
 
 #### **SEMANA 1: Core Monetization**
 ```
-🎯 DIA 1-2: UserJourneyManager + Jornada 3 dias
-🎯 DIA 3-4: AdCooldownManager + Ads por ação  
-🎯 DIA 5-7: Google Play Billing + Paywall básico
+ðŸŽ¯ DIA 1-2: UserJourneyManager + Jornada 3 dias
+ðŸŽ¯ DIA 3-4: AdCooldownManager + Ads por aÃ§Ã£o  
+ðŸŽ¯ DIA 5-7: Google Play Billing + Paywall bÃ¡sico
 ```
 
-#### **SEMANA 2: Integração & Polish**
+#### **SEMANA 2: IntegraÃ§Ã£o & Polish**
 ```
-🎯 DIA 8-10: SharedLimitsManager + Telegram sync
-🎯 DIA 11-12: Testes e ajustes de conversão
-🎯 DIA 13-14: Deploy e validação em produção
+ðŸŽ¯ DIA 8-10: SharedLimitsManager + Telegram sync
+ðŸŽ¯ DIA 11-12: Testes e ajustes de conversÃ£o
+ðŸŽ¯ DIA 13-14: Deploy e validaÃ§Ã£o em produÃ§Ã£o
 ```
 
 ---
 
-## 📋 VISÃO GERAL
+## ðŸ“‹ VISÃƒO GERAL
 
-Este documento centraliza as informações **ESSENCIAIS** sobre a implementação de monetização do Stater IA, focando apenas no que é necessário para converter usuários free em pagantes.
+Este documento centraliza as informaÃ§Ãµes **ESSENCIAIS** sobre a implementaÃ§Ã£o de monetizaÃ§Ã£o do Stater IA, focando apenas no que Ã© necessÃ¡rio para converter usuÃ¡rios free em pagantes.
 
 ---
 
-## 🎯 ESTRATÉGIA DEFINITIVA
+## ðŸŽ¯ ESTRATÃ‰GIA DEFINITIVA
 
-### **Modelo: Jornada Progressiva → Conversão Forçada**
+### **Modelo: Jornada Progressiva â†’ ConversÃ£o ForÃ§ada**
 
-#### 🆓 **TIER FREE - Jornada de 3 Dias + Teste Grátis**
-- **Dia 1**: 1 ad rewarded → 3 mensagens
-- **Dia 2**: 2 ads rewarded → 4 mensagens  
-- **Dia 3**: 3 ads rewarded → 5 mensagens
-- **Dia 4+**: Paywall obrigatório
-- **Teste grátis**: 3 dias do plano semanal (com cartão)
+#### ðŸ†“ **TIER FREE - Jornada de 3 Dias + Teste GrÃ¡tis**
+- **Dia 1**: 1 ad rewarded â†’ 3 mensagens
+- **Dia 2**: 2 ads rewarded â†’ 4 mensagens  
+- **Dia 3**: 3 ads rewarded â†’ 5 mensagens
+- **Dia 4+**: Paywall obrigatÃ³rio
+- **Teste grÃ¡tis**: 3 dias do plano semanal (com cartÃ£o)
 
-#### 💎 **PLANOS PAGOS (Ads Free + Funcionalidades Completas)**
-- **🔥 SUPER PROMOÇÃO**: R$ 4,99 - Primeira assinatura semanal (única vez)
-- **Semanal**: R$ 8,90 - Uso básico + Bot Telegram (preço regular)
-- **Mensal**: R$ 15,90 - Uso médio + Relatórios
-- **Pro**: R$ 29,90 - Uso avançado + PDFs
+#### ðŸ’Ž **PLANOS PAGOS (Ads Free + Funcionalidades Completas)**
+- **ðŸ”¥ SUPER PROMOÃ‡ÃƒO**: R$ 4,99 - Primeira assinatura semanal (Ãºnica vez)
+- **Semanal**: R$ 8,90 - Uso bÃ¡sico + Bot Telegram (preÃ§o regular)
+- **Mensal**: R$ 15,90 - Uso mÃ©dio + RelatÃ³rios
+- **Pro**: R$ 29,90 - Uso avanÃ§ado + PDFs
 - **Enterprise**: Contato staterbills@gmail.com
 
 ---
 
-## 💰 ESTRUTURA DE PLANOS E PREÇOS
+## ðŸ’° ESTRUTURA DE PLANOS E PREÃ‡OS
 
-### **� SUPER PROMOÇÃO - R$ 4,99**
+### **ï¿½ SUPER PROMOÃ‡ÃƒO - R$ 4,99**
 ```
-📊 LIMITES DIÁRIOS:
+ðŸ“Š LIMITES DIÃRIOS:
 - 10 mensagens de texto
-- 3 análises de fotos
-- 3 análises de áudio  
+- 3 anÃ¡lises de fotos
+- 3 anÃ¡lises de Ã¡udio  
 - 0 leitura de PDFs
 
-🚀 FUNCIONALIDADES:
+ðŸš€ FUNCIONALIDADES:
 - Bot Telegram integrado (limites compartilhados)
-- 100% livre de anúncios
-- Suporte básico
+- 100% livre de anÃºncios
+- Suporte bÃ¡sico
 
-⚡ OFERTA ESPECIAL:
-- Apenas primeira assinatura por usuário
-- 3 dias grátis (requer cartão)
-- Após primeira semana: preço sobe para R$ 8,90
-- Oferta única e limitada
+âš¡ OFERTA ESPECIAL:
+- Apenas primeira assinatura por usuÃ¡rio
+- 3 dias grÃ¡tis (requer cartÃ£o)
+- ApÃ³s primeira semana: preÃ§o sobe para R$ 8,90
+- Oferta Ãºnica e limitada
 ```
 
-### **�📱 PLANO SEMANAL - R$ 8,90**
+### **ï¿½ðŸ“± PLANO SEMANAL - R$ 8,90**
 ```
-📊 LIMITES DIÁRIOS:
+ðŸ“Š LIMITES DIÃRIOS:
 - 10 mensagens de texto
-- 3 análises de fotos
-- 3 análises de áudio  
+- 3 anÃ¡lises de fotos
+- 3 anÃ¡lises de Ã¡udio  
 - 0 leitura de PDFs
 
-🚀 FUNCIONALIDADES:
+ðŸš€ FUNCIONALIDADES:
 - Bot Telegram integrado (limites compartilhados)
-- 100% livre de anúncios
-- Suporte básico
+- 100% livre de anÃºncios
+- Suporte bÃ¡sico
 
-⚡ TESTE GRÁTIS: 3 dias (requer cartão)
+âš¡ TESTE GRÃTIS: 3 dias (requer cartÃ£o)
 ```
 
-### **💎 PLANO MENSAL - R$ 15,90**
+### **ðŸ’Ž PLANO MENSAL - R$ 15,90**
 ```
-📊 LIMITES DIÁRIOS:
+ðŸ“Š LIMITES DIÃRIOS:
 - 20 mensagens de texto
-- 10 análises de fotos
-- 10 análises de áudio
+- 10 anÃ¡lises de fotos
+- 10 anÃ¡lises de Ã¡udio
 - 0 leitura de PDFs
 
-🚀 FUNCIONALIDADES:
+ðŸš€ FUNCIONALIDADES:
 - Tudo do plano semanal +
-- Exportar relatórios (PDF, XLSX, OFX, CSV)
-- Análises financeiras avançadas
-- Suporte prioritário
+- Exportar relatÃ³rios (PDF, XLSX, OFX, CSV)
+- AnÃ¡lises financeiras avanÃ§adas
+- Suporte prioritÃ¡rio
 ```
 
-### **🚀 PLANO PRO - R$ 29,90**
+### **ðŸš€ PLANO PRO - R$ 29,90**
 ```
-📊 LIMITES DIÁRIOS:
+ðŸ“Š LIMITES DIÃRIOS:
 - 30 mensagens de texto
-- 15 análises de fotos
-- 15 análises de áudio
+- 15 anÃ¡lises de fotos
+- 15 anÃ¡lises de Ã¡udio
 - 5 leituras de PDFs
 
-🚀 FUNCIONALIDADES:
+ðŸš€ FUNCIONALIDADES:
 - Tudo dos planos anteriores +
-- Leitura e análise de PDFs (faturas, extratos)
-- OCR avançado para documentos
+- Leitura e anÃ¡lise de PDFs (faturas, extratos)
+- OCR avanÃ§ado para documentos
 - Insights de despesas por categoria
-- Relatórios personalizados
+- RelatÃ³rios personalizados
 ```
 
-### **🏢 PLANO ENTERPRISE**
+### **ðŸ¢ PLANO ENTERPRISE**
 ```
-📞 CONTATO: staterbills@gmail.com
+ðŸ“ž CONTATO: staterbills@gmail.com
 - Limites personalizados
 - API dedicada
-- Múltiplos usuários
+- MÃºltiplos usuÃ¡rios
 - Consultoria financeira
 - SLA garantido
 ```
 
 ---
 
-## 💵 ANÁLISE FINANCEIRA DETALHADA
+## ðŸ’µ ANÃLISE FINANCEIRA DETALHADA
 
-### **📊 Custos Reais - Gemini 2.5 Flash Lite (Dólar R$ 5,60)**
+### **ðŸ“Š Custos Reais - Gemini 2.5 Flash Lite (DÃ³lar R$ 5,60)**
 
-| Operação | USD/1M | BRL/1M | BRL/operação |
+| OperaÃ§Ã£o | USD/1M | BRL/1M | BRL/operaÃ§Ã£o |
 |----------|---------|---------|--------------|
 | **Input texto/imagem** | $0,10 | R$ 0,56 | R$ 0,001904 |
-| **Input áudio** | $0,30 | R$ 1,68 | R$ 0,003528 |
+| **Input Ã¡udio** | $0,30 | R$ 1,68 | R$ 0,003528 |
 | **Output** | $0,40 | R$ 2,24 | R$ 0,00644 |
 | **PDF/OCR** | - | - | R$ 0,00784 |
 
-### **💰 Viabilidade Financeira dos Planos (com taxas Google Play)**
+### **ðŸ’° Viabilidade Financeira dos Planos (com taxas Google Play)**
 
-#### **📱 PLANO SEMANAL (R$ 8,90)**
+#### **ðŸ“± PLANO SEMANAL (R$ 8,90)**
 ```
-💰 RECEITA LÍQUIDA (após taxa Google 15%):
+ðŸ’° RECEITA LÃQUIDA (apÃ³s taxa Google 15%):
 - Receita bruta: R$ 8,90
 - Taxa Google Play: R$ 1,34 (15%)
-- Receita líquida: R$ 7,56
+- Receita lÃ­quida: R$ 7,56
 
-🔴 USO MÁXIMO (100% dos limites):
-- 70 mensagens × R$ 0,001904 = R$ 0,133
-- 21 fotos × R$ 0,00644 = R$ 0,135
-- 21 áudios × R$ 0,003528 = R$ 0,074
+ðŸ”´ USO MÃXIMO (100% dos limites):
+- 70 mensagens Ã— R$ 0,001904 = R$ 0,133
+- 21 fotos Ã— R$ 0,00644 = R$ 0,135
+- 21 Ã¡udios Ã— R$ 0,003528 = R$ 0,074
 - CUSTO TOTAL: R$ 0,342
-- MARGEM: R$ 7,22 (+2.111%) ✅
+- MARGEM: R$ 7,22 (+2.111%) âœ…
 
-🟡 USO MÉDIO (50% dos limites):
+ðŸŸ¡ USO MÃ‰DIO (50% dos limites):
 - CUSTO: R$ 0,171
-- MARGEM: R$ 7,39 (+4.322%) ✅
+- MARGEM: R$ 7,39 (+4.322%) âœ…
 ```
 ```
-� RECEITA LÍQUIDA (após taxa Google 15%):
+ï¿½ RECEITA LÃQUIDA (apÃ³s taxa Google 15%):
 - Receita bruta: R$ 8,99
 - Taxa Google Play: R$ 1,35 (15%)
-- Receita líquida: R$ 7,64
+- Receita lÃ­quida: R$ 7,64
 
-�🔴 USO MÁXIMO (100% dos limites):
-- 70 mensagens × R$ 0,001904 = R$ 0,133
-- 21 fotos × R$ 0,00644 = R$ 0,135
-- 21 áudios × R$ 0,003528 = R$ 0,074
+ï¿½ðŸ”´ USO MÃXIMO (100% dos limites):
+- 70 mensagens Ã— R$ 0,001904 = R$ 0,133
+- 21 fotos Ã— R$ 0,00644 = R$ 0,135
+- 21 Ã¡udios Ã— R$ 0,003528 = R$ 0,074
 - CUSTO TOTAL: R$ 0,342
-- MARGEM: R$ 7,30 (+2.135%) ✅
+- MARGEM: R$ 7,30 (+2.135%) âœ…
 
-🟡 USO MÉDIO (50% dos limites):
+ðŸŸ¡ USO MÃ‰DIO (50% dos limites):
 - CUSTO: R$ 0,171
-- MARGEM: R$ 7,47 (+4.368%) ✅
+- MARGEM: R$ 7,47 (+4.368%) âœ…
 ```
 
-#### **💎 PLANO MENSAL (R$ 15,90)**
+#### **ðŸ’Ž PLANO MENSAL (R$ 15,90)**
 ```
-💰 RECEITA LÍQUIDA (após taxa Google 15%):
+ðŸ’° RECEITA LÃQUIDA (apÃ³s taxa Google 15%):
 - Receita bruta: R$ 15,90
 - Taxa Google Play: R$ 2,39 (15%)
-- Receita líquida: R$ 13,51
+- Receita lÃ­quida: R$ 13,51
 
-🔴 USO MÁXIMO:
-- 600 mensagens + 300 fotos + 300 áudios
+ðŸ”´ USO MÃXIMO:
+- 600 mensagens + 300 fotos + 300 Ã¡udios
 - CUSTO TOTAL: R$ 4,133
-- MARGEM: R$ 9,38 (+227%) ✅
+- MARGEM: R$ 9,38 (+227%) âœ…
 
-🟡 USO MÉDIO:
+ðŸŸ¡ USO MÃ‰DIO:
 - CUSTO: R$ 2,066
-- MARGEM: R$ 11,44 (+554%) ✅
+- MARGEM: R$ 11,44 (+554%) âœ…
 ```
 ```
-💰 RECEITA LÍQUIDA (após taxa Google 15%):
+ðŸ’° RECEITA LÃQUIDA (apÃ³s taxa Google 15%):
 - Receita bruta: R$ 19,99
 - Taxa Google Play: R$ 3,00 (15%)
-- Receita líquida: R$ 16,99
+- Receita lÃ­quida: R$ 16,99
 
-🔴 USO MÁXIMO:
-- 600 mensagens + 300 fotos + 300 áudios
+ðŸ”´ USO MÃXIMO:
+- 600 mensagens + 300 fotos + 300 Ã¡udios
 - CUSTO TOTAL: R$ 4,133
-- MARGEM: R$ 12,86 (+311%) ✅
-- MARGEM: R$ 15,86 (+384%) ✅
+- MARGEM: R$ 12,86 (+311%) âœ…
+- MARGEM: R$ 15,86 (+384%) âœ…
 
-🟡 USO MÉDIO:
-🟡 USO MÉDIO:
+ðŸŸ¡ USO MÃ‰DIO:
+ðŸŸ¡ USO MÃ‰DIO:
 - CUSTO: R$ 2,066
-- MARGEM: R$ 14,92 (+722%) ✅
+- MARGEM: R$ 14,92 (+722%) âœ…
 ```
 
-#### **🚀 PLANO PRO (R$ 29,90)**
+#### **ðŸš€ PLANO PRO (R$ 29,90)**
 ```
-💰 RECEITA LÍQUIDA (após taxa Google 15%):
+ðŸ’° RECEITA LÃQUIDA (apÃ³s taxa Google 15%):
 - Receita bruta: R$ 29,90
 - Taxa Google Play: R$ 4,49 (15%)
-- Receita líquida: R$ 25,41
+- Receita lÃ­quida: R$ 25,41
 
-🔴 USO MÁXIMO:
-- 900 msgs + 450 fotos + 450 áudios + 150 PDFs
+ðŸ”´ USO MÃXIMO:
+- 900 msgs + 450 fotos + 450 Ã¡udios + 150 PDFs
 - CUSTO TOTAL: R$ 7,375
-- MARGEM: R$ 18,04 (+245%) ✅
+- MARGEM: R$ 18,04 (+245%) âœ…
 
-🟡 USO MÉDIO:
+ðŸŸ¡ USO MÃ‰DIO:
 - CUSTO: R$ 3,688
-- MARGEM: R$ 21,72 (+589%) ✅
+- MARGEM: R$ 21,72 (+589%) âœ…
 ```
 
-### **🆓 Custo do Teste Grátis (3 dias)**
+### **ðŸ†“ Custo do Teste GrÃ¡tis (3 dias)**
 ```
-💸 CUSTO MÁXIMO POR TESTE:
-- 30 mensagens + 9 fotos + 9 áudios = R$ 0,115
+ðŸ’¸ CUSTO MÃXIMO POR TESTE:
+- 30 mensagens + 9 fotos + 9 Ã¡udios = R$ 0,115
 - RISCO: Praticamente zero
-- CONVERSÃO ESPERADA: 60%+ ✅
+- CONVERSÃƒO ESPERADA: 60%+ âœ…
 
-⚠️ IMPORTANTE: Mesmo com 15% de taxa do Google Play,
+âš ï¸ IMPORTANTE: Mesmo com 15% de taxa do Google Play,
 todas as margens permanecem excelentes (300%+)
 ```
 
 ---
 
-## 📱 **SISTEMA DE ADS POR AÇÃO (Versão FREE)**
+## ðŸ“± **SISTEMA DE ADS POR AÃ‡ÃƒO (VersÃ£o FREE)**
 
-### **💡 Estratégia: Ads Contextuais com Cooldown**
+### **ðŸ’¡ EstratÃ©gia: Ads Contextuais com Cooldown**
 
-#### **🏠 BILLS & CONTAS RECORRENTES**
+#### **ðŸ  BILLS & CONTAS RECORRENTES**
 ```
-📋 REGRA DE ADS:
-- 1º cadastro: SEM AD (primeira experiência suave)
-- 2º cadastro: AD obrigatório
-- 3º cadastro: SEM AD
-- 4º cadastro: AD obrigatório
-- 5º+ cadastro: Alternado (par=AD, ímpar=SEM)
+ðŸ“‹ REGRA DE ADS:
+- 1Âº cadastro: SEM AD (primeira experiÃªncia suave)
+- 2Âº cadastro: AD obrigatÃ³rio
+- 3Âº cadastro: SEM AD
+- 4Âº cadastro: AD obrigatÃ³rio
+- 5Âº+ cadastro: Alternado (par=AD, Ã­mpar=SEM)
 - Cooldown: 5 minutos entre ads desta categoria
 
-🎯 EXEMPLO DE FLUXO:
-14:00 - Cadastra conta de luz → SEM AD (1º)
-14:01 - Cadastra conta de água → VÊ AD (2º)
-14:02 - Cadastra Netflix → SEM AD (3º)
-14:03 - Cadastra conta de gás → VÊ AD (4º)
-14:04 - Cadastra aluguel → SEM AD (5º)
+ðŸŽ¯ EXEMPLO DE FLUXO:
+14:00 - Cadastra conta de luz â†’ SEM AD (1Âº)
+14:01 - Cadastra conta de Ã¡gua â†’ VÃŠ AD (2Âº)
+14:02 - Cadastra Netflix â†’ SEM AD (3Âº)
+14:03 - Cadastra conta de gÃ¡s â†’ VÃŠ AD (4Âº)
+14:04 - Cadastra aluguel â†’ SEM AD (5Âº)
 
-💰 MONETIZAÇÃO:
+ðŸ’° MONETIZAÃ‡ÃƒO:
 - Receita por ad: R$ 0,0085
 - ~50% dos cadastros geram ads
-- Primeira experiência sem frustração
+- Primeira experiÃªncia sem frustraÃ§Ã£o
 ```
 
-#### **💸 TRANSAÇÕES NA DASHBOARD**
+#### **ðŸ’¸ TRANSAÃ‡Ã•ES NA DASHBOARD**
 ```
-📊 REGRA DE ADS:
-- A cada 3 transações cadastradas → 1 AD
+ðŸ“Š REGRA DE ADS:
+- A cada 3 transaÃ§Ãµes cadastradas â†’ 1 AD
 - Cooldown: 3 minutos entre ads desta categoria
 - Conta separadamente de BILLS
 
-🎯 EXEMPLO DE FLUXO:
-15:00 - Adiciona despesa "Almoço" → Contador: 1/3
-15:01 - Adiciona receita "Freelance" → Contador: 2/3  
-15:02 - Adiciona despesa "Uber" → VÊ AD + Reset contador
-15:03 - Adiciona despesa "Café" → Contador: 1/3 (novo ciclo)
+ðŸŽ¯ EXEMPLO DE FLUXO:
+15:00 - Adiciona despesa "AlmoÃ§o" â†’ Contador: 1/3
+15:01 - Adiciona receita "Freelance" â†’ Contador: 2/3  
+15:02 - Adiciona despesa "Uber" â†’ VÃŠ AD + Reset contador
+15:03 - Adiciona despesa "CafÃ©" â†’ Contador: 1/3 (novo ciclo)
 
-💰 MONETIZAÇÃO:
+ðŸ’° MONETIZAÃ‡ÃƒO:
 - Mais engajamento = mais ads
-- Usuários ativos veem mais ads
+- UsuÃ¡rios ativos veem mais ads
 - Incentiva upgrade para remover ads
 ```
 
 ---
 
-## 🎮 JORNADA PROGRESSIVA FREE (3 Dias)
+## ðŸŽ® JORNADA PROGRESSIVA FREE (3 Dias)
 
-### **📅 Estratégia de Conversão Forçada**
+### **ðŸ“… EstratÃ©gia de ConversÃ£o ForÃ§ada**
 
-#### **DIA 1: Primeira Impressão**
+#### **DIA 1: Primeira ImpressÃ£o**
 ```
-👀 USUÁRIO ASSISTE:
+ðŸ‘€ USUÃRIO ASSISTE:
 - 1 Interstitial Rewarded (5-8 segundos)
 - Receita: R$ 0,0085
 
-💎 CRÉDITOS LIBERADOS:
+ðŸ’Ž CRÃ‰DITOS LIBERADOS:
 - 3 mensagens de texto
 - Custo: R$ 0,005712
-- Margem: +49% ✅
+- Margem: +49% âœ…
 
-🧠 PSICOLOGIA:
-- "Que fácil! Só um anúncio rápido"
-- "A IA é incrível!"
-- "Vou usar mais amanhã"
+ðŸ§  PSICOLOGIA:
+- "Que fÃ¡cil! SÃ³ um anÃºncio rÃ¡pido"
+- "A IA Ã© incrÃ­vel!"
+- "Vou usar mais amanhÃ£"
 ```
 
 #### **DIA 2: Aumento do Investimento**
 ```
-👀 USUÁRIO ASSISTE:
+ðŸ‘€ USUÃRIO ASSISTE:
 - 2 Interstitials Rewarded (10-15 segundos)
 - Receita: R$ 0,017
 
-💎 CRÉDITOS LIBERADOS:
+ðŸ’Ž CRÃ‰DITOS LIBERADOS:
 - 4 mensagens de texto
 - Custo: R$ 0,007616
-- Margem: +123% ✅
+- Margem: +123% âœ…
 
-🧠 PSICOLOGIA:
-- "Ok, dois anúncios, mas ainda vale"
+ðŸ§  PSICOLOGIA:
+- "Ok, dois anÃºncios, mas ainda vale"
 - "Preciso de mais mensagens"
 - "Estou viciado nesta IA"
 ```
 
-#### **DIA 3: Frustração Controlada**
+#### **DIA 3: FrustraÃ§Ã£o Controlada**
 ```
-👀 USUÁRIO ASSISTE:
+ðŸ‘€ USUÃRIO ASSISTE:
 - 3 Interstitials Rewarded (18-25 segundos)
 - Receita: R$ 0,0255
 
-💎 CRÉDITOS LIBERADOS:
+ðŸ’Ž CRÃ‰DITOS LIBERADOS:
 - 5 mensagens de texto
 - Custo: R$ 0,00952
-- Margem: +168% ✅
+- Margem: +168% âœ…
 
-🧠 PSICOLOGIA:
-- "3 anúncios agora? Irritante..."
-- "Mas preciso terminar minha análise"
-- "Já cansei desses anúncios"
+ðŸ§  PSICOLOGIA:
+- "3 anÃºncios agora? Irritante..."
+- "Mas preciso terminar minha anÃ¡lise"
+- "JÃ¡ cansei desses anÃºncios"
 ```
 
-#### **DIA 4+: PAYWALL OBRIGATÓRIO**
+#### **DIA 4+: PAYWALL OBRIGATÃ“RIO**
 ```
-🚫 ZERO ANÚNCIOS DISPONÍVEIS
+ðŸš« ZERO ANÃšNCIOS DISPONÃVEIS
 
-💔 CALL-TO-ACTION SUTIL:
+ðŸ’” CALL-TO-ACTION SUTIL:
 - "Desbloqueie todo o potencial da IA"
 - "Continue sua jornada financeira"
-- "Experimente 3 dias grátis" (com cartão)
+- "Experimente 3 dias grÃ¡tis" (com cartÃ£o)
 
-🎯 CONVERSÃO ESPERADA: 60-70% em 5 dias
+ðŸŽ¯ CONVERSÃƒO ESPERADA: 60-70% em 5 dias
 ```
 
 ---
 
-## 🔧 **IMPLEMENTAÇÃO: SISTEMA DE ADS POR AÇÃO**
+## ðŸ”§ **IMPLEMENTAÃ‡ÃƒO: SISTEMA DE ADS POR AÃ‡ÃƒO**
 
-### **⏰ Gerenciador de Cooldown de Ads**
+### **â° Gerenciador de Cooldown de Ads**
 
 ```typescript
 // src/utils/adCooldownManager.ts
@@ -421,7 +421,7 @@ interface AdCooldown {
   lastAdShown: Date;
   actionCount: number;
   cooldownMinutes: number;
-  adFrequency: number; // Mostrar ad a cada X ações
+  adFrequency: number; // Mostrar ad a cada X aÃ§Ãµes
 }
 
 export class AdCooldownManager {
@@ -439,30 +439,30 @@ export class AdCooldownManager {
     const timeSinceLastAd = now.getTime() - cooldown.lastAdShown.getTime();
     const cooldownMs = cooldown.cooldownMinutes * 60 * 1000;
     
-    // Verificar se está no período de cooldown
+    // Verificar se estÃ¡ no perÃ­odo de cooldown
     if (timeSinceLastAd < cooldownMs) {
       return false;
     }
     
-    // Incrementar contador de ações
+    // Incrementar contador de aÃ§Ãµes
     cooldown.actionCount++;
     
     let shouldShow = false;
     
     if (category === 'bills') {
-      // Bills: Alternado a partir do 2º (2º=AD, 3º=SEM, 4º=AD...)
+      // Bills: Alternado a partir do 2Âº (2Âº=AD, 3Âº=SEM, 4Âº=AD...)
       shouldShow = cooldown.actionCount > 1 && cooldown.actionCount % 2 === 0;
     } else {
-      // Transactions: A cada 3 ações
+      // Transactions: A cada 3 aÃ§Ãµes
       shouldShow = cooldown.actionCount >= cooldown.adFrequency;
     }
     
     if (shouldShow) {
-      // Atualiza último ad mas mantém contador para Bills
+      // Atualiza Ãºltimo ad mas mantÃ©m contador para Bills
       cooldown.lastAdShown = now;
       
       if (category === 'transactions') {
-        // Para transações, reset o contador
+        // Para transaÃ§Ãµes, reset o contador
         cooldown.actionCount = 0;
       }
       
@@ -484,14 +484,14 @@ export class AdCooldownManager {
         lastAdShown: new Date(0), // Epoch = nunca mostrou ad
         actionCount: 0,
         cooldownMinutes: 5,
-        adFrequency: 2 // Mostrar ad alternado: 2º, 4º, 6º...
+        adFrequency: 2 // Mostrar ad alternado: 2Âº, 4Âº, 6Âº...
       },
       transactions: {
         category: 'transactions' as const,
         lastAdShown: new Date(0),
         actionCount: 0, 
         cooldownMinutes: 3,
-        adFrequency: 3 // Mostrar ad a cada 3 transações
+        adFrequency: 3 // Mostrar ad a cada 3 transaÃ§Ãµes
       }
     };
     
@@ -522,19 +522,19 @@ export class AdCooldownManager {
     }
   }
 
-  // Analytics para otimização
+  // Analytics para otimizaÃ§Ã£o
   static async getAdMetrics(userId: string): Promise<any> {
     return {
       billsAdsShown: await this.getAdsShownCount(userId, 'bills'),
       transactionAdsShown: await this.getAdsShownCount(userId, 'transactions'),
       averageActionsPerAd: await this.getAverageActionsPerAd(userId),
-      lastAdCategories: await this.getRecentAdCategories(userId, 24) // Últimas 24h
+      lastAdCategories: await this.getRecentAdCategories(userId, 24) // Ãšltimas 24h
     };
   }
 }
 ```
 
-### **📋 Hook para Componentes de Cadastro**
+### **ðŸ“‹ Hook para Componentes de Cadastro**
 
 ```tsx
 // src/hooks/useAdOnAction.ts
@@ -557,11 +557,11 @@ export const useAdOnAction = (category: 'bills' | 'transactions') => {
     );
 
     if (shouldShow) {
-      // Mostrar ad antes da ação
+      // Mostrar ad antes da aÃ§Ã£o
       setPendingAction(() => action);
       setShowAd(true);
     } else {
-      // Executar ação diretamente
+      // Executar aÃ§Ã£o diretamente
       action();
     }
   };
@@ -572,7 +572,7 @@ export const useAdOnAction = (category: 'bills' | 'transactions') => {
     // Marcar ad como mostrado
     await AdCooldownManager.markAdShown(getCurrentUserId(), category);
     
-    // Executar ação pendente
+    // Executar aÃ§Ã£o pendente
     if (pendingAction) {
       pendingAction();
       setPendingAction(null);
@@ -582,7 +582,7 @@ export const useAdOnAction = (category: 'bills' | 'transactions') => {
   const handleAdSkipped = () => {
     setShowAd(false);
     
-    // Executar ação mesmo sem ver o ad (para não travar UX)
+    // Executar aÃ§Ã£o mesmo sem ver o ad (para nÃ£o travar UX)
     if (pendingAction) {
       pendingAction();
       setPendingAction(null);
@@ -596,14 +596,14 @@ export const useAdOnAction = (category: 'bills' | 'transactions') => {
       <AdRewardedModal
         onComplete={handleAdComplete}
         onSkip={handleAdSkipped}
-        context={category === 'bills' ? 'Cadastrando nova conta' : 'Adicionando transação'}
+        context={category === 'bills' ? 'Cadastrando nova conta' : 'Adicionando transaÃ§Ã£o'}
       />
     ) : null
   };
 };
 ```
 
-### **💳 Exemplo de Uso - Formulário de Bills**
+### **ðŸ’³ Exemplo de Uso - FormulÃ¡rio de Bills**
 
 ```tsx
 // src/components/bills/AddBillForm.tsx
@@ -623,23 +623,23 @@ export const AddBillForm: React.FC = () => {
     e.preventDefault();
     
     const submitAction = async () => {
-      // Lógica real de salvar a conta
+      // LÃ³gica real de salvar a conta
       await saveBillToDatabase(formData);
       
       // Feedback de sucesso
-      showToast('✅ Conta cadastrada com sucesso!');
+      showToast('âœ… Conta cadastrada com sucesso!');
       
-      // Reset do formulário
+      // Reset do formulÃ¡rio
       setFormData({ name: '', amount: '', dueDate: '', category: '' });
     };
 
-    // Executar com possível ad intercalado
+    // Executar com possÃ­vel ad intercalado
     await executeWithAd(submitAction, getCurrentUserId());
   };
 
   return (
     <div className="max-w-md mx-auto bg-white rounded-xl p-6">
-      <h2 className="text-xl font-bold mb-4">📋 Nova Conta</h2>
+      <h2 className="text-xl font-bold mb-4">ðŸ“‹ Nova Conta</h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
@@ -675,28 +675,28 @@ export const AddBillForm: React.FC = () => {
           required
         >
           <option value="">Selecione a categoria</option>
-          <option value="utilities">🏠 Casa (luz, água, gás)</option>
-          <option value="installments">💳 Parcelas</option>
-          <option value="subscriptions">📱 Assinaturas</option>
-          <option value="fixed">🏦 Contas Fixas</option>
+          <option value="utilities">ðŸ  Casa (luz, Ã¡gua, gÃ¡s)</option>
+          <option value="installments">ðŸ’³ Parcelas</option>
+          <option value="subscriptions">ðŸ“± Assinaturas</option>
+          <option value="fixed">ðŸ¦ Contas Fixas</option>
         </select>
         
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700"
         >
-          💾 Cadastrar Conta
+          ðŸ’¾ Cadastrar Conta
         </button>
       </form>
       
-      {/* Ad Modal (aparece automaticamente quando necessário) */}
+      {/* Ad Modal (aparece automaticamente quando necessÃ¡rio) */}
       {AdModal}
     </div>
   );
 };
 ```
 
-### **💸 Exemplo de Uso - Transações da Dashboard**
+### **ðŸ’¸ Exemplo de Uso - TransaÃ§Ãµes da Dashboard**
 
 ```tsx
 // src/components/dashboard/QuickTransaction.tsx
@@ -716,7 +716,7 @@ export const QuickTransaction: React.FC = () => {
         userId: getCurrentUserId()
       });
       
-      showToast(`✅ ${type === 'income' ? 'Receita' : 'Despesa'} adicionada!`);
+      showToast(`âœ… ${type === 'income' ? 'Receita' : 'Despesa'} adicionada!`);
     };
 
     await executeWithAd(transactionAction, getCurrentUserId());
@@ -724,14 +724,14 @@ export const QuickTransaction: React.FC = () => {
 
   return (
     <div className="bg-white rounded-xl p-4">
-      <h3 className="font-semibold mb-3">⚡ Transação Rápida</h3>
+      <h3 className="font-semibold mb-3">âš¡ TransaÃ§Ã£o RÃ¡pida</h3>
       
       <div className="grid grid-cols-2 gap-3">
         <button
-          onClick={() => addQuickTransaction('expense', 25.90, 'Almoço')}
+          onClick={() => addQuickTransaction('expense', 25.90, 'AlmoÃ§o')}
           className="bg-red-100 text-red-700 p-3 rounded-lg"
         >
-          💸 Despesa<br/>
+          ðŸ’¸ Despesa<br/>
           <span className="text-sm">R$ 25,90</span>
         </button>
         
@@ -739,7 +739,7 @@ export const QuickTransaction: React.FC = () => {
           onClick={() => addQuickTransaction('income', 150.00, 'Freelance')}
           className="bg-green-100 text-green-700 p-3 rounded-lg"
         >
-          💰 Receita<br/>
+          ðŸ’° Receita<br/>
           <span className="text-sm">R$ 150,00</span>
         </button>
       </div>
@@ -752,45 +752,45 @@ export const QuickTransaction: React.FC = () => {
 
 ---
 
-## 📊 **MÉTRICAS DE ADS POR AÇÃO**
+## ðŸ“Š **MÃ‰TRICAS DE ADS POR AÃ‡ÃƒO**
 
-### **💰 Projeção de Receita**
+### **ðŸ’° ProjeÃ§Ã£o de Receita**
 ```
-📋 BILLS & CONTAS:
-- Usuário médio: 8 contas cadastradas/mês
-- Ads mostrados: ~3/mês (alternado a partir do 2º)
-- Receita: R$ 0,026/usuário/mês
+ðŸ“‹ BILLS & CONTAS:
+- UsuÃ¡rio mÃ©dio: 8 contas cadastradas/mÃªs
+- Ads mostrados: ~3/mÃªs (alternado a partir do 2Âº)
+- Receita: R$ 0,026/usuÃ¡rio/mÃªs
 
-💸 TRANSAÇÕES:
-- Usuário ativo: 45 transações/mês  
-- Ads mostrados: ~15/mês (a cada 3)
-- Receita: R$ 0,128/usuário/mês
+ðŸ’¸ TRANSAÃ‡Ã•ES:
+- UsuÃ¡rio ativo: 45 transaÃ§Ãµes/mÃªs  
+- Ads mostrados: ~15/mÃªs (a cada 3)
+- Receita: R$ 0,128/usuÃ¡rio/mÃªs
 
-🎯 TOTAL POR USUÁRIO FREE:
-- Jornada progressiva: R$ 0,051/mês
-- Ads por ação: R$ 0,154/mês  
-- TOTAL: R$ 0,205/mês por usuário free ativo
+ðŸŽ¯ TOTAL POR USUÃRIO FREE:
+- Jornada progressiva: R$ 0,051/mÃªs
+- Ads por aÃ§Ã£o: R$ 0,154/mÃªs  
+- TOTAL: R$ 0,205/mÃªs por usuÃ¡rio free ativo
 
-💡 VANTAGENS DA NOVA REGRA:
-- Primeira experiência sem ads (onboarding suave)
-- Usuário se acostuma antes de ver ads
-- Menos frustração = maior retenção
+ðŸ’¡ VANTAGENS DA NOVA REGRA:
+- Primeira experiÃªncia sem ads (onboarding suave)
+- UsuÃ¡rio se acostuma antes de ver ads
+- Menos frustraÃ§Ã£o = maior retenÃ§Ã£o
 ```
 
-### **🎯 Otimizações Sugeridas**
+### **ðŸŽ¯ OtimizaÃ§Ãµes Sugeridas**
 ```
-⚡ A/B TESTING:
+âš¡ A/B TESTING:
 - Cooldown de 3min vs 5min vs 7min
-- Frequência: cada ação vs cada 2 vs cada 3
+- FrequÃªncia: cada aÃ§Ã£o vs cada 2 vs cada 3
 - Tipo de ad: rewarded vs interstitial
 
-📊 MÉTRICAS A ACOMPANHAR:
-- Taxa de conclusão de ads
-- Abandono após ad obrigatório  
-- Conversão para planos pagos
-- Engagement pós-ad
+ðŸ“Š MÃ‰TRICAS A ACOMPANHAR:
+- Taxa de conclusÃ£o de ads
+- Abandono apÃ³s ad obrigatÃ³rio  
+- ConversÃ£o para planos pagos
+- Engagement pÃ³s-ad
 
-🎮 GAMIFICAÇÃO:
+ðŸŽ® GAMIFICAÃ‡ÃƒO:
 - "Streak" de cadastros sem ads
 - Badges por completar ads
 - XP bonus por ver ads opcionais
@@ -798,9 +798,9 @@ export const QuickTransaction: React.FC = () => {
 
 ---
 
-## � IMPLEMENTAÇÃO TÉCNICA
+## ï¿½ IMPLEMENTAÃ‡ÃƒO TÃ‰CNICA
 
-### **🎬 Sistema de Jornada Progressiva**
+### **ðŸŽ¬ Sistema de Jornada Progressiva**
 
 ```typescript
 // src/utils/userJourney.ts
@@ -864,7 +864,7 @@ export class JourneyManager {
 }
 ```
 
-### **🎯 Component de Ad Rewarded Progressivo**
+### **ðŸŽ¯ Component de Ad Rewarded Progressivo**
 
 ```tsx
 // src/components/ads/ProgressiveAdModal.tsx
@@ -893,7 +893,7 @@ export const ProgressiveAdModal: React.FC<{ onComplete: (credits: number) => voi
         const timePerAd = 8; // 8 segundos por ad
         const totalTimeNeeded = adsNeeded * timePerAd;
         
-        // Avança para próximo ad
+        // AvanÃ§a para prÃ³ximo ad
         const nextAdThreshold = (currentAd + 1) * timePerAd;
         if (newTime >= nextAdThreshold && currentAd < adsNeeded - 1) {
           setCurrentAd(currentAd + 1);
@@ -932,7 +932,7 @@ export const ProgressiveAdModal: React.FC<{ onComplete: (credits: number) => voi
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       <div className="bg-gray-900 rounded-2xl p-6 max-w-md w-full mx-4">
         
-        {/* Progresso dos anúncios */}
+        {/* Progresso dos anÃºncios */}
         <div className="flex justify-center gap-2 mb-6">
           {Array.from({ length: adsNeeded }, (_, i) => (
             <div 
@@ -947,9 +947,9 @@ export const ProgressiveAdModal: React.FC<{ onComplete: (credits: number) => voi
         {/* Ad Content Simulado */}
         <div className="bg-gradient-to-br from-blue-600 to-purple-700 rounded-xl p-6 mb-6">
           <div className="text-white text-center">
-            <div className="text-xl font-bold mb-2">🚀 Stater IA Pro</div>
+            <div className="text-xl font-bold mb-2">ðŸš€ Stater IA Pro</div>
             <div className="text-sm opacity-90 mb-3">
-              Análises ilimitadas • Zero anúncios • Relatórios avançados
+              AnÃ¡lises ilimitadas â€¢ Zero anÃºncios â€¢ RelatÃ³rios avanÃ§ados
             </div>
             <div className="text-lg font-semibold">
               A partir de R$ 8,99/semana
@@ -964,8 +964,8 @@ export const ProgressiveAdModal: React.FC<{ onComplete: (credits: number) => voi
           </div>
           <div className="text-sm text-gray-400">
             {canClaim ? 
-              `🎁 ${creditsEarned} mensagens liberadas!` : 
-              `Anúncio ${currentAd + 1} de ${adsNeeded}`
+              `ðŸŽ ${creditsEarned} mensagens liberadas!` : 
+              `AnÃºncio ${currentAd + 1} de ${adsNeeded}`
             }
           </div>
         </div>
@@ -974,13 +974,13 @@ export const ProgressiveAdModal: React.FC<{ onComplete: (credits: number) => voi
         <div className="bg-gray-800 rounded-lg p-4 mb-6">
           <div className="text-center">
             <div className="text-yellow-400 font-semibold mb-1">
-              Você receberá:
+              VocÃª receberÃ¡:
             </div>
             <div className="text-lg font-bold text-white">
-              ✨ {creditsEarned} mensagens com IA
+              âœ¨ {creditsEarned} mensagens com IA
             </div>
             <div className="text-xs text-gray-400">
-              Dia {journey.daysSinceFirstUse} da sua experiência
+              Dia {journey.daysSinceFirstUse} da sua experiÃªncia
             </div>
           </div>
         </div>
@@ -1011,7 +1011,7 @@ export const ProgressiveAdModal: React.FC<{ onComplete: (credits: number) => voi
 };
 ```
 
-### **🚫 Paywall Sutil (Dia 4+)**
+### **ðŸš« Paywall Sutil (Dia 4+)**
 
 ```tsx
 // src/components/paywall/SubtlePaywall.tsx
@@ -1022,12 +1022,12 @@ export const SubtlePaywall: React.FC = () => {
         
         {/* Hero Section */}
         <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🚀</div>
+          <div className="text-6xl mb-4">ðŸš€</div>
           <h1 className="text-3xl font-bold text-white mb-4">
-            Evolua Sua Inteligência Financeira
+            Evolua Sua InteligÃªncia Financeira
           </h1>
           <p className="text-gray-300 text-lg">
-            Desbloqueie análises avançadas, relatórios personalizados e insights exclusivos
+            Desbloqueie anÃ¡lises avanÃ§adas, relatÃ³rios personalizados e insights exclusivos
           </p>
         </div>
 
@@ -1035,30 +1035,30 @@ export const SubtlePaywall: React.FC = () => {
         <div className="space-y-4 mb-8">
           <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur">
             <div className="flex items-center gap-3">
-              <div className="text-2xl">💰</div>
+              <div className="text-2xl">ðŸ’°</div>
               <div>
-                <div className="font-semibold text-white">Análises Ilimitadas</div>
-                <div className="text-sm text-gray-300">Use quantas vezes quiser, sem restrições</div>
+                <div className="font-semibold text-white">AnÃ¡lises Ilimitadas</div>
+                <div className="text-sm text-gray-300">Use quantas vezes quiser, sem restriÃ§Ãµes</div>
               </div>
             </div>
           </div>
 
           <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur">
             <div className="flex items-center gap-3">
-              <div className="text-2xl">📊</div>
+              <div className="text-2xl">ðŸ“Š</div>
               <div>
-                <div className="font-semibold text-white">Relatórios Avançados</div>
-                <div className="text-sm text-gray-300">PDFs detalhados e gráficos interativos</div>
+                <div className="font-semibold text-white">RelatÃ³rios AvanÃ§ados</div>
+                <div className="text-sm text-gray-300">PDFs detalhados e grÃ¡ficos interativos</div>
               </div>
             </div>
           </div>
 
           <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur">
             <div className="flex items-center gap-3">
-              <div className="text-2xl">⚡</div>
+              <div className="text-2xl">âš¡</div>
               <div>
-                <div className="font-semibold text-white">Zero Anúncios</div>
-                <div className="text-sm text-gray-300">Experiência fluida e sem interrupções</div>
+                <div className="font-semibold text-white">Zero AnÃºncios</div>
+                <div className="text-sm text-gray-300">ExperiÃªncia fluida e sem interrupÃ§Ãµes</div>
               </div>
             </div>
           </div>
@@ -1067,7 +1067,7 @@ export const SubtlePaywall: React.FC = () => {
         {/* CTA Buttons */}
         <div className="space-y-3">
           <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-xl transition-all hover:scale-105">
-            Teste 3 Dias Grátis
+            Teste 3 Dias GrÃ¡tis
           </button>
           
           <button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 rounded-xl transition-all hover:scale-105">
@@ -1078,14 +1078,14 @@ export const SubtlePaywall: React.FC = () => {
             onClick={() => window.history.back()}
             className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 rounded-xl transition-all"
           >
-            Explorar Versão Gratuita
+            Explorar VersÃ£o Gratuita
           </button>
         </div>
 
         {/* Social Proof */}
         <div className="text-center mt-8">
           <div className="text-sm text-gray-400">
-            Mais de <span className="font-semibold text-white">10.000+</span> usuários já evoluíram
+            Mais de <span className="font-semibold text-white">10.000+</span> usuÃ¡rios jÃ¡ evoluÃ­ram
           </div>
         </div>
       </div>
@@ -1096,9 +1096,9 @@ export const SubtlePaywall: React.FC = () => {
 
 ---
 
-## 🔄 INTEGRAÇÃO BOT TELEGRAM
+## ðŸ”„ INTEGRAÃ‡ÃƒO BOT TELEGRAM
 
-### **📱 Limites Compartilhados**
+### **ðŸ“± Limites Compartilhados**
 
 ```typescript
 // src/utils/sharedLimits.ts
@@ -1150,9 +1150,9 @@ export class SharedLimitsManager {
 
 ---
 
-## 🔧 CONFIGURAÇÃO TÉCNICA COMPLETA
+## ðŸ”§ CONFIGURAÃ‡ÃƒO TÃ‰CNICA COMPLETA
 
-### **📱 Sistema de Verificação de Planos**
+### **ðŸ“± Sistema de VerificaÃ§Ã£o de Planos**
 
 ```typescript
 // src/utils/planManager.ts
@@ -1207,7 +1207,7 @@ export class PlanManager {
   }
 
   static async startTrial(userId: string, planType: 'semanal'): Promise<void> {
-    // Requer validação de cartão de crédito
+    // Requer validaÃ§Ã£o de cartÃ£o de crÃ©dito
     await this.validateCreditCard(userId);
     
     await this.createSubscription(userId, {
@@ -1219,7 +1219,7 @@ export class PlanManager {
 }
 ```
 
-### **💳 Sistema de Pagamentos (Google Play Billing)**
+### **ðŸ’³ Sistema de Pagamentos (Google Play Billing)**
 
 ```typescript
 // src/utils/paymentManager.ts
@@ -1227,7 +1227,7 @@ interface GooglePlayProduct {
   semanal: {
     productId: 'stater.weekly.premium';
     basePlanId: 'weekly-base';
-    offerId: 'weekly-trial-3d'; // 3 dias grátis
+    offerId: 'weekly-trial-3d'; // 3 dias grÃ¡tis
     price: 'R$ 8,90';
     priceMicros: 8900000; // R$ 8,90 em micro unidades
   };
@@ -1254,14 +1254,14 @@ export class PaymentManager {
     
     try {
       await initConnection();
-      console.log('✅ Google Play Billing inicializado');
+      console.log('âœ… Google Play Billing inicializado');
     } catch (error) {
-      console.error('❌ Erro ao inicializar billing:', error);
+      console.error('âŒ Erro ao inicializar billing:', error);
       throw error;
     }
   }
 
-  // Buscar produtos disponíveis
+  // Buscar produtos disponÃ­veis
   static async getAvailableProducts(): Promise<any[]> {
     const { getSubscriptions } = await import('react-native-iap');
     
@@ -1275,7 +1275,7 @@ export class PaymentManager {
       const products = await getSubscriptions({ skus: productIds });
       return products;
     } catch (error) {
-      console.error('❌ Erro ao buscar produtos:', error);
+      console.error('âŒ Erro ao buscar produtos:', error);
       return [];
     }
   }
@@ -1303,12 +1303,12 @@ export class PaymentManager {
       
       return purchase;
     } catch (error) {
-      console.error('❌ Erro na compra:', error);
+      console.error('âŒ Erro na compra:', error);
       throw error;
     }
   }
 
-  // Validar compra no backend (CRÍTICO para segurança)
+  // Validar compra no backend (CRÃTICO para seguranÃ§a)
   static async validatePurchaseWithBackend(
     purchase: any, 
     userId: string
@@ -1325,7 +1325,7 @@ export class PaymentManager {
       });
 
       if (!response.ok) {
-        throw new Error('Falha na validação da compra');
+        throw new Error('Falha na validaÃ§Ã£o da compra');
       }
 
       const validation = await response.json();
@@ -1334,12 +1334,12 @@ export class PaymentManager {
         await this.activateSubscription(userId, purchase.productId);
       }
     } catch (error) {
-      console.error('❌ Erro na validação:', error);
+      console.error('âŒ Erro na validaÃ§Ã£o:', error);
       throw error;
     }
   }
 
-  // Ativar assinatura após validação
+  // Ativar assinatura apÃ³s validaÃ§Ã£o
   static async activateSubscription(
     userId: string, 
     productId: string
@@ -1348,8 +1348,8 @@ export class PaymentManager {
     
     await PlanManager.activatePlan(userId, planType);
     
-    // Notificar usuário
-    console.log(`✅ Assinatura ${planType} ativada para usuário ${userId}`);
+    // Notificar usuÃ¡rio
+    console.log(`âœ… Assinatura ${planType} ativada para usuÃ¡rio ${userId}`);
   }
 
   // Mapear product ID para tipo de plano
@@ -1376,7 +1376,7 @@ export class PaymentManager {
 
       return activePurchase || null;
     } catch (error) {
-      console.error('❌ Erro ao verificar status:', error);
+      console.error('âŒ Erro ao verificar status:', error);
       return null;
     }
   }
@@ -1391,7 +1391,7 @@ export class PaymentManager {
 }
 ```
 
-### **🔐 Backend - Validação de Compras**
+### **ðŸ” Backend - ValidaÃ§Ã£o de Compras**
 
 ```typescript
 // api/validate-purchase.ts (Supabase Edge Function)
@@ -1420,12 +1420,12 @@ serve(async (req) => {
     );
 
     if (!googleResponse.ok) {
-      throw new Error('Falha na validação com Google Play');
+      throw new Error('Falha na validaÃ§Ã£o com Google Play');
     }
 
     const purchaseData = await googleResponse.json();
     
-    // Verificar se a compra é válida
+    // Verificar se a compra Ã© vÃ¡lida
     const isValid = purchaseData.purchaseState === 0; // 0 = PURCHASED
     
     if (isValid) {
@@ -1463,13 +1463,13 @@ serve(async (req) => {
 });
 
 async function getGoogleAccessToken(): Promise<string> {
-  // Implementar autenticação com service account
+  // Implementar autenticaÃ§Ã£o com service account
   // Retorna access token para Google Play Console API
 }
 ```
 ```
 
-### **🤖 Integração Telegram Bot**
+### **ðŸ¤– IntegraÃ§Ã£o Telegram Bot**
 
 ```typescript
 // src/telegram/botManager.ts
@@ -1479,7 +1479,7 @@ import { PlanManager } from '@/utils/planManager';
 
 interface TelegramUser {
   telegramId: number;
-  userId: string; // ID do usuário no app
+  userId: string; // ID do usuÃ¡rio no app
   isLinked: boolean;
 }
 
@@ -1498,17 +1498,17 @@ export class TelegramBotManager {
       
       if (plan.planType === 'free') {
         await ctx.reply(
-          '🔒 O bot Telegram está disponível apenas para assinantes.\n\n' +
-          '📱 Assine um plano no app Stater IA para usar o bot!'
+          'ðŸ”’ O bot Telegram estÃ¡ disponÃ­vel apenas para assinantes.\n\n' +
+          'ðŸ“± Assine um plano no app Stater IA para usar o bot!'
         );
         return;
       }
 
       await ctx.reply(
-        '🚀 Bem-vindo ao Stater IA Bot!\n\n' +
-        '💬 Envie suas dúvidas financeiras\n' +
-        '📊 Analise faturas e extratos\n' +
-        '🎯 Seus limites são compartilhados com o app'
+        'ðŸš€ Bem-vindo ao Stater IA Bot!\n\n' +
+        'ðŸ’¬ Envie suas dÃºvidas financeiras\n' +
+        'ðŸ“Š Analise faturas e extratos\n' +
+        'ðŸŽ¯ Seus limites sÃ£o compartilhados com o app'
       );
     });
 
@@ -1533,7 +1533,7 @@ export class TelegramBotManager {
     const userId = await this.getTelegramUserId(ctx.from!.id);
     
     if (!await SharedLimitsManager.checkLimit(userId, 'message')) {
-      await ctx.reply('📊 Limite diário de mensagens atingido!\n\nUpgrade seu plano para continuar.');
+      await ctx.reply('ðŸ“Š Limite diÃ¡rio de mensagens atingido!\n\nUpgrade seu plano para continuar.');
       return;
     }
 
@@ -1548,7 +1548,7 @@ export class TelegramBotManager {
     const userId = await this.getTelegramUserId(ctx.from!.id);
     
     if (!await SharedLimitsManager.checkLimit(userId, 'photo')) {
-      await ctx.reply('📸 Limite diário de fotos atingido!\n\nUpgrade seu plano para continuar.');
+      await ctx.reply('ðŸ“¸ Limite diÃ¡rio de fotos atingido!\n\nUpgrade seu plano para continuar.');
       return;
     }
 
@@ -1562,136 +1562,136 @@ export class TelegramBotManager {
 
   async start() {
     await this.bot.launch();
-    console.log('🤖 Telegram Bot iniciado');
+    console.log('ðŸ¤– Telegram Bot iniciado');
   }
 }
 ```
 
 ---
 
-## 📊 MÉTRICAS E KPIs DEFINITIVOS
+## ðŸ“Š MÃ‰TRICAS E KPIs DEFINITIVOS
 
-### **🎯 Métricas de Conversão**
+### **ðŸŽ¯ MÃ©tricas de ConversÃ£o**
 ```
-📈 JORNADA FREE → PAGO:
-- Meta Dia 3: 30% iniciam teste grátis
+ðŸ“ˆ JORNADA FREE â†’ PAGO:
+- Meta Dia 3: 30% iniciam teste grÃ¡tis
 - Meta Dia 5: 60% convertem para pago
-- Meta Dia 7: 70% conversão final
-- Churn pós-trial: < 15%
+- Meta Dia 7: 70% conversÃ£o final
+- Churn pÃ³s-trial: < 15%
 
-⏰ TEMPO PARA CONVERSÃO:
+â° TEMPO PARA CONVERSÃƒO:
 - Ideal: 3-4 dias
-- Máximo aceitável: 7 dias
-- Teste grátis → Pago: 80%
+- MÃ¡ximo aceitÃ¡vel: 7 dias
+- Teste grÃ¡tis â†’ Pago: 80%
 
-💰 RECEITA POR USUÁRIO:
-- Free (ads): R$ 0,15/mês
-- Semanal: R$ 38,55/mês (R$ 8,90 × 4,33)
-- Mensal: R$ 15,90/mês
-- Pro: R$ 29,90/mês
+ðŸ’° RECEITA POR USUÃRIO:
+- Free (ads): R$ 0,15/mÃªs
+- Semanal: R$ 38,55/mÃªs (R$ 8,90 Ã— 4,33)
+- Mensal: R$ 15,90/mÃªs
+- Pro: R$ 29,90/mÃªs
 ```
 
-### **📱 Métricas de Uso**
+### **ðŸ“± MÃ©tricas de Uso**
 ```
-🔥 RETENÇÃO:
+ðŸ”¥ RETENÃ‡ÃƒO:
 - D1: 85%+
 - D7: 60%+
 - D30: 40%+
 - D90: 25%+
 
-📊 ENGAGEMENT:
-- Sessões/dia: 2,5+
-- Tempo/sessão: 8+ minutos
-- Mensagens/sessão: 4+
+ðŸ“Š ENGAGEMENT:
+- SessÃµes/dia: 2,5+
+- Tempo/sessÃ£o: 8+ minutos
+- Mensagens/sessÃ£o: 4+
 - Features utilizadas: 3+
 ```
 
-### **💸 Métricas Financeiras**
+### **ðŸ’¸ MÃ©tricas Financeiras**
 ```
-📈 REVENUE TARGETS:
+ðŸ“ˆ REVENUE TARGETS:
 - MRR: R$ 50.000 (meta 12 meses)
 - ARPU: R$ 24,75
 - CAC: < R$ 15,00
 - LTV: R$ 180,00
 - LTV/CAC: 12:1
 
-🎯 UNIT ECONOMICS:
+ðŸŽ¯ UNIT ECONOMICS:
 - Payback: < 2 meses
 - Margem: 75%+
-- Churn rate: < 5%/mês
+- Churn rate: < 5%/mÃªs
 ```
 
 ---
 
-## 🚀 PLANO DE IMPLEMENTAÇÃO
+## ðŸš€ PLANO DE IMPLEMENTAÃ‡ÃƒO
 
 ### **FASE 1: Base (Semana 1-2)**
 ```
-✅ PRIORIDADE ALTA:
+âœ… PRIORIDADE ALTA:
 1. Implementar UserJourney + Ads Rewarded
-2. Sistema de verificação de planos
-3. Paywall básico
-4. Integração com Google Play Billing (OBRIGATÓRIO Android)
+2. Sistema de verificaÃ§Ã£o de planos
+3. Paywall bÃ¡sico
+4. IntegraÃ§Ã£o com Google Play Billing (OBRIGATÃ“RIO Android)
 5. Limites compartilhados (app/telegram)
 
-📦 DEPENDÊNCIAS NECESSÁRIAS:
+ðŸ“¦ DEPENDÃŠNCIAS NECESSÃRIAS:
 npm install react-native-iap
 npm install react-native-google-mobile-ads
 npm install @supabase/supabase-js
 
-� CONFIGURAÇÕES ANDROID:
+ï¿½ CONFIGURAÃ‡Ã•ES ANDROID:
 - Google Play Console: Configurar produtos de assinatura
-- AdMob: Criar unidades de anúncio rewarded
-- Google Cloud: Service Account para validação de compras
+- AdMob: Criar unidades de anÃºncio rewarded
+- Google Cloud: Service Account para validaÃ§Ã£o de compras
 
-�📋 ENTREGÁVEIS:
+ï¿½ðŸ“‹ ENTREGÃVEIS:
 - Jornada FREE de 3 dias funcionando
-- Teste grátis de 3 dias (plano semanal)
-- Sistema de validação de compras Google Play
+- Teste grÃ¡tis de 3 dias (plano semanal)
+- Sistema de validaÃ§Ã£o de compras Google Play
 - Plano semanal ativo
 ```
 
-### **FASE 2: Expansão (Semana 3-4)**
+### **FASE 2: ExpansÃ£o (Semana 3-4)**
 ```
-✅ PRIORIDADE MÉDIA:
+âœ… PRIORIDADE MÃ‰DIA:
 1. Bot Telegram completo
 2. Planos Mensal e Pro
-3. Sistema de relatórios/export
+3. Sistema de relatÃ³rios/export
 4. Leitura de PDFs
-5. Analytics e métricas
+5. Analytics e mÃ©tricas
 
-📋 ENTREGÁVEIS:
+ðŸ“‹ ENTREGÃVEIS:
 - Todos os planos funcionando
 - Bot Telegram integrado
 - Sistema de exports
 ```
 
-### **FASE 3: Otimização (Semana 5-6)**
+### **FASE 3: OtimizaÃ§Ã£o (Semana 5-6)**
 ```
-✅ PRIORIDADE BAIXA:
+âœ… PRIORIDADE BAIXA:
 1. A/B testing paywall
-2. Gamificação avançada
+2. GamificaÃ§Ã£o avanÃ§ada
 3. Referral system
 4. Enterprise features
-5. Analytics avançados
+5. Analytics avanÃ§ados
 
-📋 ENTREGÁVEIS:
-- Conversão otimizada
+ðŸ“‹ ENTREGÃVEIS:
+- ConversÃ£o otimizada
 - Sistema de growth
-- Métricas detalhadas
+- MÃ©tricas detalhadas
 ```
 
 ---
 
-## � **ESTRUTURA DO BANCO DE DADOS**
+## ï¿½ **ESTRUTURA DO BANCO DE DADOS**
 
-### **📊 Schema Supabase (PostgreSQL)**
+### **ðŸ“Š Schema Supabase (PostgreSQL)**
 
 ```sql
--- Extensões necessárias
+-- ExtensÃµes necessÃ¡rias
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Tabela de jornada do usuário
+-- Tabela de jornada do usuÃ¡rio
 CREATE TABLE user_journey (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -1734,7 +1734,7 @@ CREATE TABLE user_subscriptions (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Tabela de limites diários
+-- Tabela de limites diÃ¡rios
 CREATE TABLE daily_limits (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -1763,7 +1763,7 @@ CREATE TABLE ad_analytics (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Tabela de eventos de conversão
+-- Tabela de eventos de conversÃ£o
 CREATE TABLE conversion_events (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -1790,7 +1790,7 @@ CREATE TABLE user_bills (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Tabela de transações
+-- Tabela de transaÃ§Ãµes
 CREATE TABLE user_transactions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -1802,7 +1802,7 @@ CREATE TABLE user_transactions (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Índices para performance
+-- Ãndices para performance
 CREATE INDEX idx_user_journey_user_id ON user_journey(user_id);
 CREATE INDEX idx_ad_cooldowns_user_category ON ad_cooldowns(user_id, category);
 CREATE INDEX idx_user_subscriptions_user_status ON user_subscriptions(user_id, status);
@@ -1810,7 +1810,7 @@ CREATE INDEX idx_daily_limits_user_date ON daily_limits(user_id, date);
 CREATE INDEX idx_ad_analytics_user_category ON ad_analytics(user_id, category);
 CREATE INDEX idx_conversion_events_user_type ON conversion_events(user_id, event_type);
 
--- Funções automáticas de atualização
+-- FunÃ§Ãµes automÃ¡ticas de atualizaÃ§Ã£o
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -1836,7 +1836,7 @@ ALTER TABLE conversion_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_bills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_transactions ENABLE ROW LEVEL SECURITY;
 
--- Políticas de segurança (usuários só acessam seus próprios dados)
+-- PolÃ­ticas de seguranÃ§a (usuÃ¡rios sÃ³ acessam seus prÃ³prios dados)
 CREATE POLICY "Users can only access their own journey" ON user_journey FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users can only access their own cooldowns" ON ad_cooldowns FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users can only access their own subscriptions" ON user_subscriptions FOR ALL USING (auth.uid() = user_id);
@@ -1849,9 +1849,9 @@ CREATE POLICY "Users can only access their own transactions" ON user_transaction
 
 ---
 
-## 🔌 **APIS E ROTAS BACKEND**
+## ðŸ”Œ **APIS E ROTAS BACKEND**
 
-### **📡 Estrutura de Rotas (Supabase Edge Functions)**
+### **ðŸ“¡ Estrutura de Rotas (Supabase Edge Functions)**
 
 ```typescript
 // supabase/functions/monetization-api/index.ts
@@ -1908,7 +1908,7 @@ serve(async (req) => {
 async function handleJourneyInit(req: Request) {
   const { userId } = await req.json();
   
-  // Inicializar jornada do usuário
+  // Inicializar jornada do usuÃ¡rio
   const { data, error } = await supabase
     .from('user_journey')
     .upsert({
@@ -2049,15 +2049,15 @@ function getCooldownMinutes(category: string): number {
 
 ---
 
-## ⚙️ **CONFIGURAÇÕES E VARIÁVEIS DE AMBIENTE**
+## âš™ï¸ **CONFIGURAÃ‡Ã•ES E VARIÃVEIS DE AMBIENTE**
 
-### **🔐 Arquivo .env (Desenvolvimento)**
+### **ðŸ” Arquivo .env (Desenvolvimento)**
 
 ```bash
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
 
 # Google Play Billing
 ANDROID_PACKAGE_NAME=com.stater.ia
@@ -2070,7 +2070,7 @@ ADMOB_REWARDED_UNIT_ID=ca-app-pub-xxxxx/xxxxx
 ADMOB_INTERSTITIAL_UNIT_ID=ca-app-pub-xxxxx/xxxxx
 
 # Telegram Bot
-TELEGRAM_BOT_TOKEN=your-bot-token
+TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
 TELEGRAM_WEBHOOK_SECRET=your-webhook-secret
 
 # Analytics
@@ -2109,7 +2109,7 @@ GOOGLE_PLAY_CONSOLE_PROJECT_ID=your-project-id
 GOOGLE_CLOUD_PROJECT_NUMBER=123456789
 ```
 
-### **🏗️ Configuração do React Native**
+### **ðŸ—ï¸ ConfiguraÃ§Ã£o do React Native**
 
 ```typescript
 // src/config/monetization.ts
@@ -2134,7 +2134,7 @@ export const MonetizationConfig = {
     }
   },
 
-  // Configuração de ads
+  // ConfiguraÃ§Ã£o de ads
   ads: {
     rewarded: {
       android: process.env.ADMOB_REWARDED_UNIT_ID!,
@@ -2174,7 +2174,7 @@ export const MonetizationConfig = {
     }
   },
 
-  // Configuração da jornada
+  // ConfiguraÃ§Ã£o da jornada
   journey: {
     maxDays: 3,
     adsPerDay: { 1: 1, 2: 2, 3: 3 },
@@ -2191,9 +2191,9 @@ export const MonetizationConfig = {
 
 ---
 
-## 🛡️ **MIDDLEWARE DE SEGURANÇA**
+## ðŸ›¡ï¸ **MIDDLEWARE DE SEGURANÃ‡A**
 
-### **🔒 Middleware de Autenticação**
+### **ðŸ”’ Middleware de AutenticaÃ§Ã£o**
 
 ```typescript
 // src/middleware/auth.ts
@@ -2207,7 +2207,7 @@ export async function authMiddleware(req: NextRequest) {
   
   const { data: { session } } = await supabase.auth.getSession();
 
-  // Rotas que requerem autenticação
+  // Rotas que requerem autenticaÃ§Ã£o
   const protectedRoutes = ['/dashboard', '/bills', '/transactions', '/upgrade'];
   const isProtectedRoute = protectedRoutes.some(route => 
     req.nextUrl.pathname.startsWith(route)
@@ -2221,7 +2221,7 @@ export async function authMiddleware(req: NextRequest) {
 }
 ```
 
-### **💰 Middleware de Verificação de Plano**
+### **ðŸ’° Middleware de VerificaÃ§Ã£o de Plano**
 
 ```typescript
 // src/middleware/planCheck.ts
@@ -2261,9 +2261,9 @@ export async function planCheckMiddleware(req: NextRequest) {
 
 ---
 
-## 📈 **SISTEMA DE ANALYTICS AVANÇADO**
+## ðŸ“ˆ **SISTEMA DE ANALYTICS AVANÃ‡ADO**
 
-### **📊 Analytics Manager Completo**
+### **ðŸ“Š Analytics Manager Completo**
 
 ```typescript
 // src/utils/analyticsManager.ts
@@ -2296,7 +2296,7 @@ class AnalyticsManager {
     }
   }
 
-  // Eventos de monetização
+  // Eventos de monetizaÃ§Ã£o
   async trackAdShown(data: {
     userId: string;
     category: 'bills' | 'transactions' | 'journey';
@@ -2405,7 +2405,7 @@ class AnalyticsManager {
     await this.track(event);
   }
 
-  // Métricas de negócio
+  // MÃ©tricas de negÃ³cio
   async trackRevenue(data: {
     userId: string;
     source: 'ads' | 'subscription';
@@ -2426,7 +2426,7 @@ class AnalyticsManager {
     await this.track(event);
   }
 
-  // Envio para múltiplas plataformas
+  // Envio para mÃºltiplas plataformas
   private async track(event: AnalyticsEvent) {
     try {
       // Mixpanel
@@ -2468,7 +2468,7 @@ class AnalyticsManager {
   }
 
   private calculateConversionRate(days: number): number {
-    // Taxa de conversão esperada baseada no dia
+    // Taxa de conversÃ£o esperada baseada no dia
     const rates = { 1: 0.05, 2: 0.15, 3: 0.25 };
     return rates[days] || 0;
   }
@@ -2481,7 +2481,7 @@ class AnalyticsManager {
     if (source === 'ads') return amount * 30; // Estimativa mensal
     
     const mrrMap = {
-      weekly: 8.90 * 4.33, // 4.33 semanas por mês
+      weekly: 8.90 * 4.33, // 4.33 semanas por mÃªs
       monthly: 15.90,
       pro: 29.90
     };
@@ -2494,9 +2494,9 @@ export default AnalyticsManager.getInstance();
 
 ---
 
-## 📧 **NOTIFICAÇÕES SIMPLES (OPCIONAL)**
+## ðŸ“§ **NOTIFICAÃ‡Ã•ES SIMPLES (OPCIONAL)**
 
-### **📨 Sistema Básico de Emails**
+### **ðŸ“¨ Sistema BÃ¡sico de Emails**
 
 ```typescript
 // src/utils/simpleNotifications.ts
@@ -2505,29 +2505,29 @@ import { supabase } from '@/lib/supabase';
 export class SimpleNotifications {
   // Email simples para trial expiring
   static async sendTrialReminder(userId: string) {
-    // Usar serviço simples como Resend ou EmailJS
+    // Usar serviÃ§o simples como Resend ou EmailJS
     const { data: user } = await supabase.auth.admin.getUserById(userId);
     if (user?.user?.email) {
-      // Implementar email básico
+      // Implementar email bÃ¡sico
       console.log(`Enviar email de trial para: ${user.user.email}`);
     }
   }
 
-  // Push notification básica (React Native)
+  // Push notification bÃ¡sica (React Native)
   static async sendPushNotification(title: string, body: string) {
-    // Usar react-native-push-notification básico
+    // Usar react-native-push-notification bÃ¡sico
     console.log(`Push: ${title} - ${body}`);
   }
 }
 ```
 
-**🎯 FOCO:** Apenas trial expiring e upgrade reminders. Nada mais complexo é necessário inicialmente.
+**ðŸŽ¯ FOCO:** Apenas trial expiring e upgrade reminders. Nada mais complexo Ã© necessÃ¡rio inicialmente.
 
 ---
 
-## 🚀 **DEPLOYMENT SIMPLES**
+## ðŸš€ **DEPLOYMENT SIMPLES**
 
-### **� React Native Build**
+### **ï¿½ React Native Build**
 
 ```bash
 # Android Release Build
@@ -2535,10 +2535,10 @@ cd android
 ./gradlew assembleRelease
 
 # Upload para Google Play Console manualmente
-# Play Console → Upload AAB → Testar → Publicar
+# Play Console â†’ Upload AAB â†’ Testar â†’ Publicar
 ```
 
-### **🌐 Backend (Supabase)**
+### **ðŸŒ Backend (Supabase)**
 
 ```bash
 # Deploy Edge Functions
@@ -2548,23 +2548,23 @@ supabase functions deploy monetization-api
 supabase db push
 ```
 
-### **⚙️ Configurações Mínimas**
+### **âš™ï¸ ConfiguraÃ§Ãµes MÃ­nimas**
 
 ```bash
-# Environment variables necessárias
+# Environment variables necessÃ¡rias
 NEXT_PUBLIC_SUPABASE_URL=your-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ADMOB_APP_ID=your-admob-id
 GOOGLE_PLAY_CONSOLE_JSON=your-service-account.json
 ```
 
-**🎯 FOCO:** Deploy manual inicial. CI/CD pode ser adicionado depois do MVP validado.
+**ðŸŽ¯ FOCO:** Deploy manual inicial. CI/CD pode ser adicionado depois do MVP validado.
 
 ---
 
-## 🧪 **TESTES BÁSICOS**
+## ðŸ§ª **TESTES BÃSICOS**
 
-### **🔬 Testes de Monetização**
+### **ðŸ”¬ Testes de MonetizaÃ§Ã£o**
 
 ```typescript
 // __tests__/monetization/adCooldown.test.ts
@@ -2700,7 +2700,7 @@ describe('PaymentManager', () => {
 });
 ```
 
-### **📊 Performance Tests**
+### **ðŸ“Š Performance Tests**
 
 ```typescript
 // __tests__/performance/adLoading.test.ts
@@ -2739,275 +2739,276 @@ describe('Ad Loading Performance', () => {
 
 ---
 
-## 📊 CHECKLIST DE IMPLEMENTAÇÃO COMPLETO
+## ðŸ“Š CHECKLIST DE IMPLEMENTAÃ‡ÃƒO COMPLETO
 
-### **🔧 Backend Requirements**
+### **ðŸ”§ Backend Requirements**
 ```
-□ UserJourney service (PostgreSQL)
-□ Subscription management (Stripe)
-□ Shared limits system
-□ Telegram Bot integration
-□ Payment webhooks
-□ Analytics tracking
-□ PDF processing (OCR)
-□ Export services (PDF/Excel/OFX/CSV)
-```
-
-### **🎨 Frontend Requirements**
-```
-□ ProgressiveAdModal component
-□ SubtlePaywall component
-□ PlanSelector component
-□ LimitIndicator component
-□ TelegramLink component
-□ ExportButton component
-□ TrialBanner component
-□ UsageMetrics component
+â–¡ UserJourney service (PostgreSQL)
+â–¡ Subscription management (Stripe)
+â–¡ Shared limits system
+â–¡ Telegram Bot integration
+â–¡ Payment webhooks
+â–¡ Analytics tracking
+â–¡ PDF processing (OCR)
+â–¡ Export services (PDF/Excel/OFX/CSV)
 ```
 
-### **📱 Mobile Requirements (Android)**
+### **ðŸŽ¨ Frontend Requirements**
 ```
-✅ OBRIGATÓRIO (Google Play Store):
-□ Google Play Billing (react-native-iap)
-□ Google AdMob integration (react-native-google-mobile-ads)
-□ Google Play Console: Produtos de assinatura configurados
-□ Service Account: Validação de compras no backend
+â–¡ ProgressiveAdModal component
+â–¡ SubtlePaywall component
+â–¡ PlanSelector component
+â–¡ LimitIndicator component
+â–¡ TelegramLink component
+â–¡ ExportButton component
+â–¡ TrialBanner component
+â–¡ UsageMetrics component
+```
 
-✅ FUNCIONALIDADES:
-□ Deep linking (Telegram)
-□ Push notifications
-□ Offline mode (limited)
-□ Biometric auth
-□ Share functionality
-□ Camera integration
+### **ðŸ“± Mobile Requirements (Android)**
+```
+âœ… OBRIGATÃ“RIO (Google Play Store):
+â–¡ Google Play Billing (react-native-iap)
+â–¡ Google AdMob integration (react-native-google-mobile-ads)
+â–¡ Google Play Console: Produtos de assinatura configurados
+â–¡ Service Account: ValidaÃ§Ã£o de compras no backend
 
-⚠️ IMPORTANTE:
-- Stripe/PagSeguro NÃO pode ser usado para assinaturas
-- Google Play Billing é obrigatório para apps da Play Store
+âœ… FUNCIONALIDADES:
+â–¡ Deep linking (Telegram)
+â–¡ Push notifications
+â–¡ Offline mode (limited)
+â–¡ Biometric auth
+â–¡ Share functionality
+â–¡ Camera integration
+
+âš ï¸ IMPORTANTE:
+- Stripe/PagSeguro NÃƒO pode ser usado para assinaturas
+- Google Play Billing Ã© obrigatÃ³rio para apps da Play Store
 - Taxa do Google: 15% (primeiros $1M) / 30% (acima)
-- Validação server-side é CRÍTICA para segurança
+- ValidaÃ§Ã£o server-side Ã© CRÃTICA para seguranÃ§a
 ```
 
 ---
 
-## 🎯 **ANÁLISE FINAL: O QUE FOI ADICIONADO**
+## ðŸŽ¯ **ANÃLISE FINAL: O QUE FOI ADICIONADO**
 
-### **✅ SEÇÕES CRÍTICAS IMPLEMENTADAS:**
+### **âœ… SEÃ‡Ã•ES CRÃTICAS IMPLEMENTADAS:**
 
-1. **💾 ESTRUTURA DO BANCO DE DADOS**
+1. **ðŸ’¾ ESTRUTURA DO BANCO DE DADOS**
    - Schema PostgreSQL completo (14 tabelas)
    - Row Level Security (RLS) configurado
-   - Índices de performance
-   - Triggers automáticos
+   - Ãndices de performance
+   - Triggers automÃ¡ticos
 
-2. **🔌 APIS E ROTAS BACKEND**
+2. **ðŸ”Œ APIS E ROTAS BACKEND**
    - 10 Edge Functions implementadas
-   - Middleware de segurança
-   - Validação de compras Google Play
+   - Middleware de seguranÃ§a
+   - ValidaÃ§Ã£o de compras Google Play
    - Sistema de analytics completo
 
-3. **⚙️ CONFIGURAÇÕES E VARIÁVEIS**
+3. **âš™ï¸ CONFIGURAÃ‡Ã•ES E VARIÃVEIS**
    - Arquivo .env completo
-   - Configurações React Native
+   - ConfiguraÃ§Ãµes React Native
    - Setup do MonetizationConfig
-   - Todas as chaves necessárias
+   - Todas as chaves necessÃ¡rias
 
-4. **🛡️ MIDDLEWARE DE SEGURANÇA**
-   - Autenticação JWT
-   - Verificação de planos
+4. **ðŸ›¡ï¸ MIDDLEWARE DE SEGURANÃ‡A**
+   - AutenticaÃ§Ã£o JWT
+   - VerificaÃ§Ã£o de planos
    - Rate limiting
-   - Validações de entrada
+   - ValidaÃ§Ãµes de entrada
 
-5. **📈 SISTEMA DE ANALYTICS AVANÇADO**
+5. **ðŸ“ˆ SISTEMA DE ANALYTICS AVANÃ‡ADO**
    - AnalyticsManager completo
    - Tracking de receita
-   - Eventos de conversão
-   - Integração Mixpanel + Google Analytics
+   - Eventos de conversÃ£o
+   - IntegraÃ§Ã£o Mixpanel + Google Analytics
 
-6. **🎮 SISTEMA DE GAMIFICAÇÃO**
-   - XP e níveis
+6. **ðŸŽ® SISTEMA DE GAMIFICAÃ‡ÃƒO**
+   - XP e nÃ­veis
    - Sistema de achievements
-   - Engajamento do usuário
+   - Engajamento do usuÃ¡rio
    - Tracking de progresso
 
-7. **📧 SISTEMA DE NOTIFICAÇÕES**
+7. **ðŸ“§ SISTEMA DE NOTIFICAÃ‡Ã•ES**
    - Email notifications (Resend)
    - Push notifications
-   - Templates personalizáveis
+   - Templates personalizÃ¡veis
    - Logging completo
 
-8. **🚀 DEPLOYMENT E INFRAESTRUTURA**
+8. **ðŸš€ DEPLOYMENT E INFRAESTRUTURA**
    - Docker configuration
    - CI/CD Pipeline (GitHub Actions)
    - Nginx setup
    - Auto-deploy para Google Play
 
-9. **🧪 TESTES E VALIDAÇÃO**
+9. **ðŸ§ª TESTES E VALIDAÃ‡ÃƒO**
    - Unit tests completos
    - Integration tests
    - Performance tests
-   - Validation de monetização
+   - Validation de monetizaÃ§Ã£o
 
-10. **📊 CHECKLIST DETALHADO**
-    - 150+ itens específicos
+10. **ðŸ“Š CHECKLIST DETALHADO**
+    - 150+ itens especÃ­ficos
     - Cronograma de 4 semanas
     - Fases bem definidas
-    - Projeções financeiras atualizadas
+    - ProjeÃ§Ãµes financeiras atualizadas
 
-### **🚀 RESULTADO FINAL:**
+### **ðŸš€ RESULTADO FINAL:**
 
-O documento MONETIZING.md agora possui **3.206 linhas** com implementação **100% COMPLETA** de:
+O documento MONETIZING.md agora possui **3.206 linhas** com implementaÃ§Ã£o **100% COMPLETA** de:
 
-#### **✅ TECNICAMENTE COMPLETO**
-- **Todos os códigos TypeScript** implementados
+#### **âœ… TECNICAMENTE COMPLETO**
+- **Todos os cÃ³digos TypeScript** implementados
 - **Todas as APIs** documentadas e funcionais
 - **Todo o schema do banco** pronto para deploy
-- **Todas as configurações** especificadas
+- **Todas as configuraÃ§Ãµes** especificadas
 - **Todos os testes** implementados
 
-#### **✅ ESTRATEGICAMENTE SÓLIDO**
-- **Progressive ad journey** (3 dias → paywall)
-- **Alternating ad pattern** (bills: 2º, 4º, 6º / transactions: 3º, 6º, 9º)
-- **Google Play compliance** (obrigatório para Android)
+#### **âœ… ESTRATEGICAMENTE SÃ“LIDO**
+- **Progressive ad journey** (3 dias â†’ paywall)
+- **Alternating ad pattern** (bills: 2Âº, 4Âº, 6Âº / transactions: 3Âº, 6Âº, 9Âº)
+- **Google Play compliance** (obrigatÃ³rio para Android)
 - **Pricing otimizado** (R$8.90/15.90/29.90)
 - **ROI projetado** 300%+ em 90 dias
 
-#### **✅ OPERACIONALMENTE PRONTO**
+#### **âœ… OPERACIONALMENTE PRONTO**
 - **Infraestrutura completa** (Docker + CI/CD)
 - **Monitoramento** (analytics + error tracking)
 - **Escalabilidade** (Supabase + Redis)
-- **Segurança** (RLS + JWT + middleware)
+- **SeguranÃ§a** (RLS + JWT + middleware)
 - **Compliance** (LGPD + Google Play)
 
-#### **✅ FINANCEIRAMENTE VIÁVEL**
-- **Cenário conservador:** R$5.446/mês
-- **Cenário otimista:** R$41.030/mês
-- **Cenário agressivo:** R$105.985/mês
+#### **âœ… FINANCEIRAMENTE VIÃVEL**
+- **CenÃ¡rio conservador:** R$5.446/mÃªs
+- **CenÃ¡rio otimista:** R$41.030/mÃªs
+- **CenÃ¡rio agressivo:** R$105.985/mÃªs
 - **LTV/CAC ratio:** 8:1 (excelente)
 - **Payback:** 30-45 dias
 
 ---
 
-## 🏆 **CONCLUSÃO: PRONTO PARA IMPLEMENTAÇÃO**
+## ðŸ† **CONCLUSÃƒO: PRONTO PARA IMPLEMENTAÃ‡ÃƒO**
 
-### **✅ STATUS: DOCUMENTAÇÃO 100% COMPLETA**
+### **âœ… STATUS: DOCUMENTAÃ‡ÃƒO 100% COMPLETA**
 
-O documento MONETIZING.md agora contém **TUDO** necessário para implementar um sistema de monetização completo e profissional:
+O documento MONETIZING.md agora contÃ©m **TUDO** necessÃ¡rio para implementar um sistema de monetizaÃ§Ã£o completo e profissional:
 
-1. **🎯 Estratégia de Monetização Definitiva**
-2. **💻 Implementação Técnica Completa**
-3. **🗄️ Estrutura de Dados Robusta**
-4. **🔐 Segurança Enterprise-Grade**
-5. **📊 Analytics e Tracking Avançados**
-6. **🎮 Sistema de Engajamento Gamificado**
-7. **🚀 Infraestrutura de Produção**
-8. **🧪 Testes Automatizados**
-9. **📋 Checklist de Implementação Detalhado**
-10. **💰 Projeções Financeiras Realistas**
+1. **ðŸŽ¯ EstratÃ©gia de MonetizaÃ§Ã£o Definitiva**
+2. **ðŸ’» ImplementaÃ§Ã£o TÃ©cnica Completa**
+3. **ðŸ—„ï¸ Estrutura de Dados Robusta**
+4. **ðŸ” SeguranÃ§a Enterprise-Grade**
+5. **ðŸ“Š Analytics e Tracking AvanÃ§ados**
+6. **ðŸŽ® Sistema de Engajamento Gamificado**
+7. **ðŸš€ Infraestrutura de ProduÃ§Ã£o**
+8. **ðŸ§ª Testes Automatizados**
+9. **ðŸ“‹ Checklist de ImplementaÃ§Ã£o Detalhado**
+10. **ðŸ’° ProjeÃ§Ãµes Financeiras Realistas**
 
-### **🚀 PRÓXIMO PASSO: INICIAR IMPLEMENTAÇÃO**
+### **ðŸš€ PRÃ“XIMO PASSO: INICIAR IMPLEMENTAÃ‡ÃƒO**
 
-Com este documento, você pode:
-- ✅ **Implementar imediatamente** todos os componentes
-- ✅ **Deploy em produção** com confiança
-- ✅ **Escalar rapidamente** conforme demanda
-- ✅ **Gerar receita** desde o primeiro dia
-- ✅ **Otimizar continuamente** baseado em dados
+Com este documento, vocÃª pode:
+- âœ… **Implementar imediatamente** todos os componentes
+- âœ… **Deploy em produÃ§Ã£o** com confianÃ§a
+- âœ… **Escalar rapidamente** conforme demanda
+- âœ… **Gerar receita** desde o primeiro dia
+- âœ… **Otimizar continuamente** baseado em dados
 
-### **💎 DIFERENCIAL COMPETITIVO**
+### **ðŸ’Ž DIFERENCIAL COMPETITIVO**
 
-Este sistema de monetização oferece:
-- **Progressive Journey** único no mercado
+Este sistema de monetizaÃ§Ã£o oferece:
+- **Progressive Journey** Ãºnico no mercado
 - **Alternating Ad Pattern** para melhor UX
 - **Google Play Compliance** total
-- **Gamificação integrada** para retenção
+- **GamificaÃ§Ã£o integrada** para retenÃ§Ã£o
 - **Analytics de receita** em tempo real
 
 ---
 
-**🎉 O STATER IA ESTÁ PRONTO PARA SER O PRÓXIMO UNICÓRNIO FINTECH BRASILEIRO! 🇧🇷💰**
+**ðŸŽ‰ O STATER IA ESTÃ PRONTO PARA SER O PRÃ“XIMO UNICÃ“RNIO FINTECH BRASILEIRO! ðŸ‡§ðŸ‡·ðŸ’°**
 
 ---
 
-## ✅ **RESUMO FINAL: ESSENCIAL vs REMOVIDO**
+## âœ… **RESUMO FINAL: ESSENCIAL vs REMOVIDO**
 
-### **🎯 MANTIDO (ESSENCIAL PARA MONETIZAÇÃO):**
+### **ðŸŽ¯ MANTIDO (ESSENCIAL PARA MONETIZAÃ‡ÃƒO):**
 
-1. **✅ UserJourneyManager** - Jornada progressiva 3 dias
-2. **✅ AdCooldownManager** - Ads por ação (bills/transactions)  
-3. **✅ PaymentManager** - Google Play Billing
-4. **✅ SharedLimitsManager** - Limites app + Telegram
-5. **✅ Schema básico** - 4 tabelas principais
-6. **✅ 3 APIs essenciais** - Journey, ads, billing
-7. **✅ Componentes React** - Modal ads + paywall
-8. **✅ Análise financeira** - ROI e projeções
+1. **âœ… UserJourneyManager** - Jornada progressiva 3 dias
+2. **âœ… AdCooldownManager** - Ads por aÃ§Ã£o (bills/transactions)  
+3. **âœ… PaymentManager** - Google Play Billing
+4. **âœ… SharedLimitsManager** - Limites app + Telegram
+5. **âœ… Schema bÃ¡sico** - 4 tabelas principais
+6. **âœ… 3 APIs essenciais** - Journey, ads, billing
+7. **âœ… Componentes React** - Modal ads + paywall
+8. **âœ… AnÃ¡lise financeira** - ROI e projeÃ§Ãµes
 
-### **🚫 REMOVIDO (DESNECESSÁRIO AGORA):**
+### **ðŸš« REMOVIDO (DESNECESSÃRIO AGORA):**
 
-1. **❌ Sistema de gamificação** - XP, achievements, níveis
-2. **❌ Email templates complexos** - 200+ linhas de HTML
-3. **❌ Analytics ultra-detalhado** - Event tracking granular  
-4. **❌ CI/CD avançado** - Docker multi-stage, pipelines
-5. **❌ Testes unitários complexos** - 500+ linhas de testes
-6. **❌ Infraestrutura enterprise** - Load balancer, Redis
-7. **❌ Push notifications** - Sistema completo de notificações
-8. **❌ 10 tabelas extras** - Gamification, achievements, etc.
+1. **âŒ Sistema de gamificaÃ§Ã£o** - XP, achievements, nÃ­veis
+2. **âŒ Email templates complexos** - 200+ linhas de HTML
+3. **âŒ Analytics ultra-detalhado** - Event tracking granular  
+4. **âŒ CI/CD avanÃ§ado** - Docker multi-stage, pipelines
+5. **âŒ Testes unitÃ¡rios complexos** - 500+ linhas de testes
+6. **âŒ Infraestrutura enterprise** - Load balancer, Redis
+7. **âŒ Push notifications** - Sistema completo de notificaÃ§Ãµes
+8. **âŒ 10 tabelas extras** - Gamification, achievements, etc.
 
-### **📊 RESULTADO:**
+### **ðŸ“Š RESULTADO:**
 
 - **ANTES:** 3.400+ linhas com over-engineering
-- **AGORA:** ~2.000 linhas focadas em monetização
-- **REDUÇÃO:** ~40% menos código, 100% mais foco
-- **TEMPO DE IMPLEMENTAÇÃO:** 4 semanas → 2 semanas
+- **AGORA:** ~2.000 linhas focadas em monetizaÃ§Ã£o
+- **REDUÃ‡ÃƒO:** ~40% menos cÃ³digo, 100% mais foco
+- **TEMPO DE IMPLEMENTAÃ‡ÃƒO:** 4 semanas â†’ 2 semanas
 
 ---
 
-## 🚀 **PRÓXIMOS PASSOS DEFINITIVOS**
+## ðŸš€ **PRÃ“XIMOS PASSOS DEFINITIVOS**
 
 ### **SEMANA 1 (Dias 1-7): CORE MONETIZATION**
 ```
-DIA 1-2: ✅ UserJourneyManager + Jornada 3 dias
-DIA 3-4: ✅ AdCooldownManager + Ads por ação
-DIA 5-6: ✅ Google Play Billing básico  
-DIA 7:   ✅ Testes e ajustes
+DIA 1-2: âœ… UserJourneyManager + Jornada 3 dias
+DIA 3-4: âœ… AdCooldownManager + Ads por aÃ§Ã£o
+DIA 5-6: âœ… Google Play Billing bÃ¡sico  
+DIA 7:   âœ… Testes e ajustes
 ```
 
 ### **SEMANA 2 (Dias 8-14): INTEGRATION & LAUNCH**
 ```
-DIA 8-9:  ✅ SharedLimitsManager + Telegram sync
-DIA 10-11: ✅ Paywall + Componentes React
-DIA 12-13: ✅ Deploy + Google Play Console
-DIA 14:   🚀 LANÇAMENTO BETA
+DIA 8-9:  âœ… SharedLimitsManager + Telegram sync
+DIA 10-11: âœ… Paywall + Componentes React
+DIA 12-13: âœ… Deploy + Google Play Console
+DIA 14:   ðŸš€ LANÃ‡AMENTO BETA
 ```
 
-### **📋 CHECKLIST SIMPLIFICADO:**
+### **ðŸ“‹ CHECKLIST SIMPLIFICADO:**
 
 ```
 BACKEND (4 itens):
-□ Criar 4 tabelas no Supabase
-□ Implementar 3 Edge Functions  
-□ Configurar Google Play validation
-□ Setup environment variables
+â–¡ Criar 4 tabelas no Supabase
+â–¡ Implementar 3 Edge Functions  
+â–¡ Configurar Google Play validation
+â–¡ Setup environment variables
 
 FRONTEND (4 itens):
-□ UserJourneyManager + AdCooldownManager
-□ PaymentManager + SharedLimitsManager
-□ ProgressiveAdModal + SubtlePaywall
-□ Integração com react-native-iap + AdMob
+â–¡ UserJourneyManager + AdCooldownManager
+â–¡ PaymentManager + SharedLimitsManager
+â–¡ ProgressiveAdModal + SubtlePaywall
+â–¡ IntegraÃ§Ã£o com react-native-iap + AdMob
 
 MOBILE (4 itens):
-□ Google Play Console setup
-□ AdMob configuration
-□ Build release APK
-□ Test e deploy
+â–¡ Google Play Console setup
+â–¡ AdMob configuration
+â–¡ Build release APK
+â–¡ Test e deploy
 
 TOTAL: 12 itens essenciais vs 150+ anteriores
 ```
 
 ---
 
-**Última atualização**: 24 de Julho, 2025
-**Versão**: 4.0 - **ESSENCIAL FOCUSED**
-**Status**: ✅ **PRONTO PARA IMPLEMENTAÇÃO IMEDIATA**
+**Ãšltima atualizaÃ§Ã£o**: 24 de Julho, 2025
+**VersÃ£o**: 4.0 - **ESSENCIAL FOCUSED**
+**Status**: âœ… **PRONTO PARA IMPLEMENTAÃ‡ÃƒO IMEDIATA**
 **ROI Projetado**: +300% em 90 dias  
-**Tempo de implementação**: **2 SEMANAS**
+**Tempo de implementaÃ§Ã£o**: **2 SEMANAS**
+

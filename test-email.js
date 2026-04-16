@@ -1,6 +1,6 @@
 const https = require('https');
 
-// Gera datas dinâmicas baseadas em hoje
+// Gera datas dinÃ¢micas baseadas em hoje
 const today = new Date();
 const tomorrow = new Date(today);
 tomorrow.setDate(tomorrow.getDate() + 1);
@@ -13,7 +13,7 @@ const formatDate = (date) => date.toISOString().split('T')[0];
 
 const data = JSON.stringify({
   to: 'suplementaja@gmail.com',
-  subject: '📬 Stater: Lembrete da semana',
+  subject: 'ðŸ“¬ Stater: Lembrete da semana',
   template: 'bills-digest',
   data: {
     userName: 'Joshua',
@@ -21,9 +21,9 @@ const data = JSON.stringify({
       { name: 'Aluguel - Apartamento', amount: 1850, dueDate: formatDate(today), category: 'Moradia' },
       { name: 'Conta de Luz - CEMIG', amount: 287.50, dueDate: formatDate(tomorrow), category: 'Utilidades' },
       { name: 'Internet - Vivo Fibra', amount: 129.90, dueDate: formatDate(in3days), category: 'Utilidades' },
-      { name: 'Cartão Nubank', amount: 1523.47, dueDate: formatDate(in5days), category: 'Cartões' }
+      { name: 'CartÃ£o Nubank', amount: 1523.47, dueDate: formatDate(in5days), category: 'CartÃµes' }
     ],
-    overdueBills: [] // Sem contas vencidas para teste padrão
+    overdueBills: [] // Sem contas vencidas para teste padrÃ£o
   }
 });
 

@@ -1,47 +1,48 @@
-# 🔑 GUIA RÁPIDO - CONFIGURAR SERVICE_ROLE_KEY
+﻿# ðŸ”‘ GUIA RÃPIDO - CONFIGURAR SERVICE_ROLE_KEY
 
-## 📋 **PASSOS PARA PEGAR A CHAVE:**
+## ðŸ“‹ **PASSOS PARA PEGAR A CHAVE:**
 
-### 1️⃣ **Acessar Supabase Dashboard**
-🌐 https://supabase.com/dashboard
+### 1ï¸âƒ£ **Acessar Supabase Dashboard**
+ðŸŒ https://supabase.com/dashboard
 
-### 2️⃣ **Ir para Settings → API**
-- Menu lateral: **Settings** ⚙️
-- Submenu: **API** 📡
+### 2ï¸âƒ£ **Ir para Settings â†’ API**
+- Menu lateral: **Settings** âš™ï¸
+- Submenu: **API** ðŸ“¡
 
-### 3️⃣ **Copiar a SERVICE_ROLE_KEY**
-Na seção **"Project API keys"**:
-- ❌ **anon/public**: Você já tem (termina com ...SJx8)
-- ✅ **service_role**: **ESTA É A QUE PRECISAMOS!**
+### 3ï¸âƒ£ **Copiar a SERVICE_ROLE_KEY**
+Na seÃ§Ã£o **"Project API keys"**:
+- âŒ **anon/public**: VocÃª jÃ¡ tem (termina com ...SJx8)
+- âœ… **service_role**: **ESTA Ã‰ A QUE PRECISAMOS!**
 
-### 4️⃣ **Colar no .env**
+### 4ï¸âƒ£ **Colar no .env**
 ```bash
 # No arquivo: telegram-bot/.env
 # Substituir esta linha:
-SUPABASE_SERVICE_ROLE_KEY=COLE_AQUI_A_SERVICE_ROLE_KEY_DO_SUPABASE
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
 
-# Pela chave real que você copiou (algo como):
-SUPABASE_SERVICE_ROLE_KEY=YOUR_JWT_TOKEN
+# Pela chave real que vocÃª copiou (algo como):
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
 ```
 
-## ✅ **CONFIGURAÇÃO ATUAL DO SEU .env:**
+## âœ… **CONFIGURAÃ‡ÃƒO ATUAL DO SEU .env:**
 ```bash
-✅ TELEGRAM_BOT_TOKEN - OK
-✅ GEMINI_API_KEY - OK  
-✅ SUPABASE_URL - OK
-✅ SUPABASE_ANON_KEY - OK
-✅ APP_URL - OK (https://stater.app)
-⚠️ SUPABASE_SERVICE_ROLE_KEY - FALTANDO (adicionar)
+âœ… TELEGRAM_BOT_TOKEN - OK
+âœ… GEMINI_API_KEY - OK  
+âœ… SUPABASE_URL - OK
+âœ… SUPABASE_ANON_KEY - OK
+âœ… APP_URL - OK (https://stater.app)
+âš ï¸ SUPABASE_SERVICE_ROLE_KEY - FALTANDO (adicionar)
 ```
 
-## 🚀 **DEPOIS DE ADICIONAR A CHAVE:**
+## ðŸš€ **DEPOIS DE ADICIONAR A CHAVE:**
 1. **Aplicar o script SQL** no Supabase (fix-telegram-406-error.sql)
 2. **Reiniciar o bot**: `node bot.js`
-3. **Testar conexão** no app → Telegram
+3. **Testar conexÃ£o** no app â†’ Telegram
 
-## ⚠️ **IMPORTANTE:**
-- A SERVICE_ROLE_KEY é **super sensível** - não compartilhe
-- É diferente da ANON_KEY - tem mais permissões
-- É essencial para resolver o erro 406
+## âš ï¸ **IMPORTANTE:**
+- A SERVICE_ROLE_KEY Ã© **super sensÃ­vel** - nÃ£o compartilhe
+- Ã‰ diferente da ANON_KEY - tem mais permissÃµes
+- Ã‰ essencial para resolver o erro 406
 
-Após adicionar a chave, o erro 406 deve ser resolvido! 🎉
+ApÃ³s adicionar a chave, o erro 406 deve ser resolvido! ðŸŽ‰
+

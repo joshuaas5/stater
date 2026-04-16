@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 // Set your Supabase URL and ANON key
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://tmucbwlhkffrhtexmjze.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_JWT_TOKEN';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 // Check if environment variables are set
 console.log('Supabase URL:', supabaseUrl);
@@ -14,7 +14,7 @@ if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KE
 // Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    // Configurações específicas para mobile
+    // ConfiguraÃƒÂ§ÃƒÂµes especÃƒÂ­ficas para mobile
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
@@ -29,29 +29,29 @@ Para personalizar os templates de email do Supabase, siga os passos abaixo:
 
 1. Acesse o Dashboard do Supabase: https://app.supabase.com 
 2. Selecione seu projeto
-3. Navegue até Authentication > Email Templates
+3. Navegue atÃƒÂ© Authentication > Email Templates
 4. Personalize os seguintes templates:
-   - Confirmation: email de confirmação de cadastro
+   - Confirmation: email de confirmaÃƒÂ§ÃƒÂ£o de cadastro
    - Invite: email de convite
-   - Magic Link: email com link mágico para login
-   - Change Email: email para confirmar mudança de email
-   - Reset Password: email para redefinição de senha
+   - Magic Link: email com link mÃƒÂ¡gico para login
+   - Change Email: email para confirmar mudanÃƒÂ§a de email
+   - Reset Password: email para redefiniÃƒÂ§ÃƒÂ£o de senha
 
-Exemplos de personalização para Reset Password:
+Exemplos de personalizaÃƒÂ§ÃƒÂ£o para Reset Password:
 
 ASSUNTO:
-"Sprout - Redefinição de Senha Solicitada"
+"Sprout - RedefiniÃƒÂ§ÃƒÂ£o de Senha Solicitada"
 
-CONTEÚDO:
-<h2>Olá!</h2>
+CONTEÃƒÅ¡DO:
+<h2>OlÃƒÂ¡!</h2>
 
-<p>Recebemos uma solicitação para redefinir sua senha no aplicativo Sprout.</p>
+<p>Recebemos uma solicitaÃƒÂ§ÃƒÂ£o para redefinir sua senha no aplicativo Sprout.</p>
 
-<p>Clique no botão abaixo para criar uma nova senha:</p>
+<p>Clique no botÃƒÂ£o abaixo para criar uma nova senha:</p>
 
 <p><a href="{{ .ConfirmationURL }}" style="background-color: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 20px 0;">Redefinir Minha Senha</a></p>
 
-<p>Se você não solicitou esta mudança, pode ignorar este email com segurança.</p>
+<p>Se vocÃƒÂª nÃƒÂ£o solicitou esta mudanÃƒÂ§a, pode ignorar este email com seguranÃƒÂ§a.</p>
 
 <p>Atenciosamente,<br>Equipe Sprout</p>
 
@@ -61,35 +61,35 @@ CONTEÚDO:
 
 -------
 
-Para o Email de Confirmação de Conta:
+Para o Email de ConfirmaÃƒÂ§ÃƒÂ£o de Conta:
 
 ASSUNTO:
 "Boas-vindas ao Sprout - Confirme sua conta"
 
-CONTEÚDO:
-<h2>Bem-vindo(a) ao Sprout! 🌱</h2>
+CONTEÃƒÅ¡DO:
+<h2>Bem-vindo(a) ao Sprout! Ã°Å¸Å’Â±</h2>
 
-<p>Estamos muito felizes em ter você conosco! Só falta um passo para começar sua jornada de organização financeira.</p>
+<p>Estamos muito felizes em ter vocÃƒÂª conosco! SÃƒÂ³ falta um passo para comeÃƒÂ§ar sua jornada de organizaÃƒÂ§ÃƒÂ£o financeira.</p>
 
-<p>Clique no botão abaixo para confirmar seu email e ativar sua conta:</p>
+<p>Clique no botÃƒÂ£o abaixo para confirmar seu email e ativar sua conta:</p>
 
 <p><a href="{{ .ConfirmationURL }}" style="background-color: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 20px 0;">Confirmar Minha Conta</a></p>
 
-<p>Com o Sprout, você poderá:</p>
+<p>Com o Sprout, vocÃƒÂª poderÃƒÂ¡:</p>
 <ul>
-  <li>Acompanhar suas finanças em tempo real</li>
-  <li>Criar orçamentos personalizados</li>
+  <li>Acompanhar suas finanÃƒÂ§as em tempo real</li>
+  <li>Criar orÃƒÂ§amentos personalizados</li>
   <li>Receber alertas sobre contas a pagar</li>
-  <li>Visualizar relatórios detalhados sobre seus gastos</li>
+  <li>Visualizar relatÃƒÂ³rios detalhados sobre seus gastos</li>
 </ul>
 
-<p>Estamos ansiosos para ajudá-lo(a) a alcançar seus objetivos financeiros!</p>
+<p>Estamos ansiosos para ajudÃƒÂ¡-lo(a) a alcanÃƒÂ§ar seus objetivos financeiros!</p>
 
 <p>Atenciosamente,<br>Equipe Sprout</p>
 
 <hr style="border: 1px solid #eaeaea; margin: 30px 0;" />
 
-<p style="font-size: 12px; color: #666;">Este link expira em 24 horas. Se precisar de um novo link, visite nossa página de login.</p>
+<p style="font-size: 12px; color: #666;">Este link expira em 24 horas. Se precisar de um novo link, visite nossa pÃƒÂ¡gina de login.</p>
 */
 
 export const supabaseAdmin = supabase;

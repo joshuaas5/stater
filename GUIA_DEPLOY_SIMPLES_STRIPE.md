@@ -1,10 +1,10 @@
-# 🚀 GUIA RÁPIDO - DEPLOY STRIPE EDGE FUNCTIONS VIA DASHBOARD
+# ðŸš€ GUIA RÃPIDO - DEPLOY STRIPE EDGE FUNCTIONS VIA DASHBOARD
 
-**Situação:** Não conseguimos instalar Supabase CLI, então vamos fazer deploy manual.
+**SituaÃ§Ã£o:** NÃ£o conseguimos instalar Supabase CLI, entÃ£o vamos fazer deploy manual.
 
 ---
 
-## ✅ SOLUÇÃO: Modificar função existente + Criar webhook manualmente
+## âœ… SOLUÃ‡ÃƒO: Modificar funÃ§Ã£o existente + Criar webhook manualmente
 
 ### **PASSO 1: Renomear "bright-responder" para "create-checkout"**
 
@@ -12,7 +12,7 @@
 
 2. Clique em **"bright-responder"**
 
-3. Procure opção **"Settings"** ou **"⋮" (três pontos)**
+3. Procure opÃ§Ã£o **"Settings"** ou **"â‹®" (trÃªs pontos)**
 
 4. Clique em **"Rename"** e mude para: `create-checkout`
 
@@ -20,13 +20,13 @@
 
 ---
 
-### **PASSO 2: Editar o código da função "create-checkout"**
+### **PASSO 2: Editar o cÃ³digo da funÃ§Ã£o "create-checkout"**
 
 1. Na mesma tela, clique na aba **"Code"** ou **"Editor"**
 
-2. **APAGUE TODO o código** que está lá
+2. **APAGUE TODO o cÃ³digo** que estÃ¡ lÃ¡
 
-3. **Cole este código completo:**
+3. **Cole este cÃ³digo completo:**
 
 \`\`\`typescript
 // supabase/functions/create-checkout/index.ts
@@ -51,7 +51,7 @@ serve(async (req) => {
   try {
     const { priceId, userId, userEmail, successUrl, cancelUrl } = await req.json();
 
-    console.log('🛒 Criando sessão de checkout:', { priceId, userId });
+    console.log('ðŸ›’ Criando sessÃ£o de checkout:', { priceId, userId });
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -64,7 +64,7 @@ serve(async (req) => {
       metadata: { userId, timestamp: new Date().toISOString() },
     });
 
-    console.log('✅ Sessão criada:', session.id);
+    console.log('âœ… SessÃ£o criada:', session.id);
 
     return new Response(
       JSON.stringify({ sessionId: session.id }),
@@ -72,7 +72,7 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
-    console.error('❌ Erro:', error.message);
+    console.error('âŒ Erro:', error.message);
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -85,13 +85,13 @@ serve(async (req) => {
 
 ---
 
-### **PASSO 3: Configurar Secrets (Variáveis de Ambiente)**
+### **PASSO 3: Configurar Secrets (VariÃ¡veis de Ambiente)**
 
-1. Vá em: https://supabase.com/dashboard/project/tmucbwlhkffrhtexmjze/settings/vault
+1. VÃ¡ em: https://supabase.com/dashboard/project/tmucbwlhkffrhtexmjze/settings/vault
 
-2. Procure a seção **"Secrets"** ou **"Environment variables"**
+2. Procure a seÃ§Ã£o **"Secrets"** ou **"Environment variables"**
 
-3. Adicione esses secrets (se não existirem):
+3. Adicione esses secrets (se nÃ£o existirem):
 
 **Secret 1:**
 \`\`\`
@@ -102,7 +102,7 @@ Valor: sk_test_REDACTED
 **Secret 2:**
 \`\`\`
 Nome: STRIPE_WEBHOOK_SECRET
-Valor: whsec_REDACTED
+Valor: whsec_YOUR_WEBHOOK_SECRET
 \`\`\`
 
 **Secret 3:**
@@ -115,44 +115,45 @@ Valor: https://tmucbwlhkffrhtexmjze.supabase.co
 
 ---
 
-### **PASSO 4: Criar segunda função "stripe-webhook"**
+### **PASSO 4: Criar segunda funÃ§Ã£o "stripe-webhook"**
 
-**PROBLEMA:** Não tem botão "Create new function"
+**PROBLEMA:** NÃ£o tem botÃ£o "Create new function"
 
-**SOLUÇÃO TEMPORÁRIA:** Por enquanto, vamos PULAR a criação do webhook handler.
+**SOLUÃ‡ÃƒO TEMPORÃRIA:** Por enquanto, vamos PULAR a criaÃ§Ã£o do webhook handler.
 
-O sistema vai funcionar **SEM** o webhook por enquanto, mas você não vai ter ativação automática do Premium.
+O sistema vai funcionar **SEM** o webhook por enquanto, mas vocÃª nÃ£o vai ter ativaÃ§Ã£o automÃ¡tica do Premium.
 
 **O que funciona:**
-- ✅ Usuário pode comprar assinatura
-- ✅ Pagamento é processado no Stripe
-- ❌ Usuário NÃO fica Premium automaticamente (precisa ativar manual)
+- âœ… UsuÃ¡rio pode comprar assinatura
+- âœ… Pagamento Ã© processado no Stripe
+- âŒ UsuÃ¡rio NÃƒO fica Premium automaticamente (precisa ativar manual)
 
-**Solução definitiva:** Criar a função webhook depois via CLI ou pedir suporte do Supabase.
+**SoluÃ§Ã£o definitiva:** Criar a funÃ§Ã£o webhook depois via CLI ou pedir suporte do Supabase.
 
 ---
 
-## 🧪 TESTAR AGORA
+## ðŸ§ª TESTAR AGORA
 
 1. Abra o site: https://stater.app
 
-2. Faça login
+2. FaÃ§a login
 
 3. Clique em "Assinar Premium"
 
 4. Vai abrir o Stripe Checkout
 
-5. Use cartão teste: `4242 4242 4242 4242`
+5. Use cartÃ£o teste: `4242 4242 4242 4242`
 
-6. Se funcionar = **SUCESSO!** ✅
+6. Se funcionar = **SUCESSO!** âœ…
 
 ---
 
-## ❓ PERGUNTAS
+## â“ PERGUNTAS
 
-1. Conseguiu renomear a função para `create-checkout`?
-2. Conseguiu colar o código novo?
+1. Conseguiu renomear a funÃ§Ã£o para `create-checkout`?
+2. Conseguiu colar o cÃ³digo novo?
 3. Conseguiu adicionar os Secrets?
-4. Quer tentar criar a segunda função (webhook) depois?
+4. Quer tentar criar a segunda funÃ§Ã£o (webhook) depois?
 
-**Me avisa o que conseguiu fazer!** 🚀
+**Me avisa o que conseguiu fazer!** ðŸš€
+

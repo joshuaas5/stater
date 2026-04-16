@@ -1,13 +1,13 @@
-// Executor direto de SQL para Performance Fix
+﻿// Executor direto de SQL para Performance Fix
 // Usando fetch direto para Supabase REST API
 
 async function executePerformanceFixDirect() {
-    console.log('🚀 INICIANDO CORRECAO PERFORMANCE SUPABASE');
-    console.log('📊 Resolvendo Auth RLS Initialization Plan');
-    console.log('🎯 Beneficio: Performance ate 1000x melhor\n');
+    console.log('ðŸš€ INICIANDO CORRECAO PERFORMANCE SUPABASE');
+    console.log('ðŸ“Š Resolvendo Auth RLS Initialization Plan');
+    console.log('ðŸŽ¯ Beneficio: Performance ate 1000x melhor\n');
 
     const SUPABASE_URL = 'https://tmucbwlhkffrhtexmjze.supabase.co';
-    const SUPABASE_ANON_KEY = 'YOUR_JWT_TOKEN';
+    const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'COLE_SUA_SUPABASE_ANON_KEY_AQUI';
 
     // Comandos SQL otimizados
     const sqlCommands = [
@@ -45,10 +45,10 @@ async function executePerformanceFixDirect() {
         // NOTIFICATIONS - Remover duplicatas
         'DROP POLICY IF EXISTS "Users can view their own notifications" ON public.notifications',
         'DROP POLICY IF EXISTS "Users can update their own notifications" ON public.notifications',
-        'DROP POLICY IF EXISTS "Usuários podem ver suas próprias notificações" ON public.notifications',
-        'DROP POLICY IF EXISTS "Usuários podem inserir suas próprias notificações" ON public.notifications',
-        'DROP POLICY IF EXISTS "Usuários podem atualizar suas próprias notificações" ON public.notifications',
-        'DROP POLICY IF EXISTS "Usuários podem excluir suas próprias notificações" ON public.notifications',
+        'DROP POLICY IF EXISTS "UsuÃ¡rios podem ver suas prÃ³prias notificaÃ§Ãµes" ON public.notifications',
+        'DROP POLICY IF EXISTS "UsuÃ¡rios podem inserir suas prÃ³prias notificaÃ§Ãµes" ON public.notifications',
+        'DROP POLICY IF EXISTS "UsuÃ¡rios podem atualizar suas prÃ³prias notificaÃ§Ãµes" ON public.notifications',
+        'DROP POLICY IF EXISTS "UsuÃ¡rios podem excluir suas prÃ³prias notificaÃ§Ãµes" ON public.notifications',
         `CREATE POLICY "notifications_optimized" ON public.notifications 
          FOR ALL TO authenticated, anon 
          USING ((select auth.uid()) = user_id) 
@@ -78,33 +78,33 @@ async function executePerformanceFixDirect() {
                 if (sql.includes('DROP POLICY')) {
                     dropCount++;
                     const policyName = sql.match(/"([^"]+)"/)?.[1] || 'unknown';
-                    console.log(`  ✅ Removida: ${policyName}`);
+                    console.log(`  âœ… Removida: ${policyName}`);
                 } else if (sql.includes('CREATE POLICY')) {
                     createCount++;
                     const policyName = sql.match(/"([^"]+)"/)?.[1] || 'unknown';
-                    console.log(`  🚀 Criada otimizada: ${policyName}`);
+                    console.log(`  ðŸš€ Criada otimizada: ${policyName}`);
                 }
             } else {
                 const error = await response.text();
-                console.log(`  ⚠️ Comando ${i + 1} falhou: ${error.substring(0, 100)}`);
+                console.log(`  âš ï¸ Comando ${i + 1} falhou: ${error.substring(0, 100)}`);
             }
         } catch (err) {
-            console.log(`  ❌ Erro no comando ${i + 1}: ${err.message}`);
+            console.log(`  âŒ Erro no comando ${i + 1}: ${err.message}`);
         }
     }
 
-    console.log('\n🎉 CORRECAO DE PERFORMANCE CONCLUIDA!');
-    console.log(`📊 Resultado: ${successCount}/${sqlCommands.length} comandos executados`);
-    console.log(`📝 Detalhes: ${dropCount} politicas removidas, ${createCount} otimizadas criadas`);
+    console.log('\nðŸŽ‰ CORRECAO DE PERFORMANCE CONCLUIDA!');
+    console.log(`ðŸ“Š Resultado: ${successCount}/${sqlCommands.length} comandos executados`);
+    console.log(`ðŸ“ Detalhes: ${dropCount} politicas removidas, ${createCount} otimizadas criadas`);
     
-    console.log('\n📈 BENEFICIOS APLICADOS:');
-    console.log('  ✅ Auth RLS Initialization Plan: CORRIGIDO');
-    console.log('  ✅ Multiple Permissive Policies: REDUZIDO');
-    console.log('  ✅ Performance: ate 1000x melhor em queries grandes');
-    console.log('  ✅ Manutencao: simplificada');
-    console.log('  ✅ Seguranca: mantida');
+    console.log('\nðŸ“ˆ BENEFICIOS APLICADOS:');
+    console.log('  âœ… Auth RLS Initialization Plan: CORRIGIDO');
+    console.log('  âœ… Multiple Permissive Policies: REDUZIDO');
+    console.log('  âœ… Performance: ate 1000x melhor em queries grandes');
+    console.log('  âœ… Manutencao: simplificada');
+    console.log('  âœ… Seguranca: mantida');
 
-    console.log('\n📋 PROXIMOS PASSOS:');
+    console.log('\nðŸ“‹ PROXIMOS PASSOS:');
     console.log('  1. Execute novamente o Performance Advisor');
     console.log('  2. Verifique reducao significativa de WARNINGs');
     console.log('  3. Teste queries em tabelas grandes');
@@ -113,3 +113,6 @@ async function executePerformanceFixDirect() {
 
 // Executar
 executePerformanceFixDirect().catch(console.error);
+
+
+

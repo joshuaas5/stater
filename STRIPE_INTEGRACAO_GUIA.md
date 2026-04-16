@@ -1,4 +1,4 @@
-# 💳 INTEGRAÇÃO STRIPE - PLANO PREMIUM STATER
+# ðŸ’³ INTEGRAÃ‡ÃƒO STRIPE - PLANO PREMIUM STATER
 
 **Data:** 14 de Outubro de 2025  
 **Objetivo:** Implementar pagamentos recorrentes com Stripe  
@@ -6,19 +6,19 @@
 
 ---
 
-## 🎯 RESUMO DA IMPLEMENTAÇÃO
+## ðŸŽ¯ RESUMO DA IMPLEMENTAÃ‡ÃƒO
 
-### ✅ **O que vamos criar:**
+### âœ… **O que vamos criar:**
 
-1. **Conta Stripe** (grátis para começar)
-2. **Produtos e Preços** configurados no Stripe
+1. **Conta Stripe** (grÃ¡tis para comeÃ§ar)
+2. **Produtos e PreÃ§os** configurados no Stripe
 3. **Stripe Checkout** para processar pagamentos
-4. **Webhook** para receber confirmações
+4. **Webhook** para receber confirmaÃ§Ãµes
 5. **Gerenciamento de assinaturas** no Dashboard
 
 ---
 
-## 📋 PASSO A PASSO COMPLETO
+## ðŸ“‹ PASSO A PASSO COMPLETO
 
 ### **ETAPA 1: Criar Conta Stripe**
 
@@ -29,13 +29,13 @@
 Nome: [Seu Nome]
 Email: [Seu Email]
 Senha: [Senha forte]
-País: Brasil
+PaÃ­s: Brasil
 ```
 
 #### 3. **Ative modo Teste** (sem precisar de docs ainda)
 ```
-Você vai ver no topo: 🔄 Modo de teste
-Isso permite testar tudo sem cobranças reais
+VocÃª vai ver no topo: ðŸ”„ Modo de teste
+Isso permite testar tudo sem cobranÃ§as reais
 ```
 
 ---
@@ -46,17 +46,17 @@ Isso permite testar tudo sem cobranças reais
 
 #### 2. Copie as chaves:
 
-**Chave Publicável (Frontend):**
+**Chave PublicÃ¡vel (Frontend):**
 ```
 pk_test_XXXXXXXXXXXXXXXXXXXXXXXX
 ```
-☑️ Pode ser exposta no código JavaScript
+â˜‘ï¸ Pode ser exposta no cÃ³digo JavaScript
 
 **Chave Secreta (Backend):**
 ```
 sk_test_REDACTED
 ```
-⚠️ NUNCA exponha esta no frontend!
+âš ï¸ NUNCA exponha esta no frontend!
 
 ---
 
@@ -68,28 +68,28 @@ sk_test_REDACTED
 
 ```
 Nome: Stater Premium - Plano Semanal
-Descrição: Acesso completo às funcionalidades premium por 7 dias
-Preço: R$ 8,90 BRL
-Recorrência: Semanal
+DescriÃ§Ã£o: Acesso completo Ã s funcionalidades premium por 7 dias
+PreÃ§o: R$ 8,90 BRL
+RecorrÃªncia: Semanal
 ID do Produto: prod_stater_weekly
-ID do Preço: price_stater_weekly_890
+ID do PreÃ§o: price_stater_weekly_890
 ```
 
 #### 3. Crie **PRODUTO 2: Stater Premium Mensal**
 
 ```
 Nome: Stater Premium - Plano Mensal  
-Descrição: Acesso completo às funcionalidades premium por 30 dias
-Preço: R$ 19,90 BRL
-Recorrência: Mensal
+DescriÃ§Ã£o: Acesso completo Ã s funcionalidades premium por 30 dias
+PreÃ§o: R$ 19,90 BRL
+RecorrÃªncia: Mensal
 ID do Produto: prod_stater_monthly
-ID do Preço: price_stater_monthly_1990
+ID do PreÃ§o: price_stater_monthly_1990
 ```
 
 #### 4. **Anote os Price IDs!**
 ```
-price_stater_weekly_890 → Semanal
-price_stater_monthly_1990 → Mensal
+price_stater_weekly_890 â†’ Semanal
+price_stater_monthly_1990 â†’ Mensal
 ```
 
 ---
@@ -110,22 +110,22 @@ https://stater.app/api/stripe-webhook
 
 **Eventos para escutar:**
 ```
-☑️ checkout.session.completed
-☑️ customer.subscription.created
-☑️ customer.subscription.updated
-☑️ customer.subscription.deleted
-☑️ invoice.payment_succeeded
-☑️ invoice.payment_failed
+â˜‘ï¸ checkout.session.completed
+â˜‘ï¸ customer.subscription.created
+â˜‘ï¸ customer.subscription.updated
+â˜‘ï¸ customer.subscription.deleted
+â˜‘ï¸ invoice.payment_succeeded
+â˜‘ï¸ invoice.payment_failed
 ```
 
 #### 4. **Copie o Signing Secret:**
 ```
-whsec_REDACTED
+whsec_YOUR_WEBHOOK_SECRET
 ```
 
 ---
 
-### **ETAPA 5: Variáveis de Ambiente**
+### **ETAPA 5: VariÃ¡veis de Ambiente**
 
 Crie arquivo `.env.local` na raiz do projeto:
 
@@ -133,22 +133,22 @@ Crie arquivo `.env.local` na raiz do projeto:
 # STRIPE API KEYS (TESTE)
 VITE_STRIPE_PUBLIC_KEY=pk_test_XXXXXXXXXXXXXXXXXXXXXXXX
 STRIPE_SECRET_KEY=sk_test_REDACTED
-STRIPE_WEBHOOK_SECRET=whsec_REDACTED
+STRIPE_WEBHOOK_SECRET=whsec_YOUR_WEBHOOK_SECRET
 
 # STRIPE PRICE IDS
 VITE_STRIPE_PRICE_WEEKLY=price_stater_weekly_890
 VITE_STRIPE_PRICE_MONTHLY=price_stater_monthly_1990
 
-# SUPABASE (já existente)
+# SUPABASE (jÃ¡ existente)
 VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ```
 
-⚠️ **IMPORTANTE:** Adicione `.env.local` no `.gitignore`!
+âš ï¸ **IMPORTANTE:** Adicione `.env.local` no `.gitignore`!
 
 ---
 
-## 💻 CÓDIGO - IMPLEMENTAÇÃO
+## ðŸ’» CÃ“DIGO - IMPLEMENTAÃ‡ÃƒO
 
 ### **1. Instalar Stripe SDK**
 
@@ -201,7 +201,7 @@ export default function StripeCheckout({ plan, onSuccess }: StripeCheckoutProps)
 
   const handleCheckout = async () => {
     if (!user) {
-      alert('Você precisa estar logado para assinar');
+      alert('VocÃª precisa estar logado para assinar');
       return;
     }
 
@@ -223,7 +223,7 @@ export default function StripeCheckout({ plan, onSuccess }: StripeCheckoutProps)
 
       // 2. Redirecionar para Stripe Checkout
       const stripe = await getStripe();
-      if (!stripe) throw new Error('Stripe não carregado');
+      if (!stripe) throw new Error('Stripe nÃ£o carregado');
 
       const { error: redirectError } = await stripe.redirectToCheckout({
         sessionId: data.sessionId,
@@ -288,7 +288,7 @@ serve(async (req) => {
         },
       ],
       customer_email: userEmail,
-      client_reference_id: userId, // Vincular ao usuário
+      client_reference_id: userId, // Vincular ao usuÃ¡rio
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
@@ -346,7 +346,7 @@ serve(async (req) => {
     const body = await req.text();
     const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
 
-    console.log('🎉 Webhook received:', event.type);
+    console.log('ðŸŽ‰ Webhook received:', event.type);
 
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -365,7 +365,7 @@ serve(async (req) => {
             })
             .eq('id', userId);
 
-          console.log(`✅ Usuario ${userId} ativado como PREMIUM`);
+          console.log(`âœ… Usuario ${userId} ativado como PREMIUM`);
         }
         break;
       }
@@ -383,7 +383,7 @@ serve(async (req) => {
           })
           .eq('subscription_id', subscription.id);
 
-        console.log(`❌ Assinatura ${subscription.id} cancelada`);
+        console.log(`âŒ Assinatura ${subscription.id} cancelada`);
         break;
       }
 
@@ -399,7 +399,7 @@ serve(async (req) => {
           })
           .eq('subscription_id', invoice.subscription);
 
-        console.log(`⚠️ Pagamento falhou para: ${invoice.subscription}`);
+        console.log(`âš ï¸ Pagamento falhou para: ${invoice.subscription}`);
         break;
       }
     }
@@ -410,7 +410,7 @@ serve(async (req) => {
     });
 
   } catch (err) {
-    console.error('❌ Webhook error:', err.message);
+    console.error('âŒ Webhook error:', err.message);
     return new Response(err.message, { status: 400 });
   }
 });
@@ -418,7 +418,7 @@ serve(async (req) => {
 
 ---
 
-## 🗄️ BANCO DE DADOS (Supabase)
+## ðŸ—„ï¸ BANCO DE DADOS (Supabase)
 
 Adicione colunas na tabela `users`:
 
@@ -431,33 +431,33 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
 
 ---
 
-## 🧪 TESTANDO
+## ðŸ§ª TESTANDO
 
-### **1. Modo Teste (Cartões)**
+### **1. Modo Teste (CartÃµes)**
 
-Use esses cartões de teste do Stripe:
+Use esses cartÃµes de teste do Stripe:
 
 ```
-✅ Sucesso:
+âœ… Sucesso:
    4242 4242 4242 4242
    Validade: Qualquer data futura
-   CVV: Qualquer 3 dígitos
+   CVV: Qualquer 3 dÃ­gitos
 
-❌ Falha:
+âŒ Falha:
    4000 0000 0000 0002
 ```
 
 ### **2. Fluxo de Teste:**
 
-1. Usuário clica "Assinar Mensal"
+1. UsuÃ¡rio clica "Assinar Mensal"
 2. Abre Stripe Checkout
-3. Preenche cartão teste
+3. Preenche cartÃ£o teste
 4. Webhook ativa conta Premium
-5. Usuário redirecionado para Dashboard
+5. UsuÃ¡rio redirecionado para Dashboard
 
 ---
 
-## 🚀 DEPLOY
+## ðŸš€ DEPLOY
 
 ### **1. Deploy Edge Functions:**
 
@@ -475,23 +475,23 @@ supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_XXX
 
 ---
 
-## 💰 CUSTOS STRIPE
+## ðŸ’° CUSTOS STRIPE
 
 ### **Taxas (Brasil):**
 ```
-3,99% + R$ 0,40 por transação
+3,99% + R$ 0,40 por transaÃ§Ã£o
 ```
 
 ### **Exemplo:**
 ```
 Venda de R$ 19,90:
 - Taxa Stripe: R$ 1,19
-- Você recebe: R$ 18,71
+- VocÃª recebe: R$ 18,71
 ```
 
 ---
 
-## ✅ CHECKLIST FINAL
+## âœ… CHECKLIST FINAL
 
 - [ ] Conta Stripe criada
 - [ ] Produtos criados (Semanal + Mensal)
@@ -502,8 +502,9 @@ Venda de R$ 19,90:
 - [ ] Edge Functions criadas
 - [ ] Webhook configurado
 - [ ] Banco de dados atualizado
-- [ ] Testado com cartão teste
+- [ ] Testado com cartÃ£o teste
 
 ---
 
-**PRÓXIMO PASSO:** Vou criar os arquivos agora!
+**PRÃ“XIMO PASSO:** Vou criar os arquivos agora!
+

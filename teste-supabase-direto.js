@@ -3,11 +3,11 @@ async function testeSupabaseREST() {
     const url = 'https://tmucbwlhkffrhtexmjze.supabase.co';
     const anonKey = 'YOUR_JWT_TOKEN';
     
-    console.log('🔍 Testando acesso direto ao Supabase REST API...');
+    console.log('ðŸ” Testando acesso direto ao Supabase REST API...');
     
     try {
         // Primeiro, testar se conseguimos ler a tabela telegram_link_codes
-        console.log('\n📋 Teste 1: Listar códigos existentes...');
+        console.log('\nðŸ“‹ Teste 1: Listar cÃ³digos existentes...');
         const listResponse = await fetch(`${url}/rest/v1/telegram_link_codes?select=*&limit=5`, {
             headers: {
                 'apikey': anonKey,
@@ -19,8 +19,8 @@ async function testeSupabaseREST() {
         const listData = await listResponse.json();
         console.log('Dados existentes:', listData);
         
-        // Teste 2: Tentar inserir um código de teste
-        console.log('\n📝 Teste 2: Inserir código de teste...');
+        // Teste 2: Tentar inserir um cÃ³digo de teste
+        console.log('\nðŸ“ Teste 2: Inserir cÃ³digo de teste...');
         const insertResponse = await fetch(`${url}/rest/v1/telegram_link_codes`, {
             method: 'POST',
             headers: {
@@ -39,18 +39,18 @@ async function testeSupabaseREST() {
             })
         });
         
-        console.log('Status inserção:', insertResponse.status);
+        console.log('Status inserÃ§Ã£o:', insertResponse.status);
         const insertData = await insertResponse.json();
-        console.log('Resultado inserção:', insertData);
+        console.log('Resultado inserÃ§Ã£o:', insertData);
         
         if (!insertResponse.ok) {
-            console.log('❌ Erro ao inserir - possivelmente precisa de Service Role Key');
+            console.log('âŒ Erro ao inserir - possivelmente precisa de Service Role Key');
         } else {
-            console.log('✅ Inserção bem-sucedida!');
+            console.log('âœ… InserÃ§Ã£o bem-sucedida!');
         }
         
     } catch (error) {
-        console.error('❌ Erro no teste:', error);
+        console.error('âŒ Erro no teste:', error);
     }
 }
 

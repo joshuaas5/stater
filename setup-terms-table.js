@@ -6,11 +6,11 @@ const supabaseKey = 'YOUR_JWT_TOKEN';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function createTermsTable() {
-  console.log('🔧 Criando tabela user_terms_acceptance...');
+  console.log('ðŸ”§ Criando tabela user_terms_acceptance...');
   
   const { data, error } = await supabase.rpc('exec_sql', {
     sql: `
-      -- Tabela para armazenar o aceite dos termos de uso pelos usuários
+      -- Tabela para armazenar o aceite dos termos de uso pelos usuÃ¡rios
       CREATE TABLE IF NOT EXISTS user_terms_acceptance (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
         user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -21,47 +21,47 @@ async function createTermsTable() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         
-        -- Garantir que cada usuário só pode ter um registro de aceite
+        -- Garantir que cada usuÃ¡rio sÃ³ pode ter um registro de aceite
         UNIQUE(user_id)
       );
 
-      -- RLS (Row Level Security) para garantir que usuários só vejam seus próprios dados
+      -- RLS (Row Level Security) para garantir que usuÃ¡rios sÃ³ vejam seus prÃ³prios dados
       ALTER TABLE user_terms_acceptance ENABLE ROW LEVEL SECURITY;
 
-      -- Índice para melhorar performance de consultas por user_id
+      -- Ãndice para melhorar performance de consultas por user_id
       CREATE INDEX IF NOT EXISTS idx_user_terms_acceptance_user_id ON user_terms_acceptance(user_id);
     `
   });
 
   if (error) {
-    console.error('❌ Erro ao criar tabela:', error);
+    console.error('âŒ Erro ao criar tabela:', error);
     return;
   }
 
-  console.log('✅ Tabela user_terms_acceptance criada com sucesso!');
+  console.log('âœ… Tabela user_terms_acceptance criada com sucesso!');
   
-  // Criar políticas RLS
-  console.log('🔧 Criando políticas RLS...');
+  // Criar polÃ­ticas RLS
+  console.log('ðŸ”§ Criando polÃ­ticas RLS...');
   
   const { error: policyError } = await supabase.rpc('exec_sql', {
     sql: `
-      -- Política para permitir que usuários vejam apenas seus próprios dados
+      -- PolÃ­tica para permitir que usuÃ¡rios vejam apenas seus prÃ³prios dados
       CREATE POLICY IF NOT EXISTS "Users can view their own terms acceptance" ON user_terms_acceptance
         FOR SELECT USING (auth.uid() = user_id);
 
-      -- Política para permitir que usuários insiram/atualizem apenas seus próprios dados
+      -- PolÃ­tica para permitir que usuÃ¡rios insiram/atualizem apenas seus prÃ³prios dados
       CREATE POLICY IF NOT EXISTS "Users can insert/update their own terms acceptance" ON user_terms_acceptance
         FOR ALL USING (auth.uid() = user_id);
     `
   });
   
   if (policyError) {
-    console.error('❌ Erro ao criar políticas RLS:', policyError);
+    console.error('âŒ Erro ao criar polÃ­ticas RLS:', policyError);
     return;
   }
   
-  console.log('✅ Políticas RLS criadas com sucesso!');
-  console.log('🎉 Setup da tabela de aceite dos termos concluído!');
+  console.log('âœ… PolÃ­ticas RLS criadas com sucesso!');
+  console.log('ðŸŽ‰ Setup da tabela de aceite dos termos concluÃ­do!');
 }
 
 createTermsTable().catch(console.error);

@@ -1,11 +1,11 @@
-// DIAGNÓSTICO COMPLETO DO ERRO 406 - Execute no console do navegador
+// DIAGNÃ“STICO COMPLETO DO ERRO 406 - Execute no console do navegador
 
-console.log('🔍 INICIANDO DIAGNÓSTICO COMPLETO DO ERRO 406...');
+console.log('ðŸ” INICIANDO DIAGNÃ“STICO COMPLETO DO ERRO 406...');
 
 // 1. Verificar se Service Worker foi realmente atualizado
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(registrations => {
-    console.log('📋 Service Workers registrados:', registrations.length);
+    console.log('ðŸ“‹ Service Workers registrados:', registrations.length);
     registrations.forEach((reg, index) => {
       console.log(`SW ${index + 1}:`, {
         scope: reg.scope,
@@ -15,10 +15,10 @@ if ('serviceWorker' in navigator) {
     });
   });
   
-  // Verificar versão do cache
+  // Verificar versÃ£o do cache
   if ('caches' in window) {
     caches.keys().then(cacheNames => {
-      console.log('💾 Caches ativos:', cacheNames);
+      console.log('ðŸ’¾ Caches ativos:', cacheNames);
       cacheNames.forEach(cacheName => {
         if (cacheName.includes('stater')) {
           console.log(`Cache encontrado: ${cacheName} (deve ser 'stater-app-v2')`);
@@ -29,13 +29,13 @@ if ('serviceWorker' in navigator) {
 }
 
 // 2. Teste direto da API do Supabase
-console.log('🧪 Testando API do Supabase diretamente...');
+console.log('ðŸ§ª Testando API do Supabase diretamente...');
 
-// Pegar as configurações do Supabase do app
+// Pegar as configuraÃ§Ãµes do Supabase do app
 const supabaseUrl = 'https://tmucbwlhkffrhtexmjze.supabase.co';
-const anonKey = 'YOUR_JWT_TOKEN'; // Esta chave estava visível nos logs
+const anonKey = 'YOUR_JWT_TOKEN'; // Esta chave estava visÃ­vel nos logs
 
-// Teste 1: Requisição básica sem autenticação
+// Teste 1: RequisiÃ§Ã£o bÃ¡sica sem autenticaÃ§Ã£o
 fetch(`${supabaseUrl}/rest/v1/telegram_users?select=count`, {
   method: 'GET',
   headers: {
@@ -46,7 +46,7 @@ fetch(`${supabaseUrl}/rest/v1/telegram_users?select=count`, {
   }
 })
 .then(response => {
-  console.log('🔍 Teste 1 - Requisição básica:', {
+  console.log('ðŸ” Teste 1 - RequisiÃ§Ã£o bÃ¡sica:', {
     status: response.status,
     statusText: response.statusText,
     headers: Object.fromEntries(response.headers.entries())
@@ -54,14 +54,14 @@ fetch(`${supabaseUrl}/rest/v1/telegram_users?select=count`, {
   return response.text();
 })
 .then(data => {
-  console.log('📄 Resposta do Teste 1:', data);
+  console.log('ðŸ“„ Resposta do Teste 1:', data);
 })
 .catch(error => {
-  console.error('❌ Erro no Teste 1:', error);
+  console.error('âŒ Erro no Teste 1:', error);
 });
 
 // 3. Verificar headers e CORS
-console.log('🌐 Verificando configuração de CORS e headers...');
+console.log('ðŸŒ Verificando configuraÃ§Ã£o de CORS e headers...');
 
 // Teste com diferentes headers
 setTimeout(() => {
@@ -76,7 +76,7 @@ setTimeout(() => {
     }
   })
   .then(response => {
-    console.log('🔍 Teste 2 - Com headers completos:', {
+    console.log('ðŸ” Teste 2 - Com headers completos:', {
       status: response.status,
       statusText: response.statusText,
       ok: response.ok,
@@ -85,27 +85,27 @@ setTimeout(() => {
     
     if (!response.ok) {
       return response.text().then(text => {
-        console.log('📄 Corpo da resposta de erro:', text);
+        console.log('ðŸ“„ Corpo da resposta de erro:', text);
       });
     }
     return response.json();
   })
   .then(data => {
-    console.log('📄 Dados retornados:', data);
+    console.log('ðŸ“„ Dados retornados:', data);
   })
   .catch(error => {
-    console.error('❌ Erro no Teste 2:', error);
+    console.error('âŒ Erro no Teste 2:', error);
   });
 }, 2000);
 
-// 4. Verificar se há interceptadores de requisição
-console.log('🔍 Verificando interceptadores de requisição...');
+// 4. Verificar se hÃ¡ interceptadores de requisiÃ§Ã£o
+console.log('ðŸ” Verificando interceptadores de requisiÃ§Ã£o...');
 console.log('XMLHttpRequest original:', XMLHttpRequest.prototype.open.toString().includes('native'));
 console.log('Fetch original:', fetch.toString().includes('native'));
 
-// 5. Testar em modo incógnito (manual)
-console.log('💡 PRÓXIMO PASSO: Teste em modo incógnito');
-console.log('Abra uma aba incógnita e acesse: https://stater.app/settings/telegram');
-console.log('Se funcionar em incógnito, o problema é cache/SW local');
+// 5. Testar em modo incÃ³gnito (manual)
+console.log('ðŸ’¡ PRÃ“XIMO PASSO: Teste em modo incÃ³gnito');
+console.log('Abra uma aba incÃ³gnita e acesse: https://stater.app/settings/telegram');
+console.log('Se funcionar em incÃ³gnito, o problema Ã© cache/SW local');
 
-console.log('🔍 DIAGNÓSTICO FINALIZADO - Aguarde resultados...');
+console.log('ðŸ” DIAGNÃ“STICO FINALIZADO - Aguarde resultados...');

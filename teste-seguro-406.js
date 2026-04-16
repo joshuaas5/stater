@@ -1,16 +1,16 @@
-// TESTE ALTERNATIVO - Requisição mais segura
+// TESTE ALTERNATIVO - RequisiÃ§Ã£o mais segura
 // Execute no console do navegador
 
-console.log('🔧 Testando requisição mais segura...');
+console.log('ðŸ”§ Testando requisiÃ§Ã£o mais segura...');
 
-// Simular a requisição do frontend, mas sem .single()
+// Simular a requisiÃ§Ã£o do frontend, mas sem .single()
 const testSafeRequest = async () => {
   try {
     // Usar a mesma URL base do app
     const { createClient } = window.supabase || {};
     
     if (!createClient) {
-      console.log('❌ Supabase não disponível, testando com fetch direto...');
+      console.log('âŒ Supabase nÃ£o disponÃ­vel, testando com fetch direto...');
       
       // Teste direto sem .single()
       const response = await fetch('https://tmucbwlhkffrhtexmjze.supabase.co/rest/v1/telegram_users?select=*&user_id=eq.56d8f459-8650-4cd9-bf16-f7d70ddbc0a9&is_active=eq.true', {
@@ -23,26 +23,26 @@ const testSafeRequest = async () => {
         }
       });
       
-      console.log('📊 Status da requisição direta:', response.status, response.statusText);
+      console.log('ðŸ“Š Status da requisiÃ§Ã£o direta:', response.status, response.statusText);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Dados retornados:', data);
-        console.log('📊 Quantidade de registros:', data.length);
+        console.log('âœ… Dados retornados:', data);
+        console.log('ðŸ“Š Quantidade de registros:', data.length);
       } else {
         const errorText = await response.text();
-        console.log('❌ Erro na resposta:', errorText);
+        console.log('âŒ Erro na resposta:', errorText);
       }
       
       return;
     }
     
-    // Se Supabase estiver disponível, testar com cliente
-    console.log('🔧 Testando com cliente Supabase...');
-    // Adicione aqui se necessário
+    // Se Supabase estiver disponÃ­vel, testar com cliente
+    console.log('ðŸ”§ Testando com cliente Supabase...');
+    // Adicione aqui se necessÃ¡rio
     
   } catch (error) {
-    console.error('💥 Erro no teste:', error);
+    console.error('ðŸ’¥ Erro no teste:', error);
   }
 };
 

@@ -1,9 +1,9 @@
 const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://tmucbwlhkffrhtexmjze.supabase.co';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'YOUR_JWT_TOKEN';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
-// Função para logs
+// FunÃƒÂ§ÃƒÂ£o para logs
 const logDebug = (message: string, data?: any) => {
   console.log(message, data);
 };
@@ -22,54 +22,54 @@ function generateCode() {
 }
 
 module.exports = async function handler(req: any, res: any) {
-  logDebug('🔧 [TELEGRAM API] Iniciando handler...');
+  logDebug('Ã°Å¸â€Â§ [TELEGRAM API] Iniciando handler...');
   
-  // CORS - mais restritivo para produção
+  // CORS - mais restritivo para produÃƒÂ§ÃƒÂ£o
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   if (req.method === 'OPTIONS') {
-    logDebug('🔧 [TELEGRAM API] Respondendo OPTIONS');
+    logDebug('Ã°Å¸â€Â§ [TELEGRAM API] Respondendo OPTIONS');
     return res.status(200).end();
   }
 
-  logDebug('🔧 [TELEGRAM API] Método:', req.method);
-  logDebug('🔧 [TELEGRAM API] Headers Authorization:', req.headers.authorization ? 'PRESENTE' : 'AUSENTE');
+  logDebug('Ã°Å¸â€Â§ [TELEGRAM API] MÃƒÂ©todo:', req.method);
+  logDebug('Ã°Å¸â€Â§ [TELEGRAM API] Headers Authorization:', req.headers.authorization ? 'PRESENTE' : 'AUSENTE');
 
   try {
-    // Teste básico de funcionamento da API
+    // Teste bÃƒÂ¡sico de funcionamento da API
     if (req.method === 'GET') {
-      logDebug('🔧 [TELEGRAM API] Respondendo GET de teste');
+      logDebug('Ã°Å¸â€Â§ [TELEGRAM API] Respondendo GET de teste');
       return res.status(200).json({ 
         success: true, 
-        message: 'API está funcionando',
+        message: 'API estÃƒÂ¡ funcionando',
         timestamp: new Date().toISOString(),
         supabaseUrl: supabaseUrl
       });
     }
 
     if (req.method !== 'POST') {
-      logDebug('🔧 [TELEGRAM API] Método não permitido:', req.method);
-      return res.status(405).json({ error: 'Método não permitido' });
+      logDebug('Ã°Å¸â€Â§ [TELEGRAM API] MÃƒÂ©todo nÃƒÂ£o permitido:', req.method);
+      return res.status(405).json({ error: 'MÃƒÂ©todo nÃƒÂ£o permitido' });
     }
 
-    // POST - Gerar código
-    logDebug('🔧 [TELEGRAM API] Processando POST...');
+    // POST - Gerar cÃƒÂ³digo
+    logDebug('Ã°Å¸â€Â§ [TELEGRAM API] Processando POST...');
     
-    // Verificar autenticação
+    // Verificar autenticaÃƒÂ§ÃƒÂ£o
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ 
         success: false, 
-        error: 'Token de autenticação necessário' 
+        error: 'Token de autenticaÃƒÂ§ÃƒÂ£o necessÃƒÂ¡rio' 
       });
     }
 
     const token = authHeader.split(' ')[1];
     
-    // Criar cliente autenticado com o token do usuário
+    // Criar cliente autenticado com o token do usuÃƒÂ¡rio
     const authenticatedSupabase = createClient(supabaseUrl, supabaseKey, {
       auth: {
         autoRefreshToken: false,
@@ -82,38 +82,38 @@ module.exports = async function handler(req: any, res: any) {
       }
     });
 
-    // Verificar se o usuário está autenticado
+    // Verificar se o usuÃƒÂ¡rio estÃƒÂ¡ autenticado
     const { data: userData, error: userError } = await authenticatedSupabase.auth.getUser(token);
     
     if (userError || !userData.user) {
-      logDebug('❌ [TELEGRAM API] Usuário não autenticado:', userError?.message);
+      logDebug('Ã¢ÂÅ’ [TELEGRAM API] UsuÃƒÂ¡rio nÃƒÂ£o autenticado:', userError?.message);
       return res.status(401).json({ 
         success: false, 
-        error: 'Token inválido ou expirado' 
+        error: 'Token invÃƒÂ¡lido ou expirado' 
       });
     }
 
-    logDebug('✅ [TELEGRAM API] Usuário autenticado:', userData.user.id);
+    logDebug('Ã¢Å“â€¦ [TELEGRAM API] UsuÃƒÂ¡rio autenticado:', userData.user.id);
     
     const { user_id, userEmail, userName } = req.body || {};
     
-    // Verificar se o user_id corresponde ao usuário autenticado
+    // Verificar se o user_id corresponde ao usuÃƒÂ¡rio autenticado
     if (user_id !== userData.user.id) {
       return res.status(403).json({
         success: false,
-        error: 'Não autorizado a gerar código para outro usuário'
+        error: 'NÃƒÂ£o autorizado a gerar cÃƒÂ³digo para outro usuÃƒÂ¡rio'
       });
     }
     
-    logDebug('🔧 [TELEGRAM API] Dados recebidos:', { user_id, userEmail, userName });
+    logDebug('Ã°Å¸â€Â§ [TELEGRAM API] Dados recebidos:', { user_id, userEmail, userName });
     
     if (!user_id) {
-      logDebug('❌ [TELEGRAM API] user_id é obrigatório');
-      return res.status(400).json({ error: 'user_id é obrigatório' });
+      logDebug('Ã¢ÂÅ’ [TELEGRAM API] user_id ÃƒÂ© obrigatÃƒÂ³rio');
+      return res.status(400).json({ error: 'user_id ÃƒÂ© obrigatÃƒÂ³rio' });
     }
 
-    // Teste de conexão Supabase
-    logDebug('🔧 [TELEGRAM API] Testando conexão Supabase...');
+    // Teste de conexÃƒÂ£o Supabase
+    logDebug('Ã°Å¸â€Â§ [TELEGRAM API] Testando conexÃƒÂ£o Supabase...');
     try {
       const { data: testData, error: testError } = await supabase
         .from('transactions')
@@ -121,23 +121,23 @@ module.exports = async function handler(req: any, res: any) {
         .limit(1);
       
       if (testError) {
-        console.error('❌ [TELEGRAM API] Falha na conexão Supabase:', testError);
+        console.error('Ã¢ÂÅ’ [TELEGRAM API] Falha na conexÃƒÂ£o Supabase:', testError);
         return res.status(500).json({ 
-          error: 'Falha na conexão com banco de dados', 
+          error: 'Falha na conexÃƒÂ£o com banco de dados', 
           details: testError.message
         });
       }
-      logDebug('✅ [TELEGRAM API] Conexão Supabase OK');
+      logDebug('Ã¢Å“â€¦ [TELEGRAM API] ConexÃƒÂ£o Supabase OK');
     } catch (connError: any) {
-      console.error('❌ [TELEGRAM API] Erro na conexão:', connError);
+      console.error('Ã¢ÂÅ’ [TELEGRAM API] Erro na conexÃƒÂ£o:', connError);
       return res.status(500).json({ 
         error: 'Erro ao conectar com banco', 
         details: connError.message 
       });
     }
 
-    // 🔥 RATE LIMITING - Verificar códigos gerados na última hora
-    logDebug('🔧 [TELEGRAM API] Verificando rate limiting...');
+    // Ã°Å¸â€Â¥ RATE LIMITING - Verificar cÃƒÂ³digos gerados na ÃƒÂºltima hora
+    logDebug('Ã°Å¸â€Â§ [TELEGRAM API] Verificando rate limiting...');
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     
     const { data: recentCodes, error: rateLimitError } = await supabase
@@ -147,28 +147,28 @@ module.exports = async function handler(req: any, res: any) {
       .gte('created_at', oneHourAgo);
     
     if (rateLimitError) {
-      console.error('❌ [TELEGRAM API] Erro ao verificar rate limit:', rateLimitError);
+      console.error('Ã¢ÂÅ’ [TELEGRAM API] Erro ao verificar rate limit:', rateLimitError);
       return res.status(500).json({ 
-        error: 'Erro ao verificar limite de códigos', 
+        error: 'Erro ao verificar limite de cÃƒÂ³digos', 
         details: rateLimitError.message
       });
     }
     
-    const RATE_LIMIT = 3; // máximo 3 códigos por hora
+    const RATE_LIMIT = 3; // mÃƒÂ¡ximo 3 cÃƒÂ³digos por hora
     if (recentCodes && recentCodes.length >= RATE_LIMIT) {
-      logDebug(`❌ [TELEGRAM API] Rate limit excedido: ${recentCodes.length}/${RATE_LIMIT} códigos na última hora`);
+      logDebug(`Ã¢ÂÅ’ [TELEGRAM API] Rate limit excedido: ${recentCodes.length}/${RATE_LIMIT} cÃƒÂ³digos na ÃƒÂºltima hora`);
       return res.status(429).json({ 
-        error: 'Limite de códigos por hora excedido', 
-        details: `Você pode gerar no máximo ${RATE_LIMIT} códigos por hora. Tente novamente em alguns minutos.`,
+        error: 'Limite de cÃƒÂ³digos por hora excedido', 
+        details: `VocÃƒÂª pode gerar no mÃƒÂ¡ximo ${RATE_LIMIT} cÃƒÂ³digos por hora. Tente novamente em alguns minutos.`,
         nextAttemptIn: '1 hora',
         codesUsed: recentCodes.length,
         maxCodes: RATE_LIMIT
       });
     }
     
-    logDebug(`✅ [TELEGRAM API] Rate limit OK: ${recentCodes?.length || 0}/${RATE_LIMIT} códigos usados`);
+    logDebug(`Ã¢Å“â€¦ [TELEGRAM API] Rate limit OK: ${recentCodes?.length || 0}/${RATE_LIMIT} cÃƒÂ³digos usados`);
 
-    // Gerar código único (verificar se já existe e não foi usado)
+    // Gerar cÃƒÂ³digo ÃƒÂºnico (verificar se jÃƒÂ¡ existe e nÃƒÂ£o foi usado)
     let code;
     let attempts = 0;
     const MAX_ATTEMPTS = 10;
@@ -177,29 +177,29 @@ module.exports = async function handler(req: any, res: any) {
       code = generateCode();
       attempts++;
       
-      // Verificar se código já existe e se foi usado
+      // Verificar se cÃƒÂ³digo jÃƒÂ¡ existe e se foi usado
       const { data: existingCode, error: checkError } = await supabase
         .from('telegram_link_codes')
         .select('id, used_at')
         .eq('code', code)
         .single();
       
-      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = não encontrado
-        console.error('❌ [TELEGRAM API] Erro ao verificar código existente:', checkError);
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = nÃƒÂ£o encontrado
+        console.error('Ã¢ÂÅ’ [TELEGRAM API] Erro ao verificar cÃƒÂ³digo existente:', checkError);
         return res.status(500).json({ 
-          error: 'Erro ao verificar código', 
+          error: 'Erro ao verificar cÃƒÂ³digo', 
           details: checkError.message
         });
       }
       
-      // Se código não existe, podemos usar
+      // Se cÃƒÂ³digo nÃƒÂ£o existe, podemos usar
       if (!existingCode) {
         break;
       }
       
-      // Se código existe mas não foi usado, gerar novo
+      // Se cÃƒÂ³digo existe mas nÃƒÂ£o foi usado, gerar novo
       if (existingCode && !existingCode.used_at) {
-        logDebug(`🔧 [TELEGRAM API] Código ${code} já existe, gerando novo...`);
+        logDebug(`Ã°Å¸â€Â§ [TELEGRAM API] CÃƒÂ³digo ${code} jÃƒÂ¡ existe, gerando novo...`);
         continue;
       }
       
@@ -207,20 +207,20 @@ module.exports = async function handler(req: any, res: any) {
     
     if (attempts >= MAX_ATTEMPTS) {
       return res.status(500).json({ 
-        error: 'Erro ao gerar código único', 
+        error: 'Erro ao gerar cÃƒÂ³digo ÃƒÂºnico', 
         details: 'Tente novamente em alguns momentos.'
       });
     }
 
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
     
-    logDebug('🔧 [TELEGRAM API] Código gerado:', code);
-    logDebug('🔧 [TELEGRAM API] Expira em:', expiresAt.toISOString());
-    logDebug('🔧 [TELEGRAM API] User ID:', user_id);
-    logDebug('🔧 [TELEGRAM API] Service role available:', !!supabaseServiceKey);
+    logDebug('Ã°Å¸â€Â§ [TELEGRAM API] CÃƒÂ³digo gerado:', code);
+    logDebug('Ã°Å¸â€Â§ [TELEGRAM API] Expira em:', expiresAt.toISOString());
+    logDebug('Ã°Å¸â€Â§ [TELEGRAM API] User ID:', user_id);
+    logDebug('Ã°Å¸â€Â§ [TELEGRAM API] Service role available:', !!supabaseServiceKey);
 
     // Tentar inserir na tabela
-    logDebug('🔧 [TELEGRAM API] Inserindo na tabela...');
+    logDebug('Ã°Å¸â€Â§ [TELEGRAM API] Inserindo na tabela...');
     
     const { error: insertError } = await supabase
       .from('telegram_link_codes')
@@ -234,16 +234,16 @@ module.exports = async function handler(req: any, res: any) {
       }]);
 
     if (insertError) {
-      console.error('❌ [TELEGRAM API] Erro ao inserir:', insertError);
+      console.error('Ã¢ÂÅ’ [TELEGRAM API] Erro ao inserir:', insertError);
       return res.status(500).json({ 
-        error: 'Erro ao gerar código', 
+        error: 'Erro ao gerar cÃƒÂ³digo', 
         details: insertError.message,
         code: insertError.code,
         hint: insertError.hint
       });
     }
 
-    logDebug('✅ [TELEGRAM API] Código inserido com sucesso');
+    logDebug('Ã¢Å“â€¦ [TELEGRAM API] CÃƒÂ³digo inserido com sucesso');
     return res.status(200).json({ 
       success: true, 
       code, 
@@ -252,7 +252,7 @@ module.exports = async function handler(req: any, res: any) {
     });
 
   } catch (error: any) {
-    console.error('❌ [TELEGRAM API] Erro crítico:', error);
+    console.error('Ã¢ÂÅ’ [TELEGRAM API] Erro crÃƒÂ­tico:', error);
     return res.status(500).json({ 
       error: 'Erro interno da API',
       details: error.message,

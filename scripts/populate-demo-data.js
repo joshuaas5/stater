@@ -3,13 +3,13 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = 'https://tmucbwlhkffrhtexmjze.supabase.co';
+const supabaseUrl = process.env.SUPABASE_URL || 'YOUR_SUPABASE_URL';
 // Service Role Key - tem acesso admin
-const supabaseServiceKey = 'YOUR_JWT_TOKEN';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SERVICE_ROLE_KEY';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-const USER_EMAIL = 'staterbills@gmail.com';
+const USER_EMAIL = process.env.DEMO_USER_EMAIL || 'demo@example.com';
 
 // FunÃ§Ã£o para gerar UUID
 function generateUUID() {

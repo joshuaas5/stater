@@ -15,7 +15,7 @@ const forceDeepLinkUrl = (originalUrl: string): string => {
   console.log('📱 Plataforma nativa detectada - corrigindo URL OAuth');
 
   const deepLink = 'com.timothy.stater://auth/callback';
-  const supabaseCallback = 'https://tmucbwlhkffrhtexmjze.supabase.co/auth/v1/callback';
+  const supabaseCallback = `${import.meta.env.VITE_SUPABASE_URL}/auth/v1/callback`;
 
   let correctedUrl = originalUrl;
 

@@ -154,9 +154,11 @@ async function checkUserPremiumStatus(userId) {
 // =================================================================================
 
 async function handleUpdate(update) {
+    console.log('📩 [WEBHOOK] Received update:', JSON.stringify(update));
+    
     const message = update.message || update.edited_message;
     if (!message) {
-        console.log('Received a non-message update, ignoring.');
+        console.log('📩 [WEBHOOK] Non-message update, ignoring.');
         return;
     }
 
@@ -165,11 +167,21 @@ async function handleUpdate(update) {
     const voice = message.voice;
     const audio = message.audio;
     const document = message.document;
+    const chatId = message.chat?.id;
+
+    console.log(`📩 [WEBHOOK] Message from chat ${chatId}: ${text || '(media)'}`);
 
     try {
         if (text) {
-            if (text.startsWith('/start')) return await handleStart(message);
-            if (text.startsWith('/help')) return await handleHelp(message);
+            console.log('📩 [WEBHOOK] Processing text message...');
+            if (text.startsWith('/start')) {
+                console.log('📩 [WEBHOOK] Handling /start');
+                return await handleStart(message);
+            }
+            if (text.startsWith('/help')) {
+                console.log('📩 [WEBHOOK] Handling /help');
+                return await handleHelp(message);
+            }
             if (text.startsWith('/dashboard')) return await handleDashboard(message);
             if (text.startsWith('/conectar')) return await handleConectar(message);
             if (text.startsWith('/conta')) return await handleConta(message);
@@ -189,7 +201,7 @@ async function handleUpdate(update) {
             return await handleDocument(message);
         }
     } catch (error) {
-        console.error('Error in handleUpdate:', error.message, error.stack);
+        console.error('❌ [WEBHOOK] Error in handleUpdate:', error.message, error.stack);
         throw error;
     }
 }

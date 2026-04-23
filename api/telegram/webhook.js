@@ -93,11 +93,12 @@ module.exports = async (req, res) => {
 
     try {
         await handleUpdate(req.body);
-        res.status(200).send('Update processed successfully');
     } catch (error) {
         console.error('Error processing Telegram update:', error.message, error.stack);
-        res.status(500).send('Error processing update');
+        // Always return 200 to Telegram to prevent retries, but log the error
     }
+    // Always respond 200 OK to Telegram, even on error
+    res.status(200).send('OK');
 };
 
 // =================================================================================

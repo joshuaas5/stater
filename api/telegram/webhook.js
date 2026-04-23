@@ -1,24 +1,44 @@
 ﻿const axios = require('axios');
 
-// Use environment variables directly from Vercel
-// No need to load .env in production
+// Lazy initialization to prevent top-level crash if env vars are missing
+let _supabase = null;
+let _telegramApiUrl = null;
 
-const { createClient } = require('@supabase/supabase-js');
-
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY,
-    {
-        auth: {
-            autoRefreshToken: false,
-            persistSession: false
+function getSupabase() {
+    if (!_supabase) {
+        const { createClient } = require('@supabase/supabase-js');
+        const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+        const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+        if (!url || !key) {
+            throw new Error('Supabase credentials missing: SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY');
         }
+        _supabase = createClient(url, key, {
+            auth: { autoRefreshToken: false, persistSession: false }
+        });
     }
-);
+    return _supabase;
+}
+
+function getTelegramApiUrl() {
+    if (!_telegramApiUrl) {
+        const token = process.env.TELEGRAM_BOT_TOKEN;
+        if (!token) {
+            throw new Error('TELEGRAM_BOT_TOKEN missing');
+        }
+        _telegramApiUrl = `https://api.telegram.org/bot${token}`;
+    }
+    return _telegramApiUrl;
+}
 
 // In-memory cache for user sessions within a single request lifecycle.
 const userSessions = new Map();
-const TELEGRAM_API_URL = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
+
+// Proxy for Supabase (methods only — defers initialization until first use)
+const supabase = new Proxy({}, {
+    get(_target, prop) {
+        return getSupabase()[prop];
+    }
+});
 
 // =================================================================================
 // API Helper Functions (Replaces node-telegram-bot-api)
@@ -26,7 +46,7 @@ const TELEGRAM_API_URL = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT
 
 async function sendMessage(chatId, text, options = {}) {
     try {
-        const response = await axios.post(`${TELEGRAM_API_URL}/sendMessage`, {
+        const response = await axios.post(`${getTelegramApiUrl()}/sendMessage`, {
             chat_id: chatId,
             text,
             ...options,
@@ -39,14 +59,14 @@ async function sendMessage(chatId, text, options = {}) {
 }
 
 async function deleteMessage(chatId, messageId) {
-    return axios.post(`${TELEGRAM_API_URL}/deleteMessage`, {
+    return axios.post(`${getTelegramApiUrl()}/deleteMessage`, {
         chat_id: chatId,
         message_id: messageId,
     });
 }
 
 async function getFileLink(fileId) {
-    const response = await axios.post(`${TELEGRAM_API_URL}/getFile`, { file_id: fileId });
+    const response = await axios.post(`${getTelegramApiUrl()}/getFile`, { file_id: fileId });
     const filePath = response.data.result.file_path;
     return `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${filePath}`;
 }

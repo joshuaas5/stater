@@ -2,11 +2,8 @@
 /**
  * Diagnóstico completo do bot do Telegram (Stater)
  * 
- * Uso: node scripts/diagnose-telegram-bot.js
- * Requer: TELEGRAM_BOT_TOKEN nas variáveis de ambiente ou no .env
+ * Uso: TELEGRAM_BOT_TOKEN=seu_token node scripts/diagnose-telegram-bot.js
  */
-
-const axios = require('axios');
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const WEBHOOK_URL = process.env.TELEGRAM_WEBHOOK_URL || 'https://stater.app/api/telegram-webhook';
@@ -17,40 +14,41 @@ async function diagnose() {
   console.log('🔍 DIAGNÓSTICO DO BOT DO TELEGRAM\n');
   console.log('=' .repeat(50));
 
-  // 1. Verificar se o token existe
   if (!TOKEN) {
     console.error('❌ TELEGRAM_BOT_TOKEN não configurado!');
-    console.log('   Adicione TELEGRAM_BOT_TOKEN nas variáveis de ambiente do Vercel ou no .env local.');
+    console.log('   Defina a variável de ambiente TELEGRAM_BOT_TOKEN.');
     process.exit(1);
   }
   console.log('✅ TELEGRAM_BOT_TOKEN está configurado');
   console.log(`   Token preview: ${TOKEN.substring(0, 10)}...${TOKEN.substring(TOKEN.length - 5)}`);
 
-  // 2. Verificar se o token é válido (getMe)
+  // 2. Verificar token (getMe)
   try {
-    const meRes = await axios.get(`${TELEGRAM_API}/getMe`);
-    if (meRes.data.ok) {
-      const bot = meRes.data.result;
+    const meRes = await fetch(`${TELEGRAM_API}/getMe`);
+    const meData = await meRes.json();
+    if (meData.ok) {
+      const bot = meData.result;
       console.log('\n✅ Token válido!');
       console.log(`   Bot: @${bot.username}`);
       console.log(`   Nome: ${bot.first_name}`);
       console.log(`   Pode ler grupos: ${bot.can_read_all_group_messages ? 'Sim' : 'Não'}`);
       console.log(`   Modo inline: ${bot.supports_inline_queries ? 'Sim' : 'Não'}`);
     } else {
-      console.error('\n❌ Token inválido ou erro na API do Telegram:', meRes.data);
+      console.error('\n❌ Token inválido:', meData);
       process.exit(1);
     }
   } catch (err) {
-    console.error('\n❌ Erro ao validar token:', err.response?.data?.description || err.message);
+    console.error('\n❌ Erro ao validar token:', err.message);
     console.log('   Verifique se o token está correto e se o bot não foi revogado no @BotFather.');
     process.exit(1);
   }
 
-  // 3. Verificar webhook configurado
+  // 3. Verificar webhook
   try {
-    const whRes = await axios.get(`${TELEGRAM_API}/getWebhookInfo`);
-    if (whRes.data.ok) {
-      const info = whRes.data.result;
+    const whRes = await fetch(`${TELEGRAM_API}/getWebhookInfo`);
+    const whData = await whRes.json();
+    if (whData.ok) {
+      const info = whData.result;
       console.log('\n📡 Informações do Webhook:');
       console.log(`   URL: ${info.url || '(não configurado)'}`);
       console.log(`   Has custom certificate: ${info.has_custom_certificate}`);
@@ -65,32 +63,30 @@ async function diagnose() {
 
       if (!info.url) {
         console.log('\n⚠️  Webhook NÃO está configurado!');
-        console.log('   O bot não receberá mensagens via webhook.');
-        console.log(`   Para configurar, rode: node scripts/set-telegram-webhook.js`);
+        console.log(`   Para configurar: TELEGRAM_BOT_TOKEN=seu_token node scripts/set-telegram-webhook.js`);
       } else if (info.url !== WEBHOOK_URL) {
-        console.log(`\n⚠️  Webhook configurado para URL diferente da esperada!`);
+        console.log(`\n⚠️  Webhook configurado para URL diferente!`);
         console.log(`   Esperado: ${WEBHOOK_URL}`);
         console.log(`   Atual:    ${info.url}`);
-        console.log(`   Para corrigir, rode: node scripts/set-telegram-webhook.js`);
       } else {
         console.log('\n✅ Webhook configurado corretamente!');
       }
 
       if (info.pending_update_count > 0) {
         console.log(`\n⚠️  Há ${info.pending_update_count} updates pendentes!`);
-        console.log('   Isso pode indicar que o webhook não está respondendo corretamente.');
       }
     }
   } catch (err) {
-    console.error('\n❌ Erro ao verificar webhook:', err.response?.data?.description || err.message);
+    console.error('\n❌ Erro ao verificar webhook:', err.message);
   }
 
-  // 4. Testar se a URL do webhook responde
+  // 4. Testar URL do webhook
   console.log('\n🌐 Testando URL do webhook...');
   try {
-    const healthRes = await axios.get(WEBHOOK_URL, { timeout: 10000 });
+    const healthRes = await fetch(WEBHOOK_URL, { method: 'GET' });
+    const healthData = await healthRes.json().catch(() => ({}));
     console.log(`   Status: ${healthRes.status}`);
-    console.log(`   Response:`, healthRes.data);
+    console.log(`   Response:`, healthData);
     if (healthRes.status === 200) {
       console.log('✅ Webhook está respondendo!');
     } else {
@@ -98,25 +94,8 @@ async function diagnose() {
     }
   } catch (err) {
     console.error(`   ❌ Webhook NÃO respondeu: ${err.message}`);
-    console.log(`   URL testada: ${WEBHOOK_URL}`);
-    console.log('   Possíveis causas:');
-    console.log('   - O deploy no Vercel falhou');
-    console.log('   - A variável de ambiente TELEGRAM_BOT_TOKEN não está no Vercel');
-    console.log('   - O rewrite no vercel.json está incorreto');
-  }
-
-  // 5. Verificar variáveis críticas
-  console.log('\n🔐 Variáveis de ambiente críticas:');
-  const vars = [
-    'TELEGRAM_BOT_TOKEN',
-    'SUPABASE_URL',
-    'SUPABASE_SERVICE_ROLE_KEY',
-    'SUPABASE_ANON_KEY',
-    'GEMINI_API_KEY',
-  ];
-  for (const v of vars) {
-    const val = process.env[v];
-    console.log(`   ${v}: ${val ? `✅ configurado (${val.substring(0, 8)}...)` : '❌ AUSENTE'}`);
+    console.log(`   URL: ${WEBHOOK_URL}`);
+    console.log('   Causas possíveis: deploy falhou, variáveis de ambiente faltando no Vercel, rewrite incorreto.');
   }
 
   console.log('\n' + '='.repeat(50));

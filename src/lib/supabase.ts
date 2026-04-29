@@ -4,6 +4,73 @@ import { createClient } from '@supabase/supabase-js';
 // Set your Supabase URL and ANON key
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+
+type SupabaseClientInstance = ReturnType<typeof createClient>;
+
+const supabaseConfigError = {
+  name: 'SupabaseConfigurationError',
+  message: 'Supabase nao configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.',
+};
+
+const missingResult = () => ({
+  data: null,
+  error: supabaseConfigError,
+  count: null,
+  status: 0,
+  statusText: 'Supabase not configured',
+});
+
+const createMissingQuery = (): unknown => {
+  const resolveMissing = () => Promise.resolve(missingResult());
+
+  const query = new Proxy(function missingSupabaseQuery() {}, {
+    get(_target, prop) {
+      if (prop === 'then') {
+        const promise = resolveMissing();
+        return promise.then.bind(promise);
+      }
+
+      if (['single', 'maybeSingle', 'csv', 'geojson', 'explain'].includes(String(prop))) {
+        return resolveMissing;
+      }
+
+      return () => query;
+    },
+  });
+
+  return query;
+};
+
+const missingAuth = new Proxy({
+  getSession: async () => ({ data: { session: null }, error: null }),
+  getUser: async () => ({ data: { user: null }, error: null }),
+  onAuthStateChange: () => ({
+    data: {
+      subscription: {
+        unsubscribe: () => {},
+      },
+    },
+  }),
+  signOut: async () => ({ error: null }),
+}, {
+  get(target, prop, receiver) {
+    if (prop in target) {
+      return Reflect.get(target, prop, receiver);
+    }
+
+    return async () => missingResult();
+  },
+});
+
+const missingSupabase = {
+  auth: missingAuth,
+  from: () => createMissingQuery(),
+  rpc: () => createMissingQuery(),
+  storage: {
+    from: () => createMissingQuery(),
+  },
+} as unknown as SupabaseClientInstance;
 
 // Check if environment variables are set
 if (!supabaseUrl || !supabaseAnonKey) {
@@ -11,16 +78,22 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    // ConfiguraÃƒÂ§ÃƒÂµes especÃƒÂ­ficas para mobile
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    // Alterado para PKCE para permitir retorno via code + troca segura no app
-    flowType: 'pkce'
-  }
-});
+export const supabase = isSupabaseConfigured
+  ? createClient(
+      supabaseUrl as string,
+      supabaseAnonKey as string,
+      {
+        auth: {
+          // Mobile-friendly auth session handling.
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true,
+          // PKCE supports code redirects with secure token exchange.
+          flowType: 'pkce',
+        },
+      }
+    )
+  : missingSupabase;
 
 // Guide for customizing Supabase email templates:
 /*

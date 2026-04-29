@@ -137,9 +137,15 @@ const HomePage: React.FC = () => {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <button onClick={() => document.getElementById("modos")?.scrollIntoView({ behavior: "smooth" })} className="w-full sm:w-auto">
-              <Button variant="ghost" size="lg" className="w-full sm:w-auto text-white/70 hover:text-white hover:bg-white/10 h-14 px-8 text-base">
-                Ver como funciona</Button></button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="lg"
+              onClick={() => document.getElementById("modos")?.scrollIntoView({ behavior: "smooth" })}
+              className="w-full sm:w-auto text-white/70 hover:text-white hover:bg-white/10 h-14 px-8 text-base"
+            >
+              Ver como funciona
+            </Button>
           </div>
 
           {/* Trust Badges */}

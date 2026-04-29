@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { saveUser, clearUserData, getCurrentUser } from '@/utils/localStorage';
 import { App } from '@capacitor/app';
@@ -243,6 +243,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async () => {
     try {
       console.log('[AUTH] Iniciando login com Google');
+
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase nao configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.');
+      }
       
       // Remover flag de logout manual
       localStorage.removeItem('manual_logout');
@@ -287,6 +291,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithEmail = async (email: string, password: string) => {
     try {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase nao configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.');
+      }
+
       console.log('🔐 AuthContext: Fazendo login...');
       
       // Remover flag de logout manual
@@ -318,6 +326,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUpWithEmail = async (email: string, password: string) => {
     try {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase nao configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.');
+      }
+
       console.log('🔐 AuthContext: Fazendo cadastro...');
       const { data, error } = await supabase.auth.signUp({
         email,

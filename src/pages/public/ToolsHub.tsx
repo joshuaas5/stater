@@ -149,15 +149,6 @@ const ToolsHub: React.FC = () => {
       borderColor: 'border-teal-400',
       shadowColor: '#14B8A6'
     },
-    {
-      icon: Target,
-      title: 'Calculadora de Dividendos',
-      description: 'Projete sua renda passiva futura. Simule patrimonio e dividendos ao longo dos anos.',
-      slug: 'calculadora-dividendos',
-      color: 'from-emerald-500 to-green-400',
-      borderColor: 'border-emerald-400',
-      shadowColor: '#10B981'
-    },
   ];
 
   return (

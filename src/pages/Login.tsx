@@ -3,7 +3,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import AuthForm from '@/components/auth/AuthForm';
 
 import { useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useStableHeight } from '@/hooks/useStableHeight';
 import { Capacitor } from '@capacitor/core';
@@ -11,6 +11,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import '@/styles/anti-flicker.css';
 import '@/styles/mobile-login-compact.css';
 import '@/styles/login-improvements.css';
+
+const SUPABASE_MISSING_MESSAGE = 'Autenticacao nao configurada neste ambiente. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.';
 
 const Login: React.FC = () => {
   // Hook para altura estável em mobile
@@ -158,6 +160,11 @@ const Login: React.FC = () => {
 
     if (hasError) return;
 
+    if (!isSupabaseConfigured) {
+      showError('loginEmail', SUPABASE_MISSING_MESSAGE);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -211,6 +218,11 @@ const Login: React.FC = () => {
 
     if (hasError) return;
 
+    if (!isSupabaseConfigured) {
+      showError('registerEmail', SUPABASE_MISSING_MESSAGE);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -249,6 +261,11 @@ const Login: React.FC = () => {
       return;
     }
 
+    if (!isSupabaseConfigured) {
+      showError('forgotEmail', SUPABASE_MISSING_MESSAGE);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -282,6 +299,15 @@ const Login: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
+    if (!isSupabaseConfigured) {
+      toast({
+        title: 'Autenticacao nao configurada',
+        description: SUPABASE_MISSING_MESSAGE,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsGoogleLoading(true);
     try {
       console.log('[LOGIN] Iniciando fluxo de autenticação Google');

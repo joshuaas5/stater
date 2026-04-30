@@ -222,7 +222,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({
           {/* Indicador de progresso */}
           <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/20">
             <div 
-              className="h-full bg-white/40 transition-all duration-[8000ms] ease-linear"
+              className="h-full bg-white/40 transition-all ease-linear"
               style={{ 
                 width: isAnimating ? '0%' : '100%',
                 transition: isAnimating ? 'width 150ms ease-out' : 'width 8000ms linear'

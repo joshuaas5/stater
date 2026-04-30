@@ -7,6 +7,9 @@ import { BRAND_INFO } from './reportBranding';
  */
 
 // Função para formatar data no padrão OFX
+const OFX_TIMEZONE_SUFFIX = '[' + '-03:BRT' + ']';
+const ISO_DATE_ID_SEPARATOR_PATTERN = new RegExp('[' + '.TZ:-' + ']', 'g');
+
 const formatOFXDate = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -14,7 +17,7 @@ const formatOFXDate = (date: Date): string => {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
   const seconds = String(date.getSeconds()).padStart(2, '0');
-  return `${year}${month}${day}${hours}${minutes}${seconds}[-03:BRT]`;
+  return `${year}${month}${day}${hours}${minutes}${seconds}${OFX_TIMEZONE_SUFFIX}`;
 };
 
 // Função para limpar texto (remover caracteres especiais problemáticos)
@@ -28,7 +31,7 @@ const sanitizeText = (text: string): string => {
 
 // Função para gerar ID único para transação
 const generateFitId = (transaction: Transaction, index: number): string => {
-  const dateStr = new Date(transaction.date).toISOString().replace(/[-:T.Z]/g, '').substring(0, 14);
+  const dateStr = new Date(transaction.date).toISOString().replace(ISO_DATE_ID_SEPARATOR_PATTERN, '').substring(0, 14);
   return `STATER${dateStr}${String(index).padStart(4, '0')}`;
 };
 

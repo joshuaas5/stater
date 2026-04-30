@@ -33,7 +33,7 @@ export interface OFXParseResult {
 // Função para extrair valor de uma tag OFX
 const extractTagValue = (content: string, tagName: string): string | null => {
   // Formato SGML: <TAG>valor ou <TAG>valor</TAG>
-  // O valor pode ter timezone como [-3:BRT]
+  // O valor pode ter timezone OFX, por exemplo -3:BRT entre colchetes.
   const patterns = [
     new RegExp(`<${tagName}>([^<\\n]+)`, 'i'),
     new RegExp(`<${tagName}>([^<]+)</${tagName}>`, 'i'),
@@ -52,7 +52,7 @@ const extractTagValue = (content: string, tagName: string): string | null => {
 const parseOFXDate = (dateStr: string): string => {
   if (!dateStr) return new Date().toISOString().split('T')[0];
   
-  // Remover timezone se presente (ex: [-3:BRT] ou [0:GMT])
+  // Remover timezone se presente (ex: -3:BRT ou 0:GMT entre colchetes)
   const cleanDate = dateStr.replace(/\[.*?\]/g, '').trim();
   
   // Extrair apenas YYYYMMDD (primeiros 8 caracteres)

@@ -44,21 +44,16 @@ export interface GeminiTransactionIntent {
  * Função para obter a API key de diferentes fontes de ambiente
  */
 export function getApiKey(): string | null {
-  // Tenta obter de import.meta.env (Vite)
+  // Gemini keys must stay server-side. Browser code should call /api/gemini.
   if (typeof import.meta !== 'undefined' && import.meta.env) {
-    const viteKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
-    if (viteKey) return viteKey as string;
+    return null;
   }
   // Tenta obter de process.env (Node.js, pode não ser relevante no frontend diretamente mas bom para SSR/testes)
   if (typeof process !== 'undefined' && process.env) {
-    const nodeKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    const nodeKey = process.env.GEMINI_API_KEY;
     if (nodeKey) return nodeKey;
   }
   // Tenta obter do localStorage
-  if (typeof localStorage !== 'undefined') {
-    const localKey = localStorage.getItem('gemini_api_key');
-    if (localKey) return localKey;
-  }
   return null;
 }
 
@@ -68,15 +63,10 @@ export function getApiKey(): string | null {
  */
 function getApiKeySource(): string {
   if (typeof import.meta !== 'undefined' && import.meta.env) {
-    if (import.meta.env.VITE_GEMINI_API_KEY) return 'import.meta.env.VITE_GEMINI_API_KEY';
-    if (import.meta.env.GEMINI_API_KEY) return 'import.meta.env.GEMINI_API_KEY';
+    return 'server-only';
   }
   if (typeof process !== 'undefined' && process.env) {
-    if (process.env.VITE_GEMINI_API_KEY) return 'process.env.VITE_GEMINI_API_KEY';
     if (process.env.GEMINI_API_KEY) return 'process.env.GEMINI_API_KEY';
-  }
-  if (typeof localStorage !== 'undefined' && localStorage.getItem('gemini_api_key')) {
-    return 'localStorage';
   }
   return 'unknown';
 }

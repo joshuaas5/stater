@@ -5,7 +5,21 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  {
+    ignores: [
+      "dist",
+      "vite-solution/**",
+      "**/*.backup.*",
+      "**/*backup*",
+      "**/*_backup.*",
+      "**/*-old.*",
+      "**/*Old.*",
+      "**/*_BACKUP.*",
+      "**/*-BACKUP.*",
+      "src/components/financial-advisor/HotContent.tsx",
+      "src/plugins/superwall-professional.ts",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

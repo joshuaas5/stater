@@ -143,7 +143,6 @@ export default function StripeCheckout({ onSuccess, onCancel }: StripeCheckoutPr
             </>
           )}
         </Button>
-        </Button>
 
         {/* Informações adicionais */}
         <div className="text-center text-xs text-gray-500 space-y-1">
